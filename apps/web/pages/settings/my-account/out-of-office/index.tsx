@@ -81,7 +81,7 @@ const CreateOrEditOutOfOfficeEntryModal = ({
 
   const { hasTeamPlan } = useHasTeamPlan();
 
-  const { handleSubmit, setValue, control, register, reset } = useForm<BookingRedirectForm>({
+  const { handleSubmit, setValue, control, register } = useForm<BookingRedirectForm>({
     defaultValues: currentlyEditingOutOfOfficeEntry
       ? currentlyEditingOutOfOfficeEntry
       : {
@@ -95,11 +95,6 @@ const CreateOrEditOutOfOfficeEntryModal = ({
         },
   });
 
-  const resetForm = () => {
-    reset();
-    setProfileRedirect(false);
-  };
-
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
@@ -109,7 +104,6 @@ const CreateOrEditOutOfOfficeEntryModal = ({
         "success"
       );
       utils.viewer.outOfOfficeEntriesList.invalidate();
-      resetForm();
       closeModal();
     },
     onError: (error) => {
@@ -202,7 +196,7 @@ const CreateOrEditOutOfOfficeEntryModal = ({
                   id="profile-redirect-switch"
                   onCheckedChange={(state) => {
                     setProfileRedirect(state);
-                    if (state === false) {
+                    if (!state) {
                       setValue("toTeamUserId", null);
                     }
                   }}
@@ -250,7 +244,6 @@ const CreateOrEditOutOfOfficeEntryModal = ({
               color="minimal"
               type="button"
               onClick={() => {
-                resetForm();
                 closeModal();
               }}
               className="mr-1">
@@ -350,16 +343,14 @@ const OutOfOfficeEntriesList = ({
                     {item.notes && (
                       <p className="px-2">
                         <span className="text-subtle">{t("notes")}: </span>
-                        <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
-                          {item.notes}
-                        </span>
+                        <span>{item.notes}</span>
                       </p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex flex-row items-center gap-x-2">
-                  <Tooltip content={t("edit") as string}>
+                  <Tooltip content={t("edit")}>
                     <Button
                       className="self-center rounded-lg border"
                       type="button"
@@ -380,10 +371,9 @@ const OutOfOfficeEntriesList = ({
                         };
                         editOutOfOfficeEntry(outOfOfficeEntryData);
                       }}
-                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                     />
                   </Tooltip>
-                  <Tooltip content={t("delete") as string}>
+                  <Tooltip content={t("delete")}>
                     <Button
                       className="self-center rounded-lg border"
                       type="button"
