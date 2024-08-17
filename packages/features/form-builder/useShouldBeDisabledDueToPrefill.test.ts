@@ -24,13 +24,32 @@ const defaultField = {
   type: "text" as const,
 };
 
-const buildFormState = () => {
-  return {};
+type FormState = {
+  dirtyFields: {
+    responses: Record<string, boolean>;
+  };
 };
 
-const buildFormStateWithErrorForField = (fieldName: string) => {
+const buildFormState = (formState?: FormState) => {
+  formState = formState || {
+    dirtyFields: {
+      responses: {},
+    },
+  };
   return {
-    ...buildFormState(),
+    ...formState,
+  };
+};
+
+const buildFormStateWithErrorForField = ({
+  fieldName,
+  formState,
+}: {
+  fieldName: string;
+  formState?: FormState;
+}) => {
+  return {
+    ...buildFormState(formState),
     errors: {
       responses: {
         message: `{${fieldName}}Some error in the field`,
@@ -39,15 +58,15 @@ const buildFormStateWithErrorForField = (fieldName: string) => {
   };
 };
 
-const buildFormStateWithNoErrors = () => {
-  return buildFormState();
+const buildFormStateWithNoErrors = (formState?: FormState) => {
+  return buildFormState(formState);
 };
 
 const getMockFormContext = ({
   formState,
   responses,
 }: {
-  formState: any;
+  formState: FormState;
   responses: Record<string, string | string[]>;
 }) => {
   return {
@@ -89,7 +108,7 @@ describe("useShouldBeDisabledDueToPrefill", () => {
         disableOnPrefill: true,
       };
       mockScenario({
-        formState: buildFormStateWithErrorForField(field.name),
+        formState: buildFormStateWithErrorForField({ fieldName: field.name }),
         responses: {
           [field.name]: "TestValue",
         },
@@ -108,7 +127,7 @@ describe("useShouldBeDisabledDueToPrefill", () => {
         disableOnPrefill: true,
       };
       mockScenario({
-        formState: buildFormStateWithErrorForField("some-other-field"),
+        formState: buildFormStateWithErrorForField({ fieldName: "some-other-field" }),
         responses: {
           [field.name]: "TestValue",
         },
@@ -156,23 +175,133 @@ describe("useShouldBeDisabledDueToPrefill", () => {
     });
 
     describe("Special handling of radioInput and variantsConfig type fields", () => {
-      test(`should return true for radioInput type field when the searchParams value is set and responses are empty`, () => {
-        const field = {
-          ...defaultField,
-          type: "radioInput" as const,
-          disableOnPrefill: true,
-        };
-        mockScenario({
-          formState: buildFormStateWithNoErrors(),
-          searchParams: {
-            [field.name]: "TestValue1",
-          },
-          responses: {},
+      describe("radioInput type field", () => {
+        test(`should return true for radioInput type field when the searchParams value is set and response is also set even though it doesn't match`, () => {
+          const field = {
+            ...defaultField,
+            type: "radioInput" as const,
+            disableOnPrefill: true,
+            optionsInputs: {
+              phone: {
+                type: "phone" as const,
+              },
+            },
+          };
+          mockScenario({
+            formState: buildFormStateWithNoErrors(),
+            searchParams: {
+              [field.name]: "TestValue1",
+            },
+            responses: {
+              [field.name]: {
+                value: "phone",
+                optionValue: "TestValue2",
+              },
+            },
+          });
+          const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+          expect(shouldBeDisabled).toBe(true);
         });
-        const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
-        expect(shouldBeDisabled).toBe(true);
+
+        test(`should return false for radioInput type field when the searchParams value is set and response is also set but it isn't valid`, () => {
+          const field = {
+            ...defaultField,
+            type: "radioInput" as const,
+            disableOnPrefill: true,
+            optionsInputs: {
+              phone: {
+                type: "phone" as const,
+              },
+            },
+          };
+          mockScenario({
+            formState: buildFormStateWithNoErrors(),
+            searchParams: {
+              [field.name]: "TestValue1",
+            },
+            responses: {
+              [field.name]: "TestValue2",
+            },
+          });
+          const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+          expect(shouldBeDisabled).toBe(false);
+        });
+
+        test(`should return false for radioInput type field when the searchParams value is set and response is also set but it radioInput value isn't completely filled(optionsInputs case)`, () => {
+          const field = {
+            ...defaultField,
+            type: "radioInput" as const,
+            disableOnPrefill: true,
+            optionsInputs: {
+              phone: {
+                type: "phone" as const,
+              },
+            },
+          };
+          mockScenario({
+            formState: buildFormStateWithNoErrors(),
+            searchParams: {
+              [field.name]: "TestValue1",
+            },
+            responses: {
+              [field.name]: {
+                value: "phone",
+                // Not filled
+                optionValue: "",
+              },
+            },
+          });
+          const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+          expect(shouldBeDisabled).toBe(false);
+        });
+
+        test(`should return false for radioInput type field when the searchParams value is set and response is also set but it radioInput value isn't completely filled`, () => {
+          const field = {
+            ...defaultField,
+            type: "radioInput" as const,
+            disableOnPrefill: true,
+            optionsInputs: {
+              not_phone: {
+                type: "phone" as const,
+              },
+            },
+          };
+          mockScenario({
+            formState: buildFormStateWithNoErrors(),
+            searchParams: {
+              [field.name]: "TestValue1",
+            },
+            responses: {
+              [field.name]: {
+                value: "phone",
+                // Not filled but doesn't matter because phone type doesn't need optionValue as per the optionsInputs
+                optionValue: "",
+              },
+            },
+          });
+          const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+          expect(shouldBeDisabled).toBe(true);
+        });
+
+        test(`should return false for radioInput type field if some other field is set in the searchParams`, () => {
+          const field = {
+            ...defaultField,
+            type: "radioInput" as const,
+            disableOnPrefill: true,
+          };
+          mockScenario({
+            formState: buildFormStateWithNoErrors(),
+            searchParams: {
+              ["some-other-field"]: "TestValue1",
+            },
+            responses: {},
+          });
+          const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+          expect(shouldBeDisabled).toBe(false);
+        });
       });
-      test(`should return true for field with variantsConfig when the searchParams value is set and responses are empty`, () => {
+
+      test(`should return true for field with variantsConfig when the searchParams value is set and response is also set even though it doesn't match`, () => {
         const field = {
           ...defaultField,
           type: "text" as const,
@@ -190,7 +319,9 @@ describe("useShouldBeDisabledDueToPrefill", () => {
           searchParams: {
             [field.name]: "TestValue1",
           },
-          responses: {},
+          responses: {
+            [field.name]: "TestValue2",
+          },
         });
         const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
         expect(shouldBeDisabled).toBe(true);
@@ -325,6 +456,31 @@ describe("useShouldBeDisabledDueToPrefill", () => {
         const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
         expect(shouldBeDisabled).toBe(true);
       });
+    });
+
+    test("should return `false` for a field even if there are no errors and it is prefilled but the field is dirty", () => {
+      const field = {
+        ...defaultField,
+        disableOnPrefill: true,
+      };
+      mockScenario({
+        formState: buildFormStateWithNoErrors({
+          dirtyFields: {
+            responses: {
+              [field.name]: true,
+            },
+          },
+        }),
+        responses: {
+          [field.name]: "TestValue",
+        },
+        searchParams: {
+          [field.name]: "TestValue",
+        },
+      });
+      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+
+      expect(shouldBeDisabled).toBe(false);
     });
   });
 

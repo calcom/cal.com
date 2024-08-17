@@ -66,8 +66,8 @@ export const FormBuilderField = ({
     field,
     t
   );
-  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
 
+  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
       <Controller
