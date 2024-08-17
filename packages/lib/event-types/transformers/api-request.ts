@@ -3,6 +3,7 @@ import { z } from "zod";
 import type {
   BookingLimitsKeyOutputType_2024_06_14,
   TransformBookingLimitsSchema_2024_06_14,
+  TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 import {
   type CreateEventTypeInput_2024_06_14,
@@ -15,6 +16,7 @@ import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
+import { Frequency } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/frequency";
 import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
@@ -162,6 +164,17 @@ function transformApiEventTypeFutureBookingLimits(
   }
 }
 
+function transformApiEventTypeReccuringEvent(
+  recurringEvent: CreateEventTypeInput_2024_06_14["recurringEvent"]
+): TransformRecurringEventSchema_2024_06_14 | undefined {
+  if (!recurringEvent) return undefined;
+  return {
+    interval: recurringEvent.interval,
+    count: recurringEvent.occurrences,
+    freq: Frequency[recurringEvent.frequency as unknown as keyof typeof Frequency],
+  } as TransformRecurringEventSchema_2024_06_14;
+}
+
 export function transformSelectOptions(options: string[]) {
   return options.map((option) => ({
     label: option,
@@ -264,4 +277,5 @@ export {
   transformApiEventTypeBookingFields,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeReccuringEvent,
 };

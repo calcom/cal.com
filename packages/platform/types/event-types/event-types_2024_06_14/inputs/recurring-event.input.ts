@@ -1,34 +1,24 @@
-import { IsInt, IsEnum, IsOptional, IsString, IsDateString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsInt, IsEnum } from "class-validator";
 
-export enum Frequency {
-  YEARLY = 0,
-  MONTHLY = 1,
-  WEEKLY = 2,
-  DAILY = 3,
-  HOURLY = 4,
-  MINUTELY = 5,
-  SECONDLY = 6,
-}
+import { FrequencyInput } from "./enums/frequency";
+
+export type TransformRecurringEventSchema_2024_06_14 = {
+  interval: number;
+  count: number;
+  freq: number;
+};
 
 export class RecurringEvent_2024_06_14 {
-  @IsOptional()
-  @IsDateString()
-  dtstart?: Date;
-
   @IsInt()
+  @ApiProperty({ example: 10, description: "Repeats every {count} week | month | year" })
   interval!: number;
 
   @IsInt()
-  count!: number;
+  @ApiProperty({ example: 10, description: "Repeats for a maximum of {count} events" })
+  occurrences!: number;
 
-  @IsEnum(Frequency)
-  freq!: Frequency;
-
-  @IsOptional()
-  @IsDateString()
-  until?: Date;
-
-  @IsOptional()
-  @IsString()
-  tzid?: string;
+  @IsEnum(FrequencyInput)
+  @ApiProperty({ enum: FrequencyInput })
+  frequency!: FrequencyInput;
 }

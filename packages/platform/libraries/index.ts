@@ -102,6 +102,8 @@ export {
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeReccuringEvent,
+  getResponseEventTypeReccuringEvent,
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit } from "@calcom/lib";

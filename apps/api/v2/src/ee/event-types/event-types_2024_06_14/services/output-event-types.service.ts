@@ -15,6 +15,7 @@ import {
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
 } from "@calcom/platform-libraries";
+import { getResponseEventTypeReccuringEvent } from "@calcom/platform-libraries-1.2.3";
 import { TransformFutureBookingsLimitSchema_2024_06_14 } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
@@ -154,7 +155,8 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformRecurringEvent(recurringEvent: any) {
     if (!recurringEvent) return null;
-    return parseRecurringEvent(recurringEvent);
+    const recurringEventParsed = parseRecurringEvent(recurringEvent);
+    return getResponseEventTypeReccuringEvent(recurringEventParsed);
   }
 
   transformMetadata(metadata: any) {
