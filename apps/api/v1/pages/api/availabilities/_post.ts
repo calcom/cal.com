@@ -62,7 +62,7 @@ import {
  *     tags:
  *     - availabilities
  *     externalDocs:
- *        url: https://docs.cal.com/availability
+ *        url: https://docs.cal.com/docs/availability
  *     responses:
  *       201:
  *         description: OK, availability created

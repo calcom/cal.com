@@ -28,7 +28,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *     - availabilities
  *     externalDocs:
- *        url: https://docs.cal.com/availability
+ *        url: https://docs.cal.com/docs/availability
  *     responses:
  *       200:
  *         description: OK
