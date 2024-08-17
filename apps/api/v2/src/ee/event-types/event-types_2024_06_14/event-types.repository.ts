@@ -7,13 +7,24 @@ import {
   getEventTypeById,
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
-} from "@calcom/platform-libraries-0.0.23";
+} from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 
 type InputEventTransformed = Omit<
   CreateEventTypeInput_2024_06_14,
-  "lengthInMinutes" | "locations" | "bookingFields"
+  | "lengthInMinutes"
+  | "locations"
+  | "bookingFields"
+  | "bookingLimitsCount"
+  | "onlyShowFirstAvailableSlot"
+  | "bookingLimitsDuration"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
 > & {
   length: number;
   slug: string;

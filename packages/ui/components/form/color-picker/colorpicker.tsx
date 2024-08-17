@@ -1,3 +1,5 @@
+"use client";
+
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";

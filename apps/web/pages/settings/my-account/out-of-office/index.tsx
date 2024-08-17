@@ -86,8 +86,8 @@ const CreateOrEditOutOfOfficeEntryModal = ({
       ? currentlyEditingOutOfOfficeEntry
       : {
           dateRange: {
-            startDate: dayjs().startOf("d").toDate(),
-            endDate: dayjs().add(1, "d").endOf("d").toDate(),
+            startDate: dayjs().utc().startOf("d").toDate(),
+            endDate: dayjs().utc().add(1, "d").endOf("d").toDate(),
           },
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
@@ -445,6 +445,7 @@ const OutOfOfficePage = () => {
     setOpenModal(true);
   };
 
+  const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
   return (
     <>
       <Meta
@@ -452,13 +453,17 @@ const OutOfOfficePage = () => {
         description={t("out_of_office_description")}
         borderInShellHeader={false}
         CTA={
-          <Button
-            color="primary"
-            className="flex w-20 items-center justify-between px-4"
-            onClick={() => setOpenModal(true)}
-            data-testid="add_entry_ooo">
-            <Icon name="plus" size={16} /> {t("add")}
-          </Button>
+          isPending ? (
+            <SkeletonText className="h-8 w-20" />
+          ) : (
+            <Button
+              color="primary"
+              className="flex w-20 items-center justify-between px-4"
+              onClick={() => setOpenModal(true)}
+              data-testid="add_entry_ooo">
+              <Icon name="plus" size={16} /> {t("add")}
+            </Button>
+          )
         }
       />
       {openModal && (
