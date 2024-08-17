@@ -27,7 +27,7 @@ function CreateAttributesPage() {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   // Get the attribute id from the url
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>()!;
   // ensure string with zod
   const attribute = trpc.viewer.attributes.get.useQuery({ id: id as string });
 
