@@ -22,9 +22,17 @@ export function useShouldShowArrows() {
     right: false,
   });
 
-
-  const itemRefs = useRef([]);
-
+  useEffect(() => {
+    const appCategoryList = ref.current;
+    if (appCategoryList) {
+      const isAtStart = appCategoryList.scrollLeft <= 0;
+      const isAtEnd = appCategoryList.scrollWidth <= appCategoryList.clientWidth + appCategoryList.scrollLeft;
+      setShowArrowScroll({
+        left: !isAtStart,
+        right: !isAtEnd,
+      });
+    }
+  }, []);
 
   const calculateScroll = (e: UIEvent<HTMLUListElement>) => {
     setShowArrowScroll({

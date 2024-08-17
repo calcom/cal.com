@@ -41,7 +41,7 @@ export const EventDuration = ({
   event: Pick<BookerEvent, "length" | "metadata" | "isDynamic">;
 }) => {
   const { t } = useLocale();
-  const itemRefs = useRef([]);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const isPlatform = useIsPlatform();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
@@ -109,7 +109,7 @@ export const EventDuration = ({
               data-active={selectedDuration === duration ? "true" : "false"}
               key={index}
               onClick={() => setSelectedDuration(duration)}
-              ref={(el) => (itemRefs.current[duration] = el)} // Assign ref here
+              ref={(el) => (itemRefs.current[duration] = el)}
               className={classNames(
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
                 "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
