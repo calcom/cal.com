@@ -44,10 +44,6 @@ type ValueProps =
   | {
       value: boolean;
       setValue: (value: boolean) => void;
-    }
-  | {
-      value: undefined;
-      setValue: (value: undefined) => void;
     };
 
 export const FormBuilderField = ({
