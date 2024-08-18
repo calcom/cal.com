@@ -166,9 +166,9 @@ const MultiSelectWidget = ({
 
   // If no value could be found in the list, then we set the value to undefined.
   // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
-  // Do it but only when it is not already undefined, this is to avoid infinite state updates
-  if (optionsFromList.length === 0 && value !== undefined) {
-    setValue(undefined);
+  // Do it only when it is not already empty string, this is to avoid infinite state updates
+  if (optionsFromList.length === 0 && value) {
+    setValue("");
   }
 
   return (
@@ -201,9 +201,9 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 
   // If the value is not in the list, then we set the value to undefined.
   // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
-  // Do it but only when it is not already undefined, this is to avoid infinite state updates
-  if (!optionFromList && value !== undefined) {
-    setValue(undefined);
+  // Do it only when it is not already empty string, this is to avoid infinite state updates
+  if (!optionFromList && value) {
+    setValue("");
   }
 
   return (
