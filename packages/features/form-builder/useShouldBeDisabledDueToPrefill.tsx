@@ -45,7 +45,9 @@ function isEqual(searchParamValue: string | string[], formValue: string[] | stri
 export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
   const { getValues, formState } = useFormContext();
   const toPrefillValues = useRouterQuery();
-
+  if (!field.disableOnPrefill) {
+    return false;
+  }
   // If the field is dirty, it means that some change has been made to the input by user, so we shouldn't disable it anymore
   // It avoids a scenario like this
   // 1. Input Prefilled and thus disabled
@@ -83,7 +85,7 @@ export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
     return false;
   }
 
-  if (!field.disableOnPrefill || !toPrefillValues) {
+  if (!toPrefillValues) {
     // If there are no toPrefillValues, nothing can be prefilled and thus nothing should be disabled
     return false;
   }

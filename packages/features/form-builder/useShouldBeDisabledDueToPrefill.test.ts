@@ -520,5 +520,35 @@ describe("useShouldBeDisabledDueToPrefill", () => {
       const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
       expect(shouldBeDisabled).toBe(false);
     });
+
+    test(`should return 'false' for field having variantsConfig even when the field is prefilled`, () => {
+      const field = {
+        ...defaultField,
+        variantsConfig: {
+          variants: {
+            TestValue1: {
+              fields: [],
+            },
+            TestValue2: {
+              fields: [],
+            },
+          },
+        },
+        disableOnPrefill: false,
+      };
+
+      mockScenario({
+        formState: buildFormStateWithNoErrors(),
+        responses: {
+          [field.name]: "TestValue1",
+        },
+        searchParams: {
+          [field.name]: "TestValue",
+        },
+      });
+
+      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+      expect(shouldBeDisabled).toBe(false);
+    });
   });
 });
