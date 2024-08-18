@@ -4867,6 +4867,7 @@ __metadata:
     react-colorful: ^5.6.0
     react-day-picker: ^8.10.1
     react-hook-form: ^7.43.3
+    react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
     react-virtual: ^2.10.4
     typescript: ^4.9.4
@@ -35715,6 +35716,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-from-dom@npm:^0.7.2":
+  version: 0.7.3
+  resolution: "react-from-dom@npm:0.7.3"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: c2dd74dbdae570ce3ce2f7466643ac8e27de2511cb73cb3027fdfc572bed7bb058e1c459ffb32d02e2c41e4c21b0ca490d0dc861f30452fe3689d2e938ad7277
+  languageName: node
+  linkType: hard
+
 "react-hook-form@npm:^7.43.3":
   version: 7.43.3
   resolution: "react-hook-form@npm:7.43.3"
@@ -35773,6 +35783,17 @@ __metadata:
     react: ">= 16.6"
     react-dom: ">= 16.6"
   checksum: 73254040cb25b93343c03fb694c5eebbe558d486068ad9766d87ecb2661c38a2c2edf75e683da269f01a138f1aad1cd23cc456a857c5931af4ca54bf941bf12a
+  languageName: node
+  linkType: hard
+
+"react-inlinesvg@npm:^4.1.3":
+  version: 4.1.3
+  resolution: "react-inlinesvg@npm:4.1.3"
+  dependencies:
+    react-from-dom: ^0.7.2
+  peerDependencies:
+    react: 16.8 - 18
+  checksum: c8b3f670188b645f03172ca89c653435cf41d99123791694e7525a5a2531a0bde4451735afe4e82a7188d8f90a362cb55f49bf8160cd77cd4fd5b1c78aa0f324
   languageName: node
   linkType: hard
 

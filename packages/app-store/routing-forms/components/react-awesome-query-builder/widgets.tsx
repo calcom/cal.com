@@ -31,7 +31,7 @@ export type CommonProps<
   name?: string;
   label?: string;
   value: TVal;
-  setValue: (value: TVal | undefined) => void;
+  setValue: (value: TVal) => void;
   /**
    * required and other validations are supported using zodResolver from react-hook-form
    */
@@ -166,9 +166,9 @@ const MultiSelectWidget = ({
 
   // If no value could be found in the list, then we set the value to undefined.
   // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
-  // Do it only when it is not already empty string, this is to avoid infinite state updates
-  if (optionsFromList.length === 0 && value) {
-    setValue("");
+  // Do it only when it is not already empty, this is to avoid infinite state updates
+  if (optionsFromList.length === 0 && value.length) {
+    setValue([]);
   }
 
   return (
