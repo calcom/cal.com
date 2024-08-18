@@ -74,7 +74,7 @@ export const EventDuration = ({
 
   useEffect(() => {
     if (selectedDuration && itemRefs.current[selectedDuration]) {
-      itemRefs.current[selectedDuration].scrollIntoView({
+      itemRefs.current[selectedDuration]?.scrollIntoView({
         behavior: "smooth",
         block: "center",
         inline: "center",
