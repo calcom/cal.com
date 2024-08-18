@@ -9,12 +9,25 @@ const { SelectWidget, MultiSelectWidget } = widgets;
 vi.mock("next/dynamic", () => ({
   __esModule: true,
   default: () => {
-    return function MockSelect({ options, onChange, value, isMulti }) {
+    return function MockSelect({
+      options,
+      onChange,
+      value,
+      isMulti,
+    }: {
+      options: { value: string; label: string }[];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onChange: (value: any) => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      value: any;
+      isMulti: boolean;
+    }) {
       return (
         <select
           data-testid="mock-select"
           multiple={isMulti}
-          value={isMulti ? value.map((v) => v.value) : value?.value}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          value={isMulti ? value.map((v: any) => v.value) : value?.value}
           onChange={(e) => {
             const selectedOptions = Array.from(e.target.selectedOptions, (option) => ({
               value: option.value,
