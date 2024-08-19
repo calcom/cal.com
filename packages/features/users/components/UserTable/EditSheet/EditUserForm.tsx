@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
-import { useMemo } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useMemo, useState } from "react";
+import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
-import { shallow } from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -13,25 +12,36 @@ import {
   Form,
   TextField,
   ToggleGroup,
+  InputField,
   TextAreaField,
   TimezoneSelect,
   Label,
   showToast,
   Avatar,
   ImageUploader,
+  SelectField,
   SheetHeader,
   SheetBody,
   SheetFooter,
+  Button,
+  SheetTitle,
 } from "@calcom/ui";
 
 import type { Action } from "../UserListTable";
-import { SheetFooterControls } from "./SheetFooterControls";
 import { useEditMode } from "./store";
 
 type MembershipOption = {
   value: MembershipRole;
   label: string;
 };
+
+const stringOrNumber = z.string().or(z.number());
+
+const attributeSchema = z.object({
+  id: z.string(),
+  options: z.array(z.object({ label: z.string().optional(), value: stringOrNumber.optional() })).optional(),
+  value: stringOrNumber.optional(),
+});
 
 const editSchema = z.object({
   name: z.string(),
@@ -43,6 +53,7 @@ const editSchema = z.object({
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
+  attributes: z.array(attributeSchema).optional(),
 });
 
 type EditSchema = z.infer<typeof editSchema>;
@@ -58,7 +69,8 @@ export function EditForm({
   domainUrl: string;
   dispatch: Dispatch<Action>;
 }) {
-  const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
+  const setEditMode = useEditMode((state) => state.setEditMode);
+  const [mutationLoading, setMutationLoading] = useState(false);
   const { t } = useLocale();
   const session = useSession();
   const org = session?.data?.user?.org;
@@ -124,7 +136,6 @@ export function EditForm({
     <>
       <Form
         form={form}
-        id="edit-user-form"
         className="flex h-full flex-col"
         handleSubmit={(values) => {
           setMutationLoading(true);
@@ -137,10 +148,18 @@ export function EditForm({
             avatar: values.avatar,
             bio: values.bio,
             timeZone: values.timeZone,
+            // @ts-expect-error theyre there in local types but for some reason it errors?
+            attributeOptions: values.attributes
+              ? // @ts-expect-error  same as above
+                { userId: selectedUser?.id ?? "", attributes: values.attributes }
+              : undefined,
           });
+          setEditMode(false);
         }}>
         <SheetHeader>
-          <div className="flex flex-col gap-2">
+          <SheetTitle>{t("update_profile")}</SheetTitle>
+
+          <div className="mt-6 flex flex-col gap-2">
             <Controller
               control={form.control}
               name="avatar"
@@ -161,22 +180,15 @@ export function EditForm({
                 </div>
               )}
             />
-            <div className="space-between flex flex-col leading-none">
-              <span className="text-emphasis text-lg font-semibold">
-                {selectedUser?.name ?? "Nameless User"}
-              </span>
-              <p className="subtle text-sm font-normal">
-                {domainUrl}/{selectedUser?.username}
-              </p>
-            </div>
           </div>
         </SheetHeader>
-        <SheetBody className="mt-6 flex h-full flex-col space-y-3">
+        <SheetBody className="mt-4 flex h-full flex-col space-y-3 px-1">
+          <label className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</label>
           <TextField label={t("username")} {...form.register("username")} />
           <TextField label={t("name")} {...form.register("name")} />
           <TextField label={t("email")} {...form.register("email")} />
 
-          <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-52" />
+          <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-24" />
           <div>
             <Label>{t("role")}</Label>
             <ToggleGroup
@@ -189,15 +201,157 @@ export function EditForm({
               }}
             />
           </div>
-          <div>
+          <div className="mb-4">
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
+          <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>
-          <SheetFooterControls />
+          <Button
+            color="secondary"
+            type="button"
+            className="justify-center md:w-1/5"
+            onClick={() => {
+              setEditMode(false);
+            }}>
+            {t("cancel")}
+          </Button>
+
+          <Button type="submit" className="w-full justify-center">
+            {t("update")}
+          </Button>
         </SheetFooter>
       </Form>
     </>
+  );
+}
+
+type AttributeType = z.infer<typeof attributeSchema>;
+
+type DefaultValueType = {
+  [key: `attributes.${number}`]: AttributeType;
+};
+
+function AttributesList(props: { selectedUserId: number }) {
+  const { data: usersAttributes, isPending: usersAttributesPending } =
+    trpc.viewer.attributes.getByUserId.useQuery({
+      userId: props.selectedUserId,
+    });
+  const { data: attributes, isPending: attributesPending } = trpc.viewer.attributes.list.useQuery();
+  const enabledAttributes = attributes?.filter((attr) => attr.enabled);
+
+  const { t } = useLocale();
+  const { control, watch, getFieldState, setValue } = useFormContext();
+
+  const getOptionsByAttributeId = (attributeId: string) => {
+    const attribute = attributes?.find((attr) => attr.id === attributeId);
+    return attribute
+      ? attribute.options.map((option) => ({
+          value: option.id,
+          label: option.value,
+        }))
+      : [];
+  };
+
+  const defaultValues = useMemo<DefaultValueType>(() => {
+    if (!usersAttributes || usersAttributesPending || !enabledAttributes) return {};
+
+    return enabledAttributes.reduce<DefaultValueType>((acc, enabledAttr, index) => {
+      const attr = usersAttributes.find((attr) => attr.id === enabledAttr.id);
+      const key = `attributes.${index}` as const;
+
+      if (!attr) {
+        acc[key] = { id: enabledAttr.id, value: "", options: [] };
+      } else if (attr.type === "MULTI_SELECT") {
+        acc[key] = {
+          id: attr.id,
+          options: attr.options.map((option) => ({ label: option.value, value: option.id })),
+        };
+      } else if (attr.type === "SINGLE_SELECT") {
+        acc[key] = {
+          id: attr.id,
+          options: [{ label: attr.options[0]?.value, value: attr.options[0]?.id }],
+        };
+      } else {
+        acc[key] = {
+          id: attr.id,
+          value: attr.options[0]?.value || "",
+        };
+      }
+      return acc;
+    }, {});
+  }, [usersAttributes, usersAttributesPending, enabledAttributes]);
+
+  if (!enabledAttributes || !usersAttributes) return null;
+  const attributeFieldState = getFieldState("attributes");
+
+  return (
+    <div className="flex flex-col overflow-visible">
+      <div className="flex flex-col gap-3 rounded-lg">
+        <label className="text-emphasis mb-1 mt-6 text-base font-semibold">{t("attributes")}</label>
+        {attributeFieldState.error && (
+          <p className="text-error mb-2 block text-sm font-medium leading-none">
+            {JSON.stringify(attributeFieldState.error)}
+          </p>
+        )}
+        {enabledAttributes.map((attr, index) => (
+          <Controller
+            name={`attributes.${index}`}
+            control={control}
+            key={attr.id}
+            defaultValue={defaultValues[`attributes.${index}`]}
+            render={({ field }) => {
+              return (
+                <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
+                  {["TEXT", "NUMBER"].includes(attr.type) && (
+                    <InputField
+                      {...field}
+                      containerClassName="w-full"
+                      labelClassName="text-emphasis mb-2 block text-sm font-medium leading-none"
+                      label={attr.name}
+                      type={attr.type === "TEXT" ? "text" : "number"}
+                      value={field.value?.value || ""}
+                      onChange={(e) => {
+                        field.onChange({
+                          id: attr.id,
+                          value: e.target.value,
+                        });
+                      }}
+                    />
+                  )}
+                  {["SINGLE_SELECT", "MULTI_SELECT"].includes(attr.type) && (
+                    <SelectField
+                      name={field.name}
+                      containerClassName="w-full"
+                      isMulti={attr.type === "MULTI_SELECT"}
+                      labelProps={{
+                        className: "text-emphasis mb-2 block text-sm font-medium leading-none",
+                      }}
+                      label={attr.name}
+                      options={getOptionsByAttributeId(attr.id)}
+                      value={attr.type === "MULTI_SELECT" ? field.value?.options : field.value?.options[0]}
+                      onChange={(value) => {
+                        if (attr.type === "MULTI_SELECT") {
+                          field.onChange({
+                            id: attr.id,
+                            options: value.map((v: any) => ({ label: v.label, value: v.value })),
+                          });
+                        } else {
+                          field.onChange({
+                            id: attr.id,
+                            options: [{ label: value.label, value: value.value }],
+                          });
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
