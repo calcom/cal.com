@@ -8,4 +8,5 @@ export const schemaPaymentPublic = Payment.pick({
   fee: true,
   paymentOption: true,
   currency: true,
+  bookingId: true,
 });
