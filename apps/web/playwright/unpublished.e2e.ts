@@ -10,7 +10,7 @@ const title = (name: string) => `${name} is unpublished`;
 const description = (entity: string) =>
   `This ${entity} link is currently not available. Please contact the ${entity} owner or ask them to publish it.`;
 
-test.afterAll(async ({ users }) => {
+test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 

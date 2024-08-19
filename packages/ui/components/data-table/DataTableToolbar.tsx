@@ -1,7 +1,6 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -9,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
 import { Input } from "../form";
+import type { IconName } from "../icon/icon-names";
 import { DataTableFilter } from "./DataTableFilter";
 
 export type FilterableItems = {
@@ -17,7 +17,7 @@ export type FilterableItems = {
   options: {
     label: string;
     value: string;
-    icon?: LucideIcon;
+    icon?: IconName;
   }[];
 }[];
 
@@ -49,7 +49,7 @@ export function DataTableToolbar<TData>({
   const { t } = useLocale();
 
   return (
-    <div className="flex items-center justify-end  py-4">
+    <div className="flex items-center justify-end gap-2 py-4">
       {searchKey && (
         <Input
           className="max-w-64 mb-0 mr-auto rounded-md"

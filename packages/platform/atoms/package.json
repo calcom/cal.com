@@ -57,11 +57,11 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-toast": "^1.1.5",
     "@tanstack/react-query": "^5.17.15",
     "class-variance-authority": "^0.4.0",
     "clsx": "^2.0.0",
-    "lucide-react": "^0.364.0",
     "react-use": "^17.4.2",
     "tailwind-merge": "^1.13.2",
     "tailwindcss": "^3.3.3",
