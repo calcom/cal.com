@@ -125,6 +125,7 @@ async function postHandler(req: NextApiRequest) {
     metadata: NonNullable<typeof data.metadata> | undefined;
   } = {
     ...data,
+    smsLockReviewedByAdmin: false,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
 
