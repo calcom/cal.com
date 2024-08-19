@@ -14,6 +14,7 @@ import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { TextField } from "@calcom/ui";
 import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
@@ -87,39 +88,43 @@ const EventTypeScheduleDetails = memo(
     return (
       <div>
         <div className="border-subtle space-y-4 border-x p-6">
-          <ol className="table border-collapse text-sm">
-            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
-              const isAvailable = !!filterDays(index).length;
-              return (
-                <li key={day} className="my-6 flex border-transparent last:mb-2">
-                  <span
-                    className={classNames(
-                      "w-20 font-medium sm:w-32 ",
-                      !isAvailable ? "text-subtle line-through" : "text-default"
-                    )}>
-                    {day}
-                  </span>
-                  {isPending ? (
-                    <SkeletonText className="block h-5 w-60" />
-                  ) : isAvailable ? (
-                    <div className="space-y-3 text-right">
-                      {filterDays(index).map((dayRange, i) => (
-                        <div key={i} className="text-default flex items-center leading-4">
-                          <span className="w-16 sm:w-28 sm:text-left">
-                            {format(dayRange.startTime, timeFormat === 12)}
-                          </span>
-                          <span className="ms-4">-</span>
-                          <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
+          {!schedule?.timeBlocks?.length ? (
+            <ol className="table border-collapse text-sm">
+              {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
+                const isAvailable = !!filterDays(index).length;
+                return (
+                  <li key={day} className="my-6 flex border-transparent last:mb-2">
+                    <span
+                      className={classNames(
+                        "w-20 font-medium sm:w-32 ",
+                        !isAvailable ? "text-subtle line-through" : "text-default"
+                      )}>
+                      {day}
+                    </span>
+                    {isPending ? (
+                      <SkeletonText className="block h-5 w-60" />
+                    ) : isAvailable ? (
+                      <div className="space-y-3 text-right">
+                        {filterDays(index).map((dayRange, i) => (
+                          <div key={i} className="text-default flex items-center leading-4">
+                            <span className="w-16 sm:w-28 sm:text-left">
+                              {format(dayRange.startTime, timeFormat === 12)}
+                            </span>
+                            <span className="ms-4">-</span>
+                            <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          ) : (
+            schedule && <EventTypeTimeBlocks timeBlocks={schedule.timeBlocks} />
+          )}
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <span className="text-default flex items-center justify-center text-sm sm:justify-start">
@@ -251,6 +256,32 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
         )
       )}
+    </div>
+  );
+};
+
+const EventTypeTimeBlocks = ({ timeBlocks }: { timeBlocks: string[] }) => {
+  const { t } = useLocale();
+
+  return (
+    <div>
+      <p className="text-subtle mb-4 text-sm">
+        Mark yourself available when you have a calendar event with a title that contains
+      </p>
+      <div className="space-y-2">
+        {timeBlocks.map((timeBlock, index) => (
+          <div key={index} className="mb-2 flex-col items-center space-y-2">
+            {index !== 0 && (
+              <div>
+                <p>{t("or")}</p>
+              </div>
+            )}
+            <div className="w-full">
+              <TextField label={false} type="standard" value={timeBlock} readOnly={true} />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
