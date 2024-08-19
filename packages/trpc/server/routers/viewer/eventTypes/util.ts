@@ -186,7 +186,7 @@ export function ensureEmailOrPhoneNumberIsPresent(
   if (!emailField?.required && !attendeePhoneNumberField?.required) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Atleast Email or Attendee Phone Number need to be required field.`,
+      message: `At least Email or Attendee Phone Number need to be required field.`,
     });
   }
 }
