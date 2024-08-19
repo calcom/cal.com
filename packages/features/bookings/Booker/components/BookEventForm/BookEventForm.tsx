@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
@@ -47,6 +47,8 @@ export const BookEventForm = ({
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;
+  const [cpfError, setCPFError] = useState(false);
+  const [showError, setShowError] = useState(false);
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -61,6 +63,15 @@ export const BookEventForm = ({
     const paymentAppData = getPaymentAppData(eventType);
     return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventType]);
+
+  const validateCPF = useCallback(() => {
+    if (cpfError) setShowError(true);
+    else onSubmit();
+  }, [cpfError, onSubmit]);
+
+  useEffect(() => {
+    if (!cpfError && showError) setShowError(false);
+  }, [cpfError, showError]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
@@ -92,7 +103,7 @@ export const BookEventForm = ({
           setFormValues(values);
         }}
         form={bookingForm}
-        handleSubmit={onSubmit}
+        handleSubmit={validateCPF}
         noValidate>
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
@@ -100,6 +111,7 @@ export const BookEventForm = ({
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
+          setCPFError={setCPFError}
         />
         {(errors.hasFormErrors || errors.hasDataErrors) && (
           <div data-testid="booking-fail">
@@ -109,6 +121,17 @@ export const BookEventForm = ({
               severity="info"
               title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
               message={getError(errors.formErrors, errors.dataErrors, t, responseVercelIdHeader)}
+            />
+          </div>
+        )}
+        {showError && (
+          <div data-testid="booking-fail">
+            <Alert
+              ref={errorRef}
+              className="my-2"
+              severity="info"
+              title={t("booking_fail")}
+              message="CPF inválido!"
             />
           </div>
         )}
