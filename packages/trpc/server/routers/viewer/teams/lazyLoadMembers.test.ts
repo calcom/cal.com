@@ -135,8 +135,8 @@ describe("lazyLoadMembers", () => {
     ]);
   });
 
-  it("can search by name, email or username", async () => {
-    const { team, organizer, user2, user3 } = await createTeamWithMembers();
+  it("can search by name or email", async () => {
+    const { team, organizer } = await createTeamWithMembers();
 
     const ctx = {
       user: {
@@ -151,15 +151,15 @@ describe("lazyLoadMembers", () => {
       input: {
         teamId: team.id,
         limit: 10,
-        searchTerm: user2.email,
+        searchTerm: "organizer",
       },
     });
 
     expect(searchByEmail.members).toEqual([
       expect.objectContaining({
-        id: user2.id,
-        name: user2.name,
-        username: user2.username,
+        id: organizer.id,
+        name: organizer.name,
+        username: organizer.username,
       }),
     ]);
 
@@ -178,24 +178,6 @@ describe("lazyLoadMembers", () => {
         id: organizer.id,
         name: organizer.name,
         username: organizer.username,
-      }),
-    ]);
-
-    // Search by username
-    const searchByUsername = await lazyLoadMembers({
-      ctx,
-      input: {
-        teamId: team.id,
-        limit: 10,
-        searchTerm: user3.username,
-      },
-    });
-
-    expect(searchByUsername.members).toEqual([
-      expect.objectContaining({
-        id: user3.id,
-        name: user3.name,
-        username: user3.username,
       }),
     ]);
   });

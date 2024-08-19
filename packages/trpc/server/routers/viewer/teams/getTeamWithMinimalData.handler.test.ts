@@ -71,13 +71,11 @@ describe("getTeamWithMinimalData", () => {
       },
     });
 
-    console.log(result);
-
     expect(result).toContain({
       id: team.id,
       name: team.name,
       slug: team.slug,
-      membership: { role: "ADMIN", accepted: true },
+      isOrganization: false,
     });
   });
 });
