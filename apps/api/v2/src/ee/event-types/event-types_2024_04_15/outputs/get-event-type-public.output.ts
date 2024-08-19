@@ -87,6 +87,10 @@ class BookingField {
   @Type(() => Source)
   @IsOptional()
   sources?: Source[];
+
+  @IsOptional()
+  @IsBoolean()
+  disableOnPrefill?: boolean;
 }
 
 class Organization {
