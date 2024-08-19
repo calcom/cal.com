@@ -11,6 +11,7 @@ jobs:
     env:
       # Unique URL path for each workflow run attempt
       HTML_REPORT_URL_PATH: reports/${{ github.head_ref }}/${{ github.run_id }}/${{ github.run_attempt }}
+      BRANCH_REPORTS_DIR: reports/${{ github.head_ref }}
     steps:
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v4
@@ -21,10 +22,18 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Check for workflow reports
+        run: |
+          if [ -z "$(ls -A $BRANCH_REPORTS_DIR)" ]; then
+            echo "BRANCH_REPORTS_EXIST="false"" >> $GITHUB_ENV
+          else
+            echo "BRANCH_REPORTS_EXIST="true"" >> $GITHUB_ENV
+          fi
       - name: Cleanup old HTML reports
+        if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
         timeout-minutes: 3
         run: |
-          rm -rf reports/${{ github.head_ref }}
+          rm -rf $BRANCH_REPORTS_DIR
           git add .
           git commit -m "workflow: remove all reports for branch ${{ github.head_ref }}"
       - name: Download zipped HTML report
