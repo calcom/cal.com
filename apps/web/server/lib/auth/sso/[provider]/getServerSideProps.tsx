@@ -37,7 +37,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       const availability = await checkUsername(usernameParam, currentOrgDomain);
       if (availability.available && availability.premium && IS_PREMIUM_USERNAME_ENABLED) {
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
-          userId: session.user.id,
+          userId: session.user.id.toString(),
           userEmail: session.user.email,
           username: usernameParam,
           successDestination,
