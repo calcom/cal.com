@@ -53,6 +53,8 @@ export const BookEventForm = ({
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;
+  const [cpfError, setCPFError] = useState(false);
+  const [showError, setShowError] = useState(false);
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
