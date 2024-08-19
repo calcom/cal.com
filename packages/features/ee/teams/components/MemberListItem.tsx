@@ -715,15 +715,7 @@ export default function MemberListItem(props: Props) {
             });
           }}>
           <DialogContent type="creation" size="md">
-            <TeamAvailabilityModal
-              team={props.team}
-              member={state.teamAvailability.user}
-              onExit={() =>
-                dispatch({
-                  type: "CLOSE_MODAL",
-                })
-              }
-            />
+            <TeamAvailabilityModal team={props.team} member={state.teamAvailability.user} />
           </DialogContent>
         </Dialog>
       )}
