@@ -44,10 +44,10 @@ function MembersList(props: MembersListProps) {
 
           return email || username || name;
         })
-    : undefined;
+    : [];
   return (
     <div className="flex flex-col gap-y-3">
-      {membersList?.length && team ? (
+      {members?.length && team ? (
         <MemberListItem
           team={team}
           members={membersList}

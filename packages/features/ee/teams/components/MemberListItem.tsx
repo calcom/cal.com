@@ -119,6 +119,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, editSheet: action.payload };
     case "INVITE_LINK_SETTING":
       return { ...state, inviteLinkSetting: action.payload };
+    case "TEAM_AVAILABILITY":
+      return { ...state, teamAvailability: action.payload };
     case "CLOSE_MODAL":
       return {
         ...state,
@@ -300,6 +302,31 @@ export default function MemberListItem(props: Props) {
               {props.team.membership?.accepted && (
                 <div className="flex items-center justify-end">
                   <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
+                    {/* TODO: bring availability back. right now its ugly and broken
+                    <Tooltip
+                      content={
+                        user.accepted
+                          ? t("team_view_user_availability")
+                          : t("team_view_user_availability_disabled")
+                      }>
+                      <Button
+                        disabled={!user.accepted}
+                        onClick={() =>
+                          user.accepted
+                            ? dispatch({
+                                type: "TEAM_AVAILABILITY",
+                                payload: {
+                                  user,
+                                  showModal: true,
+                                },
+                              })
+                            : null
+                        }
+                        color="secondary"
+                        variant="icon"
+                        StartIcon="clock"
+                      />
+                    </Tooltip> */}
                     {!!user.accepted && (
                       <Tooltip content={t("view_public_page")}>
                         <Button
