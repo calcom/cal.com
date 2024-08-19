@@ -2848,47 +2848,15 @@
     },
     "/v2/bookings": {
       "get": {
-        "operationId": "BookingsController_2024_04_15_getBookings",
-        "parameters": [
-          {
-            "name": "cursor",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "filters[status]",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "upcoming",
-                "recurring",
-                "past",
-                "cancelled",
-                "unconfirmed"
-              ],
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "BookingsController_2024_08_13_getBookings",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetBookingsOutput_2024_04_15"
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
                 }
               }
             }
@@ -9000,6 +8968,29 @@
           },
           "data": {
             "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetBookingsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           }
         },
         "required": [
