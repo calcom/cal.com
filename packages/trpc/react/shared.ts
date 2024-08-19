@@ -29,4 +29,5 @@ export const ENDPOINTS = [
   "googleWorkspace",
   "oAuth",
   "passkey",
+  "attributes",
 ] as const;
