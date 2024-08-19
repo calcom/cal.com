@@ -378,7 +378,7 @@ export const sendCancelledEmails = async (
                   t: attendee.language.translate,
                   attendeeName: attendee.name,
                   host: calendarEvent.organizer.name,
-                  eventType: calendarEvent.type,
+                  eventType: calendarEvent.title,
                   eventDuration,
                   ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
                   ...(calendarEvent.location && { location: calendarEvent.location }),

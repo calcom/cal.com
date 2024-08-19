@@ -11,6 +11,7 @@ import {
   Badge,
   BooleanToggleGroupField,
   Button,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -491,6 +492,10 @@ function FieldEditDialog({
                       }
                       label={t("identifier")}
                     />
+                    <CheckboxField
+                      description={t("disable_input_if_prefilled")}
+                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                    />
                     <InputField
                       {...fieldForm.register("label")}
                       // System fields have a defaultLabel, so there a label is not required
@@ -725,6 +730,11 @@ function VariantFields({
           fieldForm.getValues("editable") === "system-but-optional"
         }
         label={t("identifier")}
+      />
+
+      <CheckboxField
+        description={t("disable_input_if_prefilled")}
+        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
       />
 
       <ul

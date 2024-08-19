@@ -17,7 +17,7 @@ export default function Calendars(props: { calUsername: string; calEmail: string
           You have not connected any calendars yet, please connect your Google, Outlook or Apple calendar.
         </h1>
       )}
-      <div className="mx-10 my-4">
+      <div>
         <CalendarSettings />
       </div>
     </main>
