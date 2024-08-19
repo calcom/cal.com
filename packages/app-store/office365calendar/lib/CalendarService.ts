@@ -266,8 +266,8 @@ export default class Office365CalendarService implements Calendar {
     return {
       subject: event.title,
       body: {
-        contentType: "HTML",
-        content: getRichDescription(event).replace(/\n/g, "<br>"),
+        contentType: "text",
+        content: getRichDescription(event),
       },
       start: {
         dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
