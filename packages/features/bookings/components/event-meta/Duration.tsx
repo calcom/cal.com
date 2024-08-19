@@ -73,13 +73,16 @@ export const EventDuration = ({
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   useEffect(() => {
-    if (selectedDuration && itemRefs.current[selectedDuration]) {
-      itemRefs.current[selectedDuration]?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "center",
-      });
-    }
+    const timeout = setTimeout(() => {
+      if (selectedDuration && itemRefs.current[selectedDuration]) {
+        itemRefs.current[selectedDuration]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "center",
+        });
+      }
+    }, 100);
+    return () => clearTimeout(timeout);
   }, [selectedDuration]);
 
   if ((!event?.metadata?.multipleDuration && !isDynamicEvent) || isPlatform)
