@@ -11,6 +11,10 @@ import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
+import {
+  useShouldBeDisabledDueToPrefill,
+  getFieldNameFromErrorMessage,
+} from "./useShouldBeDisabledDueToPrefill";
 import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/variantsConfig";
 
 type RhfForm = {
@@ -59,6 +63,7 @@ export const FormBuilderField = ({
     t
   );
 
+  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
       <Controller
@@ -71,7 +76,7 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly}
+                readOnly={readOnly || shouldBeDisabled}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
@@ -84,7 +89,7 @@ export const FormBuilderField = ({
                 render={({ message }: { message: string | undefined }) => {
                   message = message || "";
                   // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
-                  const name = message.replace(/\{([^}]+)\}.*/, "$1");
+                  const name = getFieldNameFromErrorMessage(message);
                   const isResponsesErrorForThisField = name === field.name;
                   // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
                   if (!isResponsesErrorForThisField && !error) {
