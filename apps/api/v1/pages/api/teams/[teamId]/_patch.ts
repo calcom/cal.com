@@ -125,6 +125,7 @@ export async function patchHandler(req: NextApiRequest) {
     metadata: NonNullable<typeof data.metadata> | undefined;
   } = {
     ...data,
+    smsLockReviewedByAdmin: false,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
   const team = await prisma.team.update({ where: { id: teamId }, data: cloneData });

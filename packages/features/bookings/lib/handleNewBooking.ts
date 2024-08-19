@@ -488,15 +488,8 @@ async function handler(
   if (eventType.seatsPerTimeSlot) {
     const booking = await prisma.booking.findFirst({
       where: {
-        OR: [
-          {
-            uid: rescheduleUid || reqBody.bookingUid,
-          },
-          {
-            eventTypeId: eventType.id,
-            startTime: new Date(dayjs(reqBody.start).utc().format()),
-          },
-        ],
+        eventTypeId: eventType.id,
+        startTime: new Date(dayjs(reqBody.start).utc().format()),
         status: BookingStatus.ACCEPTED,
       },
     });
