@@ -46,10 +46,12 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  setCPFError,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  setCPFError: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -63,7 +65,9 @@ export const FormBuilderField = ({
         // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
-          const maskedCpf = field.name === "CPF" ? cpfMask(value).value : value;
+          const { isValid, value: maskedCPF } = cpfMask(value);
+          setCPFError(!isValid);
+          const maskedCpf = field.name === "CPF" ? maskedCPF : value;
           return (
             <div>
               <ComponentForField

@@ -153,8 +153,8 @@ const BookerComponent = ({
   useEffect(() => {
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
-  const EventBooker = useMemo(() => {
-    return bookerState === "booking" ? (
+  const EventBooker = useMemo(
+    () => (
       <BookEventForm
         key={key}
         onCancel={() => {
@@ -202,40 +202,39 @@ const BookerComponent = ({
           )}
         </>
       </BookEventForm>
-    ) : (
-      <></>
-    );
-  }, [
-    bookerFormErrorRef,
-    instantVideoMeetingUrl,
-    bookerState,
-    bookingForm,
-    errors,
-    event,
-    expiryTime,
-    extraOptions,
-    formEmail,
-    formErrors,
-    handleBookEvent,
-    handleVerifyEmail,
-    isEmailVerificationModalVisible,
-    key,
-    loadingStates,
-    onGoBackInstantMeeting,
-    renderConfirmNotVerifyEmailButtonCond,
-    rescheduleUid,
-    seatedEventData,
-    setEmailVerificationModalVisible,
-    setSeatedEventData,
-    setSelectedTimeslot,
-    verifyCode?.error,
-    verifyCode?.isPending,
-    verifyCode?.resetErrors,
-    verifyCode?.setIsPending,
-    verifyCode?.verifyCodeWithSessionNotRequired,
-    verifyCode?.verifyCodeWithSessionRequired,
-    isPlatform,
-  ]);
+    ),
+    [
+      bookerFormErrorRef,
+      instantVideoMeetingUrl,
+      bookerState,
+      bookingForm,
+      errors,
+      event,
+      expiryTime,
+      extraOptions,
+      formEmail,
+      formErrors,
+      handleBookEvent,
+      handleVerifyEmail,
+      isEmailVerificationModalVisible,
+      key,
+      loadingStates,
+      onGoBackInstantMeeting,
+      renderConfirmNotVerifyEmailButtonCond,
+      rescheduleUid,
+      seatedEventData,
+      setEmailVerificationModalVisible,
+      setSeatedEventData,
+      setSelectedTimeslot,
+      verifyCode?.error,
+      verifyCode?.isPending,
+      verifyCode?.resetErrors,
+      verifyCode?.setIsPending,
+      verifyCode?.verifyCodeWithSessionNotRequired,
+      verifyCode?.verifyCodeWithSessionRequired,
+      isPlatform,
+    ]
+  );
 
   /**
    * Unpublished organization handling - Below
