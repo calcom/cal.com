@@ -150,8 +150,6 @@ const MultiSelectWidget = ({
   value,
   ...remainingProps
 }: SelectLikeComponentPropsRAQB<string[]>) => {
-  //TODO: Use Select here.
-  //TODO: Let's set listValue itself as label and value instead of using title.
   if (!listValues) {
     return null;
   }
@@ -163,6 +161,14 @@ const MultiSelectWidget = ({
   });
 
   const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
+
+  // If no value could be found in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
+  // Do it only when it is not already empty, this is to avoid infinite state updates
+  // NOTE: value is some times sent as undefined even though the type will tell you that it can't be
+  if (optionsFromList.length === 0 && value?.length) {
+    setValue([]);
+  }
 
   return (
     <Select
@@ -191,6 +197,13 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
     };
   });
   const optionFromList = selectItems.find((item) => item.value === value);
+
+  // If the value is not in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
+  // Do it only when it is not already empty string, this is to avoid infinite state updates
+  if (!optionFromList && value) {
+    setValue("");
+  }
 
   return (
     <Select
