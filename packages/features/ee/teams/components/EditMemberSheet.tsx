@@ -89,7 +89,7 @@ export function EditMemberSheet({ state, dispatch }: { state: State; dispatch: D
                 {selectedUser.connectedApps?.length === 0 ? (
                   <div>{t("user_has_no_app_installed")}</div>
                 ) : (
-                  <div className="inline-block">{appList}</div>
+                  <div className="flex">{appList}</div>
                 )}
               </div>
             </div>

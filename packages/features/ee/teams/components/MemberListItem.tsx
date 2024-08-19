@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useMemo, useRef, useReducer } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -9,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Avatar, Badge, Checkbox, DataTable } from "@calcom/ui";
 import {
   Button,
@@ -45,13 +45,6 @@ interface Props {
 }
 
 export type User = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
-
-/** TODO: Migrate the one in apps/web to tRPC package */
-const useCurrentUserId = () => {
-  const query = useMeQuery();
-  const user = query.data;
-  return user?.id;
-};
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
@@ -144,7 +137,7 @@ function reducer(state: State, action: Action): State {
 
 export default function MemberListItem(props: Props) {
   const { t, i18n } = useLocale();
-
+  const { data: session } = useSession();
   const utils = trpc.useUtils();
   const [state, dispatch] = useReducer(reducer, initialState);
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -177,8 +170,7 @@ export default function MemberListItem(props: Props) {
     return owners.length;
   };
 
-  const currentUserId = useCurrentUserId();
-  const isAdmin =
+  const isAdminOrOwner =
     props.team.membership.role === MembershipRole.OWNER ||
     props.team.membership.role === MembershipRole.ADMIN;
 
@@ -291,9 +283,10 @@ export default function MemberListItem(props: Props) {
         id: "actions",
         cell: ({ row }) => {
           const user = row.original;
+          const isSelf = user.id === session?.user.id;
           const editMode =
             (props.team.membership?.role === MembershipRole.OWNER &&
-              (user.role !== MembershipRole.OWNER || ownersInTeam() > 1 || user.id !== currentUserId)) ||
+              (user.role !== MembershipRole.OWNER || ownersInTeam() > 1 || !isSelf)) ||
             (props.team.membership?.role === MembershipRole.ADMIN && user.role !== MembershipRole.OWNER) ||
             props.isOrgAdminOrOwner;
           const impersonationMode =
@@ -494,7 +487,7 @@ export default function MemberListItem(props: Props) {
         ]}
         tableContainerRef={tableContainerRef}
         tableCTA={
-          isAdmin || props.isOrgAdminOrOwner ? (
+          isAdminOrOwner || props.isOrgAdminOrOwner ? (
             <Button
               type="button"
               color="primary"
