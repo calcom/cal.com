@@ -209,7 +209,8 @@ export async function handler(req: NextApiRequest) {
     isOrganizationOwnerOrAdmin,
     pagination: { take, skip },
   } = req;
-  const { dateFrom, dateTo, order, sortBy, status } = schemaBookingGetParams.parse(req.query);
+  const { dateFrom, dateTo, order, sortBy, status, createdAtMin, createdAtMax } =
+    schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};
   if (req.query.take && req.query.page) {
@@ -306,6 +307,19 @@ export async function handler(req: NextApiRequest) {
       default:
         throw new HttpError({ message: "Invalid status", statusCode: 400 });
     }
+  }
+
+  if (createdAtMin) {
+    args.where = {
+      ...args.where,
+      createdAt: { gte: createdAtMin },
+    };
+  }
+  if (createdAtMax) {
+    args.where = {
+      ...args.where,
+      createdAt: { lte: createdAtMax },
+    };
   }
 
   const data = await prisma.booking.findMany(args);

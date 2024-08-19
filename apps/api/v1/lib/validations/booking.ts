@@ -24,6 +24,8 @@ export const schemaBookingGetParams = z.object({
   order: z.enum(["asc", "desc"]).default("asc"),
   sortBy: z.enum(["createdAt", "updatedAt"]).optional(),
   status: z.enum(["upcoming"]).optional(),
+  createdAtMin: iso8601.optional(),
+  createdAtMax: iso8601.optional(),
 });
 
 export type Status = z.infer<typeof schemaBookingGetParams>["status"];
@@ -73,6 +75,7 @@ export const schemaBookingReadPublic = Booking.extend({
   responses: z.record(z.any()).nullable(),
 }).pick({
   id: true,
+  createdAt: true,
   userId: true,
   description: true,
   eventTypeId: true,
