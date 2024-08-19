@@ -1,3 +1,5 @@
+"use client";
+
 import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
