@@ -2561,8 +2561,8 @@
   "number_of_options":"{{count}} options",
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
-  "choose_hosts_schedule" : "Choose hosts schedule",
-  "hosts_schedule_description": "You can select different schedule for each host. Each host's default schedule is choosen by default.",
+  "choose_hosts_schedule" : "Choose host schedules",
+  "hosts_schedule_description": "You can select a different schedule for each host. Each host's default schedule is chosen by default.",
   "no_hosts_description": "No hosts assigned, add hosts in assignment tab.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
