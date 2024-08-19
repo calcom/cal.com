@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 // import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -14,7 +14,6 @@ import type { TLazyLoadMembersInputSchema } from "./lazyLoadMembers.schema";
 type LazyLoadMembersHandlerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaClient;
   };
   input: TLazyLoadMembersInputSchema;
 };
@@ -30,7 +29,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
 });
 
 export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHandlerOptions) => {
-  const { prisma } = ctx;
   const { cursor, limit, teamId, searchTerm } = input;
 
   const canAccessMembers = await checkCanAccessMembers(ctx, teamId);
@@ -128,7 +126,7 @@ const checkCanAccessMembers = async (ctx: LazyLoadMembersHandlerOptions["ctx"], 
   if (isTargetingOrg) {
     return isOrgPrivate && !isOrgAdminOrOwner;
   }
-  const team = await ctx.prisma.team.findUnique({
+  const team = await prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -138,7 +136,7 @@ const checkCanAccessMembers = async (ctx: LazyLoadMembersHandlerOptions["ctx"], 
     return true;
   }
 
-  const membership = await ctx.prisma.membership.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
       teamId,
       userId: ctx.user.id,

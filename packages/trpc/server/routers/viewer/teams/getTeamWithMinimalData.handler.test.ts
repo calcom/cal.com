@@ -1,7 +1,13 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import {
+  createBookingScenario,
+  TestData,
+  getOrganizer,
+  getScenarioData,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, beforeEach, vi, expect } from "vitest";
 
+import type { TrpcSessionUser } from "../../../trpc";
 import getTeamWithMinimalData from "./getTeamWithMinimalData.handler";
 
 describe("getTeamWithMinimalData", () => {
@@ -10,32 +16,68 @@ describe("getTeamWithMinimalData", () => {
     vi.clearAllMocks();
   });
 
-  it("should return teams", async () => {
-    const requiredTeam = await prismaMock.team.findUnique({
-      where: {
-        id: 2,
-      },
+  it("should return team", async () => {
+    const team = {
+      id: 1,
+      name: "Team 1",
+      slug: "team-1",
+    };
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      teams: [
+        {
+          membership: {
+            role: "ADMIN",
+            accepted: true,
+          },
+          team,
+        },
+      ],
     });
 
-    console.log("requiredTeam", requiredTeam);
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+      })
+    );
 
     const ctx = {
       user: {
-        id: 9,
-      },
-      input: {
-        teamId: requiredTeam.id,
-      },
+        id: organizer.id,
+        name: organizer.name,
+      } as NonNullable<TrpcSessionUser>,
     };
 
-    const result = await getTeamWithMinimalData(ctx);
+    const result = await getTeamWithMinimalData({
+      ctx,
+      input: {
+        teamId: team.id,
+      },
+    });
 
-    console.log("result", result);
+    console.log(result);
 
     expect(result).toContain({
-      id: requiredTeam.id,
-      name: requiredTeam.name,
-      slug: requiredTeam.slug,
+      id: team.id,
+      name: team.name,
+      slug: team.slug,
+      membership: { role: "ADMIN", accepted: true },
     });
   });
 });
