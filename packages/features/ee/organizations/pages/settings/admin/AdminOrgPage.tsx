@@ -81,6 +81,7 @@ function AdminOrgTable() {
           <ColumnTitle widthClassNames="w-auto">{t("reviewed")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">{t("admin_api")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">
             <span className="sr-only">{t("edit")}</span>
           </ColumnTitle>
@@ -126,6 +127,15 @@ function AdminOrgTable() {
                     <Badge variant="red">{t("unpublished")}</Badge>
                   ) : (
                     <Badge variant="green">{t("published")}</Badge>
+                  )}
+                </div>
+              </Cell>
+              <Cell>
+                <div className="space-x-2">
+                  {!org.organizationSettings?.isAdminAPIEnabled ? (
+                    <Badge variant="red">{t("disabled")}</Badge>
+                  ) : (
+                    <Badge variant="green">{t("enabled")}</Badge>
                   )}
                 </div>
               </Cell>
@@ -185,6 +195,21 @@ function AdminOrgTable() {
                             },
                           ]
                         : []),
+                      {
+                        id: "api",
+                        label: org.organizationSettings?.isAdminAPIEnabled
+                          ? t("revoke_admin_api")
+                          : t("grant_admin_api"),
+                        onClick: () => {
+                          updateMutation.mutate({
+                            id: org.id,
+                            organizationSettings: {
+                              isAdminAPIEnabled: !org.organizationSettings?.isAdminAPIEnabled,
+                            },
+                          });
+                        },
+                        icon: "terminal" as const,
+                      },
                       {
                         id: "delete",
                         label: t("delete"),
