@@ -33,7 +33,7 @@ export type DefaultEventLocationType = {
     | "hostPhoneNumber"
     | "hostDefault"
     | "phone"
-    | "anyLocation";
+    | "somewhereElse";
 } & (
   | {
       organizerInputType: "phone" | "text" | null;
@@ -42,7 +42,7 @@ export type DefaultEventLocationType = {
       attendeeInputPlaceholder?: null;
     }
   | {
-      attendeeInputType: "phone" | "attendeeAddress" | "anyLocation" | null;
+      attendeeInputType: "phone" | "attendeeAddress" | "somewhereElse" | null;
       attendeeInputPlaceholder: string;
       organizerInputType?: null;
       organizerInputPlaceholder?: null;
@@ -109,9 +109,9 @@ export const defaultLocations: DefaultEventLocationType[] = [
     variable: "address",
     organizerInputType: null,
     messageForOrganizer: "Cal will ask your invitee to enter any location before scheduling.",
-    attendeeInputType: "anyLocation",
+    attendeeInputType: "somewhereElse",
     attendeeInputPlaceholder: "any_location",
-    defaultValueVariable: "anyLocation",
+    defaultValueVariable: "somewhereElse",
     iconUrl: "/message-pin.svg",
     category: "other",
   },
@@ -194,7 +194,7 @@ export type LocationObject = {
   credentialId?: number;
 } & Partial<
   Record<
-    "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "anyLocation",
+    "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "somewhereElse",
     string
   >
 >;
