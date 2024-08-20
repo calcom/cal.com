@@ -20,6 +20,7 @@ import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";
 import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
+import EditablePlugin from "./plugins/EditablePlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
@@ -70,7 +71,7 @@ export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   return (
     <div className="editor rounded-md">
-      <LexicalComposer initialConfig={{ ...editorConfig, editable }}>
+      <LexicalComposer initialConfig={{ ...editorConfig }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 transition focus-within:ring-2">
           <ToolbarPlugin
             getText={props.getText}
@@ -88,7 +89,6 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  data-testid="editor-input"
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input"
@@ -117,6 +117,7 @@ export const Editor = (props: TextEditorProps) => {
             />
           </div>
         </div>
+        <EditablePlugin editable={editable} />
       </LexicalComposer>
     </div>
   );
