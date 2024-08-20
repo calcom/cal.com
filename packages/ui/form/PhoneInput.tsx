@@ -1,12 +1,9 @@
 "use client";
 
-import { isSupportedCountry } from "libphonenumber-js";
-import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { classNames } from "@calcom/lib";
-import { trpc } from "@calcom/trpc/react";
 
 export type PhoneInputProps = {
   value?: string;
@@ -57,30 +54,5 @@ function BasePhoneInput({ name, className = "", onChange, value, ...rest }: Phon
     />
   );
 }
-
-const useDefaultCountry = () => {
-  const [defaultCountry, setDefaultCountry] = useState("us");
-  const query = trpc.viewer.public.countryCode.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    retry: false,
-  });
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      const data = query.data;
-      if (!data?.countryCode) {
-        return;
-      }
-
-      isSupportedCountry(data?.countryCode)
-        ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
-    },
-    [query.data]
-  );
-
-  return defaultCountry;
-};
 
 export default BasePhoneInput;

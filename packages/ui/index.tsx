@@ -167,7 +167,7 @@ export { default as ImageUploader } from "./components/image-uploader/ImageUploa
 export { default as BannerUploader } from "./components/image-uploader/BannerUploader";
 
 export type { ButtonColor } from "./components/button/Button";
-export { CreateButton, CreateButtonWithTeamsList } from "./components/createButton";
+export { CreateButton } from "./components/createButton";
 
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
@@ -201,7 +201,6 @@ export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";
 export { OrgBanner } from "./components/organization-banner";
 export type { OrgBannerProps } from "./components/organization-banner";
 
-export { StorybookTrpcProvider } from "./components/mocks/trpc";
 export { default as Icon } from "./components/icon/Icon";
 export type { IconName } from "./components/icon/icon-names";
 export { IconSprites } from "./components/icon/IconSprites";
