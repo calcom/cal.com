@@ -1,4 +1,7 @@
 export * from "./create-event-type.input";
+export * from "./booking-limits-duration.input";
+export * from "./booking-limits-count.input";
+export * from "./booking-window.input";
 export * from "./locations.input";
 export * from "./booking-fields.input";
 export * from "./recurring-event.input";

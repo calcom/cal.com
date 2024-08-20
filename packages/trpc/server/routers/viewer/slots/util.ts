@@ -175,6 +175,7 @@ export async function getEventType(
       periodEndDate: true,
       onlyShowFirstAvailableSlot: true,
       periodCountCalendarDays: true,
+      rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
       schedule: {
@@ -436,7 +437,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   let teamMember: string | undefined;
 
-  const hosts =
+  let hosts =
     eventType.hosts?.length && eventType.schedulingType
       ? eventType.hosts
       : eventType.users.map((user) => {
@@ -445,6 +446,25 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
             user: user,
           };
         });
+
+  if (
+    input.rescheduleUid &&
+    eventType.rescheduleWithSameRoundRobinHost &&
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+  ) {
+    const originalRescheduledBooking = await prisma.booking.findFirst({
+      where: {
+        uid: input.rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+  }
 
   let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 
@@ -618,6 +638,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
+  // timeZone isn't directly set on eventType now(So, it is legacy)
+  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
+  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
+  const eventTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -625,8 +650,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone:
-      eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
+    organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
@@ -765,15 +789,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
-  const utcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
+  const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
+  const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
   const periodLimits = calculatePeriodLimits({
     periodType: eventType.periodType,
     periodDays: eventType.periodDays,
     periodCountCalendarDays: eventType.periodCountCalendarDays,
     periodStartDate: eventType.periodStartDate,
     periodEndDate: eventType.periodEndDate,
-    allDatesWithBookabilityStatus,
-    utcOffset,
+    allDatesWithBookabilityStatusInBookerTz: allDatesWithBookabilityStatus,
+    eventUtcOffset,
+    bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
   const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(

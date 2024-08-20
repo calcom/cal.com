@@ -1,3 +1,5 @@
+"use client";
+
 import { isSupportedCountry } from "libphonenumber-js";
 import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";

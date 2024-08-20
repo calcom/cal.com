@@ -11,6 +11,7 @@ import { Injectable, InternalServerErrorException, UnauthorizedException } from 
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
+import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
@@ -45,6 +46,13 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         return await this.authenticateBearerToken(bearerToken, requestOrigin);
       }
 
+      const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
+      const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
+
+      if (nextAuthToken) {
+        return await this.authenticateNextAuth(nextAuthToken);
+      }
+
       throw new UnauthorizedException(
         "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers"
       );
@@ -56,6 +64,11 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         new InternalServerErrorException("An error occurred while authenticating the request")
       );
     }
+  }
+
+  async authenticateNextAuth(token: { email?: string | null }) {
+    const user = await this.nextAuthStrategy(token);
+    return this.success(user);
   }
 
   async authenticateOAuthClient(oAuthClientId: string, oAuthClientSecret: string) {
@@ -161,6 +174,19 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     }
 
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(ownerId);
+    return user;
+  }
+
+  async nextAuthStrategy(token: { email?: string | null }) {
+    if (!token.email) {
+      throw new UnauthorizedException("Email not found in the authentication token.");
+    }
+
+    const user = await this.userRepository.findByEmailWithProfile(token.email);
+    if (!user) {
+      throw new UnauthorizedException("User associated with the authentication token email not found.");
+    }
+
     return user;
   }
 }

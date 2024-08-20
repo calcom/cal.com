@@ -56,8 +56,8 @@ const CreateOutOfOfficeEntryModal = ({
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
   const [dateRange] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: dayjs().startOf("d").toDate(),
-    endDate: dayjs().add(1, "d").endOf("d").toDate(),
+    startDate: dayjs().utc().startOf("d").toDate(),
+    endDate: dayjs().utc().add(1, "d").endOf("d").toDate(),
   });
 
   const { hasTeamPlan } = useHasTeamPlan();
@@ -375,6 +375,8 @@ const OutOfOfficePage = () => {
   }, [openModalOnStart]);
 
   const [openModal, setOpenModal] = useState(false);
+
+  const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
   return (
     <>
       <Meta
@@ -382,13 +384,17 @@ const OutOfOfficePage = () => {
         description={t("out_of_office_description")}
         borderInShellHeader={false}
         CTA={
-          <Button
-            color="primary"
-            className="flex w-20 items-center justify-between px-4"
-            onClick={() => setOpenModal(true)}
-            data-testid="add_entry_ooo">
-            <Icon name="plus" size={16} /> {t("add")}
-          </Button>
+          isPending ? (
+            <SkeletonText className="h-8 w-20" />
+          ) : (
+            <Button
+              color="primary"
+              className="flex w-20 items-center justify-between px-4"
+              onClick={() => setOpenModal(true)}
+              data-testid="add_entry_ooo">
+              <Icon name="plus" size={16} /> {t("add")}
+            </Button>
+          )
         }
       />
       <CreateOutOfOfficeEntryModal openModal={openModal} closeModal={() => setOpenModal(false)} />
