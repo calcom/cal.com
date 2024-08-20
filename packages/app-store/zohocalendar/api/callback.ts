@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import crypto from "node:crypto";
 import { stringify } from "querystring";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
@@ -12,6 +13,7 @@ import { Prisma } from "@calcom/prisma/client";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import type { IntegrationOAuthCallbackState } from "../../types";
 import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
@@ -22,14 +24,23 @@ const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
-  const state = decodeOAuthState(req);
+  const state = decodeOAuthState(req) as
+    | (IntegrationOAuthCallbackState & {
+        fromManagedSetup?: boolean;
+        userId?: number;
+        managedSetupReturnTo?: string;
+      })
+    | undefined;
+
+  const fromManagedSetup = !!state?.fromManagedSetup;
+  const userId = req.session?.user?.id || state?.userId;
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;
   }
 
-  if (!req.session?.user?.id) {
+  if (!userId) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
@@ -77,18 +88,52 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
+  const onlyOneCalendar = data.calendars.length === 1;
+
+  const generateToken = (): Promise<string> =>
+    new Promise((resolve) => crypto.randomBytes(48, (err, buffer) => resolve(buffer.toString("hex"))));
+
+  const updateManagedSetupAndGetRedirectUrl = async () => {
+    let setupCompleted = false;
+    let setupCompletionToken: string | undefined = undefined;
+
+    if (fromManagedSetup && onlyOneCalendar) {
+      setupCompletionToken = generateToken();
+      await prisma.zohoSchedulingSetup.update({
+        where: {
+          userId,
+        },
+        data: {
+          status: "Completed",
+          setupCompletionToken,
+        },
+      });
+      setupCompleted = true;
+    }
+
+    const query = {
+      setupCompleted,
+      setupCompletionToken,
+    };
+
+    const redirectUrl = fromManagedSetup
+      ? `${state?.managedSetupReturnTo || ""}?${stringify(query)}`
+      : state?.returnTo;
+
+    return { setupCompleted, redirectUrl };
+  };
 
   if (primaryCalendar.uid) {
     const credential = await prisma.credential.create({
       data: {
         type: config.type,
         key,
-        userId: req.session.user.id,
+        userId: userId,
         appId: config.slug,
       },
     });
     const selectedCalendarWhereUnique = {
-      userId: req.session?.user.id,
+      userId: userId,
       integration: config.type,
       externalId: primaryCalendar.uid,
     };
@@ -107,9 +152,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         // it is possible a selectedCalendar was orphaned, in this situation-
         // we want to recover by connecting the existing selectedCalendar to the new Credential.
         if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+          const { redirectUrl } = await updateManagedSetupAndGetRedirectUrl();
           res.redirect(
-            getSafeRedirectUrl(state?.returnTo) ??
-              getInstalledAppPath({ variant: "calendar", slug: config.slug })
+            getSafeRedirectUrl(redirectUrl) ?? getInstalledAppPath({ variant: "calendar", slug: config.slug })
           );
           return;
         }
@@ -127,8 +172,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
+  const { redirectUrl } = await updateManagedSetupAndGetRedirectUrl();
+
   res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
+    getSafeRedirectUrl(redirectUrl) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
   );
 }
 

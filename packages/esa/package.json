@@ -1,0 +1,11 @@
+{
+  "name": "@esa/cal-additions",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.d.ts",
+  "dependencies": {
+    "@deep-consulting-solutions/zoho-utils": "^1.6.95",
+    "ioredis": "^5.2.3"
+  }
+}

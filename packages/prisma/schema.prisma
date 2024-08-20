@@ -279,6 +279,7 @@ model User {
   accessCodes          AccessCode[]
   bookingRedirects     OutOfOfficeEntry[]
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
+  zohoSchedulingSetup  ZohoSchedulingSetup[]
 
   // Used to lock the user account
   locked           Boolean   @default(false)
@@ -1123,4 +1124,19 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+model ZohoSchedulingSetup {
+  id         Int    @id @default(autoincrement())
+  zuid       String @unique
+  zoomUserId String @unique
+  status     String
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  completeSetupToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
