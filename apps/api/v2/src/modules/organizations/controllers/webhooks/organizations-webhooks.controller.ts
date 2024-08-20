@@ -1,0 +1,126 @@
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { OrganizationsWebhooksService } from "@/modules/organizations/services/organizations-webhooks.service";
+import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
+import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
+import {
+  TeamWebhookOutputDto as OrgWebhookOutputDto,
+  TeamWebhookOutputResponseDto as OrgWebhookOutputResponseDto,
+  TeamWebhooksOutputResponseDto as OrgWebhooksOutputResponseDto,
+} from "@/modules/webhooks/outputs/team-webhook.output";
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  Delete,
+  Patch,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+} from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+
+@Controller({
+  path: "/v2/organizations/:orgId/webhooks",
+  version: API_VERSIONS_VALUES,
+})
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@DocsTags("Organizations Webhooks")
+export class OrganizationsWebhooksController {
+  constructor(private organizationsWebhooksService: OrganizationsWebhooksService) {}
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/")
+  @HttpCode(HttpStatus.OK)
+  async getAllOrgWebhooks(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Query() queryParams: SkipTakePagination
+  ): Promise<OrgWebhooksOutputResponseDto> {
+    const { skip, take } = queryParams;
+    const webhooks = await this.organizationsWebhooksService.getPaginatedOrgWebhooks(
+      orgId,
+      skip ?? 0,
+      take ?? 250
+    );
+    return {
+      status: SUCCESS_STATUS,
+      data: webhooks.map((webhook) => plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" })),
+    };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @Post("/")
+  @HttpCode(HttpStatus.CREATED)
+  async createOrgWebhook(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Body() body: CreateWebhookInputDto
+  ): Promise<OrgWebhookOutputResponseDto> {
+    const webhook = await this.organizationsWebhooksService.createOrgWebhook(orgId, body);
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+    };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @Get("/:webhookId")
+  @HttpCode(HttpStatus.OK)
+  async getOrgWebhook(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("webhookId", ParseIntPipe) webhookId: string
+  ): Promise<OrgWebhookOutputResponseDto> {
+    const webhook = await this.organizationsWebhooksService.getOrgWebhook(orgId, webhookId);
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+    };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @Delete("/:webhookId")
+  @HttpCode(HttpStatus.OK)
+  async deleteOrgWebhook(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("webhookId", ParseIntPipe) webhookId: string
+  ): Promise<OrgWebhookOutputResponseDto> {
+    const webhook = await this.organizationsWebhooksService.deleteOrgWebhook(orgId, webhookId);
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+    };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @Patch("/:webhookId")
+  @HttpCode(HttpStatus.OK)
+  async updateOrgWebhook(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("webhookId", ParseIntPipe) webhookId: string,
+    @Body() body: UpdateWebhookInputDto
+  ): Promise<OrgWebhookOutputResponseDto> {
+    const webhook = await this.organizationsWebhooksService.updateOrgWebhook(orgId, webhookId, body);
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+    };
+  }
+}
