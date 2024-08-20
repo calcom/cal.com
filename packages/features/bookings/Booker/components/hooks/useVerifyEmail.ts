@@ -8,7 +8,7 @@ import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
 export interface IUseVerifyEmailProps {
-  email?: string;
+  email: string;
   onVerifyEmail?: () => void;
   name?: string | { firstName: string; lastname?: string };
   requiresBookerEmailVerification?: boolean;
@@ -23,7 +23,7 @@ export const useVerifyEmail = ({
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
-  const debouncedEmail = useDebounce(email ?? "", 600);
+  const debouncedEmail = useDebounce(email, 600);
   const { data: session } = useSession();
 
   const { t } = useLocale();
@@ -49,7 +49,6 @@ export const useVerifyEmail = ({
     );
 
   const handleVerifyEmail = () => {
-    if (!email) return;
     onVerifyEmail?.();
 
     sendEmailVerificationByCodeMutation.mutate({

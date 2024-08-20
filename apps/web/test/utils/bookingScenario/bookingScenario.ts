@@ -1785,7 +1785,7 @@ export function getMockBookingAttendee(
   attendee: Omit<Attendee, "bookingId" | "phoneNumber" | "email" | "noShow"> & {
     bookingSeat?: AttendeeBookingSeatInput;
     phoneNumber?: string | null;
-    email?: string | null;
+    email: string;
     noShow?: boolean;
   }
 ) {
