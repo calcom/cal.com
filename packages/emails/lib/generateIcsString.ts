@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getWhen } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { Attendee, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export enum BookingAction {
   Create = "create",
@@ -79,7 +79,7 @@ const generateIcsString = ({
     organizer: { name: event.organizer.name, email: event.organizer.email },
     ...{ recurrenceRule },
     attendees: [
-      ...event.attendees.map((attendee: Attendee) => ({
+      ...event.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
         partstat,

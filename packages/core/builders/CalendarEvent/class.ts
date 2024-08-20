@@ -2,11 +2,9 @@ import type { DestinationCalendar } from "@prisma/client";
 
 import type {
   AdditionalInformation,
-  Attendee,
   CalendarEvent,
   ConferenceData,
   ExistingRecurringEvent,
-  Organizer,
   Person,
   VideoCallData,
 } from "@calcom/types/Calendar";
@@ -17,8 +15,8 @@ class CalendarEventClass implements CalendarEvent {
   title!: string;
   startTime!: string;
   endTime!: string;
-  organizer!: Organizer;
-  attendees!: Attendee[];
+  organizer!: Person;
+  attendees!: Person[];
   description?: string | null;
   team?: { name: string; members: Person[]; id: number };
   location?: string | null;

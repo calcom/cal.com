@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
-import type { Attendee as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
+import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
 import type {
   Calendar,
   CalendarEvent,

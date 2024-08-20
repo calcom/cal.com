@@ -5,7 +5,7 @@ import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent, Attendee } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const handleSendingSMS = ({
   reminderPhone,
@@ -72,9 +72,9 @@ export default abstract class SMSManager {
     )} (${timezone})`;
   }
 
-  abstract getMessage(attendee: Attendee): string;
+  abstract getMessage(attendee: Person): string;
 
-  async sendSMSToAttendee(attendee: Attendee) {
+  async sendSMSToAttendee(attendee: Person) {
     const teamId = this.teamId;
     if (!this.isTeamEvent || !teamId) return;
 

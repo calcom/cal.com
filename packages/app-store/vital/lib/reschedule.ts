@@ -11,7 +11,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { Organizer } from "@calcom/types/Calendar";
+import type { Person } from "@calcom/types/Calendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
@@ -92,7 +92,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
     const usersToPeopleType = (
       users: PersonAttendeeCommonFields[],
       selectedLanguage: TFunction
-    ): Organizer[] => {
+    ): Person[] => {
       return users?.map((user) => {
         return {
           email: user.email || "",

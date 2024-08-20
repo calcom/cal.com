@@ -1,4 +1,4 @@
-import type { CalendarEvent, Attendee } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
 
@@ -7,7 +7,7 @@ export default class EventDeclinedSMS extends SMSManager {
     super(calEvent);
   }
 
-  getMessage(attendee: Attendee) {
+  getMessage(attendee: Person) {
     const t = attendee.language.translate;
     return `${t("hey_there")} ${attendee.name}, ${t("event_request_declined")} ${t("event_declined_subject", {
       title: this.calEvent.title,

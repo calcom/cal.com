@@ -69,7 +69,7 @@ class Attendee {
   name!: string;
 
   @IsEmail()
-  email!: string | null;
+  email!: string;
 
   @IsString()
   timeZone!: string;
