@@ -7,6 +7,16 @@ import stringify from "qs-stringify";
 import Stripe from "stripe";
 import { z } from "zod";
 
+function getReturnToValueFromQueryState(queryState: string | string[] | undefined) {
+  let returnTo = "";
+  try {
+    returnTo = JSON.parse(`${queryState}`).returnTo;
+  } catch (error) {
+    console.info("No 'returnTo' in req.query.state");
+  }
+  return returnTo;
+}
+
 @Injectable()
 export class StripeService {
   public stripe: Stripe;
@@ -91,7 +101,7 @@ export class StripeService {
       "stripe"
     );
 
-    return { url: "" };
+    return { url: getReturnToValueFromQueryState(state) };
   }
 }
 
