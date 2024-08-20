@@ -351,7 +351,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }
 
   const availability = (
-    timeBlocksArr.length > 0
+    timeBlocksArr?.length > 0
       ? timeBlocks
       : schedule?.availability ||
         (eventType?.availability.length ? eventType.availability : user.availability)
