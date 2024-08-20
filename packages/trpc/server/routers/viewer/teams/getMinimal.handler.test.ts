@@ -8,7 +8,7 @@ import {
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import getTeamWithMinimalData from "./getTeamWithMinimalData.handler";
+import getTeamWithMinimalData from "./getMinimal.handler";
 
 describe("getTeamWithMinimalData", () => {
   beforeEach(() => {

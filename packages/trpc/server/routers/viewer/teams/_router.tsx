@@ -9,7 +9,7 @@ import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
-import { ZGetTeamWithMinimalDataSchema } from "./getTeamWithMinimalData.schema";
+import { ZGetMinimalSchema } from "./getMinimal.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
@@ -37,11 +37,8 @@ export const viewerTeamsRouter = router({
     return handler(opts);
   }),
   // Returns team
-  getTeamWithMinimalData: authedProcedure.input(ZGetTeamWithMinimalDataSchema).query(async (opts) => {
-    const handler = await importHandler(
-      namespaced("getTeamWithMinimalData"),
-      () => import("./getTeamWithMinimalData.handler")
-    );
+  getMinimal: authedProcedure.input(ZGetMinimalSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("getMinimal"), () => import("./getMinimal.handler"));
     return handler(opts);
   }),
   // Returns teams I a member of

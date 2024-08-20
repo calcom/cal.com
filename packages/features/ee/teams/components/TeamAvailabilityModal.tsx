@@ -12,7 +12,7 @@ import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: RouterOutputs["viewer"]["teams"]["getTeamWithMinimalData"];
+  team?: RouterOutputs["viewer"]["teams"]["getMinimal"];
   member?: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
 }
 

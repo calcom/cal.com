@@ -4,16 +4,16 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import type { TGetTeamWithMinimalDataInputSchema } from "./getTeamWithMinimalData.schema";
+import type { TGetMinimalInputSchema } from "./getMinimal.schema";
 
-type GetTeamWithMinimalDataOptions = {
+type GetMinimalDataOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TGetTeamWithMinimalDataInputSchema;
+  input: TGetMinimalInputSchema;
 };
 
-export const getTeamWithMinimalData = async ({ ctx, input }: GetTeamWithMinimalDataOptions) => {
+export const getMinimal = async ({ ctx, input }: GetMinimalDataOptions) => {
   const teamMembership = await MembershipRepository.findFirstByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId: input.teamId,
@@ -46,4 +46,4 @@ export const getTeamWithMinimalData = async ({ ctx, input }: GetTeamWithMinimalD
   return { ...team, membership };
 };
 
-export default getTeamWithMinimalData;
+export default getMinimal;
