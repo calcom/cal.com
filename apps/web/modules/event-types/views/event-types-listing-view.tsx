@@ -308,6 +308,7 @@ export const EventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
+  const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
@@ -476,7 +477,9 @@ export const EventTypeList = ({
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${bookerUrl}/${embedLink}`;
           const isPrivateURLEnabled =
-            type.hashedLink && type.hashedLink.length > 0 ? type.hashedLink[0]?.link : false;
+            type.hashedLink && type.hashedLink.length > 0
+              ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
+              : false;
           const placeholderHashedLink = `${WEBSITE_URL}/d/${isPrivateURLEnabled}/${type.slug}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
@@ -566,6 +569,11 @@ export const EventTypeList = ({
                                     onClick={() => {
                                       showToast(t("private_link_copied"), "success");
                                       navigator.clipboard.writeText(placeholderHashedLink);
+                                      setPrivateLinkCopyIndices((prev) => {
+                                        const prevIndex = prev[type.slug] ?? 0;
+                                        prev[type.slug] = (prevIndex + 1) % type.hashedLink.length;
+                                        return prev;
+                                      });
                                     }}
                                   />
                                 </Tooltip>
@@ -813,6 +821,7 @@ export const InfiniteEventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
+  const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
@@ -1007,7 +1016,9 @@ export const InfiniteEventTypeList = ({
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
             const isPrivateURLEnabled =
-              type.hashedLink && type.hashedLink.length > 0 ? type.hashedLink[0]?.link : false;
+              type.hashedLink && type.hashedLink.length > 0
+                ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
+                : false;
             const placeholderHashedLink = `${WEBSITE_URL}/d/${isPrivateURLEnabled}/${type.slug}`;
             const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
             const isChildrenManagedEventType =
@@ -1108,6 +1119,11 @@ export const InfiniteEventTypeList = ({
                                       onClick={() => {
                                         showToast(t("private_link_copied"), "success");
                                         navigator.clipboard.writeText(placeholderHashedLink);
+                                        setPrivateLinkCopyIndices((prev) => {
+                                          const prevIndex = prev[type.slug] ?? 0;
+                                          prev[type.slug] = (prevIndex + 1) % type.hashedLink.length;
+                                          return prev;
+                                        });
                                       }}
                                     />
                                   </Tooltip>
