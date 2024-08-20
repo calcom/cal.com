@@ -30,7 +30,11 @@ type EventDetailCustomBlock = {
   name: string;
 };
 
-type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
+interface EventDetailsOcurrenceProps extends EventDetailsPropsBase {
+  isOcurrence: boolean;
+}
+
+type EventDetailsProps = EventDetailsOcurrenceProps & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
 interface EventMetaProps {
   customIcon?: React.ReactNode;
@@ -117,7 +121,11 @@ export const EventMetaBlock = ({
  * const MyCustomBlock = () => <div>Something nice</div>;
  * <EventDetails event={event} blocks={[EventDetailBlocks.LOCATION, MyCustomBlock]} />
  */
-export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
+export const EventDetails = ({
+  event,
+  isOcurrence,
+  blocks = defaultEventDetailsBlocks,
+}: EventDetailsProps) => {
   const { t } = useLocale();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const isInstantMeeting = useBookerStore((store) => store.isInstantMeeting);
@@ -157,7 +165,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.OCCURENCES:
-            if (!event.recurringEvent || rescheduleUid) return null;
+            if (!event.recurringEvent || rescheduleUid || !isOcurrence) return null;
 
             return (
               <EventMetaBlock key={block} icon="refresh-ccw">
