@@ -11,7 +11,6 @@ import { Icon, type IconName } from "@calcom/ui";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
-import { EventOccurences } from "./Occurences";
 import { Price } from "./Price";
 
 type EventDetailsPropsBase = {
