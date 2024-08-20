@@ -4,9 +4,19 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { StripConnectOutputDto, StripConnectOutputResponseDto } from "@/modules/stripe/outputs/stripe.output";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, Query, UseGuards, Get } from "@nestjs/common";
+import {
+  Controller,
+  Query,
+  UseGuards,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Redirect,
+  BadRequestException,
+} from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
+import { stringify } from "querystring";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -20,8 +30,10 @@ export class StripeController {
 
   @Get("/connect")
   @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
   async redirect(
     @Query("state") state: string,
+    @Query("returnTo") returnTo: string,
     @GetUser() user: UserWithProfile
   ): Promise<StripConnectOutputResponseDto> {
     const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(state, user.email, user.name);
@@ -30,5 +42,21 @@ export class StripeController {
       status: SUCCESS_STATUS,
       data: plainToClass(StripConnectOutputDto, { authUrl: stripeRedirectUrl }, { strategy: "excludeAll" }),
     };
+  }
+
+  @Get("/save")
+  @UseGuards(ApiAuthGuard)
+  @Redirect(undefined, 301)
+  async save(
+    @Query("state") state: string | string[] | undefined,
+    @Query("code") code: string | string[] | undefined,
+    @Query("error") error: string | string[] | undefined,
+    @Query("error_description") error_description: string | string[] | undefined
+  ): Promise<{ url: string }> {
+    if (error) {
+      throw new BadRequestException(stringify({ error, error_description }));
+    }
+
+    return await this.stripeService.saveStripeAccount(code, state);
   }
 }
