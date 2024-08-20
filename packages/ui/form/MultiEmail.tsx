@@ -26,7 +26,7 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
               <li key={index}>
                 <EmailField
                   disabled={readOnly}
-                  value={value[index]}
+                  value={field}
                   className={inputClassName}
                   onChange={(e) => {
                     const updatedValue = [...value];
