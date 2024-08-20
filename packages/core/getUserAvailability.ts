@@ -350,16 +350,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
 
-  const availability =
+  const availability = (
     timeBlocksArr.length > 0
       ? timeBlocks
-      : (
-          schedule?.availability ||
-          (eventType?.availability.length ? eventType.availability : user.availability)
-        ).map((a) => ({
-          ...a,
-          userId: user.id,
-        }));
+      : schedule?.availability ||
+        (eventType?.availability.length ? eventType.availability : user.availability)
+  ).map((a) => ({
+    ...a,
+    userId: user.id,
+  }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 

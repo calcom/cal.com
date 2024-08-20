@@ -154,7 +154,7 @@ export async function getBusyTimes(params: {
       });
 
   const bookingSeatCountMap: { [x: string]: number } = {};
-  const timeBlocks: { date: string; startTime: Date; endTime: Date; days: number[]; userId: number }[] = [];
+  const timeBlocks: { date: Date | null; startTime: Date; endTime: Date; days: number[] }[] = [];
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
       if (rest._count?.seatsReferences) {
@@ -228,11 +228,10 @@ export async function getBusyTimes(params: {
       calendarBusyTimesWithTimeBlocks.forEach((busyTime) => {
         if (timeBlocksArr?.some((timeBlock) => busyTime.title === timeBlock)) {
           timeBlocks.push({
-            date: dayjs(busyTime.start).startOf("day").utc(true).toISOString(),
+            date: dayjs(busyTime.start).startOf("day").utc(true).toDate(),
             startTime: dayjs(busyTime.start).utc(true).toDate(),
             endTime: dayjs(busyTime.end).utc(true).toDate(),
             days: [],
-            userId,
           });
         } else {
           calendarBusyTimes.push(busyTime);
