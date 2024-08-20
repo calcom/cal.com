@@ -5,6 +5,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { IsWebhookInOrg } from "@/modules/auth/guards/organizations/is-webhook-in-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { OrganizationsWebhooksService } from "@/modules/organizations/services/organizations-webhooks.service";
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
@@ -80,6 +81,7 @@ export class OrganizationsWebhooksController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @UseGuards(IsWebhookInOrg)
   @Get("/:webhookId")
   @HttpCode(HttpStatus.OK)
   async getOrgWebhook(
@@ -95,6 +97,7 @@ export class OrganizationsWebhooksController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @UseGuards(IsWebhookInOrg)
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
   async deleteOrgWebhook(
@@ -110,6 +113,7 @@ export class OrganizationsWebhooksController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @UseGuards(IsWebhookInOrg)
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
   async updateOrgWebhook(
