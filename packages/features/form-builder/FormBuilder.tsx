@@ -463,7 +463,6 @@ function FieldEditDialog({
           getText={() => md.render(fieldForm.getValues("label") || "")}
           setText={(value: string) => {
             fieldForm.setValue("label", turndown(value), { shouldDirty: true });
-            console.log(turndown(value));
           }}
           excludedToolbarItems={["blockType", "bold", "italic"]}
           disableLists
@@ -477,8 +476,7 @@ function FieldEditDialog({
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
-      <div className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70" />
-      <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
+      <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog" modalDisabled={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
@@ -521,8 +519,8 @@ function FieldEditDialog({
                       label={t("identifier")}
                     />
                     <CheckboxField
-                       description={t("disable_input_if_prefilled")}
-                       {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                      description={t("disable_input_if_prefilled")}
+                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
                     <div>
                       {formFieldType === "boolean" ? (
@@ -540,7 +538,7 @@ function FieldEditDialog({
                         />
                       )}
                     </div>
-                    
+
                     {fieldType?.isTextType ? (
                       <InputField
                         {...fieldForm.register("placeholder")}
