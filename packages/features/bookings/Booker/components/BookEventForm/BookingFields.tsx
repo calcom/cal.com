@@ -17,14 +17,12 @@ export const BookingFields = ({
   rescheduleUid,
   isDynamicGroupBooking,
   bookingData,
-  setCPFError,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
-  setCPFError: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
@@ -136,13 +134,7 @@ export const BookingFields = ({
         }
 
         return (
-          <FormBuilderField
-            className="mb-4"
-            field={{ ...field, hidden }}
-            readOnly={readOnly}
-            key={index}
-            setCPFError={setCPFError}
-          />
+          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
         );
       })}
     </div>

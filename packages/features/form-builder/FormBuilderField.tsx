@@ -46,12 +46,10 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
-  setCPFError,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
-  setCPFError: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -66,10 +64,11 @@ export const FormBuilderField = ({
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
           let maskedValue = value;
+          let fieldStatus = "incomplete";
           if (field.name === "CPF") {
             const { isValid, value: maskedCPF } = cpfMask(value || "");
             maskedValue = maskedCPF;
-            setCPFError(!isValid);
+            fieldStatus = isValid;
           }
 
           return (
@@ -82,6 +81,12 @@ export const FormBuilderField = ({
                   onChange(val);
                 }}
               />
+              {fieldStatus === "invalid" && (
+                <div data-testid="error-message-CPF" className="mt-2 flex items-center text-sm text-red-700 ">
+                  <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                  <p>CPF inválido!</p>
+                </div>
+              )}
               <ErrorMessage
                 name="responses"
                 errors={formState.errors}

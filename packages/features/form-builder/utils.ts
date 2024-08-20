@@ -73,7 +73,7 @@ export const getVariantsConfig = (field: Pick<z.infer<typeof fieldSchema>, "vari
 };
 
 const validateCPF = (cpf: string) => {
-  if (cpf.length !== 11) return false;
+  if (cpf.length !== 11) return "incomplete";
 
   const cpfArray = Array.from(cpf).map(Number);
 
@@ -81,7 +81,7 @@ const validateCPF = (cpf: string) => {
 
   const isAllDigitsEqual = cpfArray.every((digit) => digit === cpfArray[0]);
 
-  if (isAllDigitsEqual) return false;
+  if (isAllDigitsEqual) return "invalid";
 
   const calculateDigit = (slice: number) => {
     let sum = 0;
@@ -100,11 +100,13 @@ const validateCPF = (cpf: string) => {
   const firstDigitCalculated = calculateDigit(9);
   const secondDigitCalculated = calculateDigit(10);
 
-  return firstDigit === firstDigitCalculated && secondDigit === secondDigitCalculated;
+  const isValid = firstDigit === firstDigitCalculated && secondDigit === secondDigitCalculated;
+
+  return isValid ? "valid" : "invalid";
 };
 
 export const cpfMask = (value: string) => {
-  if (!value) return { isValid: false, value: "" };
+  if (!value) return { isValid: "incomplete", value: "" };
   const onlyNumbers = value.replace(/[^\d]/g, "");
 
   const cpfIsValid = validateCPF(onlyNumbers);
