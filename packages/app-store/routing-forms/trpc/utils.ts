@@ -10,42 +10,55 @@ import type { Ensure } from "@calcom/types/utils";
 import type { OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 
-function getFieldResponseInNewFormat({
+type Field = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
+
+function isOptionsField(field: Pick<Field, "type" | "options">) {
+  return (field.type === "select" || field.type === "multiselect") && field.options;
+}
+
+function getFieldResponse({
   field,
   fieldResponseValue,
 }: {
   fieldResponseValue: FormResponse[keyof FormResponse]["value"];
-  field: NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
+  field: Pick<Field, "type" | "options">;
 }) {
-  if (field.type === "select" || field.type === "multiselect") {
-    const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
-    const chosenOptions = valueArray.map((idOrLabel) => {
-      const foundOptionById = field.options?.find((option) => {
-        return option.id === idOrLabel;
-      });
-      if (foundOptionById) {
-        return {
-          label: foundOptionById.label,
-          id: foundOptionById.id,
-        };
-      } else {
-        return {
-          label: idOrLabel.toString(),
-          id: null,
-        };
-      }
-    });
+  if (!isOptionsField(field)) {
     return {
-      // value is a legacy prop that is just sending the labels which can change
-      value: chosenOptions.map((option) => option.label),
-      // response is new prop that is sending the label along with id(which doesn't change)
-      response: chosenOptions,
+      value: fieldResponseValue,
+      response: fieldResponseValue,
     };
   }
 
+  if (!field.options) {
+    return {
+      value: fieldResponseValue,
+      response: fieldResponseValue,
+    };
+  }
+
+  const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
+  const chosenOptions = valueArray.map((idOrLabel) => {
+    const foundOptionById = field.options?.find((option) => {
+      return option.id === idOrLabel;
+    });
+    if (foundOptionById) {
+      return {
+        label: foundOptionById.label,
+        id: foundOptionById.id,
+      };
+    } else {
+      return {
+        label: idOrLabel.toString(),
+        id: null,
+      };
+    }
+  });
   return {
-    value: fieldResponseValue,
-    response: fieldResponseValue,
+    // value is a legacy prop that is just sending the labels which can change
+    value: chosenOptions.map((option) => option.label),
+    // response is new prop that is sending the label along with id(which doesn't change)
+    response: chosenOptions,
   };
 }
 
@@ -82,7 +95,7 @@ export async function onFormSubmission(
     const key =
       form.fields.find((f) => f.id === fieldId)?.identifier ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
-    fieldResponsesByIdentifier[key] = getFieldResponseInNewFormat({
+    fieldResponsesByIdentifier[key] = getFieldResponse({
       fieldResponseValue: fieldResponse.value,
       field,
     });

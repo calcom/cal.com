@@ -10,7 +10,7 @@ describe("getFieldResponseForJsonLogic", () => {
     expect(result).toBe("");
   });
 
-  it("should transform number field to number", () => {
+  it("should transform value for a number type field to number", () => {
     const field = { type: "number", options: undefined };
     const value = "123";
     const result = getFieldResponseForJsonLogic({ field, value });
@@ -19,7 +19,7 @@ describe("getFieldResponseForJsonLogic", () => {
 
   describe("multiselect", () => {
     describe("non-legacy options", () => {
-      it("should return option ids for a field that has non-legacy options", () => {
+      it("should return option ids for the field if the value is an array of option ids", () => {
         const field = {
           type: "multiselect",
           options: [
@@ -32,7 +32,7 @@ describe("getFieldResponseForJsonLogic", () => {
         expect(result).toEqual(["1", "2"]);
       });
 
-      it("should return ids by matching labels", () => {
+      it("should return ids if matching labels are provided in value", () => {
         const field = {
           type: "multiselect",
           options: [
@@ -43,6 +43,19 @@ describe("getFieldResponseForJsonLogic", () => {
         const value = ["Option 1", "Option 2"];
         const result = getFieldResponseForJsonLogic({ field, value });
         expect(result).toEqual(["1", "2"]);
+      });
+
+      it("should return the value as it is if it doesn't match any of the labels or option ids", () => {
+        const field = {
+          type: "multiselect",
+          options: [
+            { id: "1", label: "Option 1" },
+            { id: "2", label: "Option 2" },
+          ],
+        };
+        const value = ["Option 10", "Option 11"];
+        const result = getFieldResponseForJsonLogic({ field, value });
+        expect(result).toEqual(["Option 10", "Option 11"]);
       });
     });
 

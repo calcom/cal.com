@@ -40,7 +40,7 @@ function getLabelsFromOptionIds({
     const labels = optionIds.map((optionId) => {
       const foundOption = options.find((option) => option.id === optionId);
       // It would mean that the optionId is actually a label which is why it isn't matching any option id.
-      // Fallback to optionId which was the case with legacy options
+      // Fallback to optionId(i.e. label) which was the case with legacy options
       if (!foundOption) {
         return optionId;
       }
@@ -117,9 +117,9 @@ export function buildResponsesForReporting({
   fields: Pick<z.infer<typeof zodFieldView>, "id" | "options" | "label" | "deleted">[];
 }) {
   const headers = fields.map((f) => f.label + (f.deleted ? "(Deleted)" : ""));
-  const responses: (string | number)[][] = [];
+  const responses: string[][] = [];
   responsesFromDb.forEach((r) => {
-    const rowResponses: (string | number)[] = [];
+    const rowResponses: string[] = [];
     responses.push(rowResponses);
     fields.forEach((field) => {
       if (!r) {
@@ -127,10 +127,15 @@ export function buildResponsesForReporting({
       }
       const response = r as FormResponse;
       const value = response[field.id]?.value || "";
-      const options = field.options;
-      const optionIds = ensureStringOrStringArray(value);
-      const labels = options ? getLabelsFromOptionIds({ options, optionIds }) : [value];
-      rowResponses.push(labels.join(", "));
+      if (field.options) {
+        const optionIds = ensureStringOrStringArray(value);
+        const labels = getLabelsFromOptionIds({ options: field.options, optionIds });
+        rowResponses.push(labels.join(", "));
+      } else {
+        const arrayOfValues = value instanceof Array ? value : [value];
+        const transformedValue = arrayOfValues.join(", ");
+        rowResponses.push(transformedValue);
+      }
     });
   });
 

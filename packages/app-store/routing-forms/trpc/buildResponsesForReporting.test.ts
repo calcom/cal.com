@@ -34,7 +34,7 @@ describe("buildResponsesForReporting", () => {
     expect(headers).toEqual(["Field 1", "Field 2"]);
   });
 
-  it("for fields with options having null id(i.e. legacy fields), it should return what DB provided(as that would be labels only).", () => {
+  it("for fields with options having null id, it should return what DB provided(as that would be labels only).", () => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const responsesFromDb = [
@@ -61,6 +61,28 @@ describe("buildResponsesForReporting", () => {
     const { responses, headers } = buildResponsesForReporting({ responsesFromDb, fields });
     expect(responses).toEqual(expectedResponses);
     expect(headers).toEqual(["Field 1", "Field 2"]);
+  });
+
+  it("for fields with no options but having array value, it should return the value as is", () => {
+    const field2Id = uuidv4();
+    const responsesFromDb = [
+      {
+        [field2Id]: { value: ["Option 1", "Option 2"] },
+      },
+    ];
+
+    const fields = [
+      {
+        id: field2Id,
+        label: "Field 2",
+      },
+    ];
+
+    const expectedResponses = [["Option 1, Option 2"]];
+
+    const { responses, headers } = buildResponsesForReporting({ responsesFromDb, fields });
+    expect(responses).toEqual(expectedResponses);
+    expect(headers).toEqual(["Field 2"]);
   });
 
   it("should correctly handle numeric responses converting them to strings", () => {
