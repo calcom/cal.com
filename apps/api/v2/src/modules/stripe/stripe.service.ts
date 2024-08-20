@@ -2,6 +2,7 @@ import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type { Prisma } from "@prisma/client";
 import stringify from "qs-stringify";
 import Stripe from "stripe";
 import { z } from "zod";
@@ -69,7 +70,8 @@ export class StripeService {
 
   async saveStripeAccount(
     state: string | string[] | undefined,
-    code: string | string[] | undefined
+    code: string | string[] | undefined,
+    userId: number
   ): Promise<{ url: string }> {
     const response = await stripe.oauth.token({
       grant_type: "authorization_code",
@@ -81,6 +83,13 @@ export class StripeService {
       const account = await stripe.accounts.retrieve(response["stripe_user_id"]);
       data["default_currency"] = account.default_currency;
     }
+
+    await this.appsRepository.createAppCredential(
+      "stripe_payment",
+      data as unknown as Prisma.InputJsonObject,
+      userId,
+      "stripe"
+    );
 
     return { url: "" };
   }
