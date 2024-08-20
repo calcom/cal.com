@@ -11,6 +11,7 @@ import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
+import { EventOccurences } from "./Occurences";
 import { Price } from "./Price";
 
 type EventDetailsPropsBase = {
@@ -155,14 +156,14 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
               </EventMetaBlock>
             );
 
-          // case EventDetailBlocks.OCCURENCES:
-          //   if (!event.recurringEvent || rescheduleUid) return null;
+          case EventDetailBlocks.OCCURENCES:
+            if (!event.recurringEvent || rescheduleUid) return null;
 
-          //   return (
-          //     <EventMetaBlock key={block} icon="refresh-ccw">
-          //       <EventOccurences event={event} />
-          //     </EventMetaBlock>
-          //   );
+            return (
+              <EventMetaBlock key={block} icon="refresh-ccw">
+                <EventOccurences event={event} />
+              </EventMetaBlock>
+            );
 
           case EventDetailBlocks.PRICE:
             const paymentAppData = getPaymentAppData(event);
