@@ -10,6 +10,7 @@ checkRoute () {
 # These conditionals are used to remove directories from the build that are not needed in production
 # This is to reduce the size of the build and prevent OOM errors
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
+checkRoute "$APP_ROUTER_SETTINGS_DEVELOPER_ENABLED" app/future/settings/developer
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
 checkRoute "$APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED" app/future/apps/installed
 checkRoute "$APP_ROUTER_APPS_SLUG_ENABLED" app/future/apps/\[slug\]
