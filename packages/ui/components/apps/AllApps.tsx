@@ -1,3 +1,5 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { AppCategories } from "@prisma/client";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,8 +26,13 @@ export function useShouldShowArrows() {
 
   useEffect(() => {
     const appCategoryList = ref.current;
-    if (appCategoryList && appCategoryList.scrollWidth > appCategoryList.clientWidth) {
-      setShowArrowScroll({ left: false, right: true });
+    if (appCategoryList) {
+      const isAtStart = appCategoryList.scrollLeft <= 0;
+      const isAtEnd = appCategoryList.scrollWidth <= appCategoryList.clientWidth + appCategoryList.scrollLeft;
+      setShowArrowScroll({
+        left: !isAtStart,
+        right: !isAtEnd,
+      });
     }
   }, []);
 
