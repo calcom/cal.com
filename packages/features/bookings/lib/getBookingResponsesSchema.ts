@@ -2,7 +2,6 @@ import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
@@ -125,8 +124,9 @@ function preprocess<T extends z.ZodType>({
       const emailField = bookingFields.find((field) => field.name === "email");
       const isEmailFieldHidden = !!emailField?.hidden;
 
-      if (isEmailFieldHidden && !emailField.required && !isAttendeePhoneNumberFieldHidden) {
-        responses["email"] = BOOKED_WITH_SMS_EMAIL;
+      // To prevent using user's session email as attendee's email, we set email to empty string
+      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+        responses["email"] = "";
       }
 
       for (const bookingField of bookingFields) {

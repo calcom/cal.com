@@ -28,7 +28,7 @@ export type AttendeeInBookingInfo = {
   name: string;
   firstName?: string;
   lastName?: string;
-  email?: string | null;
+  email: string;
   phoneNumber?: string;
   timeZone: string;
   language: { locale: string };

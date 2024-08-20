@@ -2,7 +2,6 @@
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -77,9 +76,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   // See if attendee is already signed up for timeslot
   if (
     seatedBooking.attendees.find((attendee) => {
-      if (!invitee[0].email || invitee[0].email === BOOKED_WITH_SMS_EMAIL) {
-        return attendee.phoneNumber === invitee[0].phoneNumber;
-      }
       return attendee.email === invitee[0].email;
     }) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
@@ -114,7 +110,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
-        emailAttendeeSendToOverride: bookerEmail ?? undefined,
+        emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
       });
     } catch (error) {

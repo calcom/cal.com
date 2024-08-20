@@ -68,7 +68,7 @@ export class PaymentService implements IAbstractPaymentService {
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: number,
     paymentOption: PaymentOption,
-    _bookerEmail?: string | null
+    _bookerEmail: string
   ): Promise<Payment> {
     try {
       const booking = await prisma.booking.findFirst({

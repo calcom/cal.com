@@ -17,7 +17,7 @@ export type NewSeatedBookingObject = {
   allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
-  bookerEmail?: string | null;
+  bookerEmail: string;
   bookerPhoneNumber?: string | null;
   tAttendees: TFunction;
   bookingSeat: BookingSeat;

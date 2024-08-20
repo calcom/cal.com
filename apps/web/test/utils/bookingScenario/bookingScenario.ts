@@ -180,7 +180,7 @@ type WhiteListedBookingProps = {
   title?: string;
   status: BookingStatus;
   attendees?: {
-    email?: string;
+    email: string;
     phoneNumber?: string;
     bookingSeat?: AttendeeBookingSeatInput | null;
   }[];
@@ -1793,7 +1793,7 @@ export function getMockBookingAttendee(
     id: attendee.id,
     timeZone: attendee.timeZone,
     name: attendee.name,
-    email: attendee.email ?? undefined,
+    email: attendee.email,
     locale: attendee.locale,
     bookingSeat: attendee.bookingSeat || null,
     phoneNumber: attendee.phoneNumber ?? undefined,

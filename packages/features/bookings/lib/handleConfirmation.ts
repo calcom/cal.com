@@ -124,7 +124,7 @@ export async function handleConfirmation(args: {
     location: string | null;
     attendees: {
       name: string;
-      email?: string | null;
+      email: string;
       phoneNumber?: string | null;
     }[];
     startTime: Date;

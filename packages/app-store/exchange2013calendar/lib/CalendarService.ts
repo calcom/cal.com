@@ -20,7 +20,6 @@ import {
   WellKnownFolderName,
 } from "ews-javascript-api";
 
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 // Probably don't need
 // import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
@@ -72,12 +71,12 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.Body = new MessageBody(event.description || ""); // you can not use any special character or escape the content
 
       for (let i = 0; i < event.attendees.length; i++) {
-        appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email ?? BOOKED_WITH_SMS_EMAIL));
+        appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
       }
 
       if (event.team?.members) {
         event.team.members.forEach((member) => {
-          appointment.RequiredAttendees.Add(new Attendee(member.email ?? BOOKED_WITH_SMS_EMAIL));
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
         });
       }
 
@@ -111,11 +110,11 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.Location = event.location || "Location not defined!";
       appointment.Body = new MessageBody(event.description || ""); // you can not use any special character or escape the content
       for (let i = 0; i < event.attendees.length; i++) {
-        appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email ?? BOOKED_WITH_SMS_EMAIL));
+        appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
       }
       if (event.team?.members) {
         event.team.members.forEach((member) => {
-          appointment.RequiredAttendees.Add(new Attendee(member.email ?? BOOKED_WITH_SMS_EMAIL));
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
         });
       }
       appointment.Update(

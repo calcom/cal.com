@@ -1,5 +1,4 @@
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -416,7 +415,7 @@ export default class FeishuCalendarService implements Calendar {
         const attendee: FeishuEventAttendee = {
           type: "third_party",
           is_optional: false,
-          third_party_email: member.email ?? BOOKED_WITH_SMS_EMAIL,
+          third_party_email: member.email,
         };
         attendeeArray.push(attendee);
       }

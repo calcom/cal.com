@@ -81,7 +81,7 @@ const generateIcsString = ({
     attendees: [
       ...event.attendees.map((attendee: Attendee) => ({
         name: attendee.name,
-        email: attendee.email ?? undefined,
+        email: attendee.email,
         partstat,
         role: icsRole,
         rsvp: true,

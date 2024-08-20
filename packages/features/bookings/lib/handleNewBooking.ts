@@ -45,7 +45,6 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -1351,11 +1350,6 @@ async function handler(
             .concat(copyEvent.attendees) || [];
 
         const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) => {
-          if (!originalMember.email || originalMember.email === BOOKED_WITH_SMS_EMAIL) {
-            return originalMember.phoneNumber === newMember.phoneNumber;
-          } else if (!newMember.email || newMember.email === BOOKED_WITH_SMS_EMAIL) {
-            return newMember.phoneNumber === originalMember.phoneNumber;
-          }
           return originalMember.email === newMember.email;
         };
 
@@ -1378,7 +1372,11 @@ async function handler(
           )
         );
 
-        sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers, eventType.metadata);
+        sendRoundRobinRescheduledEmailsAndSMS(
+          copyEventAdditionalInfo,
+          rescheduledMembers,
+          eventType.metadata
+        );
         sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers, eventType.metadata);
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
       } else {

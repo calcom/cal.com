@@ -2,11 +2,11 @@ import type { TFunction } from "next-i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
+import isSmsCalEmail from "./isSmsCalEmail";
 
 const translator = short();
 
@@ -40,7 +40,7 @@ export const getWho = (calEvent: CalendarEvent, t: TFunction) => {
     .map((attendee) => {
       return `
 ${attendee?.name || t("guest")}
-${attendee.email !== BOOKED_WITH_SMS_EMAIL ? `${attendee.email}\n` : ""}${attendee.phoneNumber}`.trim();
+${isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : ""}${attendee.phoneNumber}`.trim();
     })
 
     .join("");

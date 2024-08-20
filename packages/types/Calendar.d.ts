@@ -27,7 +27,7 @@ type PaymentInfo = {
 
 export type Person = {
   name: string;
-  email?: string | null;
+  email: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
@@ -39,11 +39,9 @@ export type Person = {
   phoneNumber?: string | null;
 };
 
-export type Organizer = Person & {
-  email: string;
-};
+export type Organizer = Person;
 
-export type Attendee = RequireAtLeastOne<Person, "email", "phoneNumber">;
+export type Attendee = Person;
 
 export type RequireAtLeastOne<T, Keys extends keyof T> = Pick<T, Exclude<keyof T, Keys>> & {
   [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
@@ -52,7 +50,7 @@ export type RequireAtLeastOne<T, Keys extends keyof T> = Pick<T, Exclude<keyof T
 export type TeamMember = {
   id?: number;
   name: string;
-  email?: string | null;
+  email: string;
   phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
