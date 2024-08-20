@@ -2,6 +2,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { useCallback } from "react";
 
+import { IconSprites } from "@calcom/ui";
 import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import esTranslations from "@calcom/web/public/static/locales/es/common.json";
@@ -124,6 +125,7 @@ export function BaseCalProvider({
       }}>
       <TooltipProvider>{children}</TooltipProvider>
       <Toaster />
+      <IconSprites />
     </AtomsContext.Provider>
   ) : (
     <AtomsContext.Provider
@@ -142,6 +144,7 @@ export function BaseCalProvider({
       <>
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
+        <IconSprites />
       </>
     </AtomsContext.Provider>
   );

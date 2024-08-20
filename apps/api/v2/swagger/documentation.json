@@ -6631,33 +6631,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "number"
-          },
-          "minimumBookingNotice": {
-            "type": "number"
-          },
-          "beforeEventBuffer": {
-            "type": "number"
-          },
-          "afterEventBuffer": {
-            "type": "number"
-          },
           "schedulingType": {
             "type": "object"
           },
@@ -6675,13 +6648,6 @@
           "lengthInMinutes",
           "title",
           "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
           "schedulingType",
           "hosts",
           "assignAllTeamMembers"
@@ -6778,6 +6744,64 @@
           "name",
           "userId"
         ]
+      },
+      "BookingLimitsCount_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per day",
+            "example": 1
+          },
+          "week": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per week",
+            "example": 2
+          },
+          "month": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per month",
+            "example": 3
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per year",
+            "example": 4
+          }
+        }
+      },
+      "BookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          }
+        }
       },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -6898,6 +6922,22 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean"
+          },
+          "bookingLimitsCount": {
+            "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+          },
+          "bookingWindow": {
+            "type": "object"
+          },
+          "offsetStart": {
+            "type": "number",
+            "minimum": 1
           }
         },
         "required": [
