@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PrismaClient } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { NextMiddleware } from "next-api-middleware";
@@ -18,6 +19,7 @@ export const verifyManagedSetupCompletionToken: NextMiddleware = async function 
   next
 ) {
   try {
+    const { authorization } = req.headers;
     if (!authorization) {
       throw new Error(messages.TOKEN_NOT_SUPPLIED);
     }
@@ -30,10 +32,10 @@ export const verifyManagedSetupCompletionToken: NextMiddleware = async function 
       throw new Error(messages.TOKEN_NOT_SUPPLIED);
     }
 
-    const prisma: PrismaClient = req.prisma;
+    const prisma: PrismaClient = (req as any).prisma;
     const setupEntry = await prisma.zohoSchedulingSetup.findFirst({
       where: {
-        setupCompletionToken: token,
+        completeSetupToken: token,
       },
     });
 

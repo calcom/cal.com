@@ -95,17 +95,17 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const updateManagedSetupAndGetRedirectUrl = async () => {
     let setupCompleted = false;
-    let setupCompletionToken: string | undefined = undefined;
+    let completeSetupToken: string | undefined = undefined;
 
     if (fromManagedSetup && onlyOneCalendar) {
-      setupCompletionToken = generateToken();
+      completeSetupToken = generateToken();
       await prisma.zohoSchedulingSetup.update({
         where: {
           userId,
         },
         data: {
           status: "Completed",
-          setupCompletionToken,
+          completeSetupToken,
         },
       });
       setupCompleted = true;
@@ -113,7 +113,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     const query = {
       setupCompleted,
-      setupCompletionToken,
+      completeSetupToken,
     };
 
     const redirectUrl = fromManagedSetup
