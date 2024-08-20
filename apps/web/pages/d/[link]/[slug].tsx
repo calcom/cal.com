@@ -28,6 +28,7 @@ export default function Type({
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
         entity={entity}
+        isTeamEvent={isTeamEvent}
       />
       <Booker
         username={user}
