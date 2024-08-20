@@ -51,12 +51,13 @@ export class StripeController {
     @Query("state") state: string | string[] | undefined,
     @Query("code") code: string | string[] | undefined,
     @Query("error") error: string | string[] | undefined,
-    @Query("error_description") error_description: string | string[] | undefined
+    @Query("error_description") error_description: string | string[] | undefined,
+    @GetUser() user: UserWithProfile
   ): Promise<{ url: string }> {
     if (error) {
       throw new BadRequestException(stringify({ error, error_description }));
     }
 
-    return await this.stripeService.saveStripeAccount(code, state);
+    return await this.stripeService.saveStripeAccount(code, state, user.id);
   }
 }
