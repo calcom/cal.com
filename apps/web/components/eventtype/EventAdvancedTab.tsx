@@ -106,14 +106,16 @@ const SingleUseLinksManager = ({
                         </Tooltip>
                       }
                     />
-                    <Button
-                      data-testid={`remove-single-use-link-${key}`}
-                      variant="icon"
-                      StartIcon="trash-2"
-                      color="destructive"
-                      className="border-none"
-                      onClick={() => removeSingleUseLink(key)}
-                    />
+                    {value && value.length > 1 && (
+                      <Button
+                        data-testid={`remove-single-use-link-${key}`}
+                        variant="icon"
+                        StartIcon="trash-2"
+                        color="destructive"
+                        className="ml-2 border-none"
+                        onClick={() => removeSingleUseLink(key)}
+                      />
+                    )}
                   </li>
                 );
               })}

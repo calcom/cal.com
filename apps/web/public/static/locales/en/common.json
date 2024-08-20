@@ -861,7 +861,7 @@
   "copy_private_link_to_event": "Copy private link to event",
   "private_link_description": "Generate a private URL to share without exposing your {{appName}} username",
   "single_use_links_title": "Single Use Links",
-  "single_use_links_description": "Generate private single use URLs, which will be destroyed once used",
+  "single_use_links_description": "Generate private URLs without exposing the username, which will be destroyed once used",
   "add_a_single_use_link": "Add new link",
   "single_use_link_copied": "Single use link copied",
   "invitees_can_schedule": "Invitees can schedule",
