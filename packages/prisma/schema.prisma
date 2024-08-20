@@ -1038,6 +1038,7 @@ model WorkflowReminder {
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
   retryCount          Int             @default(0)
+  smsCredits          Int             @default(0)
 
   @@index([bookingUid])
   @@index([workflowStepId])
@@ -1434,9 +1435,9 @@ model PlatformBilling {
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
-model CountrySMSCredits {
+model SMSCountryCredits {
   id      String @id @unique @default(uuid())
   iso     String
   country String
-  credits Int
+  credits Int    @default(0)
 }

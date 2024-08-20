@@ -11,6 +11,68 @@ const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
+async function getCountryCode(phoneNumber: string) {
+  const twilio = createTwilioClient();
+
+  const numberDetails = await twilio.lookups.phoneNumbers(phoneNumber).fetch();
+
+  return numberDetails.countryCode;
+}
+
+export async function getCreditsForNumber(phoneNumber: string) {
+  const countryCode = await getCountryCode(phoneNumber);
+
+  if (countryCode === "US" || countryCode === "CA") {
+    return 0;
+  }
+
+  const country = await prisma.sMSCountryCredits.findFirst({
+    where: {
+      iso: countryCode,
+    },
+  });
+
+  return country?.credits || 3;
+}
+
+async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
+  const credits = await getCreditsForNumber(phoneNumber);
+
+  if (userId) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { smsCredits: { increment: credits } },
+    });
+    return;
+  }
+
+  if (teamId) {
+    await prisma.team.update({
+      where: { id: teamId },
+      data: { smsCredits: { increment: credits } },
+    });
+    return;
+  }
+}
+
+async function removeCredits(credits: number, userId?: number | null, teamId?: number | null) {
+  if (teamId) {
+    await prisma.team.update({
+      where: { id: teamId },
+      data: { smsCredits: { decrement: credits } },
+    });
+    return;
+  }
+
+  if (userId) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { smsCredits: { decrement: credits } },
+    });
+    return;
+  }
+}
+
 function createTwilioClient() {
   if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
     return TwilioClient(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
@@ -74,6 +136,8 @@ export const sendSMS = async (
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
   });
 
+  await addCredits(phoneNumber, userId, teamId);
+
   return response;
 };
 
@@ -123,12 +187,16 @@ export const scheduleSMS = async (
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
   });
 
+  await addCredits(phoneNumber, userId, teamId);
+
   return response;
 };
 
-export const cancelSMS = async (referenceId: string) => {
+export const cancelSMS = async (referenceId: string, credits: number, userId?: number, teamId?: number) => {
   const twilio = createTwilioClient();
   await twilio.messages(referenceId).update({ status: "canceled" });
+
+  await removeCredits(credits, userId, teamId);
 };
 
 export const sendVerificationCode = async (phoneNumber: string) => {

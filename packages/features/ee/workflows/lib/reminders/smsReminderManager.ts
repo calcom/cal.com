@@ -196,6 +196,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
+      const smsCredits = await twilio.getCreditsForNumber(reminderPhone);
+
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
         currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
@@ -221,6 +223,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 scheduled: true,
                 referenceId: scheduledSMS.sid,
                 seatReferenceId: seatReferenceUid,
+                smsCredits,
               },
             });
           }
@@ -237,6 +240,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
             seatReferenceId: seatReferenceUid,
+            smsCredits,
           },
         });
       }
@@ -246,8 +250,30 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
 
 export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
   try {
+    const workflowReminder = await prisma.workflowReminder.findFirst({
+      where: {
+        id: reminderId,
+      },
+      select: {
+        smsCredits: true,
+        workflowStep: {
+          select: {
+            workflow: {
+              select: {
+                userId: true,
+                teamId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const userId = workflowReminder?.workflowStep?.workflow.userId ?? undefined;
+    const teamId = workflowReminder?.workflowStep?.workflow.teamId ?? undefined;
+
     if (referenceId) {
-      await twilio.cancelSMS(referenceId);
+      await twilio.cancelSMS(referenceId, workflowReminder?.smsCredits || 0, userId, teamId);
     }
 
     await prisma.workflowReminder.delete({
