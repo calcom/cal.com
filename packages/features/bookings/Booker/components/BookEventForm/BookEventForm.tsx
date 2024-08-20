@@ -53,8 +53,6 @@ export const BookEventForm = ({
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;
-  const [cpfError, setCPFError] = useState(false);
-  const [showError, setShowError] = useState(false);
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -71,15 +69,6 @@ export const BookEventForm = ({
     const paymentAppData = getPaymentAppData(eventType);
     return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventType]);
-
-  const validateCPF = useCallback(() => {
-    if (cpfError) setShowError(true);
-    else onSubmit();
-  }, [cpfError, onSubmit]);
-
-  useEffect(() => {
-    if (!cpfError && showError) setShowError(false);
-  }, [cpfError, showError]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
@@ -119,7 +108,6 @@ export const BookEventForm = ({
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
-          setCPFError={setCPFError}
         />
         {(errors.hasFormErrors || errors.hasDataErrors) && (
           <div data-testid="booking-fail">

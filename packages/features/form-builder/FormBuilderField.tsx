@@ -51,12 +51,10 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
-  setCPFError,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
-  setCPFError: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
