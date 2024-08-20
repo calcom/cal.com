@@ -330,7 +330,7 @@ function EventTypeSingleLayout({
             <>
               <div
                 className={classNames(
-                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md",
+                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md transition",
                   formMethods.watch("hidden") ? "pl-2" : "",
                   "lg:flex"
                 )}>
@@ -459,7 +459,7 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
+              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
