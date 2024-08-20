@@ -774,7 +774,7 @@ export function expectBookingRequestedEmails({
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker?: { email: string; name: string };
 }) {
   expect(emails).toHaveEmail(
     {
@@ -785,14 +785,16 @@ export function expectBookingRequestedEmails({
     `${organizer.email}`
   );
 
-  expect(emails).toHaveEmail(
-    {
-      titleTag: "booking_submitted_subject",
-      to: `${booker.email}`,
-      noIcs: true,
-    },
-    `${booker.email}`
-  );
+  if (booker) {
+    expect(emails).toHaveEmail(
+      {
+        titleTag: "booking_submitted_subject",
+        to: `${booker.email}`,
+        noIcs: true,
+      },
+      `${booker.email}`
+    );
+  }
 }
 
 export function expectBookingRequestRescheduledEmails({
