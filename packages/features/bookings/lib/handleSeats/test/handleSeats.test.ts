@@ -2413,6 +2413,151 @@ describe("handleSeats", () => {
         // const rescheduledBooking = await handleNewBooking(req);
         await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
       });
+
+      test("When trying to reschedule in a non-available slot, throw an error", async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+        });
+
+        const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
+
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        // Non-available time slot choosen (7:30PM - 8:00PM IST) while rescheduling
+        const secondBookingStartTime = `${plus2DateString}T14:00:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T14:30:00Z`;
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slug: "seated-event",
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                seatsPerTimeSlot: 3,
+                seatsShowAttendees: false,
+              },
+            ],
+            bookings: [
+              {
+                id: firstBookingId,
+                uid: firstBookingUid,
+                eventTypeId: 1,
+                userId: organizer.id,
+                status: BookingStatus.ACCEPTED,
+                startTime: firstBookingStartTime,
+                endTime: firstBookingEndTime,
+                metadata: {
+                  videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                },
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: "Seat 1",
+                    email: "seat1@test.com",
+                    locale: "en",
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-1",
+                      data: {},
+                    },
+                    noShow: false,
+                  }),
+                  getMockBookingAttendee({
+                    id: 2,
+                    name: "Seat 2",
+                    email: "seat2@test.com",
+                    locale: "en",
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-2",
+                      data: {},
+                    },
+                    noShow: false,
+                  }),
+                  getMockBookingAttendee({
+                    id: 3,
+                    name: "Seat 3",
+                    email: "seat3@test.com",
+                    locale: "en",
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-3",
+                      data: {},
+                    },
+                    noShow: false,
+                  }),
+                ],
+              },
+            ],
+            organizer,
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const reqBookingUser = "seatedAttendee";
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            rescheduleUid: firstBookingUid,
+            start: secondBookingStartTime,
+            end: secondBookingEndTime,
+            user: reqBookingUser,
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        req.userId = organizer.id;
+
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
+      });
     });
 
     describe("Cancelling a booking", () => {
