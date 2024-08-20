@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
