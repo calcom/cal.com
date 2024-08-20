@@ -65,14 +65,18 @@ export const FormBuilderField = ({
         // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
-          const { isValid, value: maskedCPF } = cpfMask(value);
-          setCPFError(!isValid);
-          const maskedCpf = field.name === "CPF" ? maskedCPF : value;
+          let maskedValue = value;
+          if (field.name === "CPF") {
+            const { isValid, value: maskedCPF } = cpfMask(value || "");
+            maskedValue = maskedCPF;
+            setCPFError(!isValid);
+          }
+
           return (
             <div>
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
-                value={maskedCpf}
+                value={maskedValue}
                 readOnly={readOnly}
                 setValue={(val: unknown) => {
                   onChange(val);
