@@ -1,21 +1,14 @@
 import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
+import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
+import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
+import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Prisma } from "@prisma/client";
 import stringify from "qs-stringify";
 import Stripe from "stripe";
 import { z } from "zod";
-
-function getReturnToValueFromQueryState(queryState: string | string[] | undefined) {
-  let returnTo = "";
-  try {
-    returnTo = JSON.parse(`${queryState}`).returnTo;
-  } catch (error) {
-    console.info("No 'returnTo' in req.query.state");
-  }
-  return returnTo;
-}
 
 @Injectable()
 export class StripeService {
@@ -83,14 +76,14 @@ export class StripeService {
     code: string | string[] | undefined,
     userId: number
   ): Promise<{ url: string }> {
-    const response = await stripe.oauth.token({
+    const response = await stripeInstance.oauth.token({
       grant_type: "authorization_code",
       code: code?.toString(),
     });
 
     const data: StripeData = { ...response, default_currency: "" };
     if (response["stripe_user_id"]) {
-      const account = await stripe.accounts.retrieve(response["stripe_user_id"]);
+      const account = await stripeInstance.accounts.retrieve(response["stripe_user_id"]);
       data["default_currency"] = account.default_currency;
     }
 
@@ -104,26 +97,3 @@ export class StripeService {
     return { url: getReturnToValueFromQueryState(state) };
   }
 }
-
-// TODO: abstract this into a separate file
-// and also update .env.example for this new variable
-const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY || "";
-const stripe = new Stripe(stripePrivateKey, {
-  apiVersion: "2020-08-27",
-});
-
-export const stripeOAuthTokenSchema = z.object({
-  access_token: z.string().optional(),
-  scope: z.string().optional(),
-  livemode: z.boolean().optional(),
-  token_type: z.literal("bearer").optional(),
-  refresh_token: z.string().optional(),
-  stripe_user_id: z.string().optional(),
-  stripe_publishable_key: z.string().optional(),
-});
-
-export const stripeDataSchema = stripeOAuthTokenSchema.extend({
-  default_currency: z.string(),
-});
-
-export type StripeData = z.infer<typeof stripeDataSchema>;
