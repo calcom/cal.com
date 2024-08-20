@@ -66,4 +66,45 @@ export class StripeService {
 
     return { client_id, client_secret };
   }
+
+  async saveStripeAccount(
+    state: string | string[] | undefined,
+    code: string | string[] | undefined
+  ): Promise<{ url: string }> {
+    const response = await stripe.oauth.token({
+      grant_type: "authorization_code",
+      code: code?.toString(),
+    });
+
+    const data: StripeData = { ...response, default_currency: "" };
+    if (response["stripe_user_id"]) {
+      const account = await stripe.accounts.retrieve(response["stripe_user_id"]);
+      data["default_currency"] = account.default_currency;
+    }
+
+    return { url: "" };
+  }
 }
+
+// TODO: abstract this into a separate file
+// and also update .env.example for this new variable
+const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY || "";
+const stripe = new Stripe(stripePrivateKey, {
+  apiVersion: "2020-08-27",
+});
+
+export const stripeOAuthTokenSchema = z.object({
+  access_token: z.string().optional(),
+  scope: z.string().optional(),
+  livemode: z.boolean().optional(),
+  token_type: z.literal("bearer").optional(),
+  refresh_token: z.string().optional(),
+  stripe_user_id: z.string().optional(),
+  stripe_publishable_key: z.string().optional(),
+});
+
+export const stripeDataSchema = stripeOAuthTokenSchema.extend({
+  default_currency: z.string(),
+});
+
+export type StripeData = z.infer<typeof stripeDataSchema>;
