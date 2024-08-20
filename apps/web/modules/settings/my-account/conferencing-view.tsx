@@ -99,7 +99,7 @@ const ConferencingView = () => {
             }
             return (
               <AppList
-                listClassName="rounded-lg rounded-t-none border-t-0"
+                listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
                 handleDisconnect={handleDisconnect}
                 data={data}
                 variant="conferencing"

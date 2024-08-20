@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -662,16 +662,7 @@ export default function SettingsLayout({
       }>
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center lg:max-w-4xl">
-          <ShellHeader
-            title={title}
-            description={description}
-            CTA={CTA}
-            borderInShellHeader={borderInShellHeader}
-            backButton={backButton}
-          />
-          <ErrorBoundary>
-            <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
-          </ErrorBoundary>
+          <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
     </Shell>

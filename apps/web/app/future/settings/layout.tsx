@@ -1,3 +1,5 @@
 import { WithLayout } from "app/layoutHOC";
 
-export default WithLayout({ getLayout: null });
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayoutAppDir";
+
+export default WithLayout({ getLayout: getLayout })<"L">;

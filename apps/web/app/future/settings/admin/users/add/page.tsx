@@ -2,7 +2,7 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import Page from "@calcom/features/ee/users/pages/users-add-view";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayoutAppDir";
+import { getLayout } from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
