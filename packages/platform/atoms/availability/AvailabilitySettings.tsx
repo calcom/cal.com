@@ -1,7 +1,10 @@
+"use client";
+
 import { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
@@ -11,6 +14,7 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
+import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
@@ -28,6 +32,7 @@ import {
   TimezoneSelect as WebTimezoneSelect,
   Tooltip,
   VerticalDivider,
+  showToast,
 } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
@@ -243,7 +248,18 @@ export function AvailabilitySettings({
   enableOverrides = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const { t, i18n } = useLocale();
+
+  const utils = trpc.useUtils();
+  const bulkUpdateDefaultAvailabilityMutation =
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
+      onSuccess: () => {
+        utils.viewer.availability.list.invalidate();
+        setBulkUpdateModal(false);
+        showToast(t("success"), "success");
+      },
+    });
 
   const form = useForm<AvailabilityFormValues>({
     defaultValues: {
@@ -316,7 +332,7 @@ export function AvailabilitySettings({
       }
       CTA={
         <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-          <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
+          <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
             {!openSidebar ? (
               <>
                 <Skeleton
@@ -335,13 +351,25 @@ export function AvailabilitySettings({
                       id="hiddenSwitch"
                       disabled={isSaving || schedule.isDefault}
                       checked={value}
-                      onCheckedChange={onChange}
+                      onCheckedChange={(checked) => {
+                        onChange(checked);
+                        setBulkUpdateModal(checked);
+                      }}
                     />
                   )}
                 />
               </>
             ) : null}
           </div>
+
+          {bulkUpdateModal && (
+            <BulkEditDefaultForEventsModal
+              isPending={bulkUpdateDefaultAvailabilityMutation.isPending}
+              open={bulkUpdateModal}
+              setOpen={setBulkUpdateModal}
+              bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
+            />
+          )}
 
           <VerticalDivider className="hidden sm:inline" />
           <DeleteDialogButton
