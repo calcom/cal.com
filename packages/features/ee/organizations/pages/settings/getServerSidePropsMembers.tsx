@@ -30,26 +30,6 @@ export const getServerSidePropsForMembers = async function getServerSidePropsFor
     };
   }
 
-  const membership = await prisma.membership.findFirst({
-    where: {
-      userId: session.user.id,
-      team: {
-        id: session.user.org?.id,
-      },
-    },
-    include: {
-      team: true,
-    },
-  });
-
-  if (!membership) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/enterprise",
-      },
-    };
-  }
   return {
     props: {},
   };
