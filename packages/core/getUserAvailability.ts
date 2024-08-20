@@ -298,7 +298,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const schedule = eventType?.schedule ? eventType.schedule : userSchedule;
 
-  const timeBlocksArr = schedule.timeBlocks;
+  const timeBlocksArr = schedule?.timeBlocks;
 
   const { busyTimes, timeBlocks } = await getBusyTimes({
     credentials: user.credentials,
