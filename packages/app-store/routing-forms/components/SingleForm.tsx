@@ -368,7 +368,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
-                            priority: 1,
+                            priority: 2,
+                            weight: 100,
+                            weightAdjustment: 0,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(
