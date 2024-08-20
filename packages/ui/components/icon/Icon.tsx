@@ -16,7 +16,7 @@ const IconLazy = dynamic(
   process.env.NODE_ENV === "production" ? () => import("./IconProd") : () => import("./IconDev")
 );
 
-const Icon = memo((props: IconProps) => <IconLazy {...props} />);
+const Icon = memo((props: IconProps) => <IconLazy {...props} color="#56A798" />);
 
 Icon.displayName = "Icon";
 

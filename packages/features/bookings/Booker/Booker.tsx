@@ -342,6 +342,7 @@ const BookerComponent = ({
                       customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
                   }}
                   event={event.data}
+                  isOcurrence={bookerState === "booking" && shouldShowFormInDialog}
                   isPending={event.isPending}
                   isPlatform={isPlatform}
                 />

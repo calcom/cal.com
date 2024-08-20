@@ -26,11 +26,13 @@ export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
+  isOcurrence,
   classNames,
 }: {
   event: useEventReturnType["data"];
   isPending: useEventReturnType["isPending"];
   isPlatform?: boolean;
+  isOcurrence: boolean;
   classNames?: {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
@@ -145,7 +147,7 @@ export const EventMeta = ({
                   />
                 </EventMetaBlock>
               )} */}
-              <EventDetails event={event} />
+              <EventDetails event={event} isOcurrence={isOcurrence} />
               {/* <EventMetaBlock
                 className=".event-meta-block-fix cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
                 contentClassName="relative max-w-[90%]"
