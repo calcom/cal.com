@@ -24,7 +24,7 @@ import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
  *     tags:
  *     - webhooks
  *     externalDocs:
- *        url: https://docs.cal.com/core-features/webhooks
+ *        url: https://docs.cal.com/docs/core-features/webhooks
  *     responses:
  *       200:
  *         description: OK
