@@ -296,8 +296,9 @@ describe("Tests the slot logic", () => {
       ],
     });
 
-    expect(slots).toHaveLength(1);
-    expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
+    expect(slots).toHaveLength(2);
+    expect(slots[0].time.format()).toBe("2023-07-13T07:30:00+05:30");
+    expect(slots[1].time.format()).toBe("2023-07-13T08:30:00+05:30");
   });
 
   it("tests slots for 5 minute events", async () => {
