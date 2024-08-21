@@ -1,9 +1,9 @@
 import { trpc } from "@calcom/trpc/react";
 import { CreateButton } from "@calcom/ui";
-import type { CreateBtnProps, Option } from "@calcom/ui";
+import type { CreateButtonProps, CreateButtonOption } from "@calcom/ui";
 
 export function CreateButtonWithTeamsList(
-  props: Omit<CreateBtnProps, "options"> & {
+  props: Omit<CreateButtonProps, "options"> & {
     onlyShowWithTeams?: boolean;
     onlyShowWithNoTeams?: boolean;
     isAdmin?: boolean;
@@ -13,7 +13,7 @@ export function CreateButtonWithTeamsList(
   const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery({ includeOrg: props.includeOrg });
   if (!query.data) return null;
 
-  const teamsAndUserProfiles: Option[] = query.data
+  const teamsAndUserProfiles: CreateButtonOption[] = query.data
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
       return {
