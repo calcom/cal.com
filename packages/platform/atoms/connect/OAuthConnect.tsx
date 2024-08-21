@@ -55,7 +55,7 @@ export const OAuthConnect: FC<
   return (
     <AtomsWrapper>
       <Button
-        StartIcon="calendar-days"
+        StartIcon="calendar"
         color="primary"
         disabled={isDisabled}
         className={cn(
