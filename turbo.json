@@ -43,6 +43,7 @@
         "STRIPE_ORG_MONTHLY_PRICE_ID",
         "NEXT_PUBLIC_API_V2_URL",
         "NEXT_PUBLIC_VAPID_PUBLIC_KEY"
+        "BUILD_STANDALONE"
       ]
     },
     "@calcom/web#dx": {
@@ -128,11 +129,11 @@
       "outputs": ["dist/**", "build/**"]
     },
     "dev": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store", "^dev"],
       "cache": false
     },
     "dx": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store", "^dx"],
       "cache": false
     },
     "lint": {
@@ -338,6 +339,8 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
+    "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
+    "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE",
     "NEXT_RUNTIME",
     "NEXTAUTH_COOKIE_DOMAIN",
     "NEXTAUTH_SECRET",
