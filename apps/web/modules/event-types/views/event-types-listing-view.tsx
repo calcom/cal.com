@@ -19,7 +19,6 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import Shell from "@calcom/features/shell/Shell";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -480,7 +479,7 @@ export const EventTypeList = ({
             type.hashedLink && type.hashedLink.length > 0
               ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
               : "";
-          const placeholderHashedLink = `${WEBSITE_URL}/d/${isPrivateURLEnabled}/${type.slug}`;
+          const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
@@ -1019,7 +1018,7 @@ export const InfiniteEventTypeList = ({
               type.hashedLink && type.hashedLink.length > 0
                 ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
                 : "";
-            const placeholderHashedLink = `${WEBSITE_URL}/d/${isPrivateURLEnabled}/${type.slug}`;
+            const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
             const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
             const isChildrenManagedEventType =
               type.metadata?.managedEventConfig !== undefined &&
