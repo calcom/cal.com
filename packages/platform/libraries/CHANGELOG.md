@@ -1,3 +1,8 @@
+## 0.0.29 
+•	Feature: Added support for recurringEvent in api/v2/event-types.
+	•	Introduced the transformApiEventTypeRecurrence translator in packages/lib/event-types/transformers/api-request.ts. This enables the “recurringEvent” feature in the event-type API.
+	•	Added getResponseEventTypeRecurrence translator in packages/lib/event-types/transformers/api-response.ts to return data in a more human-friendly format.
+
 ## 0.0.28 
 •	Feature: Added support for new event-type limits in the API.
 	•	Introduced the transformApiEventTypeFutureBookingLimits translator in packages/lib/event-types/transformers/api-request.ts. This enables the “Limit future bookings” feature in the event-type API.
