@@ -206,18 +206,18 @@ describe("getSchedule", () => {
       // slots where either one of the rr hosts is available
       expect(scheduleWithoutLeadSkip).toHaveTimeSlots(
         [
-          `04:30:00.000Z`,
-          `05:30:00.000Z`,
-          `06:30:00.000Z`,
-          `07:30:00.000Z`,
-          `08:30:00.000Z`,
-          `09:30:00.000Z`,
-          `10:30:00.000Z`,
-          `11:30:00.000Z`,
-          `12:30:00.000Z`,
-          `13:30:00.000Z`,
-          `14:30:00.000Z`,
-          `15:30:00.000Z`,
+          `04:00:00.000Z`,
+          `05:00:00.000Z`,
+          `06:00:00.000Z`,
+          `07:00:00.000Z`,
+          `08:00:00.000Z`,
+          `09:00:00.000Z`,
+          `10:00:00.000Z`,
+          `11:00:00.000Z`,
+          `12:00:00.000Z`,
+          `13:00:00.000Z`,
+          `14:00:00.000Z`,
+          `15:00:00.000Z`,
         ],
         {
           dateString: plus2DateString,
@@ -334,13 +334,13 @@ describe("getSchedule", () => {
       // show normal slots, example@example + one RR host needs to be available
       expect(scheduleFixedHostLead).toHaveTimeSlots(
         [
-          `07:30:00.000Z`,
-          `08:30:00.000Z`,
-          `09:30:00.000Z`,
-          `10:30:00.000Z`,
-          `11:30:00.000Z`,
-          `12:30:00.000Z`,
-          `13:30:00.000Z`,
+          `07:00:00.000Z`,
+          `08:00:00.000Z`,
+          `09:00:00.000Z`,
+          `10:00:00.000Z`,
+          `11:00:00.000Z`,
+          `12:00:00.000Z`,
+          `13:00:00.000Z`,
         ],
         {
           dateString: plus2DateString,
@@ -363,7 +363,7 @@ describe("getSchedule", () => {
 
       // slots where example@example (fixed host) + example1@example.com are available together
       expect(scheduleRRHostLead).toHaveTimeSlots(
-        [`07:30:00.000Z`, `08:30:00.000Z`, `09:30:00.000Z`, `10:30:00.000Z`, `11:30:00.000Z`],
+        [`07:00:00.000Z`, `08:00:00.000Z`, `09:00:00.000Z`, `10:00:00.000Z`, `11:00:00.000Z`],
         {
           dateString: plus2DateString,
         }
@@ -645,9 +645,8 @@ describe("getSchedule", () => {
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
           /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
-          `08:00:00.000Z`,
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          `07:30:00.000Z`,
+          `09:30:00.000Z`,
         ],
         {
           dateString: todayDateString,
@@ -667,9 +666,10 @@ describe("getSchedule", () => {
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
           /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC which is 10hrs from 18:30 */
-          `05:00:00.000Z`,
-          `07:00:00.000Z`,
-          `09:00:00.000Z`,
+          `04:30:00.000Z`,
+          `06:30:00.000Z`,
+          `08:30:00.000Z`,
+          `10:30:00.000Z`,
         ],
         {
           dateString: todayDateString,
