@@ -479,7 +479,7 @@ export const EventTypeList = ({
           const isPrivateURLEnabled =
             type.hashedLink && type.hashedLink.length > 0
               ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
-              : false;
+              : "";
           const placeholderHashedLink = `${WEBSITE_URL}/d/${isPrivateURLEnabled}/${type.slug}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
@@ -1018,7 +1018,7 @@ export const InfiniteEventTypeList = ({
             const isPrivateURLEnabled =
               type.hashedLink && type.hashedLink.length > 0
                 ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
-                : false;
+                : "";
             const placeholderHashedLink = `${WEBSITE_URL}/d/${isPrivateURLEnabled}/${type.slug}`;
             const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
             const isChildrenManagedEventType =
