@@ -15,22 +15,11 @@ import {
 } from "class-validator";
 
 enum Status {
-  accepted = "accepted",
-  cancelled = "cancelled",
-  rejected = "rejected",
-  pending = "pending",
   upcoming = "upcoming",
   recurring = "recurring",
   past = "past",
+  cancelled = "cancelled",
   unconfirmed = "unconfirmed",
-  "!accepted" = "!accepted",
-  "!cancelled" = "!cancelled",
-  "!rejected" = "!rejected",
-  "!pending" = "!pending",
-  "!upcoming" = "!upcoming",
-  "!recurring" = "!recurring",
-  "!past" = "!past",
-  "!unconfirmed" = "!unconfirmed",
 }
 type StatusType = keyof typeof Status;
 
@@ -43,9 +32,18 @@ type SortOrderType = keyof typeof SortOrder;
 export class GetBookingsInput_2024_08_13 {
   // note(Lauris): filters
   @IsOptional()
-  @IsEnum(Status)
-  @IsOptional()
-  status?: StatusType;
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((status: string) => status.trim());
+    }
+    return value;
+  })
+  @ArrayNotEmpty({ message: "status cannot be empty." })
+  @IsEnum(Status, {
+    each: true,
+    message: "Invalid status. Allowed are upcoming, recurring, past, cancelled, unconfirmed",
+  })
+  status?: StatusType[];
 
   @IsString()
   @IsOptional()

@@ -10,6 +10,12 @@ import { CreateBookingInput_2024_08_13 } from "./create-booking.input";
 
 @Injectable()
 export class CreateBookingInputPipe implements PipeTransform {
+  // note(Lauris): we need empty constructor otherwise v2 can't be started due to error:
+  // CreateBookingInputPipe is not a constructor
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  constructor() {}
+
   transform(
     value:
       | CreateBookingInput_2024_08_13

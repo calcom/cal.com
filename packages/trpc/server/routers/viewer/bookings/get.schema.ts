@@ -4,7 +4,7 @@ export const ZGetInputSchema = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),
-    status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
+    status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).optional(),
     eventTypeIds: z.number().array().optional(),
   }),
   limit: z.number().min(1).max(100).nullish(),

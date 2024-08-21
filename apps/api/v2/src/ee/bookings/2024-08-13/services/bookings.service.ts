@@ -2,18 +2,22 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import { Request } from "express";
 
-import { handleNewBooking, handleNewRecurringBooking } from "@calcom/platform-libraries";
+import {
+  handleNewBooking,
+  handleNewRecurringBooking,
+  getAllUserBookings,
+} from "@calcom/platform-libraries-1.2.3";
 import {
   CreateBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
 } from "@calcom/platform-types";
-import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class BookingsService_2024_08_13 {
@@ -21,7 +25,8 @@ export class BookingsService_2024_08_13 {
     private readonly inputService: InputBookingsService_2024_08_13,
     private readonly outputService: OutputBookingsService_2024_08_13,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
-    private readonly eventTypesRepository: EventTypesRepository_2024_06_14
+    private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
+    private readonly prismaReadService: PrismaReadService
   ) {}
 
   async createBooking(
@@ -97,87 +102,20 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(recurringBooking);
   }
 
-  async getBookings(queryParams: GetBookingsInput_2024_08_13) {
-    return [];
-  }
+  async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
+    const bookings = await getAllUserBookings({
+      bookingListingByStatus: queryParams.status,
+      skip: queryParams.cursor ?? 0,
+      take: queryParams.limit ?? 10,
+      // todo: add filters here like by eventtype id etc
+      filters: undefined,
+      ctx: {
+        user,
+        prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+      },
+      sort: this.inputService.transformGetBookingsSort(queryParams),
+    });
 
-  async createGetBookingsWhere(queryParams: GetBookingsInput_2024_08_13): Promise<Prisma.BookingWhereInput> {
-    const where: Prisma.BookingWhereInput = {};
-
-    if (queryParams.status) {
-      if (queryParams.status === "upcoming") {
-        where.startTime = {
-          gte: new Date(),
-        };
-      } else if (queryParams.status === "past") {
-        where.startTime = {
-          lte: new Date(),
-        };
-      } else if (queryParams.status.startsWith("!")) {
-        where.status = {
-          not: queryParams.status.substring(1) as BookingStatus,
-        };
-      } else {
-        where.status = queryParams.status;
-      }
-    }
-
-    if (queryParams.attendeeEmail) {
-      where.attendees = {
-        some: {
-          email: {
-            contains: queryParams.attendeeEmail,
-            mode: "insensitive",
-          },
-        },
-      };
-    }
-
-    if (queryParams.eventTypeIds) {
-      where.eventTypeId = {
-        in: queryParams.eventTypeIds,
-      };
-    }
-
-    if (queryParams.eventTypeId) {
-      where.eventTypeId = queryParams.eventTypeId;
-    }
-
-    if (queryParams.teamsIds) {
-      where.destinationCalendar = {
-        teamId: {
-          in: queryParams.teamsIds,
-        },
-      };
-    }
-
-    if (queryParams.teamId) {
-      where.destinationCalendar = {
-        teamId: queryParams.teamId,
-      };
-    }
-
-    if (queryParams.dateRange) {
-      const [fromDate, toDate] = queryParams.dateRange;
-      where.startTime = {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      };
-    } else {
-      if (queryParams.fromDate) {
-        where.startTime = {
-          gte: new Date(queryParams.fromDate),
-        };
-      }
-
-      if (queryParams.toDate) {
-        where.startTime = {
-          ...where.startTime,
-          lte: new Date(queryParams.toDate),
-        };
-      }
-    }
-
-    return where;
+    return bookings;
   }
 }

@@ -15,6 +15,7 @@ import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
   CreateBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
+  GetBookingsInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
@@ -331,6 +332,18 @@ export class InputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       responses: bookingResponses,
       user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
+    };
+  }
+
+  transformGetBookingsSort(queryParams: GetBookingsInput_2024_08_13) {
+    if (!queryParams.sortStart && !queryParams.sortEnd && !queryParams.sortCreated) {
+      return undefined;
+    }
+
+    return {
+      sortStart: queryParams.sortStart,
+      sortEnd: queryParams.sortEnd,
+      sortCreated: queryParams.sortCreated,
     };
   }
 }

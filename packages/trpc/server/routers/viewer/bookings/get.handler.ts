@@ -23,7 +23,8 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const take = input.limit ?? 10;
   const skip = input.cursor ?? 0;
   const { prisma, user } = ctx;
-  const bookingListingByStatus = input.filters.status;
+  const defaultStatus = "upcoming";
+  const bookingListingByStatus = [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
     ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
