@@ -10,7 +10,8 @@ jobs:
     continue-on-error: true
     env:
       # Unique URL path for each workflow run attempt
-      HTML_REPORT_URL_PATH: reports/${{ github.ref_name }}/${{ github.run_id }}/${{ github.run_attempt }}
+      HTML_REPORT_URL_PATH: reports/${{ github.head_ref }}/${{ github.run_id }}/${{ github.run_attempt }}
+      BRANCH_REPORTS_DIR: reports/${{ github.head_ref }}
     steps:
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v4
@@ -21,6 +22,20 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Check for workflow reports
+        run: |
+          if [ -z "$(ls -A $BRANCH_REPORTS_DIR)" ]; then
+            echo "BRANCH_REPORTS_EXIST="false"" >> $GITHUB_ENV
+          else
+            echo "BRANCH_REPORTS_EXIST="true"" >> $GITHUB_ENV
+          fi
+      - name: Cleanup old HTML reports
+        if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
+        timeout-minutes: 3
+        run: |
+          rm -rf $BRANCH_REPORTS_DIR
+          git add .
+          git commit -m "workflow: remove all reports for branch ${{ github.head_ref }}"
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:
@@ -68,11 +83,14 @@ jobs:
           body: |
             <!-- GENERATED-E2E-RESULTS -->
             ## E2E results are ready!
-            - [Attempt #${{ github.run_number }}.${{ github.run_attempt }} results](${{ steps.url.outputs.link }})
+            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
       - name: Update comment
         if: steps.fc.outputs.comment-id != ''
         uses: peter-evans/create-or-update-comment@v3
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
           body: |
-            - [Attempt #${{ github.run_number }}.${{ github.run_attempt }} results](${{ steps.url.outputs.link }})
+            <!-- GENERATED-E2E-RESULTS -->
+            ## E2E results are ready!
+            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
