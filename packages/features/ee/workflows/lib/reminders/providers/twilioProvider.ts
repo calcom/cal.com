@@ -1,8 +1,11 @@
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
+import { sendSmsLimitAlmostReachedEmails } from "@calcom/emails";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
@@ -10,6 +13,8 @@ import { SMSLockState } from "@calcom/prisma/enums";
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
+
+const creditsPerMember = 250;
 
 async function getCountryCode(phoneNumber: string) {
   const twilio = createTwilioClient();
@@ -20,6 +25,8 @@ async function getCountryCode(phoneNumber: string) {
 }
 
 export async function getCreditsForNumber(phoneNumber: string) {
+  if (IS_SELF_HOSTED) return 0;
+
   const countryCode = await getCountryCode(phoneNumber);
 
   if (countryCode === "US" || countryCode === "CA") {
@@ -38,19 +45,58 @@ export async function getCreditsForNumber(phoneNumber: string) {
 async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
   const credits = await getCreditsForNumber(phoneNumber);
 
-  if (userId) {
-    await prisma.user.update({
-      where: { id: userId },
+  if (teamId) {
+    const team = await prisma.team.update({
+      where: { id: teamId },
       data: { smsCredits: { increment: credits } },
+      select: {
+        name: true,
+        members: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                name: true,
+                locale: true,
+              },
+            },
+            accepted: true,
+            role: true,
+          },
+        },
+        smsCredits: true,
+      },
     });
+
+    const acceptedMembers = team.members.filter((member) => member.accepted);
+
+    const totalCredits = acceptedMembers.length * creditsPerMember;
+
+    if (true || team.smsCredits > totalCredits * 0.8) {
+      const owners = await Promise.all(
+        acceptedMembers
+          .filter((member) => member.role === "OWNER")
+          .map(async (member) => {
+            return {
+              email: member.user.email,
+              name: member.user.name,
+              t: await getTranslation(member.user.locale ?? "es", "common"),
+            };
+          })
+      );
+      // notification email to team owners when over 80% of credits used
+      sendSmsLimitAlmostReachedEmails({ name: team.name, owners });
+    }
     return;
   }
 
-  if (teamId) {
-    await prisma.team.update({
-      where: { id: teamId },
+  if (userId) {
+    const user = await prisma.user.update({
+      where: { id: userId },
       data: { smsCredits: { increment: credits } },
     });
+
+    // todo: also check for too many credits here
     return;
   }
 }

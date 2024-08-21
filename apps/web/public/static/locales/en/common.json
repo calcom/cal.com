@@ -2542,5 +2542,8 @@
   "booking_question_response_variables": "Booking question response variables",
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
+  "sms_limit_almost_reached_subject": "{{appName}}: SMS limit almost reached",
+  "sms_limit_almost_reached_first_part": "Your team {{teamName}} has reached 80% of your available SMS in August 2023. To avoid any interruptions in your SMS services, you can upgrade to our organizations plan or add additional team members to increase your SMS limit.",
+  "sms_limit_almost_reached_second_part": "After you reached the limit we will then send SMS to your attendees as Emails instead. For more information, please visit: https://example.com",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

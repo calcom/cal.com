@@ -60,6 +60,7 @@ import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
+import SmsLimitAlmostReachedEmail from "./templates/sms-limit-almost-reached-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
@@ -615,4 +616,22 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
   await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
+};
+
+export const sendSmsLimitAlmostReachedEmails = async (team: {
+  name: string;
+  owners: {
+    email: string;
+    name: string | null;
+    t: TFunction;
+  }[];
+}) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(
+    ...team.owners.map((owner) => {
+      return sendEmail(() => new SmsLimitAlmostReachedEmail({ teamName: team.name, user: owner }));
+    })
+  );
+  await Promise.all(emailsToSend);
 };

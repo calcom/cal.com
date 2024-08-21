@@ -36,3 +36,4 @@ export { BookingRedirectEmailNotification } from "./BookingRedirectEmailNotifica
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
+export { SmsLimitAlmostReachedEmail } from "./SmsLimitAlmostReachedEmail";
