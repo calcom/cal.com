@@ -8,6 +8,7 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
+  const webAppUrl = env.NEXT_PUBLIC_WEBAPP_URL ?? "https://app.cal.com";
   return {
     optimizeDeps: {
       include: [
@@ -27,8 +28,7 @@ export default defineConfig(({ mode }) => {
       dts({ insertTypesEntry: true }),
     ],
     define: {
-      "process.env.NEXT_PUBLIC_WEBAPP_URL":
-        JSON.stringify(env.NEXT_PUBLIC_WEBAPP_URL) ?? "https://app.cal.com",
+      "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
     },
     build: {
       commonjsOptions: {
