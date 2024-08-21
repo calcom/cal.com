@@ -741,7 +741,7 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
-                    {userIsOwner && !isCancelled && isRejectionMode && (
+                    {!isCancelled && isRejectionMode && (
                       <>
                         <hr className="border-subtle" />
                         <RejectBooking
