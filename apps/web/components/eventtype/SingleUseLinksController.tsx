@@ -79,14 +79,15 @@ export const SingleUseLinksController = ({
                   </li>
                 );
               })}
-            <Button
-              color="minimal"
-              StartIcon="plus"
-              onClick={addSingleUseLink}
-              disabled={disabled}
-              data-testid="add-single-use-link-button">
-              {t("add_a_single_use_link")}
-            </Button>
+            {!disabled && (
+              <Button
+                color="minimal"
+                StartIcon="plus"
+                onClick={addSingleUseLink}
+                data-testid="add-single-use-link-button">
+                {t("add_a_single_use_link")}
+              </Button>
+            )}
           </ul>
         );
       }}
