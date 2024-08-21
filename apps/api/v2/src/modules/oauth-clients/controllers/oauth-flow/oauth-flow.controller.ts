@@ -2,7 +2,6 @@ import { getEnv } from "@/env";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
@@ -48,7 +47,7 @@ export class OAuthFlowController {
 
   @Post("/authorize")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(NextAuthGuard)
+  @UseGuards(ApiAuthGuard)
   @DocsOperation({
     summary: "Authorize an OAuth client",
     description:

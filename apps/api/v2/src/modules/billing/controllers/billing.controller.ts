@@ -1,7 +1,7 @@
 import { AppConfig } from "@/config/type";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
@@ -46,7 +46,7 @@ export class BillingController {
   }
 
   @Get("/:teamId/check")
-  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @UseGuards(ApiAuthGuard, OrganizationRolesGuard)
   @MembershipRoles(["OWNER", "ADMIN", "MEMBER"])
   async checkTeamBilling(
     @Param("teamId") teamId: number
@@ -63,7 +63,7 @@ export class BillingController {
   }
 
   @Post("/:teamId/subscribe")
-  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @UseGuards(ApiAuthGuard, OrganizationRolesGuard)
   @MembershipRoles(["OWNER", "ADMIN"])
   async subscribeTeamToStripe(
     @Param("teamId") teamId: number,
