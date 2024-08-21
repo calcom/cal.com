@@ -98,9 +98,14 @@ jobs:
     uses: ./.github/workflows/yarn-install.yml
 
   i18n:
-    uses: replexica/replexica@main
-    with:
-      api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
+    name: Run i18n
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: replexica/replexica@main
+        with:
+          api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
 
   type-check:
     name: Type check
