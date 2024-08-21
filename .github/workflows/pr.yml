@@ -97,6 +97,11 @@ jobs:
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
+  i18n:
+    uses: replexica/replexica@main
+    with:
+      api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
+
   type-check:
     name: Type check
     needs: [changes, check-label, deps]

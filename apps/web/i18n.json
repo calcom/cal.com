@@ -1,0 +1,12 @@
+{
+  "version": 1.2,
+  "locale": {
+    "source": "en",
+    "targets": ["es"]
+  },
+  "buckets": {
+    "json": {
+      "include": ["public/static/locales/[locale]/common.json"]
+    }
+  }
+}
