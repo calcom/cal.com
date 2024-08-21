@@ -108,7 +108,7 @@ export class BookingsService_2024_08_13 {
       skip: queryParams.cursor ?? 0,
       take: queryParams.limit ?? 10,
       // todo: add filters here like by eventtype id etc
-      filters: undefined,
+      filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,

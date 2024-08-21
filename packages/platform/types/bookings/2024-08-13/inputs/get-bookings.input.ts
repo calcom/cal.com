@@ -52,6 +52,7 @@ export class GetBookingsInput_2024_08_13 {
   @IsArray()
   @Type(() => Number)
   @IsOptional()
+  @ArrayMinSize(1, { message: "eventTypeIds must contain at least 1 event type id" })
   eventTypeIds?: number[];
 
   @IsInt()
@@ -61,6 +62,7 @@ export class GetBookingsInput_2024_08_13 {
   @IsArray()
   @Type(() => Number)
   @IsOptional()
+  @ArrayMinSize(1, { message: "teamIds must contain at least 1 team id" })
   teamsIds?: number[];
 
   @IsInt()

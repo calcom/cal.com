@@ -335,6 +335,14 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
+  transformGetBookingsFilters(queryParams: GetBookingsInput_2024_08_13) {
+    return {
+      teamIds: queryParams.teamsIds || (queryParams.teamId ? [queryParams.teamId] : undefined),
+      eventTypeIds:
+        queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
+    };
+  }
+
   transformGetBookingsSort(queryParams: GetBookingsInput_2024_08_13) {
     if (!queryParams.sortStart && !queryParams.sortEnd && !queryParams.sortCreated) {
       return undefined;
