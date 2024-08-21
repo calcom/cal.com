@@ -185,7 +185,6 @@ export async function getBookings({
           select: {
             id: true,
             name: true,
-            members: true,
           },
         },
       },
@@ -384,41 +383,53 @@ export async function getBookings({
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
-  const bookings = (
-    await prisma.booking.findMany({
-      where: {
-        id: {
-          in: plainBookings.map((booking) => booking.id),
+  const bookings = await Promise.all(
+    (
+      await prisma.booking.findMany({
+        where: {
+          id: {
+            in: plainBookings.map((booking) => booking.id),
+          },
         },
-      },
-      select: bookingSelect,
-      // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
-      orderBy,
+        select: bookingSelect,
+        // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
+        orderBy,
+      })
+    ).map(async (booking) => {
+      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
+      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+      }
+
+      const isUserTeamAdminOrOwner = booking.eventType?.team?.id
+        ? await prisma.membership
+            .findFirst({
+              where: {
+                userId: user.id,
+                teamId: booking.eventType.team.id,
+                role: {
+                  in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+                },
+              },
+            })
+            .then((membership) => !!membership)
+        : false;
+
+      return {
+        ...booking,
+        eventType: {
+          ...booking.eventType,
+          recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+          eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
+          price: booking.eventType?.price || 0,
+          currency: booking.eventType?.currency || "usd",
+          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
+        },
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        isUserTeamAdminOrOwner,
+      };
     })
-  ).map((booking) => {
-    // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-    if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
-      booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
-    }
-
-    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
-    const isUserTeamAdminOrOwner =
-      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-
-    return {
-      ...booking,
-      eventType: {
-        ...booking.eventType,
-        recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-        eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
-        price: booking.eventType?.price || 0,
-        currency: booking.eventType?.currency || "usd",
-        metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
-      },
-      startTime: booking.startTime.toISOString(),
-      endTime: booking.endTime.toISOString(),
-      isUserTeamAdminOrOwner,
-    };
-  });
+  );
   return { bookings, recurringInfo };
 }
