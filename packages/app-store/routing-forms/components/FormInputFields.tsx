@@ -47,7 +47,7 @@ export default function FormInputFields(props: Props) {
               </label>
             </div>
             <Component
-              value={response[field.id]?.value}
+              value={response[field.id]?.value ?? ""}
               placeholder={field.placeholder ?? ""}
               // required property isn't accepted by query-builder types
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment

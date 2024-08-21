@@ -384,7 +384,8 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { data: user } = useMeQuery();
   const utils = trpc.useUtils();
   const bookerUrl = useBookerUrl();
-
+  const pathname = usePathname();
+  const isPlatformPages = pathname?.startsWith("/settings/platform");
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -468,7 +469,7 @@ function UserDropdown({ small }: UserDropdownProps) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
-                {!isPlatformUser && (
+                {!isPlatformPages && (
                   <>
                     <DropdownMenuItem>
                       <DropdownItem
@@ -527,7 +528,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                {!isPlatformUser && (
+                {!isPlatformPages && (
                   <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="download"
@@ -539,6 +540,17 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownMenuItem>
                 )}
 
+                {!isPlatformPages && (
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownItem
+                      StartIcon="blocks"
+                      target="_blank"
+                      rel="noreferrer"
+                      href="/settings/platform">
+                      Platform
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
@@ -912,9 +924,11 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
   return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) {
+function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
+  const pathname = usePathname();
+  const isPlatformPages = pathname?.startsWith("/settings/platform");
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
@@ -953,10 +967,10 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
   return (
     <div className="relative">
       <aside
-        style={!isPlatformUser ? sidebarStylingAttributes : {}}
+        style={!isPlatformPages ? sidebarStylingAttributes : {}}
         className={classNames(
           "bg-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
-          !isPlatformUser && "max-h-screen"
+          !isPlatformPages && "max-h-screen"
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
@@ -1018,10 +1032,10 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
           <Link href="/event-types" className="text-center md:inline lg:hidden">
             <Logo small icon />
           </Link>
-          <Navigation isPlatformNavigation={isPlatformUser} />
+          <Navigation isPlatformNavigation={isPlatformPages} />
         </div>
 
-        {!isPlatformUser && (
+        {!isPlatformPages && (
           <div>
             <Tips />
             {bottomNavItems.map((item, index) => (
@@ -1182,10 +1196,10 @@ function TopNav() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
+          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium transition lg:hidden">
             <KBarTrigger />
           </span>
-          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 transition focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
               <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
