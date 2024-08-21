@@ -22,6 +22,7 @@ type GetOptions = {
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
+    attendeeEmail?: string;
   };
   sort?: SortOptions;
 };
@@ -112,7 +113,7 @@ function getOrderBy(
     unconfirmed: { startTime: "asc" },
   };
 
-  if (bookingListingByStatus.length === 1 && !sort) {
+  if (bookingListingByStatus?.length === 1 && !sort) {
     return bookingListingOrderby[bookingListingByStatus[0]];
   }
 

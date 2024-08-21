@@ -104,7 +104,7 @@ export class BookingsService_2024_08_13 {
 
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
     const bookings = await getAllUserBookings({
-      bookingListingByStatus: queryParams.status,
+      bookingListingByStatus: queryParams.status || [],
       skip: queryParams.cursor ?? 0,
       take: queryParams.limit ?? 10,
       // todo: add filters here like by eventtype id etc

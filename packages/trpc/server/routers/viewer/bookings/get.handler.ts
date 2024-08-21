@@ -157,6 +157,15 @@ export async function getBookings({
       ],
     },
   };
+  if (filters?.attendeeEmail) {
+    bookingWhereInputFilters.attendeeEmail = {
+      attendees: {
+        some: {
+          email: filters.attendeeEmail,
+        },
+      },
+    };
+  }
 
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
