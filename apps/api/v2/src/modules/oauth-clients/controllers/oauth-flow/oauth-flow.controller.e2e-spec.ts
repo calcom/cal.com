@@ -17,9 +17,8 @@ import * as request from "supertest";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withNextAuth } from "test/utils/withNextAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
@@ -72,7 +71,7 @@ describe("OAuthFlow Endpoints", () => {
     beforeAll(async () => {
       const userEmail = "developer@platform.com";
 
-      const moduleRef: TestingModule = await withNextAuth(
+      const moduleRef: TestingModule = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
