@@ -170,6 +170,7 @@ export default class EventManager {
     if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
       log.warn("Falling back to Cal Video integration as Google Calendar not installed");
       evt["location"] = "integrations:daily";
+      evt["conferenceCredentialId"] = undefined;
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -411,6 +412,9 @@ export default class EventManager {
         userId: true,
         attendees: true,
         references: {
+          where: {
+            deleted: null,
+          },
           // NOTE: id field removed from select as we don't require for deletingMany
           // but was giving error on recreate for reschedule, probably because promise.all() didn't finished
           select: {

@@ -10,9 +10,9 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.22";
-import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries-0.0.22";
-import { dynamicEvent } from "@calcom/platform-libraries-0.0.22";
+import { createEventType, updateEventType } from "@calcom/platform-libraries";
+import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
+import { dynamicEvent } from "@calcom/platform-libraries";
 import {
   CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -38,9 +38,38 @@ export class EventTypesService_2024_06_14 {
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const bodyTransformed = this.inputEventTypesService.transformInputCreateEventType(body);
+    const {
+      bookingLimits,
+      durationLimits,
+      periodType = undefined,
+      periodDays = undefined,
+      periodCountCalendarDays = undefined,
+      periodStartDate = undefined,
+      periodEndDate = undefined,
+      ...bodyTransformed
+    } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
       input: bodyTransformed,
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+
+    await updateEventType({
+      input: {
+        id: eventTypeCreated.id,
+        bookingLimits,
+        durationLimits,
+        periodType,
+        periodDays,
+        periodCountCalendarDays,
+        periodStartDate,
+        periodEndDate,
+        ...bodyTransformed,
+      },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -95,13 +124,16 @@ export class EventTypesService_2024_06_14 {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
     const profileId = user.movedToProfile?.id || null;
+    const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return {
       id: user.id,
       role: user.role,
+      username: user.username,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
       metadata: user.metadata,
+      selectedCalendars,
     };
   }
 

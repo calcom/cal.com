@@ -11,7 +11,7 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
-test.afterAll(({ users }) => users.deleteAll());
+test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Managed Event Types", () => {
   test("Can create managed event type", async ({ page, users }) => {
