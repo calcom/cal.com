@@ -50,7 +50,8 @@ import { DisableAllEmailsSetting } from "./settings/DisableAllEmailsSetting";
 const SingleUseLinksManager = ({
   team,
   bookerUrl,
-}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl">) => {
+  disabled,
+}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl"> & { disabled: boolean }) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
@@ -123,6 +124,7 @@ const SingleUseLinksManager = ({
               color="minimal"
               StartIcon="plus"
               onClick={addSingleUseLink}
+              disabled={disabled}
               data-testid="add-single-use-link-button">
               {t("add_a_single_use_link")}
             </Button>
@@ -487,7 +489,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               }}>
               {!isManagedEventType && (
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <SingleUseLinksManager team={team} bookerUrl={eventType.bookerUrl} />
+                  <SingleUseLinksManager
+                    team={team}
+                    bookerUrl={eventType.bookerUrl}
+                    disabled={shouldLockDisableProps("singleUseLinks").disabled}
+                  />
                 </div>
               )}
             </SettingsToggle>
