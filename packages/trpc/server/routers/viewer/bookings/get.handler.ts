@@ -383,6 +383,8 @@ export async function getBookings({
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
+  const teamAdminOrOwnerCache = new Map<number, boolean>();
+
   const bookings = await Promise.all(
     (
       await prisma.booking.findMany({
@@ -401,19 +403,26 @@ export async function getBookings({
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
-      const isUserTeamAdminOrOwner = booking.eventType?.team?.id
-        ? await prisma.membership
+      let isUserTeamAdminOrOwner = false;
+      if (booking.eventType?.team?.id) {
+        const teamId = booking.eventType.team.id;
+        if (teamAdminOrOwnerCache.has(teamId)) {
+          isUserTeamAdminOrOwner = teamAdminOrOwnerCache.get(teamId)!;
+        } else {
+          isUserTeamAdminOrOwner = await prisma.membership
             .findFirst({
               where: {
                 userId: user.id,
-                teamId: booking.eventType.team.id,
+                teamId: teamId,
                 role: {
                   in: [MembershipRole.OWNER, MembershipRole.ADMIN],
                 },
               },
             })
-            .then((membership) => !!membership)
-        : false;
+            .then((membership) => !!membership);
+          teamAdminOrOwnerCache.set(teamId, isUserTeamAdminOrOwner);
+        }
+      }
 
       return {
         ...booking,
