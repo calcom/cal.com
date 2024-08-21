@@ -9,7 +9,7 @@ export type TransformRecurringEventSchema_2024_06_14 = {
   freq: number;
 };
 
-export class RecurringEvent_2024_06_14 {
+export class Recurrence_2024_06_14 {
   @IsInt()
   @ApiProperty({ example: 10, description: "Repeats every {count} week | month | year" })
   interval!: number;

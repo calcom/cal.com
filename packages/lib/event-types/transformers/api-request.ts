@@ -164,14 +164,14 @@ function transformApiEventTypeFutureBookingLimits(
   }
 }
 
-function transformApiEventTypeReccuringEvent(
-  recurringEvent: CreateEventTypeInput_2024_06_14["recurringEvent"]
+function transformApiEventTypeRecurrence(
+  recurrence: CreateEventTypeInput_2024_06_14["recurrence"]
 ): TransformRecurringEventSchema_2024_06_14 | undefined {
-  if (!recurringEvent) return undefined;
+  if (!recurrence) return undefined;
   return {
-    interval: recurringEvent.interval,
-    count: recurringEvent.occurrences,
-    freq: Frequency[recurringEvent.frequency as unknown as keyof typeof Frequency],
+    interval: recurrence.interval,
+    count: recurrence.occurrences,
+    freq: Frequency[recurrence.frequency as unknown as keyof typeof Frequency],
   } as TransformRecurringEventSchema_2024_06_14;
 }
 
@@ -277,5 +277,5 @@ export {
   transformApiEventTypeBookingFields,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
-  transformApiEventTypeReccuringEvent,
+  transformApiEventTypeRecurrence,
 };

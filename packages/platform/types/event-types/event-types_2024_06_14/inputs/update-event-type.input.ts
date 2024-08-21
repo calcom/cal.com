@@ -13,7 +13,7 @@ import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-
 import { Host } from "./create-event-type.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
-import { RecurringEvent_2024_06_14 } from "./recurring-event.input";
+import { Recurrence_2024_06_14 } from "./recurrence.input";
 
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -91,8 +91,8 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => RecurringEvent_2024_06_14)
-  recurringEvent?: RecurringEvent_2024_06_14;
+  @Type(() => Recurrence_2024_06_14)
+  recurrence?: Recurrence_2024_06_14;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()

@@ -46,7 +46,7 @@ export class EventTypesService_2024_06_14 {
       periodCountCalendarDays = undefined,
       periodStartDate = undefined,
       periodEndDate = undefined,
-      recurringEvent = undefined,
+      recurrence = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
@@ -69,7 +69,7 @@ export class EventTypesService_2024_06_14 {
         periodCountCalendarDays,
         periodStartDate,
         periodEndDate,
-        recurringEvent,
+        recurrence,
         ...bodyTransformed,
       },
       ctx: {

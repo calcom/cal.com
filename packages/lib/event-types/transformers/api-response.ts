@@ -12,7 +12,7 @@ import type {
   CalendarDaysWindow_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   BookingField_2024_06_14,
-  RecurringEvent_2024_06_14,
+  Recurrence_2024_06_14,
   TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 import {
@@ -259,14 +259,14 @@ function getResponseEventTypeFutureBookingLimits(
   }
 }
 
-function getResponseEventTypeReccuringEvent(
+function getResponseEventTypeRecurrence(
   transformRecurringEvent: TransformRecurringEventSchema_2024_06_14
-): RecurringEvent_2024_06_14 {
+): Recurrence_2024_06_14 {
   return {
     interval: transformRecurringEvent.interval,
     occurrences: transformRecurringEvent.count,
     frequency: Frequency[transformRecurringEvent.freq] as keyof typeof Frequency,
-  } as unknown as RecurringEvent_2024_06_14;
+  } as unknown as Recurrence_2024_06_14;
 }
 
 export {
@@ -274,5 +274,5 @@ export {
   getResponseEventTypeBookingFields,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
-  getResponseEventTypeReccuringEvent,
+  getResponseEventTypeRecurrence,
 };

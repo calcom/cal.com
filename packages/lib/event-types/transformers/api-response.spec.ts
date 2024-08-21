@@ -16,7 +16,7 @@ import {
   getResponseEventTypeBookingFields,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
-  getResponseEventTypeReccuringEvent,
+  getResponseEventTypeRecurrence,
 } from "./api-response";
 
 describe("getResponseEventTypeLocations", () => {
@@ -682,7 +682,7 @@ describe("getResponseEventTypeFutureBookingLimits", () => {
   });
 });
 
-describe("getResponseEventTypeReccuringEvent", () => {
+describe("getResponseEventTypeRecurrence", () => {
   it("should reverse transform recurringEvent", () => {
     const transformedField: TransformRecurringEventSchema_2024_06_14 = {
       interval: 2,
@@ -695,7 +695,7 @@ describe("getResponseEventTypeReccuringEvent", () => {
       interval: 2,
       occurrences: 10,
     };
-    const result = getResponseEventTypeReccuringEvent(transformedField);
+    const result = getResponseEventTypeRecurrence(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });

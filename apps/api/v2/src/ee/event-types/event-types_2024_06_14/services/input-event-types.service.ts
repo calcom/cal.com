@@ -6,7 +6,7 @@ import {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
 } from "@calcom/platform-libraries";
-import { transformApiEventTypeReccuringEvent } from "@calcom/platform-libraries-1.2.3";
+import { transformApiEventTypeRecurrence } from "@calcom/platform-libraries-1.2.3";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
@@ -26,7 +26,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
-      recurringEvent,
+      recurrence,
       ...rest
     } = inputEventType;
 
@@ -40,7 +40,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      recurringEvent: recurringEvent ? this.transformInputRecurrignEvent(recurringEvent) : undefined,
+      recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
     };
 
     return eventType;
@@ -55,7 +55,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
-      recurringEvent,
+      recurrence,
       ...rest
     } = inputEventType;
 
@@ -70,7 +70,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      recurringEvent: recurringEvent ? this.transformInputRecurrignEvent(recurringEvent) : undefined,
+      recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
     };
 
     return eventType;
@@ -93,7 +93,7 @@ export class InputEventTypesService_2024_06_14 {
     return !!res ? res : {};
   }
 
-  transformInputRecurrignEvent(recurringEvent: CreateEventTypeInput_2024_06_14["recurringEvent"]) {
-    return transformApiEventTypeReccuringEvent(recurringEvent);
+  transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
+    return transformApiEventTypeRecurrence(recurrence);
   }
 }
