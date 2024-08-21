@@ -20,7 +20,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums/built";
+import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
 import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
