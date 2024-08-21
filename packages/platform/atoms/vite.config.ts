@@ -4,7 +4,6 @@ import { resolve } from "path";
 import { defineConfig, loadEnv } from "vite";
 import dts from "vite-plugin-dts";
 import Inspect from "vite-plugin-inspect";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
@@ -21,12 +20,7 @@ export default defineConfig(({ mode }) => {
         "@calcom/platform-utils",
       ],
     },
-    plugins: [
-      nodePolyfills({ include: ["http", "crypto"] }),
-      Inspect(),
-      react(),
-      dts({ insertTypesEntry: true }),
-    ],
+    plugins: [Inspect(), react(), dts({ insertTypesEntry: true })],
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
     },

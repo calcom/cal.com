@@ -1,0 +1,1 @@
+Contains enums shared by platform api and packages

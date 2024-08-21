@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookingWindowPeriodOutputTypeEnum_2024_06_14,
+  BookingLimitsEnum_2024_06_14,
+} from "@calcom/platform-enums/monorepo";
+import {
   type CreateEventTypeInput_2024_06_14,
   type Integration_2024_06_14,
   type BusinessDaysWindow_2024_06_14,
@@ -8,11 +13,6 @@ import {
   type TransformFutureBookingsLimitSchema_2024_06_14,
   type BookingLimitsKeyOutputType_2024_06_14,
   type TransformBookingLimitsSchema_2024_06_14,
-} from "@calcom/platform-types";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookingWindowPeriodOutputTypeEnum_2024_06_14,
-  BookingLimitsEnum_2024_06_14,
 } from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
