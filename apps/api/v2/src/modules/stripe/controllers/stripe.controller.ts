@@ -33,7 +33,6 @@ export class StripeController {
   @HttpCode(HttpStatus.OK)
   async redirect(
     @Query("state") state: string,
-    @Query("returnTo") returnTo: string,
     @GetUser() user: UserWithProfile
   ): Promise<StripConnectOutputResponseDto> {
     const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(state, user.email, user.name);
