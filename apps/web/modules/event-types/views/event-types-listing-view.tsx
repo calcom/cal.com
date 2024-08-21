@@ -1620,7 +1620,6 @@ const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
 } = ({ isInfiniteScrollEnabled = false }) => {
-  isInfiniteScrollEnabled = true;
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const { open } = useIntercom();
