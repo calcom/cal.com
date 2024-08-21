@@ -159,7 +159,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
-              <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">
+              <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm px-4 py-3 text-sm">
                 <div>
                   <p className="text-subtle">{t("current_username")}</p>
                   <Tooltip content={currentUsername}>
@@ -175,7 +175,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                     {t("new_username")}
                   </p>
                   <Tooltip content={inputUsernameValue}>
-                    <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis">
+                    <p className="text-emphasis mt-1 w-96 overflow-hidden text-ellipsis">
                       {inputUsernameValue}
                     </p>
                   </Tooltip>
