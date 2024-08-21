@@ -3,6 +3,7 @@
   "compilerOptions": {
     "target": "ES5",
     "resolveJsonModule": true,
+    "experimentalDecorators": true,
     "baseUrl": "./",
     "outDir": "./dist"
   },
