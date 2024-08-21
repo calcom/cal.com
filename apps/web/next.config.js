@@ -215,10 +215,13 @@ const nextConfig = {
     lodash: {
       transform: "lodash/{{member}}",
     },
-    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-    // "@calcom/ui": {
-    //   transform: "@calcom/ui/components/{{member}}",
-    // },
+    "@calcom/ui": {
+      // Use `kebabCase` helper to convert `HeadingLarge` to `heading-large`
+      transform: "@calcom/ui/modularized/{{ kebabCase member }}",
+      // Use `skipDefaultConversion`, since `HeadingLarge` is exported
+      // using named exports instead of default exports
+      skipDefaultConversion: true,
+    },
   },
   images: {
     unoptimized: true,

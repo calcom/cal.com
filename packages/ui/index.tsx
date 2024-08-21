@@ -168,6 +168,10 @@ export { default as BannerUploader } from "./components/image-uploader/BannerUpl
 
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton } from "./components/createButton";
+export type {
+  Option as CreateButtonOption,
+  CreateBtnProps as CreateButtonProps,
+} from "./components/createButton/CreateButton";
 
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";

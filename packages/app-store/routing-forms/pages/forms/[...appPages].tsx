@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/CreateButtonWithTeamsList";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
@@ -23,7 +24,6 @@ import {
   Badge,
   Button,
   ButtonGroup,
-  CreateButtonWithTeamsList,
   EmptyScreen,
   Icon,
   List,
