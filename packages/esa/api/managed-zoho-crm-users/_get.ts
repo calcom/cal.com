@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PrismaClient } from "@prisma/client";
 import axios from "axios";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import { getScheduleByUserIdHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/getScheduleByUserId.handler";
 
 import { zohoClient } from "../../lib/zoho";
 
@@ -30,7 +32,7 @@ async function getHandler(req: NextApiRequest & { prisma: any }) {
     const zohoMailAccount = zohoMailAccounts.find((account) => String(account.zuid) === String(u.zuid));
 
     return {
-      userId: setupEntry.userId,
+      userId: setupEntry?.userId,
       zuid: u.zuid,
       email: u.email,
       name: `${u.first_name} ${u.last_name}`,
@@ -40,7 +42,26 @@ async function getHandler(req: NextApiRequest & { prisma: any }) {
     };
   });
 
-  return { crmUsers: users };
+  const withSchedule = await Promise.all(
+    users.map(async (user) => {
+      if (user.userId) {
+        const contextUser = { id: user.userId, timeZone: user.timeZone };
+        const schedule = await getScheduleByUserIdHandler({
+          ctx: { user: contextUser, prisma },
+          input: { userId: user.userId },
+        } as any);
+
+        return {
+          ...user,
+          schedule,
+        };
+      }
+
+      return user;
+    })
+  );
+
+  return { crmUsers: withSchedule };
 }
 
 export default defaultResponder(getHandler);

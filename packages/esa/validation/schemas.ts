@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ZUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
+
 export const setupManagedZohoUserRequestSchema = z.object({
   zuid: z.string(),
   email: z.string().email(),
@@ -20,15 +22,6 @@ export const setupManagedZohoUserRequestSchema = z.object({
 
 export const updateManagedZohoUserRequestSchema = z.object({
   zuid: z.string(),
-  schedule: z
-    .array(
-      z.array(
-        z.object({
-          start: z.date(),
-          end: z.date(),
-        })
-      )
-    )
-    .optional(),
+  schedule: ZUpdateInputSchema,
   zoomUserId: z.string(),
 });

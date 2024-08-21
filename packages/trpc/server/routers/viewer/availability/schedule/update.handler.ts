@@ -130,3 +130,6 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     currentDefaultId: updatedUser ? updatedUser.defaultScheduleId : user.defaultScheduleId,
   };
 };
+
+// unambiguous export
+export const updateUserScheduleHandler = updateHandler;

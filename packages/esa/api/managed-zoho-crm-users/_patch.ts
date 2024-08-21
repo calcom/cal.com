@@ -3,6 +3,7 @@ import type { PrismaClient } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import { updateUserScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 
 import { updateManagedZohoUserRequestSchema } from "../../validation/schemas";
 
@@ -24,7 +25,12 @@ async function postHandler(req: NextApiRequest & { prisma: any }) {
   }
 
   // update schedule
-  // TODO
+  const user = await prisma.user.findUnique({
+    where: {
+      id: Number(userId),
+    },
+  });
+  await updateUserScheduleHandler({ ctx: { user }, input: body.schedule } as any);
 
   // update zoom user
   const appData = { appId: "zoom", type: "zoom_video" };
