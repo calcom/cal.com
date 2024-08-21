@@ -2,14 +2,20 @@ import type { TFunction } from "next-i18next";
 
 import { WEBAPP_URL, APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
 
-import { V2BaseEmailHtml, CallToAction } from "../components";
+import { V2BaseEmailHtml } from "../components";
+
+interface TranscriptEntry {
+  speaker: string;
+  text: string;
+  time: string;
+}
 
 interface DailyVideoDownloadTranscriptEmailProps {
   language: TFunction;
-  transcriptDownloadLinks: Array<string>;
   title: string;
   date: string;
   name: string;
+  transcripts?: Array<TranscriptEntry>;
 }
 
 export const DailyVideoDownloadTranscriptEmail = (
@@ -58,36 +64,48 @@ export const DailyVideoDownloadTranscriptEmail = (
         <>{props.language("transcript_from_previous_call", { appName: APP_NAME })}</>
       </p>
 
-      {props.transcriptDownloadLinks.map((downloadLink, index) => {
+      {props.transcripts.map((transcript, index) => {
         return (
           <div
-            key={downloadLink}
+            key={index}
             style={{
               backgroundColor: "#F3F4F6",
               padding: "32px",
               marginBottom: "40px",
             }}>
-            <p
-              style={{
-                fontSize: "18px",
-                lineHeight: "20px",
-                fontWeight: 600,
-                marginBottom: "8px",
-                color: "black",
-              }}>
-              <>{props.title}</>
-            </p>
-            <p
-              style={{
-                fontWeight: 400,
-                lineHeight: "24px",
-                marginBottom: "24px",
-                marginTop: "0px",
-                color: "black",
-              }}>
-              {props.date} Transcript {index + 1}
-            </p>
-            <CallToAction label={props.language("download_transcript")} href={downloadLink} />
+            <div style={{ marginTop: "40px", marginBottom: "40px" }}>
+              <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "16px" }}>
+                {props.date} Transcript {index + 1}
+              </h2>
+              <div
+                style={{
+                  backgroundColor: "#F3F4F6",
+                  padding: "16px",
+                  borderRadius: "4px",
+                  fontFamily: "sans-serif",
+                  fontSize: "14px",
+                  lineHeight: "1.5",
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                }}>
+                {transcript.map((entry, index) => (
+                  <div key={index} style={{ marginBottom: "16px" }}>
+                    <div>
+                      <span style={{ fontWeight: "bold", color: "#4B5563" }}>{entry.speaker}: </span>
+                      <span>{entry.text}</span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#6B7280",
+                        marginTop: "1px",
+                      }}>
+                      {entry.time}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         );
       })}
