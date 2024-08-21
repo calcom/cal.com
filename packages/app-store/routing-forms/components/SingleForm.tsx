@@ -207,7 +207,7 @@ const Actions = ({
               action="toggle"
               routingForm={form}
               label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
             />
           </div>
         </FormActionsDropdown>

@@ -43,6 +43,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
+import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
@@ -189,6 +190,14 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: "map-pin" as const,
     },
+    {
+      id: "add_members",
+      label: t("additional_guests"),
+      onClick: () => {
+        setIsOpenAddGuestsDialog(true);
+      },
+      icon: "user-plus" as const,
+    },
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -256,6 +265,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
+  const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -343,6 +353,11 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
         teamId={booking.eventType?.team?.id}
+      />
+      <AddGuestsDialog
+        isOpenDialog={isOpenAddGuestsDialog}
+        setIsOpenDialog={setIsOpenAddGuestsDialog}
+        bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
