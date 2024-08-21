@@ -19,7 +19,10 @@ import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import { Frequency } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/frequency";
+import {
+  Frequency,
+  FrequencyInput,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/frequency";
 import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
@@ -265,8 +268,8 @@ function getResponseEventTypeRecurrence(
   return {
     interval: transformRecurringEvent.interval,
     occurrences: transformRecurringEvent.count,
-    frequency: Frequency[transformRecurringEvent.freq] as keyof typeof Frequency,
-  } as unknown as Recurrence_2024_06_14;
+    frequency: FrequencyInput[Frequency[transformRecurringEvent.freq] as keyof typeof FrequencyInput],
+  } satisfies Recurrence_2024_06_14;
 }
 
 export {

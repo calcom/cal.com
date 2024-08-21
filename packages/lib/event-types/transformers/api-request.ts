@@ -127,7 +127,7 @@ function transformApiEventTypeIntervalLimits(
     Object.entries(inputBookingLimits).map(([key, value]) => {
       const outputKey: BookingLimitsKeyOutputType_2024_06_14 = BookingLimitsEnum_2024_06_14[
         key as keyof typeof BookingLimitsEnum_2024_06_14
-      ] as BookingLimitsKeyOutputType_2024_06_14;
+      ] satisfies BookingLimitsKeyOutputType_2024_06_14;
       res[outputKey] = value;
     });
   return res;
@@ -171,8 +171,8 @@ function transformApiEventTypeRecurrence(
   return {
     interval: recurrence.interval,
     count: recurrence.occurrences,
-    freq: Frequency[recurrence.frequency as unknown as keyof typeof Frequency],
-  } as TransformRecurringEventSchema_2024_06_14;
+    freq: Frequency[recurrence.frequency as keyof typeof Frequency],
+  } satisfies TransformRecurringEventSchema_2024_06_14;
 }
 
 export function transformSelectOptions(options: string[]) {
