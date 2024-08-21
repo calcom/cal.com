@@ -193,7 +193,7 @@ function buildSlotsWithDateRanges({
       : startTimeWithMinNotice;
 
     slotStartTime =
-      slotStartTime.minute() % interval !== 0
+      interval !== 60 && slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
         : slotStartTime;
 
