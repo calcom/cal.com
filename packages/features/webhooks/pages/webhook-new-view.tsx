@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -7,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
-import { getLayout } from "../../settings/layouts/SettingsLayout";
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
@@ -23,7 +24,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
     </SkeletonContainer>
   );
 };
-const NewWebhookView = () => {
+export const NewWebhookView = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -95,6 +96,17 @@ const NewWebhookView = () => {
     );
 
   return (
+    <WebhookForm
+      noRoutingFormTriggers={false}
+      onSubmit={onCreateWebhook}
+      apps={installedApps?.items.map((app) => app.slug)}
+    />
+  );
+};
+
+const NewWebhookPage = () => {
+  const { t } = useLocale();
+  return (
     <>
       <Meta
         title={t("add_webhook")}
@@ -102,15 +114,9 @@ const NewWebhookView = () => {
         backButton
         borderInShellHeader={true}
       />
-      <WebhookForm
-        noRoutingFormTriggers={false}
-        onSubmit={onCreateWebhook}
-        apps={installedApps?.items.map((app) => app.slug)}
-      />
+      <NewWebhookView />
     </>
   );
 };
 
-NewWebhookView.getLayout = getLayout;
-
-export default NewWebhookView;
+export default NewWebhookPage;

@@ -1,9 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CreateButtonWithTeamsList } from "@calcom/ui";
 
 export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
+  const router = useRouter();
   const createFunction = (teamId?: number, platform?: boolean) => {
     if (platform) {
       router.push(`webhooks/new${platform ? `?platform=${platform}` : ""}`);

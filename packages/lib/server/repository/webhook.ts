@@ -158,4 +158,23 @@ export class WebhookRepository {
       })),
     };
   }
+
+  static async findByWebhookId(webhookId: number) {
+    return await prisma.webhook.findUniqueOrThrow({
+      where: {
+        id: webhookId,
+      },
+      select: {
+        id: true,
+        subscriberUrl: true,
+        payloadTemplate: true,
+        active: true,
+        eventTriggers: true,
+        secret: true,
+        teamId: true,
+        userId: true,
+        platform: true,
+      },
+    });
+  }
 }

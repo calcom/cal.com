@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -6,22 +8,40 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
-import { getLayout } from "../../settings/layouts/SettingsLayout";
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
-const EditWebhook = () => {
+const EditWebhookPage = () => {
   const searchParams = useCompatSearchParams();
   const id = searchParams?.get("id");
+  const { t } = useLocale();
+
+  const { data: webhook } = trpc.viewer.webhook.get.useQuery(
+    { webhookId: id },
+    {
+      suspense: true,
+      enabled: !!id,
+    }
+  );
 
   if (!id) return <SkeletonContainer />;
 
   // I think we should do SSR for this page
-  return <Component webhookId={id} />;
+  return (
+    <>
+      <Meta
+        title={t("edit_webhook")}
+        description={t("add_webhook_description", { appName: APP_NAME })}
+        borderInShellHeader={true}
+        backButton
+      />
+      <EditWebhookView webhook={webhook} />
+    </>
+  );
 };
 
-function Component({ webhookId }: { webhookId: string }) {
+export function EditWebhookView({ webhook }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
@@ -29,24 +49,18 @@ function Component({ webhookId }: { webhookId: string }) {
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
-      enabled: !!webhookId,
+      enabled: !!webhook,
     }
   );
-  const { data: webhook } = trpc.viewer.webhook.get.useQuery(
-    { webhookId },
-    {
-      suspense: true,
-      enabled: !!webhookId,
-    }
-  );
+
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: !!webhookId,
+    enabled: !!webhook,
   });
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.webhook.get.invalidate({ webhookId });
+      await utils.viewer.webhook.get.invalidate({ webhookId: webhook.id });
       showToast(t("webhook_updated_successfully"), "success");
       router.back();
     },
@@ -59,12 +73,6 @@ function Component({ webhookId }: { webhookId: string }) {
 
   return (
     <>
-      <Meta
-        title={t("edit_webhook")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-        backButton
-      />
       <WebhookForm
         noRoutingFormTriggers={false}
         webhook={webhook}
@@ -106,6 +114,4 @@ function Component({ webhookId }: { webhookId: string }) {
   );
 }
 
-EditWebhook.getLayout = getLayout;
-
-export default EditWebhook;
+export default EditWebhookPage;
