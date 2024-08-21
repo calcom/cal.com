@@ -3,10 +3,11 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable } from "@nestjs/common";
-import type { Profile, User } from "@prisma/client";
+import type { Profile, User, Team } from "@prisma/client";
 
 export type UserWithProfile = User & {
-  movedToProfile?: Profile | null;
+  movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
+  profiles?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> })[];
 };
 
 @Injectable()
@@ -67,12 +68,18 @@ export class UsersRepository {
   }
 
   async findByIdWithProfile(userId: number): Promise<UserWithProfile | null> {
+    console.log("findByIdWithProfile");
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
       },
       include: {
-        movedToProfile: true,
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
       },
     });
   }
@@ -126,7 +133,12 @@ export class UsersRepository {
         email,
       },
       include: {
-        movedToProfile: true,
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
       },
     });
   }

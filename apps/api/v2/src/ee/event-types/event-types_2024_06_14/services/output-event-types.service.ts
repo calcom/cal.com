@@ -9,7 +9,13 @@ import {
   parseRecurringEvent,
   TransformedLocationsSchema,
   BookingFieldsSchema,
-} from "@calcom/platform-libraries-0.0.22";
+  SystemField,
+  UserField,
+  parseBookingLimit,
+  getResponseEventTypeIntervalLimits,
+  getResponseEventTypeFutureBookingLimits,
+} from "@calcom/platform-libraries";
+import { TransformFutureBookingsLimitSchema_2024_06_14 } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -42,6 +48,15 @@ type Input = Pick<
   | "metadata"
   | "users"
   | "scheduleId"
+  | "bookingLimits"
+  | "durationLimits"
+  | "onlyShowFirstAvailableSlot"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
 >;
 
 @Injectable()
@@ -69,13 +84,26 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAvailabilityCount,
       isInstantEvent,
       scheduleId,
+      onlyShowFirstAvailableSlot,
+      offsetStart,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
-    const bookingFields = this.transformBookingFields(databaseEventType.bookingFields);
+    const bookingFields = databaseEventType.bookingFields
+      ? this.transformBookingFields(BookingFieldsSchema.parse(databaseEventType.bookingFields))
+      : [];
     const recurringEvent = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users);
+    const bookingLimitsCount = this.transformIntervalLimits(databaseEventType.bookingLimits);
+    const bookingLimitsDuration = this.transformIntervalLimits(databaseEventType.durationLimits);
+    const bookingWindow = this.transformBookingWindow({
+      periodType: databaseEventType.periodType,
+      periodDays: databaseEventType.periodDays,
+      periodCountCalendarDays: databaseEventType.periodCountCalendarDays,
+      periodStartDate: databaseEventType.periodStartDate,
+      periodEndDate: databaseEventType.periodEndDate,
+    } as TransformFutureBookingsLimitSchema_2024_06_14);
 
     return {
       id,
@@ -105,6 +133,11 @@ export class OutputEventTypesService_2024_06_14 {
       isInstantEvent,
       users,
       scheduleId,
+      bookingLimitsCount,
+      bookingLimitsDuration,
+      onlyShowFirstAvailableSlot,
+      offsetStart,
+      bookingWindow,
     };
   }
 
@@ -113,9 +146,10 @@ export class OutputEventTypesService_2024_06_14 {
     return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
   }
 
-  transformBookingFields(inputBookingFields: any) {
+  transformBookingFields(inputBookingFields: (SystemField | UserField)[] | null) {
     if (!inputBookingFields) return [];
-    return getResponseEventTypeBookingFields(BookingFieldsSchema.parse(inputBookingFields));
+    const userFields = inputBookingFields.filter((field) => field.editable === "user") as UserField[];
+    return getResponseEventTypeBookingFields(userFields);
   }
 
   transformRecurringEvent(recurringEvent: any) {
@@ -142,5 +176,14 @@ export class OutputEventTypesService_2024_06_14 {
         metadata: metadata || {},
       };
     });
+  }
+
+  transformIntervalLimits(bookingLimits: any) {
+    const bookingLimitsParsed = parseBookingLimit(bookingLimits);
+    return getResponseEventTypeIntervalLimits(bookingLimitsParsed);
+  }
+
+  transformBookingWindow(bookingLimits: TransformFutureBookingsLimitSchema_2024_06_14) {
+    return getResponseEventTypeFutureBookingLimits(bookingLimits);
   }
 }
