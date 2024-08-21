@@ -25,6 +25,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           disabled={disabled}
           name="Script URL"
           value={scriptURL}
+          defaultValue="https://us.umami.is/script.js"
           placeholder="Enter the script source URL"
           onChange={(e) => {
             setAppData("SCRIPT_URL", e.target.value);
