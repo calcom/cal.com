@@ -112,17 +112,6 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        {showError && (
-          <div data-testid="booking-fail">
-            <Alert
-              ref={errorRef}
-              className="my-2"
-              severity="info"
-              title={t("booking_fail")}
-              message="CPF inválido!"
-            />
-          </div>
-        )}
         {!isPlatform && IS_CALCOM && (
           <div className="text-subtle my-3 w-full text-xs opacity-80">
             <Trans
