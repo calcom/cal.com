@@ -103,6 +103,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
       - uses: replexica/replexica@main
         with:
           api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
