@@ -10,15 +10,11 @@ import stringify from "qs-stringify";
 import Stripe from "stripe";
 import { z } from "zod";
 
+import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
+
 @Injectable()
 export class StripeService {
   public stripe: Stripe;
-  private stripeKeysResponseSchema = z.object({
-    client_id: z.string().startsWith("ca_").min(1),
-    client_secret: z.string().startsWith("sk_").min(1),
-    public_key: z.string().startsWith("pk_").min(1),
-    webhook_secret: z.string().startsWith("whsec_").min(1),
-  });
   private redirectUri = `${this.config.get("api.url")}/stripe/save`;
 
   constructor(
@@ -58,7 +54,7 @@ export class StripeService {
   async getStripeAppKeys() {
     const app = await this.appsRepository.getAppBySlug("stripe");
 
-    const { client_id, client_secret } = this.stripeKeysResponseSchema.parse(app?.keys);
+    const { client_id, client_secret } = stripeKeysResponseSchema.parse(app?.keys);
 
     if (!client_id) {
       throw new NotFoundException();
