@@ -160,22 +160,22 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
               <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm px-4 py-3 text-sm">
-                <div>
+                <div className="max-w-96 w-fit">
                   <p className="text-subtle">{t("current_username")}</p>
                   <Tooltip content={currentUsername}>
                     <p
-                      className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis"
+                      className="text-emphasis mt-1 w-full max-w-md overflow-hidden text-ellipsis"
                       data-testid="current-username">
                       {currentUsername}
                     </p>
                   </Tooltip>
                 </div>
-                <div>
+                <div className="max-w-96 w-fit">
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
                   <Tooltip content={inputUsernameValue}>
-                    <p className="text-emphasis mt-1 w-96 overflow-hidden text-ellipsis">
+                    <p className="text-emphasis mt-1 w-full overflow-hidden text-ellipsis">
                       {inputUsernameValue}
                     </p>
                   </Tooltip>
