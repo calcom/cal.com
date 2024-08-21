@@ -1,5 +1,5 @@
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
@@ -12,44 +12,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import {
-  Label,
-  Select,
-  SettingsToggle,
-  Skeleton,
-  TextField,
-  Editor,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import { Label, Select, SettingsToggle, Skeleton, TextField, Editor } from "@calcom/ui";
 
 import Locations from "@components/eventtype/Locations";
-
-const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
-  const formMethods = useFormContext<FormValues>();
-  const [mounted, setIsMounted] = useState(false);
-  const { t } = useLocale();
-  const [firstRender, setFirstRender] = useState(true);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  return mounted ? (
-    <Editor
-      getText={() => md.render(formMethods.getValues("description") || "")}
-      setText={(value: string) => formMethods.setValue("description", turndown(value), { shouldDirty: true })}
-      excludedToolbarItems={["blockType"]}
-      placeholder={t("quick_video_meeting")}
-      editable={isEditable}
-      firstRender={firstRender}
-      setFirstRender={setFirstRender}
-    />
-  ) : (
-    <SkeletonContainer>
-      <SkeletonText className="block h-24 w-full" />
-    </SkeletonContainer>
-  );
-};
 
 export const EventSetupTab = (
   props: Pick<
@@ -63,6 +28,7 @@ export const EventSetupTab = (
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
+  const [firstRender, setFirstRender] = useState(true);
   const orgBranding = useOrgBranding();
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
@@ -111,7 +77,17 @@ export const EventSetupTab = (
               {t("description")}
               {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
             </Label>
-            <DescriptionEditor isEditable={!descriptionLockedProps.disabled} />
+            <Editor
+              getText={() => md.render(formMethods.getValues("description") || "")}
+              setText={(value: string) =>
+                formMethods.setValue("description", turndown(value), { shouldDirty: true })
+              }
+              excludedToolbarItems={["blockType"]}
+              placeholder={t("quick_video_meeting")}
+              editable={!descriptionLockedProps.disabled}
+              firstRender={firstRender}
+              setFirstRender={setFirstRender}
+            />
           </div>
           <TextField
             required

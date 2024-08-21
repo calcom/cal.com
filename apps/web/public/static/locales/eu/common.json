@@ -616,6 +616,8 @@
   "day_timeUnit": "egun",
   "hour_timeUnit": "ordu",
   "minute_timeUnit": "minutu",
+  "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "current": "Unekoa",
   "confirm_username_change_dialog_title": "Baieztatu erabiltzaile-izenaren aldaketa",
   "requires_confirmation": "Baieztapena behar du",
