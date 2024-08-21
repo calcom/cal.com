@@ -467,7 +467,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     currentUserId: ctx.user.id,
     oldEventType: eventType,
     updatedEventType,
-    singleUseLinks,
+    singleUseLinks: singleUseLinks ?? [],
     children,
     profileId: ctx.user.profile.id,
     prisma: ctx.prisma,

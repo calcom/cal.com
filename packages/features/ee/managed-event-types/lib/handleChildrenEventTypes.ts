@@ -34,7 +34,7 @@ interface handleChildrenEventTypesProps {
         };
       }[]
     | undefined;
-  singleUseLinks: { link: string }[];
+  singleUseLinks: string[];
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
   updatedValues: Prisma.EventTypeUpdateInput;
 }
@@ -145,7 +145,7 @@ export default async function handleChildrenEventTypes({
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
   // Define hashedLink query input
-  const hashedLinkQuery = (userId: number, hasHashedLink: bool) => {
+  const hashedLinkQuery = (userId: number, hasHashedLink: boolean) => {
     return singleUseLinks.length > 0
       ? !hasHashedLink
         ? { create: [{ link: generateHashedLink(userId) }] }
@@ -254,13 +254,13 @@ export default async function handleChildrenEventTypes({
 
           const existingHashedLink = await prisma.hashedLink.findFirst({
             where: {
-              eventTypeId: existingEventType.id,
+              eventTypeId: existingEventType ? existingEventType.id : undefined,
             },
           });
 
           const eventType = await prisma.eventType.update({
             where: {
-              id: existingEventType.id,
+              id: existingEventType ? existingEventType.id : undefined,
             },
             data: {
               ...updatePayloadFiltered,
