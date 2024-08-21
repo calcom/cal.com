@@ -24,7 +24,7 @@ enum SchedulingTypeEnum {
   MANAGED = "MANAGED",
 }
 
-export type SchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
+type SchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
 
 class User_2024_06_14 {
   @IsInt()

@@ -11,12 +11,12 @@ import {
   type BusinessDaysWindow_2024_06_14,
   type RangeWindow_2024_06_14,
   type TransformFutureBookingsLimitSchema_2024_06_14,
+  Frequency,
 } from "@calcom/platform-types";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import { Frequency } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/frequency";
 import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
