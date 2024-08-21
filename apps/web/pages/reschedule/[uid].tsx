@@ -162,12 +162,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
   }
 
-  if (eventType.seatsPerTimeSlot) {
-    destinationUrlSearchParams.set("bookingUid", "null");
-  }
   return {
     redirect: {
-      destination: `${eventUrl}?${destinationUrlSearchParams.toString()}`,
+      destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${
+        eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
+      }`,
       permanent: false,
     },
   };
