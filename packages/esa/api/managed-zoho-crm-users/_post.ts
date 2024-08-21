@@ -12,6 +12,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { appKeysSchema as zohoKeysSchema } from "@calcom/zohocalendar/zod";
 
+import { sendMail } from "../../lib/mailer";
+import setupZohoCalenderOauthEmail from "../../lib/mailer/templates/setupZohoCalenderOauthEmail";
 import { setupManagedZohoUserRequestSchema } from "../../validation/schemas";
 
 const createSchedule = async (input: { name: string; schedule: any }, user: any, prisma: PrismaClient) => {
@@ -86,7 +88,7 @@ async function postHandler(req: NextApiRequest & { prisma: any }) {
   });
 
   // create setup entry
-  await prisma.zohoSchedulingSetup.create({
+  const managedSetup = await prisma.zohoSchedulingSetup.create({
     data: {
       zuid: body.zuid,
       zoomUserId: body.zoomUserId,
@@ -127,13 +129,14 @@ async function postHandler(req: NextApiRequest & { prisma: any }) {
   // send zoho calendar oauth link
   const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
 
-  const appKeys = await getAppKeysFromSlug("zohocalender");
+  const appKeys = await getAppKeysFromSlug("zohocalendar");
   const { client_id } = zohoKeysSchema.parse(appKeys);
 
   const state = JSON.stringify({
     managedSetupReturnTo: `${WEBAPP_URL}/esa/complete-setup`,
     onErrorReturnTo: `${WEBAPP_URL}/esa/complete-setup`,
     fromManagedSetup: true,
+    managedSetupId: managedSetup.id,
     userId: user.id,
   });
 
@@ -155,8 +158,18 @@ async function postHandler(req: NextApiRequest & { prisma: any }) {
   const query = stringify(params);
   const url = `${OAUTH_BASE_URL}/auth?${query}`;
 
+  await sendMail({
+    from: "buffer-sender@buffer-staging.esa-emails.technology",
+    to: "talor.dcs@gmail.com",
+    subject: "",
+    html: setupZohoCalenderOauthEmail({ url }),
+  });
+
   return {
     message: "Managed setup in progress",
+    data: {
+      url,
+    },
   };
 }
 

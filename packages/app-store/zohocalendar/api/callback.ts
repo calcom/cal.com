@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import crypto from "node:crypto";
+import * as crypto from "node:crypto";
 import { stringify } from "querystring";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
@@ -28,12 +28,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     | (IntegrationOAuthCallbackState & {
         fromManagedSetup?: boolean;
         userId?: number;
+        managedSetupId?: number;
         managedSetupReturnTo?: string;
       })
     | undefined;
 
   const fromManagedSetup = !!state?.fromManagedSetup;
-  const userId = req.session?.user?.id || state?.userId;
+  const userId = state?.userId || req.session?.user?.id;
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -94,26 +95,29 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     new Promise((resolve) => crypto.randomBytes(48, (err, buffer) => resolve(buffer.toString("hex"))));
 
   const updateManagedSetupAndGetRedirectUrl = async () => {
-    let setupCompleted = false;
-    let completeSetupToken: string | undefined = undefined;
+    const setupCompleted = fromManagedSetup && onlyOneCalendar;
+    const setupNotCompleted = fromManagedSetup && !onlyOneCalendar;
+    const completeSetupToken = await generateToken();
 
-    if (fromManagedSetup && onlyOneCalendar) {
-      completeSetupToken = generateToken();
+    const updates: Record<string, string> = {
+      ...(setupCompleted ? { status: "Completed" } : {}),
+      ...(setupNotCompleted ? { completeSetupToken } : {}),
+    };
+
+    if (!!Object.keys(updates).length) {
       await prisma.zohoSchedulingSetup.update({
         where: {
-          userId,
+          id: state?.managedSetupId as number,
         },
         data: {
-          status: "Completed",
-          completeSetupToken,
+          ...updates,
         },
       });
-      setupCompleted = true;
     }
 
     const query = {
       setupCompleted,
-      completeSetupToken,
+      completeSetupToken: setupNotCompleted ? completeSetupToken : undefined,
     };
 
     const redirectUrl = fromManagedSetup
