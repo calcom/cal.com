@@ -18,6 +18,12 @@ import {
   GetBookingsInput_2024_08_13,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+import { Booking } from "@calcom/prisma/client";
+
+type BookingWithAttendeesAndEventType = Booking & {
+  attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+  eventType: { id: number };
+};
 
 @Injectable()
 export class BookingsService_2024_08_13 {
@@ -103,7 +109,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
-    const bookings = await getAllUserBookings({
+    const fetchedBookings: { bookings: BookingWithAttendeesAndEventType[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.cursor ?? 0,
       take: queryParams.limit ?? 10,
@@ -116,6 +122,19 @@ export class BookingsService_2024_08_13 {
       sort: this.inputService.transformGetBookingsSort(queryParams),
     });
 
-    return bookings;
+    return fetchedBookings.bookings.map((booking) => {
+      const formatted = {
+        ...booking,
+        eventTypeId: booking.eventType.id,
+        startTime: new Date(booking.startTime),
+        endTime: new Date(booking.endTime),
+      };
+
+      const isRecurring = !!formatted.recurringEventId;
+      if (isRecurring) {
+        return this.outputService.getOutputRecurringBooking(formatted);
+      }
+      return this.outputService.getOutputBooking(formatted);
+    });
   }
 }
