@@ -159,6 +159,9 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test("Paid rescheduling should go to success page", async ({ page, users, bookings, payments }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!IS_STRIPE_ENABLED, "Skipped as Stripe is not installed");
+
     const user = await users.create();
     await user.apiLogin();
     await user.installStripePersonal({ skip: true });
