@@ -6,14 +6,27 @@ export const usePlatformMe = () => {
   const QUERY_KEY = "get-platform-me";
   const platformMeQuery = useQuery<UserResponse>({
     queryKey: [QUERY_KEY],
-    queryFn: async (): Promise<UserResponse> => {
+    retryOnMount: false,
+    refetchOnMount: false,
+    staleTime: 300000,
+    retry: (failureCount, error) => {
+      if (error.message === "Internal Server Error") {
+        return false;
+      }
+      return failureCount < 3; // Retry up to 3 times for other errors
+    },
+    queryFn: async () => {
       const response = await fetch(`/api/v2/me`, {
         method: "get",
         headers: { "Content-type": "application/json" },
       });
-      const data = await response.json();
 
-      return data.data as UserResponse;
+      if (response.status === 200) {
+        const data = await response.json();
+        return data.data as UserResponse;
+      }
+
+      throw new Error(response.statusText);
     },
   });
 
