@@ -163,7 +163,8 @@ export default function Success(props: PageProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
   const parsedRating = rating ? parseInt(rating, 10) : 3;
-  const currentUserEmail = searchParams?.get("email") ?? session?.user?.email ?? undefined;
+  const currentUserEmail =
+    searchParams?.get("cancelledBy") ?? searchParams?.get("email") ?? session?.user?.email ?? undefined;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
