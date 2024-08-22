@@ -159,7 +159,7 @@ export class WebhookRepository {
     };
   }
 
-  static async findByWebhookId(webhookId: number) {
+  static async findByWebhookId(webhookId?: string) {
     return await prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
