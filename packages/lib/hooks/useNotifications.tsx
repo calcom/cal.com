@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
 
 export const useNotifications = () => {
   const [buttonToShow, setButtonToShow] = useState<"none" | "allow" | "disable" | "denied">("none");
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLocale();
 
   const { mutate: addSubscription } = trpc.viewer.addNotificationsSubscription.useMutation({
     onSuccess: () => {
       setButtonToShow("disable");
-      showToast("Notifications turned on", "success");
+      showToast(t("browser_notifications_turned_on"), "success");
     },
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
@@ -22,7 +24,7 @@ export const useNotifications = () => {
   const { mutate: removeSubscription } = trpc.viewer.removeNotificationsSubscription.useMutation({
     onSuccess: () => {
       setButtonToShow("allow");
-      showToast("Notifications turned off", "success");
+      showToast(t("browser_notifications_turned_off"), "success");
     },
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
@@ -72,13 +74,13 @@ export const useNotifications = () => {
     if (permissionResponse === "denied") {
       setButtonToShow("denied");
       setIsLoading(false);
-      showToast("You denied the notifications", "warning");
+      showToast(t("browser_notifications_denied"), "warning");
       return;
     }
 
     if (permissionResponse === "default") {
       setIsLoading(false);
-      showToast("Please allow notifications from the prompt", "warning");
+      showToast(t("please_allow_notifications"), "warning");
       return;
     }
 
@@ -99,7 +101,7 @@ export const useNotifications = () => {
       console.error(error);
       setIsLoading(false);
       setButtonToShow("none");
-      showToast("Your browser does not support Push Notifications", "error");
+      showToast(t("browser_notifications_not_supported"), "error");
       return;
     }
 

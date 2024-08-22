@@ -12,6 +12,7 @@ import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQ
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -144,6 +145,22 @@ export default function Bookings() {
     )[0] || [];
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
+  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
+
+  const actions = (
+    <div>
+      {buttonToShow && (
+        <Button
+          color="primary"
+          onClick={buttonToShow === "allow" ? enableNotifications : disableNotifications}
+          loading={isLoading}
+          disabled={buttonToShow === "denied"}
+          tooltip={buttonToShow === "denied" ? t("you_have_denied_notifications") : undefined}>
+          {t(buttonToShow === "disable" ? "disable_browser_notifications" : "allow_browser_notifications")}
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <Shell
@@ -152,7 +169,8 @@ export default function Bookings() {
       heading={t("bookings")}
       subtitle={t("bookings_description")}
       title="Bookings"
-      description="Create events to share for people to book on your calendar.">
+      description="Create events to share for people to book on your calendar."
+      actions={actions}>
       <div className="flex flex-col">
         <div className="flex flex-row flex-wrap justify-between">
           <HorizontalTabs tabs={tabs} />

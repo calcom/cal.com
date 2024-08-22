@@ -1,5 +1,3 @@
-import type { GetServerSidePropsContext, NextApiResponse } from "next";
-
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -8,7 +6,6 @@ import type { TRemoveNotificationsSubscriptionInputSchema } from "./removeNotifi
 type AddSecondaryEmailOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    res?: NextApiResponse | GetServerSidePropsContext["res"];
   };
   input: TRemoveNotificationsSubscriptionInputSchema;
 };
