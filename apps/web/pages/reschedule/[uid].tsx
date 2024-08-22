@@ -156,7 +156,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     destinationUrlSearchParams.set("flag.coep", coepFlag as string);
   }
 
-  const currentUserEmail = rescheduledBy ?? session?.user?.email ?? "Anonymous";
+  const currentUserEmail = rescheduledBy ?? session?.user?.email;
 
   destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
 
