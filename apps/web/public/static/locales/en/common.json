@@ -461,6 +461,8 @@
   "dynamic_booking": "Dynamic group links",
   "allow_seo_indexing": "Allow search engines to access your public content",
   "seo_indexing": "Allow SEO Indexing",
+  "allow_browser_notifications": "Allow Browser Notifications",
+  "disable_browser_notifications": "Disable Browser Notifications",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",
   "full_name": "Full name",

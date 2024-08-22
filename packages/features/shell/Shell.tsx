@@ -1084,7 +1084,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady } = useLocale();
+  const { isLocaleReady, t } = useLocale();
   const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
   return (
@@ -1148,16 +1148,16 @@ export function ShellMain(props: LayoutProps) {
               {props.heading === "Bookings" &&
                 (buttonToShow === "allow" ? (
                   <Button color="primary" onClick={enableNotifications} loading={isLoading}>
-                    Allow Notifications
+                    {t("allow_browser_notifications")}
                   </Button>
                 ) : buttonToShow === "disable" ? (
                   <Button color="primary" onClick={disableNotifications} loading={isLoading}>
-                    Disable Notifications
+                    {t("disable_browser_notifications")}
                   </Button>
                 ) : buttonToShow === "denied" ? (
                   <Tooltip content="You have denied the notifications. You will have to reset the permission from browser settings to enable them.">
                     <Button color="primary" disabled>
-                      Allow Notifications
+                      {t("allow_browser_notifications")}
                     </Button>
                   </Tooltip>
                 ) : null)}
