@@ -20,6 +20,8 @@ export default function Logo({
   const pathname = usePathname();
   const isLogin = (pathname || "").includes("auth/login");
 
+  console.log("isMobile", isMobile);
+
   const logoStyle = { width: isMobile ? "230px" : "300px", height: "auto" };
 
   return (
