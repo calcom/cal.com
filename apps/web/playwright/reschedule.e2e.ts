@@ -12,13 +12,8 @@ import {
   bookTimeSlot,
   doOnOrgDomain,
   goToUrlWithErrorHandling,
+  IS_STRIPE_ENABLED,
 } from "./lib/testUtils";
-
-const IS_STRIPE_ENABLED = !!(
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_PRIVATE_KEY
-);
 
 test.describe.configure({ mode: "parallel" });
 
@@ -164,6 +159,9 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test("Paid rescheduling should go to success page", async ({ page, users, bookings, payments }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!IS_STRIPE_ENABLED, "Skipped as Stripe is not installed");
+
     const user = await users.create();
     await user.apiLogin();
     await user.installStripePersonal({ skip: true });

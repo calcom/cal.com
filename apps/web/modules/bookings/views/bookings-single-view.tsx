@@ -312,7 +312,7 @@ export default function Success(props: PageProps) {
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
     const titlePrefix = isRoundRobin ? "round_robin_" : "";
-    if (isCancelled || isBookingInPast) {
+    if (isCancelled) {
       return "";
     }
     if (needsConfirmation) {
@@ -357,7 +357,7 @@ export default function Success(props: PageProps) {
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
-  const isReschedulable = !isCancelled && !isBookingInPast;
+  const isReschedulable = !isCancelled;
 
   const bookingCancelledEventProps = {
     booking: bookingInfo,
@@ -368,6 +368,32 @@ export default function Success(props: PageProps) {
     },
     eventType,
   };
+
+  const isRecurringBooking = props.recurringBookings;
+  const needsConfirmationAndReschedulable = needsConfirmation && isReschedulable;
+  const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
+  const isEventCancelled = isCancelled && !seatReferenceUid;
+  const isPastBooking = isBookingInPast;
+
+  const successPageHeadline = (() => {
+    if (needsConfirmationAndReschedulable) {
+      return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
+    }
+
+    if (isNotAttendingSeatedEvent) {
+      return t("no_longer_attending");
+    }
+
+    if (isEventCancelled) {
+      return t("event_cancelled");
+    }
+
+    if (isPastBooking) {
+      return t("event_is_in_the_past");
+    }
+
+    return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
+  })();
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -389,7 +415,7 @@ export default function Success(props: PageProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
-            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
+            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm transition dark:hover:bg-transparent">
             <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -441,7 +467,7 @@ export default function Success(props: PageProps) {
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
                           !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
-                          isCancelled || isBookingInPast ? "bg-error" : ""
+                          isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && isReschedulable && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -449,9 +475,7 @@ export default function Success(props: PageProps) {
                         {needsConfirmation && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
                         )}
-                        {(isCancelled || isBookingInPast) && (
-                          <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />
-                        )}
+                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
                       </div>
                     </div>
                     <div className="mb-8 mt-6 text-center last:mb-0">
@@ -459,19 +483,7 @@ export default function Success(props: PageProps) {
                         className="text-emphasis text-2xl font-semibold leading-6"
                         data-testid={isCancelled ? "cancelled-headline" : ""}
                         id="modal-headline">
-                        {needsConfirmation && isReschedulable
-                          ? props.recurringBookings
-                            ? t("booking_submitted_recurring")
-                            : t("booking_submitted")
-                          : isCancelled
-                          ? seatReferenceUid
-                            ? t("no_longer_attending")
-                            : t("event_cancelled")
-                          : isBookingInPast
-                          ? t("event_expired")
-                          : props.recurringBookings
-                          ? t("meeting_is_scheduled_recurring")
-                          : t("meeting_is_scheduled")}
+                        {successPageHeadline}
                       </h3>
                       <div className="mt-3">
                         <p className="text-default">{getTitle()}</p>
@@ -734,7 +746,7 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
-                    {userIsOwner && !isCancelled && isRejectionMode && (
+                    {!isCancelled && isRejectionMode && (
                       <>
                         <hr className="border-subtle" />
                         <RejectBooking

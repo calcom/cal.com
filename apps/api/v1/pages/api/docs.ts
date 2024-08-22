@@ -11,8 +11,8 @@ const swaggerHandler = withSwagger({
       { url: "https://api.cal.com/v1" },
     ],
     externalDocs: {
-      url: "https://docs.cal.com",
-      description: "Find more info at our main docs: https://docs.cal.com/",
+      url: "https://docs.cal.com/docs",
+      description: "Find more info at our main docs: https://docs.cal.com/docs/",
     },
     info: {
       title: `${pjson.name}: ${pjson.description}`,

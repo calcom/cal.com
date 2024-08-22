@@ -20,6 +20,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -111,7 +112,8 @@ export async function handleConfirmation(args: {
         { ...evt, additionalInformation: metadata },
         undefined,
         isHostConfirmationEmailsDisabled,
-        isAttendeeConfirmationEmailDisabled
+        isAttendeeConfirmationEmailDisabled,
+        eventTypeMetadata
       );
     } catch (error) {
       log.error(error);
@@ -134,6 +136,15 @@ export async function handleConfirmation(args: {
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
+      schedulingType: SchedulingType | null;
+      hosts: {
+        user: {
+          email: string;
+          destinationCalendar?: {
+            primaryEmail: string | null;
+          } | null;
+        };
+      }[];
       owner: {
         hideBranding?: boolean | null;
       } | null;
@@ -174,6 +185,21 @@ export async function handleConfirmation(args: {
             select: {
               slug: true,
               bookingFields: true,
+              schedulingType: true,
+              hosts: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
               owner: {
                 select: {
                   hideBranding: true,
@@ -219,9 +245,24 @@ export async function handleConfirmation(args: {
           select: {
             slug: true,
             bookingFields: true,
+            schedulingType: true,
             owner: {
               select: {
                 hideBranding: true,
+              },
+            },
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                    destinationCalendar: {
+                      select: {
+                        primaryEmail: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -248,20 +289,26 @@ export async function handleConfirmation(args: {
       const evtOfBooking = {
         ...evt,
         metadata: { videoCallUrl: meetingUrl },
-        eventType: { slug: eventTypeSlug },
+        eventType: {
+          slug: eventTypeSlug,
+          schedulingType: updatedBookings[index].eventType?.schedulingType,
+          hosts: updatedBookings[index].eventType?.hosts,
+        },
       };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
       const isFirstBooking = index === 0;
 
-      await scheduleMandatoryReminder(
-        evtOfBooking,
-        workflows,
-        false,
-        !!updatedBookings[index].eventType?.owner?.hideBranding,
-        evt.attendeeSeatId
-      );
+      if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
+        await scheduleMandatoryReminder(
+          evtOfBooking,
+          workflows,
+          false,
+          !!updatedBookings[index].eventType?.owner?.hideBranding,
+          evt.attendeeSeatId
+        );
+      }
 
       await scheduleWorkflowReminders({
         workflows,
