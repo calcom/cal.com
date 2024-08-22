@@ -16,6 +16,14 @@ type Subscription = {
   };
 };
 
+// Required Format for payload
+// const payloadObj = {
+//   title: "This is a test",
+//   body: payload,
+//   icon: "/cal-com-icon.svg",
+// };
+// payload JSON.stringify(payloadObj)
+
 export const sendNotification = async (subscription: Subscription, payload: string) => {
   try {
     await webpush.sendNotification(subscription, payload);

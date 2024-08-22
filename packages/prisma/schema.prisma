@@ -330,9 +330,7 @@ model User {
 
   OutOfOfficeReasons         OutOfOfficeReason[]
   smsLockState               SMSLockState                 @default(UNLOCKED)
-  OutOfOfficeReasons         OutOfOfficeReason[]
-  smsLockState               SMSLockState        @default(UNLOCKED)
-  smsLockReviewedByAdmin     Boolean             @default(false)
+  smsLockReviewedByAdmin     Boolean                      @default(false)
   NotificationsSubscriptions NotificationsSubscriptions[]
 
   @@unique([email])
