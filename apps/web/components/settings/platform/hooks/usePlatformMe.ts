@@ -25,7 +25,7 @@ export const usePlatformMe = () => {
         return data.data as UserResponse;
       }
 
-      throw new Error(response.status.toString(), { cause: response.statusText });
+      throw new Error(response.status.toString());
     },
   });
 
