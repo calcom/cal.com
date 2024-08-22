@@ -1,6 +1,5 @@
 import { Transform, Type } from "class-transformer";
 import {
-  ArrayMaxSize,
   ArrayMinSize,
   ArrayNotEmpty,
   IsArray,
@@ -76,23 +75,12 @@ export class GetBookingsInput_2024_08_13 {
   teamId?: number;
 
   @IsOptional()
-  @IsArray()
-  @ArrayMinSize(2, { message: "dateRange must contain 2 dates - from and to." })
-  @ArrayMaxSize(2, { message: "dateRange must contain 2 dates - from and to." })
-  @ArrayNotEmpty({ message: "dateRange cannot be empty." })
-  @IsISO8601(
-    { strict: true },
-    { each: true, message: "Each date in dateRange must be a valid ISO 8601 date." }
-  )
-  dateRange?: [string, string];
-
-  @IsOptional()
   @IsISO8601({ strict: true }, { message: "fromDate must be a valid ISO 8601 date." })
-  fromDate?: string;
+  afterStart?: string;
 
   @IsOptional()
   @IsISO8601({ strict: true }, { message: "toDate must be a valid ISO 8601 date." })
-  toDate?: string;
+  beforeEnd?: string;
 
   // note(Lauris): sort
   @IsOptional()
