@@ -2526,6 +2526,7 @@ describe("handleSeats", () => {
               location: { optionValue: "", value: BookingLocations.CalVideo },
             },
             rescheduleUid: firstBookingUid,
+            cancelledBy: organizer.email,
           },
         });
 
@@ -2545,10 +2546,12 @@ describe("handleSeats", () => {
           },
           select: {
             status: true,
+            cancelledBy: true,
           },
         });
 
         expect(cancelledBooking?.status).toEqual(BookingStatus.CANCELLED);
+        expect(cancelledBooking?.cancelledBy).toEqual(organizer.email);
       });
     });
   });
