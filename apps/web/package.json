@@ -36,6 +36,7 @@
     "@calcom/embed-snippet": "workspace:*",
     "@calcom/features": "*",
     "@calcom/lib": "*",
+    "@calcom/platform-enums": "*",
     "@calcom/platform-types": "*",
     "@calcom/prisma": "*",
     "@calcom/trpc": "*",

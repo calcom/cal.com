@@ -107,6 +107,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           bookingFields: true,
           seatsShowAttendees: true,
           metadata: true,
+          schedulingType: true,
           hosts: {
             select: {
               user: true,
@@ -363,7 +364,13 @@ async function handler(req: CustomRequest) {
     smsReminderNumber: bookingToDelete.smsReminderNumber,
     evt: {
       ...evt,
-      ...{ eventType: { slug: bookingToDelete.eventType?.slug } },
+      ...{
+        eventType: {
+          slug: bookingToDelete.eventType?.slug,
+          schedulingType: bookingToDelete.eventType?.schedulingType,
+          hosts: bookingToDelete.eventType?.hosts,
+        },
+      },
     },
     hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
   });
