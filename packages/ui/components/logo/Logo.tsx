@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -17,8 +17,8 @@ export default function Logo({
   src?: string;
 }) {
   const isMobile = useMediaQuery("(max-width: 640px)");
-  const { pathname } = useRouter();
-  const isLogin = pathname.includes("auth/login");
+  const pathname = usePathname();
+  const isLogin = (pathname || "").includes("auth/login");
 
   const logoStyle = { width: isMobile ? "230px" : "300px", height: "auto" };
 
