@@ -1,5 +1,6 @@
 "use client";
 
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
@@ -26,6 +27,7 @@ import {
   WEBSITE_URL,
   CLOUDFLARE_SITE_ID,
 } from "@calcom/lib/constants";
+import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -306,6 +308,11 @@ export default function Signup({
           <noscript
             dangerouslySetInnerHTML={{
               __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+            }}
+          />
+          <DubAnalytics
+            cookieOptions={{
+              domain: isENVDev ? undefined : new URL(WEBAPP_URL).hostname,
             }}
           />
         </>
