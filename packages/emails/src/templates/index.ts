@@ -37,3 +37,4 @@ export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
 export { SmsLimitAlmostReachedEmail } from "./SmsLimitAlmostReachedEmail";
+export { SmsLimitReachedEmail } from "./SmsLimitReachedEmail";
