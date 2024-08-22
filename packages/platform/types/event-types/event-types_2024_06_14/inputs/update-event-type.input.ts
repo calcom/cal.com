@@ -2,6 +2,7 @@ import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
 
+import type { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
 import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
@@ -82,6 +83,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @ValidateBookingWindow()
   bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @ValidateBookingWindow()
+  bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
   @IsInt()
@@ -175,6 +180,10 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @ValidateBookingWindow()
   bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @ValidateBookingWindow()
+  bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
   @IsInt()

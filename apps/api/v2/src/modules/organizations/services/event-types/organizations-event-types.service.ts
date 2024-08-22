@@ -46,6 +46,7 @@ export class OrganizationsEventTypesService {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      bookerLayouts,
       bookingFields,
       ...rest
     } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
@@ -68,6 +69,7 @@ export class OrganizationsEventTypesService {
         bookingLimitsCount,
         bookingLimitsDuration,
         bookingWindow,
+        bookerLayouts,
         bookingFields,
         ...rest,
       },

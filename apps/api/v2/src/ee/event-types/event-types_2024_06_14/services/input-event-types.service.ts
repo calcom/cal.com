@@ -1,3 +1,4 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { Injectable } from "@nestjs/common";
 
 import {
@@ -5,11 +6,14 @@ import {
   transformApiEventTypeLocations,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries";
+import { transformApiEventTypeBookerLayouts } from "@calcom/platform-libraries-1.2.3";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
 export class InputEventTypesService_2024_06_14 {
+  constructor(private readonly eventTypesRepository: EventTypesRepository_2024_06_14) {}
   transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_06_14) {
     const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
       {
@@ -25,6 +29,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      bookerLayouts,
       ...rest
     } = inputEventType;
 
@@ -38,12 +43,13 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
+      metadata: { bookerLayouts: this.transformInputBookerLayouts(bookerLayouts) },
     };
 
     return eventType;
   }
 
-  transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14) {
+  async transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14, eventTypeId: number) {
     const {
       lengthInMinutes,
       locations,
@@ -52,8 +58,13 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      bookerLayouts,
       ...rest
     } = inputEventType;
+    const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
+    const metadataTransformed = !!eventTypeDb?.metadata
+      ? EventTypeMetaDataSchema.parse(eventTypeDb.metadata)
+      : {};
 
     const eventType = {
       ...rest,
@@ -66,6 +77,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
+      metadata: { ...metadataTransformed, bookerLayouts: this.transformInputBookerLayouts(bookerLayouts) },
     };
 
     return eventType;
@@ -86,5 +98,9 @@ export class InputEventTypesService_2024_06_14 {
   transformInputBookingWindow(inputBookingWindow: CreateEventTypeInput_2024_06_14["bookingWindow"]) {
     const res = transformApiEventTypeFutureBookingLimits(inputBookingWindow);
     return !!res ? res : {};
+  }
+
+  transformInputBookerLayouts(inputBookerLayouts: CreateEventTypeInput_2024_06_14["bookerLayouts"]) {
+    return transformApiEventTypeBookerLayouts(inputBookerLayouts);
   }
 }

@@ -13,6 +13,11 @@ import type {
   BusinessDaysWindow_2024_06_14,
   BookingField_2024_06_14,
 } from "@calcom/platform-types";
+import type { BookerLayoutsTransformedSchema } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/booker-layouts.input";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
@@ -255,9 +260,23 @@ function getResponseEventTypeFutureBookingLimits(
       return undefined;
   }
 }
+
+function getResponseEventTypeBookerLayouts(transformedBookerLayouts: BookerLayoutsTransformedSchema) {
+  const outputToInputMap = {
+    [BookerLayoutsOutputEnum_2024_06_14.month_view]: BookerLayoutsInputEnum_2024_06_14.month,
+    [BookerLayoutsOutputEnum_2024_06_14.week_view]: BookerLayoutsInputEnum_2024_06_14.week,
+    [BookerLayoutsOutputEnum_2024_06_14.column_view]: BookerLayoutsInputEnum_2024_06_14.column,
+  };
+
+  return {
+    defaultLayout: outputToInputMap[transformedBookerLayouts.defaultLayout],
+    enabledLayouts: transformedBookerLayouts.enabledLayouts.map((layout) => outputToInputMap[layout]),
+  };
+}
 export {
   getResponseEventTypeLocations,
   getResponseEventTypeBookingFields,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
+  getResponseEventTypeBookerLayouts,
 };

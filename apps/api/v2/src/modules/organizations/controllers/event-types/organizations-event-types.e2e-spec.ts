@@ -24,6 +24,7 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import { BookerLayoutsInputEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
 import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
 import { Team } from "@calcom/prisma/client";
 
@@ -276,6 +277,14 @@ describe("Organizations Event Types Endpoints", () => {
           value: 30,
           rolling: true,
         },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
       };
 
       return request(app.getHttpServer())
@@ -297,6 +306,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(data.offsetStart).toEqual(body.offsetStart);
           expect(data.bookingWindow).toEqual(body.bookingWindow);
+          expect(data.bookerLayouts).toEqual(body.bookerLayouts);
 
           collectiveEventType = responseBody.data;
         });

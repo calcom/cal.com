@@ -29,6 +29,7 @@ export class InputOrganizationsEventTypesService {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      bookerLayouts,
       bookingFields,
       ...rest
     } = inputEventType;
@@ -46,6 +47,7 @@ export class InputOrganizationsEventTypesService {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      bookerLayouts,
       bookingFields,
       metadata,
     };
@@ -60,7 +62,7 @@ export class InputOrganizationsEventTypesService {
   ) {
     const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
 
-    const eventType = this.inputEventTypesService.transformInputUpdateEventType(rest);
+    const eventType = await this.inputEventTypesService.transformInputUpdateEventType(rest, eventTypeId);
     const dbEventType = await this.orgEventTypesRepository.getTeamEventType(teamId, eventTypeId);
 
     if (!dbEventType) {

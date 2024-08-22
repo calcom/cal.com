@@ -55,6 +55,13 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
+  async getEventTypeWithMetaData(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { metadata: true },
+    });
+  }
+
   async getUserEventType(userId: number, eventTypeId: number) {
     return this.dbRead.prisma.eventType.findFirst({
       where: {

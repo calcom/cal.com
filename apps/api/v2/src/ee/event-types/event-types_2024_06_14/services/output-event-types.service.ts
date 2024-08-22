@@ -15,7 +15,11 @@ import {
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
 } from "@calcom/platform-libraries";
-import { TransformFutureBookingsLimitSchema_2024_06_14 } from "@calcom/platform-types";
+import { getResponseEventTypeBookerLayouts } from "@calcom/platform-libraries-1.2.3";
+import {
+  TransformFutureBookingsLimitSchema_2024_06_14,
+  BookerLayoutsTransformedSchema,
+} from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -97,6 +101,10 @@ export class OutputEventTypesService_2024_06_14 {
     const users = this.transformUsers(databaseEventType.users);
     const bookingLimitsCount = this.transformIntervalLimits(databaseEventType.bookingLimits);
     const bookingLimitsDuration = this.transformIntervalLimits(databaseEventType.durationLimits);
+    const bookerLayouts = this.transformBookerLayouts(
+      metadata.bookerLayouts as unknown as BookerLayoutsTransformedSchema
+    );
+    delete metadata["bookerLayouts"];
     const bookingWindow = this.transformBookingWindow({
       periodType: databaseEventType.periodType,
       periodDays: databaseEventType.periodDays,
@@ -138,6 +146,7 @@ export class OutputEventTypesService_2024_06_14 {
       onlyShowFirstAvailableSlot,
       offsetStart,
       bookingWindow,
+      bookerLayouts,
     };
   }
 
@@ -185,5 +194,10 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformBookingWindow(bookingLimits: TransformFutureBookingsLimitSchema_2024_06_14) {
     return getResponseEventTypeFutureBookingLimits(bookingLimits);
+  }
+
+  transformBookerLayouts(bookerLayouts: BookerLayoutsTransformedSchema) {
+    if (!bookerLayouts) return undefined;
+    return getResponseEventTypeBookerLayouts(bookerLayouts);
   }
 }

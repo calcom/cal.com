@@ -46,6 +46,7 @@ export class EventTypesService_2024_06_14 {
       periodCountCalendarDays = undefined,
       periodStartDate = undefined,
       periodEndDate = undefined,
+      metadata = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
@@ -68,6 +69,7 @@ export class EventTypesService_2024_06_14 {
         periodCountCalendarDays,
         periodStartDate,
         periodEndDate,
+        metadata,
         ...bodyTransformed,
       },
       ctx: {
@@ -240,7 +242,10 @@ export class EventTypesService_2024_06_14 {
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_06_14, user: UserWithProfile) {
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
-    const bodyTransformed = this.inputEventTypesService.transformInputUpdateEventType(body);
+    const bodyTransformed = await this.inputEventTypesService.transformInputUpdateEventType(
+      body,
+      eventTypeId
+    );
     await updateEventType({
       input: { id: eventTypeId, ...bodyTransformed },
       ctx: {
