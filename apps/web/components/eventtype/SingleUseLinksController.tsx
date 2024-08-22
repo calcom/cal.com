@@ -10,8 +10,7 @@ import { Button, Icon, TextField, Tooltip, showToast } from "@calcom/ui";
 export const SingleUseLinksController = ({
   team,
   bookerUrl,
-  disabled,
-}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl"> & { disabled: boolean }) => {
+}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
@@ -79,15 +78,13 @@ export const SingleUseLinksController = ({
                   </li>
                 );
               })}
-            {!disabled && (
-              <Button
-                color="minimal"
-                StartIcon="plus"
-                onClick={addSingleUseLink}
-                data-testid="add-single-use-link-button">
-                {t("add_a_single_use_link")}
-              </Button>
-            )}
+            <Button
+              color="minimal"
+              StartIcon="plus"
+              onClick={addSingleUseLink}
+              data-testid="add-single-use-link-button">
+              {t("add_a_single_use_link")}
+            </Button>
           </ul>
         );
       }}

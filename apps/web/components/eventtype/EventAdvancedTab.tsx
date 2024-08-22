@@ -119,11 +119,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps, setLockedState } =
+    useLockedFieldsManager({
+      eventType,
+      translate: t,
+      formMethods,
+    });
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
@@ -390,22 +391,20 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               onCheckedChange={(e) => {
                 if (!e) {
                   formMethods.setValue("singleUseLinks", [], { shouldDirty: true });
+                  setLockedState("singleUseLinks", true);
                 } else {
                   formMethods.setValue(
                     "singleUseLinks",
                     [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
                     { shouldDirty: true }
                   );
+                  setLockedState("singleUseLinks", false);
                 }
                 setSingleUseLinksVisible(e);
               }}>
               {!isManagedEventType && (
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <SingleUseLinksController
-                    team={team}
-                    bookerUrl={eventType.bookerUrl}
-                    disabled={shouldLockDisableProps("singleUseLinks").disabled}
-                  />
+                  <SingleUseLinksController team={team} bookerUrl={eventType.bookerUrl} />
                 </div>
               )}
             </SettingsToggle>
