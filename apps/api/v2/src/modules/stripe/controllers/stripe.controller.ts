@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { StripeConnectQueryParamsInputDto } from "@/modules/stripe/inputs/stripe.input";
 import { StripConnectOutputDto, StripConnectOutputResponseDto } from "@/modules/stripe/outputs/stripe.output";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -12,10 +13,12 @@ import {
   HttpCode,
   HttpStatus,
   Redirect,
+  Req,
   BadRequestException,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
+import { Request } from "express";
 import { stringify } from "querystring";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -32,10 +35,23 @@ export class StripeController {
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   async redirect(
-    @Query("state") state: string,
+    @Req() req: Request,
+    @Query("redir") redir: StripeConnectQueryParamsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<StripConnectOutputResponseDto> {
-    const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(state, user.email, user.name);
+    const origin = req.headers.origin;
+    const { redir: redirectUrl } = redir;
+    const state = {
+      onErrorReturnTo: origin,
+      fromApp: false,
+      returnTo: !!redirectUrl ? redirectUrl : origin,
+    };
+
+    const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(
+      JSON.stringify(state),
+      user.email,
+      user.name
+    );
 
     return {
       status: SUCCESS_STATUS,
