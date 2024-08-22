@@ -7,6 +7,7 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -61,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           select: {
             recurringEvent: true,
             bookingFields: true,
+            metadata: true,
           },
         },
         responses: true,
@@ -130,7 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
       };
 
-      await sendOrganizerRequestReminderEmail(evt);
+      await sendOrganizerRequestReminderEmail(evt, booking?.eventType?.metadata as EventTypeMetadata);
 
       await prisma.reminderMail.create({
         data: {
