@@ -12,13 +12,8 @@ import {
   bookTimeSlot,
   doOnOrgDomain,
   goToUrlWithErrorHandling,
+  IS_STRIPE_ENABLED,
 } from "./lib/testUtils";
-
-const IS_STRIPE_ENABLED = !!(
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_PRIVATE_KEY
-);
 
 test.describe.configure({ mode: "parallel" });
 
