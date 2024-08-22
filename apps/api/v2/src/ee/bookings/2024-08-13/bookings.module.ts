@@ -11,10 +11,11 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, RedisModule, TokensModule, BillingModule],
+  imports: [PrismaModule, RedisModule, TokensModule, BillingModule, UsersModule],
   providers: [
     TokensRepository,
     OAuthFlowService,
