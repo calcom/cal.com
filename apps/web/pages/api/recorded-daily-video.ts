@@ -62,18 +62,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
-  // if (!testMode) {
-  //   const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
-  //   if (!hmacSecret) {
-  //     return res.status(405).json({ message: "No Daily Webhook Secret" });
-  //   }
+  if (!testMode) {
+    const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
+    if (!hmacSecret) {
+      return res.status(405).json({ message: "No Daily Webhook Secret" });
+    }
 
-  //   const computed_signature = computeSignature(hmacSecret, req.body, req.headers["x-webhook-timestamp"]);
+    const computed_signature = computeSignature(hmacSecret, req.body, req.headers["x-webhook-timestamp"]);
 
-  //   if (req.headers["x-webhook-signature"] !== computed_signature) {
-  //     return res.status(403).json({ message: "Signature does not match" });
-  //   }
-  // }
+    if (req.headers["x-webhook-signature"] !== computed_signature) {
+      return res.status(403).json({ message: "Signature does not match" });
+    }
+  }
 
   log.debug(
     "Daily video webhook Request Body:",
