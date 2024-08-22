@@ -355,7 +355,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
         return requiresAttendeeNumber(step.action) && step.numberRequired;
       });
-      await upsertSmsReminderFieldForEventTypes({ activeOn, workflowId, isSmsReminderNumberRequired, isOrg, actorUserId: ctx.user.id ?? null });
+      await upsertSmsReminderFieldForEventTypes({
+        activeOn,
+        workflowId,
+        isSmsReminderNumberRequired,
+        isOrg,
+        actorUserId: ctx.user.id ?? null,
+      });
     }
   }
 };

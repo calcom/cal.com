@@ -75,7 +75,7 @@ export async function createBooking({
   bookerEmail,
   paymentAppData,
   changedOrganizer,
-  actorUserId
+  actorUserId,
 }: CreateBookingParams) {
   updateEventDetails(evt, originalRescheduledBooking, changedOrganizer);
 
