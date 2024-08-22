@@ -93,13 +93,18 @@ export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils"
 
 export {
   transformApiEventTypeBookingFields,
+  transformApiEventTypeIntervalLimits,
   transformApiEventTypeLocations,
   getResponseEventTypeLocations,
   getResponseEventTypeBookingFields,
   TransformedLocationsSchema,
   BookingFieldsSchema,
+  getResponseEventTypeIntervalLimits,
+  getResponseEventTypeFutureBookingLimits,
+  transformApiEventTypeFutureBookingLimits,
 } from "@calcom/lib/event-types/transformers";
 
+export { parseBookingLimit } from "@calcom/lib";
 export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";

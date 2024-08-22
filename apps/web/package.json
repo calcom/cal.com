@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.3.6",
+  "version": "4.4.2",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -36,6 +36,7 @@
     "@calcom/embed-snippet": "workspace:*",
     "@calcom/features": "*",
     "@calcom/lib": "*",
+    "@calcom/platform-enums": "*",
     "@calcom/platform-types": "*",
     "@calcom/prisma": "*",
     "@calcom/trpc": "*",

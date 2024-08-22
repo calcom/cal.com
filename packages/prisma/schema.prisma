@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -43,12 +43,15 @@ enum PeriodType {
 }
 
 model Host {
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int
-  isFixed     Boolean   @default(false)
-  priority    Int?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
+  eventType        EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId      Int
+  isFixed          Boolean   @default(false)
+  priority         Int?
+  weight           Int?
+  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  weightAdjustment Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -137,7 +140,11 @@ model EventType {
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
-  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
+  isRRWeightsEnabled                      Boolean                   @default(false)
+
+  /// @zod.custom(imports.eventTypeColor)
+  eventTypeColor                   Json?
+  rescheduleWithSameRoundRobinHost Boolean @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -414,6 +421,7 @@ model Team {
   smsLockState           SMSLockState            @default(UNLOCKED)
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
+  attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
 
   @@unique([slug, parentId])
@@ -444,14 +452,15 @@ enum MembershipRole {
 }
 
 model Membership {
-  id                   Int            @id @default(autoincrement())
+  id                   Int               @id @default(autoincrement())
   teamId               Int
   userId               Int
-  accepted             Boolean        @default(false)
+  accepted             Boolean           @default(false)
   role                 MembershipRole
-  team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  disableImpersonation Boolean        @default(false)
+  team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disableImpersonation Boolean           @default(false)
+  AttributeToUser      AttributeToUser[]
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -1428,4 +1437,54 @@ model PlatformBilling {
   overdue           Boolean? @default(false)
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+enum AttributeType {
+  TEXT
+  NUMBER
+  SINGLE_SELECT
+  MULTI_SELECT
+}
+
+model AttributeOption {
+  id            String            @id @default(uuid())
+  attribute     Attribute         @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeId   String
+  value         String
+  slug          String
+  assignedUsers AttributeToUser[]
+
+  @@unique([attributeId, value])
+}
+
+model Attribute {
+  id String @id @default(uuid())
+
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId Int
+
+  type AttributeType
+
+  name String
+  slug String @unique
+
+  enabled Boolean @default(true)
+
+  usersCanEditRelation Boolean @default(false)
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  options   AttributeOption[]
+}
+
+model AttributeToUser {
+  id String @id @default(uuid())
+
+  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId Int
+
+  attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
+  attributeOptionId String
+
+  @@unique([memberId, attributeOptionId])
 }

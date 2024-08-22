@@ -38,9 +38,38 @@ export class EventTypesService_2024_06_14 {
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const bodyTransformed = this.inputEventTypesService.transformInputCreateEventType(body);
+    const {
+      bookingLimits,
+      durationLimits,
+      periodType = undefined,
+      periodDays = undefined,
+      periodCountCalendarDays = undefined,
+      periodStartDate = undefined,
+      periodEndDate = undefined,
+      ...bodyTransformed
+    } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
       input: bodyTransformed,
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+
+    await updateEventType({
+      input: {
+        id: eventTypeCreated.id,
+        bookingLimits,
+        durationLimits,
+        periodType,
+        periodDays,
+        periodCountCalendarDays,
+        periodStartDate,
+        periodEndDate,
+        ...bodyTransformed,
+      },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -90,18 +119,21 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserToCreateEvent(user: UserWithProfile) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
+    const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return {
       id: user.id,
       role: user.role,
+      username: user.username,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
       metadata: user.metadata,
+      selectedCalendars,
     };
   }
 
@@ -127,7 +159,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
 
     const isUserOrganizationAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
@@ -238,7 +270,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserToUpdateEvent(user: UserWithProfile) {
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return { ...user, profile: { id: profileId }, selectedCalendars };
   }
