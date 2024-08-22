@@ -227,7 +227,9 @@ export const getCancelLink = (calEvent: CalendarEvent, attendee?: Person): strin
   const cancelLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${Uid}`);
   cancelLink.searchParams.append("cancel", "true");
   cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
-  cancelLink.searchParams.append("cancelledBy", attendee?.email ?? "Anonymous");
+  if (attendee?.email) {
+    cancelLink.searchParams.append("cancelledBy", attendee.email);
+  }
   if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
   return cancelLink.toString();
 };
@@ -260,7 +262,9 @@ export const getRescheduleLink = (calEvent: CalendarEvent, attendee?: Person): s
 
   const rescheduleLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`);
 
-  rescheduleLink.searchParams.append("rescheduledBy", attendee?.email ?? "Anonymous");
+  if (attendee?.email) {
+    rescheduleLink.searchParams.append("rescheduledBy", attendee.email);
+  }
 
   return rescheduleLink.toString();
 };

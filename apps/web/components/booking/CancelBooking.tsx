@@ -23,7 +23,7 @@ type Props = {
   theme: string | null;
   allRemainingBookings: boolean;
   seatReferenceUid?: string;
-  currentUserEmail: string;
+  currentUserEmail?: string;
   bookingCancelledEventProps: {
     booking: unknown;
     organizer: {

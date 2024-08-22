@@ -158,7 +158,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const currentUserEmail = rescheduledBy ?? session?.user?.email;
 
-  destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
+  if (currentUserEmail) {
+    destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
+  }
 
   return {
     redirect: {
