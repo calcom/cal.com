@@ -72,7 +72,13 @@ async function addCredits(phoneNumber: string, userId?: number | null, teamId?: 
 
     const totalCredits = acceptedMembers.length * creditsPerMember;
 
-    if (true || team.smsCredits > totalCredits * 0.8) {
+    if (team.smsCredits > totalCredits) {
+      // check if limitedReachAt is already set for this month
+      // if not send limited reach email & set date
+      return false;
+    }
+
+    if (team.smsCredits > totalCredits * 0.8) {
       const owners = await Promise.all(
         acceptedMembers
           .filter((member) => member.role === "OWNER")
@@ -87,7 +93,7 @@ async function addCredits(phoneNumber: string, userId?: number | null, teamId?: 
       // notification email to team owners when over 80% of credits used
       sendSmsLimitAlmostReachedEmails({ name: team.name, owners });
     }
-    return;
+    return true;
   }
 
   if (userId) {
@@ -175,16 +181,19 @@ export const sendSMS = async (
     });
   }
 
-  const response = await twilio.messages.create({
-    body: body,
-    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, whatsapp),
-    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-  });
+  const hasSMSCredits = await addCredits(phoneNumber, userId, teamId);
 
-  await addCredits(phoneNumber, userId, teamId);
-
-  return response;
+  if (hasSMSCredits) {
+    const response = await twilio.messages.create({
+      body: body,
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      to: getSMSNumber(phoneNumber, whatsapp),
+      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    });
+    return response;
+  } else {
+    //send email instead
+  }
 };
 
 export const scheduleSMS = async (
@@ -224,18 +233,21 @@ export const scheduleSMS = async (
     });
   }
 
-  const response = await twilio.messages.create({
-    body: body,
-    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, whatsapp),
-    scheduleType: "fixed",
-    sendAt: scheduledDate,
-    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-  });
+  const hasSMSCredits = await addCredits(phoneNumber, userId, teamId);
 
-  await addCredits(phoneNumber, userId, teamId);
-
-  return response;
+  if (hasSMSCredits) {
+    const response = await twilio.messages.create({
+      body: body,
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      to: getSMSNumber(phoneNumber, whatsapp),
+      scheduleType: "fixed",
+      sendAt: scheduledDate,
+      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    });
+    return response;
+  } else {
+    //send email instead
+  }
 };
 
 export const cancelSMS = async (referenceId: string, credits: number, userId?: number, teamId?: number) => {

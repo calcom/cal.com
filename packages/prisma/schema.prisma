@@ -419,6 +419,7 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   smsLockReviewedByAdmin Boolean                 @default(false)
   smsCredits             Int                     @default(0)
+  smsLimitReachedAt      DateTime?
 
   @@unique([slug, parentId])
   @@index([parentId])
