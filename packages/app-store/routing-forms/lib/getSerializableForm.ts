@@ -10,6 +10,7 @@ import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";
+import { getFieldWithOptions } from "./selectOptions";
 
 /**
  * Doesn't have deleted fields by default
@@ -57,7 +58,9 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     name: f.name,
     description: f.description,
   }));
-  const finalFields = fields;
+
+  const finalFields = fields.map((field) => getFieldWithOptions(field));
+
   let teamMembers: SerializableFormTeamMembers[] = [];
   if (form.teamId) {
     teamMembers = await prisma.user.findMany({
