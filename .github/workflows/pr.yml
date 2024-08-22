@@ -131,6 +131,13 @@ jobs:
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
+  
+  build-atoms:
+    name: Production builds
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/atoms-production-build.yml
+    secrets: inherit
 
   build:
     name: Production builds
