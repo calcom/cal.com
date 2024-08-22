@@ -69,9 +69,10 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  // TODO: Fix record typing
-  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
-    teamIds: {
+  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
+
+  if (filters?.teamIds && filters.teamIds.length > 0) {
+    bookingWhereInputFilters.teamIds = {
       AND: [
         {
           OR: [
@@ -79,7 +80,7 @@ export async function getBookings({
               eventType: {
                 team: {
                   id: {
-                    in: filters?.teamIds,
+                    in: filters.teamIds,
                   },
                 },
               },
@@ -89,7 +90,7 @@ export async function getBookings({
                 parent: {
                   team: {
                     id: {
-                      in: filters?.teamIds,
+                      in: filters.teamIds,
                     },
                   },
                 },
@@ -98,8 +99,11 @@ export async function getBookings({
           ],
         },
       ],
-    },
-    userIds: {
+    };
+  }
+
+  if (filters?.userIds && filters.userIds.length > 0) {
+    bookingWhereInputFilters.userIds = {
       AND: [
         {
           OR: [
@@ -108,7 +112,7 @@ export async function getBookings({
                 hosts: {
                   some: {
                     userId: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
                   },
                 },
@@ -116,7 +120,7 @@ export async function getBookings({
             },
             {
               userId: {
-                in: filters?.userIds,
+                in: filters.userIds,
               },
             },
             {
@@ -124,7 +128,7 @@ export async function getBookings({
                 users: {
                   some: {
                     id: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
                   },
                 },
@@ -133,21 +137,24 @@ export async function getBookings({
           ],
         },
       ],
-    },
-    eventTypeIds: {
+    };
+  }
+
+  if (filters?.eventTypeIds && filters.eventTypeIds.length > 0) {
+    bookingWhereInputFilters.eventTypeIds = {
       AND: [
         {
           OR: [
             {
               eventTypeId: {
-                in: filters?.eventTypeIds,
+                in: filters.eventTypeIds,
               },
             },
             {
               eventType: {
                 parent: {
                   id: {
-                    in: filters?.eventTypeIds,
+                    in: filters.eventTypeIds,
                   },
                 },
               },
@@ -155,8 +162,9 @@ export async function getBookings({
           ],
         },
       ],
-    },
-  };
+    };
+  }
+
   if (filters?.attendeeEmail) {
     bookingWhereInputFilters.attendeeEmail = {
       attendees: {

@@ -46,7 +46,7 @@ import {
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries-1.2.3";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -105,7 +105,7 @@ export class BookingsController_2024_04_15 {
   ): Promise<GetBookingsOutput_2024_04_15> {
     const { filters, cursor, limit } = queryParams;
     const bookings = await getAllUserBookings({
-      bookingListingByStatus: filters.status,
+      bookingListingByStatus: [filters.status],
       skip: cursor ?? 0,
       take: limit ?? 10,
       filters,

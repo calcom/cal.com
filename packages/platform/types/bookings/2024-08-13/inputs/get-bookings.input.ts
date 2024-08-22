@@ -57,6 +57,7 @@ export class GetBookingsInput_2024_08_13 {
 
   @IsInt()
   @IsOptional()
+  @Type(() => Number)
   eventTypeId?: number;
 
   @IsArray()
@@ -67,6 +68,7 @@ export class GetBookingsInput_2024_08_13 {
 
   @IsInt()
   @IsOptional()
+  @Type(() => Number)
   teamId?: number;
 
   @IsOptional()
