@@ -3,7 +3,7 @@ import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
-import generateIcsString from "../lib/generateIcsString";
+import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerScheduledEmail {
@@ -17,19 +17,15 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
     const toAddresses = [this.calEvent.attendees[0].email];
 
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: generateIcsString({
-          event: this.calEvent,
-          title: this.t("request_reschedule_booking"),
-          subtitle: this.t("request_reschedule_subtitle", {
-            organizer: this.calEvent.organizer.name,
-          }),
-          role: "attendee",
-          status: "CANCELLED",
+      icalEvent: generateIcsFile({
+        calEvent: this.calEvent,
+        title: this.t("request_reschedule_booking"),
+        subtitle: this.t("request_reschedule_subtitle", {
+          organizer: this.calEvent.organizer.name,
         }),
-        method: "REQUEST",
-      },
+        role: GenerateIcsRole.ATTENDEE,
+        status: "CANCELLED",
+      }),
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("requested_to_reschedule_subject_attendee", {
