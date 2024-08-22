@@ -9,7 +9,7 @@ export const usePlatformMe = () => {
     retryOnMount: false,
     staleTime: 300000,
     retry: (failureCount, error) => {
-      if (error.message === "Internal Server Error") {
+      if (error.message === "500") {
         return false;
       }
       return failureCount < 3; // Retry up to 3 times for other errors
@@ -25,7 +25,7 @@ export const usePlatformMe = () => {
         return data.data as UserResponse;
       }
 
-      throw new Error(response.statusText);
+      throw new Error(response.status.toString(), { cause: response.statusText });
     },
   });
 
