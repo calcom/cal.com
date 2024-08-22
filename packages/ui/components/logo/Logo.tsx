@@ -13,6 +13,11 @@ export default function Logo({
   className?: string;
   src?: string;
 }) {
+  const isLogin = window.location.pathname.includes("auth/login");
+  const isMobile = window.innerWidth < 640;
+
+  const logoStyle = { width: isMobile ? "230px" : "300px", height: "auto" };
+
   return (
     <h3 className={classNames("logo", inline && "inline", className)}>
       <strong>
@@ -24,6 +29,7 @@ export default function Logo({
             alt="Cal"
             title="Cal"
             src={src}
+            {...(isLogin && { style: logoStyle })}
           />
         )}
       </strong>

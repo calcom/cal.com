@@ -46,10 +46,12 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  setCPFError,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  setCPFError: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -69,6 +71,7 @@ export const FormBuilderField = ({
             const { isValid, value: maskedCPF } = cpfMask(value || "");
             maskedValue = maskedCPF;
             fieldStatus = isValid;
+            setCPFError(isValid !== "valid");
           }
 
           return (
@@ -84,7 +87,7 @@ export const FormBuilderField = ({
               {fieldStatus === "invalid" && (
                 <div data-testid="error-message-CPF" className="mt-2 flex items-center text-sm text-red-700 ">
                   <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                  <p>CPF inválido!</p>
+                  <p>O CPF inserido é inválido.</p>
                 </div>
               )}
               <ErrorMessage
