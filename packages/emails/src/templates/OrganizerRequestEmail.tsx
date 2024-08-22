@@ -1,14 +1,16 @@
+import { authenticator } from "otplib";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
 
 import { CallToAction, Separator, CallToActionTable } from "../components";
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
-  const seedData = { bookingUid: props.calEvent.uid, userId: props.calEvent.organizer.id };
-  const token = symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "");
+  const { uid, bookingSecret } = props.calEvent;
+  const userId = props.calEvent.organizer.id;
+  const token = authenticator.generate(bookingSecret as string);
   //TODO: We should switch to using org domain if available
-  const actionHref = `${WEBAPP_URL}/api/link/?token=${encodeURIComponent(token)}`;
+  const actionHref = `${WEBAPP_URL}/api/verify-booking-token/?token=${token}&userId=${userId}&bookingUid=${uid}`;
   const rejectLink = new URL(`${props.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${props.calEvent.uid}`);
   rejectLink.searchParams.append("reject", "true");
   return (
@@ -31,6 +33,13 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
           <Separator />
           <CallToAction
             label={props.calEvent.organizer.language.translate("reject")}
+            href={`${actionHref}&action=reject`}
+            startIconName="rejectIcon"
+            secondary
+          />
+          <Separator />
+          <CallToAction
+            label={props.calEvent.organizer.language.translate("reject_with_reason")}
             href={rejectLink.toString()}
             startIconName="rejectIcon"
             secondary

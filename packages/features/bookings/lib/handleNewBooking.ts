@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
+import { authenticator } from "otplib";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import type z from "zod";
@@ -901,6 +902,7 @@ async function handler(
     platformRescheduleUrl,
     platformCancelUrl,
     platformBookingUrl,
+    bookingSecret: isConfirmedByDefault ? null : authenticator.generateSecret(),
   };
 
   if (req.body.thirdPartyRecurringEventId) {

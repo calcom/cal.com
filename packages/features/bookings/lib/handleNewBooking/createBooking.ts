@@ -212,6 +212,7 @@ function buildNewBookingData(params: {
     description: evt.seatsPerTimeSlot ? null : evt.additionalNotes,
     customInputs: isPrismaObjOrUndefined(evt.customInputs),
     status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
+    bookingSecret: evt.bookingSecret,
     location: evt.location,
     eventType: eventTypeRel,
     smsReminderNumber,
