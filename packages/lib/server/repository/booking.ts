@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -94,6 +95,9 @@ export class BookingRepository {
       attendees: { some: { noShow: false } },
       status: BookingStatus.ACCEPTED,
       eventTypeId,
+      createdAt: {
+        gte: dayjs().utc().subtract(28, "day").toDate(),
+      },
     };
 
     const allBookings = await prisma.booking.findMany({
