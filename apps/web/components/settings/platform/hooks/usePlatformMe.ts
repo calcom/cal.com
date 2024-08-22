@@ -7,7 +7,6 @@ export const usePlatformMe = () => {
   const platformMeQuery = useQuery<UserResponse>({
     queryKey: [QUERY_KEY],
     retryOnMount: false,
-    refetchOnMount: false,
     staleTime: 300000,
     retry: (failureCount, error) => {
       if (error.message === "Internal Server Error") {
