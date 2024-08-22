@@ -101,6 +101,7 @@ jobs:
     name: Run i18n
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
+      actions: write
       contents: read
       pull-requests: write
     steps:
