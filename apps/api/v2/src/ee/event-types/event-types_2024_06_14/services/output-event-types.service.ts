@@ -15,11 +15,15 @@ import {
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
 } from "@calcom/platform-libraries";
-import { getResponseEventTypeBookerLayouts } from "@calcom/platform-libraries-1.2.3";
+import {
+  getResponseEventTypeBookerLayouts,
+  getResponseEventTypeRequiresConfirmation,
+} from "@calcom/platform-libraries-1.2.3";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
 } from "@calcom/platform-types";
+import { NoticeThreshold_2024_06_14 } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -78,7 +82,7 @@ export class OutputEventTypesService_2024_06_14 {
       afterEventBuffer,
       slug,
       schedulingType,
-      requiresConfirmation,
+      // requiresConfirmation,
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
@@ -104,7 +108,12 @@ export class OutputEventTypesService_2024_06_14 {
     const bookerLayouts = this.transformBookerLayouts(
       metadata.bookerLayouts as unknown as BookerLayoutsTransformedSchema
     );
+    const requiresConfirmation = this.transformRequiresConfirmation(
+      databaseEventType.requiresConfirmation,
+      metadata.requiresConfirmationThreshold as NoticeThreshold_2024_06_14
+    );
     delete metadata["bookerLayouts"];
+    delete metadata["requiresConfirmationThreshold"];
     const bookingWindow = this.transformBookingWindow({
       periodType: databaseEventType.periodType,
       periodDays: databaseEventType.periodDays,
@@ -130,7 +139,6 @@ export class OutputEventTypesService_2024_06_14 {
       afterEventBuffer,
       schedulingType,
       metadata,
-      requiresConfirmation,
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
@@ -147,6 +155,7 @@ export class OutputEventTypesService_2024_06_14 {
       offsetStart,
       bookingWindow,
       bookerLayouts,
+      requiresConfirmation,
     };
   }
 
@@ -199,5 +208,12 @@ export class OutputEventTypesService_2024_06_14 {
   transformBookerLayouts(bookerLayouts: BookerLayoutsTransformedSchema) {
     if (!bookerLayouts) return undefined;
     return getResponseEventTypeBookerLayouts(bookerLayouts);
+  }
+
+  transformRequiresConfirmation(
+    requiresConfirmation: boolean,
+    requiresConfirmationThreshold: NoticeThreshold_2024_06_14
+  ) {
+    return getResponseEventTypeRequiresConfirmation(requiresConfirmation, requiresConfirmationThreshold);
   }
 }

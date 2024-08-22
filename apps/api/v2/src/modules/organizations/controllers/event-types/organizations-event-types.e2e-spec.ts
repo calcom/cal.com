@@ -26,6 +26,10 @@ import {
 } from "@calcom/platform-types";
 import { BookerLayoutsInputEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
 import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
+import {
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
@@ -285,6 +289,14 @@ describe("Organizations Event Types Endpoints", () => {
           ],
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
+
+        requiresConfirmation: {
+          confirmationPolicy: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            time: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+        },
       };
 
       return request(app.getHttpServer())
@@ -307,6 +319,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.offsetStart).toEqual(body.offsetStart);
           expect(data.bookingWindow).toEqual(body.bookingWindow);
           expect(data.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(data.requiresConfirmation).toEqual(body.requiresConfirmation);
 
           collectiveEventType = responseBody.data;
         });

@@ -47,6 +47,7 @@ export class EventTypesService_2024_06_14 {
       periodStartDate = undefined,
       periodEndDate = undefined,
       metadata = undefined,
+      requiresConfirmation = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
@@ -70,6 +71,7 @@ export class EventTypesService_2024_06_14 {
         periodStartDate,
         periodEndDate,
         metadata,
+        requiresConfirmation,
         ...bodyTransformed,
       },
       ctx: {

@@ -12,8 +12,10 @@ import type {
   CalendarDaysWindow_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   BookingField_2024_06_14,
+  NoticeThreshold_2024_06_14,
+  RequiresConfirmation_2024_06_14,
 } from "@calcom/platform-types";
-import type { BookerLayoutsTransformedSchema } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/booker-layouts.input";
+import type { BookerLayoutsTransformedSchema } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/booker-layouts.input";
 import {
   BookerLayoutsInputEnum_2024_06_14,
   BookerLayoutsOutputEnum_2024_06_14,
@@ -23,6 +25,7 @@ import {
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
 import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
+import { ConfirmationPolicyEnum } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
 
@@ -273,10 +276,30 @@ function getResponseEventTypeBookerLayouts(transformedBookerLayouts: BookerLayou
     enabledLayouts: transformedBookerLayouts.enabledLayouts.map((layout) => outputToInputMap[layout]),
   };
 }
+
+function getResponseEventTypeRequiresConfirmation(
+  requiresConfirmation: boolean,
+  requiresConfirmationThreshold: NoticeThreshold_2024_06_14
+): RequiresConfirmation_2024_06_14 {
+  if (requiresConfirmation) {
+    return {
+      confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+    };
+  } else {
+    return {
+      confirmationPolicy: ConfirmationPolicyEnum.TIME,
+      noticeThreshold: {
+        ...requiresConfirmationThreshold,
+      },
+    };
+  }
+}
+
 export {
   getResponseEventTypeLocations,
   getResponseEventTypeBookingFields,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
   getResponseEventTypeBookerLayouts,
+  getResponseEventTypeRequiresConfirmation,
 };

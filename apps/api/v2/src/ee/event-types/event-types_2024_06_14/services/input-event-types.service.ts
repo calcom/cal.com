@@ -8,7 +8,10 @@ import {
   transformApiEventTypeFutureBookingLimits,
   EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries";
-import { transformApiEventTypeBookerLayouts } from "@calcom/platform-libraries-1.2.3";
+import {
+  transformApiEventTypeBookerLayouts,
+  transformApiEventTypeRequiresConfirmation,
+} from "@calcom/platform-libraries-1.2.3";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
@@ -30,8 +33,11 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsDuration,
       bookingWindow,
       bookerLayouts,
+      requiresConfirmation,
       ...rest
     } = inputEventType;
+    const requiresConfirmationTransformed =
+      this.transformInputRequiresConfirmationThreshold(requiresConfirmation);
 
     const eventType = {
       ...rest,
@@ -43,7 +49,12 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      metadata: { bookerLayouts: this.transformInputBookerLayouts(bookerLayouts) },
+      metadata: {
+        bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
+        requiresConfirmationThreshold:
+          requiresConfirmationTransformed?.requiresConfirmationThreshold ?? undefined,
+      },
+      requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
     };
 
     return eventType;
@@ -59,6 +70,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsDuration,
       bookingWindow,
       bookerLayouts,
+      requiresConfirmation,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -66,6 +78,8 @@ export class InputEventTypesService_2024_06_14 {
       ? EventTypeMetaDataSchema.parse(eventTypeDb.metadata)
       : {};
 
+    const requiresConfirmationTransformed =
+      this.transformInputRequiresConfirmationThreshold(requiresConfirmation);
     const eventType = {
       ...rest,
       length: lengthInMinutes,
@@ -77,7 +91,12 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      metadata: { ...metadataTransformed, bookerLayouts: this.transformInputBookerLayouts(bookerLayouts) },
+      metadata: {
+        ...metadataTransformed,
+        bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
+        requiresConfirmationThreshold: requiresConfirmationTransformed.requiresConfirmationThreshold,
+      },
+      requiresConfirmation: requiresConfirmationTransformed.requiresConfirmation,
     };
 
     return eventType;
@@ -102,5 +121,11 @@ export class InputEventTypesService_2024_06_14 {
 
   transformInputBookerLayouts(inputBookerLayouts: CreateEventTypeInput_2024_06_14["bookerLayouts"]) {
     return transformApiEventTypeBookerLayouts(inputBookerLayouts);
+  }
+
+  transformInputRequiresConfirmationThreshold(
+    requiresConfirmation: CreateEventTypeInput_2024_06_14["requiresConfirmation"]
+  ) {
+    return transformApiEventTypeRequiresConfirmation(requiresConfirmation);
   }
 }

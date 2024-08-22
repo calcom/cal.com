@@ -20,11 +20,7 @@ type InputEventTransformed = Omit<
   | "onlyShowFirstAvailableSlot"
   | "bookingLimitsDuration"
   | "offsetStart"
-  | "periodType"
-  | "periodDays"
-  | "periodCountCalendarDays"
-  | "periodStartDate"
-  | "periodEndDate"
+  | "requiresConfirmation"
 > & {
   length: number;
   slug: string;

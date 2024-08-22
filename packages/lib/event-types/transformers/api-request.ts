@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import type {
   BookingLimitsKeyOutputType_2024_06_14,
+  NoticeThreshold_2024_06_14,
+  RequiresConfirmationTransformedSchema,
   TransformBookingLimitsSchema_2024_06_14,
 } from "@calcom/platform-types";
 import {
@@ -20,6 +22,7 @@ import {
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
 import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
+import { ConfirmationPolicyEnum } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
   "cal-video": "integrations:daily",
@@ -183,6 +186,26 @@ function transformApiEventTypeBookerLayouts(
   };
 }
 
+function transformApiEventTypeRequiresConfirmation(
+  inputRequiresConfirmation: CreateEventTypeInput_2024_06_14["requiresConfirmation"]
+): RequiresConfirmationTransformedSchema | undefined {
+  if (!inputRequiresConfirmation) return undefined;
+  switch (inputRequiresConfirmation.confirmationPolicy) {
+    case ConfirmationPolicyEnum.ALWAYS:
+      return {
+        requiresConfirmation: true,
+        requiresConfirmationThreshold: undefined,
+      };
+    case ConfirmationPolicyEnum.TIME:
+      return {
+        requiresConfirmation: false,
+        requiresConfirmationThreshold: {
+          ...inputRequiresConfirmation.noticeThreshold,
+        } as NoticeThreshold_2024_06_14,
+      };
+  }
+}
+
 export function transformSelectOptions(options: string[]) {
   return options.map((option) => ({
     label: option,
@@ -286,4 +309,5 @@ export {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeBookerLayouts,
+  transformApiEventTypeRequiresConfirmation,
 };

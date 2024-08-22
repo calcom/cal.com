@@ -104,6 +104,8 @@ export {
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeBookerLayouts,
   getResponseEventTypeBookerLayouts,
+  getResponseEventTypeRequiresConfirmation,
+  transformApiEventTypeRequiresConfirmation,
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit } from "@calcom/lib";

@@ -24,6 +24,7 @@ import { ValidateBookingWindow } from "./booking-window.input";
 import { SchedulingType } from "./enums/scheduling-type";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
+import { RequiresConfirmation_2024_06_14, ValidateRequiresConfirmation } from "./requires-confirmation.input";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_TITLE_EXAMPLE = "Learn the secrets of masterchief!";
@@ -107,6 +108,11 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsOptional()
   @Type(() => BookerLayouts_2024_06_14)
   bookerLayouts?: BookerLayouts_2024_06_14;
+
+  @IsOptional()
+  @ValidateRequiresConfirmation()
+  @Type(() => RequiresConfirmation_2024_06_14)
+  requiresConfirmation?: RequiresConfirmation_2024_06_14;
 }
 
 export enum HostPriority {

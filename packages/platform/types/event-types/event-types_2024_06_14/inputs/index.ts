@@ -8,3 +8,4 @@ export * from "./recurring-event.input";
 export * from "./update-event-type.input";
 export * from "./get-event-types-query.input";
 export * from "./booker-layouts.input";
+export * from "./requires-confirmation.input";

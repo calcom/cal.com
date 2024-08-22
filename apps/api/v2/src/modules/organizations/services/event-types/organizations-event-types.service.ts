@@ -47,6 +47,7 @@ export class OrganizationsEventTypesService {
       bookingLimitsDuration,
       bookingWindow,
       bookerLayouts,
+      requiresConfirmation,
       bookingFields,
       ...rest
     } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
@@ -70,6 +71,7 @@ export class OrganizationsEventTypesService {
         bookingLimitsDuration,
         bookingWindow,
         bookerLayouts,
+        requiresConfirmation,
         bookingFields,
         ...rest,
       },

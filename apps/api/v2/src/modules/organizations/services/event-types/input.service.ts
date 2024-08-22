@@ -30,6 +30,7 @@ export class InputOrganizationsEventTypesService {
       bookingLimitsDuration,
       bookingWindow,
       bookerLayouts,
+      requiresConfirmation,
       bookingFields,
       ...rest
     } = inputEventType;
@@ -48,6 +49,7 @@ export class InputOrganizationsEventTypesService {
       bookingLimitsDuration,
       bookingWindow,
       bookerLayouts,
+      requiresConfirmation,
       bookingFields,
       metadata,
     };

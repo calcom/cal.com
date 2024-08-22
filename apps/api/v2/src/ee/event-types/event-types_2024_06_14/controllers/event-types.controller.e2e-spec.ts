@@ -26,8 +26,12 @@ import {
   EventTypeOutput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
 import { BookerLayoutsInputEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
+import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
+import {
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 describe("Event types Endpoints", () => {
@@ -239,6 +243,13 @@ describe("Event types Endpoints", () => {
           ],
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
+        requiresConfirmation: {
+          confirmationPolicy: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            time: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+        },
       };
 
       return request(app.getHttpServer())
@@ -263,6 +274,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.offsetStart).toEqual(body.offsetStart);
           expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
           expect(createdEventType.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(createdEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
           eventType = responseBody.data;
         });
     });
@@ -296,6 +308,9 @@ describe("Event types Endpoints", () => {
           ],
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
+        requiresConfirmation: {
+          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+        },
       };
 
       return request(app.getHttpServer())
@@ -322,6 +337,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.offsetStart).toEqual(body.offsetStart);
           expect(updatedEventType.bookingWindow).toEqual(body.bookingWindow);
           expect(updatedEventType.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(updatedEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -331,6 +347,7 @@ describe("Event types Endpoints", () => {
           eventType.offsetStart = updatedEventType.offsetStart;
           eventType.bookingWindow = updatedEventType.bookingWindow;
           eventType.bookerLayouts = updatedEventType.bookerLayouts;
+          eventType.requiresConfirmation = updatedEventType.requiresConfirmation;
         });
     });
 
@@ -372,6 +389,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -403,6 +421,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -429,6 +448,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
     });
 
     it(`/GET/:id not existing`, async () => {

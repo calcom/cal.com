@@ -2,7 +2,7 @@ import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
 
-import type { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
+import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
 import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
@@ -14,6 +14,7 @@ import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-
 import { Host } from "./create-event-type.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
+import { RequiresConfirmation_2024_06_14, ValidateRequiresConfirmation } from "./requires-confirmation.input";
 
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -85,13 +86,18 @@ export class UpdateEventTypeInput_2024_06_14 {
   bookingWindow?: BookingWindow_2024_06_14;
 
   @IsOptional()
-  @ValidateBookingWindow()
+  @Type(() => BookerLayouts_2024_06_14)
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
   @IsInt()
   @Min(1)
   offsetStart?: number;
+
+  @IsOptional()
+  @ValidateRequiresConfirmation()
+  @Type(() => RequiresConfirmation_2024_06_14)
+  requiresConfirmation?: RequiresConfirmation_2024_06_14;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -182,11 +188,16 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   bookingWindow?: BookingWindow_2024_06_14;
 
   @IsOptional()
-  @ValidateBookingWindow()
+  @Type(() => BookerLayouts_2024_06_14)
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
   @IsInt()
   @Min(1)
   offsetStart?: number;
+
+  @IsOptional()
+  @ValidateRequiresConfirmation()
+  @Type(() => RequiresConfirmation_2024_06_14)
+  requiresConfirmation?: RequiresConfirmation_2024_06_14;
 }

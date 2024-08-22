@@ -6958,6 +6958,54 @@
           "enabledLayouts"
         ]
       },
+      "NoticeThreshold_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "number",
+            "description": "The time value for the notice threshold",
+            "example": 30
+          },
+          "unit": {
+            "enum": [
+              "minutes",
+              "hours"
+            ],
+            "type": "string",
+            "description": "The unit of time for the notice threshold (e.g., minutes, hours)",
+            "example": "minutes"
+          }
+        },
+        "required": [
+          "time",
+          "unit"
+        ]
+      },
+      "RequiresConfirmation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "confirmationPolicy": {
+            "enum": [
+              "always",
+              "time"
+            ],
+            "type": "string",
+            "description": "The policy that determines when confirmation is required",
+            "example": "always"
+          },
+          "noticeThreshold": {
+            "description": "The notice threshold required before confirmation is needed. Required when confirmationPolicy is 'time'.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NoticeThreshold_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "confirmationPolicy"
+        ]
+      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7021,9 +7069,6 @@
           },
           "metadata": {
             "type": "object"
-          },
-          "requiresConfirmation": {
-            "type": "boolean"
           },
           "price": {
             "type": "number"
@@ -7093,6 +7138,9 @@
           "bookerLayouts": {
             "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
           },
+          "requiresConfirmation": {
+            "$ref": "#/components/schemas/RequiresConfirmation_2024_06_14"
+          },
           "offsetStart": {
             "type": "number",
             "minimum": 1
@@ -7110,7 +7158,6 @@
           "schedulingType",
           "recurringEvent",
           "metadata",
-          "requiresConfirmation",
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
