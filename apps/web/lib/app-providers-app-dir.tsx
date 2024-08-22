@@ -1,4 +1,3 @@
-import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
@@ -18,8 +17,6 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
-import { isENVDev } from "@calcom/lib/env";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
@@ -279,16 +276,7 @@ const AppProviders = (props: PageWrapperProps) => {
                   <OrgBrandProvider>
                     {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
                     <CacheProvider>
-                      <MetaProvider>
-                        {(isENVDev || IS_CALCOM) && (
-                          <DubAnalytics
-                            cookieOptions={{
-                              domain: isENVDev ? undefined : new URL(WEBAPP_URL).hostname,
-                            }}
-                          />
-                        )}
-                        {props.children}
-                      </MetaProvider>
+                      <MetaProvider>{props.children}</MetaProvider>
                     </CacheProvider>
                   </OrgBrandProvider>
                 </FeatureFlagsProvider>
