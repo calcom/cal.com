@@ -49,6 +49,10 @@ export class GetBookingsInput_2024_08_13 {
   @IsOptional()
   attendeeEmail?: string;
 
+  @IsString()
+  @IsOptional()
+  attendeeName?: string;
+
   @IsArray()
   @Type(() => Number)
   @IsOptional()

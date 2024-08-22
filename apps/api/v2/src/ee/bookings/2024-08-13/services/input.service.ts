@@ -338,6 +338,7 @@ export class InputBookingsService_2024_08_13 {
   transformGetBookingsFilters(queryParams: GetBookingsInput_2024_08_13) {
     return {
       attendeeEmail: queryParams.attendeeEmail,
+      attendeeName: queryParams.attendeeName,
       teamIds: queryParams.teamsIds || (queryParams.teamId ? [queryParams.teamId] : undefined),
       eventTypeIds:
         queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),

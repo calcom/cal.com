@@ -169,7 +169,17 @@ export async function getBookings({
     bookingWhereInputFilters.attendeeEmail = {
       attendees: {
         some: {
-          email: filters.attendeeEmail,
+          email: filters.attendeeEmail.trim(),
+        },
+      },
+    };
+  }
+
+  if (filters?.attendeeName) {
+    bookingWhereInputFilters.attendeeName = {
+      attendees: {
+        some: {
+          name: filters.attendeeName.trim(),
         },
       },
     };
