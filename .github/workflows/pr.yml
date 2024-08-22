@@ -102,7 +102,7 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
       actions: write
-      contents: read
+      contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
