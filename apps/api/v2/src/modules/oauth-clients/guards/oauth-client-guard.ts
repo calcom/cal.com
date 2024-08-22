@@ -1,5 +1,6 @@
 import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { UsersService } from "@/modules/users/services/users.service";
 import {
   Injectable,
   CanActivate,
@@ -11,12 +12,12 @@ import { Request } from "express";
 
 @Injectable()
 export class OAuthClientGuard implements CanActivate {
-  constructor(private oAuthClientRepository: OAuthClientRepository) {}
+  constructor(private oAuthClientRepository: OAuthClientRepository, private usersService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { user: GetUserReturnType }>();
     const user: GetUserReturnType = request.user;
-    const organizationId = user?.movedToProfile?.organizationId || user?.organizationId;
+    const organizationId = user ? this.usersService.getUserMainOrgId(user) : null;
     const oAuthClientId = request.params.clientId;
 
     if (!oAuthClientId) {

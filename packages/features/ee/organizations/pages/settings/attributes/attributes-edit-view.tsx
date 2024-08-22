@@ -27,15 +27,16 @@ function CreateAttributesPage() {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   // Get the attribute id from the url
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params?.id || "";
   // ensure string with zod
-  const attribute = trpc.viewer.attributes.get.useQuery({ id: id as string });
+  const attribute = trpc.viewer.attributes.get.useQuery({ id });
 
   const mutation = trpc.viewer.attributes.edit.useMutation({
     onSuccess: () => {
       showToast(t("attribute_edited_successfully"), "success");
       utils.viewer.attributes.get.invalidate({
-        id: id as string,
+        id,
       });
       utils.viewer.attributes.list.invalidate();
       router.push("/settings/organizations/attributes");
@@ -59,7 +60,7 @@ function CreateAttributesPage() {
             header={<EditAttributeHeader isPending={mutation.isPending} />}
             onSubmit={(values) => {
               mutation.mutate({
-                attributeId: id as string,
+                attributeId: id,
                 name: values.attrName,
                 type: values.type,
                 options: values.options,
