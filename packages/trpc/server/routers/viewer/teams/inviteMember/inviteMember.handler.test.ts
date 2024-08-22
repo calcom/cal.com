@@ -242,7 +242,7 @@ describe("inviteMemberHandler", () => {
         ];
 
         const retValueOfFindUsersWithInviteStatus =
-          await inviteMemberUtilsScenarios.findUsersWithInviteStatus.useAdvancedMock(
+          inviteMemberUtilsScenarios.findUsersWithInviteStatus.useAdvancedMock(
             [
               {
                 ...usersToBeInvited[0],

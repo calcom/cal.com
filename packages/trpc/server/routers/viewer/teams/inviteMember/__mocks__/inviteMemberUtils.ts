@@ -1,8 +1,6 @@
 import { beforeEach, vi, expect } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type { MembershipRole } from "@calcom/prisma/enums";
-
 import type * as inviteMemberUtils from "../utils";
 
 vi.mock("../utils", async () => {
@@ -72,7 +70,6 @@ export const inviteMemberutilsScenarios = {
         team: any;
         invitations: {
           usernameOrEmail: string;
-          newRole?: MembershipRole;
         }[];
       }
     ) {
@@ -80,10 +77,9 @@ export const inviteMemberutilsScenarios = {
         const allInvitationsExist = invitations.every((invitation) =>
           forInput.invitations.find((i) => i.usernameOrEmail === invitation.usernameOrEmail)
         );
-        if (forInput.team.id == team.id && allInvitationsExist) return Promise.resolve(returnVal);
-        return Promise.resolve([]);
+        if (forInput.team.id == team.id && allInvitationsExist) return returnVal;
       });
-      return Promise.resolve(returnVal);
+      return returnVal;
     },
   },
   getOrgConnectionInfo: {
@@ -106,7 +102,7 @@ export const expects = {
     teamId,
   }: {
     emails: string[];
-    team: any[];
+    team;
     inviterName: string;
     teamId: number;
     isOrg: boolean;
