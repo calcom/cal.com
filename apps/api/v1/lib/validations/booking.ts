@@ -44,7 +44,7 @@ const schemaBookingEditParams = z
 
 export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
   .merge(schemaBookingEditParams)
-  .omit({ uid: true, cancelledBy: true, rescheduledBy: true });
+  .omit({ uid: true });
 
 export const schemaBookingReadPublic = Booking.extend({
   attendees: z
@@ -92,4 +92,6 @@ export const schemaBookingReadPublic = Booking.extend({
   status: true,
   responses: true,
   fromReschedule: true,
+  cancelledBy: true,
+  rescheduledBy: true,
 });
