@@ -20,6 +20,7 @@ jobs:
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v2
         with:
+          repository: calcom/test-results
           ref: gh-pages
       - name: Set Git User
         # see: https://github.com/actions/checkout/issues/13#issuecomment-724415212
