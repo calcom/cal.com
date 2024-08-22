@@ -26,6 +26,7 @@ import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import {
   deleteAllWorkflowReminders,
   getAllWorkflowsFromEventType,
@@ -106,6 +107,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           bookingFields: true,
           seatsShowAttendees: true,
           metadata: true,
+          schedulingType: true,
           hosts: {
             select: {
               user: true,
@@ -270,6 +272,7 @@ async function handler(req: CustomRequest) {
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
+    length: bookingToDelete?.eventType?.length,
     type: bookingToDelete?.eventType?.slug as string,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
@@ -319,7 +322,11 @@ async function handler(req: CustomRequest) {
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
 
   // If it's just an attendee of a booking then just remove them from that booking
-  const result = await cancelAttendeeSeat(req, dataForWebhooks);
+  const result = await cancelAttendeeSeat(
+    req,
+    dataForWebhooks,
+    bookingToDelete?.eventType?.metadata as EventTypeMetadata
+  );
   if (result)
     return {
       success: true,
@@ -351,7 +358,13 @@ async function handler(req: CustomRequest) {
     smsReminderNumber: bookingToDelete.smsReminderNumber,
     evt: {
       ...evt,
-      ...{ eventType: { slug: bookingToDelete.eventType?.slug } },
+      ...{
+        eventType: {
+          slug: bookingToDelete.eventType?.slug,
+          schedulingType: bookingToDelete.eventType?.schedulingType,
+          hosts: bookingToDelete.eventType?.hosts,
+        },
+      },
     },
     hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
   });
@@ -504,7 +517,11 @@ async function handler(req: CustomRequest) {
   try {
     // TODO: if emails fail try to requeue them
     if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
-      await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+      await sendCancelledEmails(
+        evt,
+        { eventName: bookingToDelete?.eventType?.eventName },
+        bookingToDelete?.eventType?.metadata as EventTypeMetadata
+      );
   } catch (error) {
     console.error("Error deleting event", error);
   }

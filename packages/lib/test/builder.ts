@@ -33,7 +33,7 @@ export const buildPerson = (person?: Partial<Person>): Person => {
 
 export const buildBooking = (
   booking?: Partial<Booking> & { references?: Partial<BookingReference>[] }
-): Booking & { references?: Partial<BookingReference>[] } => {
+): Booking & { references?: Partial<BookingReference>[]; attendees?: [] } => {
   const uid = faker.datatype.uuid();
   return {
     id: faker.datatype.number(),
@@ -70,7 +70,7 @@ export const buildBooking = (
     rating: null,
     noShowHost: null,
     ratingFeedback: null,
-    actorUserId: null,
+    attendees: [],
     ...booking,
   };
 };
@@ -116,6 +116,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     bookingLimits: null,
     durationLimits: null,
     assignAllTeamMembers: false,
+    rescheduleWithSameRoundRobinHost: false,
     price: 0,
     currency: "usd",
     slotInterval: null,
@@ -126,7 +127,6 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     parentId: null,
     profileId: null,
     secondaryEmailId: null,
-    actorUserId: null,
     ...eventType,
   };
 };
@@ -144,6 +144,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     active: true,
     eventTriggers: [],
     teamId: null,
+    platformOAuthClientId: null,
     ...webhook,
     platform: false,
   };
@@ -249,8 +250,8 @@ type UserPayload = Prisma.UserGetPayload<{
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
-  user?: T & { priority?: number }
-): UserPayload & { priority: number | null } => {
+  user?: T & { priority?: number; weight?: number; weightAdjustment?: number }
+): UserPayload & { priority: number; weight: number; weightAdjustment: number } => {
   return {
     locked: false,
     smsLockState: "UNLOCKED",
@@ -297,7 +298,9 @@ export const buildUser = <T extends Partial<UserPayload>>(
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
     movedToProfileId: null,
-    priority: user?.priority ?? null,
+    priority: user?.priority ?? 2,
+    weight: user?.weight ?? 100,
+    weightAdjustment: user?.weightAdjustment ?? 0,
     isPlatformManaged: false,
     ...user,
   };

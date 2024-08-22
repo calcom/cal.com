@@ -1,13 +1,7 @@
 import type { Page, Frame } from "@playwright/test";
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-// eslint-disable-next-line no-restricted-imports
 import prisma from "@calcom/prisma";
-
-export function todo(title: string) {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function, playwright/no-skipped-test
-  test.skip(title, () => {});
-}
 
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
@@ -74,7 +68,7 @@ export const getEmbedIframe = async ({
         }, hardTimeout);
       });
     },
-    !process.env.CI ? 150000 : 15000
+    !process.env.CI ? 15000 : 15000
   );
   if (!iframeReady) {
     return null;

@@ -19,7 +19,7 @@ const attendeeRescheduleSeatedBooking = async (
   eventManager: EventManager,
   actorUserId?: number
 ) => {
-  const { tAttendees, bookingSeat, bookerEmail, evt } = rescheduleSeatedBookingObject;
+  const { tAttendees, bookingSeat, bookerEmail, evt, eventType } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
@@ -92,7 +92,7 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+  await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person, eventType.metadata);
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

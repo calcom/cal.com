@@ -207,7 +207,7 @@ const Actions = ({
               action="toggle"
               routingForm={form}
               label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
             />
           </div>
         </FormActionsDropdown>
@@ -360,7 +360,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         <AddMembersWithSwitch
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
-                            label: member.name || "",
+                            label: member.name || member.email,
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
@@ -368,7 +368,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
-                            priority: 1,
+                            priority: 2,
+                            weight: 100,
+                            weightAdjustment: 0,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(
