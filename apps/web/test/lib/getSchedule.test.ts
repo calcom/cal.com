@@ -583,9 +583,9 @@ describe("getSchedule", () => {
         },
       });
       // `slotInterval` takes precedence over `length`
-      // 4:30 is utc so it is 10:00 in IST
+      // 4:00 is utc so it is 9:30 in IST as per user's `IstWorkHours` availability
       expect(scheduleForEventWith30minsLengthAndSlotInterval2hrs).toHaveTimeSlots(
-        [`04:30:00.000Z`, `06:30:00.000Z`, `08:30:00.000Z`, `10:30:00.000Z`, `12:30:00.000Z`],
+        [`04:00:00.000Z`, `06:00:00.000Z`, `08:00:00.000Z`, `10:00:00.000Z`, `12:00:00.000Z`],
         {
           dateString: plus2DateString,
         }
@@ -684,7 +684,7 @@ describe("getSchedule", () => {
       CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
         {
           start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
+          end: `${plus3DateString}T06:00:00.000Z`,
         },
       ]);
 
@@ -749,7 +749,7 @@ describe("getSchedule", () => {
       CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
         {
           start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
+          end: `${plus3DateString}T06:00:00.000Z`,
         },
       ]);
 
@@ -781,7 +781,7 @@ describe("getSchedule", () => {
             userId: 101,
             eventTypeId: 1,
             startTime: `${plus2DateString}T04:00:00.000Z`,
-            endTime: `${plus2DateString}T05:59:59.000Z`,
+            endTime: `${plus2DateString}T06:00:00.000Z`,
             status: "ACCEPTED" as BookingStatus,
           },
         ],

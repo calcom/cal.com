@@ -243,8 +243,8 @@ describe("getSchedule", () => {
       });
 
       test("When the first timeslot of current day has passed", async () => {
-        // In IST timezone, it is 2024-05-31T10:00:00
-        vi.setSystemTime("2024-05-31T04:30:00Z");
+        // In IST timezone, it is 2024-05-31T10:29:00 , first slot was 09:30 - 10:30
+        vi.setSystemTime("2024-05-31T04:59:00Z");
         const yesterdayDateString = "2024-05-30";
         const todayDateString = "2024-05-31";
         const plus1DateString = "2024-06-01";
@@ -664,26 +664,26 @@ describe("getSchedule", () => {
           });
 
           const allTimeSlotsForToday = [
-            "2024-05-31T11:30:00.000Z",
-            "2024-06-01T04:30:00.000Z",
-            "2024-06-01T05:30:00.000Z",
-            "2024-06-01T06:30:00.000Z",
-            "2024-06-01T07:30:00.000Z",
-            "2024-06-01T08:30:00.000Z",
-            "2024-06-01T09:30:00.000Z",
-            "2024-06-01T10:30:00.000Z",
+            "2024-05-31T11:00:00.000Z",
+            "2024-06-01T04:00:00.000Z",
+            "2024-06-01T05:00:00.000Z",
+            "2024-06-01T06:00:00.000Z",
+            "2024-06-01T07:00:00.000Z",
+            "2024-06-01T08:00:00.000Z",
+            "2024-06-01T09:00:00.000Z",
+            "2024-06-01T10:00:00.000Z",
           ];
 
           expect(scheduleForEvent).toHaveTimeSlots(
             [
-              // "2024-05-30T04:30:00.000Z", // Not available as before the start of the range
-              "2024-05-31T04:30:00.000Z",
-              "2024-05-31T05:30:00.000Z",
-              "2024-05-31T06:30:00.000Z",
-              "2024-05-31T07:30:00.000Z",
-              "2024-05-31T08:30:00.000Z",
-              "2024-05-31T09:30:00.000Z",
-              "2024-05-31T10:30:00.000Z",
+              // "2024-05-30T04:00:00.000Z", // Not available as before the start of the range
+              "2024-05-31T04:00:00.000Z",
+              "2024-05-31T05:00:00.000Z",
+              "2024-05-31T06:00:00.000Z",
+              "2024-05-31T07:00:00.000Z",
+              "2024-05-31T08:00:00.000Z",
+              "2024-05-31T09:00:00.000Z",
+              "2024-05-31T10:00:00.000Z",
             ],
             {
               dateString: yesterdayDateString,
@@ -921,8 +921,8 @@ describe("getSchedule", () => {
       });
 
       test("When the first timeslot of current day has passed and there is a day fully booked in between. It makes `periodDays` available", async () => {
-        // In IST timezone, it is 2024-05-31T10:00
-        vi.setSystemTime("2024-05-31T04:30:00Z");
+        // In IST timezone, it is 2024-05-31T10:29
+        vi.setSystemTime("2024-05-31T04:59:00Z");
         const yesterdayDateString = "2024-05-30";
         const todayDateString = "2024-05-31";
         const plus1DateString = "2024-06-01";
