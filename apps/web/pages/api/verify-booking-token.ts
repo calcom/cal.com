@@ -17,16 +17,18 @@ const querySchema = z.object({
   action: z.nativeEnum(DirectAction),
   token: z.string(),
   userId: z.string(),
+  bookingUid: z.string(),
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  const { action, token, userId } = querySchema.parse(req.query);
+  const { action, token, userId, bookingUid } = querySchema.parse(req.query);
 
   const booking = await prisma.booking.findUnique({
     where: { oneTimePassword: token },
   });
+
   if (!booking) {
-    res.redirect(`/booking/${booking.uid}/404`);
+    res.redirect(`/booking/${bookingUid}/404`);
     return;
   }
 
@@ -71,11 +73,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       confirmed: action === DirectAction.ACCEPT,
     });
   } catch (e) {
-    res.redirect(`/booking/${booking.uid}/404`);
+    res.redirect(`/booking/${bookingUid}/404`);
     return;
   }
 
-  res.redirect(`/booking/${booking.uid}`);
+  res.redirect(`/booking/${bookingUid}`);
 }
 
 export default defaultResponder(handler);
