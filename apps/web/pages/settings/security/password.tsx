@@ -4,7 +4,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import PasswordViewWrapper from "~/settings/security/password-view";
 
-PasswordViewWrapper.getLayout = getLayout;
-PasswordViewWrapper.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(PasswordViewWrapper, {});
 
-export default PasswordViewWrapper;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;

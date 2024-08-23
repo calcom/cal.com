@@ -6,7 +6,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import GeneralQueryView from "~/settings/my-account/general-view";
 
-GeneralQueryView.getLayout = getLayout;
-GeneralQueryView.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(GeneralQueryView, {});
 
-export default GeneralQueryView;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;

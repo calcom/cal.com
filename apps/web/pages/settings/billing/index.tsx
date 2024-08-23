@@ -4,7 +4,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import BillingView from "~/settings/billing/billing-view";
 
-BillingView.getLayout = getLayout;
-BillingView.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(BillingView, {});
 
-export default BillingView;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;

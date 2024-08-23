@@ -1,13 +1,18 @@
 "use client";
 
-// eslint-disable-next-line no-restricted-imports
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 
 import PageWrapper from "@components/PageWrapper";
 
 import ProfileView from "~/settings/my-account/profile-view";
 
-ProfileView.getLayout = getLayout;
-ProfileView.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(ProfileView, {});
 
-export default ProfileView;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;

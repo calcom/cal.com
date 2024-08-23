@@ -4,7 +4,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import ProfileImpersonationViewWrapper from "~/settings/security/impersonation-view";
 
-ProfileImpersonationViewWrapper.getLayout = getLayout;
-ProfileImpersonationViewWrapper.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(ProfileImpersonationViewWrapper, {});
 
-export default ProfileImpersonationViewWrapper;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;
