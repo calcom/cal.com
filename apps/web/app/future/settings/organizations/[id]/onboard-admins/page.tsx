@@ -1,15 +1,12 @@
-import LegacyPage, {
-  buildWrappedOnboardTeamMembersPage,
-} from "@pages/settings/organizations/[id]/onboard-members";
-import { type Params } from "app/_types";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
-import { headers } from "next/headers";
+import { WithLayout } from "app/layoutHOC";
 
-import PageWrapper from "@components/PageWrapperAppDir";
+import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
 
-type PageProps = Readonly<{
-  params: Params;
-}>;
+import { type inferSSRProps } from "@lib/types/inferSSRProps";
+
+import LegacyPage, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -17,19 +14,8 @@ export const generateMetadata = async () =>
     (t) => t("invite_organization_admins_description")
   );
 
-const Page = ({ params }: PageProps) => {
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  return (
-    <PageWrapper
-      getLayout={(page: React.ReactElement) => buildWrappedOnboardTeamMembersPage(params.id, page)}
-      requiresLicense={false}
-      nonce={nonce}
-      themeBasis={null}>
-      <LegacyPage />
-    </PageWrapper>
-  );
-};
-
-export default Page;
+export default WithLayout({
+  Page: LegacyPage,
+  getLayout: LayoutWrapper,
+  getData: withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps),
+});
