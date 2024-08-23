@@ -1,4 +1,7 @@
+import { usePathname } from "next/navigation";
+
 import classNames from "@calcom/lib/classNames";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 export default function Logo({
   small,
@@ -13,8 +16,9 @@ export default function Logo({
   className?: string;
   src?: string;
 }) {
-  const isLogin = window.location.pathname.includes("auth/login");
-  const isMobile = window.innerWidth < 640;
+  const isMobile = useMediaQuery("(max-width: 640px)");
+  const pathname = usePathname();
+  const isLogin = (pathname || "").includes("auth/login");
 
   const logoStyle = { width: isMobile ? "230px" : "300px", height: "auto" };
 
