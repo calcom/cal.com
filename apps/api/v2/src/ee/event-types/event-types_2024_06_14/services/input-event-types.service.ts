@@ -5,8 +5,8 @@ import {
   transformApiEventTypeLocations,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeRecurrence,
 } from "@calcom/platform-libraries";
-import { transformApiEventTypeRecurrence } from "@calcom/platform-libraries-1.2.3";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()

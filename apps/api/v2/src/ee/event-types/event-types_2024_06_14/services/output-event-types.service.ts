@@ -14,8 +14,8 @@ import {
   parseBookingLimit,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
+  getResponseEventTypeRecurrence,
 } from "@calcom/platform-libraries";
-import { getResponseEventTypeRecurrence } from "@calcom/platform-libraries-1.2.3";
 import { TransformFutureBookingsLimitSchema_2024_06_14 } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
