@@ -106,6 +106,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+      - run: find apps/web/public/static/locales/** -name "common.json" | xargs git checkout ${{ github.event.pull_request.head.sha }} --
+        shell: bash
       - uses: replexica/replexica@main
         with:
           api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
