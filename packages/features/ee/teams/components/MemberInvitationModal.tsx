@@ -43,7 +43,7 @@ type MemberInvitationModalProps = {
   isPending?: boolean;
   disableCopyLink?: boolean;
   isOrg?: boolean;
-  noMembersPropPassed?: boolean;
+  checkMembershipMutation?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -138,7 +138,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const newMemberFormMethods = useForm<NewMemberForm>();
 
   const checkIfMembershipExists = (value: string) => {
-    if (props.noMembersPropPassed) {
+    if (props.checkMembershipMutation) {
       return checkIfMembershipExistsMutation.mutateAsync({
         teamId: props.teamId,
         value,
@@ -501,7 +501,7 @@ export const MemberInvitationModalWithoutMembers = ({
       teamId={teamId}
       token={token}
       onExit={hideInvitationModal}
-      noMembersPropPassed={true}
+      checkMembershipMutation={true}
       onSubmit={(values, resetFields) => {
         inviteMemberMutation.mutate(
           {
