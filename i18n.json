@@ -2,11 +2,15 @@
   "version": 1.2,
   "locale": {
     "source": "en",
-    "targets": ["es"]
+    "targets": [
+      "es"
+    ]
   },
   "buckets": {
     "json": {
-      "include": ["apps/web/public/static/locales/[locale]/common.json"]
+      "include": [
+        "apps/web/public/static/locales/[locale]/common.json"
+      ]
     }
   }
 }
