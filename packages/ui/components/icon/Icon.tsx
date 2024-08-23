@@ -12,7 +12,7 @@ function Icon({
 }) {
   return (
     <svg height={size} width={size} {...props} aria-hidden>
-      <use href={`/icons/sprite.svg#${name}`} />
+      <use href={`#${name}`} />
     </svg>
   );
 }

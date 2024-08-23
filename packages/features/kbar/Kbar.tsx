@@ -301,7 +301,7 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
         return (
           <kbd
             key={shortcut}
-            className="bg-default hover:bg-subtle text-emphasis rounded-sm border px-2 py-1">
+            className="bg-default hover:bg-subtle text-emphasis rounded-sm border px-2 py-1 transition">
             {shortcut}
           </kbd>
         );

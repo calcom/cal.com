@@ -119,7 +119,7 @@ const FixedHosts = ({
             <Label className="mb-1 text-sm font-semibold">{t("fixed_hosts")}</Label>
             <p className="text-subtle max-w-full break-words text-sm leading-tight">{FixedHostHelper}</p>
           </div>
-          <div className="border-subtle rounded-b-md border border-t-0">
+          <div className="border-subtle rounded-b-md border border-t-0 px-6">
             <AddMembersWithSwitch
               teamMembers={teamMembers}
               value={value}
@@ -162,7 +162,7 @@ const FixedHosts = ({
             setIsDisabled(checked);
           }}
           childrenClassName="lg:ml-0">
-          <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0">
+          <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
               teamMembers={teamMembers}
               value={value}
