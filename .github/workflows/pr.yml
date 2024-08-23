@@ -225,6 +225,7 @@ jobs:
       [
         changes,
         lint,
+        i18n,
         type-check,
         unit-test,
         integration-test,
