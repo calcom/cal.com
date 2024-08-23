@@ -7,6 +7,7 @@ import { CreateButtonWithTeamsList } from "@calcom/ui";
 
 export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
   const router = useRouter();
+  const { t } = useLocale();
   const createFunction = (teamId?: number, platform?: boolean) => {
     if (platform) {
       router.push(`webhooks/new${platform ? `?platform=${platform}` : ""}`);
@@ -15,7 +16,6 @@ export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
     }
   };
 
-  const { t } = useLocale();
   return (
     <CreateButtonWithTeamsList
       color="secondary"
