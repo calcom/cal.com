@@ -5,7 +5,17 @@ import type {
   Location_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
+  BookerLayouts_2024_06_14,
+  RequiresConfirmation_2024_06_14,
 } from "@calcom/platform-types";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
+import {
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 
 import type { UserField } from "./api-request";
 import {
@@ -14,6 +24,8 @@ import {
   transformSelectOptions,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeBookerLayouts,
+  transformApiEventTypeRequiresConfirmation,
 } from "./api-request";
 
 describe("transformApiEventTypeLocations", () => {
@@ -649,6 +661,54 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
     };
 
     const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeBookerLayouts", () => {
+  it("should transform booker layouts", () => {
+    const input: BookerLayouts_2024_06_14 = {
+      enabledLayouts: [
+        BookerLayoutsInputEnum_2024_06_14.column,
+        BookerLayoutsInputEnum_2024_06_14.month,
+        BookerLayoutsInputEnum_2024_06_14.week,
+      ],
+      defaultLayout: BookerLayoutsInputEnum_2024_06_14.week,
+    };
+
+    const expectedOutput = {
+      enabledLayouts: [
+        BookerLayoutsOutputEnum_2024_06_14.column_view,
+        BookerLayoutsOutputEnum_2024_06_14.month_view,
+        BookerLayoutsOutputEnum_2024_06_14.week_view,
+      ],
+      defaultLayout: BookerLayoutsOutputEnum_2024_06_14.week_view,
+    };
+    const result = transformApiEventTypeBookerLayouts(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeRequiresConfirmation", () => {
+  it("should transform requires confirmation", () => {
+    const input: RequiresConfirmation_2024_06_14 = {
+      confirmationPolicy: ConfirmationPolicyEnum.TIME,
+      noticeThreshold: {
+        time: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: false,
+      requiresConfirmationThreshold: {
+        time: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+    };
+    const result = transformApiEventTypeRequiresConfirmation(input);
 
     expect(result).toEqual(expectedOutput);
   });

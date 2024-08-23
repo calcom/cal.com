@@ -7,7 +7,18 @@ import type {
   IntegrationLocation_2024_06_14,
   TransformBookingLimitsSchema_2024_06_14,
   TransformFutureBookingsLimitSchema_2024_06_14,
+  RequiresConfirmationTransformedSchema,
+  NoticeThreshold_2024_06_14,
 } from "@calcom/platform-types";
+import type { BookerLayoutsTransformedSchema } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/booker-layouts.input";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
+import {
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 
 import type { UserField } from "./api-request";
 import {
@@ -15,6 +26,8 @@ import {
   getResponseEventTypeBookingFields,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
+  getResponseEventTypeBookerLayouts,
+  getResponseEventTypeRequiresConfirmation,
 } from "./api-response";
 
 describe("getResponseEventTypeLocations", () => {
@@ -675,6 +688,57 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
     };
 
     const result = getResponseEventTypeFutureBookingLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("getResponseEventTypeBookerLayouts", () => {
+  it("should reverse transform booker limits", () => {
+    const transformedField: BookerLayoutsTransformedSchema = {
+      enabledLayouts: [
+        BookerLayoutsOutputEnum_2024_06_14.column_view,
+        BookerLayoutsOutputEnum_2024_06_14.month_view,
+        BookerLayoutsOutputEnum_2024_06_14.week_view,
+      ],
+      defaultLayout: BookerLayoutsOutputEnum_2024_06_14.week_view,
+    };
+
+    const expectedOutput = {
+      enabledLayouts: [
+        BookerLayoutsInputEnum_2024_06_14.column,
+        BookerLayoutsInputEnum_2024_06_14.month,
+        BookerLayoutsInputEnum_2024_06_14.week,
+      ],
+      defaultLayout: BookerLayoutsInputEnum_2024_06_14.week,
+    };
+    const result = getResponseEventTypeBookerLayouts(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("getResponseEventTypeRequiresConfirmation", () => {
+  it("should reverse transform requires confirmation", () => {
+    const transformedField: RequiresConfirmationTransformedSchema = {
+      requiresConfirmation: false,
+      requiresConfirmationThreshold: {
+        time: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+    };
+
+    const expectedOutput = {
+      confirmationPolicy: ConfirmationPolicyEnum.TIME,
+      noticeThreshold: {
+        time: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+    };
+    const result = getResponseEventTypeRequiresConfirmation(
+      transformedField.requiresConfirmation,
+      transformedField.requiresConfirmationThreshold as NoticeThreshold_2024_06_14
+    );
 
     expect(result).toEqual(expectedOutput);
   });
