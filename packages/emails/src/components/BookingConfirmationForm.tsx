@@ -39,6 +39,7 @@ export const BookingConfirmationForm = (props: { action: string; children: React
           <small>(Optional)</small>
         </label>
         <textarea
+          name="reason"
           placeholder="Why are you rejecting?"
           style={{
             appearance: "none",
