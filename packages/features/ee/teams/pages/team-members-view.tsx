@@ -28,7 +28,7 @@ import TeamInviteList from "../components/TeamInviteList";
 type Team = RouterOutputs["viewer"]["teams"]["getMinimal"];
 
 interface MembersListProps {
-  team: Team | undefined;
+  team: Team;
   isOrgAdminOrOwner: boolean | undefined;
 }
 
@@ -48,7 +48,7 @@ function MembersList(props: MembersListProps) {
   const [userIds, setUserIds] = useState<number[]>([]);
 
   const { data: getUserConnectedApps } = trpc.viewer.teams.getUserConnectedApps.useQuery(
-    { userIds },
+    { userIds, teamId: team.id },
     { enabled: !!userIds.length }
   );
 
@@ -57,14 +57,15 @@ function MembersList(props: MembersListProps) {
       {
         limit: 10,
         searchTerm: debouncedSearchTerm,
-        teamId: team?.id ?? 0,
+        teamId: team.id,
       },
       {
         enabled: !!team?.id,
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: keepPreviousData,
         refetchOnWindowFocus: true,
-        staleTime: 1 * 60 * 60 * 1000,
+        refetchOnMount: true,
+        staleTime: 0,
       }
     );
 
@@ -238,7 +239,7 @@ const MembersView = () => {
               />
             )}
 
-            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
+            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && team && (
               <>
                 <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
               </>

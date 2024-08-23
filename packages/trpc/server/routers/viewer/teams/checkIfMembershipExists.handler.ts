@@ -1,16 +1,16 @@
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import type { TValidateUniqueInviteInputSchema } from "./validateUniqueInvite.schema";
+import type { TCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 
-type ValidateUniqueInviteOptions = {
+type CheckIfMembershipExistsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TValidateUniqueInviteInputSchema;
+  input: TCheckIfMembershipExistsInputSchema;
 };
 
-const validateUniqueInviteHandler = async ({ ctx, input }: ValidateUniqueInviteOptions) => {
+const checkIfMembershipExistsHandler = async ({ ctx, input }: CheckIfMembershipExistsOptions) => {
   const { teamId, value } = input;
 
   const membership = await prisma.membership.findFirst({
@@ -29,7 +29,7 @@ const validateUniqueInviteHandler = async ({ ctx, input }: ValidateUniqueInviteO
     },
   });
 
-  return { doesInviteExists: !!membership };
+  return !!membership;
 };
 
-export default validateUniqueInviteHandler;
+export default checkIfMembershipExistsHandler;

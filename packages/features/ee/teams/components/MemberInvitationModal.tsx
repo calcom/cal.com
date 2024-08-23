@@ -76,7 +76,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
 
-  const validateUniqueInviteMutation = trpc.viewer.teams.validateUniqueInvite.useMutation();
+  const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
 
   // Check current org role and not team role
   const isOrgAdminOrOwner =
@@ -137,19 +137,18 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   const newMemberFormMethods = useForm<NewMemberForm>();
 
-  const validateUniqueInvite = (value: string) => {
+  const checkIfMembershipExists = (value: string) => {
     if (props.noMembersPropPassed) {
-      return validateUniqueInviteMutation.mutateAsync({
+      return checkIfMembershipExistsMutation.mutateAsync({
         teamId: props.teamId,
         value,
       });
     } else {
-      if (!props?.members?.length) return { doesInviteExists: false };
-      return {
-        doesInviteExists:
-          props?.members.some((member) => member?.username === value) ||
-          props?.members.some((member) => member?.email === value),
-      };
+      if (!props?.members?.length) return false;
+      return (
+        props?.members.some((member) => member?.username === value) ||
+        props?.members.some((member) => member?.email === value)
+      );
     }
   };
 
@@ -244,7 +243,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     // orgs can only invite members by email
                     if (typeof value === "string" && !isEmail(value)) return t("enter_email");
                     if (typeof value === "string") {
-                      const { doesInviteExists } = await validateUniqueInvite(value);
+                      const doesInviteExists = await checkIfMembershipExists(value);
                       return !doesInviteExists || t("member_already_invited");
                     }
                   },
@@ -449,7 +448,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </Button>
             <Button
               loading={
-                props.isPending || createInviteMutation.isPending || validateUniqueInviteMutation.isPending
+                props.isPending || createInviteMutation.isPending || checkIfMembershipExistsMutation.isPending
               }
               type="submit"
               color="primary"

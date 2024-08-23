@@ -32,7 +32,7 @@ import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 
 interface Props {
-  team: RouterOutputs["viewer"]["teams"]["getMinimal"];
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["getMinimal"]>;
   member: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
   isOrgAdminOrOwner: boolean | undefined;
   searchTerm: string;
@@ -48,6 +48,42 @@ const useCurrentUserId = () => {
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
+};
+
+const removeMemberFromCache = ({
+  utils,
+  memberId,
+  teamId,
+  searchTerm,
+}: {
+  utils: ReturnType<typeof trpc.useUtils>;
+  memberId: number;
+  teamId: number;
+  searchTerm: string;
+}) => {
+  utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+    {
+      limit: 10,
+      teamId,
+      searchTerm,
+    },
+    (data) => {
+      if (!data) {
+        return {
+          pages: [],
+          pageParams: [],
+        };
+      }
+
+      return {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          members: page.members.filter((member) => member.id !== memberId),
+        })),
+      };
+    }
+  );
 };
 
 export default function MemberListItem(props: Props) {
@@ -69,31 +105,12 @@ export default function MemberListItem(props: Props) {
       });
 
       if (previousValue) {
-        utils.viewer.teams.lazyLoadMembers.setInfiniteData(
-          {
-            limit: 10,
-            teamId: teamIds[0],
-            searchTerm: props.searchTerm,
-          },
-          (data) => {
-            if (!data) {
-              return {
-                pages: [],
-                pageParams: [],
-              };
-            }
-
-            const memberId = props.member.id;
-
-            return {
-              ...data,
-              pages: data.pages.map((page) => ({
-                ...page,
-                members: page.members.filter((member) => member.id !== memberId),
-              })),
-            };
-          }
-        );
+        removeMemberFromCache({
+          utils,
+          memberId: props.member.id,
+          teamId: teamIds[0],
+          searchTerm: props.searchTerm,
+        });
       }
       return { previousValue };
     },
@@ -136,7 +153,7 @@ export default function MemberListItem(props: Props) {
 
   const removeMember = () =>
     removeMemberMutation.mutate({
-      teamIds: [props.team?.id ?? 0],
+      teamIds: [props.team?.id],
       memberIds: [props.member.id],
       isOrg: checkIsOrg(props.team),
     });
@@ -292,7 +309,7 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           onClick={() => {
                             resendInvitationMutation.mutate({
-                              teamId: props.team?.id ?? 0,
+                              teamId: props.team?.id,
                               email: props.member.email,
                               language: i18n.language,
                             });
@@ -398,7 +415,7 @@ export default function MemberListItem(props: Props) {
         <MemberChangeRoleModal
           isOpen={showChangeMemberRoleModal}
           currentMember={props.team.membership.role}
-          teamId={props.team?.id ?? 0}
+          teamId={props.team?.id}
           memberId={props.member.id}
           searchTerm={props.searchTerm}
           initialRole={props.member.role as MembershipRole}

@@ -11,6 +11,47 @@ type MembershipRoleOption = {
   value: MembershipRole;
 };
 
+const updateRoleInCache = ({
+  utils,
+  teamId,
+  searchTerm,
+  role,
+  memberId,
+}: {
+  utils: ReturnType<typeof trpc.useUtils>;
+  teamId: number;
+  searchTerm: string | undefined;
+  role: MembershipRole;
+  memberId: number;
+}) => {
+  utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+    {
+      limit: 10,
+      teamId,
+      searchTerm,
+    },
+    (data) => {
+      if (!data) {
+        return {
+          pages: [],
+          pageParams: [],
+        };
+      }
+
+      return {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          members: page.members.map((member) => ({
+            ...member,
+            role: member.id === memberId ? role : member.role,
+          })),
+        })),
+      };
+    }
+  );
+};
+
 export default function MemberChangeRoleModal(props: {
   isOpen: boolean;
   currentMember: MembershipRole;
@@ -58,32 +99,7 @@ export default function MemberChangeRoleModal(props: {
       });
 
       if (previousValue) {
-        utils.viewer.teams.lazyLoadMembers.setInfiniteData(
-          {
-            limit: 10,
-            teamId: teamId,
-            searchTerm: props.searchTerm,
-          },
-          (data) => {
-            if (!data) {
-              return {
-                pages: [],
-                pageParams: [],
-              };
-            }
-
-            return {
-              ...data,
-              pages: data.pages.map((page) => ({
-                ...page,
-                members: page.members.map((member) => ({
-                  ...member,
-                  role: member.id === memberId ? role : member.role,
-                })),
-              })),
-            };
-          }
-        );
+        updateRoleInCache({ utils, teamId, memberId, role, searchTerm: props.searchTerm });
       }
 
       return { previousValue };

@@ -2,6 +2,7 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
+import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -25,7 +26,6 @@ import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
-import { ZValidateUniqueInviteInputSchema } from "./validateUniqueInvite.schema";
 
 const NAMESPACE = "teams";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
@@ -185,11 +185,13 @@ export const viewerTeamsRouter = router({
     );
     return handler(opts);
   }),
-  validateUniqueInvite: authedProcedure.input(ZValidateUniqueInviteInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(
-      namespaced("validateUniqueInvite"),
-      () => import("./validateUniqueInvite.handler")
-    );
-    return handler(opts);
-  }),
+  checkIfMembershipExists: authedProcedure
+    .input(ZCheckIfMembershipExistsInputSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("checkIfMembershipExists"),
+        () => import("./checkIfMembershipExists.handler")
+      );
+      return handler(opts);
+    }),
 });

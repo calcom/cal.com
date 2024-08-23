@@ -86,9 +86,9 @@ export default function TeamAvailabilityModal(props: Props) {
           </div>
 
           <div className="col-span-1 max-h-[500px]">
-            {props.team && props.member && (
+            {props.team?.id && props.member && (
               <TeamAvailabilityTimes
-                teamId={props.team.id ?? 0}
+                teamId={props.team.id}
                 memberId={props.member.id}
                 frequency={frequency}
                 selectedDate={selectedDate}
