@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FrequencyInput } from "@calcom/platform-enums";
+import { FrequencyInput } from "@calcom/platform-enums/monorepo";
 import type {
   BookingField_2024_06_14,
   Location_2024_06_14,
