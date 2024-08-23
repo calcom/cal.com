@@ -199,7 +199,7 @@ export default function RequiresConfirmationController({
                         <CheckboxField
                           checked={requiresConfirmationWillBlockSlot}
                           descriptionAsLabel
-                          description="Unconfirmed bookings still block calendar slots."
+                          description={t("requires_confirmation_will_block_slot_description")}
                           onChange={(e) => {
                             // We set should dirty to properly detect when we can submit the form
                             formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {
