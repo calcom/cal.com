@@ -5,20 +5,12 @@ import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { test } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
-import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
-
-const IS_STRIPE_ENABLED = !!(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.STRIPE_PRIVATE_KEY &&
-  process.env.PAYMENT_FEE_FIXED &&
-  process.env.PAYMENT_FEE_PERCENTAGE
-);
 
 test.describe("Stripe integration skip true", () => {
   // eslint-disable-next-line playwright/no-skipped-test

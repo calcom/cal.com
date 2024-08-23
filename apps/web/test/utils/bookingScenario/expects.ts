@@ -81,15 +81,24 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toHaveEmail(expectedEmail: ExpectedEmail, to: string): R;
+      toHaveEmail(expectedEmail: ExpectedEmail, to: string, subject?: string): R;
     }
   }
 }
 
 expect.extend({
-  toHaveEmail(emails: Fixtures["emails"], expectedEmail: ExpectedEmail, to: string) {
+  toHaveEmail(emails: Fixtures["emails"], expectedEmail: ExpectedEmail, to: string, subject?: string) {
     const { isNot } = this;
-    const testEmail = emails.get().find((email) => email.to.includes(to));
+    const testEmail = emails.get().find((email) => {
+      const filterConditions = [email.to.includes(to)];
+
+      if (subject) {
+        filterConditions.push(email.subject === subject);
+      }
+
+      return filterConditions.every((condition) => condition);
+    });
+
     const emailsToLog = emails
       .get()
       .map((email) => ({ to: email.to, html: email.html, ics: email.icalEvent }));
@@ -350,33 +359,54 @@ export function expectWorkflowToBeNotTriggered({
 export function expectSMSWorkflowToBeTriggered({
   sms,
   toNumber,
+  includedString,
 }: {
   sms: Fixtures["sms"];
   toNumber: string;
+  includedString?: string;
 }) {
-  expect(sms.get()).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        to: toNumber,
-      }),
-    ])
-  );
+  const allSMS = sms.get();
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    expect(messageWithIncludedString?.to).toBe(toNumber);
+  } else {
+    expect(allSMS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
+  }
 }
 
 export function expectSMSWorkflowToBeNotTriggered({
   sms,
   toNumber,
+  includedString,
 }: {
   sms: Fixtures["sms"];
   toNumber: string;
+  includedString?: string;
 }) {
-  expect(sms.get()).not.toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        to: toNumber,
-      }),
-    ])
-  );
+  const allSMS = sms.get();
+
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    if (messageWithIncludedString) {
+      expect(messageWithIncludedString?.to).not.toBe(toNumber);
+    }
+  } else {
+    expect(allSMS).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
+  }
 }
 
 export async function expectBookingToBeInDatabase(
@@ -721,10 +751,12 @@ export function expectSuccessfulBookingRescheduledEmails({
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
+  subject,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
+  subject?: string;
 }) {
   expect(emails).toHaveEmail(
     {
@@ -732,7 +764,8 @@ export function expectAwaitingPaymentEmails({
       to: `${booker.name} <${booker.email}>`,
       noIcs: true,
     },
-    `${booker.email}`
+    `${booker.email}`,
+    subject
   );
 }
 

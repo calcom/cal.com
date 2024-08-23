@@ -2,12 +2,12 @@ import React, { Fragment } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, type IconName } from "@calcom/ui";
 
-import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
@@ -15,7 +15,17 @@ import { EventOccurences } from "./Occurences";
 import { Price } from "./Price";
 
 type EventDetailsPropsBase = {
-  event: PublicEvent;
+  event: Pick<
+    BookerEvent,
+    | "currency"
+    | "price"
+    | "locations"
+    | "requiresConfirmation"
+    | "recurringEvent"
+    | "length"
+    | "metadata"
+    | "isDynamic"
+  >;
   className?: string;
 };
 
@@ -132,7 +142,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         switch (block) {
           case EventDetailBlocks.DURATION:
             return (
-              <EventMetaBlock key={block} icon="clock">
+              <EventMetaBlock key={block} icon="clock" className="items-center">
                 <EventDuration event={event} />
               </EventMetaBlock>
             );

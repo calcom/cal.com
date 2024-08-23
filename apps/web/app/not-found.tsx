@@ -1,18 +1,12 @@
-import type { GetStaticPropsContext } from "next";
+import React from "react";
 
-import { getTranslations } from "@server/lib/getTranslations";
-
-import NotFoundPage from "./404/page";
-import { WithLayout } from "./layoutHOC";
-
-const getData = async (context: GetStaticPropsContext) => {
-  const i18n = await getTranslations(context);
-
-  return {
-    i18n,
-  };
+const NotFound = () => {
+  return (
+    <div data-testid="404-page">
+      <h1>404 - Page Not Found</h1>
+      <p>Sorry, the page you are looking for does not exist.</p>
+    </div>
+  );
 };
 
-export const dynamic = "force-static";
-
-export default WithLayout({ getLayout: null, getData, Page: NotFoundPage });
+export default NotFound;

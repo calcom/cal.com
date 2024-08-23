@@ -9,6 +9,8 @@ import { getWhen } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import { GenerateIcsRole } from "./generateIcsFile";
+
 export enum BookingAction {
   Create = "create",
   Cancel = "cancel",
@@ -30,7 +32,7 @@ const generateIcsString = ({
   title: string;
   subtitle: string;
   status: EventStatus;
-  role: "attendee" | "organizer";
+  role: GenerateIcsRole;
   isRequestReschedule?: boolean;
   t?: TFunction;
 }) => {
@@ -47,7 +49,7 @@ const generateIcsString = ({
 
   const getTextBody = (title: string, subtitle: string): string => {
     let body: string;
-    if (isRequestReschedule && role === "attendee" && t) {
+    if (isRequestReschedule && role === GenerateIcsRole.ATTENDEE && t) {
       body = `
       ${title}
       ${getWhen(event, t)}

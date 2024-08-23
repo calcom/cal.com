@@ -40,8 +40,11 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   slotInterval: true,
   successRedirectUrl: true,
   isInstantEvent: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
   aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  rescheduleWithSameRoundRobinHost: true,
   recurringEvent: true,
   locations: true,
   bookingFields: true,
@@ -49,4 +52,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   secondaryEmailId: true,
   bookingLimits: true,
   durationLimits: true,
+  eventTypeColor: true,
 });

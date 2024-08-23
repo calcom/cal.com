@@ -1,6 +1,9 @@
 name: E2E Embed Core tests and booking flow (for non-embed as well)
 on:
   workflow_call:
+permissions:
+  actions: write
+  contents: read
 env:
   NODE_OPTIONS: --max-old-space-size=4096
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
@@ -88,5 +91,5 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: embed-core-results
-          path: test-results
+          name: blob-report-embed-core
+          path: blob-report

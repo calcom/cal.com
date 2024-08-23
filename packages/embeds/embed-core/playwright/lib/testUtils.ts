@@ -1,13 +1,7 @@
 import type { Page, Frame } from "@playwright/test";
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-// eslint-disable-next-line no-restricted-imports
 import prisma from "@calcom/prisma";
-
-export function todo(title: string) {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function, playwright/no-skipped-test
-  test.skip(title, () => {});
-}
 
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
@@ -74,7 +68,7 @@ export const getEmbedIframe = async ({
         }, hardTimeout);
       });
     },
-    !process.env.CI ? 150000 : 15000
+    !process.env.CI ? 15000 : 15000
   );
   if (!iframeReady) {
     return null;
@@ -164,4 +158,14 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');
   await page.waitForURL("/apps/apple-calendar");
   await page.click('[data-testid="install-app-button"]');
+}
+
+export async function assertNoRequestIsBlocked(page: Page) {
+  page.on("requestfailed", (request) => {
+    const error = request.failure()?.errorText;
+    // Identifies that the request is blocked by the browser due to COEP restrictions
+    if (error?.includes("ERR_BLOCKED_BY_RESPONSE")) {
+      throw new Error(`Request Blocked: ${request.url()}. Error: ${error}`);
+    }
+  });
 }
