@@ -59,9 +59,7 @@ const WebhooksView = () => {
       <Meta
         title={t("webhooks")}
         description={t("add_webhook_description", { appName: APP_NAME })}
-        CTA={
-          data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} t={t} /> : <></>
-        }
+        CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : <></>}
         borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}
       />
       <div>
@@ -95,9 +93,7 @@ export const WebhooksViewAppDir = () => {
       <SettingsHeader
         title={t("webhooks")}
         description={t("add_webhook_description", { appName: APP_NAME })}
-        CTA={
-          data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} t={t} /> : <></>
-        }
+        CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : <></>}
         borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
         <div>
           <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
@@ -171,7 +167,7 @@ const WebhooksList = ({
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"
-              buttonRaw={<CreateNewWebhookButton isAdmin={isAdmin} t={t} />}
+              buttonRaw={<CreateNewWebhookButton isAdmin={isAdmin} />}
               border={true}
             />
           )}
