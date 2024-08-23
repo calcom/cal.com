@@ -61,3 +61,51 @@ async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMeta
   }
   return;
 }
+
+export async function getCRMSkipRoundRobinUsernamePool({
+  eventUsers,
+  eventTypeId,
+  attendeeEmail,
+  orgSlug,
+}: {
+  eventUsers: { username: string; isFixed: boolean }[];
+  eventTypeId: number;
+  attendeeEmail: string;
+  orgSlug?: string;
+}) {
+  const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(attendeeEmail, eventTypeId);
+
+  if (crmContactOwner) {
+    const ownerUsername = await prisma.user.findUnique({
+      where: {
+        email: crmContactOwner,
+        ...(orgSlug ? { organization: { slug: orgSlug } } : {}),
+      },
+      select: {
+        username: true,
+      },
+    });
+
+    const roundRobinUsernamePool = [];
+
+    if (ownerUsername?.username) {
+      const roundRobinHost = eventUsers.find((user) => user.username === ownerUsername.username);
+
+      // If the contact owner is a fixed host, then include all hosts in RR selection
+      if (roundRobinHost?.isFixed) {
+        return roundRobinUsernamePool;
+      }
+
+      roundRobinUsernamePool.push(ownerUsername.username);
+      // Include fixed hosts
+      roundRobinUsernamePool.push(
+        ...eventUsers.reduce(
+          (fixedHosts, user) => (user?.isFixed ? fixedHosts.push(user.username) : fixedHosts),
+          []
+        )
+      );
+    }
+
+    return roundRobinUsernamePool;
+  }
+}

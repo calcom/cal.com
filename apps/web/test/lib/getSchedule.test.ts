@@ -152,12 +152,14 @@ describe("getSchedule", () => {
         users: [
           {
             ...TestData.users.example,
+            username: "example",
             email: "example@example.com",
             id: 101,
             schedules: [TestData.schedules.IstEveningShift],
           },
           {
             ...TestData.users.example,
+            username: "example1",
             email: "example1@example.com",
             id: 102,
             schedules: [TestData.schedules.IstMorningShift],
@@ -175,11 +177,9 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com",
+          roundRobinUsernamePool: ["example"],
         },
       });
-
-      expect(scheduleWithLeadSkip.teamMember).toBe("example@example.com");
 
       // only slots where example@example.com is available
       expect(scheduleWithLeadSkip).toHaveTimeSlots(
@@ -197,11 +197,8 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "testtest@test.com",
         },
       });
-
-      expect(scheduleWithoutLeadSkip.teamMember).toBe(undefined);
 
       // slots where either one of the rr hosts is available
       expect(scheduleWithoutLeadSkip).toHaveTimeSlots(
@@ -294,12 +291,14 @@ describe("getSchedule", () => {
         users: [
           {
             ...TestData.users.example,
+            username: "example",
             email: "example@example.com",
             id: 101,
             schedules: [TestData.schedules.IstMidShift],
           },
           {
             ...TestData.users.example,
+            username: "example1",
             email: "example1@example.com",
             id: 102,
             schedules: [TestData.schedules.IstMorningShift],
@@ -307,6 +306,7 @@ describe("getSchedule", () => {
           },
           {
             ...TestData.users.example,
+            username: "example2",
             email: "example2@example.com",
             id: 103,
             schedules: [TestData.schedules.IstEveningShift],
@@ -325,11 +325,9 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com",
+          roundRobinUsernamePool: null,
         },
       });
-
-      expect(scheduleFixedHostLead.teamMember).toBe("example@example.com");
 
       // show normal slots, example@example + one RR host needs to be available
       expect(scheduleFixedHostLead).toHaveTimeSlots(
@@ -355,11 +353,9 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test1@test.com",
+          roundRobinUsernamePool: ["example", "example1"],
         },
       });
-
-      expect(scheduleRRHostLead.teamMember).toBe("example1@example.com");
 
       // slots where example@example (fixed host) + example1@example.com are available together
       expect(scheduleRRHostLead).toHaveTimeSlots(

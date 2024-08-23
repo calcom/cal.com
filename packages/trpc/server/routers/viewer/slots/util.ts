@@ -320,7 +320,6 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  teamMember?: string | undefined;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
@@ -382,8 +381,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
   let currentSeats: CurrentSeats | undefined;
-
-  let teamMember: string | undefined;
 
   let hosts =
     eventType.hosts?.length && eventType.schedulingType
@@ -793,7 +790,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   return {
     slots: withinBoundsSlotsMappedToDate,
-    teamMember,
   };
 }
 

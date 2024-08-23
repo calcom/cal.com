@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
+import { getCRMSkipRoundRobinUsernamePool } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -82,30 +82,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
-  const roundRobinUsernamePool = [];
+  let roundRobinUsernamePool = [];
 
   if (eventData?.schedulingType === SchedulingType.ROUND_ROBIN && email) {
-    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email as string, eventData.id);
-
-    if (crmContactOwner) {
-      const ownerUsername = await prisma.user.findUnique({
-        where: {
-          email: crmContactOwner,
-          ...(org ? { organization: { slug: org } } : {}),
-        },
-        select: {
-          username: true,
-        },
-      });
-
-      if (
-        ownerUsername?.username &&
-        eventData.users.find((user) => user.username === ownerUsername.username)
-      ) {
-        roundRobinUsernamePool.push(ownerUsername.username);
-      }
-    }
+    roundRobinUsernamePool = await getCRMSkipRoundRobinUsernamePool({
+      eventUsers: eventData.users,
+      eventTypeId: eventData.id,
+      attendeeEmail: email as string,
+      orgSlug: org,
+    });
   }
+  console.log("🚀 ~ getServerSideProps ~ roundRobinUsernamePool:", roundRobinUsernamePool);
 
   if (!eventData) {
     return {

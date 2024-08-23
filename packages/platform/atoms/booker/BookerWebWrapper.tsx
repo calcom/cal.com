@@ -134,7 +134,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hashedLink: props.hashedLink,
     bookingForm: bookerForm.bookingForm,
     metadata: metadata ?? {},
-    teamMemberEmail: schedule.data?.teamMember,
   });
 
   const verifyCode = useVerifyCode({
