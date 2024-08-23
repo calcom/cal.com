@@ -7,6 +7,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (IS_PRODUCTION) return res.write("Only for development purposes"), res.end();
   const t = await getTranslation("en", "common");
+  const language = { translate: t, locale: "en" };
 
   res.statusCode = 200;
 
@@ -14,50 +15,55 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
 
   res.write(
-    await renderEmail("MonthlyDigestEmail", {
-      language: t,
-      Created: 12,
-      Completed: 13,
-      Rescheduled: 14,
-      Cancelled: 16,
-      mostBookedEvents: [
-        {
-          eventTypeId: 3,
-          eventTypeName: "Test1",
-          count: 3,
+    await renderEmail("OrganizerRequestEmail", {
+      calEvent: {
+        type: "30min",
+        title: "30min between Pro Example and pro@example.com",
+        description: null,
+        additionalNotes: "asdasdas",
+        startTime: "2022-06-03T09:00:00-06:00",
+        endTime: "2022-06-03T09:30:00-06:00",
+        organizer: {
+          name: "Pro Example",
+          email: "pro@example.com",
+          timeZone: "Europe/London",
+          language,
         },
-        {
-          eventTypeId: 4,
-          eventTypeName: "Test2",
-          count: 5,
-        },
-      ],
-      membersWithMostBookings: [
-        {
-          userId: 4,
-          user: {
-            id: 4,
-            name: "User1 name",
-            email: "email.com",
-            avatar: "none",
-            username: "User1",
+        attendees: [
+          {
+            email: "pro@example.com",
+            name: "pro@example.com",
+            timeZone: "America/Chihuahua",
+            language,
           },
-          count: 4,
-        },
-        {
-          userId: 6,
-          user: {
-            id: 6,
-            name: "User2 name",
-            email: "email2.com",
-            avatar: "none",
-            username: "User2",
+        ],
+        location: "Zoom video",
+        destinationCalendar: null,
+        hideCalendarNotes: false,
+        uid: "xxyPr4cg2xx4XoS2KeMEQy",
+        metadata: {},
+        recurringEvent: null,
+        appsStatus: [
+          {
+            appName: "Outlook Calendar",
+            type: "office365_calendar",
+            success: 1,
+            failures: 0,
+            errors: [],
+            warnings: [],
           },
-          count: 8,
-        },
-      ],
-      admin: { email: "admin.com", name: "admin" },
-      team: { name: "Team1", id: 4 },
+          {
+            appName: "Google Meet",
+            type: "conferencing",
+            success: 0,
+            failures: 1,
+            errors: [],
+            warnings: [
+              "In order to use Google Meet you must set your destination calendar to a Google Calendar",
+            ],
+          },
+        ],
+      },
     })
   );
   res.end();

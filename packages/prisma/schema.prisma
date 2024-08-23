@@ -596,8 +596,7 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
-  // Used to confirm/reject from email. 
-  oneTimePassword       String?                     @unique @default(uuid())
+  oneTimePassword       String?                    @unique @default(uuid())
 
   @@index([eventTypeId])
   @@index([userId])

@@ -1,15 +1,15 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { CallToAction, Separator, CallToActionTable } from "../components";
+import { CallToAction, Separator, CallToActionTable, BookingConfirmationForm } from "../components";
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
+  const { uid } = props.calEvent;
   const userId = props.calEvent.organizer.id;
   const token = props.calEvent.oneTimePassword;
-  const bookingUid = props.calEvent.uid;
   //TODO: We should switch to using org domain if available
-  const actionHref = `${WEBAPP_URL}/api/verify-booking-token/?token=${token}&userId=${userId}&bookingUid=${bookingUid}`;
-  const rejectLink = new URL(`${props.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${bookingUid}`);
+  const actionHref = `${WEBAPP_URL}/api/verify-booking-token/?token=${token}&userId=${userId}&bookingUid=${uid}`;
+  const rejectLink = new URL(`${props.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${props.calEvent.uid}`);
   rejectLink.searchParams.append("reject", "true");
   return (
     <OrganizerScheduledEmail
@@ -22,27 +22,22 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
       headerType="calendarCircle"
       subject="event_awaiting_approval_subject"
       callToAction={
-        <CallToActionTable>
-          <CallToAction
-            label={props.calEvent.organizer.language.translate("confirm")}
-            href={`${actionHref}&action=accept`}
-            startIconName="confirmIcon"
-          />
-          <Separator />
-          <CallToAction
-            label={props.calEvent.organizer.language.translate("reject")}
-            href={`${actionHref}&action=reject`}
-            startIconName="rejectIcon"
-            secondary
-          />
-          <Separator />
-          <CallToAction
-            label={props.calEvent.organizer.language.translate("reject_with_reason")}
-            href={rejectLink.toString()}
-            startIconName="rejectIcon"
-            secondary
-          />
-        </CallToActionTable>
+        <BookingConfirmationForm action={`${actionHref}&action=reject`}>
+          <CallToActionTable>
+            <CallToAction
+              label={props.calEvent.organizer.language.translate("confirm")}
+              href={`${actionHref}&action=accept`}
+              startIconName="confirmIcon"
+            />
+            <Separator />
+            <CallToAction
+              label={props.calEvent.organizer.language.translate("reject")}
+              // href={`${actionHref}&action=reject`}
+              startIconName="rejectIcon"
+              secondary
+            />
+          </CallToActionTable>
+        </BookingConfirmationForm>
       }
       {...props}
     />

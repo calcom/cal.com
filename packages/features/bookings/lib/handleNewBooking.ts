@@ -901,7 +901,6 @@ async function handler(
     platformRescheduleUrl,
     platformCancelUrl,
     platformBookingUrl,
-    // If undefined, the DB will generate a uuid for token
     oneTimePassword: isConfirmedByDefault ? null : undefined,
   };
 
@@ -1102,7 +1101,6 @@ async function handler(
       })
     );
     evt.uid = booking?.uid ?? null;
-    evt.oneTimePassword = booking?.oneTimePassword ?? null;
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
