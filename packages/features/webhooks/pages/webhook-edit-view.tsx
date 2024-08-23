@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
@@ -12,9 +13,21 @@ import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
+type WebhookProps = {
+  id: string;
+  userId: number | null;
+  teamId: number | null;
+  subscriberUrl: string;
+  payloadTemplate: string | null;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  secret: string | null;
+  platform: boolean;
+};
+
 const EditWebhookPage = () => {
   const searchParams = useCompatSearchParams();
-  const id = searchParams?.get("id");
+  const id = searchParams?.get("id") ?? undefined;
   const { t } = useLocale();
 
   const { data: webhook } = trpc.viewer.webhook.get.useQuery(
@@ -41,7 +54,7 @@ const EditWebhookPage = () => {
   );
 };
 
-export function EditWebhookView({ webhook }) {
+export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
@@ -60,7 +73,7 @@ export function EditWebhookView({ webhook }) {
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.webhook.get.invalidate({ webhookId: webhook.id });
+      await utils.viewer.webhook.get.invalidate({ webhookId: webhook?.id });
       showToast(t("webhook_updated_successfully"), "success");
       router.back();
     },
