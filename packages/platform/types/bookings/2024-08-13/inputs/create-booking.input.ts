@@ -94,11 +94,3 @@ export class CreateRecurringBookingInput_2024_08_13 {
   @IsOptional()
   bookingFieldsResponses!: Record<string, unknown>;
 }
-
-export class RescheduleBookingInput_2024_08_13 {
-  @IsDateString()
-  start!: string;
-
-  @IsString()
-  rescheduleBookingUid!: string;
-}

@@ -5,9 +5,13 @@ import type { ValidationError } from "class-validator";
 import { validateSync } from "class-validator";
 
 import { CreateRecurringBookingInput_2024_08_13 } from "./create-booking.input";
-import { RescheduleBookingInput_2024_08_13 } from "./create-booking.input";
 import { CreateBookingInput_2024_08_13 } from "./create-booking.input";
 import { CreateInstantBookingInput_2024_08_13 } from "./create-booking.input";
+
+export type CreateBookingInput =
+  | CreateBookingInput_2024_08_13
+  | CreateRecurringBookingInput_2024_08_13
+  | CreateInstantBookingInput_2024_08_13;
 
 @Injectable()
 export class CreateBookingInputPipe implements PipeTransform {
@@ -17,22 +21,12 @@ export class CreateBookingInputPipe implements PipeTransform {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() {}
 
-  transform(
-    value:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13
-      | CreateInstantBookingInput_2024_08_13
-  ) {
+  transform(value: CreateBookingInput): CreateBookingInput {
     if (!value) {
       throw new BadRequestException("Body is required");
     }
     if (typeof value !== "object") {
       throw new BadRequestException("Body should be an object");
-    }
-
-    if (this.isRescheduleBookingInput(value)) {
-      return this.validateRescheduleBooking(value);
     }
 
     if (this.isRecurringBookingInput(value)) {
@@ -48,22 +42,6 @@ export class CreateBookingInputPipe implements PipeTransform {
 
   validateBooking(value: CreateBookingInput_2024_08_13) {
     const object = plainToClass(CreateBookingInput_2024_08_13, value);
-
-    const errors = validateSync(object, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      skipMissingProperties: false,
-    });
-
-    if (errors.length > 0) {
-      throw new BadRequestException(this.formatErrors(errors));
-    }
-
-    return object;
-  }
-
-  validateRescheduleBooking(value: RescheduleBookingInput_2024_08_13) {
-    const object = plainToClass(RescheduleBookingInput_2024_08_13, value);
 
     const errors = validateSync(object, {
       whitelist: true,
@@ -121,30 +99,13 @@ export class CreateBookingInputPipe implements PipeTransform {
       .join(", ");
   }
 
-  private isRescheduleBookingInput(
-    value:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13
-  ): value is RescheduleBookingInput_2024_08_13 {
-    return value.hasOwnProperty("rescheduleBookingUid");
-  }
-
   private isRecurringBookingInput(
-    value:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13
+    value: CreateBookingInput
   ): value is CreateRecurringBookingInput_2024_08_13 {
     return value.hasOwnProperty("recurringEventTypeId");
   }
 
-  private isInstantBookingInput(
-    value:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13
-  ): value is CreateRecurringBookingInput_2024_08_13 {
+  private isInstantBookingInput(value: CreateBookingInput): value is CreateRecurringBookingInput_2024_08_13 {
     return value.hasOwnProperty("instant") && "instant" in value && value.instant === true;
   }
 }

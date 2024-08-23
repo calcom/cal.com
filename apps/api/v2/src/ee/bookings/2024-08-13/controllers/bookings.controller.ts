@@ -7,26 +7,29 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { Controller, Post, Logger, Body, UseGuards, Req, Get, Param, Query } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Logger,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  Param,
+  Query,
+  BadRequestException,
+} from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
-  CreateBookingInput_2024_08_13,
   CreateBookingInputPipe,
-  CreateRecurringBookingInput_2024_08_13,
+  CreateBookingInput,
   GetBookingsInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-
-export type CreateBookingInput =
-  | CreateBookingInput_2024_08_13
-  | RescheduleBookingInput_2024_08_13
-  | CreateRecurringBookingInput_2024_08_13
-  | CreateInstantBookingInput_2024_08_13;
 
 @Controller({
   path: "/v2/bookings",
@@ -55,6 +58,10 @@ export class BookingsController_2024_08_13 {
 
   @Get("/:bookingUid")
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
+    if (!bookingUid) {
+      throw new BadRequestException("Booking UID is required in request path /:bookingUid");
+    }
+
     const booking = await this.bookingsService.getBooking(bookingUid);
 
     return {
@@ -77,4 +84,31 @@ export class BookingsController_2024_08_13 {
       data: bookings,
     };
   }
+
+  @Post("/:bookingUid/reschedule")
+  async rescheduleBooking(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: RescheduleBookingInput_2024_08_13,
+    @Req() request: Request
+  ): Promise<CreateBookingOutput_2024_08_13> {
+    if (!bookingUid) {
+      throw new BadRequestException("Booking UID is required in request path /:bookingUid/reschedule");
+    }
+
+    const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: newBooking,
+    };
+  }
+
+  // @Post("/:bookingId/cancel")
+  // async cancelBooking(
+  //   @Req() request: Request,
+  //   @Param("bookingId") bookingId: string,
+  //   @Body() body: CancelBookingInput_2024_04_15,
+  // ): Promise<> {
+
+  // }
 }

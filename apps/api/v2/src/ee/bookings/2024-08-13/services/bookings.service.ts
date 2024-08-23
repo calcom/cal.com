@@ -1,5 +1,4 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { CreateBookingInput } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
@@ -16,6 +15,7 @@ import {
 import {
   CreateBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
+  CreateBookingInput,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
@@ -39,60 +39,32 @@ export class BookingsService_2024_08_13 {
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
-    const bookingType = await this.getBookingType(body);
-
-    switch (bookingType) {
-      case "regular":
-        return this.createRegularBookingOrReschedule(request, body);
-      case "reschedule":
-        return this.createRegularBookingOrReschedule(request, body);
-      case "recurring":
-        return this.createRecurringBooking(request, body as CreateRecurringBookingInput_2024_08_13);
-      case "instant":
-        return this.createInstantBooking(request, body as CreateInstantBookingInput_2024_08_13);
-    }
-  }
-
-  async getBookingType(
-    body: CreateBookingInput
-  ): Promise<"regular" | "reschedule" | "recurring" | "instant"> {
-    if ("rescheduleBookingUid" in body) {
-      return "reschedule";
-    }
     if ("instant" in body && body.instant) {
-      return "instant";
+      return this.createInstantBooking(request, body);
     }
+
     if (await this.isRecurring(body)) {
-      return "recurring";
+      return this.createRecurringBooking(request, body);
     }
-    return "regular";
+
+    return this.createRegularBooking(request, body);
   }
 
-  async isRecurring(body: CreateBookingInput) {
-    if ("rescheduleBookingUid" in body) {
-      return false;
-    }
+  async createInstantBooking(request: Request, body: CreateInstantBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createBookingRequest(request, body);
+    const booking = await handleInstantMeeting(bookingRequest);
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(body.eventTypeId);
-    return !!eventType?.recurringEvent;
-  }
-
-  async createRegularBookingOrReschedule(
-    request: Request,
-    body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13
-  ) {
-    const bookingRequest = await this.inputService.createNonRecurringBookingRequest(request, body);
-    const booking = await handleNewBooking(bookingRequest);
-    if (!booking.id) {
-      throw new Error("Booking was not created");
-    }
-
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.bookingId);
     if (!databaseBooking) {
-      throw new Error(`Booking with id=${booking.id} was not found in the database`);
+      throw new Error(`Booking with id=${booking.bookingId} was not found in the database`);
     }
 
     return this.outputService.getOutputBooking(databaseBooking);
+  }
+
+  async isRecurring(body: CreateBookingInput) {
+    const eventType = await this.eventTypesRepository.getEventTypeById(body.eventTypeId);
+    return !!eventType?.recurringEvent;
   }
 
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
@@ -107,13 +79,16 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(recurringBooking);
   }
 
-  async createInstantBooking(request: Request, body: CreateInstantBookingInput_2024_08_13) {
-    const bookingRequest = await this.inputService.createNonRecurringBookingRequest(request, body);
-    const booking = await handleInstantMeeting(bookingRequest);
+  async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createBookingRequest(request, body);
+    const booking = await handleNewBooking(bookingRequest);
+    if (!booking.id) {
+      throw new Error("Booking was not created");
+    }
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.bookingId);
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
     if (!databaseBooking) {
-      throw new Error(`Booking with id=${booking.bookingId} was not found in the database`);
+      throw new Error(`Booking with id=${booking.id} was not found in the database`);
     }
 
     return this.outputService.getOutputBooking(databaseBooking);
@@ -166,5 +141,20 @@ export class BookingsService_2024_08_13 {
       }
       return this.outputService.getOutputBooking(formatted);
     });
+  }
+
+  async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createRescheduleBookingRequest(request, bookingUid, body);
+    const booking = await handleNewBooking(bookingRequest);
+    if (!booking.id) {
+      throw new Error("Booking was not created");
+    }
+
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
+    if (!databaseBooking) {
+      throw new Error(`Booking with id=${booking.id} was not found in the database`);
+    }
+
+    return this.outputService.getOutputBooking(databaseBooking);
   }
 }

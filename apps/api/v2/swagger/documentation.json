@@ -2944,6 +2944,44 @@
         "tags": [
           "Bookings"
         ]
+      },
+      "post": {
+        "operationId": "BookingsController_2024_08_13_rescheduleBooking",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/bookings/{bookingId}/cancel": {
@@ -9093,6 +9131,10 @@
           "status",
           "data"
         ]
+      },
+      "RescheduleBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {}
       },
       "ReserveSlotInput": {
         "type": "object",

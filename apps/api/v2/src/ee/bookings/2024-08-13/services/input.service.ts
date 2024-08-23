@@ -69,14 +69,11 @@ export class InputBookingsService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13
   ) {}
 
-  async createNonRecurringBookingRequest(
+  async createBookingRequest(
     request: Request,
-    body:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateInstantBookingInput_2024_08_13
+    body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13
   ): Promise<BookingRequest> {
-    const bodyTransformed = await this.transformInputCreate(body);
+    const bodyTransformed = await this.transformInputCreateBooking(body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
     const newRequest = { ...request };
@@ -85,12 +82,46 @@ export class InputBookingsService_2024_08_13 {
       ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
 
-    const location = await this.getLocation(request, body);
+    const location = request.body.meetingUrl;
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
 
     return newRequest as unknown as BookingRequest;
+  }
+
+  async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13) {
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
+      inputBooking.eventTypeId
+    );
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
+    }
+
+    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
+      inputBooking.attendee.timeZone
+    );
+    const endTime = startTime.plus({ minutes: eventType.length });
+
+    return {
+      start: startTime.toISO(),
+      end: endTime.toISO(),
+      eventTypeId: inputBooking.eventTypeId,
+      eventTypeSlug: eventType.slug,
+      timeZone: inputBooking.attendee.timeZone,
+      language: inputBooking.attendee.language || "en",
+      metadata: inputBooking.metadata || {},
+      hasHashedBookingLink: false,
+      guests: inputBooking.guests,
+      responses: inputBooking.bookingFieldsResponses
+        ? {
+            ...inputBooking.bookingFieldsResponses,
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email,
+          }
+        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+      user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
+    };
   }
 
   async createRecurringBookingRequest(
@@ -107,7 +138,7 @@ export class InputBookingsService_2024_08_13 {
       ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
 
-    const location = await this.getLocation(request, body);
+    const location = request.body.meetingUrl;
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
     newRequest.body = (bodyTransformed as any[]).map((event) => ({
@@ -116,43 +147,6 @@ export class InputBookingsService_2024_08_13 {
     }));
 
     return newRequest as unknown as BookingRequest;
-  }
-
-  private async createBookingRequestOwnerId(req: Request): Promise<number | undefined> {
-    try {
-      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (accessToken) {
-        return this.oAuthFlowService.getOwnerId(accessToken);
-      }
-    } catch (err) {
-      this.logger.error(err);
-    }
-  }
-
-  private async createBookingRequestOAuthClientParams(clientId: string) {
-    const params = DEFAULT_PLATFORM_PARAMS;
-    try {
-      const client = await this.oAuthClientRepository.getOAuthClient(clientId);
-      if (client) {
-        params.platformClientId = clientId;
-        params.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
-        params.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
-        params.platformBookingUrl = client.bookingRedirectUri ?? "";
-        params.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
-      }
-      return params;
-    } catch (err) {
-      this.logger.error(err);
-      return params;
-    }
-  }
-
-  transformInputCreate(inputBooking: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13) {
-    if ("rescheduleBookingUid" in inputBooking) {
-      return this.transformInputRescheduleBooking(inputBooking);
-    }
-
-    return this.transformInputCreateBooking(inputBooking);
   }
 
   async transformInputCreateRecurringBooking(inputBooking: CreateRecurringBookingInput_2024_08_13) {
@@ -226,67 +220,35 @@ export class InputBookingsService_2024_08_13 {
     return events;
   }
 
-  async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13) {
-    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-      inputBooking.eventTypeId
-    );
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
-    }
-
-    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
-      inputBooking.attendee.timeZone
-    );
-    const endTime = startTime.plus({ minutes: eventType.length });
-
-    return {
-      start: startTime.toISO(),
-      end: endTime.toISO(),
-      eventTypeId: inputBooking.eventTypeId,
-      eventTypeSlug: eventType.slug,
-      timeZone: inputBooking.attendee.timeZone,
-      language: inputBooking.attendee.language || "en",
-      metadata: inputBooking.metadata || {},
-      hasHashedBookingLink: false,
-      guests: inputBooking.guests,
-      responses: inputBooking.bookingFieldsResponses
-        ? {
-            ...inputBooking.bookingFieldsResponses,
-            name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
-          }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
-      user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
-    };
-  }
-
-  async getLocation(
+  async createRescheduleBookingRequest(
     request: Request,
-    body:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13
-  ) {
-    if ("rescheduleBookingUid" in body) {
-      const booking = await this.bookingsRepository.getByUid(body.rescheduleBookingUid);
-      if (!booking) {
-        throw new NotFoundException(`Booking with uid=${body.rescheduleBookingUid} not found`);
-      }
-      return booking.location;
-    }
+    bookingUid: string,
+    body: RescheduleBookingInput_2024_08_13
+  ): Promise<BookingRequest> {
+    const bodyTransformed = await this.transformInputRescheduleBooking(bookingUid, body);
+    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
-    return request.body.meetingUrl;
+    const newRequest = { ...request };
+    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const oAuthParams = oAuthClientId
+      ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+
+    const location = await this.getRescheduleBookingLocation(bookingUid);
+    Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
+
+    newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+
+    return newRequest as unknown as BookingRequest;
   }
 
-  async transformInputRescheduleBooking(inputBooking: RescheduleBookingInput_2024_08_13) {
-    const booking = await this.bookingsRepository.getByUidWithAttendees(inputBooking.rescheduleBookingUid);
+  async transformInputRescheduleBooking(bookingUid: string, inputBooking: RescheduleBookingInput_2024_08_13) {
+    const booking = await this.bookingsRepository.getByUidWithAttendees(bookingUid);
     if (!booking) {
-      throw new NotFoundException(`Booking with uid=${inputBooking.rescheduleBookingUid} not found`);
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
     if (!booking.eventTypeId) {
-      throw new NotFoundException(
-        `Booking with uid=${inputBooking.rescheduleBookingUid} is missing event type`
-      );
+      throw new NotFoundException(`Booking with uid=${bookingUid} is missing event type`);
     }
     const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(booking.eventTypeId);
     if (!eventType) {
@@ -298,7 +260,7 @@ export class InputBookingsService_2024_08_13 {
 
     if (!attendee) {
       throw new NotFoundException(
-        `Attendee with e-mail ${bookingResponses.email} for booking with uid=${inputBooking.rescheduleBookingUid} not found`
+        `Attendee with e-mail ${bookingResponses.email} for booking with uid=${bookingUid} not found`
       );
     }
 
@@ -318,6 +280,43 @@ export class InputBookingsService_2024_08_13 {
       responses: bookingResponses,
       user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
     };
+  }
+
+  async getRescheduleBookingLocation(rescheduleBookingUid: string) {
+    const booking = await this.bookingsRepository.getByUid(rescheduleBookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${rescheduleBookingUid} not found`);
+    }
+    return booking.location;
+  }
+
+  private async createBookingRequestOwnerId(req: Request): Promise<number | undefined> {
+    try {
+      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
+      if (accessToken) {
+        return this.oAuthFlowService.getOwnerId(accessToken);
+      }
+    } catch (err) {
+      this.logger.error(err);
+    }
+  }
+
+  private async createBookingRequestOAuthClientParams(clientId: string) {
+    const params = DEFAULT_PLATFORM_PARAMS;
+    try {
+      const client = await this.oAuthClientRepository.getOAuthClient(clientId);
+      if (client) {
+        params.platformClientId = clientId;
+        params.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
+        params.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
+        params.platformBookingUrl = client.bookingRedirectUri ?? "";
+        params.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
+      }
+      return params;
+    } catch (err) {
+      this.logger.error(err);
+      return params;
+    }
   }
 
   transformGetBookingsFilters(queryParams: GetBookingsInput_2024_08_13) {
