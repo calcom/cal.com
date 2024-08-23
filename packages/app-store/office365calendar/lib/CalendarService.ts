@@ -266,8 +266,8 @@ export default class Office365CalendarService implements Calendar {
     return {
       subject: event.title,
       body: {
-        contentType: "HTML",
-        content: getRichDescription(event).replace(/\n/g, "<br>"),
+        contentType: "text",
+        content: getRichDescription(event),
       },
       start: {
         dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
@@ -277,17 +277,16 @@ export default class Office365CalendarService implements Calendar {
         dateTime: dayjs(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
-      attendees: [
-        // Add the calEvent organizer
-        {
-          emailAddress: {
-            address: event.destinationCalendar
-              ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
-                event.organizer.email
-              : event.organizer.email,
-            name: event.organizer.name,
-          },
+      organizer: {
+        emailAddress: {
+          address: event.destinationCalendar
+            ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
+              event.organizer.email
+            : event.organizer.email,
+          name: event.organizer.name,
         },
+      },
+      attendees: [
         ...event.attendees.map((attendee) => ({
           emailAddress: {
             address: attendee.email,

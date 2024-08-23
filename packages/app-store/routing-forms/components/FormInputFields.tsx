@@ -4,13 +4,14 @@ import type { Dispatch, SetStateAction } from "react";
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
-import transformResponse from "../lib/transformResponse";
-import type { SerializableForm, Response } from "../types/types";
+import { getUIOptionsForSelect } from "../lib/selectOptions";
+import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
+import type { SerializableForm, FormResponse } from "../types/types";
 
 type Props = {
   form: SerializableForm<App_RoutingForms_Form>;
-  response: Response;
-  setResponse: Dispatch<SetStateAction<Response>>;
+  response: FormResponse;
+  setResponse: Dispatch<SetStateAction<FormResponse>>;
 };
 
 export default function FormInputFields(props: Props) {
@@ -31,14 +32,7 @@ export default function FormInputFields(props: Props) {
         }
         const Component = widget.factory;
 
-        const optionValues = field.selectText?.trim().split("\n");
-        const options = optionValues?.map((value) => {
-          const title = value;
-          return {
-            value,
-            title,
-          };
-        });
+        const options = getUIOptionsForSelect(field);
         return (
           <div key={field.id} className="mb-4 block flex-col sm:flex ">
             <div className="min-w-48 mb-2 flex-grow">
@@ -47,7 +41,7 @@ export default function FormInputFields(props: Props) {
               </label>
             </div>
             <Component
-              value={response[field.id]?.value}
+              value={response[field.id]?.value ?? ""}
               placeholder={field.placeholder ?? ""}
               // required property isn't accepted by query-builder types
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -62,7 +56,7 @@ export default function FormInputFields(props: Props) {
                     ...response,
                     [field.id]: {
                       label: field.label,
-                      value: transformResponse({ field, value }),
+                      value: getFieldResponseForJsonLogic({ field, value }),
                     },
                   };
                 });
