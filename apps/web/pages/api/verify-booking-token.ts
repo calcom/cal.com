@@ -4,7 +4,6 @@ import { z } from "zod";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import { TRPCError } from "@calcom/trpc/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -27,8 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
     where: { oneTimePassword: token },
   });
   if (!booking) {
-    // Or a custom error page where we state that the booking doesn't exist or the token was invalid.
-    res.redirect(`/booking/404`);
+    res.redirect(`/booking/${booking.uid}/404`);
     return;
   }
 
@@ -73,13 +71,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       confirmed: action === DirectAction.ACCEPT,
     });
   } catch (e) {
-    let message = "Error confirming booking";
-    if (e instanceof TRPCError) message = (e as TRPCError).message;
-    res.redirect(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
+    res.redirect(`/booking/${booking.uid}/404`);
     return;
   }
 
-  res.redirect(`/booking/${bookingUid}`);
+  res.redirect(`/booking/${booking.uid}`);
 }
 
 export default defaultResponder(handler);
