@@ -1,3 +1,4 @@
+import type { PageProps } from "app/_types";
 import { getFixedT, _generateMetadata } from "app/_utils";
 import { getServerSession } from "next-auth";
 
@@ -13,12 +14,13 @@ export const generateMetadata = async () =>
     (t) => t("add_webhook_description", { appName: APP_NAME })
   );
 
-const Page = async ({ params }) => {
+const Page = async ({ params }: PageProps) => {
   const session = await getServerSession(AUTH_OPTIONS);
 
   const t = await getFixedT(session?.user.locale || "en");
+  const id = typeof params?.id === "string" ? params.id : undefined;
 
-  const webhook = await WebhookRepository.findByWebhookId(params?.id);
+  const webhook = await WebhookRepository.findByWebhookId(id);
   console.log("This is the webhook", webhook);
   return (
     <SettingsHeader
