@@ -8,8 +8,10 @@ import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css?inline";
 import type { UiConfig } from "./types";
+import { fromEntriesWithDuplicateKeys } from "./utils";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[]> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -124,20 +126,20 @@ function getColorScheme(el: Element) {
 }
 
 function withColorScheme(
-  queryObject: PrefillAndIframeAttrsConfig & { guest?: string | string[] },
+  queryParams: PrefillAndIframeAttrsConfig & { guest?: string | string[] },
   containerEl: Element
 ) {
   // If color-scheme not explicitly configured, keep it same as the webpage that has the iframe
   // This is done to avoid having an opaque background of iframe that arises when they aren't same. We really need to have a transparent background to make embed part of the page
   // https://fvsch.com/transparent-iframes#:~:text=the%20resolution%20was%3A-,If%20the%20color%20scheme%20of%20an%20iframe%20differs%20from%20embedding%20document%2C%20iframe%20gets%20an%20opaque%20canvas%20background%20appropriate%20to%20its%20color%20scheme.,-So%20the%20dark
-  if (!queryObject["ui.color-scheme"]) {
+  if (!queryParams["ui.color-scheme"]) {
     const colorScheme = getColorScheme(containerEl);
     // Only handle two color-schemes for now. We don't want to have unintented affect by always explicitly adding color-scheme
     if (colorScheme) {
-      queryObject["ui.color-scheme"] = colorScheme;
+      queryParams["ui.color-scheme"] = colorScheme;
     }
   }
-  return queryObject;
+  return queryParams;
 }
 
 type SingleInstructionMap = {
@@ -150,6 +152,26 @@ type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
 
 export type Instruction = SingleInstruction | SingleInstruction[];
 export type InstructionQueue = Instruction[];
+
+type ParamFilterCallback = (key: string, value: unknown) => boolean;
+
+const excludeParam: ParamFilterCallback = (key) => {
+  const paramsReservedByBookingForm = [
+    "month",
+    "date",
+    "slot",
+    "rescheduleUid",
+    "bookingUid",
+    "duration",
+    "overlayCalendar",
+  ];
+
+  const EXCLUDED_PARAMS = [...paramsReservedByBookingForm];
+
+  if (EXCLUDED_PARAMS.includes(key)) return true;
+
+  return false;
+};
 
 export class Cal {
   iframe?: HTMLIFrameElement;
@@ -174,7 +196,9 @@ export class Cal {
 
   static actionsManagers: Record<Namespace, SdkActionManager>;
 
-  static getQueryObject(config: PrefillAndIframeAttrsConfig) {
+  private forwardQueryParams = true;
+
+  static buildQueryParams(config: PrefillAndIframeAttrsConfig) {
     config = config || {};
     return {
       ...config,
@@ -230,11 +254,11 @@ export class Cal {
    */
   createIframe({
     calLink,
-    queryObject = {},
+    queryParams = {},
     calOrigin,
   }: {
     calLink: string;
-    queryObject?: PrefillAndIframeAttrsConfig & { guest?: string | string[] };
+    queryParams?: PrefillAndIframeAttrsConfig & { guest?: string | string[] };
     calOrigin: string | null;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
@@ -242,15 +266,24 @@ export class Cal {
     iframe.name = `cal-embed=${this.namespace}`;
     iframe.title = `Book a call`;
     const config = this.getConfig();
-    const { iframeAttrs, ...restQueryObject } = queryObject;
+    const { iframeAttrs, ...explicitQueryParams } = queryParams;
 
     if (iframeAttrs && iframeAttrs.id) {
       iframe.setAttribute("id", iframeAttrs.id);
     }
 
-    // Prepare searchParams from config
+    // Merge query parameters from URL
+    const queryParamsFromPageUrl = getQueryParamsFromPage();
+
+    // Explicit query params have higher precedence, as user is setting it explicitly through the embed API
+    const mergedQueryParams = { ...queryParamsFromPageUrl, ...explicitQueryParams };
+
+    // Filter params using the hardcoded callback
+    const filteredQueryParams = this.filterParams(mergedQueryParams);
+
+    // Prepare searchParams from filtered config
     const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(restQueryObject)) {
+    for (const [key, value] of Object.entries(filteredQueryParams)) {
       if (value === undefined) {
         continue;
       }
@@ -403,6 +436,17 @@ export class Cal {
       this.modalBox?.setAttribute("state", "failed");
     });
   }
+
+  private filterParams(params: Record<string, unknown>): Record<string, unknown> {
+    if (!this.forwardQueryParams) {
+      return {};
+    }
+    return Object.fromEntries(Object.entries(params).filter(([key, value]) => !excludeParam(key, value)));
+  }
+
+  setForwardQueryParams(value: boolean) {
+    this.forwardQueryParams = value;
+  }
 }
 
 class CalApi {
@@ -506,7 +550,7 @@ class CalApi {
 
     const iframe = this.cal.createIframe({
       calLink,
-      queryObject: withColorScheme(Cal.getQueryObject(config), containerEl),
+      queryParams: withColorScheme(Cal.buildQueryParams(config), containerEl),
       calOrigin: calConfig.calOrigin,
     });
 
@@ -606,14 +650,14 @@ class CalApi {
       config.prerender = "true";
     }
 
-    const queryObject = withColorScheme(Cal.getQueryObject(config), containerEl);
+    const queryParams = withColorScheme(Cal.buildQueryParams(config), containerEl);
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
     if (existingModalEl) {
       if (isConnectingToPreloadedModal) {
         this.cal.doInIframe({
           method: "connect",
-          arg: queryObject,
+          arg: queryParams,
         });
         this.modalUid = uid;
         existingModalEl.setAttribute("state", "loading");
@@ -638,7 +682,7 @@ class CalApi {
     if (!iframe) {
       iframe = this.cal.createIframe({
         calLink,
-        queryObject,
+        queryParams,
         calOrigin: calOrigin || null,
       });
     }
@@ -794,6 +838,15 @@ class CalApi {
 
     this.cal.doInIframe({ method: "ui", arg: uiConfig });
   }
+
+  forwardQueryParams(enable: boolean) {
+    this.cal.setForwardQueryParams(enable);
+  }
+}
+
+function getQueryParamsFromPage() {
+  const params = new URLSearchParams(window.location.search);
+  return fromEntriesWithDuplicateKeys(params.entries());
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
