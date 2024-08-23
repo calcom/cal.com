@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { usePathname, useRouter } from "next/navigation";
 import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { Dialog as PlatformDialogPrimitives, useIsPlatform } from "@calcom/atoms/monorepo";
 import classNames from "@calcom/lib/classNames";
@@ -104,6 +104,12 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           : [DialogPrimitive.Portal, DialogPrimitive.Overlay, DialogPrimitive.Content],
       [isPlatform]
     );
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      if (!forwardedRef.current) forwardedRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }, [forwardedRef]);
+
     return (
       <Portal>
         <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
