@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { FrequencyInput } from "@calcom/platform-enums";
 import type {
   BookingField_2024_06_14,
   Location_2024_06_14,
@@ -7,7 +8,6 @@ import type {
   BookingWindow_2024_06_14,
   Recurrence_2024_06_14,
 } from "@calcom/platform-types";
-import { FrequencyInput } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/frequency";
 
 import type { UserField } from "./api-request";
 import {
