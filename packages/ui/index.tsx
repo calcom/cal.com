@@ -11,7 +11,7 @@ export type { ArrowButtonProps } from "./components/arrow-button";
 export { Badge, UpgradeTeamsBadge, InfoBadge } from "./components/badge";
 export type { BadgeProps } from "./components/badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
-export { Button, LinkIconButton } from "./components/button";
+export { Button, LinkIconButton, buttonClasses } from "./components/button";
 export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export { EditableHeading } from "./components/editable-heading";
@@ -140,6 +140,9 @@ export {
   ConfirmationContent,
 } from "./components/dialog";
 export type { DialogProps, ConfirmationDialogContentProps } from "./components/dialog";
+export { AppListCard } from "./components/app-list-card";
+export { DisconnectIntegrationComponent } from "./components/disconnect-calendar-integration";
+export { CalendarSwitchComponent } from "./components/calendar-switch";
 export { showToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
 export { Meta, MetaProvider, useMeta } from "./components/meta";
 export { ShellSubHeading } from "./components/layout";
@@ -147,6 +150,7 @@ export { ShellSubHeading } from "./components/layout";
 /** ⬇️ TODO - Move these to components */
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
+export { default as MultiEmail } from "./form/MultiEmailLazy";
 export { UnstyledSelect } from "./form/Select";
 
 export {
@@ -200,3 +204,4 @@ export type { OrgBannerProps } from "./components/organization-banner";
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
 export { default as Icon } from "./components/icon/Icon";
 export type { IconName } from "./components/icon/icon-names";
+export { IconSprites } from "./components/icon/IconSprites";

@@ -1,6 +1,19 @@
 import { z } from "zod";
 
-import type { CreateEventTypeInput_2024_06_14, Integration_2024_06_14 } from "@calcom/platform-types";
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookingWindowPeriodOutputTypeEnum_2024_06_14,
+  BookingLimitsEnum_2024_06_14,
+} from "@calcom/platform-enums/monorepo";
+import {
+  type CreateEventTypeInput_2024_06_14,
+  type Integration_2024_06_14,
+  type BusinessDaysWindow_2024_06_14,
+  type RangeWindow_2024_06_14,
+  type TransformFutureBookingsLimitSchema_2024_06_14,
+  type BookingLimitsKeyOutputType_2024_06_14,
+  type TransformBookingLimitsSchema_2024_06_14,
+} from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
   "cal-video": "integrations:daily",
@@ -102,6 +115,51 @@ function transformApiEventTypeBookingFields(
   return customBookingFields;
 }
 
+function transformApiEventTypeIntervalLimits(
+  inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]
+) {
+  const res: TransformBookingLimitsSchema_2024_06_14 = {};
+  inputBookingLimits &&
+    Object.entries(inputBookingLimits).map(([key, value]) => {
+      const outputKey: BookingLimitsKeyOutputType_2024_06_14 = BookingLimitsEnum_2024_06_14[
+        key as keyof typeof BookingLimitsEnum_2024_06_14
+      ] as BookingLimitsKeyOutputType_2024_06_14;
+      res[outputKey] = value;
+    });
+  return res;
+}
+
+function transformApiEventTypeFutureBookingLimits(
+  inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingWindow"]
+): TransformFutureBookingsLimitSchema_2024_06_14 | undefined {
+  switch (inputBookingLimits?.type) {
+    case BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays:
+      return {
+        periodDays: (inputBookingLimits as BusinessDaysWindow_2024_06_14).value,
+        periodType: !!(inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
+          ? BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING_WINDOW
+          : BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING,
+        periodCountCalendarDays: false,
+      };
+    case BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays:
+      return {
+        periodDays: (inputBookingLimits as BusinessDaysWindow_2024_06_14).value,
+        periodType: !!(inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
+          ? BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING_WINDOW
+          : BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING,
+        periodCountCalendarDays: true,
+      };
+    case BookingWindowPeriodInputTypeEnum_2024_06_14.range:
+      return {
+        periodType: BookingWindowPeriodOutputTypeEnum_2024_06_14.RANGE,
+        periodStartDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[0]),
+        periodEndDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[1]),
+      };
+    default:
+      return undefined;
+  }
+}
+
 export function transformSelectOptions(options: string[]) {
   return options.map((option) => ({
     label: option,
@@ -199,4 +257,9 @@ export type UserField = z.infer<typeof UserFieldsSchema>;
 
 export const BookingFieldsSchema = z.array(z.union([UserFieldsSchema, SystemFieldsSchema]));
 
-export { transformApiEventTypeLocations, transformApiEventTypeBookingFields };
+export {
+  transformApiEventTypeLocations,
+  transformApiEventTypeBookingFields,
+  transformApiEventTypeIntervalLimits,
+  transformApiEventTypeFutureBookingLimits,
+};

@@ -10,7 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev:build:watch": "yarn workspace @calcom/platform-constants build:watch & yarn workspace @calcom/platform-utils build:watch & yarn workspace @calcom/platform-types build:watch",
-    "dev:build": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build",
+    "dev:build": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && yarn workspace @calcom/platform-enums build",
     "dev": "yarn dev:build && docker-compose up -d && yarn copy-swagger-module && yarn start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node ./dist/apps/api/v2/src/main.js",
@@ -25,7 +25,8 @@
   },
   "dependencies": {
     "@calcom/platform-constants": "*",
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.27",
+    "@calcom/platform-enums": "*",
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.28",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",

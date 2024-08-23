@@ -11,6 +11,7 @@ import {
   Badge,
   BooleanToggleGroupField,
   Button,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -179,7 +180,7 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
+                className="hover:bg-muted group relative flex items-center justify-between p-4 transition">
                 {!disabled && (
                   <>
                     {index >= 1 && (
@@ -237,7 +238,7 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-subtle rounded" }}
+                        classNames={{ container: "p-2 hover:bg-subtle rounded transition" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -491,6 +492,10 @@ function FieldEditDialog({
                       }
                       label={t("identifier")}
                     />
+                    <CheckboxField
+                      description={t("disable_input_if_prefilled")}
+                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                    />
                     <InputField
                       {...fieldForm.register("label")}
                       // System fields have a defaultLabel, so there a label is not required
@@ -709,7 +714,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded" }}
+          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded transition" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (
@@ -725,6 +730,11 @@ function VariantFields({
           fieldForm.getValues("editable") === "system-but-optional"
         }
         label={t("identifier")}
+      />
+
+      <CheckboxField
+        description={t("disable_input_if_prefilled")}
+        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
       />
 
       <ul

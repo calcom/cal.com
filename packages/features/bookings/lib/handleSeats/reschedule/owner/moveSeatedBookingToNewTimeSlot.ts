@@ -90,11 +90,14 @@ const moveSeatedBookingToNewTimeSlot = async (
   if (noEmail !== true && isConfirmedByDefault) {
     const copyEvent = cloneDeep(evt);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-    await sendRescheduledEmails({
-      ...copyEvent,
-      additionalNotes, // Resets back to the additionalNote input and not the override value
-      cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-    });
+    await sendRescheduledEmails(
+      {
+        ...copyEvent,
+        additionalNotes, // Resets back to the additionalNote input and not the override value
+        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+      },
+      eventType.metadata
+    );
   }
   const foundBooking = await findBookingQuery(newBooking.id);
 
