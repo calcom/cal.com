@@ -1,3 +1,10 @@
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookingWindowPeriodOutputTypeEnum_2024_06_14,
+  BookingLimitsEnum_2024_06_14,
+  Frequency,
+  FrequencyInput,
+} from "@calcom/platform-enums/monorepo";
 import type {
   AddressLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
@@ -15,15 +22,6 @@ import type {
   Recurrence_2024_06_14,
   TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookingWindowPeriodOutputTypeEnum_2024_06_14,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import {
-  Frequency,
-  FrequencyInput,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/frequency";
-import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
 

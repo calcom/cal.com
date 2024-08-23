@@ -98,7 +98,8 @@ export class OrganizationsEventTypesService {
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
     const isOrgAdmin = await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId);
     const profileId =
-      this.usersService.getUserProfileByOrgId(user, organizationId)?.id || user.movedToProfileId;
+      this.usersService.getUserProfileByOrgId(user, organizationId)?.id ||
+      this.usersService.getUserMainProfile(user)?.id;
     return {
       id: user.id,
       role: user.role,

@@ -33,6 +33,10 @@ export const createRoutingFormsFixture = () => {
         label: string;
         identifier?: string;
         required: boolean;
+        options?: {
+          label: string;
+          id: string | null;
+        }[];
       }[];
     }) {
       return await prisma.app_RoutingForms_Form.create({
