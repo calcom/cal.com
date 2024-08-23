@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { authenticator } from "otplib";
 import { z } from "zod";
 
 import { defaultResponder } from "@calcom/lib/server";
@@ -18,22 +17,18 @@ enum DirectAction {
 const querySchema = z.object({
   action: z.nativeEnum(DirectAction),
   token: z.string(),
-  reason: z.string().optional(),
-  bookingUid: z.string(),
   userId: z.string(),
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  const { action, token, reason, bookingUid, userId } = querySchema.parse(req.query);
+  const { action, token, userId } = querySchema.parse(req.query);
 
-  const booking = await prisma.booking.findUniqueOrThrow({
-    where: { uid: bookingUid },
+  const booking = await prisma.booking.findUnique({
+    where: { oneTimePassword: token },
   });
-
-  const secret = booking.bookingSecret as string;
-  const isValidToken = authenticator.check(token, secret);
-  if (!isValidToken) {
-    res.redirect(`/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`);
+  if (!booking) {
+    // Or a custom error page where we state that the booking doesn't exist or the token was invalid.
+    res.redirect(`/booking/404`);
     return;
   }
 
@@ -76,7 +71,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,
-      reason,
     });
   } catch (e) {
     let message = "Error confirming booking";

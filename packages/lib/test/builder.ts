@@ -71,7 +71,7 @@ export const buildBooking = (
     noShowHost: null,
     ratingFeedback: null,
     attendees: [],
-    bookingSecret: null,
+    oneTimePassword: null,
     ...booking,
   };
 };
