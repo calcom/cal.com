@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS } from "@calcom/lib/constants";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
@@ -234,11 +235,12 @@ export async function addWeightAdjustmentToNewHosts({
     }));
   }
 
-  const ongoingHostBookings = await BookingRepository.getAllBookingsForRoundRobin({
+  const ongoingHostBookings = await BookingRepository.getBookingsForRoundRobin({
     eventTypeId,
     users: ongoingRRHosts.map((host) => {
       return { id: host.user.id, email: host.user.email };
     }),
+    fetchFromPastDays: FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS,
   });
 
   const { ongoingHostsWeightAdjustment, ongoingHostsWeights } = ongoingRRHosts.reduce(
@@ -255,9 +257,10 @@ export async function addWeightAdjustmentToNewHosts({
       let weightAdjustment = !host.isFixed ? host.weightAdjustment : 0;
       if (host.isNewRRHost) {
         // host can already have bookings, if they ever was assigned before
-        const existingBookings = await BookingRepository.getAllBookingsForRoundRobin({
+        const existingBookings = await BookingRepository.getBookingsForRoundRobin({
           eventTypeId,
           users: [{ id: host.user.id, email: host.user.email }],
+          fetchFromPastDays: FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS,
         });
 
         const proportionalNrOfBookings =

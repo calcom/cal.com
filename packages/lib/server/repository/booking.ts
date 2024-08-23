@@ -58,14 +58,16 @@ export class BookingRepository {
     });
   }
 
-  static async getAllBookingsForRoundRobin({
+  static async getBookingsForRoundRobin({
     users,
     eventTypeId,
+    fetchFromPastDays = null,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
+    fetchFromPastDays?: number | null;
   }) {
-    const whereClause: Prisma.BookingWhereInput = {
+    let whereClause: Prisma.BookingWhereInput = {
       OR: [
         {
           user: {
@@ -95,10 +97,16 @@ export class BookingRepository {
       attendees: { some: { noShow: false } },
       status: BookingStatus.ACCEPTED,
       eventTypeId,
-      createdAt: {
-        gte: dayjs().utc().subtract(28, "day").toDate(),
-      },
     };
+
+    if (!!fetchFromPastDays) {
+      whereClause = {
+        ...whereClause,
+        createdAt: {
+          gte: dayjs().utc().subtract(fetchFromPastDays, "day").toDate(),
+        },
+      };
+    }
 
     const allBookings = await prisma.booking.findMany({
       where: whereClause,

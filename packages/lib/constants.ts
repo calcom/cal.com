@@ -185,3 +185,5 @@ export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
 export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/stop-recording.svg`
   : `https://app.cal.com/stop-recording.svg`;
+
+export const FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS = 28;

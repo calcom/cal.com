@@ -1,5 +1,6 @@
 import type { User } from "@prisma/client";
 
+import { FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS } from "@calcom/lib/constants";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
@@ -152,9 +153,10 @@ async function getUsersBasedOnWeights<
     []
   );
 
-  const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+  const bookingsOfNotAvailableUsers = await BookingRepository.getBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
+    fetchFromPastDays: FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS,
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
@@ -221,7 +223,7 @@ export async function getLuckyUser<
     return availableUsers[0];
   }
 
-  const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+  const bookingsOfAvailableUsers = await BookingRepository.getBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
       return { id: user.id, email: user.email };
