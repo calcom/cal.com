@@ -84,8 +84,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const roundRobinUsernamePool = [];
 
-  if (eventData.schedulingType === SchedulingType.ROUND_ROBIN && email) {
-    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.id);
+  if (eventData?.schedulingType === SchedulingType.ROUND_ROBIN && email) {
+    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email as string, eventData.id);
 
     if (crmContactOwner) {
       const ownerUsername = await prisma.user.findUnique({
@@ -98,7 +98,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       });
 
-      if (eventData.users.find((user) => user.username === ownerUsername.username)) {
+      if (
+        ownerUsername?.username &&
+        eventData.users.find((user) => user.username === ownerUsername.username)
+      ) {
         roundRobinUsernamePool.push(ownerUsername.username);
       }
     }

@@ -15,7 +15,7 @@ export async function getCRMContactOwnerForRRLeadSkip(bookerEmail: string, event
 
   const eventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventTypeMetadataQuery?.metadata);
 
-  if (!eventTypeMetadata.success) return;
+  if (!eventTypeMetadata.success || !eventTypeMetadata.data?.apps) return;
 
   const crm = await getCRMManagerWithRRLeadSkip(eventTypeMetadata.data.apps);
 
