@@ -326,7 +326,7 @@ model User {
   OutOfOfficeReasons     OutOfOfficeReason[]
   smsLockState           SMSLockState        @default(UNLOCKED)
   smsLockReviewedByAdmin Boolean             @default(false)
-  smsCredits             Int                 @default(0)
+  smsCreditsCount        SmsCreditCount[]
 
   @@unique([email])
   @@unique([email, username])
@@ -418,8 +418,7 @@ model Team {
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
   smsLockReviewedByAdmin Boolean                 @default(false)
-  smsCredits             Int                     @default(0)
-  smsLimitReachedAt      DateTime?
+  smsCreditsCount        SmsCreditCount[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1436,9 +1435,23 @@ model PlatformBilling {
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
-model SMSCountryCredits {
+model SmsCountryCredits {
   id      String @id @unique @default(uuid())
   iso     String
   country String
   credits Int    @default(0)
+}
+
+model SmsCreditCount {
+  id             Int       @id @default(autoincrement())
+  userTeamKey    String    @unique
+  user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int?
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId         Int
+  credits        Int       @default(0)
+  limitReachedAt DateTime?
+  warningSentAt  DateTime?
+
+  @@unique([userId, teamId])
 }

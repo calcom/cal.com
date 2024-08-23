@@ -187,7 +187,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, smsMessage, senderID, userId, teamId);
+        //send the correct teamId and boolean here
+        await twilio.sendSMS(reminderPhone, smsMessage, senderID, userId, teamId, false);
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
       }

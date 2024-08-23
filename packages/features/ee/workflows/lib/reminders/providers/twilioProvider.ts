@@ -1,7 +1,8 @@
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
-import { sendSmsLimitAlmostReachedEmails } from "@calcom/emails";
+import dayjs from "@calcom/dayjs";
+import { sendSmsLimitAlmostReachedEmails, sendSmsLimitReachedEmails } from "@calcom/emails";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -33,7 +34,7 @@ export async function getCreditsForNumber(phoneNumber: string) {
     return 0;
   }
 
-  const country = await prisma.sMSCountryCredits.findFirst({
+  const country = await prisma.smsCountryCredits.findFirst({
     where: {
       iso: countryCode,
     },
@@ -42,43 +43,94 @@ export async function getCreditsForNumber(phoneNumber: string) {
   return country?.credits || 3;
 }
 
-async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
+async function addCredits(phoneNumber: string, userId?: number | null, teamId: number) {
   const credits = await getCreditsForNumber(phoneNumber);
 
-  if (teamId) {
-    const team = await prisma.team.update({
-      where: { id: teamId },
-      data: { smsCredits: { increment: credits } },
-      select: {
-        name: true,
-        members: {
-          select: {
-            user: {
-              select: {
-                email: true,
-                name: true,
-                locale: true,
+  const userTeamKey = userId ? `${teamId}:${userId}` : `${teamId}`;
+
+  const smsCreditCount = await prisma.smsCreditCount.upsert({
+    where: {
+      userTeamKey: userTeamKey,
+    },
+    update: {
+      credits: {
+        increment: credits,
+      },
+    },
+    create: {
+      userTeamKey: userTeamKey,
+      teamId,
+      userId,
+      credits,
+    },
+    select: {
+      limitReachedAt: true,
+      warningSentAt: true,
+      credits: true,
+      team: {
+        select: {
+          name: true,
+          members: {
+            select: {
+              accepted: true,
+              role: true,
+              user: {
+                select: {
+                  email: true,
+                  name: true,
+                  locale: true,
+                },
               },
             },
-            accepted: true,
-            role: true,
           },
         },
-        smsCredits: true,
       },
-    });
+    },
+  });
 
-    const acceptedMembers = team.members.filter((member) => member.accepted);
+  const team = smsCreditCount.team;
 
-    const totalCredits = acceptedMembers.length * creditsPerMember;
+  const acceptedMembers = team.members.filter((member) => member.accepted);
 
-    if (team.smsCredits > totalCredits) {
-      // check if limitedReachAt is already set for this month
-      // if not send limited reach email & set date
-      return false;
+  const totalCredits = acceptedMembers.length * creditsPerMember;
+
+  if (smsCreditCount.credits > totalCredits) {
+    if (
+      !smsCreditCount.limitReachedAt ||
+      dayjs(smsCreditCount.limitReachedAt).isBefore(dayjs().startOf("month"))
+    ) {
+      // duplicate code
+      const owners = await Promise.all(
+        acceptedMembers
+          .filter((member) => member.role === "OWNER")
+          .map(async (member) => {
+            return {
+              email: member.user.email,
+              name: member.user.name,
+              t: await getTranslation(member.user.locale ?? "es", "common"),
+            };
+          })
+      );
+
+      await sendSmsLimitReachedEmails({ name: team.name, owners });
+
+      await prisma.smsCreditCount.update({
+        where: {
+          userTeamKey,
+        },
+        data: {
+          limitReachedAt: new Date(),
+        },
+      });
     }
+    return false;
+  }
 
-    if (team.smsCredits > totalCredits * 0.8) {
+  if (smsCreditCount.credits > totalCredits * 0.8) {
+    if (
+      !smsCreditCount.warningSentAt ||
+      dayjs(smsCreditCount.warningSentAt).isBefore(dayjs().startOf("month"))
+    ) {
       const owners = await Promise.all(
         acceptedMembers
           .filter((member) => member.role === "OWNER")
@@ -91,38 +143,35 @@ async function addCredits(phoneNumber: string, userId?: number | null, teamId?: 
           })
       );
       // notification email to team owners when over 80% of credits used
-      sendSmsLimitAlmostReachedEmails({ name: team.name, owners });
+      await sendSmsLimitAlmostReachedEmails({ name: team.name, owners });
+
+      await prisma.smsCreditCount.update({
+        where: {
+          userTeamKey,
+        },
+        data: {
+          warningSentAt: new Date(),
+        },
+      });
     }
-    return true;
   }
 
-  if (userId) {
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { smsCredits: { increment: credits } },
-    });
-
-    // todo: also check for too many credits here
-    return;
-  }
+  return true;
 }
 
-async function removeCredits(credits: number, userId?: number | null, teamId?: number | null) {
-  if (teamId) {
-    await prisma.team.update({
-      where: { id: teamId },
-      data: { smsCredits: { decrement: credits } },
-    });
-    return;
-  }
+async function removeCredits(credits: number, userId?: number | null, teamId: number) {
+  const userTeamKey = userId ? `${teamId}:${userId}` : `${teamId}`;
 
-  if (userId) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { smsCredits: { decrement: credits } },
-    });
-    return;
-  }
+  await prisma.smsCreditCount.update({
+    where: {
+      userTeamKey,
+    },
+    data: {
+      credits: {
+        increment: credits,
+      },
+    },
+  });
 }
 
 function createTwilioClient() {
@@ -149,7 +198,8 @@ export const sendSMS = async (
   body: string,
   sender: string,
   userId?: number | null,
-  teamId?: number | null,
+  teamId?: number | null, // either event type team id or user's team teamId
+  isTeamEventType: boolean, // a managed event type also counts as a team event type
   whatsapp = false
 ) => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
