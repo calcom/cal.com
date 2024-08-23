@@ -104,6 +104,7 @@ model EventType {
   periodCountCalendarDays                 Boolean?
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
+  requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
