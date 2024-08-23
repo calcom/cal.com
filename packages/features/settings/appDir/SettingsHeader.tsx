@@ -7,7 +7,7 @@ interface HeaderProps {
   children: React.ReactNode;
   title?: string;
   description?: string;
-  CTA?: ReactNode;
+  CTA?: React.ReactNode;
   borderInShellHeader?: boolean;
   backButton?: boolean;
 }
