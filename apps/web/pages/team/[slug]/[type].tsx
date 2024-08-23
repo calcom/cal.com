@@ -35,6 +35,7 @@ export default function Type({
   eventData,
   isInstantMeeting,
   orgBannerUrl,
+  roundRobinUsernamePool,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -67,6 +68,7 @@ export default function Type({
           eventData.length
         )}
         orgBannerUrl={orgBannerUrl}
+        roundRobinUsernamePool={roundRobinUsernamePool}
       />
     </main>
   );

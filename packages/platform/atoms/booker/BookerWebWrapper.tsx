@@ -129,7 +129,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     month: props.month,
     duration: props.duration,
     selectedDate,
-    bookerEmail: debouncedFormEmail,
+    roundRobinUsernamePool: props.roundRobinUsernamePool,
   });
   const bookings = useBookings({
     event,
