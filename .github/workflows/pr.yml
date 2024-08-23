@@ -106,6 +106,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       # Doing this custom checkout of the common.json files from the PR since we don't
       # want to checkout the entire branch for security reasons as this job is granted
       # write permissions.
