@@ -7,4 +7,3 @@ export * from "./booking-fields.input";
 export * from "./recurrence.input";
 export * from "./update-event-type.input";
 export * from "./get-event-types-query.input";
-export * from "./enums";
