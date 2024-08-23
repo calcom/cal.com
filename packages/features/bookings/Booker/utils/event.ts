@@ -77,7 +77,7 @@ export const useScheduleForEvent = ({
   dayCount?: number | null;
   selectedDate?: string | null;
   orgSlug?: string;
-  roundRobinUsernamePool?: string[];
+  roundRobinUsernamePool?: string[] | null;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
