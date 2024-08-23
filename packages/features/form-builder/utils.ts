@@ -109,7 +109,7 @@ export const emailMask = (value: string) => {
 };
 
 const validateCPF = (cpf: string) => {
-  if (cpf.length !== 11) return "incomplete";
+  if (cpf.length < 11) return "incomplete";
 
   const cpfArray = Array.from(cpf).map(Number);
 
@@ -144,15 +144,15 @@ const validateCPF = (cpf: string) => {
 export const cpfMask = (value: string) => {
   if (!value) return { isValid: "incomplete", value: "" };
   const onlyNumbers = value.replace(/[^\d]/g, "");
+  const formattedValue = onlyNumbers.length > 11 ? onlyNumbers.slice(0, 11) : onlyNumbers;
+  const cpfIsValid = validateCPF(formattedValue);
 
-  const cpfIsValid = validateCPF(onlyNumbers);
-
-  const formatedCPF = onlyNumbers
+  const formattedCPF = formattedValue
     .replace(/\D/g, "")
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d{1,2})/, "$1-$2")
     .replace(/(-\d{2})\d+?$/, "$1");
 
-  return { isValid: cpfIsValid, value: formatedCPF };
+  return { isValid: cpfIsValid, value: formattedCPF };
 };
