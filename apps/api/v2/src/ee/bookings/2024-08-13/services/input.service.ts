@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
+  CancelBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
@@ -340,6 +341,46 @@ export class InputBookingsService_2024_08_13 {
       sortStart: queryParams.sortStart,
       sortEnd: queryParams.sortEnd,
       sortCreated: queryParams.sortCreated,
+    };
+  }
+
+  async createCancelBookingRequest(
+    request: Request,
+    bookingUid: string,
+    body: CancelBookingInput_2024_08_13
+  ): Promise<BookingRequest> {
+    const bodyTransformed = await this.transformInputCancelBooking(bookingUid, body);
+    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+
+    const newRequest = { ...request };
+    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const oAuthParams = oAuthClientId
+      ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+
+    Object.assign(newRequest, { userId, ...oAuthParams });
+
+    newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+
+    return newRequest as unknown as BookingRequest;
+  }
+
+  async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
+    let allRemainingBookings = false;
+    let uid = bookingUid;
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendees(bookingUid);
+
+    if (recurringBooking.length) {
+      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
+      allRemainingBookings = true;
+      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
+      uid = recurringBooking[0].uid;
+    }
+
+    return {
+      uid,
+      cancellationReason: inputBooking.cancellationReason,
+      allRemainingBookings,
     };
   }
 }

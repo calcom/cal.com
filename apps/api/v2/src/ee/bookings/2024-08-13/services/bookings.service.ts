@@ -11,6 +11,7 @@ import {
   handleNewRecurringBooking,
   getAllUserBookings,
   handleInstantMeeting,
+  handleCancelBooking,
 } from "@calcom/platform-libraries-1.2.3";
 import {
   CreateBookingInput_2024_08_13,
@@ -19,6 +20,7 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
+  CancelBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 import { Booking } from "@calcom/prisma/client";
@@ -156,5 +158,11 @@ export class BookingsService_2024_08_13 {
     }
 
     return this.outputService.getOutputBooking(databaseBooking);
+  }
+
+  async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
+    await handleCancelBooking(bookingRequest);
+    return this.getBooking(bookingUid);
   }
 }

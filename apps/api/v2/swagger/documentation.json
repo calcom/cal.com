@@ -3155,6 +3155,46 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/cancel": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_cancelBooking",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBookingInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/slots/reserve": {
       "post": {
         "operationId": "SlotsController_reserveSlot",
@@ -9135,6 +9175,37 @@
       "RescheduleBookingInput_2024_08_13": {
         "type": "object",
         "properties": {}
+      },
+      "CancelBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "cancellationReason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cancellationReason"
+        ]
+      },
+      "CancelBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "ReserveSlotInput": {
         "type": "object",

@@ -1,3 +1,4 @@
+import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
 import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
@@ -18,6 +19,8 @@ import {
   Param,
   Query,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
@@ -29,6 +32,7 @@ import {
   CreateBookingInput,
   GetBookingsInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
+  CancelBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -103,12 +107,24 @@ export class BookingsController_2024_08_13 {
     };
   }
 
-  // @Post("/:bookingId/cancel")
-  // async cancelBooking(
-  //   @Req() request: Request,
-  //   @Param("bookingId") bookingId: string,
-  //   @Body() body: CancelBookingInput_2024_04_15,
-  // ): Promise<> {
+  @Post("/:bookingUid/cancel")
+  @HttpCode(HttpStatus.OK)
+  async cancelBooking(
+    @Req() request: Request,
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: CancelBookingInput_2024_08_13
+  ): Promise<CancelBookingOutput_2024_08_13> {
+    if (!bookingUid) {
+      throw new BadRequestException("Booking UID is required in request path /:bookingUid/cancel");
+    }
 
-  // }
+    console.log("asap here");
+
+    const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: cancelledBooking,
+    };
+  }
 }
