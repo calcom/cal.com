@@ -1,12 +1,20 @@
+"use client";
+
 import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
 
 import PageWrapper from "@components/PageWrapper";
 
 import AddNewTeamsPage, { LayoutWrapper } from "~/settings/organizations/[id]/add-teams-view";
 
-AddNewTeamsPage.getLayout = LayoutWrapper;
-AddNewTeamsPage.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof LayoutWrapper;
+}>(AddNewTeamsPage, {});
 
-export default AddNewTeamsPage;
+Page.getLayout = LayoutWrapper;
+Page.PageWrapper = PageWrapper;
+
+export default Page;
 
 export { getServerSideProps };
