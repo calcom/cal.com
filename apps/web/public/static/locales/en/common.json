@@ -615,7 +615,6 @@
   "edit_role": "Edit Role",
   "edit_team": "Edit team",
   "reject": "Reject",
-  "reject_with_reason": "Reject with reason",
   "reject_all": "Reject all",
   "accept": "Accept",
   "leave": "Leave",
@@ -2573,7 +2572,6 @@
   "number_of_options":"{{count}} options",
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
-  "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
-  "booking_not_found_description": "The booking you're looking for doesn't exist or the token is invalid.",
+   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
