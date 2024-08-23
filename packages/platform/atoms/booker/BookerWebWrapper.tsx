@@ -21,7 +21,6 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -119,7 +118,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
-  const debouncedFormEmail = useDebounce(bookerForm.formEmail, 600);
   const schedule = useScheduleForEvent({
     prefetchNextMonth,
     username: props.username,

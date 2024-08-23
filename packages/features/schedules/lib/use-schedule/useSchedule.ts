@@ -16,7 +16,7 @@ export type UseScheduleWithCacheArgs = {
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
   orgSlug?: string;
-  bookerEmail?: string;
+  roundRobinUsernamePool?: string[] | null;
 };
 
 export const useSchedule = ({
