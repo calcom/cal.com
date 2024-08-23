@@ -1,15 +1,11 @@
 import LegacyPage, {
   buildWrappedOnboardTeamMembersPage,
 } from "@pages/settings/organizations/[id]/onboard-members";
-import { type Params } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { headers } from "next/headers";
 
 import PageWrapper from "@components/PageWrapperAppDir";
-
-type PageProps = Readonly<{
-  params: Params;
-}>;
 
 export const generateMetadata = async () =>
   await _generateMetadata(
