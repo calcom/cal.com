@@ -1,10 +1,5 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-
-import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
-
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 import LegacyPage, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
 
@@ -17,5 +12,4 @@ export const generateMetadata = async () =>
 export default WithLayout({
   Page: LegacyPage,
   getLayout: LayoutWrapper,
-  getData: withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps),
 });
