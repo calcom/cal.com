@@ -106,11 +106,10 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
       # Doing this custom checkout of the common.json files from the PR since we don't
       # want to checkout the entire branch for security reasons as this job is granted
       # write permissions.
+      - run: git fetch --depth=2 origin 685473504c9dc02039dfc15fba62c14d5b4582ec
       - run: find apps/web/public/static/locales/** -name "common.json" | xargs git checkout 685473504c9dc02039dfc15fba62c14d5b4582ec --
         shell: bash
       - uses: replexica/replexica@main
