@@ -23,7 +23,8 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
   const isDynamic = !!(username && username.indexOf("+") > -1);
   const isEmbed = useIsEmbed();
 
-  const shownUsers = schedulingType !== SchedulingType.ROUND_ROBIN ? users : users.slice(0, 3);
+  const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
+  const shownUsers = showMembers ? users : [];
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =
     (profile.name && schedulingType === SchedulingType.ROUND_ROBIN) ||
