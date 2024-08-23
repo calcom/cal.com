@@ -1,6 +1,5 @@
 import type { User } from "@prisma/client";
 
-import { FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS } from "@calcom/lib/constants";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
@@ -156,7 +155,6 @@ async function getUsersBasedOnWeights<
   const bookingsOfNotAvailableUsers = await BookingRepository.getBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
-    fetchFromPastDays: FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS,
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
