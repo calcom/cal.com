@@ -1,4 +1,4 @@
-## 0.0.29 
+## 0.0.30 
 •	Feature: Added support for recurringEvent in api/v2/event-types.
 	•	Introduced the transformApiEventTypeRecurrence translator in packages/lib/event-types/transformers/api-request.ts. This enables the “recurringEvent” feature in the event-type API.
 	•	Added getResponseEventTypeRecurrence translator in packages/lib/event-types/transformers/api-response.ts to return data in a more human-friendly format.
