@@ -18,6 +18,7 @@ import {
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
@@ -381,6 +382,13 @@ export class InputBookingsService_2024_08_13 {
       uid,
       cancellationReason: inputBooking.cancellationReason,
       allRemainingBookings,
+    };
+  }
+
+  transformInputMarkAbsentBooking(inputBooking: MarkAbsentBookingInput_2024_08_13) {
+    return {
+      noShowHost: inputBooking.host,
+      attendees: inputBooking.attendees?.map((email) => ({ email, noShow: true })),
     };
   }
 }

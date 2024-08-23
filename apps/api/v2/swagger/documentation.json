@@ -3195,6 +3195,46 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/mark-absent": {
+      "post": {
+        "operationId": "BookingsController_2024_08_13_markNoShow",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkAbsentBookingInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkAbsentBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/slots/reserve": {
       "post": {
         "operationId": "SlotsController_reserveSlot",
@@ -9188,6 +9228,40 @@
         ]
       },
       "CancelBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "MarkAbsentBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "boolean"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "host",
+          "attendees"
+        ]
+      },
+      "MarkAbsentBookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {

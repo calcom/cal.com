@@ -10,5 +10,5 @@ export class CancelBookingOutput_2024_08_13 {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ValidateNested()
-  data!: BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13[];
+  data!: BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13[];
 }

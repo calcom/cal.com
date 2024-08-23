@@ -12,6 +12,7 @@ import {
   getAllUserBookings,
   handleInstantMeeting,
   handleCancelBooking,
+  handleMarkNoShow,
 } from "@calcom/platform-libraries-1.2.3";
 import {
   CreateBookingInput_2024_08_13,
@@ -21,12 +22,19 @@ import {
   GetBookingsInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 import { Booking } from "@calcom/prisma/client";
 
 type BookingWithAttendeesAndEventType = Booking & {
-  attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+  attendees: {
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+    noShow: boolean | null;
+  }[];
   eventType: { id: number };
 };
 
@@ -135,6 +143,7 @@ export class BookingsService_2024_08_13 {
         eventTypeId: booking.eventType.id,
         startTime: new Date(booking.startTime),
         endTime: new Date(booking.endTime),
+        absentHost: !!booking.noShowHost,
       };
 
       const isRecurring = !!formatted.recurringEventId;
@@ -164,5 +173,28 @@ export class BookingsService_2024_08_13 {
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
     await handleCancelBooking(bookingRequest);
     return this.getBooking(bookingUid);
+  }
+
+  async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
+    const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
+
+    await handleMarkNoShow({
+      bookingUid,
+      attendees: bodyTransformed.attendees,
+      noShowHost: bodyTransformed.noShowHost,
+      userId: bookingOwnerId,
+    });
+
+    const booking = await this.bookingsRepository.getByUidWithAttendees(bookingUid);
+
+    if (!booking) {
+      throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const isRecurring = !!booking.recurringEventId;
+    if (isRecurring) {
+      return this.outputService.getOutputRecurringBooking(booking);
+    }
+    return this.outputService.getOutputBooking(booking);
   }
 }

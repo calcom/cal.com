@@ -1,6 +1,7 @@
 import { Expose, Type } from "class-transformer";
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEmail,
   IsEnum,
@@ -33,6 +34,10 @@ class Attendee {
   @Expose()
   @IsOptional()
   language?: BookingLanguageType;
+
+  @IsBoolean()
+  @Expose()
+  absent!: boolean;
 }
 export class BookingOutput_2024_08_13 {
   @IsInt()
@@ -78,6 +83,10 @@ export class BookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   meetingUrl?: string;
+
+  @IsBoolean()
+  @Expose()
+  absentHost!: boolean;
 }
 
 export class RecurringBookingOutput_2024_08_13 {
@@ -128,4 +137,7 @@ export class RecurringBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   meetingUrl?: string;
+
+  @IsBoolean()
+  absentHost!: boolean;
 }

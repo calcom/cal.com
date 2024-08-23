@@ -1,7 +1,8 @@
-import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
+import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output copy";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
 import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
+import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -26,13 +27,14 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 
-import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   CreateBookingInputPipe,
   CreateBookingInput,
   GetBookingsInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -118,13 +120,32 @@ export class BookingsController_2024_08_13 {
       throw new BadRequestException("Booking UID is required in request path /:bookingUid/cancel");
     }
 
-    console.log("asap here");
-
     const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
 
     return {
       status: SUCCESS_STATUS,
       data: cancelledBooking,
+    };
+  }
+
+  @Post("/:bookingUid/mark-absent")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard)
+  async markNoShow(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: MarkAbsentBookingInput_2024_08_13,
+    @GetUser("id") ownerId: number
+  ): Promise<MarkAbsentBookingOutput_2024_08_13> {
+    if (!bookingUid) {
+      throw new BadRequestException("Booking UID is required in request path /:bookingUid/cancel");
+    }
+
+    const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
     };
   }
 }

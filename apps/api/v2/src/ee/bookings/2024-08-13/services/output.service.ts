@@ -19,7 +19,13 @@ export class OutputBookingsService_2024_08_13 {
 
   getOutputBooking(
     databaseBooking: Booking & {
-      attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+      attendees: {
+        name: string;
+        email: string;
+        timeZone: string;
+        locale: string | null;
+        noShow: boolean | null;
+      }[];
     }
   ) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
@@ -46,9 +52,11 @@ export class OutputBookingsService_2024_08_13 {
         email: attendee.email,
         timeZone: attendee.timeZone,
         language: attendee.locale,
+        absent: !!attendee.noShow,
       },
       guests: bookingResponses.guests,
       meetingUrl: databaseBooking.location,
+      absentHost: !!databaseBooking.noShowHost,
     };
 
     return plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -56,7 +64,13 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputRecurringBookings(
     databaseBookings: (Booking & {
-      attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+      attendees: {
+        name: string;
+        email: string;
+        timeZone: string;
+        locale: string | null;
+        noShow: boolean | null;
+      }[];
     })[]
   ) {
     const transformed = [];
@@ -79,7 +93,13 @@ export class OutputBookingsService_2024_08_13 {
 
   getOutputRecurringBooking(
     databaseBooking: Booking & {
-      attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+      attendees: {
+        name: string;
+        email: string;
+        timeZone: string;
+        locale: string | null;
+        noShow: boolean | null;
+      }[];
     }
   ) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
@@ -106,10 +126,12 @@ export class OutputBookingsService_2024_08_13 {
         email: attendee.email,
         timeZone: attendee.timeZone,
         language: attendee.locale,
+        absent: !!attendee.noShow,
       },
       guests: bookingResponses.guests,
       meetingUrl: databaseBooking.location,
       recurringBookingUid: databaseBooking.recurringEventId,
+      absentHost: !!databaseBooking.noShowHost,
     };
 
     return plainToClass(RecurringBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
