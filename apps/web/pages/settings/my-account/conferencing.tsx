@@ -6,7 +6,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import ConferencingView from "~/settings/my-account/conferencing-view";
 
-ConferencingView.getLayout = getLayout;
-ConferencingView.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(ConferencingView, {});
 
-export default ConferencingView;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;

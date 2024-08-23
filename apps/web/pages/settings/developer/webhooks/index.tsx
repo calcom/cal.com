@@ -1,10 +1,14 @@
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import WebhooksView from "@calcom/features/webhooks/pages/webhooks-view";
 
-import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";
 
-const Page = WebhooksView as CalPageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(WebhooksView, {});
+
 Page.getLayout = getLayout;
 Page.PageWrapper = PageWrapper;
 

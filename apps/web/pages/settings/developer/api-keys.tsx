@@ -4,7 +4,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import ApiKeysView from "~/settings/developer/api-keys-view";
 
-ApiKeysView.getLayout = getLayout;
-ApiKeysView.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(ApiKeysView, {});
 
-export default ApiKeysView;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;

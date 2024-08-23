@@ -6,7 +6,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import CalendarsView from "~/settings/my-account/calendars-view";
 
-CalendarsView.getLayout = getLayout;
-CalendarsView.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(CalendarsView, {});
 
-export default CalendarsView;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;

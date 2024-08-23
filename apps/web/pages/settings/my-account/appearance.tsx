@@ -6,7 +6,13 @@ import PageWrapper from "@components/PageWrapper";
 
 import AppearanceViewWrapper from "~/settings/my-account/appearance-view";
 
-AppearanceViewWrapper.getLayout = getLayout;
-AppearanceViewWrapper.PageWrapper = PageWrapper;
+const Page = new Proxy<{
+  (): JSX.Element;
+  PageWrapper?: typeof PageWrapper;
+  getLayout?: typeof getLayout;
+}>(AppearanceViewWrapper, {});
 
-export default AppearanceViewWrapper;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
+
+export default Page;
