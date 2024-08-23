@@ -2,22 +2,22 @@ import type { z } from "zod";
 
 import CrmManager from "@calcom/core/crmManager/crmManager";
 import { prisma } from "@calcom/prisma";
-import { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export async function getCRMContactOwnerForRRLeadSkip(bookerEmail: string, eventTypeId: number) {
-  const eventTypeMetadata = await prisma.eventType.findUnique({
+  const eventTypeMetadataQuery = await prisma.eventType.findUnique({
     where: {
       id: eventTypeId,
     },
     select: { metadata: true },
   });
 
-  const apps = EventTypeAppMetadataSchema.safeParse(eventTypeMetadata?.metadata?.apps);
+  const eventTypeMetadata = EventTypeMetaDataSchema.safeParse(eventTypeMetadataQuery?.metadata);
 
-  if (!apps.success) return;
+  if (!eventTypeMetadata.success) return;
 
-  if (!apps) return;
-  const crm = await getCRMManagerWithRRLeadSkip(apps.data);
+  const crm = await getCRMManagerWithRRLeadSkip(eventTypeMetadata.data.apps);
 
   if (!crm) return;
 
