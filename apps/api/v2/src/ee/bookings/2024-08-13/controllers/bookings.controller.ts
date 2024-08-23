@@ -19,7 +19,14 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+
+export type CreateBookingInput =
+  | CreateBookingInput_2024_08_13
+  | RescheduleBookingInput_2024_08_13
+  | CreateRecurringBookingInput_2024_08_13
+  | CreateInstantBookingInput_2024_08_13;
 
 @Controller({
   path: "/v2/bookings",
@@ -35,10 +42,7 @@ export class BookingsController_2024_08_13 {
   @Post("/")
   async createBooking(
     @Body(new CreateBookingInputPipe())
-    body:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13,
+    body: CreateBookingInput,
     @Req() request: Request
   ): Promise<CreateBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.createBooking(request, body);

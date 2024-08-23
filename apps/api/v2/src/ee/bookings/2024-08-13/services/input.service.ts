@@ -14,6 +14,7 @@ import { z } from "zod";
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
   CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
@@ -68,14 +69,13 @@ export class InputBookingsService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13
   ) {}
 
-  async createBookingRequest(
+  async createNonRecurringBookingRequest(
     request: Request,
     body:
       | CreateBookingInput_2024_08_13
       | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13
+      | CreateInstantBookingInput_2024_08_13
   ): Promise<BookingRequest> {
-    // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
     const bodyTransformed = await this.transformInputCreate(body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
@@ -88,13 +88,7 @@ export class InputBookingsService_2024_08_13 {
     const location = await this.getLocation(request, body);
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
-    const notRecurring = !("recurringEventTypeId" in body);
-    newRequest.body = notRecurring
-      ? { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled }
-      : (bodyTransformed as any[]).map((event) => ({
-          ...event,
-          noEmail: !oAuthParams.arePlatformEmailsEnabled,
-        }));
+    newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
 
     return newRequest as unknown as BookingRequest;
   }
@@ -153,18 +147,9 @@ export class InputBookingsService_2024_08_13 {
     }
   }
 
-  transformInputCreate(
-    inputBooking:
-      | CreateBookingInput_2024_08_13
-      | RescheduleBookingInput_2024_08_13
-      | CreateRecurringBookingInput_2024_08_13
-  ) {
+  transformInputCreate(inputBooking: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13) {
     if ("rescheduleBookingUid" in inputBooking) {
       return this.transformInputRescheduleBooking(inputBooking);
-    }
-
-    if ("recurringEventTypeId" in inputBooking) {
-      return this.transformInputCreateRecurringBooking(inputBooking);
     }
 
     return this.transformInputCreateBooking(inputBooking);

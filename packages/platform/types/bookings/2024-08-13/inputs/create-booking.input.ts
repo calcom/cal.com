@@ -11,6 +11,7 @@ import {
   IsOptional,
   IsUrl,
   IsObject,
+  IsBoolean,
 } from "class-validator";
 
 import type { BookingLanguageType } from "./language";
@@ -58,6 +59,11 @@ export class CreateBookingInput_2024_08_13 {
   @IsObject()
   @IsOptional()
   bookingFieldsResponses!: Record<string, unknown>;
+}
+
+export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
+  @IsBoolean()
+  instant!: boolean;
 }
 
 export class CreateRecurringBookingInput_2024_08_13 {
