@@ -173,6 +173,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
+                disabled={cpfError}
                 loading={loadingStates.creatingBooking || loadingStates.creatingRecurringBooking}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
