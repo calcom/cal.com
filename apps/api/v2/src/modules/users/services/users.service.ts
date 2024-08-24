@@ -30,6 +30,10 @@ export class UsersService {
     );
   }
 
+  getUserMainOrgId(user: UserWithProfile) {
+    return this.getUserMainProfile(user)?.organizationId ?? user.organizationId;
+  }
+
   getUserProfileByOrgId(user: UserWithProfile, organizationId: number) {
     return user.profiles?.find((p) => p.organizationId === organizationId);
   }

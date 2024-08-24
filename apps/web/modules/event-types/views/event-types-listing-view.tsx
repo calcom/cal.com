@@ -170,7 +170,8 @@ const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
     },
     {
       refetchOnWindowFocus: true,
-      staleTime: 1 * 60 * 60 * 1000,
+      refetchOnMount: true,
+      staleTime: 0,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
@@ -739,7 +740,7 @@ export const EventTypeList = ({
                         )}
                         <DropdownMenuSeparator />
                         {!isManagedEventType && (
-                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
+                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
                             <Skeleton
                               as={Label}
                               htmlFor="hiddenSwitch"
@@ -1280,7 +1281,7 @@ export const InfiniteEventTypeList = ({
                           )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
-                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
+                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"

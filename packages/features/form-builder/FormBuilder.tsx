@@ -180,7 +180,7 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
+                className="hover:bg-muted group relative flex items-center justify-between p-4 transition">
                 {!disabled && (
                   <>
                     {index >= 1 && (
@@ -238,7 +238,7 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-subtle rounded" }}
+                        classNames={{ container: "p-2 hover:bg-subtle rounded transition" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -714,7 +714,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded" }}
+          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded transition" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (
