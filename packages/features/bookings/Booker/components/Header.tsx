@@ -100,6 +100,8 @@ export function Header({
     );
   };
 
+  const selectedDateIsYesterday = selectedDate.isSame(today.subtract(1, "day"), "day");
+
   return (
     <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
       <div className="flex items-center gap-5 rtl:flex-grow">
@@ -109,6 +111,7 @@ export function Header({
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
+            disabled={selectedDateIsYesterday}
             StartIcon="chevron-left"
             aria-label="Previous Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
