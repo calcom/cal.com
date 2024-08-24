@@ -363,7 +363,7 @@ export function AvailabilitySettings({
               open={bulkUpdateModalProps?.isOpen}
               setOpen={bulkUpdateModalProps.setIsOpen}
               bulkUpdateFunction={bulkUpdateModalProps?.save}
-              description={t("default_conferencing_bulk_description", { type: "schedules" })}
+              description={t("default_schedules_bulk_description")}
             />
           )}
 

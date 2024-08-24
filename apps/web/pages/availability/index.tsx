@@ -149,7 +149,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               open={bulkUpdateModal}
               setOpen={setBulkUpdateModal}
               bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
-              description={t("default_conferencing_bulk_description", { type: "schedules" })}
+              description={t("default_schedules_bulk_description")}
             />
           )}
         </>
