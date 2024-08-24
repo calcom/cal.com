@@ -40,12 +40,6 @@ const organizationSettingsSelect = Prisma.validator<Prisma.OrganizationSettingsS
   allowSEOIndexing: true,
   orgProfileRedirectsToVerifiedDomain: true,
 });
-const organizationWithSettingsSelect = {
-  ...organizationSelect,
-  organizationSettings: {
-    select: organizationSettingsSelect,
-  },
-};
 const organizationSelect = {
   id: true,
   slug: true,
@@ -55,6 +49,12 @@ const organizationSelect = {
   calVideoLogo: true,
   bannerUrl: true,
   isPlatform: true,
+};
+const organizationWithSettingsSelect = {
+  ...organizationSelect,
+  organizationSettings: {
+    select: organizationSettingsSelect,
+  },
 };
 
 export enum LookupTarget {
