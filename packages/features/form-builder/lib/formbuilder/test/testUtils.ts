@@ -125,7 +125,9 @@ export const questionUtils = {
     fireEvent.keyDown(screen.getByTestId("test-field-type"), { key: "ArrowDown", code: "ArrowDown" });
     fireEvent.click(screen.getByTestId(`select-option-${props.questionType}`));
     fireEvent.change(screen.getAllByRole("textbox")[0], { target: { value: props.identifier } });
-    fireEvent.change(screen.getAllByRole("textbox")[1], { target: { value: props.label } });
+    if (props.questionType !== "boolean") {
+      fireEvent.change(screen.getAllByRole("textbox")[1], { target: { value: props.label } });
+    }
     clickDisablePrefillBasedOnUserInput(props?.disableOnPrefill);
     fireEvent.click(screen.getByTestId("field-add-save"));
     await waitFor(() => {
