@@ -20,5 +20,6 @@
   "no_results": "No hi ha resultats",
   "load_more_results": "Carrega més resultats",
   "integration_meeting_id": "{{integrationName}} Identificador de la reunió: {{meetingId}}",
-  "confirmed_event_type_subject": "Confirmat: {{eventType}} amb {{name}} el {{date}}"
+  "confirmed_event_type_subject": "Confirmat: {{eventType}} amb {{name}} el {{date}}",
+  "signing_up_terms": "En procedir, accepteu els nostres <0>Termes</0> i <1>Política de privacitat</1>"
 }
