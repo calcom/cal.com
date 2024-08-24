@@ -417,6 +417,27 @@ function Options({
   );
 }
 
+const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) => {
+  const { t } = useLocale();
+  const [firstRender, setFirstRender] = useState(true);
+  return (
+    <div className="mt-6">
+      <Label>{t("label")}</Label>
+      <Editor
+        getText={() => md.render(fieldForm.getValues("label") || "")}
+        setText={(value: string) => {
+          fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+        }}
+        excludedToolbarItems={["blockType", "bold", "italic"]}
+        disableLists
+        firstRender={firstRender}
+        setFirstRender={setFirstRender}
+        placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+      />
+    </div>
+  );
+};
+
 function FieldEditDialog({
   dialog,
   onOpenChange,
@@ -453,30 +474,13 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const [firstRender, setFirstRender] = useState(true);
-
-  const CheckboxFieldLabel = () => {
-    return (
-      <div className="mt-6">
-        <Label>{t("label")}</Label>
-        <Editor
-          getText={() => md.render(fieldForm.getValues("label") || "")}
-          setText={(value: string) => {
-            fieldForm.setValue("label", turndown(value), { shouldDirty: true });
-          }}
-          excludedToolbarItems={["blockType", "bold", "italic"]}
-          disableLists
-          firstRender={firstRender}
-          setFirstRender={setFirstRender}
-          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-        />
-      </div>
-    );
-  };
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog" modalDisabled={true}>
+      <DialogContent
+        className="max-h-none p-0"
+        data-testid="edit-field-dialog"
+        forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
@@ -524,7 +528,7 @@ function FieldEditDialog({
                     />
                     <div>
                       {formFieldType === "boolean" ? (
-                        <CheckboxFieldLabel />
+                        <CheckboxFieldLabel fieldForm={fieldForm} />
                       ) : (
                         <InputField
                           {...fieldForm.register("label")}
