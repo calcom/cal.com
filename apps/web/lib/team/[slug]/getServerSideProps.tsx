@@ -28,15 +28,6 @@ const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefine
   return value.at(-1);
 };
 
-function getRedirectToVerifiedDomain({ verifiedDomain }: { verifiedDomain: string }) {
-  return {
-    redirect: {
-      permanent: false,
-      destination: `https://${verifiedDomain}`,
-    },
-  };
-}
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
 
@@ -101,7 +92,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       organizationSettings.orgProfileRedirectsToVerifiedDomain &&
       organizationSettings.orgAutoAcceptEmail
     ) {
-      return getRedirectToVerifiedDomain({ verifiedDomain: organizationSettings.orgAutoAcceptEmail });
+      return {
+        redirect: {
+          permanent: false,
+          destination: `https://${organizationSettings.orgAutoAcceptEmail}`,
+        },
+      };
     }
   }
 
