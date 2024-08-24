@@ -2438,5 +2438,10 @@
   "unable_to_subscribe_to_the_platform": "Hiba történt a platformcsomagra való előfizetés során. Kérjük, próbálja újra később",
   "updating_oauth_client_error": "Hiba történt az OAuth-kliens frissítésekor. Kérjük, próbálja újra később",
   "creating_oauth_client_error": "Hiba történt az OAuth-kliens létrehozásakor. Kérjük, próbálja újra később",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "perc",
+  "hour_short": "ó",
+  "minute_one_short": "{{count}} perc",
+  "hour_one_short": "{{count}} ó",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

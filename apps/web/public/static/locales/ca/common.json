@@ -20,5 +20,10 @@
   "no_results": "No hi ha resultats",
   "load_more_results": "Carrega més resultats",
   "integration_meeting_id": "{{integrationName}} Identificador de la reunió: {{meetingId}}",
-  "confirmed_event_type_subject": "Confirmat: {{eventType}} amb {{name}} el {{date}}"
+  "confirmed_event_type_subject": "Confirmat: {{eventType}} amb {{name}} el {{date}}",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "h",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} h"
 }

@@ -417,5 +417,10 @@
   "app_theme": "Tema kontrolne ploče",
   "app_theme_applies_note": "Ovo se primjenjuje samo na vašu prijavljenu kontrolnu ploču",
   "already_have_account": "Već imate račun?",
-  "email_team_invite|subject|invited_to_regular_team": "{{user}} vas je pozvao da se pridružite timu {{team}} na {{appName}}"
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} vas je pozvao da se pridružite timu {{team}} na {{appName}}",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "h",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} h"
 }

@@ -172,5 +172,10 @@
   "events_rescheduled": "நிகழ்வுகள் மீண்டும் திட்டமிடப்பட்டுள்ளன",
   "from_last_period": "கடந்த காலத்திலிருந்து",
   "from_to_date_period": "{{startDate}} லிருந்து {{endDate}} வரை",
-  "event_trends": "நிகழ்வுப் போக்குகள்"
+  "event_trends": "நிகழ்வுப் போக்குகள்",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "நிமிடங்கள்",
+  "hour_short": "மணித்துளிகள்",
+  "minute_one_short": "{{count}} நிமிடங்கள்",
+  "hour_one_short": "{{count}} மணித்துளிகள்"
 }

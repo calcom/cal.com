@@ -17,5 +17,10 @@
   "old_email_address": "Стар имейл",
   "new_email_address": "Нов имейл",
   "verify_email_page_body": "Изпратихме имейл до {{email}}. Важно е да проверите имейл адреса си, за да гарантирате най-добрата възможност за доставка на имейли и календари от {{appName}}.",
-  "verify_email_banner_body": "Проверете имейл адреса си, за да гарантирате най-добрата доставка на имейли и календари"
+  "verify_email_banner_body": "Проверете имейл адреса си, за да гарантирате най-добрата доставка на имейли и календари",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "мин.",
+  "hour_short": "ч.",
+  "minute_one_short": "{{count}} мин.",
+  "hour_one_short": "{{count}} ч."
 }
