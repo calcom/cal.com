@@ -424,6 +424,7 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
     <div className="mt-6">
       <Label>{t("label")}</Label>
       <Editor
+        {...fieldForm.register("label")}
         getText={() => md.render(fieldForm.getValues("label") || "")}
         setText={(value: string) => {
           fieldForm.setValue("label", turndown(value), { shouldDirty: true });

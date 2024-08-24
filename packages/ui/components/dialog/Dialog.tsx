@@ -112,9 +112,10 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     );
     return (
       <Portal>
-        <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
-        {forceOverlayWhenNoModal && (
+        {forceOverlayWhenNoModal ? (
           <div className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        ) : (
+          <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
         )}
         <Content
           {...props}
