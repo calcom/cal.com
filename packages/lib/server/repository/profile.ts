@@ -41,14 +41,7 @@ const organizationSettingsSelect = Prisma.validator<Prisma.OrganizationSettingsS
   orgProfileRedirectsToVerifiedDomain: true,
 });
 const organizationWithSettingsSelect = {
-  id: true,
-  slug: true,
-  name: true,
-  metadata: true,
-  logoUrl: true,
-  calVideoLogo: true,
-  bannerUrl: true,
-  isPlatform: true,
+  ...organizationSelect,
   organizationSettings: {
     select: organizationSettingsSelect,
   },
