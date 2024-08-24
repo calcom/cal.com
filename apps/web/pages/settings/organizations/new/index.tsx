@@ -1,5 +1,3 @@
-"use client";
-
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";

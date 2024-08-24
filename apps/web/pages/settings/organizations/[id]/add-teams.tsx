@@ -1,5 +1,3 @@
-"use client";
-
 import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
 
 import PageWrapper from "@components/PageWrapper";
