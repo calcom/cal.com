@@ -2574,6 +2574,6 @@
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
   "disable_org_url_label": "Disable public organization profile and redirect",
-  "disable_org_url_description": "Redirects acme.cal.com to acme.com",
+  "disable_org_url_description": "Redirects {{orgSlug}}.cal.com to {{destination}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

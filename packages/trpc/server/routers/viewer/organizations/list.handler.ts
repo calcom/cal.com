@@ -39,6 +39,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
       isAdminReviewed: true,
       allowSEOIndexing: true,
       orgProfileRedirectsToVerifiedDomain: true,
+      orgAutoAcceptEmail: true,
     },
   });
 
@@ -58,6 +59,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
       adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
       allowSEOIndexing: organizationSettings?.allowSEOIndexing,
       orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
+      orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
     },
     user: {
       role: membership?.role,

@@ -170,7 +170,10 @@ const OrgAppearanceView = ({
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("disable_org_url_label")}
-        description={t("disable_org_url_description")}
+        description={t("disable_org_url_description", {
+          orgSlug: currentOrg?.slug,
+          destination: currentOrg?.organizationSettings?.orgAutoAcceptEmail,
+        })}
         disabled={mutation.isPending}
         checked={orgProfileRedirectsToVerifiedDomainValue}
         onCheckedChange={(checked) => {
