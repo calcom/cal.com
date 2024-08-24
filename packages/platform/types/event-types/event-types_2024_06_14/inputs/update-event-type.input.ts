@@ -186,4 +186,9 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsInt()
   @Min(1)
   offsetStart?: number;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Recurrence_2024_06_14)
+  recurrence?: Recurrence_2024_06_14;
 }
