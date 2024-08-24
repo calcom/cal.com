@@ -20,9 +20,9 @@ import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { Switch } from "../../src/components/ui/switch";
 import { useToast } from "../../src/components/ui/use-toast";
-import { SelectedCalendarSettings } from "../SelectedCalendarSettings";
+import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
-export const SelectedCalendarSettingsPlatformWrapper = ({
+export const SelectedCalendarsSettingsPlatformWrapper = ({
   classNames = "mx-5 mb-6",
 }: {
   classNames?: string;
@@ -43,8 +43,8 @@ export const SelectedCalendarSettingsPlatformWrapper = ({
             }
 
             return (
-              <SelectedCalendarSettings classNames={classNames}>
-                <SelectedCalendarSettingsHeading />
+              <SelectedCalendarsSettings classNames={classNames}>
+                <SelectedCalendarsSettingsHeading />
                 <List noBorderTreatment className="p-6 pt-2">
                   {data.connectedCalendars.map((connectedCalendar) => {
                     if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
@@ -112,7 +112,7 @@ export const SelectedCalendarSettingsPlatformWrapper = ({
                     );
                   })}
                 </List>
-              </SelectedCalendarSettings>
+              </SelectedCalendarsSettings>
             );
           }}
         />
@@ -121,7 +121,7 @@ export const SelectedCalendarSettingsPlatformWrapper = ({
   );
 };
 
-const SelectedCalendarSettingsHeading = () => {
+const SelectedCalendarsSettingsHeading = () => {
   const { t } = useLocale();
 
   return (

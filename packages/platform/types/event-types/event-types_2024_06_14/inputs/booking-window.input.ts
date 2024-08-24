@@ -13,7 +13,7 @@ import {
   IsBoolean,
 } from "class-validator";
 
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "./enums/booking-window.enum";
+import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
 
 export type BookingWindowPeriodInputType_2024_06_14 = "businessDays" | "calendarDays" | "range";
 export type BookingWindowPeriodOutputType_2024_06_14 = "RANGE" | "ROLLING_WINDOW" | "ROLLING";
