@@ -259,6 +259,10 @@ export function AvailabilitySettings({
   const [openSidebar, setOpenSidebar] = useState(false);
   const [timeIncrement, setTimeIncrement] = useState(schedule.timeIncrement || INCREMENT);
   const { t, i18n } = useLocale();
+  const timeIncrementOptions = [5, 10, 15, 30, 60].map((mins) => ({
+    value: mins,
+    label: t("multiple_duration_mins", { count: mins }),
+  }));
 
   const form = useForm<AvailabilityFormValues>({
     defaultValues: {
