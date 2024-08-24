@@ -61,11 +61,11 @@ export class BookingRepository {
   static async getBookingsForRoundRobin({
     users,
     eventTypeId,
-    fetchFromPastDays = null,
+    fetchFromPastDays,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
-    fetchFromPastDays?: number | null;
+    fetchFromPastDays?: number;
   }) {
     let whereClause: Prisma.BookingWhereInput = {
       OR: [
