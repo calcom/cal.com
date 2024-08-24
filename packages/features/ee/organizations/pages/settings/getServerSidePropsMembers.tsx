@@ -1,7 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSidePropsForMembers>;
@@ -21,7 +20,7 @@ export const getServerSidePropsForMembers = async function getServerSidePropsFor
     };
   }
 
-  if (!session.user.org?.id) {
+  if (!session.user.profile?.organizationId) {
     return {
       redirect: {
         permanent: false,
