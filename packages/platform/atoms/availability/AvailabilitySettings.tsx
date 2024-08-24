@@ -7,6 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import WebSchedule, {
+  INCREMENT,
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
 import WebShell from "@calcom/features/shell/Shell";
@@ -33,6 +34,7 @@ import {
   Tooltip,
   VerticalDivider,
   showToast,
+  Select,
 } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
@@ -83,6 +85,7 @@ type AvailabilitySettingsProps = {
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
     schedule: Availability[];
+    timeIncrement?: number | null;
   };
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
@@ -249,7 +252,12 @@ export function AvailabilitySettings({
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
+  const [timeIncrement, setTimeIncrement] = useState(schedule.timeIncrement || INCREMENT);
   const { t, i18n } = useLocale();
+  const timeIncrementOptions = [5, 10, 15, 30, 60].map((mins) => ({
+    value: mins,
+    label: t("multiple_duration_mins", { count: mins }),
+  }));
 
   const utils = trpc.useUtils();
   const bulkUpdateDefaultAvailabilityMutation =
@@ -265,6 +273,7 @@ export function AvailabilitySettings({
     defaultValues: {
       ...schedule,
       schedule: schedule.availability || [],
+      timeIncrement: timeIncrement,
     },
   });
 
@@ -277,6 +286,7 @@ export function AvailabilitySettings({
       {
         ...schedule,
         schedule: schedule.availability || [],
+        timeIncrement: timeIncrement,
       }
     );
     return () => subscription.unsubscribe();
@@ -543,6 +553,7 @@ export function AvailabilitySettings({
                         weekStart
                       ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                     }
+                    timeIncrement={timeIncrement}
                   />
                 )}
               </div>
@@ -586,6 +597,35 @@ export function AvailabilitySettings({
                     )
                   }
                 />
+              </div>
+              <div className="mt-2">
+                <Skeleton
+                  as={Label}
+                  htmlFor="timeIncrement-lg-viewport"
+                  className="mb-0 inline-block leading-none"
+                  waitForTranslation={!isPlatform}>
+                  {t("time_increment")}
+                </Skeleton>
+                <Controller
+                  name="timeIncrement"
+                  render={({ field: { onChange, value } }) => {
+                    return value ? (
+                      <Select
+                        inputId="timeIncrement-lg-viewport"
+                        value={timeIncrementOptions.find((option) => option.value === value)}
+                        options={timeIncrementOptions}
+                        className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
+                        onChange={(timeIncrement) => {
+                          if (timeIncrement) setTimeIncrement(timeIncrement.value);
+                          onChange(timeIncrement?.value);
+                        }}
+                      />
+                    ) : (
+                      <SelectSkeletonLoader className="mt-1 w-72" />
+                    );
+                  }}
+                />
+                <div className="text-gray text-default mt-1 w-72 text-sm">{t("time_increment_hint")}</div>
               </div>
               {isPlatform ? (
                 <></>

@@ -23,6 +23,7 @@ export const ZUpdateInputSchema = z.object({
       })
     )
     .optional(),
+  timeIncrement: z.number().nullable().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

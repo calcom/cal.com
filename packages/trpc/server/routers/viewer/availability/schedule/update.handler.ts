@@ -84,6 +84,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     },
     data: {
       timeZone: input.timeZone,
+      timeIncrement: input.timeIncrement,
       name: input.name,
       availability: {
         deleteMany: {
@@ -109,6 +110,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
       name: true,
       availability: true,
       timeZone: true,
+      timeIncrement: true,
       eventType: {
         select: {
           id: true,

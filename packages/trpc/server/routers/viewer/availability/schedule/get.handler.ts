@@ -32,6 +32,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       name: true,
       availability: true,
       timeZone: true,
+      timeIncrement: true,
     },
   });
 
@@ -73,5 +74,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
     isLastSchedule: schedulesCount <= 1,
     readOnly: schedule.userId !== user.id && !input.isManagedEventType,
+    timeIncrement: schedule.timeIncrement,
   };
 };

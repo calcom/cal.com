@@ -19,4 +19,5 @@ export type AvailabilityFormValues = {
   dateOverrides: { ranges: TimeRange[] }[];
   timeZone: string;
   isDefault: boolean;
+  timeIncrement: number | null;
 };

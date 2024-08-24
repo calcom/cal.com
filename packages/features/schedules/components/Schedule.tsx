@@ -54,6 +54,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   labels,
   userTimeFormat,
   className,
+  timeIncrement,
 }: {
   name: ArrayPath<TFieldValues>;
   weekday: string;
@@ -70,6 +71,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
     labelAndSwitchContainer?: string;
     scheduleContainer?: string;
   };
+  timeIncrement?: number | null;
 }) => {
   const { watch, setValue, getValues } = useFormContext();
   const watchDayRange = watch(name);
@@ -120,6 +122,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 dayRanges: className?.dayRanges,
                 timeRangeField: className?.timeRangeField,
               }}
+              timeIncrement={timeIncrement}
             />
             {!disabled && <div className="block">{CopyButton}</div>}
           </div>
@@ -187,6 +190,7 @@ const Schedule = <
   handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
   labels?: ScheduleLabelsType;
   userTimeFormat?: number | null;
+  timeIncrement?: number | null;
 }) => {
   const query = useMeQuery();
   const { timeFormat } = query.data || { timeFormat: null };
@@ -206,6 +210,7 @@ export const ScheduleComponent = <
   labels,
   userTimeFormat,
   className,
+  timeIncrement,
 }: {
   name: TPath;
   control: Control<TFieldValues>;
@@ -221,6 +226,7 @@ export const ScheduleComponent = <
     timeRanges?: string;
     labelAndSwitchContainer?: string;
   };
+  timeIncrement?: number | null;
 }) => {
   const { i18n } = useLocale();
 
@@ -254,6 +260,7 @@ export const ScheduleComponent = <
                 handleSubmit={handleSubmit}
               />
             }
+            timeIncrement={timeIncrement}
           />
         );
       })}
@@ -269,6 +276,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   userTimeFormat,
   className,
   handleSubmit,
+  timeIncrement,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
@@ -280,6 +288,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     timeRangeField?: string;
   };
   handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
+  timeIncrement?: number | null;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -303,6 +312,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                   className={className?.timeRangeField}
                   userTimeFormat={userTimeFormat}
                   handleSubmit={handleSubmit}
+                  timeIncrement={timeIncrement}
                   {...field}
                 />
               )}
@@ -392,11 +402,13 @@ const TimeRangeField = ({
   disabled,
   userTimeFormat,
   handleSubmit,
+  timeIncrement,
 }: {
   className?: string;
   disabled?: boolean;
   userTimeFormat: number | null;
   handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
+  timeIncrement?: number | null;
 } & ControllerRenderProps) => {
   const { getValues } = useFormContext();
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
@@ -412,13 +424,14 @@ const TimeRangeField = ({
           const newStart = new Date(option?.value as number);
           if (newStart >= new Date(value.end)) {
             const newEnd = new Date(option?.value as number);
-            newEnd.setMinutes(newEnd.getMinutes() + INCREMENT);
+            newEnd.setMinutes(newEnd.getMinutes() + (timeIncrement || INCREMENT));
             onChange({ ...value, start: newStart, end: newEnd });
           } else {
             onChange({ ...value, start: newStart });
           }
           handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
+        timeIncrement={timeIncrement}
       />
       <span className="text-default w-2 self-center"> - </span>
       <LazySelect
@@ -432,6 +445,7 @@ const TimeRangeField = ({
           onChange({ ...value, end: new Date(option?.value as number) });
           handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
+        timeIncrement={timeIncrement}
       />
     </div>
   );
@@ -443,15 +457,17 @@ const LazySelect = ({
   max,
   userTimeFormat,
   menuPlacement,
+  timeIncrement,
   ...props
 }: Omit<Props<IOption, false, GroupBase<IOption>>, "value"> & {
   value: ConfigType;
   min?: ConfigType;
   max?: ConfigType;
   userTimeFormat: number | null;
+  timeIncrement?: number | null;
 }) => {
   // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
-  const { options, filter } = useOptions(userTimeFormat);
+  const { options, filter } = useOptions(userTimeFormat, timeIncrement);
 
   useEffect(() => {
     filter({ current: value });
@@ -485,8 +501,8 @@ interface IOption {
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
 /** Begin Time Increments For Select */
-const INCREMENT = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
-const useOptions = (timeFormat: number | null) => {
+export const INCREMENT = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
+const useOptions = (timeFormat: number | null, timeIncrement?: number | null) => {
   const [filteredOptions, setFilteredOptions] = useState<IOption[]>([]);
 
   const options = useMemo(() => {
@@ -495,7 +511,10 @@ const useOptions = (timeFormat: number | null) => {
     for (
       let t = dayjs().utc().startOf("day");
       t.isBefore(end);
-      t = t.add(INCREMENT + (!t.add(INCREMENT).isSame(t, "day") ? -1 : 0), "minutes")
+      t = t.add(
+        (timeIncrement || INCREMENT) + (!t.add(timeIncrement || INCREMENT).isSame(t, "day") ? -1 : 0),
+        "minutes"
+      )
     ) {
       options.push({
         value: t.toDate().valueOf(),
@@ -512,7 +531,7 @@ const useOptions = (timeFormat: number | null) => {
         .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
     });
     return options;
-  }, [timeFormat]);
+  }, [timeFormat, timeIncrement]);
 
   const filter = useCallback(
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
