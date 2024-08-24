@@ -48,6 +48,7 @@ const organizationWithSettingsSelect = {
   logoUrl: true,
   calVideoLogo: true,
   bannerUrl: true,
+  isPlatform: true,
   organizationSettings: {
     select: organizationSettingsSelect,
   },
