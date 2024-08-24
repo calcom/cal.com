@@ -205,7 +205,6 @@
   "blog": "Blog",
   "blog_description": "Lees ons laatste nieuws en artikelen",
   "join_our_community": "Word lid van onze community",
-  "join_our_discord": "Neem deel aan onze Discord",
   "404_claim_entity_user": "Claim uw gebruikersnaam en plan evenementen",
   "popular_pages": "Populaire pagina's",
   "register_now": "Registreer nu",
@@ -655,6 +654,7 @@
   "default_duration": "Standaardduur",
   "default_duration_no_options": "Kies eerst de beschikbare duur",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minuten",
   "round_robin": "Round Robin",
   "round_robin_description": "Afspraken wisselen tussen meerdere teamleden.",
@@ -2099,5 +2099,6 @@
   "email_team_invite|heading|invited_to_regular_team": "U bent uitgenodigd om lid te worden van een {{appName}}-team",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} heeft u uitgenodigd om lid te worden van zijn team '{{teamName}}' op {{appName}}. {{appName}} is de gebeurtenissenplanner die u en uw team in staat stelt afspraken te plannen zonder heen en weer te e-mailen.",
   "privacy": "Privacy",
+  "sign_up_terms": "Door verder te gaan, gaat u akkoord met de <0>Voorwaarden</0> en <1>Privacybeleid<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

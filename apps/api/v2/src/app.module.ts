@@ -14,8 +14,8 @@ import { RedisService } from "@/modules/redis/redis.service";
 import { BullModule } from "@nestjs/bull";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_INTERCEPTOR, RouterModule } from "@nestjs/core";
-import { seconds, ThrottlerModule } from "@nestjs/throttler";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { seconds, ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerStorageRedisService } from "nestjs-throttler-storage-redis";
 
 import { AppController } from "./app.controller";
@@ -29,15 +29,8 @@ import { AppController } from "./app.controller";
     }),
 
     RedisModule,
-    BullModule.forRootAsync({
-      imports: [RedisModule],
-      useFactory: async (redisService: RedisService) => ({
-        redis: {
-          host: redisService.redis.options.host,
-          port: redisService.redis.options.port,
-        },
-      }),
-      inject: [RedisService],
+    BullModule.forRoot({
+      redis: `${process.env.REDIS_URL}${process.env.NODE_ENV === "production" ? "?tls=true" : ""}`,
     }),
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
@@ -45,14 +38,9 @@ import { AppController } from "./app.controller";
       useFactory: (redisService: RedisService) => ({
         throttlers: [
           {
-            name: "short",
-            ttl: seconds(10),
-            limit: 3,
-          },
-          {
-            name: "medium",
-            ttl: seconds(30),
-            limit: 10,
+            name: "long",
+            ttl: seconds(60), // Time to live for the long period in seconds
+            limit: 120, // Maximum number of requests within the long ttl
           },
         ],
         storage: new ThrottlerStorageRedisService(redisService.redis),
@@ -68,6 +56,10 @@ import { AppController } from "./app.controller";
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

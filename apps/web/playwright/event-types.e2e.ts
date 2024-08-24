@@ -64,6 +64,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
+      await page.waitForLoadState("networkidle");
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
@@ -190,7 +191,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
 
-        await page.locator(`[data-fob-field-name="location"] input`).fill("9199999999");
+        await page.locator(`[data-fob-field-name="location"] input`).fill("19199999999");
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -204,7 +205,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await page.locator(`text="Organizer Phone Number"`).click();
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
-        await page.locator(`input[name="${locationInputName}"]`).fill("9199999999");
+        await page.locator(`input[name="${locationInputName}"]`).fill("19199999999");
 
         await saveEventType(page);
         await gotoBookingPage(page);

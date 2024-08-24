@@ -10,6 +10,7 @@ import type { FC } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Form, PasswordField, TextField } from "@calcom/ui";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
@@ -21,12 +22,13 @@ import { cn } from "../../src/lib/utils";
 import type { OAuthConnectProps } from "../OAuthConnect";
 
 export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
-  label = "Connect Apple Calendar",
-  alreadyConnectedLabel = "Connected Apple Calendar",
-  loadingLabel = "Checking Apple Calendar",
+  label,
+  alreadyConnectedLabel,
+  loadingLabel,
   className,
   initialData,
 }) => {
+  const { t } = useLocale();
   const form = useForm({
     defaultValues: {
       username: "",
@@ -40,7 +42,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  let displayedLabel = label;
+  let displayedLabel = label || t("apple_connect_atom_label");
 
   const { mutate: saveCredentials, isPending: isSaving } = useSaveCalendarCredentials({
     onSuccess: (res) => {
@@ -64,9 +66,9 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   const isDisabled = isChecking || !allowConnect;
 
   if (isChecking) {
-    displayedLabel = loadingLabel;
+    displayedLabel = loadingLabel || t("apple_connect_atom_loading_label");
   } else if (!allowConnect) {
-    displayedLabel = alreadyConnectedLabel;
+    displayedLabel = alreadyConnectedLabel || t("apple_connect_atom_already_connected_label");
   }
 
   return (
@@ -74,7 +76,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
       <Dialog open={isDialogOpen}>
         <DialogTrigger>
           <Button
-            StartIcon="calendar-days"
+            StartIcon="calendar"
             color="primary"
             disabled={isDisabled}
             className={cn("", className, isDisabled && "cursor-not-allowed", !isDisabled && "cursor-pointer")}

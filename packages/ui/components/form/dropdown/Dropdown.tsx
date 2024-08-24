@@ -17,7 +17,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
       {...props}
       className={classNames(
         !props.asChild &&
-          `focus:bg-subtle hover:bg-muted text-default group-hover:text-emphasis inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium ring-0 ${className}`
+          `focus:bg-subtle hover:bg-muted text-default group-hover:text-emphasis inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium ring-0 transition ${className}`
       )}
       ref={forwardedRef}
     />
@@ -87,7 +87,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
             aria-readonly
             checked={false}
             type="checkbox"
-            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default ml-auto h-4 w-4 rounded hover:cursor-pointer"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default ml-auto h-4 w-4 rounded transition hover:cursor-pointer"
           />
         )}
         <DropdownMenuPrimitive.ItemIndicator asChild>
@@ -97,7 +97,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
             aria-label={typeof children === "string" ? `Active ${children}` : undefined}
             checked={true}
             type="checkbox"
-            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded transition hover:cursor-pointer"
           />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>

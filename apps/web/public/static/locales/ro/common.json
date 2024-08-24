@@ -205,7 +205,6 @@
   "blog": "Blog",
   "blog_description": "Citește cele mai recente noutăți și articole",
   "join_our_community": "Alătură-te comunității noastre",
-  "join_our_discord": "Intrați pe serverul nostru Discord",
   "404_claim_entity_user": "Revendică-ți numele de utilizator și programul evenimentelor",
   "popular_pages": "Pagini populare",
   "register_now": "Înregistrează-te acum",
@@ -655,6 +654,7 @@
   "default_duration": "Durată implicită",
   "default_duration_no_options": "Alege mai întâi duratele disponibile",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minute",
   "round_robin": "Round Robin",
   "round_robin_description": "Întâlniri ciclice între mai mulţi membri ai echipei.",
@@ -2099,5 +2099,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Ați fost invitat să faceți parte dintr-o echipă {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} v-a invitat să faceți parte din echipa sa „{{teamName}}” de pe {{appName}}. {{appName}} este un instrument de planificare a evenimentelor, care vă permite dvs. și echipei dvs. să programați ședințe fără a face ping-pong prin e-mail.",
   "privacy": "Confidențialitate",
+  "signing_up_terms": "Continuând, sunteți de acord cu <0>Termele</0> și <1>Politica de confidențialitate<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
