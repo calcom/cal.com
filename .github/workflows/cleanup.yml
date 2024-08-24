@@ -4,6 +4,11 @@ on:
   delete:
     branches-ignore: [main, gh-pages]
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 # ensures that currently running Playwright workflow of deleted branch gets cancelled
 concurrency:
   group: ${{ github.event.ref }}
@@ -20,7 +25,9 @@ jobs:
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v2
         with:
+          repository: calcom/test-results
           ref: gh-pages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: Set Git User
         # see: https://github.com/actions/checkout/issues/13#issuecomment-724415212
         run: |
