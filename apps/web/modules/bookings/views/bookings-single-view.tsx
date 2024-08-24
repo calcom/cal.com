@@ -413,7 +413,7 @@ export default function Success(props: PageProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
-            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
+            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm transition dark:hover:bg-transparent">
             <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -741,7 +741,7 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
-                    {userIsOwner && !isCancelled && isRejectionMode && (
+                    {!isCancelled && isRejectionMode && (
                       <>
                         <hr className="border-subtle" />
                         <RejectBooking

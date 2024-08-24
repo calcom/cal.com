@@ -1,4 +1,5 @@
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -28,6 +29,16 @@ export const AvailabilitySettingsWebWrapper = () => {
 
   const { data: travelSchedules, isPending: _isPendingTravelSchedules } =
     trpc.viewer.getTravelSchedules.useQuery();
+
+  const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
+  const bulkUpdateDefaultAvailabilityMutation =
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
+      onSuccess: () => {
+        utils.viewer.availability.list.invalidate();
+        setIsBulkUpdateModalOpen(false);
+        showToast(t("success"), "success");
+      },
+    });
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
 
@@ -109,6 +120,12 @@ export const AvailabilitySettingsWebWrapper = () => {
             timeBlocks: timeBlocks.map((timeBlock) => timeBlock.value.trim()).filter((value) => value !== ""),
             ...values,
           });
+      }}
+      bulkUpdateModalProps={{
+        isOpen: isBulkUpdateModalOpen,
+        setIsOpen: setIsBulkUpdateModalOpen,
+        save: bulkUpdateDefaultAvailabilityMutation.mutate,
+        isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
       }}
     />
   );
