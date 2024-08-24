@@ -1219,16 +1219,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -1331,16 +1321,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateScheduleInput_2024_06_11"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -2380,16 +2360,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateScheduleInput_2024_04_15"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -3824,6 +3794,38 @@
           "OAuthClients Webhooks"
         ]
       }
+    },
+    "/v2/destination-calendars": {
+      "put": {
+        "operationId": "DestinationCalendarsController_updateDestinationCalendars",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationCalendarsInputBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationCalendarsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Destination-Calendars",
+          "Select a third party destination calendar where events will be created"
+        ]
+      }
     }
   },
   "info": {
@@ -4953,6 +4955,9 @@
             "items": {
               "$ref": "#/components/schemas/Source"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -5527,6 +5532,9 @@
             "items": {
               "$ref": "#/components/schemas/Source"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -6071,57 +6079,6 @@
           "data"
         ]
       },
-      "CreateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "timeZone",
-          "isDefault"
-        ]
-      },
       "CreateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -6169,52 +6126,6 @@
           "status",
           "data"
         ]
-      },
-      "UpdateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        }
       },
       "UpdateScheduleOutput_2024_06_11": {
         "type": "object",
@@ -6726,33 +6637,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "number"
-          },
-          "minimumBookingNotice": {
-            "type": "number"
-          },
-          "beforeEventBuffer": {
-            "type": "number"
-          },
-          "afterEventBuffer": {
-            "type": "number"
-          },
           "schedulingType": {
             "type": "object"
           },
@@ -6770,13 +6654,6 @@
           "lengthInMinutes",
           "title",
           "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
           "schedulingType",
           "hosts",
           "assignAllTeamMembers"
@@ -6873,6 +6750,64 @@
           "name",
           "userId"
         ]
+      },
+      "BookingLimitsCount_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per day",
+            "example": 1
+          },
+          "week": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per week",
+            "example": 2
+          },
+          "month": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per month",
+            "example": 3
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per year",
+            "example": 4
+          }
+        }
+      },
+      "BookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          }
+        }
       },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -6993,6 +6928,22 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean"
+          },
+          "bookingLimitsCount": {
+            "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+          },
+          "bookingWindow": {
+            "type": "object"
+          },
+          "offsetStart": {
+            "type": "number",
+            "minimum": 1
           }
         },
         "required": [
@@ -7310,26 +7261,6 @@
           "userId"
         ]
       },
-      "GetDefaultScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "CreateAvailabilityInput_2024_04_15": {
         "type": "object",
         "properties": {
@@ -7627,66 +7558,6 @@
           "data"
         ]
       },
-      "UpdateScheduleInput_2024_04_15": {
-        "type": "object",
-        "properties": {
-          "timeZone": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "schedule": {
-            "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
-            ],
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
-          },
-          "dateOverrides": {
-            "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
-            ],
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "timeZone",
-          "name",
-          "isDefault",
-          "schedule"
-        ]
-      },
       "EventTypeModel_2024_04_15": {
         "type": "object",
         "properties": {
@@ -7932,6 +7803,21 @@
           "status"
         ]
       },
+      "MeOrgOutput": {
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "isPlatform",
+          "id"
+        ]
+      },
       "MeOutput": {
         "type": "object",
         "properties": {
@@ -7960,6 +7846,9 @@
           "organizationId": {
             "type": "number",
             "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/MeOrgOutput"
           }
         },
         "required": [
@@ -9346,6 +9235,74 @@
             "items": {
               "$ref": "#/components/schemas/OAuthClientWebhookOutputDto"
             }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DestinationCalendarsInputBodyDto": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "example": "apple_calendar",
+            "description": "The calendar service you want to integrate, as returned by the /calendars endpoint",
+            "enum": [
+              "apple_calendar",
+              "google_calendar",
+              "office365_calendar"
+            ]
+          },
+          "externalId": {
+            "type": "string",
+            "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
+            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
+      "DestinationCalendarsOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
+      },
+      "DestinationCalendarsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
           }
         },
         "required": [

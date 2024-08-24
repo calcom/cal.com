@@ -62,6 +62,7 @@ const mockedReturnSuccessCheckPerms = {
     isPrivate: false,
     logoUrl: "",
     calVideoLogo: "",
+    isOrganization: false,
   },
 };
 
@@ -69,7 +70,6 @@ const mockedRegularTeam: TeamWithParent = {
   id: 1,
   name: "Team A",
   slug: null,
-  logo: null,
   appLogo: null,
   appIconLogo: null,
   bio: null,
@@ -93,6 +93,7 @@ const mockedRegularTeam: TeamWithParent = {
   bannerUrl: "",
   isPlatform: false,
   smsLockState: "LOCKED",
+  createdByOAuthClientId: null,
 };
 
 const mockedSubTeam = {
@@ -254,6 +255,11 @@ describe("Invite Member Utils", () => {
           isOrganizationConfigured: false,
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "example.com",
+          organizationId: 1,
+          lockEventTypeCreationForUsers: false,
+          adminGetsNoSlotsNotification: false,
+          isAdminReviewed: false,
+          isAdminAPIEnabled: false,
         },
         slug: "abc",
         parent: null,
@@ -279,6 +285,11 @@ describe("Invite Member Utils", () => {
             isOrganizationConfigured: false,
             isOrganizationVerified: false,
             orgAutoAcceptEmail: "example.com",
+            organizationId: 1,
+            lockEventTypeCreationForUsers: false,
+            adminGetsNoSlotsNotification: false,
+            isAdminReviewed: false,
+            isAdminAPIEnabled: false,
           },
         },
       };

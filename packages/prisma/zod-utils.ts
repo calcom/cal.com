@@ -80,6 +80,12 @@ export const EventTypeMetaDataSchema = z
     disableSuccessPage: z.boolean().optional(),
     disableStandardEmails: z
       .object({
+        all: z
+          .object({
+            host: z.boolean().optional(),
+            attendee: z.boolean().optional(),
+          })
+          .optional(),
         confirmation: z
           .object({
             host: z.boolean().optional(),
@@ -107,6 +113,8 @@ export const EventTypeMetaDataSchema = z
     bookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
+
+export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
 export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
@@ -178,6 +186,13 @@ export const iso8601 = z.string().transform((val, ctx) => {
   d.setTime(time);
   return d;
 });
+
+export const eventTypeColor = z
+  .object({
+    lightEventTypeColor: z.string(),
+    darkEventTypeColor: z.string(),
+  })
+  .nullable();
 
 export const intervalLimitsType = z
   .object({
@@ -655,6 +670,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  eventTypeColor: true,
   rescheduleWithSameRoundRobinHost: true,
 };
 

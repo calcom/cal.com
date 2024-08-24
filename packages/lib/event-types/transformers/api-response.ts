@@ -1,9 +1,21 @@
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookingWindowPeriodOutputTypeEnum_2024_06_14,
+  BookingLimitsEnum_2024_06_14,
+} from "@calcom/platform-enums/monorepo";
 import type {
   AddressLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
   LinkLocation_2024_06_14,
   PhoneLocation_2024_06_14,
   Integration_2024_06_14,
+  BookingLimitsKeysInputType,
+  TransformBookingLimitsSchema_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
+  BookingWindow_2024_06_14,
+  RangeWindow_2024_06_14,
+  CalendarDaysWindow_2024_06_14,
+  BusinessDaysWindow_2024_06_14,
   BookingField_2024_06_14,
 } from "@calcom/platform-types";
 
@@ -189,4 +201,63 @@ function getResponseEventTypeBookingFields(
   });
 }
 
-export { getResponseEventTypeLocations, getResponseEventTypeBookingFields };
+function getResponseEventTypeIntervalLimits(
+  transformedBookingFields: TransformBookingLimitsSchema_2024_06_14 | null
+) {
+  if (!transformedBookingFields) {
+    return undefined;
+  }
+  const res: { [K in BookingLimitsKeysInputType]?: number } = {};
+  transformedBookingFields &&
+    Object.entries(transformedBookingFields).map(([key, value]) => {
+      const outputKey: BookingLimitsKeysInputType | undefined = Object.keys(
+        BookingLimitsEnum_2024_06_14
+      ).find(
+        (item) => BookingLimitsEnum_2024_06_14[item as keyof typeof BookingLimitsEnum_2024_06_14] === key
+      ) as BookingLimitsKeysInputType;
+
+      if (outputKey) {
+        res[outputKey] = value as number;
+      }
+    });
+  return res;
+}
+
+function getResponseEventTypeFutureBookingLimits(
+  transformedFutureBookingsLimitsFields: TransformFutureBookingsLimitSchema_2024_06_14
+): BookingWindow_2024_06_14 | undefined {
+  switch (transformedFutureBookingsLimitsFields?.periodType) {
+    case BookingWindowPeriodOutputTypeEnum_2024_06_14.RANGE:
+      return {
+        type: BookingWindowPeriodInputTypeEnum_2024_06_14.range,
+        value: [
+          transformedFutureBookingsLimitsFields?.periodStartDate?.toISOString().split("T")[0],
+          transformedFutureBookingsLimitsFields?.periodEndDate?.toISOString().split("T")[0],
+        ],
+      } as RangeWindow_2024_06_14;
+    case BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING_WINDOW:
+      return {
+        type: transformedFutureBookingsLimitsFields.periodCountCalendarDays
+          ? BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays
+          : BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays,
+        value: transformedFutureBookingsLimitsFields.periodDays,
+        rolling: true,
+      } as CalendarDaysWindow_2024_06_14 | BusinessDaysWindow_2024_06_14;
+    case BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING:
+      return {
+        type: transformedFutureBookingsLimitsFields.periodCountCalendarDays
+          ? BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays
+          : BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays,
+        value: transformedFutureBookingsLimitsFields.periodDays,
+        rolling: false,
+      } as CalendarDaysWindow_2024_06_14 | BusinessDaysWindow_2024_06_14;
+    default:
+      return undefined;
+  }
+}
+export {
+  getResponseEventTypeLocations,
+  getResponseEventTypeBookingFields,
+  getResponseEventTypeIntervalLimits,
+  getResponseEventTypeFutureBookingLimits,
+};

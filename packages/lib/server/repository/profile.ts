@@ -23,6 +23,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   startTime: true,
   endTime: true,
   bufferTime: true,
+  isPlatformManaged: true,
 });
 
 const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
@@ -59,6 +60,7 @@ const organizationSelect = {
   logoUrl: true,
   calVideoLogo: true,
   bannerUrl: true,
+  isPlatform: true,
 };
 
 export enum LookupTarget {
@@ -345,6 +347,12 @@ export class ProfileRepository {
       return null;
     }
     const user = profile.user;
+    if (profile.organization?.isPlatform && !user.isPlatformManaged) {
+      return {
+        ...this.buildPersonalProfileFromUser({ user }),
+        ...ProfileRepository.getInheritedDataFromUser({ user }),
+      };
+    }
     return {
       ...profile,
       ...ProfileRepository.getInheritedDataFromUser({ user }),

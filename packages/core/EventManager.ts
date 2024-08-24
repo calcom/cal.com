@@ -170,6 +170,7 @@ export default class EventManager {
     if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
       log.warn("Falling back to Cal Video integration as Google Calendar not installed");
       evt["location"] = "integrations:daily";
+      evt["conferenceCredentialId"] = undefined;
     }
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 

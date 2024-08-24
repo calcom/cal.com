@@ -6,6 +6,7 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/repositori
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
@@ -25,7 +26,8 @@ export class OrganizationsEventTypesService {
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly outputService: OutputOrganizationsEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly usersService: UsersService
   ) {}
 
   async createTeamEventType(
@@ -36,11 +38,19 @@ export class OrganizationsEventTypesService {
   ) {
     await this.validateHosts(teamId, body.hosts);
     const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hosts, assignAllTeamMembers, ...rest } =
-      await this.inputService.transformInputCreateTeamEventType(teamId, body);
+    const {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      hosts,
+      assignAllTeamMembers,
+      locations,
+      bookingLimitsCount,
+      bookingLimitsDuration,
+      bookingWindow,
+      bookingFields,
+      ...rest
+    } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
     const { eventType: eventTypeCreated } = await createEventType({
-      input: { teamId: teamId, ...rest },
+      input: { teamId: teamId, locations, ...rest },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -52,7 +62,15 @@ export class OrganizationsEventTypesService {
     return await this.updateTeamEventType(
       eventTypeCreated.id,
       teamId,
-      { hosts: body.hosts, assignAllTeamMembers },
+      {
+        hosts: body.hosts,
+        assignAllTeamMembers,
+        bookingLimitsCount,
+        bookingLimitsDuration,
+        bookingWindow,
+        bookingFields,
+        ...rest,
+      },
       user
     );
   }
@@ -77,7 +95,9 @@ export class OrganizationsEventTypesService {
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
     const isOrgAdmin = await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId);
-    const profileId = user.movedToProfileId || null;
+    const profileId =
+      this.usersService.getUserProfileByOrgId(user, organizationId)?.id ||
+      this.usersService.getUserMainProfile(user)?.id;
     return {
       id: user.id,
       role: user.role,
