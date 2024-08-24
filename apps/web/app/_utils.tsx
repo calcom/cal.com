@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 
 import { constructGenericImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/constants";
+//@ts-expect-error no type definitions
 import config from "@calcom/web/next-i18next.config";
 
 import { preparePageMetadata } from "@lib/metadata";
