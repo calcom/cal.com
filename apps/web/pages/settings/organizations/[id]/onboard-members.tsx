@@ -1,4 +1,7 @@
+import { redirect } from "next/navigation";
+
 import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+import { WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -12,6 +15,22 @@ const Page = new Proxy<{
 
 Page.getLayout = LayoutWrapper;
 Page.PageWrapper = PageWrapper;
+
+export const buildWrappedOnboardTeamMembersPage = (
+  id: string | string[] | undefined,
+  page: React.ReactElement
+) => {
+  return (
+    <WizardLayout
+      currentStep={4}
+      maxSteps={5}
+      isOptionalCallback={() => {
+        redirect(`/settings/organizations/${id}/add-teams`);
+      }}>
+      {page}
+    </WizardLayout>
+  );
+};
 
 export default Page;
 export { getServerSideProps };
