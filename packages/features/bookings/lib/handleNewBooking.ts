@@ -1741,7 +1741,11 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = {
+    ...evt,
+    metadata,
+    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+  };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
     await scheduleMandatoryReminder(
