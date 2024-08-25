@@ -428,16 +428,17 @@ export default function Signup({
                     : t("create_account")}
                 </Button>
               </Form>
-              <div className="mt-6">
-                <div className="relative flex items-center">
-                  <div className="border-subtle flex-grow border-t" />
-                  <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
-                    {t("or_continue_with")}
-                  </span>
-                  <div className="border-subtle flex-grow border-t" />
+              {!isGoogleLoginEnabled && !isSAMLLoginEnabled ? null : (
+                <div className="mt-6">
+                  <div className="relative flex items-center">
+                    <div className="border-subtle flex-grow border-t" />
+                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                      {t("or_continue_with")}
+                    </span>
+                    <div className="border-subtle flex-grow border-t" />
+                  </div>
                 </div>
-              </div>
-
+              )}
               <div className="mt-6 flex flex-col gap-2 md:flex-row">
                 {isGoogleLoginEnabled ? (
                   <Button
