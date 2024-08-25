@@ -2486,5 +2486,6 @@
   "hour_short": "t",
   "minute_one_short": "{{count}} min",
   "hour_one_short": "{{count}} t",
+  "apply_to_all_event_types": "Kehtib kõigile, sealhulgas tulevaste sündmustüüpidele",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

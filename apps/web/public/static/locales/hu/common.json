@@ -2444,5 +2444,6 @@
   "minute_one_short": "{{count}} perc",
   "hour_one_short": "{{count}} ó",
   "signing_up_terms": "Folytatva elfogadja a <0>Felhasználási feltételeinket</0> és a <1>Adatvédelmi szabályzatunkat</1>",
+  "apply_to_all_event_types": "Alkalmazható mindenre, beleértve a jövőbeli eseménytípusokat is.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
