@@ -2413,7 +2413,7 @@
   "create_account_password_hint": "Teil pole konto parooli, looge see, navigeerides jaotisesse Turvalisus -> Parool. Ühendust ei saa katkestada enne, kui konto parool on loodud.",
   "disconnect_account": "Katkesta ühendatud konto ühendus",
   "disconnect_account_hint": "Ühendatud konto lahtiühendamine muudab sisselogimise viisi. Saate oma kontole sisse logida ainult e-posti + parooliga",
-  "cookie_consent_checkbox": "Nõustun meie privaatsuspoliitika ja küpsiste kasutamisega",
+  "cookie_consent_checkbox": "Nõustun selle veebisaidi privaatsuspoliitika ja küpsiste kasutamisega",
   "make_a_call": "Helista",
   "skip_rr_assignment_label": "Jäta ümberringi määramine vahele, kui Salesforce'is on kontakt olemas",
   "skip_rr_description": "URL peab sisaldama parameetrina kontakti e-posti aadressi, nt ?email=contactEmail",
