@@ -99,9 +99,7 @@ test.describe("Update Profile", () => {
     expect(await emailInputUpdated.inputValue()).toEqual(user.email);
   });
 
-  // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("Can update a users email (verification enabled)", async ({ page, users, prisma, features }) => {
+  test("Can update a users email (verification enabled)", async ({ page, users, prisma, features }) => {
     const emailVerificationEnabled = features.get("email-verification");
     // eslint-disable-next-line playwright/no-conditional-in-test, playwright/no-skipped-test
     if (!emailVerificationEnabled?.enabled) test.skip();
@@ -199,11 +197,6 @@ test.describe("Update Profile", () => {
   }) => {
     await test.step("the user receives the correct invitation link", async () => {
       await page.waitForLoadState("networkidle");
-      const verificationToken = await prisma.verificationToken.findFirst({
-        where: {
-          identifier: secondaryEmail,
-        },
-      });
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -211,6 +204,11 @@ test.describe("Update Profile", () => {
         "Verify your email address",
         "verify-email"
       );
+      const verificationToken = await prisma.verificationToken.findFirst({
+        where: {
+          identifier: secondaryEmail,
+        },
+      });
       expect(inviteLink).toEqual(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
     });
   };
@@ -287,6 +285,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add-secondary-email").click();
 
@@ -311,10 +310,9 @@ test.describe("Update Profile", () => {
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
   });
 
-  // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
+  test("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
     const { secondaryEmail } = await createSecondaryEmail({ page, users });
+    await page.waitForLoadState("networkidle");
 
     expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
@@ -333,6 +331,7 @@ test.describe("Update Profile", () => {
     const verifyUrl = `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`;
 
     await page.goto(verifyUrl);
+    await page.waitForLoadState("networkidle");
 
     expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
@@ -376,9 +375,7 @@ test.describe("Update Profile", () => {
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
   });
 
-  // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("Can resend verification link if the secondary email is unverified", async ({
+  test("Can resend verification link if the secondary email is unverified", async ({
     page,
     users,
     prisma,

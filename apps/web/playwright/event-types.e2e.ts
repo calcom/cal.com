@@ -257,19 +257,23 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         expect(await linkElement.getAttribute("href")).toBe(testUrl);
       });
 
-      // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-      // eslint-disable-next-line playwright/no-skipped-test
-      test.skip("Can remove location from multiple locations that are saved", async ({ page }) => {
+      test("Can remove location from multiple locations that are saved", async ({ page }) => {
         await gotoFirstEventType(page);
 
         // Add Attendee Phone Number location
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
+        // sometimes the dropdown from previous location is open at the same time, causing there to be two "Cal Video (Gloabl)"
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(500);
         await addAnotherLocation(page, "Cal Video (Global)");
 
         await saveEventType(page);
         await page.waitForLoadState("networkidle");
+        // Form is not made dirty if the save button is still in loading state.
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
 
         // Remove Attendee Phone Number Location
         const removeButtomId = "delete-locations.0.type";
