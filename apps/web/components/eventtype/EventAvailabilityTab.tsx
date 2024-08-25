@@ -69,8 +69,7 @@ const format = (date: Date, hour12: boolean) =>
 const EventTypeScheduleDetails = memo(
   ({ isManagedEventType, scheduleId }: { isManagedEventType: boolean; scheduleId: number | null }) => {
     const { data: loggedInUser } = useMeQuery();
-    const timeFormat = loggedInUser?.timeFormat;
-    const { t, i18n } = useLocale();
+    const { t } = useLocale();
 
     const { isPending, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
       {
@@ -79,51 +78,13 @@ const EventTypeScheduleDetails = memo(
       },
       { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId }
     );
-
-    const weekStart = weekStartNum(loggedInUser?.weekStart);
-
-    const filterDays = (dayNum: number) =>
-      schedule?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
-
     return (
       <div>
         <div className="border-subtle space-y-4 border-x p-6">
-          {!schedule?.timeBlocks?.length ? (
-            <ol className="table border-collapse text-sm">
-              {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
-                const isAvailable = !!filterDays(index).length;
-                return (
-                  <li key={day} className="my-6 flex border-transparent last:mb-2">
-                    <span
-                      className={classNames(
-                        "w-20 font-medium sm:w-32 ",
-                        !isAvailable ? "text-subtle line-through" : "text-default"
-                      )}>
-                      {day}
-                    </span>
-                    {isPending ? (
-                      <SkeletonText className="block h-5 w-60" />
-                    ) : isAvailable ? (
-                      <div className="space-y-3 text-right">
-                        {filterDays(index).map((dayRange, i) => (
-                          <div key={i} className="text-default flex items-center leading-4">
-                            <span className="w-16 sm:w-28 sm:text-left">
-                              {format(dayRange.startTime, timeFormat === 12)}
-                            </span>
-                            <span className="ms-4">-</span>
-                            <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
+          {schedule && schedule.timeBlocks?.length ? (
+            <EventTypeTimeBlocks timeBlocks={schedule.timeBlocks} />
           ) : (
-            schedule && <EventTypeTimeBlocks timeBlocks={schedule.timeBlocks} />
+            <EventTypeScheduleDayRange schedule={schedule} isPending={isPending} />
           )}
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
@@ -149,6 +110,60 @@ const EventTypeScheduleDetails = memo(
 );
 
 EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
+
+const EventTypeScheduleDayRange = ({ schedule, isPending }) => {
+  const { data: loggedInUser } = useMeQuery();
+  const { t, i18n } = useLocale();
+  const timeFormat = loggedInUser?.timeFormat;
+  const weekStart = weekStartNum(loggedInUser?.weekStart);
+  const weekdays = weekdayNames(i18n.language, weekStart, "long");
+
+  const filterDays = (dayNum: number) =>
+    schedule?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+
+  const displayTimeRanges = (dayRanges) => {
+    return dayRanges.map((dayRange, i) => (
+      <div key={i} className="text-default flex items-center leading-4">
+        <span className="w-16 sm:w-28 sm:text-left">{format(dayRange.startTime, timeFormat === 12)}</span>
+        <span className="ms-4">-</span>
+        <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
+      </div>
+    ));
+  };
+
+  const displayDayAvailability = (dayIndex) => {
+    const dayRanges = filterDays(dayIndex);
+    if (isPending) {
+      return <SkeletonText className="block h-5 w-60" />;
+    }
+    return dayRanges.length > 0 ? (
+      <div className="space-y-3 text-right">{displayTimeRanges(dayRanges)}</div>
+    ) : (
+      <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
+    );
+  };
+
+  return (
+    <ol className="table border-collapse text-sm">
+      {weekdays.map((day, index) => {
+        const isAvailable = filterDays(index).length > 0;
+
+        return (
+          <li key={day} className="my-6 flex border-transparent last:mb-2">
+            <span
+              className={classNames(
+                "w-20 font-medium sm:w-32",
+                !isAvailable ? "text-subtle line-through" : "text-default"
+              )}>
+              {day}
+            </span>
+            {displayDayAvailability(index)}
+          </li>
+        );
+      })}
+    </ol>
+  );
+};
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
@@ -265,9 +280,7 @@ const EventTypeTimeBlocks = ({ timeBlocks }: { timeBlocks: string[] }) => {
 
   return (
     <div>
-      <p className="text-subtle mb-4 text-sm">
-        Mark yourself available when you have a calendar event with a title that contains
-      </p>
+      <p className="text-subtle mb-4 text-sm">{t("time_blocks_subtitle")}</p>
       <div className="space-y-2">
         {timeBlocks.map((timeBlock, index) => (
           <div key={index} className="mb-2 flex-col items-center space-y-2">

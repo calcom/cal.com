@@ -161,6 +161,7 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
+  // returns calendar IDs of all the selected calendars
   async getCalIds(selectedCalendars: IntegrationCalendar[]): Promise<string[]> {
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -177,7 +178,6 @@ export default class Office365CalendarService implements Calendar {
     return ids;
   }
 
-  // fetches calendar data (free-busy/event data) from office365 calendar
   async fetchCalendarData(
     dateFrom: string,
     dateTo: string,
