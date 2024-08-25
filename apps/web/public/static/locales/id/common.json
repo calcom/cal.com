@@ -128,5 +128,10 @@
   "no_account_exists": "Tidak ada akun dengan email tersebut.",
   "need_help": "Butuh bantuan?",
   "email_team_invite|subject|invited_to_regular_team": "{{user}} mengundangmu untuk bergabung ke tim {{team}} di {{appName}}",
-  "signing_up_terms": "Dengan melanjutkan, Anda menyetujui <0>Persyaratan</0> dan <1>Kebijakan Privasi</1> kami."
+  "signing_up_terms": "Dengan melanjutkan, Anda menyetujui <0>Persyaratan</0> dan <1>Kebijakan Privasi</1> kami.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "menit",
+  "hour_short": "jam",
+  "minute_one_short": "{{count}} menit",
+  "hour_one_short": "{{count}} jam"
 }
