@@ -11,7 +11,7 @@ import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig, cpfMask } from "./utils";
+import { getVariantsConfig, cpfMask, emailMask, nameMask } from "./utils";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -67,11 +67,21 @@ export const FormBuilderField = ({
         render={({ field: { value, onChange }, fieldState: { error } }) => {
           let maskedValue = value;
           let fieldStatus = "incomplete";
-          if (field.name === "CPF") {
-            const { isValid, value: maskedCPF } = cpfMask(value || "");
-            maskedValue = maskedCPF;
-            fieldStatus = isValid;
-            setCPFError(isValid !== "valid");
+          switch (field.name) {
+            case "CPF":
+              const { isValid, value: maskedCPF } = cpfMask(value || "");
+              maskedValue = maskedCPF;
+              fieldStatus = isValid;
+              setCPFError(isValid !== "valid");
+              break;
+            case "name":
+              const { maskedName } = nameMask(value || "");
+              maskedValue = maskedName;
+              break;
+            case "email":
+              const { maskedEmail } = emailMask(value || "");
+              maskedValue = maskedEmail;
+              break;
           }
 
           return (
