@@ -428,18 +428,16 @@ export default function Signup({
                     : t("create_account")}
                 </Button>
               </Form>
-              {/* Continue with Social Logins - Only for non-invite links */}
-              {!isGoogleLoginEnabled && !isSAMLLoginEnabled ? null : (
-                <div className="mt-6">
-                  <div className="relative flex items-center">
-                    <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
-                      {t("or_continue_with")}
-                    </span>
-                    <div className="border-subtle flex-grow border-t" />
-                  </div>
+              <div className="mt-6">
+                <div className="relative flex items-center">
+                  <div className="border-subtle flex-grow border-t" />
+                  <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                    {t("or_continue_with")}
+                  </span>
+                  <div className="border-subtle flex-grow border-t" />
                 </div>
-              )}
+              </div>
+
               <div className="mt-6 flex flex-col gap-2 md:flex-row">
                 {isGoogleLoginEnabled ? (
                   <Button
@@ -465,15 +463,20 @@ export default function Signup({
                       const username = formMethods.getValues("username");
                       const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
                       const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
+                      const searchQueryParams = new URLSearchParams();
                       if (username) {
                         // If username is present we save it in query params to check for premium
-                        const searchQueryParams = new URLSearchParams();
                         searchQueryParams.set("username", username);
                         localStorage.setItem("username", username);
-                        router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
-                        return;
                       }
-                      router.push(GOOGLE_AUTH_URL);
+                      if (token) {
+                        searchQueryParams.set("email", prepopulateFormValues?.email);
+                      }
+                      const url = searchQueryParams.toString()
+                        ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
+                        : GOOGLE_AUTH_URL;
+
+                      router.push(url);
                     }}>
                     Google
                   </Button>
