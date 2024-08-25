@@ -11,6 +11,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
+import { SchedulingType } from "@calcom/platform-enums";
+
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
@@ -21,7 +23,6 @@ import {
 } from "./booking-limits-duration.input";
 import type { BookingWindow_2024_06_14 } from "./booking-window.input";
 import { ValidateBookingWindow } from "./booking-window.input";
-import { SchedulingType } from "./enums/scheduling-type";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 import { RequiresConfirmation_2024_06_14, ValidateRequiresConfirmation } from "./requires-confirmation.input";

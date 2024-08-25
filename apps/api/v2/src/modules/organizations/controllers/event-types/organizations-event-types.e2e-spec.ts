@@ -18,18 +18,18 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
+import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
   Host,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { BookerLayoutsInputEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import {
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {

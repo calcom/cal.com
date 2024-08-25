@@ -21,17 +21,17 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
 import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
+import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { BookerLayoutsInputEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import {
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 describe("Event types Endpoints", () => {

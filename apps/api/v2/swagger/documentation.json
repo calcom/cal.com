@@ -4985,6 +4985,9 @@
             "items": {
               "$ref": "#/components/schemas/Source"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -5559,6 +5562,9 @@
             "items": {
               "$ref": "#/components/schemas/Source"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean"
           }
         },
         "required": [

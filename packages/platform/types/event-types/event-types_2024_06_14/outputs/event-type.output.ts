@@ -26,7 +26,7 @@ enum SchedulingTypeEnum {
   MANAGED = "MANAGED",
 }
 
-export type SchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
+export type EventTypesOutputSchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
 
 class User_2024_06_14 {
   @IsInt()
@@ -101,7 +101,7 @@ export class EventTypeOutput_2024_06_14 {
   afterEventBuffer?: number;
 
   @IsEnum(SchedulingTypeEnum)
-  schedulingType!: SchedulingType | null;
+  schedulingType!: EventTypesOutputSchedulingType | null;
 
   @Type(() => RecurringEvent_2024_06_14)
   recurringEvent!: RecurringEvent_2024_06_14 | null;
@@ -216,7 +216,7 @@ export class TeamEventTypeOutput_2024_06_14 {
   afterEventBuffer?: number;
 
   @IsEnum(SchedulingTypeEnum)
-  schedulingType!: SchedulingType | null;
+  schedulingType!: EventTypesOutputSchedulingType | null;
 
   @Type(() => RecurringEvent_2024_06_14)
   recurringEvent!: RecurringEvent_2024_06_14 | null;

@@ -4,7 +4,7 @@ import { ValidatorConstraint, registerDecorator } from "class-validator";
 import {
   BookerLayoutsInputEnum_2024_06_14,
   type BookerLayoutsOutputEnum_2024_06_14,
-} from "./enums/booker-layouts.enum";
+} from "@calcom/platform-enums";
 
 export type BookerLayoutsTransformedSchema = {
   defaultLayout: BookerLayoutsOutputEnum_2024_06_14;

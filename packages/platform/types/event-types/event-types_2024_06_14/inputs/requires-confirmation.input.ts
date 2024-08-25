@@ -4,7 +4,7 @@ import { IsEnum, IsOptional, IsInt, ValidateNested } from "class-validator";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import { ValidatorConstraint, registerDecorator } from "class-validator";
 
-import { ConfirmationPolicyEnum, NoticeThresholdUnitEnum } from "./enums/requires-confirmation.enum";
+import { ConfirmationPolicyEnum, NoticeThresholdUnitEnum } from "@calcom/platform-enums";
 
 // Class representing the notice threshold
 export class NoticeThreshold_2024_06_14 {

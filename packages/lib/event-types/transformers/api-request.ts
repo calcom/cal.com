@@ -1,28 +1,24 @@
 import { z } from "zod";
 
-import type {
-  BookingLimitsKeyOutputType_2024_06_14,
-  NoticeThreshold_2024_06_14,
-  RequiresConfirmationTransformedSchema,
-  TransformBookingLimitsSchema_2024_06_14,
-} from "@calcom/platform-types";
-import {
-  type CreateEventTypeInput_2024_06_14,
-  type Integration_2024_06_14,
-  type BusinessDaysWindow_2024_06_14,
-  type RangeWindow_2024_06_14,
-  type TransformFutureBookingsLimitSchema_2024_06_14,
-} from "@calcom/platform-types";
-import {
-  BookerLayoutsInputEnum_2024_06_14,
-  BookerLayoutsOutputEnum_2024_06_14,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
-import { ConfirmationPolicyEnum } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
+  BookingLimitsEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+} from "@calcom/platform-enums/monorepo";
+import type {
+  NoticeThreshold_2024_06_14,
+  RequiresConfirmationTransformedSchema,
+  CreateEventTypeInput_2024_06_14,
+  Integration_2024_06_14,
+  BusinessDaysWindow_2024_06_14,
+  RangeWindow_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
+  BookingLimitsKeyOutputType_2024_06_14,
+  TransformBookingLimitsSchema_2024_06_14,
+} from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
   "cal-video": "integrations:daily",

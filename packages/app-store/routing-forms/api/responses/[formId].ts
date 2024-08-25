@@ -6,7 +6,7 @@ import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermis
 import prisma from "@calcom/prisma";
 
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import type { Response, SerializableForm } from "../../types/types";
+import type { FormResponse, SerializableForm } from "../../types/types";
 
 function escapeCsvText(str: string) {
   return str.replace(/,/, "%2C");
@@ -32,7 +32,7 @@ async function* getResponses(
   ) {
     const csv: string[] = [];
     responses.forEach((response) => {
-      const fieldResponses = response.response as Response;
+      const fieldResponses = response.response as FormResponse;
       const csvCells: string[] = [];
       headerFields.forEach((headerField) => {
         const fieldResponse = fieldResponses[headerField.id];
