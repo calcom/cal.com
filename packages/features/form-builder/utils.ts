@@ -156,3 +156,13 @@ export const cpfMask = (value: string) => {
 
   return { isValid: cpfIsValid, value: formattedCPF };
 };
+
+export const nameMask = (value: string) => {
+  if (!value) return { maskedName: "" };
+  return { maskedName: value.slice(0, 80) };
+};
+
+export const emailMask = (value: string) => {
+  if (!value) return { maskedEmail: "" };
+  return { maskedEmail: value.slice(0, 50) };
+};
