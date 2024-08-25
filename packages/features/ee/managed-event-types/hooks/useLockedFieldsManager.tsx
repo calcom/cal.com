@@ -162,14 +162,6 @@ const useLockedFieldsManager = ({
     );
   };
 
-  const setLockedState = (fieldName: string, enabled: boolean) => {
-    setFieldStates({
-      ...fieldStates,
-      [fieldName]: enabled,
-    });
-    setUnlockedFields(fieldName, !enabled || undefined);
-  };
-
   const useLockedLabel = (fieldName: string, options?: { simple: true }) => {
     if (typeof fieldStates[fieldName] === "undefined") {
       setFieldStates({
@@ -221,7 +213,6 @@ const useLockedFieldsManager = ({
     shouldLockDisableProps: useShouldLockDisableProps,
     useLockedLabel,
     useLockedSwitch,
-    setLockedState,
     isManagedEventType,
     isChildrenManagedEventType,
   };
