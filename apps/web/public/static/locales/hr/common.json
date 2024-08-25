@@ -417,5 +417,6 @@
   "app_theme": "Tema kontrolne ploče",
   "app_theme_applies_note": "Ovo se primjenjuje samo na vašu prijavljenu kontrolnu ploču",
   "already_have_account": "Već imate račun?",
-  "email_team_invite|subject|invited_to_regular_team": "{{user}} vas je pozvao da se pridružite timu {{team}} na {{appName}}"
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} vas je pozvao da se pridružite timu {{team}} na {{appName}}",
+  "signing_up_terms": "Nastavljajući slažete se s našim <0>Uvjetima korištenja</0> i <1>Pravilima o privatnosti</1>"
 }

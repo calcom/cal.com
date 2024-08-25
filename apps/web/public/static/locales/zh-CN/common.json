@@ -2364,5 +2364,6 @@
   "unreviewed": "未评论",
   "rating_url_info": "评级反馈表的 URL",
   "no_show_url_info": "无反馈的 URL",
+  "signing_up_terms": "继续使用，即表示您同意我们的<0>使用条款</0>和<1>隐私政策</1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
