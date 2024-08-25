@@ -871,6 +871,7 @@
   "business_days": "business days",
   "set_address_place": "Set an address or place",
   "set_link_meeting": "Set a link to the meeting",
+  "managed_event_field_parent_control_disabled": "Can't be toggled by parent, please unlock the field to control it from child",
   "cal_invitee_phone_number_scheduling": "{{appName}} will ask your invitee to enter a phone number before scheduling.",
   "cal_provide_google_meet_location": "{{appName}} will provide a Google Meet location.",
   "cal_provide_zoom_meeting_url": "{{appName}} will provide a Zoom meeting URL.",

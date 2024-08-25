@@ -135,6 +135,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
+  const singleUseLinksLocked = shouldLockDisableProps("singleUseLinks");
+
+  if (isManagedEventType) {
+    singleUseLinksLocked.disabled = true;
+  }
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -384,8 +389,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               childrenClassName="lg:ml-0"
               data-testid="singleUseLinksCheck"
               title={t("single_use_links_title")}
-              {...shouldLockDisableProps("singleUseLinks")}
+              {...singleUseLinksLocked}
               description={t("single_use_links_description", { appName: APP_NAME })}
+              tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
               checked={singleUseLinksVisible}
               onCheckedChange={(e) => {
                 if (!e) {
@@ -401,11 +407,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               }}>
               {!isManagedEventType && (
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <SingleUseLinksController
-                    team={team}
-                    bookerUrl={eventType.bookerUrl}
-                    disabled={shouldLockDisableProps("singleUseLinks").disabled}
-                  />
+                  <SingleUseLinksController team={team} bookerUrl={eventType.bookerUrl} />
                 </div>
               )}
             </SettingsToggle>
