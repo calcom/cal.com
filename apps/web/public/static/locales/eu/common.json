@@ -762,5 +762,6 @@
   "add_an_option": "Gehitu aukera bat",
   "radio": "Irratia",
   "all_bookings_filter_label": "Erreserba guztiak",
-  "timezone_variable": "Ordu-eremua"
+  "timezone_variable": "Ordu-eremua",
+  "signing_up_terms": "Aurrera jarraituz gero, gure <0>Baldintzak</0> eta <1>Privacy Policy</1>-arekin ados zaude"
 }

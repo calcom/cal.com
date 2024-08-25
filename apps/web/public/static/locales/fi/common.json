@@ -14,5 +14,6 @@
   "rejection_confirmation": "Hylkää varaus",
   "manage_this_event": "Hallinnoi tätä tapahtumaa",
   "invite_team_member": "Kutsu tiimin jäsen",
-  "invite_team_individual_segment": "Kutsu henkilö"
+  "invite_team_individual_segment": "Kutsu henkilö",
+  "signing_up_terms": "Jatkamalla hyväksyt meidän <0>käyttöehdot</0> ja <1>tietosuojakäytännöt</1>"
 }
