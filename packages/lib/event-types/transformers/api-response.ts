@@ -1,4 +1,3 @@
-import type { BookerLayoutsTransformedSchema } from "@calcom/platform-enums/monorepo";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
@@ -23,6 +22,7 @@ import type {
   BookingField_2024_06_14,
   NoticeThreshold_2024_06_14,
   RequiresConfirmation_2024_06_14,
+  BookerLayoutsTransformedSchema,
 } from "@calcom/platform-types";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";

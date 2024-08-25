@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums/monorepo";
 import type {
   BookingField_2024_06_14,
   Location_2024_06_14,
@@ -8,14 +14,6 @@ import type {
   BookerLayouts_2024_06_14,
   RequiresConfirmation_2024_06_14,
 } from "@calcom/platform-types";
-import {
-  BookerLayoutsInputEnum_2024_06_14,
-  BookerLayoutsOutputEnum_2024_06_14,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booker-layouts.enum";
-import {
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/requires-confirmation.enum";
 
 import type { UserField } from "./api-request";
 import {
