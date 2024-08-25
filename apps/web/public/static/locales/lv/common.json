@@ -125,5 +125,11 @@
   "create_account": "Izveidot Kontu",
   "confirm_password": "Apstiprināt paroli",
   "already_have_account": "Vai jums jau ir konts?",
+  "signing_up_terms": "Turpinot, jūs piekrītat <0>noteikumiem</0> un <1>privātuma politikai<1>",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "st",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} st"
   "signing_up_terms": "Turpinot, jūs piekrītat <0>noteikumiem</0> un <1>privātuma politikai<1>"
 }

@@ -763,5 +763,10 @@
   "radio": "Irratia",
   "all_bookings_filter_label": "Erreserba guztiak",
   "timezone_variable": "Ordu-eremua",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "ordu",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} ordu"
   "signing_up_terms": "Aurrera jarraituz gero, gure <0>Baldintzak</0> eta <1>Privacy Policy</1>-arekin ados zaude"
 }

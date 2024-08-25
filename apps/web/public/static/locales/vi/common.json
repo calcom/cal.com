@@ -2107,6 +2107,11 @@
   "email_team_invite|heading|invited_to_regular_team": "Bạn đã được mời gia nhập nhóm {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} đã mời bạn gia nhập nhóm '{{teamName}}' của họ trên {{appName}}. {{appName}} là công cụ lên lịch sắp xếp sự kiện cho phép bạn và nhóm bạn lên lịch các cuộc gặp mà không cần trao đổi email nhiều.",
   "privacy": "Quyền riêng tư",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "phút",
+  "hour_short": "giờ",
+  "minute_one_short": "{{count}} phút",
+  "hour_one_short": "{{count}} giờ",
   "signing_up_terms": "Bằng cách tiếp tục, bạn đồng ý với <0>Điều khoản sử dụng</0> và <1>Chính sách bảo mật</1> của chúng tôi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
