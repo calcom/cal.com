@@ -205,7 +205,6 @@
   "blog": "Blogg",
   "blog_description": "Läs våra senaste nyheter och artiklar",
   "join_our_community": "Gå med i vårt community",
-  "join_our_discord": "Gå med i vår Discord",
   "404_claim_entity_user": "Tjinga ditt användarnamn och schemalägga händelser",
   "popular_pages": "Populära sidor",
   "register_now": "Registrera dig nu",
@@ -655,6 +654,7 @@
   "default_duration": "Standardvaraktighet",
   "default_duration_no_options": "Välj först tillgänglig varaktighet",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minuter",
   "round_robin": "Tur och ordning",
   "round_robin_description": "Variera möten mellan olika teammedlemmar.",
@@ -2099,5 +2099,11 @@
   "email_team_invite|heading|invited_to_regular_team": "Du har blivit inbjuden att gå med i ett {{appName}}-team",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} har bjudit in dig att gå med i sitt team {{teamName}} den {{appName}}. {{appName}} är en händelsejonglerande schemaläggare som du och ditt team kan använda för att planera möten utan att skicka e-post fram och tillbaka.",
   "privacy": "Sekretess",
+  "signing_up_terms": "Genom att fortsätta godkänner du våra <0>användarvillkor</0> och vår <1>integritetspolicy</1>",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "t",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} t",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

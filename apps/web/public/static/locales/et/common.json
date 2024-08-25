@@ -239,7 +239,6 @@
   "blog": "Blogi",
   "blog_description": "Lugege meie viimaseid uudiseid ja artikleid",
   "join_our_community": "Liituge meie kogukonnaga",
-  "join_our_discord": "Liitu meie Discordiga",
   "404_claim_entity_user": "Taotle oma kasutajanimi ja ajasta üritusi",
   "popular_pages": "Populaarsed lehed",
   "register_now": "Registreeru kohe",
@@ -2482,5 +2481,10 @@
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "Kasutaja on organisatsiooni liige, millesse see meeskond ei kuulu.",
   "rescheduling_not_possible": "Ümberajastamine ei ole võimalik, kuna sündmus on aegunud",
   "event_expired": "See sündmus on aegunud",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "t",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} t",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

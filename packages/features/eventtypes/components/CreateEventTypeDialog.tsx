@@ -70,7 +70,7 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
-  isOrganization,
+  isInfiniteScrollEnabled,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -78,7 +78,7 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
-  isOrganization: boolean;
+  isInfiniteScrollEnabled: boolean;
 }) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -118,8 +118,17 @@ export default function CreateEventTypeDialog({
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
-      await utils.viewer.eventTypes.getByViewer.invalidate();
       await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
+
+      if (isInfiniteScrollEnabled) {
+        await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
+          group: { teamId: eventType.teamId, parentId: eventType.parentId },
+          limit: 10,
+        });
+      } else {
+        await utils.viewer.eventTypes.getByViewer.invalidate();
+      }
+
       showToast(
         t("event_type_created_successfully", {
           eventTypeTitle: eventType.title,
@@ -244,6 +253,7 @@ export default function CreateEventTypeDialog({
                   placeholder={t("quick_video_meeting")}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
+                  maxHeight="200px"
                 />
 
                 <div className="relative">

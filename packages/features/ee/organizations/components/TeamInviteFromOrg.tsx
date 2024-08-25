@@ -69,7 +69,7 @@ function UserToInviteItem({
       key={member.userId}
       onClick={() => onChange()} // We handle this on click on the div also - for a11y we handle it with label and checkbox below
       className={classNames(
-        "flex cursor-pointer items-center rounded-md px-2 py-1",
+        "flex cursor-pointer items-center rounded-md px-2 py-1 transition",
         isSelected ? "bg-emphasis" : "hover:bg-subtle "
       )}>
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -85,7 +85,7 @@ function UserToInviteItem({
           id={`${member.user.id}`}
           checked={isSelected}
           type="checkbox"
-          className="text-emphasis focus:ring-emphasis dark:text-muted border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded checked:bg-gray-800"
+          className="text-emphasis focus:ring-emphasis dark:text-muted border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded transition checked:bg-gray-800"
           onChange={() => {
             onChange();
           }}

@@ -34,6 +34,11 @@ jobs:
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
+  build-atoms:
+    name: Production builds
+    uses: ./.github/workflows/atoms-production-build.yml
+    secrets: inherit
+
   build:
     name: Production builds
     uses: ./.github/workflows/production-build-without-database.yml
@@ -67,12 +72,6 @@ jobs:
     name: Tests
     needs: [lint, build, build-api-v1, build-api-v2]
     uses: ./.github/workflows/e2e-embed-react.yml
-    secrets: inherit
-
-  analyze:
-    name: Analyze Build
-    needs: [build]
-    uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
   required:

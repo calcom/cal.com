@@ -205,7 +205,6 @@
   "blog": "Blog",
   "blog_description": "En yeni haber ve makalelerimizi okuyun",
   "join_our_community": "Topluluğumuza katılın",
-  "join_our_discord": "Discord kanalımıza katılın",
   "404_claim_entity_user": "Kullanıcı adınızı alın ve etkinlikler planlayın",
   "popular_pages": "Popüler sayfalar",
   "register_now": "Hemen kaydol",
@@ -655,6 +654,7 @@
   "default_duration": "Varsayılan süre",
   "default_duration_no_options": "Lütfen önce uygun süreleri seçin",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Dakika",
   "round_robin": "Round Robin",
   "round_robin_description": "Toplantıları birden fazla ekip üyesi arasında döndürün.",
@@ -2099,5 +2099,11 @@
   "email_team_invite|heading|invited_to_regular_team": "{{appName}} ekibine katılmaya davet edildiniz",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}}, sizi {{appName}} uygulamasındaki `{{teamName}}` ekibine katılmaya davet etti. {{appName}}, size ve ekibinize e-posta iletişimine ihtiyaç duymadan toplantı planlama yapma olanağı sağlayan bir etkinlik planlayıcıdır.",
   "privacy": "Gizlilik",
+  "signing_up_terms": "Devam ederek <0>Şartlar</0> ve <1>Gizlilik Politikası<1>'nı kabul etmiş olursunuz",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "dakika",
+  "hour_short": "saat",
+  "minute_one_short": "{{count}} dakika",
+  "hour_one_short": "{{count}} saat",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

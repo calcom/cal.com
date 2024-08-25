@@ -205,7 +205,6 @@
   "blog": "블로그",
   "blog_description": "최신 뉴스 및 기사 읽기",
   "join_our_community": "커뮤니티 가입하기",
-  "join_our_discord": "Discord에 가입",
   "404_claim_entity_user": "사용자 이름을 입력하고 이벤트를 만드세요.",
   "popular_pages": "인기 페이지",
   "register_now": "지금 등록하세요",
@@ -655,6 +654,7 @@
   "default_duration": "기본 기간",
   "default_duration_no_options": "사용 가능한 기간을 먼저 선택하세요",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "분",
   "round_robin": "라운드 로빈",
   "round_robin_description": "여러 팀 구성원 간의 주기적인 회의",
@@ -2099,5 +2099,11 @@
   "email_team_invite|heading|invited_to_regular_team": "{{appName}} 팀에 참여 초대를 받으셨습니다",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}}님이 {{appName}}에서 자신의 `{{teamName}}` 팀에 가입하도록 당신을 초대했습니다. {{appName}}은 유저와 팀이 이메일을 주고 받지 않고도 회의 일정을 잡을 수 있게 하는 이벤트 조율 스케줄러입니다.",
   "privacy": "개인정보보호",
+  "signing_up_terms": "계속 진행하면 <0>약관</0> 및 <1>개인정보 보호정책<1>에 동의하는 것입니다.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "분",
+  "hour_short": "시간",
+  "minute_one_short": "{{count}}분",
+  "hour_one_short": "{{count}}시간",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

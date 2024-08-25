@@ -205,7 +205,6 @@
   "blog": "Blog",
   "blog_description": "Pročitajte naše najnovije vesti i članke",
   "join_our_community": "Pridružite se našoj zajednici",
-  "join_our_discord": "Pridružite nam se na Discord-u",
   "404_claim_entity_user": "Zatražite svoje korisničko ime i zakažite događaje",
   "popular_pages": "Popularne stranice",
   "register_now": "Registrujte se sad",
@@ -655,6 +654,7 @@
   "default_duration": "Podrazumevano trajanje",
   "default_duration_no_options": "Najpre izaberite dostupna trajanja",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minuti",
   "round_robin": "Round Robin",
   "round_robin_description": "Ciklusirajte sastanke između više članova tima.",
@@ -2099,5 +2099,11 @@
   "email_team_invite|heading|invited_to_regular_team": "Pozvani ste da se pridružite timu {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} vas je pozvao/la da se pridružite njihovom timu `{{teamName}}` u {{appName}}. {{appName}} je planer za koordinaciju događaja koji omogućava vama i vašem timu da zakazujete sastanke bez dopisivanja imejlovima.",
   "privacy": "Privatnost",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "мин",
+  "hour_short": "сат",
+  "minute_one_short": "{{count}} мин",
+  "hour_one_short": "{{count}} сат",
+  "signing_up_terms": "Nastavljajući, slažete se sa našim <0>Uslovima korišćenja</0> i <1>Pravilima o privatnosti</1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

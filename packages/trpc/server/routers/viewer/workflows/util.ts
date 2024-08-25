@@ -31,6 +31,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import {
   BookingStatus,
   MembershipRole,
@@ -64,6 +65,21 @@ export const bookingSelect = {
     select: {
       slug: true,
       id: true,
+      schedulingType: true,
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+              destinationCalendar: {
+                select: {
+                  primaryEmail: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
   user: {
@@ -85,21 +101,80 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     },
   });
 
-  if (!verifiedEmail) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
+  if (verifiedEmail) {
+    if (teamId) {
+      if (!verifiedEmail.teamId) {
+        await prisma.verifiedEmail.update({
+          where: {
+            id: verifiedEmail.id,
+          },
+          data: {
+            teamId,
+          },
+        });
+      } else if (verifiedEmail.teamId !== teamId) {
+        await prisma.verifiedEmail.create({
+          data: {
+            email,
+            userId,
+            teamId,
+          },
+        });
+      }
+    }
+    return;
+  }
+
+  const userEmail = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      email,
+    },
+  });
+
+  if (userEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
   }
 
   if (teamId) {
-    if (!verifiedEmail.teamId) {
-      await prisma.verifiedEmail.update({
-        where: {
-          id: verifiedEmail.id,
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      select: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
         },
-        data: {
-          teamId,
-        },
-      });
-    } else if (verifiedEmail.teamId !== teamId) {
+      },
+    });
+
+    if (!team) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    }
+
+    const isTeamMember = team.members.some((member) => member.userId === userId);
+
+    if (!isTeamMember) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
+    }
+
+    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+
+    if (teamMemberEmail) {
       await prisma.verifiedEmail.create({
         data: {
           email,
@@ -107,8 +182,11 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
           teamId,
         },
       });
+      return;
     }
   }
+
+  throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
 };
 
 export function getSender(
@@ -670,6 +748,8 @@ export async function scheduleBookingReminders(
         language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
           slug: booking.eventType?.slug,
+          schedulingType: booking.eventType?.schedulingType,
+          hosts: booking.eventType?.hosts,
         },
       };
       if (
@@ -682,6 +762,16 @@ export async function scheduleBookingReminders(
         switch (step.action) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = [bookingInfo.organizer?.email];
+            const schedulingType = bookingInfo.eventType.schedulingType;
+            const hosts = bookingInfo.eventType.hosts
+              ?.filter((host) => bookingInfo.attendees.some((attendee) => attendee.email === host.user.email))
+              .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+            if (
+              hosts &&
+              (schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE)
+            ) {
+              sendTo = sendTo.concat(hosts);
+            }
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
@@ -689,6 +779,7 @@ export async function scheduleBookingReminders(
           case WorkflowActions.EMAIL_ADDRESS:
             await verifyEmailSender(step.sendTo || "", userId, teamId);
             sendTo = [step.sendTo || ""];
+            break;
         }
         await scheduleEmailReminder({
           evt: bookingInfo,

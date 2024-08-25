@@ -236,7 +236,6 @@
   "blog": "المدونة",
   "blog_description": "اقرأ أحدث أخبارنا ومقالاتنا",
   "join_our_community": "انضم إلى مجتمعنا",
-  "join_our_discord": "انضم إلينا على Discord",
   "404_claim_entity_user": "احصل على اسم المستخدم وقم بجدولة الأحداث",
   "popular_pages": "الصفحات الشائعة",
   "register_now": "التسجيل الآن",
@@ -2177,5 +2176,10 @@
   "email_team_invite|content|invited_to_regular_team": "دعاك {{invitedBy}} للانضمام إلى فريقه {{teamName}} على {{appName}}. إن {{appName}} هو برنامج جدولة الأحداث الذي يمكّنك أنت وفريقك من جدولة الاجتماعات دون الحاجة إلى المراسلة عبر البريد الإلكتروني.",
   "privacy": "الخصوصية",
   "signing_up_terms": "بالمتابعة فإنك توافق على <1>الشروط</1> و <2>سياسة الخصوصية</2> الخاصة بنا.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "دقيقة",
+  "hour_short": "ساعة",
+  "minute_one_short": "{{count}} دقيقة",
+  "hour_one_short": "{{count}} ساعة",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

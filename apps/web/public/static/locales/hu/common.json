@@ -236,7 +236,6 @@
   "blog": "Blog",
   "blog_description": "Olvassa el legfrissebb híreinket és cikkeinket",
   "join_our_community": "Csatlakozz a közösségünkhöz",
-  "join_our_discord": "Csatlakozz a Discordunkhoz",
   "404_claim_entity_user": "Igényelje felhasználónevét és ütemezze be az eseményeit",
   "popular_pages": "Népszerű oldalak",
   "register_now": "Regisztrálj most",
@@ -2439,5 +2438,11 @@
   "unable_to_subscribe_to_the_platform": "Hiba történt a platformcsomagra való előfizetés során. Kérjük, próbálja újra később",
   "updating_oauth_client_error": "Hiba történt az OAuth-kliens frissítésekor. Kérjük, próbálja újra később",
   "creating_oauth_client_error": "Hiba történt az OAuth-kliens létrehozásakor. Kérjük, próbálja újra később",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "perc",
+  "hour_short": "ó",
+  "minute_one_short": "{{count}} perc",
+  "hour_one_short": "{{count}} ó",
+  "signing_up_terms": "Folytatva elfogadja a <0>Felhasználási feltételeinket</0> és a <1>Adatvédelmi szabályzatunkat</1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

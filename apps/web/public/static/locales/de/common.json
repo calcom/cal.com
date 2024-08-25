@@ -239,7 +239,6 @@
   "blog": "Blog",
   "blog_description": "Lesen Sie unsere Neuigkeiten und Artikel",
   "join_our_community": "Treten Sie unserer Community bei",
-  "join_our_discord": "Treffe uns im Discord",
   "404_claim_entity_user": "Benutzername registrieren und Termine vergeben",
   "popular_pages": "Beliebte Seiten",
   "register_now": "Jetzt registrieren",
@@ -2472,5 +2471,10 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "Benutzer ist ein ausstehendes Mitglied der Organisation",
   "USER_ALREADY_INVITED_OR_MEMBER": "Benutzer ist bereits ein Mitglied oder eingeladen",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "Benutzer ist Mitglied einer Organisation, zu der dieses Team nicht angehört.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "Min.",
+  "hour_short": "Std.",
+  "minute_one_short": "{{count}} Min.",
+  "hour_one_short": "{{count}} Std.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

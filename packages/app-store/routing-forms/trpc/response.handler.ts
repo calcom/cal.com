@@ -7,7 +7,7 @@ import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
-import type { Response } from "../types/types";
+import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
 import { onFormSubmission } from "./utils";
 
@@ -118,7 +118,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
 
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as Response
+      dbFormResponse.response as FormResponse
     );
     return dbFormResponse;
   } catch (e) {

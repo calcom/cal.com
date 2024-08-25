@@ -236,7 +236,6 @@
   "blog": "בלוג",
   "blog_description": "לעיון בחדשות ובמאמרים האחרונים שלנו",
   "join_our_community": "הצטרף לקהילה שלנו",
-  "join_our_discord": "מזמינים אותך להצטרף ל-Discord שלנו",
   "404_claim_entity_user": "קבל את שם המשתמש שלך והתחל לקבוע מועדים לאירועים",
   "popular_pages": "דפים פופולריים",
   "register_now": "להירשם עכשיו",
@@ -2420,5 +2419,10 @@
   "csat_score": "ניקוד מדד שביעות רצון",
   "lockedSMS": "מסרון נעול",
   "signing_up_terms": "המשך מהווה את הסכמתך ל<1>תנאים</1> ול<2>מדיניות הפרטיות</2> שלנו.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "דקות",
+  "hour_short": "שעות",
+  "minute_one_short": "{{count}} דקות",
+  "hour_one_short": "{{count}} שעות",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

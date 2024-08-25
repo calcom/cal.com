@@ -554,6 +554,7 @@
   "default_duration": "Standard varighed",
   "default_duration_no_options": "Vælg venligst tilgængelige varigheder først",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minutter",
   "round_robin": "Round Robin",
   "round_robin_description": "Cyklusmøder mellem flere teammedlemmer.",
@@ -1537,5 +1538,11 @@
   "overlay_my_calendar": "Vis min kalender",
   "need_help": "Brug for hjælp?",
   "send_email": "Send e-mail",
-  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterede dig til at deltage i teamet {{team}} på {{appName}}"
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterede dig til at deltage i teamet {{team}} på {{appName}}",
+  "signing_up_terms": "Ved at fortsætte accepterer du vores <0>Vilkår</0> og <1>Privatlivspolitik</1>.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "t",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} t"
 }
