@@ -26,4 +26,5 @@
   "hour_short": "h",
   "minute_one_short": "{{count}} min",
   "hour_one_short": "{{count}} h"
+  "signing_up_terms": "En procedir, accepteu els nostres <0>Termes</0> i <1>Política de privacitat</1>"
 }

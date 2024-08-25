@@ -131,4 +131,5 @@
   "hour_short": "st",
   "minute_one_short": "{{count}} min",
   "hour_one_short": "{{count}} st"
+  "signing_up_terms": "Turpinot, jūs piekrītat <0>noteikumiem</0> un <1>privātuma politikai<1>"
 }

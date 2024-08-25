@@ -2112,5 +2112,6 @@
   "hour_short": "giờ",
   "minute_one_short": "{{count}} phút",
   "hour_one_short": "{{count}} giờ",
+  "signing_up_terms": "Bằng cách tiếp tục, bạn đồng ý với <0>Điều khoản sử dụng</0> và <1>Chính sách bảo mật</1> của chúng tôi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -423,4 +423,5 @@
   "hour_short": "h",
   "minute_one_short": "{{count}} min",
   "hour_one_short": "{{count}} h"
+  "signing_up_terms": "Nastavljajući slažete se s našim <0>Uvjetima korištenja</0> i <1>Pravilima o privatnosti</1>"
 }

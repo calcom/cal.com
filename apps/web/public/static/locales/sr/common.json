@@ -2104,5 +2104,6 @@
   "hour_short": "сат",
   "minute_one_short": "{{count}} мин",
   "hour_one_short": "{{count}} сат",
+  "signing_up_terms": "Nastavljajući, slažete se sa našim <0>Uslovima korišćenja</0> i <1>Pravilima o privatnosti</1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2105,5 +2105,6 @@
   "hour_short": "uur",
   "minute_one_short": "{{count}} min",
   "hour_one_short": "{{count}} uur",
+  "signing_up_terms": "Door verder te gaan, gaat u akkoord met de <0>Voorwaarden</0> en <1>Privacybeleid<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

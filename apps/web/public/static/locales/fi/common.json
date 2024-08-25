@@ -20,4 +20,5 @@
   "hour_short": "h",
   "minute_one_short": "{{count}} min",
   "hour_one_short": "{{count}} h"
+  "signing_up_terms": "Jatkamalla hyväksyt meidän <0>käyttöehdot</0> ja <1>tietosuojakäytännöt</1>"
 }
