@@ -16,6 +16,16 @@ export default function Type() {
   return null;
 }
 
+const querySchema = z.object({
+  uid: z.string(),
+  seatReferenceUid: z.string().optional(),
+  rescheduledBy: z.string().optional(),
+  allowRescheduleForCancelledBooking: z
+    .string()
+    .transform((value) => value === "true")
+    .optional(),
+});
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
 
@@ -27,17 +37,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
      * This is for the case of request-reschedule where the booking is cancelled
      */
     allowRescheduleForCancelledBooking,
-  } = z
-    .object({
-      uid: z.string(),
-      seatReferenceUid: z.string().optional(),
-      rescheduledBy: z.string().optional(),
-      allowRescheduleForCancelledBooking: z
-        .string()
-        .transform((value) => value === "true")
-        .optional(),
-    })
-    .parse(context.query);
+  } = querySchema.parse(context.query);
+
   const coepFlag = context.query["flag.coep"];
   const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
     prisma,
