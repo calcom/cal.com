@@ -379,38 +379,44 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         name="singleUseLinks"
         render={() => {
           return (
-            <SettingsToggle
-              labelClassName="text-sm"
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                singleUseLinksVisible && "rounded-b-none"
+            <>
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  singleUseLinksVisible && "rounded-b-none"
+                )}
+                childrenClassName="lg:ml-0"
+                data-testid="singleUseLinksCheck"
+                title={t("single_use_links_title")}
+                {...singleUseLinksLocked}
+                description={t("single_use_links_description", { appName: APP_NAME })}
+                checked={singleUseLinksVisible}
+                onCheckedChange={(e) => {
+                  if (!e) {
+                    formMethods.setValue("singleUseLinks", [], { shouldDirty: true });
+                  } else {
+                    formMethods.setValue(
+                      "singleUseLinks",
+                      [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
+                      { shouldDirty: true }
+                    );
+                  }
+                  setSingleUseLinksVisible(e);
+                }}>
+                {!isManagedEventType && (
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <SingleUseLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                  </div>
+                )}
+              </SettingsToggle>
+              {isManagedEventType && (
+                <p className="!mt-2 ml-1 text-sm text-gray-600">
+                  {t("managed_event_field_parent_control_disabled")}
+                </p>
               )}
-              childrenClassName="lg:ml-0"
-              data-testid="singleUseLinksCheck"
-              title={t("single_use_links_title")}
-              {...singleUseLinksLocked}
-              description={t("single_use_links_description", { appName: APP_NAME })}
-              tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
-              checked={singleUseLinksVisible}
-              onCheckedChange={(e) => {
-                if (!e) {
-                  formMethods.setValue("singleUseLinks", [], { shouldDirty: true });
-                } else {
-                  formMethods.setValue(
-                    "singleUseLinks",
-                    [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
-                    { shouldDirty: true }
-                  );
-                }
-                setSingleUseLinksVisible(e);
-              }}>
-              {!isManagedEventType && (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <SingleUseLinksController team={team} bookerUrl={eventType.bookerUrl} />
-                </div>
-              )}
-            </SettingsToggle>
+            </>
           );
         }}
       />
