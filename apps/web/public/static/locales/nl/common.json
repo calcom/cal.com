@@ -2100,5 +2100,11 @@
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} heeft u uitgenodigd om lid te worden van zijn team '{{teamName}}' op {{appName}}. {{appName}} is de gebeurtenissenplanner die u en uw team in staat stelt afspraken te plannen zonder heen en weer te e-mailen.",
   "privacy": "Privacy",
   "sign_up_terms": "Door verder te gaan, gaat u akkoord met de <0>Voorwaarden</0> en <1>Privacybeleid<1>",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "uur",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} uur",
+  "signing_up_terms": "Door verder te gaan, gaat u akkoord met de <0>Voorwaarden</0> en <1>Privacybeleid<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

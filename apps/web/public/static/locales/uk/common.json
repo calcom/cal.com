@@ -2133,5 +2133,10 @@
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} запрошує вас приєднатися до команди «{{teamName}}» в {{appName}}. {{appName}} — планувальник подій, який дає змогу вам і вашій команді планувати зустрічі без тривалої переписки електронною поштою.",
   "privacy": "Політика конфіденційності",
   "signing_up_terms": "Продовжуючи, ви погоджуєтеся з <0>Умовами</0> та <1>Політикою конфіденційності<1>",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "хвилин",
+  "hour_short": "годин",
+  "minute_one_short": "{{count}} хвилин",
+  "hour_one_short": "{{count}} годин",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
