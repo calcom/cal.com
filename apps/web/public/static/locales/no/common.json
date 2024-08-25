@@ -1393,5 +1393,10 @@
   "need_help": "Trenger du hjelp?",
   "send_email": "Send e-post",
   "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}",
-  "signing_up_terms": "Ved å fortsette godtar du <0>Vilkår</0> og <1>Datapolitikk<1>"
+  "signing_up_terms": "Ved å fortsette godtar du <0>Vilkår</0> og <1>Datapolitikk<1>",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "t",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} t"
 }
