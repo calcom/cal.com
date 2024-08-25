@@ -399,25 +399,25 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 > [!NOTE]  
 > Our philosophy is simple, all "Singleplayer APIs" are open-source under AGPLv3. All commercial "Multiplayer APIs" are under a commercial license.
 
-|                                   | AGPLv3 | EE  |
-| --------------------------------- | ------ | --- |
-| Self-host for commercial purposes | ✅     | ✅  |
-| Clone privately                   | ✅     | ✅  |
-| Fork publicly                     | ✅     | ✅  |
-| Requires CLA                      | ✅     | ✅  |
-|  Official Support                 | ❌     | ✅  |
-| Derivative work privately         | ❌     | ✅  |
-|  SSO                              | ❌     | ✅  |
-| Admin Panel                       | ❌     | ✅  |
-| Impersonation                     | ❌     | ✅  |
-| Managed Event Types               | ❌     | ✅  |
-| Organizations                     | ❌     | ✅  |
-| Payments                          | ❌     | ✅  |
-| Platform                          | ❌     | ✅  |
-| Teams                             | ❌     | ✅  |
-| Users                             | ❌     | ✅  |
-| Video                             | ❌     | ✅  |
-| Workflows                         | ❌     | ✅  |
+|   | AGPLv3  | EE  | 
+|---|---|---|
+| Self-host for commercial purposes	  | ✅  |  ✅ |
+| Clone privately  | ✅  | ✅  |
+| Fork publicly  | ✅  | ✅ |
+| Requires CLA  |  ✅ | ✅  |
+| Official Support| ❌ | ✅ |
+| Derivative work privately | ❌  | ✅ |
+| SSO | ❌  | ✅ |
+| Admin Panel | ❌  | ✅ |
+| Impersonation | ❌  | ✅ |
+| Managed Event Types | ❌  | ✅ |
+| Organizations | ❌  | ✅ |
+| Payments | ❌  | ✅ |
+| Platform | ❌  | ✅ |
+| Teams | ❌  | ✅ |
+| Users | ❌  | ✅ |
+| Video | ❌  | ✅ |
+| Workflows | ❌  | ✅ |
 
 > [!TIP]
 > We work closely with the community and always invite feedback about what should be open and what is fine to be commercial. This list is not set and stone and we have moved things from commercial to open in the past. Please open a [discussion](https://github.com/calcom/cal.com/discussions) if you feel like something is wrong.
