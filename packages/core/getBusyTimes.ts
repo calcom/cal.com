@@ -41,7 +41,7 @@ export async function getBusyTimes(params: {
         };
       })[]
     | null;
-  timeBlocksArr?: string[];
+  timeBlocksList?: string[];
 }) {
   const {
     credentials,
@@ -57,7 +57,7 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
-    timeBlocksArr,
+    timeBlocksList,
   } = params;
 
   logger.silly(
@@ -210,7 +210,7 @@ export async function getBusyTimes(params: {
       startTime,
       endTime,
       selectedCalendars,
-      timeBlocksArr?.length ? true : false
+      timeBlocksList?.length ? true : false
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
@@ -223,10 +223,9 @@ export async function getBusyTimes(params: {
     );
 
     const calendarBusyTimes: EventBusyData[] = [];
-    if (timeBlocksArr?.length) {
-      // separate the calendar events that contain any of the time block values in the event title
+    if (timeBlocksList?.length) {
       calendarBusyTimesWithTimeBlocks.forEach((busyTime) => {
-        if (timeBlocksArr?.some((timeBlock) => busyTime.title === timeBlock)) {
+        if (timeBlocksList?.some((timeBlock) => busyTime.title === timeBlock)) {
           timeBlocks.push({
             date: dayjs(busyTime.start).startOf("day").utc(true).toDate(),
             startTime: dayjs(busyTime.start).utc(true).toDate(),

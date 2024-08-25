@@ -164,13 +164,14 @@ const useExcludedDates = () => {
 const TimeBlocks = ({ control }: { control: Control<AvailabilityFormValues> }) => {
   const { append, remove, fields } = useFieldArray<AvailabilityFormValues, "timeBlocks">({
     name: "timeBlocks",
+    control,
   });
+  const { t } = useLocale();
+
   return (
     <div className="border-subtle mb-6 rounded-md border p-6">
-      <h3 className="text-emphasis font-medium leading-6">Time Blocks</h3>
-      <p className="text-subtle mb-4 text-sm">
-        Mark yourself available when you have a calendar event with a title that contains
-      </p>
+      <h3 className="text-emphasis font-medium leading-6">{t("time_blocks")}</h3>
+      <p className="text-subtle mb-4 text-sm">{t("time_blocks_subtitle")}</p>
       <div className="space-y-2">
         <TimeBlocksList fields={fields} remove={remove} control={control} />
         <Button
@@ -178,7 +179,7 @@ const TimeBlocks = ({ control }: { control: Control<AvailabilityFormValues> }) =
           StartIcon="plus"
           data-testid="add-override"
           onClick={() => append({ value: "" })}>
-          Add a Time Block
+          {t("add_time_block")}
         </Button>
       </div>
     </div>
