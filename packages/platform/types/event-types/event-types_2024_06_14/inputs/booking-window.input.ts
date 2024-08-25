@@ -70,7 +70,6 @@ export type BookingWindow_2024_06_14 =
 @ValidatorConstraint({ name: "bookingWindowValidator", async: false })
 class BookingWindowValidator implements ValidatorConstraintInterface {
   validate(value: BookingWindow_2024_06_14) {
-    console.log("vvaluevaluealue: ", value);
     if (!value || !value.type) {
       throw new BadRequestException(`'BookingWindow' must have a type`);
     }
