@@ -2100,5 +2100,10 @@
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} v-a invitat să faceți parte din echipa sa „{{teamName}}” de pe {{appName}}. {{appName}} este un instrument de planificare a evenimentelor, care vă permite dvs. și echipei dvs. să programați ședințe fără a face ping-pong prin e-mail.",
   "privacy": "Confidențialitate",
   "signing_up_terms": "Continuând, sunteți de acord cu <0>Termele</0> și <1>Politica de confidențialitate<1>",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "h",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} h",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

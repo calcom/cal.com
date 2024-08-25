@@ -11,9 +11,9 @@ import { List } from "@calcom/ui";
 import AppListCard from "@calcom/web/components/AppListCard";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
-import { SelectedCalendarSettings } from "../SelectedCalendarSettings";
+import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
-type SelectedCalendarSettingsWebWrapperProps = {
+type SelectedCalendarsSettingsWebWrapperProps = {
   onChanged: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
@@ -21,7 +21,7 @@ type SelectedCalendarSettingsWebWrapperProps = {
   classNames?: string;
 };
 
-export const SelectedCalendarSettingsWebWrapper = (props: SelectedCalendarSettingsWebWrapperProps) => {
+export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSettingsWebWrapperProps) => {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
     suspense: true,
@@ -39,8 +39,8 @@ export const SelectedCalendarSettingsWebWrapper = (props: SelectedCalendarSettin
           }
 
           return (
-            <SelectedCalendarSettings classNames={props.classNames}>
-              <SelectedCalendarSettingsHeading
+            <SelectedCalendarsSettings classNames={props.classNames}>
+              <SelectedCalendarsSettingsHeading
                 isConnectedCalendarsPresent={!!data.connectedCalendars.length}
                 isPending={isPending}
               />
@@ -122,7 +122,7 @@ export const SelectedCalendarSettingsWebWrapper = (props: SelectedCalendarSettin
                   );
                 })}
               </List>
-            </SelectedCalendarSettings>
+            </SelectedCalendarsSettings>
           );
         }}
       />
@@ -130,7 +130,7 @@ export const SelectedCalendarSettingsWebWrapper = (props: SelectedCalendarSettin
   );
 };
 
-const SelectedCalendarSettingsHeading = (props: {
+const SelectedCalendarsSettingsHeading = (props: {
   isConnectedCalendarsPresent: boolean;
   isPending?: boolean;
 }) => {

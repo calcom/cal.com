@@ -2100,5 +2100,10 @@
   "email_team_invite|content|invited_to_regular_team": "Uživatel {{invitedBy}} vás pozval, abyste se připojili k jeho týmu „{{teamName}}“ v aplikaci {{appName}}. {{appName}} je plánovač událostí, který vám a vašemu týmu umožňuje plánovat schůzky bez e-mailového pingpongu.",
   "privacy": "Ochrana soukromí",
   "signing_up_terms": "Pokračováním souhlasíte s našimi <0>Podmínkami</0> a <1>Zásadami ochrany osobních údajů</1>.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "hod",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} hod",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
