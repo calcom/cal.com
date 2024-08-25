@@ -35,7 +35,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
 });
 
 export class EventTypeRepository {
-  private static generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
+  private static generateCreateEventTypeData = (eventTypeCreateData: IEventType, actorUserId?: number) => {
     const {
       userId,
       profileId,
@@ -86,12 +86,13 @@ export class EventTypeRepository {
             durationLimits,
           }
         : null),
+      actorUserId: actorUserId ?? null,
     };
   };
 
-  static async create(data: IEventType) {
+  static async create(data: IEventType, actorUserId?: number) {
     return await prisma.eventType.create({
-      data: this.generateCreateEventTypeData(data),
+      data: { ...this.generateCreateEventTypeData(data), actorUserId: actorUserId ?? null },
     });
   }
 

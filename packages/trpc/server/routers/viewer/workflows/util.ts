@@ -259,11 +259,13 @@ export async function upsertSmsReminderFieldForEventTypes({
   workflowId,
   isSmsReminderNumberRequired,
   isOrg,
+  actorUserId,
 }: {
   activeOn: number[];
   workflowId: number;
   isSmsReminderNumberRequired: boolean;
   isOrg: boolean;
+  actorUserId?: number;
 }) {
   let allEventTypeIds = activeOn;
 
@@ -278,7 +280,8 @@ export async function upsertSmsReminderFieldForEventTypes({
         workflowId,
         isSmsReminderNumberRequired,
       }),
-      eventTypeId
+      eventTypeId,
+      actorUserId ?? null
     );
   }
 }
@@ -288,11 +291,13 @@ export async function removeSmsReminderFieldForEventTypes({
   workflowId,
   isOrg,
   activeOn,
+  actorUserId,
 }: {
   activeOnToRemove: number[];
   workflowId: number;
   isOrg: boolean;
   activeOn?: number[];
+  actorUserId?: number;
 }) {
   let allEventTypeIds = activeOnToRemove;
 
@@ -310,9 +315,11 @@ export async function removeSmsReminderFieldForEventTypes({
 export async function removeSmsReminderFieldForEventType({
   workflowId,
   eventTypeId,
+  actorUserId,
 }: {
   workflowId: number;
   eventTypeId: number;
+  actorUserId?: number | null;
 }) {
   await removeBookingField(
     {
@@ -322,7 +329,8 @@ export async function removeSmsReminderFieldForEventType({
       id: `${workflowId}`,
       type: "workflow",
     },
-    eventTypeId
+    eventTypeId,
+    actorUserId ?? null
   );
 }
 

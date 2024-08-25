@@ -98,6 +98,7 @@ export default async function handleChildrenEventTypes({
   prisma,
   profileId,
   updatedValues,
+  currentUserId,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
@@ -204,6 +205,7 @@ export default async function handleChildrenEventTypes({
               },
             },*/
             hashedLink: hashedLinkQuery(userId),
+            actorUserId: currentUserId ?? null,
           },
         });
       })
@@ -256,6 +258,7 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             hashedLink: "hashedLink" in unlockedFieldProps ? undefined : hashedLinkQuery(userId),
+            actorUserId: currentUserId ?? null,
           },
         });
       })

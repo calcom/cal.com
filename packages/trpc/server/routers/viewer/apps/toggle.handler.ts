@@ -139,6 +139,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
                   [app.slug]: { ...eventType.metadata?.apps[app.slug], enabled: false },
                 },
               },
+              actorUserId: ctx.user.id ?? null,
             },
           });
 

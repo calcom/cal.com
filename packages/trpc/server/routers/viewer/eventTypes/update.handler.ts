@@ -430,7 +430,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   try {
     updatedEventType = await ctx.prisma.eventType.update({
       where: { id },
-      data,
+      data: { ...data, actorUserId: ctx.user.id ?? null },
       select: updatedEventTypeSelect,
     });
   } catch (e) {
