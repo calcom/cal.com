@@ -1746,6 +1746,7 @@
   "time_blocks": "Time Blocks",
   "time_blocks_subtitle": "Mark yourself available when you have a calendar event with a title that contains",
   "add_time_block": "Add a Time Block",
+  "time_block_empty_error": "Either enter a time block value or remove this field.",
   "date_overrides_delete_on_date": "Delete date overrides on {{date}}",
   "date_overrides_subtitle": "Add dates when your availability changes from your daily hours.",
   "date_overrides_info": "Date overrides are archived automatically after the date has passed",
