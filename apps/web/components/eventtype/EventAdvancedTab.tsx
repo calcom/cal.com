@@ -379,7 +379,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         name="singleUseLinks"
         render={() => {
           return (
-            <>
               <SettingsToggle
                 labelClassName="text-sm"
                 toggleSwitchAtTheEnd={true}
@@ -392,6 +391,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 title={t("single_use_links_title")}
                 {...singleUseLinksLocked}
                 description={t("single_use_links_description", { appName: APP_NAME })}
+                tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
                 checked={singleUseLinksVisible}
                 onCheckedChange={(e) => {
                   if (!e) {
@@ -411,12 +411,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   </div>
                 )}
               </SettingsToggle>
-              {isManagedEventType && (
-                <p className="!mt-2 ml-1 text-sm text-gray-600">
-                  {t("managed_event_field_parent_control_disabled")}
-                </p>
               )}
-            </>
           );
         }}
       />
