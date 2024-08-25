@@ -173,6 +173,7 @@ describe("handleNewBooking", () => {
                 name: booker.name,
                 location: { optionValue: "", value: BookingLocations.CalVideo },
               },
+              rescheduledBy: organizer.email,
             },
           });
 
@@ -199,6 +200,7 @@ describe("handleNewBooking", () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
+            rescheduledBy: organizer.email,
           });
 
           expect(previousBooking?.status).toBe(BookingStatus.CANCELLED);
@@ -284,6 +286,9 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+            payload: {
+              rescheduledBy: organizer.email,
+            },
           });
         },
         timeout
@@ -1957,6 +1962,7 @@ describe("handleNewBooking", () => {
                 name: booker.name,
                 location: { optionValue: "", value: BookingLocations.CalVideo },
               },
+              rescheduledBy: booker.email,
             },
           });
           const { req } = createMockNextJsRequest({
@@ -1982,6 +1988,7 @@ describe("handleNewBooking", () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
+            rescheduledBy: booker.email,
           });
 
           expect(previousBooking?.status).toBe(BookingStatus.CANCELLED);

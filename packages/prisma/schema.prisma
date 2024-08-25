@@ -597,6 +597,10 @@ model Booking {
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
   oneTimePassword       String?                    @unique @default(uuid())
+  /// @zod.email()
+  cancelledBy           String?
+  /// @zod.email()
+  rescheduledBy         String?
 
   @@index([eventTypeId])
   @@index([userId])

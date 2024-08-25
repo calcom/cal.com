@@ -53,6 +53,8 @@ export const buildBooking = (
     status: BookingStatus.ACCEPTED,
     paid: false,
     destinationCalendarId: null,
+    cancelledBy: null,
+    rescheduledBy: null,
     cancellationReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
