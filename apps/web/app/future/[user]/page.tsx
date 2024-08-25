@@ -1,4 +1,5 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
@@ -11,13 +12,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import LegacyPage from "~/users/views/users-public-view";
 import { getServerSideProps, type UserPageProps } from "~/users/views/users-public-view.getServerSideProps";
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Record<string, string | string[]>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
     buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
   );

@@ -1,4 +1,5 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
@@ -7,15 +8,12 @@ import { headers, cookies } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import LegacyPage from "~/users/views/users-type-public-view";
-import { getServerSideProps, type PageProps } from "~/users/views/users-type-public-view.getServerSideProps";
+import {
+  getServerSideProps,
+  type PageProps as LegacyPageProps,
+} from "~/users/views/users-type-public-view.getServerSideProps";
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Record<string, string | string[]>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
     buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
   );
@@ -42,7 +40,7 @@ export const generateMetadata = async ({
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
   );
 };
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 export default WithLayout({
   getData,

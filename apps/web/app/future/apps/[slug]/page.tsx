@@ -1,6 +1,7 @@
 import Page from "@pages/apps/[slug]/index";
 import { Prisma } from "@prisma/client";
 import { withAppDirSsg } from "app/WithAppDirSsg";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { InferGetStaticPropsType } from "next";
@@ -15,13 +16,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 type Y = InferGetStaticPropsType<typeof getStaticProps>;
 const getData = withAppDirSsg<Y>(getStaticProps);
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Record<string, string | string[]>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const res = await getData(legacyContext);
 
