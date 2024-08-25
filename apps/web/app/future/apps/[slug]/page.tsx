@@ -7,7 +7,6 @@ import { WithLayout } from "app/layoutHOC";
 import type { InferGetStaticPropsType } from "next";
 import { cookies, headers } from "next/headers";
 
-import { APP_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
@@ -21,7 +20,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const res = await getData(legacyContext);
 
   return await _generateMetadata(
-    () => `${res?.data.name} | ${APP_NAME}`,
+    () => res?.data.name ?? "",
     () => res?.data.description ?? ""
   );
 };
