@@ -350,10 +350,11 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
-      await page.click('[data-testid="test-preview"]');
       await page.waitForLoadState("networkidle");
+      await page.click('[data-testid="test-preview"]');
 
       // //event redirect
+      await page.waitForSelector('[data-testid="form-field-Test field"]', { state: "visible" });
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
       await page.click('[data-testid="test-routing"]');
       let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
