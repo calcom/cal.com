@@ -173,6 +173,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     expect(oldBooking?.status).toBe(BookingStatus.ACCEPTED);
 
+    await page.waitForLoadState("networkidle");
     await page.goto(`/reschedule/${references[1].referenceUid}`);
 
     await page.click('[data-testid="incrementMonth"]');
