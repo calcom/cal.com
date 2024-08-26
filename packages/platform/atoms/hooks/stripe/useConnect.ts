@@ -12,7 +12,7 @@ export const useGetRedirectUrl = (redir?: string) => {
     enabled: false,
     queryFn: () => {
       return http
-        ?.get<ApiResponse<{ authUrl: string }>>(`/stripe/connect?redir=${JSON.stringify({ redir })}`)
+        ?.get<ApiResponse<{ authUrl: string }>>(`/stripe/connect${redir ? `?redir=${redir}` : ""}`)
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
             return responseBody.data.authUrl;
