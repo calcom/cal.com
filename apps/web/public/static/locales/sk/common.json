@@ -29,5 +29,10 @@
   "organizer": "Organizátor",
   "need_to_reschedule_or_cancel": "Preplánovať alebo zrušiť?",
   "no_options_available": "Nie sú k dispozícii žiadne možnosti",
-  "signing_up_terms": "Pokračovaním súhlasíte s <0>Podmienkami</0> a <1>Zásadami ochrany osobných údajov<1>"
+  "signing_up_terms": "Pokračovaním súhlasíte s <0>Podmienkami</0> a <1>Zásadami ochrany osobných údajov<1>",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "hod",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} hod"
 }

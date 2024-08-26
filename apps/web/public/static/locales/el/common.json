@@ -282,5 +282,10 @@
   "app_theme_applies_note": "Αυτό ισχύει μόνο για το πίνακα ελέγχου σας που έχεις συνδεθεί",
   "already_have_account": "Έχετε ήδη λογαριασμό;",
   "email_team_invite|subject|invited_to_regular_team": "Ο χρήστης {{user}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{team}} στο {{appName}}",
-  "signing_up_terms": "Συνεχίζοντας, συμφωνείτε με τους <0>Όρους</0> και την <1>Πολιτική Προστασίας Προσωπικών Δεδομένων</1>."
+  "signing_up_terms": "Συνεχίζοντας, συμφωνείτε με τους <0>Όρους</0> και την <1>Πολιτική Προστασίας Προσωπικών Δεδομένων</1>.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "λεπτά",
+  "hour_short": "ώρα",
+  "minute_one_short": "{{count}} λεπτά",
+  "hour_one_short": "{{count}} ώρες"
 }
