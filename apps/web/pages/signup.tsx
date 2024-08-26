@@ -312,7 +312,7 @@ export default function Signup({
           />
           <DubAnalytics
             cookieOptions={{
-              domain: isENVDev ? undefined : new URL(WEBAPP_URL).hostname,
+              domain: isENVDev ? undefined : `.${new URL(WEBSITE_URL).hostname}`,
             }}
           />
         </>
