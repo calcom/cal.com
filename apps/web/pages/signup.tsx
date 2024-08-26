@@ -24,8 +24,9 @@ import {
   URL_PROTOCOL_REGEX,
   IS_CALCOM,
   WEBAPP_URL,
-  WEBSITE_URL,
   CLOUDFLARE_SITE_ID,
+  WEBSITE_PRIVACY_POLICY_URL,
+  WEBSITE_TERMS_URL,
 } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
@@ -548,14 +549,14 @@ export default function Signup({
                       <Link
                         className="text-emphasis hover:underline"
                         key="terms"
-                        href={`${WEBSITE_URL}/terms`}
+                        href={`${WEBSITE_TERMS_URL}`}
                         target="_blank">
                         Terms
                       </Link>,
                       <Link
                         className="text-emphasis hover:underline"
                         key="privacy"
-                        href={`${WEBSITE_URL}/privacy`}
+                        href={`${WEBSITE_PRIVACY_POLICY_URL}`}
                         target="_blank">
                         Privacy Policy.
                       </Link>,

@@ -279,6 +279,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         seatsEnabled={seatsEnabled}
         metadata={formMethods.getValues("metadata")}
         requiresConfirmation={requiresConfirmation}
+        requiresConfirmationWillBlockSlot={formMethods.getValues("requiresConfirmationWillBlockSlot")}
         onRequiresConfirmation={setRequiresConfirmation}
       />
       <Controller
