@@ -40,7 +40,7 @@ export const useNotifications = () => {
         console.log("Notifications not supported");
       }
 
-      const registration = await navigator.serviceWorker.getRegistration();
+      const registration = await navigator.serviceWorker?.getRegistration();
       if (!registration) return;
       const subscription = await registration.pushManager.getSubscription();
 
@@ -84,7 +84,7 @@ export const useNotifications = () => {
       return;
     }
 
-    const registration = await navigator.serviceWorker.getRegistration();
+    const registration = await navigator.serviceWorker?.getRegistration();
     if (!registration) {
       // This will not happen ideally as the button will not be shown if the service worker is not registered
       return;
@@ -117,7 +117,7 @@ export const useNotifications = () => {
 
   const disableNotifications = async () => {
     setIsLoading(true);
-    const registration = await navigator.serviceWorker.getRegistration();
+    const registration = await navigator.serviceWorker?.getRegistration();
     if (!registration) {
       // This will not happen ideally as the button will not be shown if the service worker is not registered
       return;
