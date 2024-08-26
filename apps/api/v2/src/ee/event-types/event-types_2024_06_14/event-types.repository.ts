@@ -25,6 +25,7 @@ type InputEventTransformed = Omit<
   | "recurrence"
   | "requiresBookerEmailVerification"
   | "hideCalendarNotes"
+  | "lockTimeZoneToggleOnBookingPage"
 > & {
   length: number;
   slug: string;

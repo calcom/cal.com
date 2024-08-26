@@ -299,6 +299,7 @@ describe("Organizations Event Types Endpoints", () => {
         },
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
+        lockTimeZoneToggleOnBookingPage: true,
       };
 
       return request(app.getHttpServer())
@@ -324,6 +325,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.requiresConfirmation).toEqual(body.requiresConfirmation);
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
 
           collectiveEventType = responseBody.data;
         });

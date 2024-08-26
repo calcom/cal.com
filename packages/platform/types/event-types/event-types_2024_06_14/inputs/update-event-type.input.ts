@@ -111,6 +111,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   hideCalendarNotes?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  lockTimeZoneToggleOnBookingPage?: boolean;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -225,4 +229,8 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   hideCalendarNotes?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  lockTimeZoneToggleOnBookingPage?: boolean;
 }

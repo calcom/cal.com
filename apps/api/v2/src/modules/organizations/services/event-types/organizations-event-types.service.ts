@@ -50,6 +50,7 @@ export class OrganizationsEventTypesService {
       requiresConfirmation,
       requiresBookerEmailVerification,
       hideCalendarNotes,
+      lockTimeZoneToggleOnBookingPage,
       bookingFields,
       recurrence,
       ...rest
@@ -77,6 +78,7 @@ export class OrganizationsEventTypesService {
         requiresConfirmation,
         requiresBookerEmailVerification,
         hideCalendarNotes,
+        lockTimeZoneToggleOnBookingPage,
         bookingFields,
         recurrence,
         ...rest,

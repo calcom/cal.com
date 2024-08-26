@@ -127,6 +127,10 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   hideCalendarNotes?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  lockTimeZoneToggleOnBookingPage?: boolean;
 }
 
 export enum HostPriority {

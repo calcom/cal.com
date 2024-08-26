@@ -258,6 +258,7 @@ describe("Event types Endpoints", () => {
         },
         requiresBookerEmailVerification: false,
         hideCalendarNotes: false,
+        lockTimeZoneToggleOnBookingPage: true,
       };
 
       return request(app.getHttpServer())
@@ -289,6 +290,9 @@ describe("Event types Endpoints", () => {
           );
 
           expect(createdEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+            body.lockTimeZoneToggleOnBookingPage
+          );
           eventType = responseBody.data;
         });
     });
@@ -332,6 +336,7 @@ describe("Event types Endpoints", () => {
         },
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
+        lockTimeZoneToggleOnBookingPage: true,
       };
 
       return request(app.getHttpServer())
@@ -364,6 +369,9 @@ describe("Event types Endpoints", () => {
             body.requiresBookerEmailVerification
           );
           expect(updatedEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(updatedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+            body.lockTimeZoneToggleOnBookingPage
+          );
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -377,6 +385,7 @@ describe("Event types Endpoints", () => {
           eventType.recurrence = updatedEventType.recurrence;
           eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
+          eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
         });
     });
 
@@ -424,6 +433,9 @@ describe("Event types Endpoints", () => {
         eventType.requiresBookerEmailVerification
       );
       expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -461,6 +473,9 @@ describe("Event types Endpoints", () => {
         eventType.requiresBookerEmailVerification
       );
       expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -493,6 +508,9 @@ describe("Event types Endpoints", () => {
         eventType.requiresBookerEmailVerification
       );
       expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
     });
 
     it(`/GET/:id not existing`, async () => {

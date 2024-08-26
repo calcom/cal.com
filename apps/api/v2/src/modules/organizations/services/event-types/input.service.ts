@@ -33,6 +33,7 @@ export class InputOrganizationsEventTypesService {
       requiresConfirmation,
       requiresBookerEmailVerification,
       hideCalendarNotes,
+      lockTimeZoneToggleOnBookingPage,
       bookingFields,
       recurrence,
       ...rest
@@ -55,6 +56,7 @@ export class InputOrganizationsEventTypesService {
       requiresConfirmation,
       requiresBookerEmailVerification,
       hideCalendarNotes,
+      lockTimeZoneToggleOnBookingPage,
       bookingFields,
       recurrence,
       metadata,

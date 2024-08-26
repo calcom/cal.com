@@ -54,6 +54,7 @@ type Input = Pick<
   | "periodEndDate"
   | "requiresBookerEmailVerification"
   | "hideCalendarNotes"
+  | "lockTimeZoneToggleOnBookingPage"
 >;
 
 @Injectable()
