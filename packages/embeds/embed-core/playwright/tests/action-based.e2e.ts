@@ -61,8 +61,6 @@ test.describe("Popup Tests", () => {
     await page.waitForSelector(`[data-cal-namespace="${calNamespace}"]`, { state: "visible" });
     await page.click(`[data-cal-namespace="${calNamespace}"]`);
 
-    await page.waitForSelector(`iframe[src*="/free"]`, { state: "visible", timeout: 10000 });
-
     const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
 
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
