@@ -2357,7 +2357,7 @@
   "delete_org_eventtypes": "删除个人事件类型",
   "lock_org_users_eventtypes": "锁定个人事件类型创建",
   "lock_org_users_eventtypes_description": "阻止成员创建自己的事件类型。",
-  "cookie_consent_checkbox": "我同意 Cal.com 的隐私政策以及 cookie 使用政策",
+  "cookie_consent_checkbox": "创建账户即表示您同意我们的隐私政策和cookie使用",
   "make_a_call": "打电话",
   "submit_feedback": "提交反馈",
   "host_no_show": "您的主持人没有出现",

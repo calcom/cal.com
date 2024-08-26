@@ -2405,7 +2405,7 @@
   "create_account_password_hint": "Você não tem uma palavra-passe de conta. Crie uma acedendo a Segurança -> Senha. Não pode desassociar até que seja criada uma palavra-passe de conta.",
   "disconnect_account": "Desligar conta associada",
   "disconnect_account_hint": "Desligar a sua conta associada irá alterar a forma como inicia sessão. Só poderá iniciar sessão na sua conta utilizando o e-mail + a palavra-passe",
-  "cookie_consent_checkbox": "Eu dou o meu consentimento relativamente à nossa política de privacidade e utilização de cookies",
+  "cookie_consent_checkbox": "Ao criar uma conta, você concorda com a nossa política de privacidade e o uso de cookies",
   "make_a_call": "Fazer uma chamada",
   "skip_rr_assignment_label": "Saltar a atribuição em distribuição equilibrada se o contacto existir no Salesforce",
   "skip_rr_description": "A URL deve conter o e-mail do contacto como um parâmetro, ex. ?email=contactEmail",

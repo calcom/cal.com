@@ -2378,7 +2378,7 @@
   "cannot_create_account_password_already_existing": "לא ניתן ליצור סיסמת חשבון לחשבונות שכבר נוצרה להם סיסמה",
   "create_account_password_hint": "אין סיסמה לחשבון שלך, אפשר ליצור סיסמה על ידי ניווט לאבטחה -> סיסמה. אי אפשר לנתק עד שסיסמת החשבון נוצרת.",
   "disconnect_account": "ניתוק חשבון מקושר",
-  "cookie_consent_checkbox": "מדיניות הפרטיות והשימוש בעוגיות מוסכמים עליי",
+  "cookie_consent_checkbox": "ביצירת חשבון, אתה מסכים למדיניות הפרטיות שלנו ולשימוש בעוגיות",
   "select_account_header": "בחירת חשבון",
   "select_account_description": "התקנת {{appName}} בחשבון הפרטי או בחשבון הצוותי שלך.",
   "select_event_types_header": "בחירת סוגי אירועים",
