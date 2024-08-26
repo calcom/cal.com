@@ -15,7 +15,7 @@ export const substituteVariables = (
 
   variables.forEach((variable) => {
     for (const key in response) {
-      const field = fields.find((field) => field.id === key)
+      const field = fields.find((field) => field.id === key);
       if (!field) {
         continue;
       }
