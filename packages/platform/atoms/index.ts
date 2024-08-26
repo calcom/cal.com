@@ -23,3 +23,4 @@ export { useTeams } from "./hooks/teams/useTeams";
 export { SelectedCalendarSettingsPlatformWrapper as SelectedCalendarSettings } from "./selected-calendar/index";
 export { DestinationCalendarSettingsPlatformWrapper as DestinationCalendarSettings } from "./destination-calendar/index";
 export { CalendarSettingsPlatformWrapper as CalendarSettings } from "./calendar-settings/index";
+export { StripeConnect } from "./connect/stripe/StripeConnect";
