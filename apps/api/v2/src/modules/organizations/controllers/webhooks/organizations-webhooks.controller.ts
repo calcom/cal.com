@@ -54,7 +54,7 @@ export class OrganizationsWebhooksController {
   @PlatformPlan("ESSENTIALS")
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  async getAllOrgWebhooks(
+  async getAllOrganizationWebhooks(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
   ): Promise<OrgWebhooksOutputResponseDto> {
@@ -74,7 +74,7 @@ export class OrganizationsWebhooksController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  async createOrgWebhook(
+  async createOrganizationWebhook(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateWebhookInputDto
   ): Promise<OrgWebhookOutputResponseDto> {
@@ -93,7 +93,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Get("/:webhookId")
   @HttpCode(HttpStatus.OK)
-  async getOrgWebhook(
+  async getOrganizationWebhook(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("webhookId", ParseIntPipe) webhookId: string
   ): Promise<OrgWebhookOutputResponseDto> {
@@ -109,7 +109,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
-  async deleteOrgWebhook(
+  async deleteOrganizationWebhook(
     @Param("webhookId", ParseIntPipe) webhookId: string
   ): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);
@@ -126,7 +126,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
-  async updateOrgWebhook(
+  async updateOrganizationWebhook(
     @Param("webhookId", ParseIntPipe) webhookId: string,
     @Body() body: UpdateWebhookInputDto
   ): Promise<OrgWebhookOutputResponseDto> {
