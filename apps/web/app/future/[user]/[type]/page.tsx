@@ -2,7 +2,6 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
 import { headers, cookies } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -14,9 +13,7 @@ import {
 } from "~/users/views/users-type-public-view.getServerSideProps";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(
-    buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
-  );
+  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
 
   const { eventData, booking, user, slug } = props;
   const rescheduleUid = booking?.uid;

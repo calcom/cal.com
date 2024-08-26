@@ -69,12 +69,7 @@ export const generateMetadata = async ({
     );
   }
 
-  const legacyContext = buildLegacyCtx(
-    headers(),
-    cookies(),
-    params,
-    searchParams
-  ) as unknown as GetServerSidePropsContext;
+  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const { form } = await getPageProps(legacyContext);
 
   return await _generateMetadata(
@@ -181,12 +176,7 @@ export default async function Page({ params, searchParams }: PageProps) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
 
-  const legacyContext = buildLegacyCtx(
-    h,
-    cookies(),
-    params,
-    searchParams
-  ) as unknown as GetServerSidePropsContext;
+  const legacyContext = buildLegacyCtx(h, cookies(), params, searchParams);
   const props = await getPageProps(legacyContext);
   return (
     <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
