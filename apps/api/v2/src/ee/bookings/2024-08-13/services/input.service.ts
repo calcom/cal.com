@@ -112,7 +112,8 @@ export class InputBookingsService_2024_08_13 {
       eventTypeSlug: eventType.slug,
       timeZone: inputBooking.attendee.timeZone,
       language: inputBooking.attendee.language || "en",
-      metadata: inputBooking.metadata || {},
+      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
+      // metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
       guests: inputBooking.guests,
       responses: inputBooking.bookingFieldsResponses
@@ -190,7 +191,8 @@ export class InputBookingsService_2024_08_13 {
         recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
-        metadata: inputBooking.metadata || {},
+        // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
+        // metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests: inputBooking.guests,
         responses: inputBooking.bookingFieldsResponses
@@ -276,7 +278,8 @@ export class InputBookingsService_2024_08_13 {
       eventTypeSlug: eventType.slug,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      metadata: booking.metadata || {},
+      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
+      // metadata: booking.metadata || {},
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
       responses: bookingResponses,

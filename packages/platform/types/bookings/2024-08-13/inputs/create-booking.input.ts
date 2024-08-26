@@ -52,9 +52,10 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   meetingUrl?: string;
 
-  @IsObject()
-  @IsOptional()
-  metadata!: Record<string, unknown>;
+  // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
+  // @IsObject()
+  // @IsOptional()
+  // metadata!: Record<string, unknown>;
 
   @IsObject()
   @IsOptional()
@@ -86,9 +87,10 @@ export class CreateRecurringBookingInput_2024_08_13 {
   @IsOptional()
   meetingUrl?: string;
 
-  @IsObject()
-  @IsOptional()
-  metadata!: Record<string, unknown>;
+  // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
+  // @IsObject()
+  // @IsOptional()
+  // metadata!: Record<string, unknown>;
 
   @IsObject()
   @IsOptional()
