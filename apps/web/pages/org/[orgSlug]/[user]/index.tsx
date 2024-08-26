@@ -1,3 +1,5 @@
+"use client";
+
 import PageWrapper from "@components/PageWrapper";
 
 import UserPage from "~/users/views/users-public-view";
