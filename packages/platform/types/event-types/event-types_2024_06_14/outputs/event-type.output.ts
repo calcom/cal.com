@@ -13,7 +13,7 @@ import {
 
 import type { Location_2024_06_14, BookingField_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
 import { Host as TeamEventTypeHostInput, BookingLimitsDuration_2024_06_14 } from "../inputs";
-import { RecurringEvent_2024_06_14 } from "../inputs";
+import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
@@ -103,8 +103,8 @@ export class EventTypeOutput_2024_06_14 {
   @IsEnum(SchedulingTypeEnum)
   schedulingType!: EventTypesOutputSchedulingType | null;
 
-  @Type(() => RecurringEvent_2024_06_14)
-  recurringEvent!: RecurringEvent_2024_06_14 | null;
+  @Type(() => Recurrence_2024_06_14)
+  recurrence!: Recurrence_2024_06_14 | null;
 
   @Type(() => Object)
   metadata!: Record<string, unknown>;
@@ -218,8 +218,8 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsEnum(SchedulingTypeEnum)
   schedulingType!: EventTypesOutputSchedulingType | null;
 
-  @Type(() => RecurringEvent_2024_06_14)
-  recurringEvent!: RecurringEvent_2024_06_14 | null;
+  @Type(() => Recurrence_2024_06_14)
+  recurrence!: Recurrence_2024_06_14 | null;
 
   @Type(() => Object)
   metadata!: Record<string, unknown>;

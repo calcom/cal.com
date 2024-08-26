@@ -25,6 +25,7 @@ import {
   BookerLayoutsInputEnum_2024_06_14,
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
+  FrequencyInput,
 } from "@calcom/platform-enums";
 import {
   ApiSuccessResponse,
@@ -250,6 +251,11 @@ describe("Event types Endpoints", () => {
             unit: NoticeThresholdUnitEnum.MINUTES,
           },
         },
+        recurrence: {
+          frequency: FrequencyInput.weekly,
+          interval: 2,
+          occurrences: 10,
+        },
       };
 
       return request(app.getHttpServer())
@@ -275,6 +281,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
           expect(createdEventType.bookerLayouts).toEqual(body.bookerLayouts);
           expect(createdEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
+          expect(createdEventType.recurrence).toEqual(body.recurrence);
           eventType = responseBody.data;
         });
     });
@@ -311,6 +318,11 @@ describe("Event types Endpoints", () => {
         requiresConfirmation: {
           confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
         },
+        recurrence: {
+          frequency: FrequencyInput.monthly,
+          interval: 4,
+          occurrences: 10,
+        },
       };
 
       return request(app.getHttpServer())
@@ -338,6 +350,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.bookingWindow).toEqual(body.bookingWindow);
           expect(updatedEventType.bookerLayouts).toEqual(body.bookerLayouts);
           expect(updatedEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
+          expect(updatedEventType.recurrence).toEqual(body.recurrence);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -348,6 +361,7 @@ describe("Event types Endpoints", () => {
           eventType.bookingWindow = updatedEventType.bookingWindow;
           eventType.bookerLayouts = updatedEventType.bookerLayouts;
           eventType.requiresConfirmation = updatedEventType.requiresConfirmation;
+          eventType.recurrence = updatedEventType.recurrence;
         });
     });
 
@@ -390,6 +404,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
+      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -422,6 +437,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
+      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -449,6 +465,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
+      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
     });
 
     it(`/GET/:id not existing`, async () => {

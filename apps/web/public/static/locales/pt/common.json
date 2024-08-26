@@ -2471,5 +2471,11 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "O utilizador é um membro pendente da organização",
   "USER_ALREADY_INVITED_OR_MEMBER": "O utilizador já está convidado ou já é um membro",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "O utilizador é membro de uma organização da qual esta equipa não faz parte.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "h",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} h",
+  "apply_to_all_event_types": "Aplicar a todos, incluindo tipos de eventos futuros",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

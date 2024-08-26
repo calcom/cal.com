@@ -16,6 +16,7 @@ import type {
   RequiresConfirmationTransformedSchema,
   NoticeThreshold_2024_06_14,
   BookerLayoutsTransformedSchema,
+  TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { UserField } from "./api-request";
@@ -26,6 +27,7 @@ import {
   getResponseEventTypeFutureBookingLimits,
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
+  getResponseEventTypeRecurrence,
 } from "./api-response";
 
 describe("getResponseEventTypeLocations", () => {
@@ -585,7 +587,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 });
 
-describe("transformApiEventTypeIntervalLimits", () => {
+describe("getResponseEventTypeIntervalLimits", () => {
   it("should reverse transform booking limits count or booking limits duration", () => {
     const transformedField: TransformBookingLimitsSchema_2024_06_14 = {
       PER_DAY: 2,
@@ -606,7 +608,7 @@ describe("transformApiEventTypeIntervalLimits", () => {
   });
 });
 
-describe("transformApiEventTypeFutureBookingLimits", () => {
+describe("getResponseEventTypeFutureBookingLimits", () => {
   it("should reverse transform range type", () => {
     const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
       periodType: "RANGE",
@@ -738,6 +740,23 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
       transformedField.requiresConfirmationThreshold as NoticeThreshold_2024_06_14
     );
 
+    expect(result).toEqual(expectedOutput);
+  });
+});
+describe("getResponseEventTypeRecurrence", () => {
+  it("should reverse transform recurringEvent", () => {
+    const transformedField: TransformRecurringEventSchema_2024_06_14 = {
+      interval: 2,
+      count: 10,
+      freq: 2,
+    };
+
+    const expectedOutput = {
+      frequency: "weekly",
+      interval: 2,
+      occurrences: 10,
+    };
+    const result = getResponseEventTypeRecurrence(transformedField);
     expect(result).toEqual(expectedOutput);
   });
 });

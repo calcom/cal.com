@@ -32,6 +32,7 @@ export class InputOrganizationsEventTypesService {
       bookerLayouts,
       requiresConfirmation,
       bookingFields,
+      recurrence,
       ...rest
     } = inputEventType;
 
@@ -51,6 +52,7 @@ export class InputOrganizationsEventTypesService {
       bookerLayouts,
       requiresConfirmation,
       bookingFields,
+      recurrence,
       metadata,
     };
 

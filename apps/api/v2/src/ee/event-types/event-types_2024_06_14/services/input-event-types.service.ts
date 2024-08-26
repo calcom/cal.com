@@ -7,6 +7,7 @@ import {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
   EventTypeMetaDataSchema,
+  transformApiEventTypeRecurrence,
 } from "@calcom/platform-libraries";
 import {
   transformApiEventTypeBookerLayouts,
@@ -34,6 +35,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
+      recurrence,
       ...rest
     } = inputEventType;
     const requiresConfirmationTransformed =
@@ -55,6 +57,7 @@ export class InputEventTypesService_2024_06_14 {
           requiresConfirmationTransformed?.requiresConfirmationThreshold ?? undefined,
       },
       requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
+      recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
     };
 
     return eventType;
@@ -71,6 +74,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
+      recurrence,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -97,6 +101,7 @@ export class InputEventTypesService_2024_06_14 {
         requiresConfirmationThreshold: requiresConfirmationTransformed.requiresConfirmationThreshold,
       },
       requiresConfirmation: requiresConfirmationTransformed.requiresConfirmation,
+      recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
     };
 
     return eventType;
@@ -127,5 +132,8 @@ export class InputEventTypesService_2024_06_14 {
     requiresConfirmation: CreateEventTypeInput_2024_06_14["requiresConfirmation"]
   ) {
     return transformApiEventTypeRequiresConfirmation(requiresConfirmation);
+  }
+  transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
+    return transformApiEventTypeRecurrence(recurrence);
   }
 }

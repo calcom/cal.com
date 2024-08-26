@@ -49,6 +49,7 @@ export class OrganizationsEventTypesService {
       bookerLayouts,
       requiresConfirmation,
       bookingFields,
+      recurrence,
       ...rest
     } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
     const { eventType: eventTypeCreated } = await createEventType({
@@ -73,6 +74,7 @@ export class OrganizationsEventTypesService {
         bookerLayouts,
         requiresConfirmation,
         bookingFields,
+        recurrence,
         ...rest,
       },
       user

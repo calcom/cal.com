@@ -14,6 +14,7 @@ import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-
 import { Host } from "./create-event-type.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
+import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { RequiresConfirmation_2024_06_14, ValidateRequiresConfirmation } from "./requires-confirmation.input";
 
 export class UpdateEventTypeInput_2024_06_14 {
@@ -98,6 +99,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @ValidateRequiresConfirmation()
   @Type(() => RequiresConfirmation_2024_06_14)
   requiresConfirmation?: RequiresConfirmation_2024_06_14;
+
+  @ValidateNested()
+  @Type(() => Recurrence_2024_06_14)
+  recurrence?: Recurrence_2024_06_14;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -200,4 +205,8 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @ValidateRequiresConfirmation()
   @Type(() => RequiresConfirmation_2024_06_14)
   requiresConfirmation?: RequiresConfirmation_2024_06_14;
+
+  @ValidateNested()
+  @Type(() => Recurrence_2024_06_14)
+  recurrence?: Recurrence_2024_06_14;
 }

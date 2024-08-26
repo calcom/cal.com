@@ -106,6 +106,8 @@ export {
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
   transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeRecurrence,
+  getResponseEventTypeRecurrence,
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit } from "@calcom/lib";

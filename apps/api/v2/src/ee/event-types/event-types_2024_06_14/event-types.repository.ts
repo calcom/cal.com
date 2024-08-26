@@ -22,6 +22,7 @@ type InputEventTransformed = Omit<
   | "bookingLimitsDuration"
   | "offsetStart"
   | "requiresConfirmation"
+  | "recurrence"
 > & {
   length: number;
   slug: string;

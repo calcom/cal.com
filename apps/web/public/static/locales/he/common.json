@@ -2419,5 +2419,14 @@
   "csat_score": "ניקוד מדד שביעות רצון",
   "lockedSMS": "מסרון נעול",
   "signing_up_terms": "המשך מהווה את הסכמתך ל<1>תנאים</1> ול<2>מדיניות הפרטיות</2> שלנו.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "דקות",
+  "hour_short": "שעות",
+  "minute_one_short": "{{count}} דקות",
+  "hour_one_short": "{{count}} שעות",
+  "ooo_reasons_unspecified": "לא ידוע",
+  "ooo_empty_description": "תקשר אל המזמינים שלך כשאתה לא זמין לקבל הזמנות. הם יכולים עדיין להזמין אותך בעת החזרה שלך או שתוכל להעביר אותם לחבר בצוות.",
+  "ooo_slots_returning": "<0>{{displayName}}</0> יכול לקחת את המפגשים שלו בזמן שהוא לא נמצא.",
+  "apply_to_all_event_types": "החל על כל, כולל סוגים של אירועים עתידיים",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

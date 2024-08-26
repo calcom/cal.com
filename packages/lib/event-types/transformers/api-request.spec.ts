@@ -5,6 +5,7 @@ import {
   BookerLayoutsOutputEnum_2024_06_14,
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
+  FrequencyInput,
 } from "@calcom/platform-enums/monorepo";
 import type {
   BookingField_2024_06_14,
@@ -13,6 +14,7 @@ import type {
   BookingWindow_2024_06_14,
   BookerLayouts_2024_06_14,
   RequiresConfirmation_2024_06_14,
+  Recurrence_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { UserField } from "./api-request";
@@ -24,6 +26,7 @@ import {
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeBookerLayouts,
   transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeRecurrence,
 } from "./api-request";
 
 describe("transformApiEventTypeLocations", () => {
@@ -708,6 +711,23 @@ describe("transformApiEventTypeRequiresConfirmation", () => {
     };
     const result = transformApiEventTypeRequiresConfirmation(input);
 
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeRecurrence", () => {
+  it("should transform recurrence", () => {
+    const input: Recurrence_2024_06_14 = {
+      frequency: FrequencyInput.weekly,
+      interval: 2,
+      occurrences: 10,
+    };
+    const expectedOutput = {
+      interval: 2,
+      count: 10,
+      freq: 2,
+    };
+    const result = transformApiEventTypeRecurrence(input);
     expect(result).toEqual(expectedOutput);
   });
 });

@@ -5,6 +5,8 @@ import {
   BookerLayoutsInputEnum_2024_06_14,
   BookerLayoutsOutputEnum_2024_06_14,
   ConfirmationPolicyEnum,
+  Frequency,
+  FrequencyInput,
 } from "@calcom/platform-enums/monorepo";
 import type {
   AddressLocation_2024_06_14,
@@ -23,6 +25,8 @@ import type {
   NoticeThreshold_2024_06_14,
   RequiresConfirmation_2024_06_14,
   BookerLayoutsTransformedSchema,
+  Recurrence_2024_06_14,
+  TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
@@ -292,6 +296,15 @@ function getResponseEventTypeRequiresConfirmation(
     };
   }
 }
+function getResponseEventTypeRecurrence(
+  transformRecurringEvent: TransformRecurringEventSchema_2024_06_14
+): Recurrence_2024_06_14 {
+  return {
+    interval: transformRecurringEvent.interval,
+    occurrences: transformRecurringEvent.count,
+    frequency: FrequencyInput[Frequency[transformRecurringEvent.freq] as keyof typeof FrequencyInput],
+  } satisfies Recurrence_2024_06_14;
+}
 
 export {
   getResponseEventTypeLocations,
@@ -300,4 +313,5 @@ export {
   getResponseEventTypeFutureBookingLimits,
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
+  getResponseEventTypeRecurrence,
 };

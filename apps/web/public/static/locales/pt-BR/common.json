@@ -2439,5 +2439,6 @@
   "unable_to_subscribe_to_the_platform": "Um erro ocorreu ao tentar adicionar ao plano da plataforma, por favor tente novamente mais tarde",
   "updating_oauth_client_error": "Um erro ocorreu ao tentar atualizar o cliente OAuth, por favor tente novamente mais tarde",
   "creating_oauth_client_error": "Um erro ocorreu ao tentar criar o cliente OAuth, por favor tente novamente mais tarde",
+  "apply_to_all_event_types": "Aplicar a todos, incluindo tipos de eventos futuros",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
