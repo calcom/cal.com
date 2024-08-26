@@ -114,6 +114,7 @@ export class InputBookingsService_2024_08_13 {
       language: inputBooking.attendee.language || "en",
       // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
       // metadata: inputBooking.metadata || {},
+      metadata: {},
       hasHashedBookingLink: false,
       guests: inputBooking.guests,
       responses: inputBooking.bookingFieldsResponses
@@ -193,6 +194,7 @@ export class InputBookingsService_2024_08_13 {
         language: inputBooking.attendee.language || "en",
         // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
         // metadata: inputBooking.metadata || {},
+        metadata: {},
         hasHashedBookingLink: false,
         guests: inputBooking.guests,
         responses: inputBooking.bookingFieldsResponses
@@ -280,6 +282,7 @@ export class InputBookingsService_2024_08_13 {
       language: attendee.locale,
       // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
       // metadata: booking.metadata || {},
+      metadata: {},
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
       responses: bookingResponses,
