@@ -171,18 +171,6 @@ export function ensureEmailOrPhoneNumberIsPresent(
       message: `Both Email and Attendee Phone Number cannot be hidden`,
     });
   }
-  if (emailField?.hidden && emailField?.required) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Email field cannot be hidden if it is a required field. You can click on Edit to mark it as not required field.`,
-    });
-  }
-  if (attendeePhoneNumberField?.hidden && attendeePhoneNumberField?.required) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Attendee Phone Number field cannot be hidden if it is a required field. You can click on Edit to mark it as not required field.`,
-    });
-  }
   if (!emailField?.required && !attendeePhoneNumberField?.required) {
     throw new TRPCError({
       code: "BAD_REQUEST",

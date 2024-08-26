@@ -163,7 +163,7 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
-          if (bookingField.required && !emailSchema.safeParse(value).success) {
+          if (!bookingField.hidden && !emailSchema.safeParse(value).success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("email_validation_error"),
