@@ -38,6 +38,7 @@ export const mapBookingToMutationInput = ({
   hashedLink,
   teamMemberEmail,
   orgSlug,
+  roundRobinUsernamePool,
 }: BookingOptions): BookingCreateBody => {
   return {
     ...values,
@@ -59,6 +60,7 @@ export const mapBookingToMutationInput = ({
     hashedLink,
     teamMemberEmail,
     orgSlug,
+    roundRobinUsernamePool,
   };
 };
 

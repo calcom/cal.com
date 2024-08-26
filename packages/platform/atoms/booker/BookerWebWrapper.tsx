@@ -134,6 +134,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hashedLink: props.hashedLink,
     bookingForm: bookerForm.bookingForm,
     metadata: metadata ?? {},
+    teamMemberEmail: schedule.data?.teamMember,
+    roundRobinUsernamePool: props.roundRobinUsername,
   });
 
   const verifyCode = useVerifyCode({
@@ -206,7 +208,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       schedule={schedule}
       verifyCode={verifyCode}
       isPlatform={false}
-      roundRobinUsernamePool={props.roundRobinUsernamePool}
     />
   );
 };

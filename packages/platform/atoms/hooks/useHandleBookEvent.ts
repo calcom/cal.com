@@ -33,7 +33,6 @@ export const useHandleBookEvent = ({
   event,
   metadata,
   hashedLink,
-  roundRobinUsernamePool,
   handleBooking,
   handleInstantBooking,
   handleRecBooking,
@@ -51,6 +50,7 @@ export const useHandleBookEvent = ({
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const orgSlug = useBookerStore((state) => state.org);
+  const roundRobinUsernamePool = useBookerStore((state) => state.roundRobinUsernamePool);
 
   const handleBookEvent = () => {
     const values = bookingForm.getValues();

@@ -31,6 +31,7 @@ type StoreInitializeType = {
   durationConfig?: number[] | null;
   org?: string | null;
   isInstantMeeting?: boolean;
+  roundRobinUsernamePool?: string[] | null;
 };
 
 type SeatedEventData = {
@@ -146,6 +147,8 @@ export type BookerStore = {
 
   org?: string | null;
   setOrg: (org: string | null | undefined) => void;
+
+  roundRobinUsernamePool?: string[] | null;
 };
 
 /**
@@ -249,6 +252,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     durationConfig,
     org,
     isInstantMeeting,
+    roundRobinUsernamePool,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -260,7 +264,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().rescheduleUid === rescheduleUid &&
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
-      get().layout === layout
+      get().layout === layout &&
+      get().roundRobinUsernamePool
     )
       return;
     set({
@@ -278,6 +283,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       selectedDate:
         selectedDateInStore ||
         (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
+      roundRobinUsernamePool,
     });
 
     if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -365,6 +371,7 @@ export const useInitializeBookerStore = ({
   durationConfig,
   org,
   isInstantMeeting,
+  roundRobinUsernamePool,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -381,6 +388,7 @@ export const useInitializeBookerStore = ({
       verifiedEmail,
       durationConfig,
       isInstantMeeting,
+      roundRobinUsernamePool,
     });
   }, [
     initializeStore,
@@ -396,5 +404,6 @@ export const useInitializeBookerStore = ({
     verifiedEmail,
     durationConfig,
     isInstantMeeting,
+    roundRobinUsernamePool,
   ]);
 };
