@@ -3,16 +3,53 @@
   "locale": {
     "source": "en",
     "targets": [
+      "ar",
+      "az",
+      "bg",
+      "ca",
+      "cs",
+      "da",
       "de",
+      "el",
+      "en",
       "es",
-      "fr"
+      "es-419",
+      "et",
+      "eu",
+      "fi",
+      "fr",
+      "he",
+      "hr",
+      "id",
+      "it",
+      "ja",
+      "km",
+      "hu",
+      "iw",
+      "ko",
+      "lv",
+      "nl",
+      "no",
+      "pl",
+      "pt",
+      "pt-BR",
+      "ro",
+      "ru",
+      "sk",
+      "sr",
+      "sv",
+      "ta",
+      "th",
+      "vi",
+      "tr",
+      "uk",
+      "zh-CN",
+      "zh-TW"
     ]
   },
   "buckets": {
     "json": {
-      "include": [
-        "apps/web/public/static/locales/[locale]/common.json"
-      ]
+      "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
   }
 }
