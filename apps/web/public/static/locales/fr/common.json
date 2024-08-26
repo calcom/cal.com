@@ -2405,7 +2405,7 @@
   "create_account_password_hint": "Vous n'avez pas de mot de passe pour votre compte. Créez-en un depuis Sécurité -> Mot de passe. Vous ne pouvez pas vous déconnecter tant que le mot de passe du compte n'a pas été créé.",
   "disconnect_account": "Déconnecter le compte connecté",
   "disconnect_account_hint": "La déconnexion de votre compte connecté modifiera votre façon de vous connecter. Vous ne pourrez plus vous connecter à votre compte qu'en utilisant votre adresse e-mail et votre mot de passe",
-  "cookie_consent_checkbox": "J'accepte notre politique de confidentialité et l'utilisation des cookies",
+  "cookie_consent_checkbox": "En créant un compte, vous acceptez notre politique de confidentialité et l'utilisation des cookies",
   "make_a_call": "Passer un appel",
   "skip_rr_assignment_label": "Ignorer l'affectation par permutation circulaire si le contact existe dans Salesforce",
   "skip_rr_description": "L'URL doit contenir l'adresse e-mail du contact en tant que paramètre. Ex. : ?email=contactEmail",
