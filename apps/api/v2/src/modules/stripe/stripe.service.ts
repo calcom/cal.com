@@ -1,16 +1,21 @@
 import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Prisma } from "@prisma/client";
-import stringify from "qs-stringify";
 import Stripe from "stripe";
 import { z } from "zod";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
 import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
+
+import stringify = require("qs-stringify");
 
 @Injectable()
 export class StripeService {
@@ -20,7 +25,9 @@ export class StripeService {
   constructor(
     configService: ConfigService<AppConfig>,
     private readonly config: ConfigService,
-    private readonly appsRepository: AppsRepository
+    private readonly appsRepository: AppsRepository,
+    private readonly credentialRepository: CredentialsRepository,
+    private readonly tokensRepository: TokensRepository
   ) {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",
@@ -67,11 +74,13 @@ export class StripeService {
     return { client_id, client_secret };
   }
 
-  async saveStripeAccount(
-    state: string | string[] | undefined,
-    code: string | string[] | undefined,
-    userId: number
-  ): Promise<{ url: string }> {
+  async saveStripeAccount(state: string, code: string, accessToken: string): Promise<{ url: string }> {
+    const userId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+
+    if (!userId) {
+      throw new UnauthorizedException("Invalid Access token.");
+    }
+
     const response = await stripeInstance.oauth.token({
       grant_type: "authorization_code",
       code: code?.toString(),
@@ -91,5 +100,31 @@ export class StripeService {
     );
 
     return { url: getReturnToValueFromQueryState(state) };
+  }
+
+  async checkIfStripeAccountConnected(userId: number) {
+    const stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
+
+    if (!stripeCredentials) {
+      throw new NotFoundException("Credentials for stripe not found.");
+    }
+
+    if (stripeCredentials.invalid) {
+      throw new BadRequestException("Invalid stripe credentials.");
+    }
+
+    const stripeKey = JSON.stringify(stripeCredentials.key);
+    const stripeKeyObject = JSON.parse(stripeKey);
+
+    const stripeAccount = await stripeInstance.accounts.retrieve(stripeKeyObject?.stripe_user_id);
+
+    // both of these should be true for an account to be fully active
+    if (!stripeAccount.payouts_enabled || !stripeAccount.charges_enabled) {
+      throw new BadRequestException("Stripe account is not an active account");
+    }
+
+    return {
+      status: SUCCESS_STATUS,
+    };
   }
 }
