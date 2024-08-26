@@ -2405,7 +2405,7 @@
   "create_account_password_hint": "Non hai una password per l'account, creane una andando su Sicurezza -> Password. La disconnessione non è possibile finché non viene creata una password per l'account.",
   "disconnect_account": "Disconnetti l'account",
   "disconnect_account_hint": "La disconnessione dell'account modifica la tua modalità di accesso. Potrai accedere all'account solamente tramite email + password",
-  "cookie_consent_checkbox": "Accetto le norme sulla privacy e l'utilizzo dei cookie",
+  "cookie_consent_checkbox": "Creando un account, accetti la nostra politica sulla privacy e l'uso dei cookie",
   "make_a_call": "Fai una chiamata",
   "skip_rr_assignment_label": "Salta assegnazione round robin se il contatto è esistente in Salesforce",
   "skip_rr_description": "L'URL deve contenere l'email del contatto come parametro. Esempio: ?email=contactEmail",
@@ -2476,5 +2476,6 @@
   "hour_short": "h",
   "minute_one_short": "{{count}} min",
   "hour_one_short": "{{count}} h",
+  "apply_to_all_event_types": "Si applica a tutti, inclusi i tipi di eventi futuri",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
