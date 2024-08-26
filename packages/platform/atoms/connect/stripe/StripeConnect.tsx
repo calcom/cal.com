@@ -2,7 +2,8 @@ import type { FC } from "react";
 
 import { Button } from "@calcom/ui";
 
-import type { OnCheckErrorType } from "../../hooks/connect/useCheck";
+import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";
+import { useCheck } from "../../hooks/stripe/useCheck";
 import { useConnect } from "../../hooks/stripe/useConnect";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
@@ -14,24 +15,33 @@ type StripeConnectProps = {
   loadingLabel: string;
   onCheckError?: OnCheckErrorType;
   redir?: string;
+  initialData: UseCheckProps["initialData"];
 };
 
-export const StripeConnect: FC<Partial<StripeConnectProps>> = ({ label, className, redir }) => {
+export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
+  label = "Connect to Stripe",
+  className,
+  redir,
+  onCheckError,
+  initialData,
+}) => {
   const { connect } = useConnect(redir);
+  const { allowConnect, checked } = useCheck({
+    onCheckError,
+    initialData,
+  });
 
   const displayedLabel = label;
-  // for the time being set this to a hardcoded value
-  // const isChecking = !checked;
-  // const isDisabled = isChecking || !allowConnect;
-  const isChecking = false;
-  const isDisabled = false;
+
+  const isChecking = !checked;
+  const isDisabled = isChecking || !allowConnect;
 
   return (
     <AtomsWrapper>
       <Button
         StartIcon="calendar"
         color="primary"
-        //   disabled={isDisabled}
+        disabled={isDisabled}
         className={cn(
           "",
           className,
