@@ -155,6 +155,7 @@ export default function Bookings() {
           onClick={buttonToShow === "allow" ? enableNotifications : disableNotifications}
           loading={isLoading}
           disabled={buttonToShow === "denied"}
+          tooltipSide="bottom"
           tooltip={buttonToShow === "denied" ? t("you_have_denied_notifications") : undefined}>
           {t(buttonToShow === "disable" ? "disable_browser_notifications" : "allow_browser_notifications")}
         </Button>
