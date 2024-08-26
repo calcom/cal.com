@@ -263,18 +263,22 @@ describe("Bookings Endpoints", () => {
         .get("/v2/bookings?filters[status]=upcoming")
         .then((response) => {
           const responseBody: GetBookingsOutput = response.body;
-          const fetchedBooking = responseBody.data.bookings[0];
 
           expect(responseBody.data.bookings.length).toEqual(2);
+          const fetchedBooking = responseBody.data.bookings.find(
+            (booking) => booking.id === createdBooking.id
+          );
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(fetchedBooking).toBeDefined();
 
-          expect(fetchedBooking.id).toEqual(createdBooking.id);
-          expect(fetchedBooking.uid).toEqual(createdBooking.uid);
-          expect(fetchedBooking.startTime).toEqual(createdBooking.startTime);
-          expect(fetchedBooking.endTime).toEqual(createdBooking.endTime);
-          expect(fetchedBooking.user?.email).toEqual(userEmail);
+          if (fetchedBooking) {
+            expect(fetchedBooking.id).toEqual(createdBooking.id);
+            expect(fetchedBooking.uid).toEqual(createdBooking.uid);
+            expect(fetchedBooking.startTime).toEqual(createdBooking.startTime);
+            expect(fetchedBooking.endTime).toEqual(createdBooking.endTime);
+            expect(fetchedBooking.user?.email).toEqual(userEmail);
+          }
         });
     });
 
