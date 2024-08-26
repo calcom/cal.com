@@ -170,7 +170,8 @@ const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
     },
     {
       refetchOnWindowFocus: true,
-      staleTime: 1 * 60 * 60 * 1000,
+      refetchOnMount: true,
+      staleTime: 0,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );

@@ -2453,7 +2453,7 @@
   "create_account_password_hint": "Você não tem uma senha de conta, crie uma em Securança -> Senha. Não é possível disconectar até uma senha de conta ser criada.",
   "disconnect_account": "Disconecte contas conectadas",
   "disconnect_account_hint": "Disconectar sua conta conectada mudará a maneira como você faz login. Você só poderá fazer login usando e-mail + senha",
-  "cookie_consent_checkbox": "Eu concordo com a política de privacidade e uso de cookies",
+  "cookie_consent_checkbox": "Ao criar uma conta, você concorda com nossa política de privacidade e o uso de cookies",
   "make_a_call": "Fazer uma Ligação",
   "skip_rr_assignment_label": "Pular atribuição round robin se o contato existir no Salesforce",
   "skip_rr_description": "A URL deve conter o e-mail do contato como um parâmetro, ex. ?email=contactEmail",
