@@ -144,7 +144,7 @@ describe("Bookings Endpoints", () => {
         });
     });
 
-    it.only("should create a booking with api key to get owner id", async () => {
+    it("should create a booking with api key to get owner id", async () => {
       const bookingStart = "2040-05-22T09:30:00.000Z";
       const bookingEnd = "2040-05-22T10:30:00.000Z";
       const bookingEventTypeId = eventTypeId;
