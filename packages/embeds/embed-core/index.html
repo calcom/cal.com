@@ -207,6 +207,11 @@
     </div>
     <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
     <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
+    <span style="display: block">
+      <a href="?name=john&email=email&guests=abc&guests=def&notes=NOTES&location=%7B%22optionValue%22%3A%22%2B919999999999%22%2C%22value%22%3A%22phone%22%7D&only=ns%3ApageParamsForwarding">
+        Page Params Forwarding
+      </a>
+    </span>
     <span style="display: block"
       ><a href="?only=prerender-test">Go to Prerender test page only</a><small></small
     ></span>
@@ -415,6 +420,10 @@
     </div>
     <div class="inline-embed-container" id="cal-booking-place-columnView">
       <h3><a href="?only=ns:columnView">Test Column View</a></h3>
+      <div class="place" style="width: 100%"></div>
+    </div>
+    <div class="inline-embed-container" id="cal-booking-place-pageParamsForwarding">
+      <h3><a href="?only=ns:pageParamsForwarding">Test Page Params Forwarding</a></h3>
       <div class="place" style="width: 100%"></div>
     </div>
     <script type="module" src="./playground.ts"></script>

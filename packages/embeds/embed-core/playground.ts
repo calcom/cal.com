@@ -532,3 +532,21 @@ if (only === "all" || only == "ns:columnView") {
     callback,
   });
 }
+
+if (only === "all" || only == "ns:pageParamsForwarding") {
+  Cal("init", "pageParamsForwarding", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.pageParamsForwarding("inline", {
+    elementOrSelector: "#cal-booking-place-pageParamsForwarding .place",
+    calLink: "pro/paid?embedType=inline&month=2024-08&date=2024-08-26&slot=2024-08-26T14%3A00%3A00.000Z",
+    config: {
+      iframeAttrs: {
+        id: "cal-booking-place-pageParamsForwarding-iframe",
+      },
+      "flag.coep": "true",
+    },
+  });
+}
