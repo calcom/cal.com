@@ -1,16 +1,25 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import {
-  CreateWebhookInputDto as CreateOrgWebhookDto,
-  UpdateWebhookInputDto as UpdateOrgWebhookDto,
-} from "@/modules/webhooks/inputs/webhook.input";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { v4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
+import { Webhook } from "@calcom/prisma/client";
+
+type WebhookInputData = Pick<
+  Webhook,
+  "payloadTemplate" | "eventTriggers" | "subscriberUrl" | "secret" | "active"
+>;
 @Injectable()
 export class OrganizationsWebhooksRepository {
-  constructor(private readonly dbRead: PrismaReadService) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async findOrgWebhook(organizationId: number, webhookId: string) {
+  async findWebhookByUrl(organizationId: number, subscriberUrl: string) {
+    return this.dbRead.prisma.webhook.findFirst({
+      where: { teamId: organizationId, subscriberUrl },
+    });
+  }
+
+  async findWebhook(organizationId: number, webhookId: string) {
     return this.dbRead.prisma.webhook.findUnique({
       where: {
         id: webhookId,
@@ -19,7 +28,7 @@ export class OrganizationsWebhooksRepository {
     });
   }
 
-  async findOrgWebhooks(organizationId: number) {
+  async findWebhooks(organizationId: number) {
     return this.dbRead.prisma.webhook.findMany({
       where: {
         teamId: organizationId,
@@ -27,7 +36,7 @@ export class OrganizationsWebhooksRepository {
     });
   }
 
-  async deleteOrgWebhook(organizationId: number, webhookId: string) {
+  async deleteWebhook(organizationId: number, webhookId: string) {
     return this.dbRead.prisma.webhook.delete({
       where: {
         id: webhookId,
@@ -36,20 +45,21 @@ export class OrganizationsWebhooksRepository {
     });
   }
 
-  async createOrgWebhook(organizationId: number, data: CreateOrgWebhookDto) {
-    return this.dbRead.prisma.webhook.create({
-      data: { ...data, teamId: organizationId, id: v4() },
+  async createWebhook(organizationId: number, data: WebhookInputData) {
+    const id = uuidv4();
+    return this.dbWrite.prisma.webhook.create({
+      data: { ...data, id, teamId: organizationId },
     });
   }
 
-  async updateOrgWebhook(organizationId: number, webhookId: string, data: UpdateOrgWebhookDto) {
+  async updateWebhook(organizationId: number, webhookId: string, data: Partial<WebhookInputData>) {
     return this.dbRead.prisma.webhook.update({
       data: { ...data },
       where: { id: webhookId, teamId: organizationId },
     });
   }
 
-  async findOrgWebhooksPaginated(organizationId: number, skip: number, take: number) {
+  async findWebhooksPaginated(organizationId: number, skip: number, take: number) {
     return this.dbRead.prisma.webhook.findMany({
       where: {
         teamId: organizationId,

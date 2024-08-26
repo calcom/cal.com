@@ -15,6 +15,9 @@ import {
   TeamWebhookOutputResponseDto as OrgWebhookOutputResponseDto,
   TeamWebhooksOutputResponseDto as OrgWebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/team-webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   Controller,
   UseGuards,
@@ -42,7 +45,10 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Organizations Webhooks")
 export class OrganizationsWebhooksController {
-  constructor(private organizationsWebhooksService: OrganizationsWebhooksService) {}
+  constructor(
+    private organizationsWebhooksService: OrganizationsWebhooksService,
+    private webhooksService: WebhooksService
+  ) {}
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -53,7 +59,7 @@ export class OrganizationsWebhooksController {
     @Query() queryParams: SkipTakePagination
   ): Promise<OrgWebhooksOutputResponseDto> {
     const { skip, take } = queryParams;
-    const webhooks = await this.organizationsWebhooksService.getPaginatedOrgWebhooks(
+    const webhooks = await this.organizationsWebhooksService.getWebhooksPaginated(
       orgId,
       skip ?? 0,
       take ?? 250
@@ -72,7 +78,10 @@ export class OrganizationsWebhooksController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateWebhookInputDto
   ): Promise<OrgWebhookOutputResponseDto> {
-    const webhook = await this.organizationsWebhooksService.createOrgWebhook(orgId, body);
+    const webhook = await this.organizationsWebhooksService.createWebhook(
+      orgId,
+      new WebhookInputPipe().transform(body)
+    );
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
@@ -88,7 +97,7 @@ export class OrganizationsWebhooksController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("webhookId", ParseIntPipe) webhookId: string
   ): Promise<OrgWebhookOutputResponseDto> {
-    const webhook = await this.organizationsWebhooksService.getOrgWebhook(orgId, webhookId);
+    const webhook = await this.organizationsWebhooksService.getWebhook(orgId, webhookId);
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
@@ -101,13 +110,14 @@ export class OrganizationsWebhooksController {
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
   async deleteOrgWebhook(
-    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("webhookId", ParseIntPipe) webhookId: string
   ): Promise<OrgWebhookOutputResponseDto> {
-    const webhook = await this.organizationsWebhooksService.deleteOrgWebhook(orgId, webhookId);
+    const webhook = await this.webhooksService.deleteWebhook(webhookId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+      data: plainToClass(OrgWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+        strategy: "excludeAll",
+      }),
     };
   }
 
@@ -117,11 +127,13 @@ export class OrganizationsWebhooksController {
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
   async updateOrgWebhook(
-    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("webhookId", ParseIntPipe) webhookId: string,
     @Body() body: UpdateWebhookInputDto
   ): Promise<OrgWebhookOutputResponseDto> {
-    const webhook = await this.organizationsWebhooksService.updateOrgWebhook(orgId, webhookId, body);
+    const webhook = await this.organizationsWebhooksService.updateWebhook(
+      webhookId,
+      new PartialWebhookInputPipe().transform(body)
+    );
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),

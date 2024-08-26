@@ -1,40 +1,41 @@
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/repositories/organizations-webhooks.repository";
-import {
-  CreateWebhookInputDto as CreateOrgWebhookDto,
-  UpdateWebhookInputDto as UpdateOrgWebhookDto,
-} from "@/modules/webhooks/inputs/webhook.input";
-import { Injectable } from "@nestjs/common";
+import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
+import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
+import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
+import { ConflictException, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsWebhooksService {
-  constructor(private readonly organizationsWebhooksRepository: OrganizationsWebhooksRepository) {}
+  constructor(
+    private readonly organizationsWebhooksRepository: OrganizationsWebhooksRepository,
+    private readonly webhooksRepository: WebhooksRepository
+  ) {}
 
-  async getPaginatedOrgWebhooks(organizationId: number, skip = 0, take = 250) {
-    const webhooks = await this.organizationsWebhooksRepository.findOrgWebhooksPaginated(
-      organizationId,
-      skip,
-      take
+  async createWebhook(orgId: number, body: PipedInputWebhookType) {
+    const existingWebhook = await this.organizationsWebhooksRepository.findWebhookByUrl(
+      orgId,
+      body.subscriberUrl
     );
-    return webhooks;
+    if (existingWebhook) {
+      throw new ConflictException("Webhook with this subscriber url already exists for this user");
+    }
+
+    return this.organizationsWebhooksRepository.createWebhook(orgId, {
+      ...body,
+      payloadTemplate: body.payloadTemplate ?? null,
+      secret: body.secret ?? null,
+    });
   }
 
-  async getOrgWebhook(organizationId: number, webhookId: string) {
-    const webhook = await this.organizationsWebhooksRepository.findOrgWebhook(organizationId, webhookId);
-    return webhook;
+  async getWebhooksPaginated(orgId: number, skip: number, take: number) {
+    return this.organizationsWebhooksRepository.findWebhooksPaginated(orgId, skip, take);
   }
 
-  async deleteOrgWebhook(organizationId: number, webhookId: string) {
-    const webhook = await this.organizationsWebhooksRepository.deleteOrgWebhook(organizationId, webhookId);
-    return webhook;
+  async getWebhook(orgId: number, webhookId: string) {
+    return this.organizationsWebhooksRepository.findWebhook(orgId, webhookId);
   }
 
-  async updateOrgWebhook(organizationId: number, webhookId: string, data: UpdateOrgWebhookDto) {
-    const team = await this.organizationsWebhooksRepository.updateOrgWebhook(organizationId, webhookId, data);
-    return team;
-  }
-
-  async createOrgWebhook(organizationId: number, data: CreateOrgWebhookDto) {
-    const webhook = await this.organizationsWebhooksRepository.createOrgWebhook(organizationId, data);
-    return webhook;
+  async updateWebhook(webhookId: string, body: UpdateWebhookInputDto) {
+    return this.webhooksRepository.updateWebhook(webhookId, body);
   }
 }
