@@ -48,57 +48,74 @@ async function addCredits(phoneNumber: string, userId?: number | null, teamId: n
 
   const userTeamKey = userId ? `${teamId}:${userId}` : `${teamId}`;
 
-  const smsCreditCount = await prisma.smsCreditCount.upsert({
-    where: {
-      userTeamKey: userTeamKey,
-    },
-    update: {
-      credits: {
-        increment: credits,
-      },
-    },
-    create: {
-      userTeamKey: userTeamKey,
-      teamId,
-      userId,
-      credits,
-    },
-    select: {
-      limitReachedAt: true,
-      warningSentAt: true,
-      credits: true,
-      team: {
-        select: {
-          name: true,
-          members: {
-            select: {
-              accepted: true,
-              role: true,
-              user: {
-                select: {
-                  email: true,
-                  name: true,
-                  locale: true,
-                },
+  const smsCreditCountSelect = {
+    id: true,
+    limitReachedAt: true,
+    warningSentAt: true,
+    credits: true,
+    team: {
+      select: {
+        name: true,
+        members: {
+          select: {
+            accepted: true,
+            role: true,
+            user: {
+              select: {
+                email: true,
+                name: true,
+                locale: true,
               },
             },
           },
         },
       },
     },
+  };
+
+  const existingSMSCreditCountTeam = await prisma.smsCreditCount.findFirst({
+    where: {
+      teamId,
+    },
   });
 
-  const team = smsCreditCount.team;
+  let smsCreditCountTeam;
+
+  if (existingSMSCreditCountTeam) {
+    smsCreditCountTeam = await prisma.smsCreditCount.update({
+      where: {
+        id: existingSMSCreditCountTeam.id,
+      },
+      data: {
+        credits: {
+          increment: credits,
+        },
+      },
+      select: smsCreditCountSelect,
+    });
+  } else {
+    smsCreditCountTeam = await prisma.smsCreditCount.create({
+      data: {
+        teamId,
+        userId,
+        credits,
+      },
+      select: smsCreditCountSelect,
+    });
+  }
+
+  const team = smsCreditCountTeam.team;
 
   const acceptedMembers = team.members.filter((member) => member.accepted);
 
   const totalCredits = acceptedMembers.length * creditsPerMember;
 
-  if (smsCreditCount.credits > totalCredits) {
+  if (smsCreditCountTeam.credits > totalCredits) {
     if (
-      !smsCreditCount.limitReachedAt ||
-      dayjs(smsCreditCount.limitReachedAt).isBefore(dayjs().startOf("month"))
+      !smsCreditCountTeam.limitReachedAt ||
+      dayjs(smsCreditCountTeam.limitReachedAt).isBefore(dayjs().startOf("month"))
     ) {
+      // limit reached
       // duplicate code
       const owners = await Promise.all(
         acceptedMembers
@@ -116,20 +133,18 @@ async function addCredits(phoneNumber: string, userId?: number | null, teamId: n
 
       await prisma.smsCreditCount.update({
         where: {
-          userTeamKey,
+          id: smsCreditCountTeam.id,
         },
         data: {
           limitReachedAt: new Date(),
         },
       });
     }
-    return false;
-  }
-
-  if (smsCreditCount.credits > totalCredits * 0.8) {
+    return false; // limit reached, don't send SMS
+  } else if (smsCreditCountTeam.credits > totalCredits * 0.8) {
     if (
-      !smsCreditCount.warningSentAt ||
-      dayjs(smsCreditCount.warningSentAt).isBefore(dayjs().startOf("month"))
+      !smsCreditCountTeam.warningSentAt ||
+      dayjs(smsCreditCountTeam.warningSentAt).isBefore(dayjs().startOf("month"))
     ) {
       const owners = await Promise.all(
         acceptedMembers
@@ -147,7 +162,7 @@ async function addCredits(phoneNumber: string, userId?: number | null, teamId: n
 
       await prisma.smsCreditCount.update({
         where: {
-          userTeamKey,
+          id: smsCreditCountTeam.id,
         },
         data: {
           warningSentAt: new Date(),
@@ -156,22 +171,88 @@ async function addCredits(phoneNumber: string, userId?: number | null, teamId: n
     }
   }
 
+  if (!!userId) {
+    //check user has credits left in this team
+    const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
+      where: {
+        userId,
+        teamId,
+      },
+      select: smsCreditCountSelect,
+    });
+
+    let smsCreditCountUser;
+
+    if (existingSMSCreditCountUser) {
+      smsCreditCountUser = await prisma.smsCreditCount.update({
+        where: {
+          id: existingSMSCreditCountUser.id,
+        },
+        data: {
+          credits: {
+            increment: credits,
+          },
+        },
+        select: smsCreditCountSelect,
+      });
+    } else {
+      smsCreditCountUser = await prisma.smsCreditCount.create({
+        data: {
+          teamId,
+          userId,
+          credits,
+        },
+        select: smsCreditCountSelect,
+      });
+    }
+
+    // fetch the credits per user and see if user is over limit
+    //should I also send email to user?
+  }
+
   return true;
 }
 
 async function removeCredits(credits: number, userId?: number | null, teamId: number) {
-  const userTeamKey = userId ? `${teamId}:${userId}` : `${teamId}`;
-
-  await prisma.smsCreditCount.update({
+  const smsCreditCountTeam = await prisma.smsCreditCount.findFirst({
     where: {
-      userTeamKey,
-    },
-    data: {
-      credits: {
-        increment: credits,
-      },
+      teamId,
     },
   });
+
+  if (smsCreditCountTeam) {
+    await prisma.smsCreditCount.update({
+      where: {
+        id: smsCreditCountTeam.id,
+      },
+      data: {
+        credits: {
+          decrement: credits,
+        },
+      },
+    });
+  }
+
+  if (!!userId) {
+    const smsCreditCountUser = await prisma.smsCreditCount.findFirst({
+      where: {
+        teamId,
+        userId,
+      },
+    });
+    if (smsCreditCountUser) {
+      await prisma.smsCreditCount.update({
+        where: {
+          id: smsCreditCountUser.id,
+        },
+        data: {
+          credits: {
+            decrement: credits,
+          },
+        },
+      });
+    }
+  }
 }
 
 function createTwilioClient() {

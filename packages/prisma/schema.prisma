@@ -364,61 +364,63 @@ model Profile {
 }
 
 model Team {
-  id                     Int                     @id @default(autoincrement())
+  id                       Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  name                   String
+  name                     String
   /// @zod.min(1)
-  slug                   String?
-  logoUrl                String?
-  calVideoLogo           String?
-  appLogo                String?
-  appIconLogo            String?
-  bio                    String?
-  hideBranding           Boolean                 @default(false)
-  isPrivate              Boolean                 @default(false)
-  hideBookATeamMember    Boolean                 @default(false)
-  members                Membership[]
-  eventTypes             EventType[]
-  workflows              Workflow[]
-  createdAt              DateTime                @default(now())
+  slug                     String?
+  logoUrl                  String?
+  calVideoLogo             String?
+  appLogo                  String?
+  appIconLogo              String?
+  bio                      String?
+  hideBranding             Boolean                 @default(false)
+  isPrivate                Boolean                 @default(false)
+  hideBookATeamMember      Boolean                 @default(false)
+  members                  Membership[]
+  eventTypes               EventType[]
+  workflows                Workflow[]
+  createdAt                DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata               Json?
-  theme                  String?
-  brandColor             String?
-  darkBrandColor         String?
-  verifiedNumbers        VerifiedNumber[]
-  verifiedEmails         VerifiedEmail[]
-  bannerUrl              String?
-  parentId               Int?
-  parent                 Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
-  children               Team[]                  @relation("organization")
-  orgUsers               User[]                  @relation("scope")
-  inviteTokens           VerificationToken[]
-  webhooks               Webhook[]
-  timeFormat             Int?
-  timeZone               String                  @default("Europe/London")
-  weekStart              String                  @default("Sunday")
-  routingForms           App_RoutingForms_Form[]
-  apiKeys                ApiKey[]
-  credentials            Credential[]
-  accessCodes            AccessCode[]
-  isOrganization         Boolean                 @default(false)
-  organizationSettings   OrganizationSettings?
-  instantMeetingTokens   InstantMeetingToken[]
-  orgProfiles            Profile[]
-  pendingPayment         Boolean                 @default(false)
-  dsyncTeamGroupMapping  DSyncTeamGroupMapping[]
-  isPlatform             Boolean                 @default(false)
+  metadata                 Json?
+  theme                    String?
+  brandColor               String?
+  darkBrandColor           String?
+  verifiedNumbers          VerifiedNumber[]
+  verifiedEmails           VerifiedEmail[]
+  bannerUrl                String?
+  parentId                 Int?
+  parent                   Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children                 Team[]                  @relation("organization")
+  orgUsers                 User[]                  @relation("scope")
+  inviteTokens             VerificationToken[]
+  webhooks                 Webhook[]
+  timeFormat               Int?
+  timeZone                 String                  @default("Europe/London")
+  weekStart                String                  @default("Sunday")
+  routingForms             App_RoutingForms_Form[]
+  apiKeys                  ApiKey[]
+  credentials              Credential[]
+  accessCodes              AccessCode[]
+  isOrganization           Boolean                 @default(false)
+  organizationSettings     OrganizationSettings?
+  instantMeetingTokens     InstantMeetingToken[]
+  orgProfiles              Profile[]
+  pendingPayment           Boolean                 @default(false)
+  dsyncTeamGroupMapping    DSyncTeamGroupMapping[]
+  isPlatform               Boolean                 @default(false)
   // Organization's OAuth clients. Organization has them but a team does not.
-  platformOAuthClient    PlatformOAuthClient[]
+  platformOAuthClient      PlatformOAuthClient[]
   // OAuth client used to create team of an organization. Team has it but organization does not.
-  createdByOAuthClient   PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
-  createdByOAuthClientId String?
-  smsLockState           SMSLockState            @default(UNLOCKED)
-  platformBilling        PlatformBilling?
-  activeOrgWorkflows     WorkflowsOnTeams[]
-  smsLockReviewedByAdmin Boolean                 @default(false)
-  smsCreditsCount        SmsCreditCount[]
+  createdByOAuthClient     PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
+  createdByOAuthClientId   String?
+  smsLockState             SMSLockState            @default(UNLOCKED)
+  platformBilling          PlatformBilling?
+  activeOrgWorkflows       WorkflowsOnTeams[]
+  smsLockReviewedByAdmin   Boolean                 @default(false)
+  smsCreditCounts          SmsCreditCount[]
+  smsCreditAllocationType  SmsCreditAllocationType @default(SPECIFIC)
+  smsCreditAllocationValue Int?                    @default(50)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1444,7 +1446,6 @@ model SmsCountryCredits {
 
 model SmsCreditCount {
   id             Int       @id @default(autoincrement())
-  userTeamKey    String    @unique
   user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         Int?
   team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -1454,4 +1455,10 @@ model SmsCreditCount {
   warningSentAt  DateTime?
 
   @@unique([userId, teamId])
+}
+
+enum SmsCreditAllocationType {
+  ALL
+  NOTHING
+  SPECIFIC
 }
