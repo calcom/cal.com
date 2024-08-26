@@ -42,6 +42,7 @@ export class OutputBookingsService_2024_08_13 {
     const booking = {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
+      hostId: databaseBooking.userId,
       status: databaseBooking.status.toLowerCase(),
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -116,6 +117,7 @@ export class OutputBookingsService_2024_08_13 {
     const booking = {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
+      hostId: databaseBooking.userId,
       status: databaseBooking.status.toLowerCase(),
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
