@@ -5,6 +5,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 
 import {
@@ -57,15 +58,24 @@ export class BookingsService_2024_08_13 {
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
-    if ("instant" in body && body.instant) {
-      return this.createInstantBooking(request, body);
-    }
+    try {
+      if ("instant" in body && body.instant) {
+        return await this.createInstantBooking(request, body);
+      }
 
-    if (await this.isRecurring(body)) {
-      return this.createRecurringBooking(request, body);
-    }
+      if (await this.isRecurring(body)) {
+        return await this.createRecurringBooking(request, body);
+      }
 
-    return this.createRegularBooking(request, body);
+      return await this.createRegularBooking(request, body);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "no_available_users_found_error") {
+          throw new BadRequestException("User either already has booking at this time or is not available");
+        }
+      }
+      throw error;
+    }
   }
 
   async createInstantBooking(request: Request, body: CreateInstantBookingInput_2024_08_13) {
