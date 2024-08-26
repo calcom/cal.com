@@ -47,7 +47,7 @@ export interface IUseBookings {
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
-  teamMemberEmail?: string;
+  roundRobinUsernamePool?: string[] | null;
 }
 
 const getBookingSuccessfulEventPayload = (booking: {
@@ -85,7 +85,13 @@ export interface IUseBookingErrors {
 }
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
-export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
+export const useBookings = ({
+  event,
+  hashedLink,
+  bookingForm,
+  metadata,
+  roundRobinUsernamePool,
+}: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
@@ -310,7 +316,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     bookingForm,
     hashedLink,
     metadata,
-    teamMemberEmail,
+    roundRobinUsernamePool,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,

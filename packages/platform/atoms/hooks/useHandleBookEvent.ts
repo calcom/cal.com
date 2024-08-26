@@ -21,11 +21,11 @@ type UseHandleBookingProps = {
   };
   metadata: Record<string, string>;
   hashedLink?: string | null;
-  teamMemberEmail?: string;
   handleBooking: (input: UseCreateBookingInput) => void;
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
   locationUrl?: string;
+  roundRobinUsernamePool?: string[] | null;
 };
 
 export const useHandleBookEvent = ({
@@ -33,7 +33,7 @@ export const useHandleBookEvent = ({
   event,
   metadata,
   hashedLink,
-  teamMemberEmail,
+  roundRobinUsernamePool,
   handleBooking,
   handleInstantBooking,
   handleRecBooking,
@@ -86,7 +86,7 @@ export const useHandleBookEvent = ({
         username: username || "",
         metadata: metadata,
         hashedLink,
-        teamMemberEmail,
+        roundRobinUsernamePool,
         orgSlug: orgSlug ? orgSlug : undefined,
       };
 

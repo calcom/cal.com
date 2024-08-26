@@ -206,6 +206,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       schedule={schedule}
       verifyCode={verifyCode}
       isPlatform={false}
+      roundRobinUsernamePool={props.roundRobinUsernamePool}
     />
   );
 };

@@ -66,42 +66,46 @@ export async function getCRMSkipRoundRobinUsernamePool({
   eventUsers,
   eventTypeId,
   attendeeEmail,
-  orgSlug,
 }: {
   eventUsers: { username: string; isFixed: boolean }[];
   eventTypeId: number;
   attendeeEmail: string;
-  orgSlug?: string;
 }) {
-  const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(attendeeEmail, eventTypeId);
+  const crmContactOwnerEmail = await getCRMContactOwnerForRRLeadSkip(attendeeEmail, eventTypeId);
 
-  if (crmContactOwner) {
-    const ownerUsername = await prisma.user.findUnique({
+  if (crmContactOwnerEmail) {
+    const rrHosts = await prisma.host.findMany({
       where: {
-        email: crmContactOwner,
-        ...(orgSlug ? { organization: { slug: orgSlug } } : {}),
+        eventTypeId,
       },
       select: {
-        username: true,
+        isFixed: true,
+        user: {
+          select: {
+            username: true,
+            email: true,
+          },
+        },
       },
     });
 
-    const roundRobinUsernamePool = [];
+    const contactOwnerUser = rrHosts.find((host) => host.user.email === crmContactOwnerEmail);
 
-    if (ownerUsername?.username) {
-      const roundRobinHost = eventUsers.find((user) => user.username === ownerUsername.username);
+    const roundRobinUsernamePool: string[] = [];
 
+    if (contactOwnerUser) {
       // If the contact owner is a fixed host, then include all hosts in RR selection
-      if (roundRobinHost?.isFixed) {
+      if (contactOwnerUser?.isFixed) {
         return roundRobinUsernamePool;
       }
 
-      roundRobinUsernamePool.push(ownerUsername.username);
+      // The user will have a username if a part of the team
+      roundRobinUsernamePool.push(contactOwnerUser.user.username!);
       // Include fixed hosts
       roundRobinUsernamePool.push(
         ...eventUsers.reduce(
-          (fixedHosts, user) => (user?.isFixed ? fixedHosts.push(user.username) : fixedHosts),
-          []
+          (fixedHosts, host) => (host.user?.isFixed ? fixedHosts.push(user.username) : fixedHosts),
+          [] as string[]
         )
       );
     }

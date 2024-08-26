@@ -66,6 +66,7 @@ const BookerComponent = ({
   isPlatform,
   orgBannerUrl,
   customClassNames,
+  roundRobinUsernamePool,
 }: BookerProps & WrappedBookerProps) => {
   const { t } = useLocale();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);

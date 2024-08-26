@@ -293,6 +293,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
     teamMemberEmail: z.string().optional(),
+    roundRobinUsernamePool: z.array(z.string()).nullable().optional(),
   })
 );
 
