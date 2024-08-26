@@ -2395,7 +2395,7 @@
   "create_account_password_hint": "Nincs fiókjelszava, hozzon létre egyet a Biztonság -> Jelszó menüpontban. Nem választható le, amíg nincs fiókjelszó.",
   "disconnect_account": "A csatlakoztatott fiók leválasztása",
   "disconnect_account_hint": "A csatlakoztatott fiók leválasztása megváltoztatja a bejelentkezés módját. Csak e-mail + jelszó használatával tud majd bejelentkezni fiókjába",
-  "cookie_consent_checkbox": "Hozzájárulok adatvédelmi szabályzathoz és cookie-használatához",
+  "cookie_consent_checkbox": "Fiók létrehozásával elfogadja adatvédelmi szabályzatunkat és a sütik használatát",
   "make_a_call": "Hívás",
   "ooo_reasons_unspecified": "Meg nem határozott",
   "ooo_reasons_vacation": "Vakáció",
