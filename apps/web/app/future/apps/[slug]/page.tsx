@@ -1,4 +1,3 @@
-import Page from "@pages/apps/[slug]/index";
 import { Prisma } from "@prisma/client";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
@@ -11,6 +10,8 @@ import prisma from "@calcom/prisma";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import Page from "~/apps/[slug]/slug-view";
 
 type Y = InferGetStaticPropsType<typeof getStaticProps>;
 const getData = withAppDirSsg<Y>(getStaticProps);
