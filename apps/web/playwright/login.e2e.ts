@@ -16,7 +16,7 @@ testBothFutureAndLegacyRoutes.describe("user can login & logout succesfully", as
 
   // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
   // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("login flow user & logout using dashboard", async ({ page, users }) => {
+  test("login flow user & logout using dashboard", async ({ page, users }) => {
     // log in trail user
     await test.step("Log in", async () => {
       const user = await users.create();

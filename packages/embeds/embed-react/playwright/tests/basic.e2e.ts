@@ -46,7 +46,7 @@ test.describe("React Embed", () => {
 
   // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
   // eslint-disable-next-line playwright/no-skipped-test
-  test.describe.skip("Element Click Popup", () => {
+  test.describe("Element Click Popup", () => {
     test("should verify that the iframe got created with correct URL - namespaced", async ({
       page,
       embeds,
