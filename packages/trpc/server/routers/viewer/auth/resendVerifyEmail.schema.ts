@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
+
 export const ZResendVerifyEmailSchema = z
   .object({
-    email: z.string().email(),
+    email: emailSchema,
   })
   .optional();
 
