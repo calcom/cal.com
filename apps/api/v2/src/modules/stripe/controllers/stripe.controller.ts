@@ -1,9 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { StripeConnectQueryParamsInputDto } from "@/modules/stripe/inputs/stripe.input";
 import { StripConnectOutputDto, StripConnectOutputResponseDto } from "@/modules/stripe/outputs/stripe.output";
 import { StripeService } from "@/modules/stripe/stripe.service";
+import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -15,6 +15,7 @@ import {
   Redirect,
   Req,
   BadRequestException,
+  Headers,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
@@ -36,15 +37,18 @@ export class StripeController {
   @HttpCode(HttpStatus.OK)
   async redirect(
     @Req() req: Request,
-    @Query("redir") redir: StripeConnectQueryParamsInputDto,
-    @GetUser() user: UserWithProfile
+    @Headers("Authorization") authorization: string,
+    @GetUser() user: UserWithProfile,
+    @Query("redir") redir?: string | null
   ): Promise<StripConnectOutputResponseDto> {
     const origin = req.headers.origin;
-    const { redir: redirectUrl } = redir;
+    const accessToken = authorization.replace("Bearer ", "");
+
     const state = {
       onErrorReturnTo: origin,
       fromApp: false,
-      returnTo: !!redirectUrl ? redirectUrl : origin,
+      returnTo: !!redir ? redir : origin,
+      accessToken,
     };
 
     const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(
@@ -60,19 +64,32 @@ export class StripeController {
   }
 
   @Get("/save")
-  @UseGuards(ApiAuthGuard)
+  @UseGuards()
   @Redirect(undefined, 301)
   async save(
-    @Query("state") state: string | string[] | undefined,
-    @Query("code") code: string | string[] | undefined,
-    @Query("error") error: string | string[] | undefined,
-    @Query("error_description") error_description: string | string[] | undefined,
-    @GetUser() user: UserWithProfile
+    @Query("state") state: string,
+    @Query("code") code: string,
+    @Query("error") error: string | undefined,
+    @Query("error_description") error_description: string | undefined
   ): Promise<{ url: string }> {
+    const accessToken = JSON.parse(state).accessToken;
+
+    // user cancels flow
+    if (error === "access_denied") {
+      return { url: getOnErrorReturnToValueFromQueryState(state) };
+    }
+
     if (error) {
       throw new BadRequestException(stringify({ error, error_description }));
     }
 
-    return await this.stripeService.saveStripeAccount(code, state, user.id);
+    return await this.stripeService.saveStripeAccount(state, code, accessToken);
+  }
+
+  @Get("/check")
+  @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async check(@GetUser() user: UserWithProfile): Promise<{ status: string }> {
+    return await this.stripeService.checkIfStripeAccountConnected(user.id);
   }
 }
