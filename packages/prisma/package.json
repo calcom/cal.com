@@ -15,7 +15,7 @@
     "db-up": "docker compose up -d || docker-compose up -d",
     "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
-    "generate-migration": "prisma migrate dev --name add_complete_setup_token_to_managed_setup",
+    "generate-migration": "prisma migrate dev --name add_credential_expiry_notification_table",
     "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",

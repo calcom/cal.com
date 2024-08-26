@@ -21,6 +21,7 @@ export const setupManagedZohoUserRequestSchema = z.object({
 });
 
 export const updateManagedZohoUserRequestSchema = z.object({
+  userId: z.number(),
   zuid: z.string(),
   schedule: ZUpdateInputSchema,
   zoomUserId: z.string(),

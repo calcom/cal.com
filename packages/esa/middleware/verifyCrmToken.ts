@@ -70,18 +70,12 @@ const verifyCRMAuthorization = (
   };
 };
 
-export const verifyCrmToken: NextMiddleware = async function (
-  req: CrmAuthenticatedNextApiRequest,
-  res,
-  next
-) {
+export const verifyCrmToken: NextMiddleware = async function (req, res, next) {
+  req = req as CrmAuthenticatedNextApiRequest;
+
   try {
     const { authorization } = req.headers;
-    const { tokenDetails, zohoUser: user } =
-      { tokenDetails: undefined, zohoUser: undefined } || verifyCRMAuthorization(authorization);
-
-    req.zohoUser = user;
-    req.tokenDetails = tokenDetails;
+    const _result = { tokenDetails: undefined, zohoUser: undefined } || verifyCRMAuthorization(authorization);
 
     await next();
   } catch (error) {

@@ -159,6 +159,8 @@ model Credential {
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
 
+  credentialExpiryNotification CredentialExpiryNotification[]
+
   @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
@@ -1136,6 +1138,16 @@ model ZohoSchedulingSetup {
   user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   completeSetupToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CredentialExpiryNotification {
+  id             Int         @id @default(autoincrement())
+  credentialId   Int?
+  credential     Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  lastNotifiedAt String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

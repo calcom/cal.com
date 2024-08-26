@@ -4288,7 +4288,6 @@ __metadata:
     handlebars: ^4.7.7
     ical.js: ^1.4.0
     ics: ^2.37.0
-    ioredis: ^5.2.3
     jose: ^4.13.1
     kbar: ^0.1.0-beta.36
     libphonenumber-js: ^1.10.51
@@ -4963,8 +4962,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@esa/cal-additions@workspace:packages/esa"
   dependencies:
+    "@calcom/prisma": "*"
     "@deep-consulting-solutions/zoho-utils": ^1.6.95
     ioredis: ^5.2.3
+    next-api-middleware: ^1.0.1
   languageName: unknown
   linkType: soft
 

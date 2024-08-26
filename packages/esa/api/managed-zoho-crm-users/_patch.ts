@@ -7,9 +7,11 @@ import { updateUserScheduleHandler } from "@calcom/trpc/server/routers/viewer/av
 
 import { updateManagedZohoUserRequestSchema } from "../../validation/schemas";
 
-async function postHandler(req: NextApiRequest & { prisma: any }) {
-  const body = updateManagedZohoUserRequestSchema.parse(req.body);
-  const prisma: PrismaClient = req.prisma;
+async function patchHandler(req: NextApiRequest) {
+  const $req = req as NextApiRequest & { prisma: any };
+
+  const body = updateManagedZohoUserRequestSchema.parse($req.body);
+  const prisma: PrismaClient = $req.prisma;
 
   const existingSetupEntry = await prisma.zohoSchedulingSetup.findFirst({
     where: {
@@ -27,7 +29,7 @@ async function postHandler(req: NextApiRequest & { prisma: any }) {
   // update schedule
   const user = await prisma.user.findUnique({
     where: {
-      id: Number(userId),
+      id: Number(body.userId),
     },
   });
   await updateUserScheduleHandler({ ctx: { user }, input: body.schedule } as any);
@@ -43,20 +45,28 @@ async function postHandler(req: NextApiRequest & { prisma: any }) {
     refresh_token: "-",
   };
 
-  await prisma.credential.update({
+  const credential = await prisma.credential.findFirst({
     where: {
       type: appData.type,
       userId: existingSetupEntry.userId,
       appId: appData.appId,
     },
-    data: {
-      key: zoomKey,
-    },
   });
+
+  if (credential) {
+    await prisma.credential.update({
+      where: {
+        id: credential.id,
+      },
+      data: {
+        key: zoomKey,
+      },
+    });
+  }
 
   return {
     message: "Managed setup updated",
   };
 }
 
-export default defaultResponder(postHandler);
+export default defaultResponder(patchHandler);

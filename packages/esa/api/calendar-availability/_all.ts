@@ -12,9 +12,11 @@ const selectedCalendarSelectSchema = z.object({
   credentialId: z.number().optional(),
 });
 
-async function getHandler(req: NextApiRequest & { prisma: any; userId: number }) {
-  const prisma: PrismaClient = req.prisma;
-  const userId = req.userId;
+async function allHandler(req: NextApiRequest) {
+  const $req = req as NextApiRequest & { prisma: any; userId: number };
+
+  const prisma: PrismaClient = $req.prisma;
+  const userId = $req.userId;
 
   const userWithCredentials = await prisma.user.findUnique({
     where: {
@@ -72,4 +74,4 @@ async function getHandler(req: NextApiRequest & { prisma: any; userId: number })
   }
 }
 
-export default defaultResponder(getHandler);
+export default defaultResponder(allHandler);

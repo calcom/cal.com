@@ -14,11 +14,12 @@ type ZoomUser = {
   status: string;
 };
 
-async function getHandler(req: NextApiRequest & { prisma: any }) {
+async function getHandler(req: NextApiRequest) {
+  const $req = req as NextApiRequest & { prisma: any };
   const adapter = VideoApiAdapter({ key: { user_id: true } } as any);
   const response = await (adapter as any).getZoomUsers();
 
-  const prisma: PrismaClient = req.prisma;
+  const prisma: PrismaClient = $req.prisma;
   const schedulingSetupEntries = await prisma.zohoSchedulingSetup.findMany();
   const linkedZoomAccounts = schedulingSetupEntries.map((entry) => entry.zoomUserId);
 

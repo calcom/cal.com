@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PrismaClient } from "@prisma/client";
-import type { NextApiRequest } from "next";
 import type { NextMiddleware } from "next-api-middleware";
 
 const messages = {
@@ -9,15 +8,7 @@ const messages = {
   TOKEN_EXPIRED: "TOKEN_EXPIRED",
 };
 
-export interface ManagedSetupAuthenticatedNextApiRequest extends NextApiRequest {
-  userId?: number;
-}
-
-export const verifyManagedSetupCompletionToken: NextMiddleware = async function (
-  req: ManagedSetupAuthenticatedNextApiRequest,
-  res,
-  next
-) {
+export const verifyManagedSetupCompletionToken: NextMiddleware = async function (req, res, next) {
   try {
     const { authorization } = req.headers;
     if (!authorization) {
@@ -43,7 +34,7 @@ export const verifyManagedSetupCompletionToken: NextMiddleware = async function 
       throw new Error(messages.TOKEN_INVALID);
     }
 
-    req.userId = setupEntry.userId;
+    (req as any).setupId = setupEntry.id;
 
     await next();
   } catch (error) {

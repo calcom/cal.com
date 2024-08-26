@@ -4,13 +4,14 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-async function postHandler(req: NextApiRequest & { prisma: any; userId: number }) {
-  const prisma: PrismaClient = req.prisma;
-  const userId = req.userId;
+async function postHandler(req: NextApiRequest) {
+  const $req = req as NextApiRequest & { prisma: any; setupId: number };
+  const prisma: PrismaClient = $req.prisma;
+  const setupId = $req.setupId;
 
   await prisma.zohoSchedulingSetup.update({
     where: {
-      userId,
+      id: setupId,
     },
     data: {
       status: "Completed",

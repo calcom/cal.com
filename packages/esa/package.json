@@ -5,7 +5,9 @@
   "main": "index.ts",
   "types": "index.d.ts",
   "dependencies": {
+    "@calcom/prisma": "*",
     "@deep-consulting-solutions/zoho-utils": "^1.6.95",
-    "ioredis": "^5.2.3"
+    "ioredis": "^5.2.3",
+    "next-api-middleware": "^1.0.1"
   }
 }

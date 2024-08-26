@@ -34,8 +34,7 @@ type SendMailRequest = {
 };
 
 async function generateAuthCRMToken(): Promise<{ token: string; tokenForAuthHeader: string }> {
-  const zohoCrmSecretKey = process.env.ZOHO_CRM_SECRET_KEY;
-  console.log(zohoCrmSecretKey);
+  const zohoCrmSecretKey = process.env.ZOHO_CRM_SECRET_KEY || "";
 
   const zohoUserDetails = { id: 1 };
 

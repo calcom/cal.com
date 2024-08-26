@@ -8,8 +8,10 @@ import { getScheduleByUserIdHandler } from "@calcom/trpc/server/routers/viewer/a
 
 import { zohoClient } from "../../lib/zoho";
 
-async function getHandler(req: NextApiRequest & { prisma: any }) {
-  const prisma: PrismaClient = req.prisma;
+async function getHandler(req: NextApiRequest) {
+  const $req = req as NextApiRequest & { prisma: any };
+
+  const prisma: PrismaClient = $req.prisma;
   const schedulingSetupEntries = await prisma.zohoSchedulingSetup.findMany();
 
   // prepare request to get zoho mail users
@@ -27,9 +29,9 @@ async function getHandler(req: NextApiRequest & { prisma: any }) {
   const zohoMailAccounts = zohoMailAccountsResponse?.data?.data || [];
   const crmUsers = crmUsersResponse?.users || [];
 
-  const users = crmUsers.map((u) => {
-    const setupEntry = schedulingSetupEntries.find((entry) => String(entry.zuid) === String(u.zuid));
-    const zohoMailAccount = zohoMailAccounts.find((account) => String(account.zuid) === String(u.zuid));
+  const users = crmUsers.map((u: any) => {
+    const setupEntry = schedulingSetupEntries.find((entry: any) => String(entry.zuid) === String(u.zuid));
+    const zohoMailAccount = zohoMailAccounts.find((account: any) => String(account.zuid) === String(u.zuid));
 
     return {
       userId: setupEntry?.userId,
@@ -43,7 +45,7 @@ async function getHandler(req: NextApiRequest & { prisma: any }) {
   });
 
   const withSchedule = await Promise.all(
-    users.map(async (user) => {
+    users.map(async (user: any) => {
       if (user.userId) {
         const contextUser = { id: user.userId, timeZone: user.timeZone };
         const schedule = await getScheduleByUserIdHandler({

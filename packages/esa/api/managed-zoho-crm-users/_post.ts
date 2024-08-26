@@ -55,9 +55,11 @@ const createSchedule = async (input: { name: string; schedule: any }, user: any,
   return { schedule };
 };
 
-async function postHandler(req: NextApiRequest & { prisma: any }) {
-  const body = setupManagedZohoUserRequestSchema.parse(req.body);
-  const prisma: PrismaClient = req.prisma;
+async function postHandler(req: NextApiRequest) {
+  const $req = req as NextApiRequest & { prisma: any };
+
+  const body = setupManagedZohoUserRequestSchema.parse($req.body);
+  const prisma: PrismaClient = $req.prisma;
 
   const existingSetupEntry = await prisma.zohoSchedulingSetup.findFirst({
     where: {

@@ -5,9 +5,11 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server";
 import { connectedCalendarsHandler } from "@calcom/trpc/server/routers/loggedInViewer/connectedCalendars.handler";
 
-async function getHandler(req: NextApiRequest & { prisma: any; userId: number }) {
-  const prisma: PrismaClient = req.prisma;
-  const userId = req.userId || req.query.userId;
+async function getHandler(req: NextApiRequest) {
+  const $req = req as NextApiRequest & { prisma: any; userId: number };
+
+  const prisma: PrismaClient = $req.prisma;
+  const userId = $req.userId || $req.query.userId;
 
   if (!userId) {
     throw new Error("User Id must be specified ");
