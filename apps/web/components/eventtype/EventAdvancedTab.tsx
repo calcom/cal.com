@@ -612,9 +612,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       darkEventTypeColor: value,
                     };
                     formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                    setEventTypeColorState(newVal);
                     if (checkWCAGContrastColor("#101010", value)) {
                       setDarkModeError(false);
-                      setEventTypeColorState(newVal);
                     } else {
                       setDarkModeError(true);
                     }
