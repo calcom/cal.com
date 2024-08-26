@@ -2476,5 +2476,6 @@
   "hour_short": "Std.",
   "minute_one_short": "{{count}} Min.",
   "hour_one_short": "{{count}} Std.",
+  "apply_to_all_event_types": "Gilt für alle, einschließlich zukünftiger Ereignistypen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
