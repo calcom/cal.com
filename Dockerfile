@@ -11,6 +11,7 @@ ARG CALENDSO_ENCRYPTION_KEY=secret
 ARG MAX_OLD_SPACE_SIZE=4096
 ARG NEXT_PUBLIC_PROJECT_VAR_TRANSLATIONS
 ARG NEXT_PUBLIC_PROJECT_NAME
+ARG ACCESS_TOKEN
 
 ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     NEXT_PUBLIC_LICENSE_CONSENT=$NEXT_PUBLIC_LICENSE_CONSENT \
@@ -29,6 +30,7 @@ COPY apps/web ./apps/web
 COPY packages ./packages
 COPY tests ./tests
 
+RUN cp .yarnrc.yml .yarnrc.yml.bak && sed "s/<npm-auth-token>/$ACCESS_TOKEN/g" .yarnrc.yml > .yarnrc.yml.new && mv .yarnrc.yml.new .yarnrc.yml
 RUN yarn config set httpTimeout 12000000 &&\
     yarn install
 RUN yarn db-deploy
