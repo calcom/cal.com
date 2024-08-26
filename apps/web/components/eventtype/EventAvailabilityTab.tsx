@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TextField } from "@calcom/ui";
@@ -84,7 +85,7 @@ const EventTypeScheduleDetails = memo(
           {schedule && schedule.timeBlocks?.length ? (
             <EventTypeTimeBlocks timeBlocks={schedule.timeBlocks} />
           ) : (
-            <EventTypeScheduleDayRange schedule={schedule} isPending={isPending} />
+            <EventTypeScheduleDayRange schedule={schedule?.schedule} isPending={isPending} />
           )}
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
@@ -111,7 +112,15 @@ const EventTypeScheduleDetails = memo(
 
 EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 
-const EventTypeScheduleDayRange = ({ schedule, isPending }) => {
+type ScheduleType = RouterOutputs["viewer"]["availability"]["schedule"]["get"]["schedule"];
+
+const EventTypeScheduleDayRange = ({
+  schedule,
+  isPending,
+}: {
+  schedule: ScheduleType | undefined;
+  isPending: boolean;
+}) => {
   const { data: loggedInUser } = useMeQuery();
   const { t, i18n } = useLocale();
   const timeFormat = loggedInUser?.timeFormat;
@@ -119,9 +128,9 @@ const EventTypeScheduleDayRange = ({ schedule, isPending }) => {
   const weekdays = weekdayNames(i18n.language, weekStart, "long");
 
   const filterDays = (dayNum: number) =>
-    schedule?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+    schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
 
-  const displayTimeRanges = (dayRanges) => {
+  const displayTimeRanges = (dayRanges: ScheduleType) => {
     return dayRanges.map((dayRange, i) => (
       <div key={i} className="text-default flex items-center leading-4">
         <span className="w-16 sm:w-28 sm:text-left">{format(dayRange.startTime, timeFormat === 12)}</span>
@@ -131,7 +140,7 @@ const EventTypeScheduleDayRange = ({ schedule, isPending }) => {
     ));
   };
 
-  const displayDayAvailability = (dayIndex) => {
+  const displayDayAvailability = (dayIndex: number) => {
     const dayRanges = filterDays(dayIndex);
     if (isPending) {
       return <SkeletonText className="block h-5 w-60" />;
