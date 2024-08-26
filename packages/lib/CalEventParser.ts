@@ -40,7 +40,9 @@ export const getWho = (calEvent: CalendarEvent, t: TFunction) => {
     .map((attendee) => {
       return `
 ${attendee?.name || t("guest")}
-${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : ""}${attendee.phoneNumber}`.trim();
+${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
+
+`;
     })
 
     .join("");
