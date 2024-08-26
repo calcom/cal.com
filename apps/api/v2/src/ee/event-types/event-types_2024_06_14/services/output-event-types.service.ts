@@ -67,6 +67,7 @@ type Input = Pick<
   | "periodStartDate"
   | "periodEndDate"
   | "requiresBookerEmailVerification"
+  | "hideCalendarNotes"
 >;
 
 @Injectable()
@@ -84,7 +85,6 @@ export class OutputEventTypesService_2024_06_14 {
       afterEventBuffer,
       slug,
       schedulingType,
-      // requiresConfirmation,
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
@@ -97,6 +97,7 @@ export class OutputEventTypesService_2024_06_14 {
       onlyShowFirstAvailableSlot,
       offsetStart,
       requiresBookerEmailVerification,
+      hideCalendarNotes,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -160,6 +161,7 @@ export class OutputEventTypesService_2024_06_14 {
       bookerLayouts,
       requiresConfirmation,
       requiresBookerEmailVerification,
+      hideCalendarNotes,
     };
   }
 

@@ -256,7 +256,8 @@ describe("Event types Endpoints", () => {
           interval: 2,
           occurrences: 10,
         },
-        requiresBookerEmailVerification: true,
+        requiresBookerEmailVerification: false,
+        hideCalendarNotes: false,
       };
 
       return request(app.getHttpServer())
@@ -286,6 +287,8 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.requiresBookerEmailVerification).toEqual(
             body.requiresBookerEmailVerification
           );
+
+          expect(createdEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           eventType = responseBody.data;
         });
     });
@@ -328,6 +331,7 @@ describe("Event types Endpoints", () => {
           occurrences: 10,
         },
         requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
       };
 
       return request(app.getHttpServer())
@@ -359,6 +363,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.requiresBookerEmailVerification).toEqual(
             body.requiresBookerEmailVerification
           );
+          expect(updatedEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -371,6 +376,7 @@ describe("Event types Endpoints", () => {
           eventType.requiresConfirmation = updatedEventType.requiresConfirmation;
           eventType.recurrence = updatedEventType.recurrence;
           eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
+          eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
         });
     });
 
@@ -417,6 +423,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
       );
+      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -453,6 +460,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
       );
+      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -484,6 +492,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
       );
+      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
     });
 
     it(`/GET/:id not existing`, async () => {

@@ -24,6 +24,7 @@ type InputEventTransformed = Omit<
   | "requiresConfirmation"
   | "recurrence"
   | "requiresBookerEmailVerification"
+  | "hideCalendarNotes"
 > & {
   length: number;
   slug: string;

@@ -107,6 +107,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   requiresBookerEmailVerification?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideCalendarNotes?: boolean;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -217,4 +221,8 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   requiresBookerEmailVerification?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideCalendarNotes?: boolean;
 }

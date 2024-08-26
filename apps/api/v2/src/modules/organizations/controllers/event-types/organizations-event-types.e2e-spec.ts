@@ -298,6 +298,7 @@ describe("Organizations Event Types Endpoints", () => {
           },
         },
         requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
       };
 
       return request(app.getHttpServer())
@@ -322,6 +323,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.bookerLayouts).toEqual(body.bookerLayouts);
           expect(data.requiresConfirmation).toEqual(body.requiresConfirmation);
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
+          expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
 
           collectiveEventType = responseBody.data;
         });

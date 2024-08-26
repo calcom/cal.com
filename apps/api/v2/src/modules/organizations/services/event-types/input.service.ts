@@ -32,6 +32,7 @@ export class InputOrganizationsEventTypesService {
       bookerLayouts,
       requiresConfirmation,
       requiresBookerEmailVerification,
+      hideCalendarNotes,
       bookingFields,
       recurrence,
       ...rest
@@ -53,6 +54,7 @@ export class InputOrganizationsEventTypesService {
       bookerLayouts,
       requiresConfirmation,
       requiresBookerEmailVerification,
+      hideCalendarNotes,
       bookingFields,
       recurrence,
       metadata,

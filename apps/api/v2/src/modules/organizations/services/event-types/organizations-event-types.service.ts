@@ -49,6 +49,7 @@ export class OrganizationsEventTypesService {
       bookerLayouts,
       requiresConfirmation,
       requiresBookerEmailVerification,
+      hideCalendarNotes,
       bookingFields,
       recurrence,
       ...rest
@@ -75,6 +76,7 @@ export class OrganizationsEventTypesService {
         bookerLayouts,
         requiresConfirmation,
         requiresBookerEmailVerification,
+        hideCalendarNotes,
         bookingFields,
         recurrence,
         ...rest,

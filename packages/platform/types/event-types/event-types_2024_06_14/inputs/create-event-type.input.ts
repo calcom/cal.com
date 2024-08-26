@@ -123,6 +123,10 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   requiresBookerEmailVerification?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideCalendarNotes?: boolean;
 }
 
 export enum HostPriority {

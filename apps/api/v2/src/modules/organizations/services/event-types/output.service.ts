@@ -53,6 +53,7 @@ type Input = Pick<
   | "periodStartDate"
   | "periodEndDate"
   | "requiresBookerEmailVerification"
+  | "hideCalendarNotes"
 >;
 
 @Injectable()
