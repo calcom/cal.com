@@ -14,12 +14,17 @@ const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 
-export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage) => {
+export const loadUsers = async (
+  eventType: EventType,
+  dynamicUserList: string[],
+  req: IncomingMessage,
+  roundRobinUsernamePool?: string[]
+) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);
 
     return eventType.id
-      ? await loadUsersByEventType(eventType)
+      ? await loadUsersByEventType(eventType, roundRobinUsernamePool)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
   } catch (error) {
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -29,16 +34,48 @@ export const loadUsers = async (eventType: EventType, dynamicUserList: string[],
   }
 };
 
-const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
+const loadUsersByEventType = async (
+  eventType: EventType,
+  roundRobinUsernamePool: string[] = []
+): Promise<NewBookingEventType["users"]> => {
+  const rrUsernamePoolSet = new Set(roundRobinUsernamePool);
+  const rrUsernamePoolSize = rrUsernamePoolSet.size;
   const hosts = eventType.hosts || [];
-  const users = hosts.map(({ user, isFixed, priority, weight, weightAdjustment }) => ({
-    ...user,
-    isFixed,
-    priority,
-    weight,
-    weightAdjustment,
-  }));
-  return users.length ? users : eventType.users;
+
+  const users = hosts.reduce((userArray, host) => {
+    const { user, isFixed, priority, weight, weightAdjustment } = host;
+    if (rrUsernamePoolSize && rrUsernamePoolSize === userArray.length) return userArray;
+
+    const eventTypeUser = {
+      ...user,
+      isFixed,
+      priority,
+      weight,
+      weightAdjustment,
+    };
+
+    if (rrUsernamePoolSize) {
+      if (rrUsernamePoolSet.has(eventTypeUser.username)) userArray.push(eventTypeUser);
+    } else {
+      userArray.push(eventTypeUser);
+    }
+    return userArray;
+  }, []);
+
+  if (users.length) return users;
+
+  // If we fallback to event type users we still need to filter on the rrUsernamePool
+  return eventType.users.reduce((userArray, user) => {
+    if (rrUsernamePoolSize === userArray.length) return userArray;
+
+    if (rrUsernamePoolSize) {
+      if (rrUsernamePoolSet.has(user.username)) userArray.push(user);
+    } else {
+      userArray.push(user);
+    }
+
+    return userArray;
+  }, []);
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {

@@ -350,8 +350,7 @@ async function handler(
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req);
-
+  })[] = await loadUsers(eventType, dynamicUserList, req, reqBody?.roundRobinUsernamePool);
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     loggerWithEventDetails.warn({
