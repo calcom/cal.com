@@ -5,7 +5,7 @@ import type { DateArray } from "ics";
 import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
-import { guessEventLocationType } from "@calcom/app-store/locations";
+import { getLocationHtml, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
@@ -18,6 +18,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -138,7 +139,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   let name = "";
   let attendeeName = "";
   let timeZone = "";
-  const location = bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location;
 
   switch (action) {
     case WorkflowActions.EMAIL_ADDRESS:
@@ -186,6 +186,18 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       break;
   }
 
+  const calendarEvent: CalendarEvent = {
+    type: evt.type,
+    title: evt.title,
+    startTime: evt.startTime,
+    endTime: evt.endTime,
+    organizer: evt.organizer,
+    attendees: evt.attendees,
+    location: evt.location,
+    videoCallData: evt.videoCallData,
+    additionalInformation: evt.additionalInformation,
+  };
+
   let emailContent = {
     emailSubject,
     emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
@@ -201,7 +213,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       eventDate: dayjs(startTime).tz(timeZone),
       eventEndTime: dayjs(endTime).tz(timeZone),
       timeZone: timeZone,
-      location: evt.location,
+      location: getLocationHtml(calendarEvent) || "",
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
@@ -234,7 +246,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       endTime,
       evt.title,
       timeZone,
-      location || "",
+      getLocationHtml(calendarEvent) || "",
       attendeeName,
       name
     );
