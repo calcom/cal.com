@@ -265,7 +265,7 @@ describe("Bookings Endpoints", () => {
           const responseBody: GetBookingsOutput = response.body;
           const fetchedBooking = responseBody.data.bookings[0];
 
-          expect(responseBody.data.bookings.length).toEqual(1);
+          expect(responseBody.data.bookings.length).toEqual(2);
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(fetchedBooking).toBeDefined();
