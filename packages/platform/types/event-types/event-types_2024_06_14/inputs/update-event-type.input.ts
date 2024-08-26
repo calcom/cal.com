@@ -103,6 +103,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @ValidateNested()
   @Type(() => Recurrence_2024_06_14)
   recurrence?: Recurrence_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresBookerEmailVerification?: boolean;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -209,4 +213,8 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @ValidateNested()
   @Type(() => Recurrence_2024_06_14)
   recurrence?: Recurrence_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresBookerEmailVerification?: boolean;
 }

@@ -119,6 +119,10 @@ export class CreateEventTypeInput_2024_06_14 {
   @ValidateNested()
   @Type(() => Recurrence_2024_06_14)
   recurrence?: Recurrence_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresBookerEmailVerification?: boolean;
 }
 
 export enum HostPriority {

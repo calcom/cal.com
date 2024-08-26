@@ -161,6 +161,10 @@ export class EventTypeOutput_2024_06_14 {
   requiresConfirmation?: RequiresConfirmation_2024_06_14;
 
   @IsOptional()
+  @IsBoolean()
+  requiresBookerEmailVerification?: boolean;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   offsetStart?: number;
@@ -293,6 +297,10 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => RequiresConfirmation_2024_06_14)
   requiresConfirmation?: RequiresConfirmation_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresBookerEmailVerification?: boolean;
 
   @IsOptional()
   @IsInt()

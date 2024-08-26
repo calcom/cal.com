@@ -52,6 +52,7 @@ type Input = Pick<
   | "periodCountCalendarDays"
   | "periodStartDate"
   | "periodEndDate"
+  | "requiresBookerEmailVerification"
 >;
 
 @Injectable()

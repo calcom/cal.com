@@ -297,6 +297,7 @@ describe("Organizations Event Types Endpoints", () => {
             unit: NoticeThresholdUnitEnum.MINUTES,
           },
         },
+        requiresBookerEmailVerification: true,
       };
 
       return request(app.getHttpServer())
@@ -320,6 +321,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.bookingWindow).toEqual(body.bookingWindow);
           expect(data.bookerLayouts).toEqual(body.bookerLayouts);
           expect(data.requiresConfirmation).toEqual(body.requiresConfirmation);
+          expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
 
           collectiveEventType = responseBody.data;
         });

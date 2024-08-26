@@ -66,6 +66,7 @@ type Input = Pick<
   | "periodCountCalendarDays"
   | "periodStartDate"
   | "periodEndDate"
+  | "requiresBookerEmailVerification"
 >;
 
 @Injectable()
@@ -95,6 +96,7 @@ export class OutputEventTypesService_2024_06_14 {
       scheduleId,
       onlyShowFirstAvailableSlot,
       offsetStart,
+      requiresBookerEmailVerification,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -157,6 +159,7 @@ export class OutputEventTypesService_2024_06_14 {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
+      requiresBookerEmailVerification,
     };
   }
 

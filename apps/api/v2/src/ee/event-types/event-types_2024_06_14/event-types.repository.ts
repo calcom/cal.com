@@ -23,6 +23,7 @@ type InputEventTransformed = Omit<
   | "offsetStart"
   | "requiresConfirmation"
   | "recurrence"
+  | "requiresBookerEmailVerification"
 > & {
   length: number;
   slug: string;

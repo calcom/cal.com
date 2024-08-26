@@ -31,6 +31,7 @@ export class InputOrganizationsEventTypesService {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
+      requiresBookerEmailVerification,
       bookingFields,
       recurrence,
       ...rest
@@ -51,6 +52,7 @@ export class InputOrganizationsEventTypesService {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
+      requiresBookerEmailVerification,
       bookingFields,
       recurrence,
       metadata,

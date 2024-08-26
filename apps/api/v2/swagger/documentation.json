@@ -7136,6 +7136,9 @@
           "requiresConfirmation": {
             "$ref": "#/components/schemas/RequiresConfirmation_2024_06_14"
           },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
           "offsetStart": {
             "type": "number",
             "minimum": 1

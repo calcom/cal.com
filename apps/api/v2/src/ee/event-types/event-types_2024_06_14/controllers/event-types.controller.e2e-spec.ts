@@ -256,6 +256,7 @@ describe("Event types Endpoints", () => {
           interval: 2,
           occurrences: 10,
         },
+        requiresBookerEmailVerification: true,
       };
 
       return request(app.getHttpServer())
@@ -282,6 +283,9 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookerLayouts).toEqual(body.bookerLayouts);
           expect(createdEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
           expect(createdEventType.recurrence).toEqual(body.recurrence);
+          expect(createdEventType.requiresBookerEmailVerification).toEqual(
+            body.requiresBookerEmailVerification
+          );
           eventType = responseBody.data;
         });
     });
@@ -323,6 +327,7 @@ describe("Event types Endpoints", () => {
           interval: 4,
           occurrences: 10,
         },
+        requiresBookerEmailVerification: true,
       };
 
       return request(app.getHttpServer())
@@ -351,6 +356,9 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.bookerLayouts).toEqual(body.bookerLayouts);
           expect(updatedEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
           expect(updatedEventType.recurrence).toEqual(body.recurrence);
+          expect(updatedEventType.requiresBookerEmailVerification).toEqual(
+            body.requiresBookerEmailVerification
+          );
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -362,6 +370,7 @@ describe("Event types Endpoints", () => {
           eventType.bookerLayouts = updatedEventType.bookerLayouts;
           eventType.requiresConfirmation = updatedEventType.requiresConfirmation;
           eventType.recurrence = updatedEventType.recurrence;
+          eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
         });
     });
 
@@ -405,6 +414,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -438,6 +450,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -466,6 +481,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
     });
 
     it(`/GET/:id not existing`, async () => {

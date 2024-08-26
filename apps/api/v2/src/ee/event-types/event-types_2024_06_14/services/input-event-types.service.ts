@@ -98,10 +98,11 @@ export class InputEventTypesService_2024_06_14 {
       metadata: {
         ...metadataTransformed,
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-        requiresConfirmationThreshold: requiresConfirmationTransformed.requiresConfirmationThreshold,
+        requiresConfirmationThreshold:
+          requiresConfirmationTransformed?.requiresConfirmationThreshold ?? undefined,
       },
-      requiresConfirmation: requiresConfirmationTransformed.requiresConfirmation,
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
+      requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
     };
 
     return eventType;
