@@ -6883,43 +6883,32 @@
           "data"
         ]
       },
-      "RecurringEvent_2024_06_14": {
+      "Recurrence_2024_06_14": {
         "type": "object",
         "properties": {
-          "dtstart": {
-            "format": "date-time",
-            "type": "string"
-          },
           "interval": {
-            "type": "number"
-          },
-          "count": {
-            "type": "number"
-          },
-          "freq": {
             "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
             "enum": [
-              0,
-              1,
-              2,
-              3,
-              4,
-              5,
-              6
-            ]
-          },
-          "until": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "tzid": {
+              "yearly",
+              "monthly",
+              "weekly"
+            ],
             "type": "string"
           }
         },
         "required": [
           "interval",
-          "count",
-          "freq"
+          "occurrences",
+          "frequency"
         ]
       },
       "TeamEventTypeResponseHost": {
@@ -7056,11 +7045,11 @@
             "type": "object",
             "nullable": true
           },
-          "recurringEvent": {
+          "recurrence": {
             "nullable": true,
             "allOf": [
               {
-                "$ref": "#/components/schemas/RecurringEvent_2024_06_14"
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
               }
             ]
           },
@@ -7150,7 +7139,7 @@
           "bookingFields",
           "disableGuests",
           "schedulingType",
-          "recurringEvent",
+          "recurrence",
           "metadata",
           "requiresConfirmation",
           "price",
