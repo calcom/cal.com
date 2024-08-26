@@ -580,6 +580,8 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     await page.click('[data-testid="webhook-switch"]');
 
     await page.waitForLoadState("networkidle");
+    // wait for request to complete
+    await expect(page.getByRole("button", { name: "Disabled" })).toBeVisible();
 
     const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
       where: {
