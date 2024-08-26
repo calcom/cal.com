@@ -2,8 +2,10 @@ import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
@@ -312,6 +314,47 @@ export const getHumanReadableLocationValue = (
   }
   // Otherwise just show the available link value.
   return linkValue || "";
+};
+
+export const getLocationHtml = (event: CalendarEvent) => {
+  const providerName = guessEventLocationType(event.location)?.label;
+
+  const location = event.location;
+  let meetingUrl = location?.search(/^https?:/) !== -1 ? location : undefined;
+
+  if (event) {
+    meetingUrl = getVideoCallUrlFromCalEvent(event) || meetingUrl;
+  }
+
+  const isPhone = location?.startsWith("+");
+
+  if (meetingUrl) {
+    return `
+      <a
+        href=${meetingUrl}
+        target="_blank"
+        title="Meeting URL"
+        style="color: '#101010'"
+        rel="noreferrer"
+      >
+        ${providerName || "Link"}
+      </a>
+      <br>
+      Meeting URL: <a href=${meetingUrl} title="Meeting URL" style="color: '#3E3E3E'">
+        ${meetingUrl}
+      </a>
+    `.replace(/(\r\n|\n|\r)/gm, "");
+  }
+
+  if (isPhone) {
+    return `
+      <a href=tel:${location} title="Phone" style="color: '#3E3E3E'">
+        ${location}
+      </a>
+    `.replace(/(\r\n|\n|\r)/gm, "");
+  }
+
+  return providerName || location;
 };
 
 export const locationKeyToString = (location: LocationObject) => {
