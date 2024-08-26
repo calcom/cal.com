@@ -2,6 +2,7 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { BillingService } from "@/modules/billing/services/billing.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import { Request } from "express";
@@ -38,6 +39,12 @@ type BookingWithAttendeesAndEventType = Booking & {
   eventType: { id: number };
 };
 
+type CreatedBooking = {
+  hostId: number;
+  uid: string;
+  start: string;
+};
+
 @Injectable()
 export class BookingsService_2024_08_13 {
   constructor(
@@ -45,7 +52,8 @@ export class BookingsService_2024_08_13 {
     private readonly outputService: OutputBookingsService_2024_08_13,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly prismaReadService: PrismaReadService
+    private readonly prismaReadService: PrismaReadService,
+    private readonly billingService: BillingService
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -196,5 +204,26 @@ export class BookingsService_2024_08_13 {
       return this.outputService.getOutputRecurringBooking(booking);
     }
     return this.outputService.getOutputBooking(booking);
+  }
+
+  async billBookings(bookings: CreatedBooking[]) {
+    for (const booking of bookings) {
+      await this.billBooking(booking);
+    }
+  }
+
+  async billBooking(booking: CreatedBooking) {
+    await this.billingService.increaseUsageByUserId(booking.hostId, {
+      uid: booking.uid,
+      startTime: new Date(booking.start),
+    });
+  }
+
+  async billRescheduledBooking(newBooking: CreatedBooking, oldBookingUid: string) {
+    await this.billingService.increaseUsageByUserId(newBooking.hostId, {
+      uid: newBooking.uid,
+      startTime: new Date(newBooking.start),
+      fromReschedule: oldBookingUid,
+    });
   }
 }

@@ -56,6 +56,12 @@ export class BookingsController_2024_08_13 {
   ): Promise<CreateBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.createBooking(request, body);
 
+    if (Array.isArray(booking)) {
+      await this.bookingsService.billBookings(booking);
+    } else {
+      await this.bookingsService.billBooking(booking);
+    }
+
     return {
       status: SUCCESS_STATUS,
       data: booking,
@@ -102,6 +108,7 @@ export class BookingsController_2024_08_13 {
     }
 
     const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
+    await this.bookingsService.billRescheduledBooking(newBooking, bookingUid);
 
     return {
       status: SUCCESS_STATUS,
