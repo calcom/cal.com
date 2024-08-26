@@ -3507,7 +3507,8 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.28"
+    "@calcom/platform-enums": "*"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.30"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3695,6 +3696,7 @@ __metadata:
     vite: ^5.0.10
     vite-plugin-dts: ^3.7.3
     vite-plugin-inspect: ^0.8.4
+    vite-plugin-node-polyfills: ^0.22.0
   languageName: unknown
   linkType: soft
 
@@ -4435,6 +4437,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/platform-enums@*, @calcom/platform-enums@workspace:packages/platform/enums":
+  version: 0.0.0-use.local
+  resolution: "@calcom/platform-enums@workspace:packages/platform/enums"
+  dependencies:
+    "@calcom/platform-constants": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
@@ -4446,14 +4456,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.28":
-  version: 0.0.28
-  resolution: "@calcom/platform-libraries@npm:0.0.28"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.30":
+  version: 0.0.30
+  resolution: "@calcom/platform-libraries@npm:0.0.30"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: b75480471eee9c60fd14d847b033e6ef9fe6b261a10aff5787db7db649802ca8aeac2f85660f970638956eb312268508a10b349a8a017b2dde9aa9221a6b5118
+  checksum: 85af636aa21187a28c53c5cd7e5b1ff6b88410d905f53ee3d6cc2e6a3ef4d0b8a80fac77bc290bbe3d093edea53f015d47db5e7e791f462622c0d642bfd09722
   languageName: node
   linkType: hard
 
@@ -4478,6 +4488,7 @@ __metadata:
   resolution: "@calcom/platform-types@workspace:packages/platform/types"
   dependencies:
     "@calcom/platform-constants": "*"
+    "@calcom/platform-enums": "*"
     "@types/express": ^4.17.21
     class-validator: ^0.14.0
   languageName: unknown
@@ -4930,6 +4941,7 @@ __metadata:
     "@calcom/embed-snippet": "workspace:*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
+    "@calcom/platform-enums": "*"
     "@calcom/platform-types": "*"
     "@calcom/prisma": "*"
     "@calcom/trpc": "*"
@@ -11652,6 +11664,22 @@ __metadata:
   peerDependencies:
     rollup: ^1.20.0 || ^2.0.0
   checksum: 22a1847372a96296a5b176af3d5b23ac7b48143a32c77ec4efed38daf4b0d1399a3cd144496d65731299984c5f98c9e00dc6a7f53d0fe87bd4aab2d4bd7b8289
+  languageName: node
+  linkType: hard
+
+"@rollup/plugin-inject@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "@rollup/plugin-inject@npm:5.0.5"
+  dependencies:
+    "@rollup/pluginutils": ^5.0.1
+    estree-walker: ^2.0.2
+    magic-string: ^0.30.3
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: 22cb772fd6f7178308b2ece95cdde5f8615f6257197832166294552a7e4c0d3976dc996cbfa6470af3151d8b86c00091aa93da5f4db6ec563f11b6db29fd1b63
   languageName: node
   linkType: hard
 
@@ -18632,6 +18660,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"browser-resolve@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "browser-resolve@npm:2.0.0"
+  dependencies:
+    resolve: ^1.17.0
+  checksum: 69225e73b555bd6d2a08fb93c7342cfcf3b5058b975099c52649cd5c3cec84c2066c5385084d190faedfb849684d9dabe10129f0cd401d1883572f2e6650f440
+  languageName: node
+  linkType: hard
+
 "browserify-aes@npm:^1.0.0, browserify-aes@npm:^1.0.4":
   version: 1.2.0
   resolution: "browserify-aes@npm:1.2.0"
@@ -18871,7 +18908,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"buffer@npm:^5.2.0, buffer@npm:^5.5.0":
+"buffer@npm:^5.2.0, buffer@npm:^5.5.0, buffer@npm:^5.7.1":
   version: 5.7.1
   resolution: "buffer@npm:5.7.1"
   dependencies:
@@ -20339,7 +20376,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"console-browserify@npm:^1.2.0":
+"console-browserify@npm:^1.1.0, console-browserify@npm:^1.2.0":
   version: 1.2.0
   resolution: "console-browserify@npm:1.2.0"
   checksum: 226591eeff8ed68e451dffb924c1fb750c654d54b9059b3b261d360f369d1f8f70650adecf2c7136656236a4bfeb55c39281b5d8a55d792ebbb99efd3d848d52
@@ -20717,7 +20754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"create-require@npm:^1.1.0":
+"create-require@npm:^1.1.0, create-require@npm:^1.1.1":
   version: 1.1.1
   resolution: "create-require@npm:1.1.1"
   checksum: a9a1503d4390d8b59ad86f4607de7870b39cad43d929813599a23714831e81c520bddf61bcdd1f8e30f05fd3a2b71ae8538e946eb2786dc65c2bbc520f692eff
@@ -28150,6 +28187,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isomorphic-timers-promises@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "isomorphic-timers-promises@npm:1.0.1"
+  checksum: 16ef59f0fbcceba1a037c74b5f7195d252ae058724ccd3e53b37ad034e8498f5532084e8ab18e7940ba3fa8fca2f21403d00eed15802ab1f7cab7c099cba62a8
+  languageName: node
+  linkType: hard
+
 "isstream@npm:~0.1.2":
   version: 0.1.2
   resolution: "isstream@npm:0.1.2"
@@ -32420,6 +32464,41 @@ __metadata:
     long-timeout: 0.1.1
     sorted-array-functions: ^1.3.0
   checksum: e457e76e633ed551e384ab2404628f0980bd3263057665dd3166a72b0eaca093cd57e42e144f9241b913383c1c58c633d3c782580009cbd51b1b9e2623193d52
+  languageName: node
+  linkType: hard
+
+"node-stdlib-browser@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "node-stdlib-browser@npm:1.2.0"
+  dependencies:
+    assert: ^2.0.0
+    browser-resolve: ^2.0.0
+    browserify-zlib: ^0.2.0
+    buffer: ^5.7.1
+    console-browserify: ^1.1.0
+    constants-browserify: ^1.0.0
+    create-require: ^1.1.1
+    crypto-browserify: ^3.11.0
+    domain-browser: ^4.22.0
+    events: ^3.0.0
+    https-browserify: ^1.0.0
+    isomorphic-timers-promises: ^1.0.1
+    os-browserify: ^0.3.0
+    path-browserify: ^1.0.1
+    pkg-dir: ^5.0.0
+    process: ^0.11.10
+    punycode: ^1.4.1
+    querystring-es3: ^0.2.1
+    readable-stream: ^3.6.0
+    stream-browserify: ^3.0.0
+    stream-http: ^3.2.0
+    string_decoder: ^1.0.0
+    timers-browserify: ^2.0.4
+    tty-browserify: 0.0.1
+    url: ^0.11.0
+    util: ^0.12.4
+    vm-browserify: ^1.0.1
+  checksum: fe491f0839319fd9bb95964c6f7da81fc7fde4c3ac9062aa367f19bc5a6060d0d9e423d3de4196cb51f8259d6aaf6cf380048c48a86eb3721c6223dd0dcc5bfd
   languageName: node
   linkType: hard
 
@@ -37168,7 +37247,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@npm:1.22.8, resolve@npm:^1.1.6, resolve@npm:^1.22.2, resolve@npm:^1.22.4, resolve@npm:~1.22.1":
+"resolve@npm:1.22.8, resolve@npm:^1.1.6, resolve@npm:^1.17.0, resolve@npm:^1.22.2, resolve@npm:^1.22.4, resolve@npm:~1.22.1":
   version: 1.22.8
   resolution: "resolve@npm:1.22.8"
   dependencies:
@@ -37266,7 +37345,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@patch:resolve@1.22.8#~builtin<compat/resolve>, resolve@patch:resolve@^1.1.6#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.2#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.4#~builtin<compat/resolve>, resolve@patch:resolve@~1.22.1#~builtin<compat/resolve>":
+"resolve@patch:resolve@1.22.8#~builtin<compat/resolve>, resolve@patch:resolve@^1.1.6#~builtin<compat/resolve>, resolve@patch:resolve@^1.17.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.2#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.4#~builtin<compat/resolve>, resolve@patch:resolve@~1.22.1#~builtin<compat/resolve>":
   version: 1.22.8
   resolution: "resolve@patch:resolve@npm%3A1.22.8#~builtin<compat/resolve>::version=1.22.8&hash=c3c19d"
   dependencies:
@@ -39323,7 +39402,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string_decoder@npm:^1.1.1, string_decoder@npm:^1.3.0":
+"string_decoder@npm:^1.0.0, string_decoder@npm:^1.1.1, string_decoder@npm:^1.3.0":
   version: 1.3.0
   resolution: "string_decoder@npm:1.3.0"
   dependencies:
@@ -40327,7 +40406,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"timers-browserify@npm:^2.0.12":
+"timers-browserify@npm:^2.0.12, timers-browserify@npm:^2.0.4":
   version: 2.0.12
   resolution: "timers-browserify@npm:2.0.12"
   dependencies:
@@ -40955,7 +41034,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tty-browserify@npm:^0.0.1":
+"tty-browserify@npm:0.0.1, tty-browserify@npm:^0.0.1":
   version: 0.0.1
   resolution: "tty-browserify@npm:0.0.1"
   checksum: 93b745d43fa5a7d2b948fa23be8d313576d1d884b48acd957c07710bac1c0d8ac34c0556ad4c57c73d36e11741763ef66b3fb4fb97b06b7e4d525315a3cd45f5
@@ -42202,6 +42281,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vite-plugin-node-polyfills@npm:^0.22.0":
+  version: 0.22.0
+  resolution: "vite-plugin-node-polyfills@npm:0.22.0"
+  dependencies:
+    "@rollup/plugin-inject": ^5.0.5
+    node-stdlib-browser: ^1.2.0
+  peerDependencies:
+    vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
+  checksum: c08d3df0d5cc3102280483d3f7b216f92a18e0708fcb9f67f78f01ab865474254756bacee17caa90b3f46afe5834cb9d8de0dd0e58c1bbbdae1b949edc1e6b57
+  languageName: node
+  linkType: hard
+
 "vite@npm:^3.0.0 || ^4.0.0 || ^5.0.0-0, vite@npm:^3.1.0 || ^4.0.0 || ^5.0.0-0, vite@npm:^5.0.10, vite@npm:^5.0.12":
   version: 5.1.6
   resolution: "vite@npm:5.1.6"
@@ -42405,7 +42496,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vm-browserify@npm:^1.1.2":
+"vm-browserify@npm:^1.0.1, vm-browserify@npm:^1.1.2":
   version: 1.1.2
   resolution: "vm-browserify@npm:1.1.2"
   checksum: 10a1c50aab54ff8b4c9042c15fc64aefccce8d2fb90c0640403242db0ee7fb269f9b102bdb69cfb435d7ef3180d61fd4fb004a043a12709abaf9056cfd7e039d

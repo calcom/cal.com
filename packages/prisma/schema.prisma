@@ -606,6 +606,10 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  /// @zod.email()
+  cancelledBy           String?
+  /// @zod.email()
+  rescheduledBy         String?
 
   @@index([eventTypeId])
   @@index([userId])
