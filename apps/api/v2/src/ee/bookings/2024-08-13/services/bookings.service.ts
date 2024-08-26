@@ -117,8 +117,16 @@ export class BookingsService_2024_08_13 {
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
+      const isRescheduled = booking.rescheduled;
       if (isRecurring) {
         return this.outputService.getOutputRecurringBooking(booking);
+      }
+      if (isRescheduled) {
+        const toReschedule = await this.bookingsRepository.getByFromReschedule(uid);
+        if (!toReschedule) {
+          throw new Error(`Booking with fromReschedule=${uid} was not found in the database`);
+        }
+        return this.outputService.getOutputRescheduledBooking(booking, toReschedule);
       }
       return this.outputService.getOutputBooking(booking);
     }

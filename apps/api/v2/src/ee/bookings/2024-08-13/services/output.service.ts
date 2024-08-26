@@ -11,6 +11,7 @@ export const bookingResponsesSchema = z.object({
   email: z.string(),
   name: z.string(),
   guests: z.array(z.string()).optional(),
+  rescheduledReason: z.string().optional(),
 });
 
 @Injectable()
@@ -43,8 +44,13 @@ export class OutputBookingsService_2024_08_13 {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
       hostId: databaseBooking.userId,
-      status: databaseBooking.status.toLowerCase(),
-      cancellationReason: databaseBooking.cancellationReason,
+      status:
+        databaseBooking.rescheduled && !databaseBooking.cancellationReason
+          ? "rescheduled"
+          : databaseBooking.status.toLowerCase(),
+      cancellationReason: databaseBooking.cancellationReason || undefined,
+      reschedulingReason: bookingResponses?.rescheduledReason,
+      rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
       duration,
@@ -59,6 +65,71 @@ export class OutputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
+    };
+
+    return plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+  }
+
+  getOutputRescheduledBooking(
+    oldDatabaseBooking: Booking & {
+      attendees: {
+        name: string;
+        email: string;
+        timeZone: string;
+        locale: string | null;
+        noShow: boolean | null;
+      }[];
+    },
+    newDatabaseBooking: Booking & {
+      attendees: {
+        name: string;
+        email: string;
+        timeZone: string;
+        locale: string | null;
+        noShow: boolean | null;
+      }[];
+    }
+  ) {
+    const dateStart = DateTime.fromISO(oldDatabaseBooking.startTime.toISOString());
+    const dateEnd = DateTime.fromISO(oldDatabaseBooking.endTime.toISOString());
+    const duration = dateEnd.diff(dateStart, "minutes").minutes;
+
+    const bookingResponses = bookingResponsesSchema.parse(oldDatabaseBooking.responses);
+    const bookingResponsesNew = bookingResponsesSchema.parse(newDatabaseBooking.responses);
+    const attendee = oldDatabaseBooking.attendees.find(
+      (attendee) => attendee.email === bookingResponses.email
+    );
+
+    if (!attendee) {
+      throw new Error("Attendee not found");
+    }
+
+    const booking = {
+      id: oldDatabaseBooking.id,
+      uid: oldDatabaseBooking.uid,
+      hostId: oldDatabaseBooking.userId,
+      status:
+        oldDatabaseBooking.rescheduled && !oldDatabaseBooking.cancellationReason
+          ? "rescheduled"
+          : oldDatabaseBooking.status.toLowerCase(),
+      cancellationReason: oldDatabaseBooking.cancellationReason || undefined,
+      reschedulingReason: bookingResponsesNew?.rescheduledReason,
+      rescheduledFromUid: oldDatabaseBooking.fromReschedule || undefined,
+      rescheduledToUid: newDatabaseBooking.uid,
+      start: oldDatabaseBooking.startTime,
+      end: oldDatabaseBooking.endTime,
+      duration,
+      eventTypeId: oldDatabaseBooking.eventTypeId,
+      attendee: {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: attendee.locale,
+        absent: !!attendee.noShow,
+      },
+      guests: bookingResponses.guests,
+      meetingUrl: oldDatabaseBooking.location,
+      absentHost: !!oldDatabaseBooking.noShowHost,
     };
 
     return plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -120,7 +191,7 @@ export class OutputBookingsService_2024_08_13 {
       uid: databaseBooking.uid,
       hostId: databaseBooking.userId,
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason: databaseBooking.cancellationReason,
+      cancellationReason: databaseBooking.cancellationReason || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
       duration,

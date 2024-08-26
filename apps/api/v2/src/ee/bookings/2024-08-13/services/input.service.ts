@@ -285,8 +285,9 @@ export class InputBookingsService_2024_08_13 {
       metadata: {},
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
-      responses: bookingResponses,
+      responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
       user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
+      rescheduleUid: bookingUid,
     };
   }
 

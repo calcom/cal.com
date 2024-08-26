@@ -52,9 +52,9 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   hostId!: number;
 
-  @IsEnum(["cancelled", "accepted", "rejected", "pending", "awaiting_host"])
+  @IsEnum(["cancelled", "accepted", "rejected", "pending", "rescheduled"])
   @Expose()
-  status!: "cancelled" | "accepted" | "rejected" | "pending" | "awaiting_host";
+  status!: "cancelled" | "accepted" | "rejected" | "pending" | "rescheduled";
 
   @IsString()
   @IsOptional()
@@ -65,6 +65,16 @@ export class BookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   reschedulingReason?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  rescheduledFromUid?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  rescheduledToUid?: string;
 
   @IsDateString()
   @Expose()
@@ -116,19 +126,14 @@ export class RecurringBookingOutput_2024_08_13 {
   @Expose()
   hostId!: number;
 
-  @IsEnum(["cancelled", "accepted", "rejected", "pending", "awaiting_host"])
+  @IsEnum(["cancelled", "accepted", "rejected", "pending"])
   @Expose()
-  status!: "cancelled" | "accepted" | "rejected" | "pending" | "awaiting_host";
+  status!: "cancelled" | "accepted" | "rejected" | "pending";
 
   @IsString()
   @IsOptional()
   @Expose()
   cancellationReason?: string;
-
-  @IsString()
-  @IsOptional()
-  @Expose()
-  reschedulingReason?: string;
 
   @IsDateString()
   @Expose()

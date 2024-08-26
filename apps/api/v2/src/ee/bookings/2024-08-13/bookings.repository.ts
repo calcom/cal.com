@@ -54,4 +54,15 @@ export class BookingsRepository_2024_08_13 {
       },
     });
   }
+
+  async getByFromReschedule(fromReschedule: string) {
+    return this.dbRead.prisma.booking.findFirst({
+      where: {
+        fromReschedule,
+      },
+      include: {
+        attendees: true,
+      },
+    });
+  }
 }
