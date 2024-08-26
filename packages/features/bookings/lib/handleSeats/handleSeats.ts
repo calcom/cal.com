@@ -30,6 +30,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventTrigger,
     evt,
     workflows,
+    rescheduledBy,
   } = newSeatedBookingObject;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
@@ -144,6 +145,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       eventTypeId,
       status: "ACCEPTED",
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
+      rescheduledBy,
     };
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });

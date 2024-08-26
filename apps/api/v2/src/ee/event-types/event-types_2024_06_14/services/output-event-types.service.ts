@@ -14,6 +14,7 @@ import {
   parseBookingLimit,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
+  getResponseEventTypeRecurrence,
 } from "@calcom/platform-libraries";
 import { TransformFutureBookingsLimitSchema_2024_06_14 } from "@calcom/platform-types";
 
@@ -92,7 +93,7 @@ export class OutputEventTypesService_2024_06_14 {
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(BookingFieldsSchema.parse(databaseEventType.bookingFields))
       : [];
-    const recurringEvent = this.transformRecurringEvent(databaseEventType.recurringEvent);
+    const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users);
     const bookingLimitsCount = this.transformIntervalLimits(databaseEventType.bookingLimits);
@@ -114,7 +115,7 @@ export class OutputEventTypesService_2024_06_14 {
       description: description || "",
       locations,
       bookingFields,
-      recurringEvent,
+      recurrence,
       disableGuests,
       slotInterval,
       minimumBookingNotice,
@@ -154,7 +155,8 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformRecurringEvent(recurringEvent: any) {
     if (!recurringEvent) return null;
-    return parseRecurringEvent(recurringEvent);
+    const recurringEventParsed = parseRecurringEvent(recurringEvent);
+    return getResponseEventTypeRecurrence(recurringEventParsed);
   }
 
   transformMetadata(metadata: any) {

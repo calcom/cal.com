@@ -1010,6 +1010,7 @@ async function handler(
       eventTrigger,
       responses,
       workflows,
+      rescheduledBy: reqBody.rescheduledBy,
     });
 
     if (newBooking) {
@@ -1074,6 +1075,7 @@ async function handler(
       data: {
         rescheduled: true,
         status: BookingStatus.CANCELLED,
+        rescheduledBy: reqBody.rescheduledBy,
       },
     });
   }
@@ -1586,6 +1588,7 @@ async function handler(
     eventTypeId,
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
+    rescheduledBy: reqBody.rescheduledBy,
   };
 
   if (bookingRequiresPayment) {
