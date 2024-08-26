@@ -1,4 +1,3 @@
-import type { TEventType } from "@pages/apps/installation/[[...step]]";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
@@ -17,6 +16,8 @@ import type { TLocationOptions } from "@components/eventtype/Locations";
 import type { TEventTypeLocation } from "@components/eventtype/Locations";
 import Locations from "@components/eventtype/Locations";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
+
+import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
 
 const LocationsWrapper = ({
   eventType,
