@@ -164,6 +164,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {
+          const smsCredits = await twilio.getCreditsForNumber(reminderPhone);
+
           const scheduledWHATSAPP = await twilio.scheduleSMS(
             reminderPhone,
             textMessage,
@@ -184,6 +186,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                 scheduled: true,
                 referenceId: scheduledWHATSAPP.sid,
                 seatReferenceId: seatReferenceUid,
+                teamId: scheduledWHATSAPP.teamId,
+                smsCredits,
               },
             });
           }

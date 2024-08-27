@@ -197,14 +197,14 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
-      const smsCredits = await twilio.getCreditsForNumber(reminderPhone);
-
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
         currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
         !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {
+          const smsCredits = await twilio.getCreditsForNumber(reminderPhone);
+
           const scheduledSMS = await twilio.scheduleSMS(
             reminderPhone,
             smsMessage,
@@ -225,6 +225,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 referenceId: scheduledSMS.sid,
                 seatReferenceId: seatReferenceUid,
                 smsCredits,
+                teamId: scheduledSMS.teamId,
               },
             });
           }
@@ -241,7 +242,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
             seatReferenceId: seatReferenceUid,
-            smsCredits,
           },
         });
       }
@@ -257,6 +257,7 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
       },
       select: {
         smsCredits: true,
+        teamId: true,
         workflowStep: {
           select: {
             workflow: {
@@ -271,7 +272,7 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
     });
 
     const userId = workflowReminder?.workflowStep?.workflow.userId ?? undefined;
-    const teamId = workflowReminder?.workflowStep?.workflow.teamId ?? undefined;
+    const teamId = workflowReminder?.workflowStep?.workflow.teamId ?? workflowReminder?.teamId ?? undefined;
 
     if (referenceId) {
       await twilio.cancelSMS(referenceId, workflowReminder?.smsCredits || 0, userId, teamId);
