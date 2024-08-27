@@ -1,5 +1,3 @@
-"use client";
-
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 
 import PageWrapper from "@components/PageWrapper";
