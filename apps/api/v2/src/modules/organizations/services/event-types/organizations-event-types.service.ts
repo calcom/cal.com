@@ -51,6 +51,7 @@ export class OrganizationsEventTypesService {
       requiresBookerEmailVerification,
       hideCalendarNotes,
       lockTimeZoneToggleOnBookingPage,
+      eventTypeColor,
       bookingFields,
       recurrence,
       ...rest
@@ -79,6 +80,7 @@ export class OrganizationsEventTypesService {
         requiresBookerEmailVerification,
         hideCalendarNotes,
         lockTimeZoneToggleOnBookingPage,
+        eventTypeColor,
         bookingFields,
         recurrence,
         ...rest,

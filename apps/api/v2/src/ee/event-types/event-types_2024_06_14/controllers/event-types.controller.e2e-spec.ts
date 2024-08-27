@@ -259,6 +259,10 @@ describe("Event types Endpoints", () => {
         requiresBookerEmailVerification: false,
         hideCalendarNotes: false,
         lockTimeZoneToggleOnBookingPage: true,
+        eventTypeColor: {
+          darkThemeColor: "#292929",
+          lightThemeColor: "#fafafa",
+        },
       };
 
       return request(app.getHttpServer())
@@ -293,6 +297,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
+          expect(createdEventType.eventTypeColor).toEqual(body.eventTypeColor);
           eventType = responseBody.data;
         });
     });
@@ -337,6 +342,10 @@ describe("Event types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         lockTimeZoneToggleOnBookingPage: true,
+        eventTypeColor: {
+          darkThemeColor: "#292929",
+          lightThemeColor: "#fafafa",
+        },
       };
 
       return request(app.getHttpServer())
@@ -372,6 +381,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
+          expect(updatedEventType.eventTypeColor).toEqual(body.eventTypeColor);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -386,6 +396,7 @@ describe("Event types Endpoints", () => {
           eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
+          eventType.eventTypeColor = updatedEventType.eventTypeColor;
         });
     });
 
@@ -436,6 +447,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
+      expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -476,6 +488,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
+      expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -511,6 +524,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
+      expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
     });
 
     it(`/GET/:id not existing`, async () => {

@@ -14,6 +14,7 @@ import type {
   BookingWindow_2024_06_14,
   BookerLayouts_2024_06_14,
   RequiresConfirmation_2024_06_14,
+  EventTypeColor_2024_06_14,
   Recurrence_2024_06_14,
 } from "@calcom/platform-types";
 
@@ -27,6 +28,7 @@ import {
   transformApiEventTypeBookerLayouts,
   transformApiEventTypeRequiresConfirmation,
   transformApiEventTypeRecurrence,
+  transformApiEventTypeColors,
 } from "./api-request";
 
 describe("transformApiEventTypeLocations", () => {
@@ -710,6 +712,23 @@ describe("transformApiEventTypeRequiresConfirmation", () => {
       },
     };
     const result = transformApiEventTypeRequiresConfirmation(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+describe("transformApiEventTypeColors", () => {
+  it("should transform event type colors", () => {
+    const input: EventTypeColor_2024_06_14 = {
+      darkThemeColor: "#292929",
+      lightThemeColor: "#fafafa",
+    };
+
+    const expectedOutput = {
+      darkEventTypeColor: "#292929",
+      lightEventTypeColor: "#fafafa",
+    };
+
+    const result = transformApiEventTypeColors(input);
 
     expect(result).toEqual(expectedOutput);
   });

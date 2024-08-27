@@ -25,6 +25,8 @@ import type {
   NoticeThreshold_2024_06_14,
   RequiresConfirmation_2024_06_14,
   BookerLayoutsTransformedSchema,
+  EventTypeColorsTransformedSchema,
+  EventTypeColor_2024_06_14,
   Recurrence_2024_06_14,
   TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
@@ -296,6 +298,14 @@ function getResponseEventTypeRequiresConfirmation(
     };
   }
 }
+function getResponseEventTypeColors(
+  transformedColors: EventTypeColorsTransformedSchema
+): EventTypeColor_2024_06_14 {
+  return {
+    darkThemeColor: transformedColors.darkEventTypeColor,
+    lightThemeColor: transformedColors.lightEventTypeColor,
+  };
+}
 function getResponseEventTypeRecurrence(
   transformRecurringEvent: TransformRecurringEventSchema_2024_06_14
 ): Recurrence_2024_06_14 {
@@ -313,5 +323,6 @@ export {
   getResponseEventTypeFutureBookingLimits,
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
+  getResponseEventTypeColors,
   getResponseEventTypeRecurrence,
 };

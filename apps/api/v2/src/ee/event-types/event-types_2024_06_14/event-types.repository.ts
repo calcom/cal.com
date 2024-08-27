@@ -26,6 +26,7 @@ type InputEventTransformed = Omit<
   | "requiresBookerEmailVerification"
   | "hideCalendarNotes"
   | "lockTimeZoneToggleOnBookingPage"
+  | "eventTypeColor"
 > & {
   length: number;
   slug: string;

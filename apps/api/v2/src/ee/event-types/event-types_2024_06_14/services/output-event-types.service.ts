@@ -19,6 +19,8 @@ import {
 import {
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
+  getResponseEventTypeColors,
+  parseEventTypeColor,
 } from "@calcom/platform-libraries-1.2.3";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
@@ -68,6 +70,7 @@ type Input = Pick<
   | "periodEndDate"
   | "requiresBookerEmailVerification"
   | "hideCalendarNotes"
+  | "eventTypeColor"
 >;
 
 @Injectable()
@@ -109,6 +112,7 @@ export class OutputEventTypesService_2024_06_14 {
     const users = this.transformUsers(databaseEventType.users);
     const bookingLimitsCount = this.transformIntervalLimits(databaseEventType.bookingLimits);
     const bookingLimitsDuration = this.transformIntervalLimits(databaseEventType.durationLimits);
+    const eventTypeColor = this.transformEventTypeColor(databaseEventType.eventTypeColor);
     const bookerLayouts = this.transformBookerLayouts(
       metadata.bookerLayouts as unknown as BookerLayoutsTransformedSchema
     );
@@ -162,6 +166,7 @@ export class OutputEventTypesService_2024_06_14 {
       requiresConfirmation,
       requiresBookerEmailVerification,
       hideCalendarNotes,
+      eventTypeColor,
     };
   }
 
@@ -222,5 +227,11 @@ export class OutputEventTypesService_2024_06_14 {
     requiresConfirmationThreshold: NoticeThreshold_2024_06_14
   ) {
     return getResponseEventTypeRequiresConfirmation(requiresConfirmation, requiresConfirmationThreshold);
+  }
+
+  transformEventTypeColor(eventTypeColor: any) {
+    if (!eventTypeColor) return undefined;
+    const parsedeventTypeColor = parseEventTypeColor(eventTypeColor);
+    return getResponseEventTypeColors(parsedeventTypeColor);
   }
 }

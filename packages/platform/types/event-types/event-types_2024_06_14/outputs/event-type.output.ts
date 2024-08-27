@@ -12,7 +12,11 @@ import {
 } from "class-validator";
 
 import type { Location_2024_06_14, BookingField_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
-import { Host as TeamEventTypeHostInput, BookingLimitsDuration_2024_06_14 } from "../inputs";
+import {
+  Host as TeamEventTypeHostInput,
+  BookingLimitsDuration_2024_06_14,
+  EventTypeColor_2024_06_14,
+} from "../inputs";
 import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
@@ -169,6 +173,10 @@ export class EventTypeOutput_2024_06_14 {
   hideCalendarNotes?: boolean;
 
   @IsOptional()
+  @Type(() => EventTypeColor_2024_06_14)
+  eventTypeColor?: EventTypeColor_2024_06_14;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   offsetStart?: number;
@@ -309,6 +317,10 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   hideCalendarNotes?: boolean;
+
+  @IsOptional()
+  @Type(() => EventTypeColor_2024_06_14)
+  eventTypeColor?: EventTypeColor_2024_06_14;
 
   @IsOptional()
   @IsInt()

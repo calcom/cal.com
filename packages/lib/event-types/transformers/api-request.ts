@@ -20,6 +20,7 @@ import type {
   BookingLimitsKeyOutputType_2024_06_14,
   TransformBookingLimitsSchema_2024_06_14,
   TransformRecurringEventSchema_2024_06_14,
+  EventTypeColorsTransformedSchema,
 } from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
@@ -203,6 +204,16 @@ function transformApiEventTypeRequiresConfirmation(
       };
   }
 }
+function transformApiEventTypeColors(
+  inputEventTypeColors: CreateEventTypeInput_2024_06_14["eventTypeColor"]
+): EventTypeColorsTransformedSchema | undefined {
+  if (!inputEventTypeColors) return undefined;
+
+  return {
+    darkEventTypeColor: inputEventTypeColors.darkThemeColor,
+    lightEventTypeColor: inputEventTypeColors.lightThemeColor,
+  };
+}
 
 function transformApiEventTypeRecurrence(
   recurrence: CreateEventTypeInput_2024_06_14["recurrence"]
@@ -319,5 +330,6 @@ export {
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeBookerLayouts,
   transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeColors,
   transformApiEventTypeRecurrence,
 };

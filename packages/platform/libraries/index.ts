@@ -106,11 +106,13 @@ export {
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
   transformApiEventTypeRequiresConfirmation,
+  getResponseEventTypeColors,
+  transformApiEventTypeColors,
   transformApiEventTypeRecurrence,
   getResponseEventTypeRecurrence,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit } from "@calcom/lib";
+export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
 export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";

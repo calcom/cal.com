@@ -55,6 +55,7 @@ type Input = Pick<
   | "requiresBookerEmailVerification"
   | "hideCalendarNotes"
   | "lockTimeZoneToggleOnBookingPage"
+  | "eventTypeColor"
 >;
 
 @Injectable()

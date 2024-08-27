@@ -16,6 +16,7 @@ import type {
   RequiresConfirmationTransformedSchema,
   NoticeThreshold_2024_06_14,
   BookerLayoutsTransformedSchema,
+  EventTypeColorsTransformedSchema,
   TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 
@@ -28,6 +29,7 @@ import {
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
   getResponseEventTypeRecurrence,
+  getResponseEventTypeColors,
 } from "./api-response";
 
 describe("getResponseEventTypeLocations", () => {
@@ -739,6 +741,23 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
       transformedField.requiresConfirmation,
       transformedField.requiresConfirmationThreshold as NoticeThreshold_2024_06_14
     );
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+describe("getResponseEventTypeColors", () => {
+  it("should reverse transform event type colors", () => {
+    const transformedField: EventTypeColorsTransformedSchema = {
+      darkEventTypeColor: "#292929",
+      lightEventTypeColor: "#fafafa",
+    };
+
+    const expectedOutput = {
+      darkThemeColor: "#292929",
+      lightThemeColor: "#fafafa",
+    };
+
+    const result = getResponseEventTypeColors(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });

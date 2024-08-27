@@ -48,6 +48,7 @@ export class EventTypesService_2024_06_14 {
       periodEndDate = undefined,
       metadata = undefined,
       requiresConfirmation = undefined,
+      eventTypeColor = undefined,
       recurrence = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
@@ -73,6 +74,7 @@ export class EventTypesService_2024_06_14 {
         periodEndDate,
         metadata,
         requiresConfirmation,
+        eventTypeColor,
         recurrence,
         ...bodyTransformed,
       },

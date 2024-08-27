@@ -7001,6 +7001,25 @@
           "confirmationPolicy"
         ]
       },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeColor": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeColor": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": [
+          "lightThemeColor",
+          "darkThemeColor"
+        ]
+      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7138,6 +7157,12 @@
           },
           "requiresBookerEmailVerification": {
             "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "eventTypeColor": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
           "offsetStart": {
             "type": "number",

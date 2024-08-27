@@ -12,6 +12,7 @@ import {
 } from "./booking-limits-duration.input";
 import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-window.input";
 import { Host } from "./create-event-type.input";
+import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
@@ -115,6 +116,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   lockTimeZoneToggleOnBookingPage?: boolean;
+
+  @IsOptional()
+  @Type(() => EventTypeColor_2024_06_14)
+  eventTypeColor?: EventTypeColor_2024_06_14;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -233,4 +238,8 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   lockTimeZoneToggleOnBookingPage?: boolean;
+
+  @IsOptional()
+  @Type(() => EventTypeColor_2024_06_14)
+  eventTypeColor?: EventTypeColor_2024_06_14;
 }

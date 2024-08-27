@@ -12,6 +12,7 @@ import {
 import {
   transformApiEventTypeBookerLayouts,
   transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeColors,
 } from "@calcom/platform-libraries-1.2.3";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
@@ -35,6 +36,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
+      eventTypeColor,
       recurrence,
       ...rest
     } = inputEventType;
@@ -57,6 +59,7 @@ export class InputEventTypesService_2024_06_14 {
           requiresConfirmationTransformed?.requiresConfirmationThreshold ?? undefined,
       },
       requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
+      eventTypeColor: this.transformInputEventTypeColor(eventTypeColor),
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
     };
 
@@ -74,6 +77,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
+      eventTypeColor,
       recurrence,
       ...rest
     } = inputEventType;
@@ -103,6 +107,7 @@ export class InputEventTypesService_2024_06_14 {
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
+      eventTypeColor: this.transformInputEventTypeColor(eventTypeColor),
     };
 
     return eventType;
@@ -136,5 +141,9 @@ export class InputEventTypesService_2024_06_14 {
   }
   transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
     return transformApiEventTypeRecurrence(recurrence);
+  }
+
+  transformInputEventTypeColor(eventTypeColor: CreateEventTypeInput_2024_06_14["eventTypeColor"]) {
+    return transformApiEventTypeColors(eventTypeColor);
   }
 }
