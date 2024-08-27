@@ -272,6 +272,15 @@ function BookingListItem(booking: BookingItemProps) {
       setIsOpenLocationDialog(false);
       utils.viewer.bookings.invalidate();
     },
+    onError: (e) => {
+      let message;
+      if (e.data.code === "UNAUTHORIZED") {
+        message = t("unauthorized");
+      } else {
+        message = t("location_update_failed");
+      }
+      showToast(message, "error");
+    },
   });
 
   const saveLocation = (
