@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
 import type { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
@@ -17,7 +18,10 @@ export default async function ensureOnlyMembersAsHosts(
       },
     });
     if (teamMemberCount !== body.hosts.length) {
-      throw new Error("You can only add members of the team to a team event type.");
+      throw new HttpError({
+        statusCode: 400,
+        message: "You can only add members of team to event type",
+      });
     }
   }
 }

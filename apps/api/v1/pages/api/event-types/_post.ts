@@ -328,7 +328,7 @@ async function postHandler(req: NextApiRequest) {
   }
 
   await checkTeamEventEditPermission(req, parsedBody);
-  await ensureOnlyMembersAsHosts(req, parsedBody);
+  await ensureOnlyMembersAsHosts(req, { hosts, teamId: parsedBody.teamId });
 
   if (hosts) {
     data.hosts = { createMany: { data: hosts } };
