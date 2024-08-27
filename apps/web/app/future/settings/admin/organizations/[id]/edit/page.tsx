@@ -6,7 +6,6 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { OrgForm } from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgEditPage";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import prisma from "@calcom/prisma";
 
 const orgIdSchema = z.object({ id: z.coerce.number() });
 
@@ -19,17 +18,10 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  const teamName = await prisma.team.findFirst({
-    where: {
-      id: input.data.id,
-    },
-    select: {
-      name: true,
-    },
-  });
+  const org = await OrganizationRepository.adminFindById({ id: input.data.id });
 
   return await _generateMetadata(
-    () => `Editing organization: ${teamName?.name}`,
+    () => `Editing organization: ${org.name}`,
     () => "Here you can edit an organization."
   );
 };
@@ -41,6 +33,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const org = await OrganizationRepository.adminFindById({ id: input.data.id });
+
     return (
       <LicenseRequired>
         <OrgForm org={org} />
