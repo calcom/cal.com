@@ -83,7 +83,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     it("should create a booking", async () => {
       const body: CreateBookingInput_2024_08_13 = {
-        start: new Date().toISOString(),
+        start: new Date(2030, 0, 8, 13, 0, 0).toISOString(),
+        eventTypeId,
+        attendee: {
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        meetingUrl: "https://meet.google.com/abc-def-ghi",
       };
 
       return request(app.getHttpServer())
@@ -95,10 +103,33 @@ describe("Bookings Endpoints 2024-08-13", () => {
           const responseBody: CreateBookingOutput_2024_08_13 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseDataIsBooking(responseBody.data)).toBe(true);
 
-          createdBooking = responseBody.data;
+          if (responseDataIsBooking(responseBody.data)) {
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hostId).toEqual(user.id);
+            expect(data.status).toEqual("accepted");
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(new Date(2030, 0, 8, 14, 0, 0).toISOString());
+            expect(data.duration).toEqual(60);
+            expect(data.eventTypeId).toEqual(eventTypeId);
+            expect(data.attendee).toEqual({ ...body.attendee, absent: false });
+            expect(data.meetingUrl).toEqual(body.meetingUrl);
+            expect(data.absentHost).toEqual(false);
+            createdBooking = data;
+          } else {
+            throw new Error(
+              "Invalid response data - expected booking but received array of possibily recurring bookings"
+            );
+          }
         });
     });
+
+    function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
+      return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+    }
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);

@@ -59,7 +59,7 @@ export class CreateBookingInput_2024_08_13 {
 
   @IsObject()
   @IsOptional()
-  bookingFieldsResponses!: Record<string, unknown>;
+  bookingFieldsResponses?: Record<string, unknown>;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
@@ -94,5 +94,5 @@ export class CreateRecurringBookingInput_2024_08_13 {
 
   @IsObject()
   @IsOptional()
-  bookingFieldsResponses!: Record<string, unknown>;
+  bookingFieldsResponses?: Record<string, unknown>;
 }

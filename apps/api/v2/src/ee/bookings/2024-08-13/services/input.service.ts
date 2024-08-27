@@ -96,6 +96,7 @@ export class InputBookingsService_2024_08_13 {
     const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
       inputBooking.eventTypeId
     );
+
     if (!eventType) {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
     }
@@ -109,7 +110,6 @@ export class InputBookingsService_2024_08_13 {
       start: startTime.toISO(),
       end: endTime.toISO(),
       eventTypeId: inputBooking.eventTypeId,
-      eventTypeSlug: eventType.slug,
       timeZone: inputBooking.attendee.timeZone,
       language: inputBooking.attendee.language || "en",
       // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
@@ -117,6 +117,7 @@ export class InputBookingsService_2024_08_13 {
       metadata: {},
       hasHashedBookingLink: false,
       guests: inputBooking.guests,
+      // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: inputBooking.bookingFieldsResponses
         ? {
             ...inputBooking.bookingFieldsResponses,
@@ -124,7 +125,6 @@ export class InputBookingsService_2024_08_13 {
             email: inputBooking.attendee.email,
           }
         : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
-      user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
     };
   }
 
@@ -188,7 +188,6 @@ export class InputBookingsService_2024_08_13 {
         start: startTime.toISO(),
         end: endTime.toISO(),
         eventTypeId: inputBooking.eventTypeId,
-        eventTypeSlug: eventType.slug,
         recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
@@ -197,6 +196,7 @@ export class InputBookingsService_2024_08_13 {
         metadata: {},
         hasHashedBookingLink: false,
         guests: inputBooking.guests,
+        // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: inputBooking.bookingFieldsResponses
           ? {
               ...inputBooking.bookingFieldsResponses,
@@ -204,7 +204,6 @@ export class InputBookingsService_2024_08_13 {
               email: inputBooking.attendee.email,
             }
           : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
-        user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
         schedulingType: eventType.schedulingType,
       });
 
@@ -277,7 +276,6 @@ export class InputBookingsService_2024_08_13 {
       start: startTime.toISO(),
       end: endTime.toISO(),
       eventTypeId: eventType.id,
-      eventTypeSlug: eventType.slug,
       timeZone: attendee.timeZone,
       language: attendee.locale,
       // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
@@ -286,7 +284,6 @@ export class InputBookingsService_2024_08_13 {
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
-      user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
       rescheduleUid: bookingUid,
     };
   }
