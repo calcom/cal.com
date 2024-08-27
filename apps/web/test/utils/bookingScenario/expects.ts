@@ -461,13 +461,19 @@ export function expectSuccessfulBookingCreationEmails({
       links: recurrence
         ? [
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=true&cancelledBy=${encodeURIComponent(
+                destinationEmail ?? organizer.email
+              )}`,
               text: "cancel",
             },
           ]
         : [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                destinationEmail ?? organizer.email
+              )}`,
               text: "reschedule",
             },
           ],
@@ -514,13 +520,17 @@ export function expectSuccessfulBookingCreationEmails({
       links: recurrence
         ? [
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=true&cancelledBy=${encodeURIComponent(booker.email)}`,
               text: "cancel",
             },
           ]
         : [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                booker.email
+              )}`,
               text: "reschedule",
             },
           ],
@@ -552,11 +562,17 @@ export function expectSuccessfulBookingCreationEmails({
           },
           links: [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                otherTeamMember.email
+              )}`,
               text: "reschedule",
             },
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=false&cancelledBy=${encodeURIComponent(
+                otherTeamMember.email
+              )}`,
               text: "cancel",
             },
           ],
