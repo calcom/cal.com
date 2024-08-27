@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect, useState } from "react";
-import type { ReactNode } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
@@ -605,23 +604,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export default function SettingsLayout({
   children,
-  title,
-  description,
-  CTA,
-  borderInShellHeader,
-  backButton,
   ...rest
 }: {
   children: React.ReactNode;
-  title?: string;
-  description?: string;
-  CTA?: ReactNode;
-  borderInShellHeader?: boolean;
-  backButton?: boolean;
 } & ComponentProps<typeof Shell>) {
   const pathname = usePathname();
   const state = useState(false);
-  const { t } = useLocale();
   const [sideContainerOpen, setSideContainerOpen] = state;
 
   useEffect(() => {
@@ -700,52 +688,3 @@ type SidebarContainerElementProps = {
 };
 
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
-
-export function ShellHeader({
-  title,
-  description,
-  CTA,
-  borderInShellHeader,
-  backButton,
-}: {
-  title?: string;
-  description?: string;
-  CTA?: ReactNode;
-  borderInShellHeader?: boolean;
-  backButton?: boolean;
-}) {
-  const { t, isLocaleReady } = useLocale();
-  return (
-    <>
-      <header
-        className={classNames(
-          "border-subtle mx-auto block justify-between sm:flex",
-          borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
-          borderInShellHeader === undefined && "mb-8 border-b pb-8"
-        )}>
-        <div className="flex w-full items-center">
-          {backButton && (
-            <a href="javascript:history.back()">
-              <Icon name="arrow-left" className="mr-7" />
-            </a>
-          )}
-          <div>
-            {title && isLocaleReady ? (
-              <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                {title}
-              </h1>
-            ) : (
-              <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-lg" />
-            )}
-            {description && isLocaleReady ? (
-              <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{description}</p>
-            ) : (
-              <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
-            )}
-          </div>
-          <div className="ms-auto flex-shrink-0">{CTA}</div>
-        </div>
-      </header>
-    </>
-  );
-}
