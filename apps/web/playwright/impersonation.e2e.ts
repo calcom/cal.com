@@ -8,16 +8,21 @@ test.describe("Users can impersonate", async () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
+
   test("App Admin can impersonate users with impersonation enabled", async ({ page, users }) => {
     // log in trail user
-    const user = await users.create({
+    const adminUser = await users.create({
       role: "ADMIN",
       password: "ADMINadmin2022!",
+      username: "admin-impersonator",
     });
 
-    const userToImpersonate = await users.create({ disableImpersonation: false });
+    const userToImpersonate = await users.create({
+      disableImpersonation: false,
+      username: "impersonated-user",
+    });
 
-    await user.apiLogin();
+    await adminUser.apiLogin();
     await page.waitForLoadState();
 
     await page.goto("/settings/admin/impersonation");
@@ -45,7 +50,6 @@ test.describe("Users can impersonate", async () => {
     await page.waitForLoadState("networkidle");
     // Return to user
     const ogUser = await impersonatedUsernameInput.inputValue();
-
-    expect(ogUser).toBe(user.username);
+    await expect(ogUser).toBe(adminUser.username);
   });
 });

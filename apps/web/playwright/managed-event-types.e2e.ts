@@ -150,6 +150,7 @@ test.describe("Managed Event Types", () => {
       await memberUser.apiLogin();
       await page.goto("/event-types");
 
+      await page.getByTestId("event-types").waitFor({ state: "visible" });
       await page.getByTestId("event-types").locator('a[title="managed"]').click();
       await page.waitForURL("event-types/**");
 
