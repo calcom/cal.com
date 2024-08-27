@@ -300,6 +300,7 @@ test.describe("Organization", () => {
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
+        await page.waitForLoadState("networkidle");
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
