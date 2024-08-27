@@ -18,7 +18,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({ eventTyp
         <a download href={QR_URL} target="_blank" rel="noreferrer">
           <img
             className={classNames(
-              "hover:bg-muted border-default border hover:shadow-sm",
+              "hover:bg-muted border-default border transition hover:shadow-sm",
               size >= 256 && "min-h-32"
             )}
             style={{ padding: size / 16, borderRadius: size / 20 }}
@@ -43,7 +43,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({ eventTyp
         />
       </div>
 
-      <div className="max-w-60 flex items-baseline gap-2">
+      <div className="flex max-w-60 items-baseline gap-2">
         <QRCode size={256} data={eventTypeURL} />
         <QRCode size={128} data={eventTypeURL} />
         <QRCode size={64} data={eventTypeURL} />

@@ -161,8 +161,8 @@ const OtherTeamProfileView = () => {
   function leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
-        teamId: team.id,
-        memberId: session.data.user.id,
+        teamIds: [team.id],
+        memberIds: [session.data.user.id],
       });
   }
 
@@ -256,6 +256,7 @@ const OtherTeamProfileView = () => {
                   disableLists
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
+                  height="80px"
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>

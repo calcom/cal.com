@@ -1,37 +1,46 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const { client_id, client_secret } = await getWebexAppKeys();
+  const state = decodeOAuthState(req);
 
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
   const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
-  const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
-  const result = await fetch(
-    `https://webexapis.com/v1/access_token?grant_type=authorization_code&client_id=${client_id}&client_secret=${client_secret}&code=${code}&redirect_uri=${redirectUri}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    }
-  );
+  const params = new URLSearchParams([
+    ["grant_type", "authorization_code"],
+    ["client_id", client_id],
+    ["client_secret", client_secret],
+    ["code", code as string],
+    ["redirect_uri", redirectUri],
+  ]);
+
+  const options = {
+    method: "POST",
+    headers: {
+      "Content-type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  };
+
+  const result = await fetch("https://webexapis.com/v1/access_token", options);
 
   if (result.status !== 200) {
     let errorMessage = "Something is wrong with Webex API";
     try {
       const responseBody = await result.json();
-      errorMessage = responseBody.error;
+      errorMessage = responseBody.message;
     } catch (e) {}
 
     res.status(400).json({ message: errorMessage });
@@ -40,8 +49,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const responseBody = await result.json();
 
-  if (responseBody.error) {
-    res.status(400).json({ message: responseBody.error });
+  if (responseBody.message) {
+    res.status(400).json({ message: responseBody.message });
     return;
   }
 
@@ -76,5 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: config.slug, type: config.type }, responseBody, req);
 
-  res.redirect(getInstalledAppPath({ variant: config.variant, slug: config.slug }));
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
+  );
 }

@@ -1,6 +1,9 @@
 import { useState } from "react";
 
-import { ORG_SELF_SERVE_ENABLED, ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE } from "@calcom/lib/constants";
+import {
+  ORG_SELF_SERVE_ENABLED,
+  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
+} from "@calcom/lib/constants";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -55,7 +58,7 @@ export default function TeamList(props: Props) {
       {ORG_SELF_SERVE_ENABLED &&
         !props.pending &&
         !isUserAlreadyInAnOrganization &&
-        props.teams.length >= ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE &&
+        props.teams.length >= ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE &&
         props.teams.map(
           (team, i) =>
             team.role !== "MEMBER" &&
@@ -72,7 +75,7 @@ export default function TeamList(props: Props) {
                     actionButton={{
                       href: `/settings/organizations/new`,
                       child: t("set_up_your_organization"),
-                      "data-testId": "setup_your_org_action_button",
+                      "data-testid": "setup_your_org_action_button",
                     }}
                   />
                   <Card
@@ -88,7 +91,7 @@ export default function TeamList(props: Props) {
                     }}
                   />
                   <Card
-                    icon={<Icon name="line-chart" className="h-5 w-5 text-green-700" />}
+                    icon={<Icon name="chart-line" className="h-5 w-5 text-green-700" />}
                     variant="basic"
                     title={t("Admin tools and analytics")}
                     description={t(

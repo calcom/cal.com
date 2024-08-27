@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
@@ -70,7 +71,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/make/icon.svg" alt="Make Logo" />
             </div>
-            <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
+            <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
               <div className="text-default">{t("setting_up_make")}</div>
 
               <>
@@ -133,14 +134,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
           </div>
         </div>
       ) : (
-        <div className="ml-5 mt-5">
-          <div>{t("install_make_app")}</div>
-          <div className="mt-3">
-            <Link href="/apps/make" passHref={true} legacyBehavior>
-              <Button>{t("go_to_app_store")}</Button>
-            </Link>
-          </div>
-        </div>
+        <AppNotInstalledMessage appName="make" />
       )}
       <Toaster position="bottom-right" />
     </div>

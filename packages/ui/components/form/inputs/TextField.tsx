@@ -1,3 +1,5 @@
+"use client";
+
 import React, { forwardRef, useId, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -37,14 +39,14 @@ const Addon = ({ isFilled, children, className, error, onClickAddon }: AddonProp
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
-      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3",
+      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3 transition",
       isFilled && "bg-subtle",
       onClickAddon && "cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
     <div
       className={classNames(
-        "min-h-9 flex flex-col justify-center text-sm leading-7",
+        "flex min-h-9 flex-col justify-center text-sm leading-7",
         error ? "text-error" : "text-default"
       )}>
       <span
@@ -114,7 +116,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div
           dir="ltr"
-          className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
+          className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2">
           {addOnLeading && (
             <Addon
               isFilled={addOnFilled}

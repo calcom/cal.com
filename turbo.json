@@ -21,6 +21,9 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-migrate"]
     },
+    "@calcom/trpc#build": {
+      "outputs": ["./types"]
+    },
     "@calcom/web#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
@@ -38,7 +41,8 @@
         "STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
-        "NEXT_PUBLIC_API_V2_URL"
+        "NEXT_PUBLIC_API_V2_URL",
+        "BUILD_STANDALONE"
       ]
     },
     "@calcom/web#dx": {
@@ -79,6 +83,7 @@
       "outputs": [".next/**"],
       "env": [
         "CSP_POLICY",
+        "DATABASE_URL",
         "DATOCMS_API_TOKEN",
         "DATOCMS_GRAPHQL_ENDPOINT",
         "DATOCMS_WEBHOOK_SECRET",
@@ -233,8 +238,11 @@
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
     "BASECAMP3_USER_AGENT",
+    "BLACKLISTED_GUEST_EMAILS",
     "AUTH_BEARER_TOKEN_VERCEL",
     "BUILD_ID",
+    "CAL_SIGNATURE_TOKEN",
+    "CALCOM_PRIVATE_API_ROUTE",
     "CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY",
     "CALCOM_CREDENTIAL_SYNC_ENDPOINT",
     "CALCOM_CREDENTIAL_SYNC_SECRET",
@@ -275,11 +283,13 @@
     "E2E_TEST_SAML_ADMIN_EMAIL",
     "E2E_TEST_SAML_ADMIN_PASSWORD",
     "EMAIL_FROM",
+    "EMAIL_FROM_NAME",
     "EMAIL_SERVER_HOST",
     "EMAIL_SERVER_PASSWORD",
     "EMAIL_SERVER_PORT",
     "EMAIL_SERVER_USER",
     "EMAIL_SERVER",
+    "ENABLE_INFINITE_EVENT_TYPES_FOR_ORG",
     "EXCHANGE_DEFAULT_EWS_URL",
     "FORMBRICKS_FEEDBACK_SURVEY_ID",
     "AVATARAPI_USERNAME",
@@ -328,6 +338,11 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
+    "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
+    "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE",
+    "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
+    "NEXT_PUBLIC_WEBSITE_TERMS_URL",
+    "NEXT_RUNTIME",
     "NEXTAUTH_COOKIE_DOMAIN",
     "NEXTAUTH_SECRET",
     "NEXTAUTH_URL",

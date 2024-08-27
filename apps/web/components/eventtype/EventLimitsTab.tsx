@@ -81,7 +81,7 @@ function RangeLimitRadioItem({
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
           <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
         </RadioGroup.Item>
       )}
@@ -141,7 +141,7 @@ function RollingLimitRadioItem({
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
           <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
         </RadioGroup.Item>
       )}
@@ -486,8 +486,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               labelClassName="text-sm"
-              title={t("limit_booking_only_first_slot")}
-              description={t("limit_booking_only_first_slot_description")}
+              title={t("only_show_first_available_slot")}
+              description={t("only_show_first_available_slot_description")}
               checked={isChecked}
               {...onlyFirstAvailableSlotLocked}
               onCheckedChange={(active) => {

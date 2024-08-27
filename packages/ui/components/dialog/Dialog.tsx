@@ -1,3 +1,5 @@
+"use client";
+
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { usePathname, useRouter } from "next/navigation";
 import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
@@ -135,11 +137,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "confirmation" && (
             <div className="flex">
               {icon && (
-                <div className="bg-emphasis mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full">
+                <div className="bg-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
                   <Icon name={icon} className="text-emphasis h-4 w-4" />
                 </div>
               )}
-              <div className="w-full">
+              <div className="ml-4 flex-grow">
                 <DialogHeader title={title} subtitle={props.description} />
                 <div data-testid="dialog-confirmation">{children}</div>
               </div>
@@ -168,7 +170,7 @@ export function DialogHeader(props: DialogHeaderProps) {
         id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <div className="text-subtle text-sm">{props.subtitle}</div>}
+      {props.subtitle && <p className="text-subtle text-sm">{props.subtitle}</p>}
     </div>
   );
 }
@@ -245,7 +247,7 @@ export function DialogClose(
         data-testid={props["data-testid"] || "dialog-rejection"}
         color={props.color || "minimal"}
         {...props}>
-        {props.children ? props.children : t("Close")}
+        {props.children ? props.children : t("close")}
       </Button>
     </Close>
   );

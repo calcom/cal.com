@@ -20,12 +20,14 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours,
           dateOverrides: [],
+          datesOutOfOffice: {},
         },
         {
           busy: [],
           timeZone: "Europe/London",
           workingHours,
           dateOverrides: [],
+          datesOutOfOffice: {},
         },
       ],
       null
@@ -49,12 +51,14 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours,
           dateOverrides: [],
+          datesOutOfOffice: {},
         },
         {
           busy: [],
           timeZone: "Europe/London",
           workingHours,
           dateOverrides: [],
+          datesOutOfOffice: {},
         },
       ],
       "MANAGED"
@@ -85,6 +89,7 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursA,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: false,
           },
@@ -94,6 +99,7 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursB,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: false,
           },
@@ -133,6 +139,7 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursA,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: false,
           },
@@ -142,12 +149,13 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursB,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: true,
           },
         },
       ],
-      "GROUP"
+      "COLLECTIVE"
     );
 
     expect(result).toEqual([
@@ -182,6 +190,7 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursA,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: true,
           },
@@ -191,12 +200,13 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursB,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: true,
           },
         },
       ],
-      "GROUP"
+      "COLLECTIVE"
     );
 
     expect(result).toEqual([...workingHoursB]);
@@ -208,7 +218,7 @@ describe("getAggregateWorkingHours", () => {
         days: [1, 2],
         startTime: 0,
         endTime: 200,
-        userId: "userA",
+        userId: 1,
       },
     ];
     const workingHoursB: WorkingHours[] = [
@@ -216,7 +226,7 @@ describe("getAggregateWorkingHours", () => {
         days: [2, 3],
         startTime: 100,
         endTime: 300,
-        userId: "userB",
+        userId: 2,
       },
     ];
     const result = getAggregateWorkingHours(
@@ -226,6 +236,7 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursA,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: true,
           },
@@ -235,17 +246,18 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursB,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: true,
           },
         },
       ],
-      "GROUP"
+      "MANAGED"
     );
 
     expect(result).toEqual([
       {
-        userId: "userA",
+        userId: 1,
         days: [2],
         startTime: 100,
         endTime: 200,
@@ -285,6 +297,7 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursA,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: true,
           },
@@ -294,12 +307,13 @@ describe("getAggregateWorkingHours", () => {
           timeZone: "Europe/London",
           workingHours: workingHoursB,
           dateOverrides: [],
+          datesOutOfOffice: {},
           user: {
             isFixed: true,
           },
         },
       ],
-      "GROUP"
+      "COLLECTIVE"
     );
 
     expect(result).toEqual([

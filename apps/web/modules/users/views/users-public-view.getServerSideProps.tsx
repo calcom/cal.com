@@ -50,6 +50,7 @@ export type UserPageProps = {
     considerUnpublished: boolean;
     orgSlug?: string | null;
     name?: string | null;
+    teamSlug?: string | null;
   };
   eventTypes: ({
     descriptionAsSafeHTML: string;

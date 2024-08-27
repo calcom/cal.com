@@ -104,7 +104,7 @@ export default function RoutingForms({
       description: t("route_to_the_right_person"),
     },
     {
-      icon: <Icon name="bar-chart" className="h-5 w-5 text-blue-500" />,
+      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
       title: t("reporting"),
       description: t("reporting_feature"),
     },
@@ -162,7 +162,7 @@ export default function RoutingForms({
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="space-y-2 sm:space-x-2 rtl:space-x-reverse">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("upgrade")}

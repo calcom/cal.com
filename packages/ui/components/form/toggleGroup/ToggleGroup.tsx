@@ -46,7 +46,7 @@ export const ToggleGroup = ({
         {...props}
         onValueChange={onValueChange}
         className={classNames(
-          `min-h-9 border-default bg-default relative inline-flex gap-0.5 rounded-md border p-1 rtl:flex-row-reverse`,
+          `border-default bg-default relative inline-flex min-h-9 gap-0.5 rounded-md border p-1 rtl:flex-row-reverse`,
           props.className,
           isFullWidth && "w-full",
           customClassNames
@@ -58,7 +58,7 @@ export const ToggleGroup = ({
               value={option.value}
               data-testid={`toggle-group-item-${option.value}`}
               className={classNames(
-                "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition-colors",
+                "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition",
                 option.disabled
                   ? "text-gray-400 hover:cursor-not-allowed"
                   : "text-default [&[aria-checked='false']]:hover:text-emphasis",

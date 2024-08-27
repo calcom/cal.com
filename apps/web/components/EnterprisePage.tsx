@@ -15,7 +15,7 @@ export default function EnterprisePage() {
       description: t("branded_subdomain_description"),
     },
     {
-      icon: <Icon name="bar-chart" className="h-5 w-5 text-blue-500" />,
+      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
       title: t("org_insights"),
       description: t("org_insights_description"),
     },
@@ -50,7 +50,7 @@ export default function EnterprisePage() {
           features={features}
           background="/tips/enterprise"
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="space-y-2 sm:space-x-2 rtl:space-x-reverse">
               <ButtonGroup>
                 <Button color="primary" href="https://i.cal.com/sales/enterprise?duration=25" target="_blank">
                   {t("contact_sales")}

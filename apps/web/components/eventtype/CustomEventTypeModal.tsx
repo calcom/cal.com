@@ -19,11 +19,12 @@ interface CustomEventTypeModalFormProps {
   setValue: (value: string) => void;
   event: EventNameObjectType;
   defaultValue: string;
+  isNameFieldSplit: boolean;
 }
 
 const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
   const { t } = useLocale();
-  const { placeHolder, close, setValue, event } = props;
+  const { placeHolder, close, setValue, event, isNameFieldSplit } = props;
   const { register, handleSubmit, watch, getValues } = useFormContext<FormValues>();
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     setValue(data.customEventName);
@@ -52,29 +53,67 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
         type="text"
         placeholder={placeHolder_}
         {...register("customEventName", {
-          validate: (value) =>
-            validateCustomEventName(value, t("invalid_event_name_variables"), event.bookingFields),
+          validate: (value) => {
+            const validationResult = validateCustomEventName(value, event.bookingFields);
+            return typeof validationResult === "string"
+              ? t("invalid_event_name_variables", { item: validationResult })
+              : validationResult;
+          },
         })}
         className="mb-0"
       />
       <div className="pt-6 text-sm">
         <div className="bg-subtle mb-6 rounded-md p-2">
           <h1 className="text-emphasis mb-2 ml-1 font-medium">{t("available_variables")}</h1>
-          <div className="mb-2.5 flex font-normal">
-            <p className="text-subtle ml-1 mr-5 w-28">{`{Event type title}`}</p>
-            <p className="text-emphasis">{t("event_name_info")}</p>
-          </div>
-          <div className="mb-2.5 flex font-normal">
-            <p className="text-subtle ml-1 mr-5 w-28">{`{Organiser}`}</p>
-            <p className="text-emphasis">{t("your_full_name")}</p>
-          </div>
-          <div className="mb-2.5 flex font-normal">
-            <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler}`}</p>
-            <p className="text-emphasis">{t("scheduler_full_name")}</p>
-          </div>
-          <div className="mb-1 flex font-normal">
-            <p className="text-subtle ml-1 mr-5 w-28">{`{Location}`}</p>
-            <p className="text-emphasis">{t("location_info")}</p>
+          <div className="scroll-bar h-[216px] overflow-y-auto">
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-32">{`{Event type title}`}</p>
+              <p className="text-emphasis">{t("event_name_info")}</p>
+            </div>
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-32">{`{Event duration}`}</p>
+              <p className="text-emphasis">{t("event_duration_info")}</p>
+            </div>
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-32">{`{Organiser}`}</p>
+              <p className="text-emphasis">{t("your_full_name")}</p>
+            </div>
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-32">{`{Organiser first name}`}</p>
+              <p className="text-emphasis">{t("organizer_first_name")}</p>
+            </div>
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-32">{`{Scheduler}`}</p>
+              <p className="text-emphasis">{t("scheduler_full_name")}</p>
+            </div>
+            {isNameFieldSplit && (
+              <div className="mb-2.5 flex font-normal">
+                <p className="text-subtle ml-1 mr-5 w-32">{`{Scheduler first name}`}</p>
+                <p className="text-emphasis">{t("scheduler_first_name")}</p>
+              </div>
+            )}
+            {isNameFieldSplit && (
+              <div className="mb-2.5 flex font-normal">
+                <p className="text-subtle ml-1 mr-5 w-32">{`{Scheduler last name}`}</p>
+                <p className="text-emphasis">{t("scheduler_last_name")}</p>
+              </div>
+            )}
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-32">{`{Location}`}</p>
+              <p className="text-emphasis">{t("location_info")}</p>
+            </div>
+            {event.bookingFields && (
+              <p className="text-subtle mb-2 ml-1 font-medium">{t("booking_question_response_variables")}</p>
+            )}
+            {event.bookingFields &&
+              Object.keys(event.bookingFields).map((bookingfield, index) => (
+                <div key={index} className="mb-2.5 flex font-normal">
+                  <p className="text-subtle ml-1 mr-5 w-32">{`{${bookingfield}}`}</p>
+                  <p className="text-emphasis capitalize">
+                    {event.bookingFields?.[bookingfield]?.toString()}
+                  </p>
+                </div>
+              ))}
           </div>
         </div>
         <h1 className="mb-2 text-[14px] font-medium leading-4">{t("preview")}</h1>
@@ -101,12 +140,13 @@ interface CustomEventTypeModalProps {
   close: () => void;
   setValue: (value: string) => void;
   event: EventNameObjectType;
+  isNameFieldSplit: boolean;
 }
 
 const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
   const { t } = useLocale();
 
-  const { defaultValue, placeHolder, close, setValue, event } = props;
+  const { defaultValue, placeHolder, close, setValue, event, isNameFieldSplit } = props;
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -128,6 +168,7 @@ const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
             setValue={setValue}
             placeHolder={placeHolder}
             defaultValue={defaultValue}
+            isNameFieldSplit={isNameFieldSplit}
           />
         </FormProvider>
         <DialogFooter>
