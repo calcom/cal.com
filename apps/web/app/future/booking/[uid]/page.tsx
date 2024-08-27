@@ -2,7 +2,6 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { Params, SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -20,7 +19,7 @@ export const generateMetadata = async ({
   searchParams: SearchParams;
 }) => {
   const { bookingInfo, eventType, recurringBookings } = await getData(
-    buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
+    buildLegacyCtx(headers(), cookies(), params, searchParams)
   );
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
 
