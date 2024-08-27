@@ -32,6 +32,7 @@ type StoreInitializeType = {
   durationConfig?: number[] | null;
   org?: string | null;
   isInstantMeeting?: boolean;
+  teamMemberEmail?: string | null;
 };
 
 type SeatedEventData = {

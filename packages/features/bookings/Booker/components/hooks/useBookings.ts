@@ -47,7 +47,7 @@ export interface IUseBookings {
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
-  teamMemberEmail?: string;
+  teamMemberEmail?: string | null;
 }
 
 const getBookingSuccessfulEventPayload = (booking: {

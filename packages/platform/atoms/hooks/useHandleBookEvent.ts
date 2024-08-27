@@ -21,7 +21,7 @@ type UseHandleBookingProps = {
   };
   metadata: Record<string, string>;
   hashedLink?: string | null;
-  teamMemberEmail?: string;
+  teamMemberEmail?: string | null;
   handleBooking: (input: UseCreateBookingInput) => void;
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;

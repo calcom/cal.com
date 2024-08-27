@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, IFromUser, IToUser, GetAvailabilityUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -414,14 +414,14 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   // If the requested team member is a fixed host proceed as normal else get availability like the requested member is a fixed host
   const usersWithCredentials =
-    !input.teamMemberEmail || teamMemberHost.isFixed
+    !input.teamMemberEmail || !teamMemberHost || teamMemberHost.isFixed
       ? hosts.map(({ isFixed, user }) => ({ isFixed, ...user }))
       : hosts.reduce((usersArray, host) => {
           if (host.isFixed || host.user.email === input.teamMemberEmail)
             usersArray.push({ ...host.user, isFixed: host.isFixed });
 
           return usersArray;
-        }, []);
+        }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
 
   const durationToUse = input.duration || 0;
 
