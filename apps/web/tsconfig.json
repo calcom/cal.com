@@ -31,5 +31,5 @@
     "../../packages/features/bookings/lib/getBookingInfo.ts",
     "../../packages/features/bookings/lib/getUserBooking.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx", "**/*.e2e.ts", "**/*.e2e.tsx", "**/playwright/**", "**/test/**"]
 }
