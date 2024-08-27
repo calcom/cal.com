@@ -1,5 +1,6 @@
 import type { FC } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
 import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";
@@ -19,22 +20,31 @@ type StripeConnectProps = {
 };
 
 export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
-  label = "Connect to Stripe",
+  label,
   className,
+  loadingLabel,
+  alreadyConnectedLabel,
   redir,
   onCheckError,
   initialData,
 }) => {
+  const { t } = useLocale();
   const { connect } = useConnect(redir);
   const { allowConnect, checked } = useCheck({
     onCheckError,
     initialData,
   });
 
-  const displayedLabel = label;
+  let displayedLabel = label || t("stripe_connect_atom_label");
 
   const isChecking = !checked;
   const isDisabled = isChecking || !allowConnect;
+
+  if (isChecking) {
+    displayedLabel = loadingLabel || t("stripe_connect_atom_loading_label");
+  } else if (!allowConnect) {
+    displayedLabel = alreadyConnectedLabel || t("stripe_connect_atom_already_connected_label");
+  }
 
   return (
     <AtomsWrapper>
