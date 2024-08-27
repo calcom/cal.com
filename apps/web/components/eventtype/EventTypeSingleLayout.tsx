@@ -53,6 +53,7 @@ type Props = {
   isUserOrganizationAdmin: boolean;
   bookerUrl: string;
   activeWebhooksNumber: number;
+  onDelete: () => void;
 };
 
 type getNavigationProps = {
@@ -117,7 +118,12 @@ function DeleteDialog({
   eventTypeId,
   open,
   onOpenChange,
-}: { isManagedEvent: string; eventTypeId: number } & Pick<DialogProps, "open" | "onOpenChange">) {
+  onDelete,
+}: {
+  isManagedEvent: string;
+  eventTypeId: number;
+  onDelete: () => void;
+} & Pick<DialogProps, "open" | "onOpenChange">) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
@@ -125,6 +131,7 @@ function DeleteDialog({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       showToast(t("event_type_deleted_successfully"), "success");
+      onDelete();
       router.push("/event-types");
       onOpenChange?.(false);
     },
@@ -181,6 +188,7 @@ function EventTypeSingleLayout({
   isUserOrganizationAdmin,
   bookerUrl,
   activeWebhooksNumber,
+  onDelete,
 }: Props) {
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -322,8 +330,8 @@ function EventTypeSingleLayout({
             <>
               <div
                 className={classNames(
-                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md",
-                  formMethods.watch("hidden") ? "px-2" : "",
+                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md transition",
+                  formMethods.watch("hidden") ? "pl-2" : "",
                   "lg:flex"
                 )}>
                 {formMethods.watch("hidden") && (
@@ -390,7 +398,7 @@ function EventTypeSingleLayout({
                   StartIcon="code"
                   color="secondary"
                   variant="icon"
-                  namespace=""
+                  namespace={eventType.slug}
                   tooltip={t("embed")}
                   tooltipSide="bottom"
                   tooltipOffset={4}
@@ -451,7 +459,7 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
+              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
@@ -510,6 +518,7 @@ function EventTypeSingleLayout({
         isManagedEvent={isManagedEvent}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+        onDelete={onDelete}
       />
 
       <EventTypeEmbedDialog />

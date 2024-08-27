@@ -1,7 +1,3 @@
-import { describe } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   BookingLocations,
   createBookingScenario,
@@ -17,6 +13,11 @@ import {
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import { describe } from "vitest";
+
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 describe("Cancel Booking", () => {
   setupAndTeardown();
@@ -109,6 +110,7 @@ describe("Cancel Booking", () => {
       body: {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
       },
     });
 
@@ -120,6 +122,7 @@ describe("Cancel Booking", () => {
       location: BookingLocations.CalVideo,
       subscriberUrl: "http://my-webhook.example.com",
       payload: {
+        cancelledBy: organizer.email,
         organizer: {
           id: organizer.id,
           username: organizer.username,

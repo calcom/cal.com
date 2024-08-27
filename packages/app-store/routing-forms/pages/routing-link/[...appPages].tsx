@@ -13,6 +13,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
@@ -22,9 +23,10 @@ import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
-import transformResponse from "../../lib/transformResponse";
-import type { NonRouterRoute, Response } from "../../types/types";
+import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
+import type { NonRouterRoute, FormResponse } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
+import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 const useBrandColors = ({
@@ -58,10 +60,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionWithFormResponseRef = useRef<{ action: NonRouterRoute["action"]; response: Response }>();
+  const decidedActionWithFormResponseRef = useRef<{
+    action: NonRouterRoute["action"];
+    response: FormResponse;
+  }>();
   const router = useRouter();
 
-  const onSubmit = (response: Response) => {
+  const onSubmit = (response: FormResponse) => {
     const decidedAction = processRoute({ form, response });
 
     if (!decidedAction) {
@@ -96,7 +101,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (!fields) {
         throw new Error("Routing Form fields must exist here");
       }
-      const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
+      const allURLSearchParams = getUrlSearchParamsToForward({
+        formResponse: decidedActionWithFormResponse.response,
+        fields,
+        searchParams: new URLSearchParams(window.location.search),
+      });
       const decidedAction = decidedActionWithFormResponse.action;
       sdkActionManager?.fire("routed", {
         actionType: decidedAction.type,
@@ -115,7 +124,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           })
         );
       } else if (decidedAction.type === "externalRedirectUrl") {
-        window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
+        navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
       }
       // We don't want to show this message as it doesn't look good in Embed.
       // showToast("Form submitted successfully! Redirecting now ...", "success");
@@ -158,7 +167,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                         {form.name}
                       </h1>
                       {form.description ? (
-                        <p className="min-h-10 text-subtle text-sm ltr:mr-4 rtl:ml-4">{form.description}</p>
+                        <p className="text-subtle min-h-10 text-sm ltr:mr-4 rtl:ml-4">{form.description}</p>
                       ) : null}
                     </div>
                     <FormInputFields form={form} response={response} setResponse={setResponse} />
@@ -190,55 +199,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   );
 }
 
-function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Props["form"]["fields"]>) {
-  type Params = Record<string, string | string[]>;
-  const paramsFromResponse: Params = {};
-  const paramsFromCurrentUrl: Params = {};
-
-  // Build query params from response
-  Object.entries(response).forEach(([key, fieldResponse]) => {
-    const foundField = fields.find((f) => f.id === key);
-    if (!foundField) {
-      // If for some reason, the field isn't there, let's just
-      return;
-    }
-    const valueAsStringOrStringArray =
-      typeof fieldResponse.value === "number" ? String(fieldResponse.value) : fieldResponse.value;
-    paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
-      valueAsStringOrStringArray;
-  });
-
-  // Build query params from current URL. It excludes route params
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  for (const [name, value] of new URLSearchParams(window.location.search).entries()) {
-    const target = paramsFromCurrentUrl[name];
-    if (target instanceof Array) {
-      target.push(value);
-    } else {
-      paramsFromCurrentUrl[name] = [value];
-    }
-  }
-
-  const allQueryParams: Params = {
-    ...paramsFromCurrentUrl,
-    // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
-    ...paramsFromResponse,
-  };
-
-  const allQueryURLSearchParams = new URLSearchParams();
-
-  // Make serializable URLSearchParams instance
-  Object.entries(allQueryParams).forEach(([param, value]) => {
-    const valueArray = value instanceof Array ? value : [value];
-    valueArray.forEach((v) => {
-      allQueryURLSearchParams.append(param, v);
-    });
-  });
-
-  return allQueryURLSearchParams;
-}
-
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
@@ -249,7 +209,7 @@ export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
   const searchParams = useCompatSearchParams();
-  const prefillResponse: Response = {};
+  const prefillResponse: FormResponse = {};
 
   // Prefill the form from query params
   form.fields?.forEach((field) => {
@@ -258,10 +218,10 @@ const usePrefilledResponse = (form: Props["form"]) => {
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
 
     prefillResponse[field.id] = {
-      value: transformResponse({ field, value }),
+      value: getFieldResponseForJsonLogic({ field, value }),
       label: field.label,
     };
   });
-  const [response, setResponse] = useState<Response>(prefillResponse);
+  const [response, setResponse] = useState<FormResponse>(prefillResponse);
   return [response, setResponse] as const;
 };

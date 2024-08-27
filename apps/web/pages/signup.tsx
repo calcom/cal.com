@@ -22,8 +22,8 @@ import {
   URL_PROTOCOL_REGEX,
   IS_CALCOM,
   WEBAPP_URL,
-  WEBSITE_URL,
   CLOUDFLARE_SITE_ID,
+  WEBSITE_URL,
 } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
@@ -122,15 +122,8 @@ function UsernameField({
       });
     }
     checkUsername();
-  }, [
-    debouncedUsername,
-    setPremium,
-    disabled,
-    orgSlug,
-    setUsernameTaken,
-    formState.isSubmitting,
-    formState.isSubmitSuccessful,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
 
   return (
     <div>
@@ -327,10 +320,6 @@ export default function Signup({
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
-            {/* Header */}
-            {errors.apiError && (
-              <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
-            )}
             <div className="flex flex-col gap-2">
               <h1 className="font-cal text-[28px] leading-none ">
                 {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
@@ -409,6 +398,14 @@ export default function Signup({
                   onChange={() => handleConsentChange(COOKIE_CONSENT)}
                   description={t("cookie_consent_checkbox")}
                 />
+                {errors.apiError && (
+                  <Alert
+                    className="mb-3"
+                    severity="error"
+                    message={errors.apiError?.message}
+                    data-testid="signup-error-message"
+                  />
+                )}
                 <Button
                   type="submit"
                   className="my-2 w-full justify-center"
@@ -434,7 +431,7 @@ export default function Signup({
                 <div className="mt-6">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
+                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
                       {t("or_continue_with")}
                     </span>
                     <div className="border-subtle flex-grow border-t" />
@@ -528,7 +525,7 @@ export default function Signup({
               )}
             </div>
             {/* Already have an account & T&C */}
-            <div className="mt-10 flex h-full flex-col justify-end text-xs">
+            <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
               <div className="flex flex-col text-sm">
                 <div className="flex gap-1">
                   <p className="text-subtle">{t("already_have_account")}</p>
@@ -560,7 +557,7 @@ export default function Signup({
               </div>
             </div>
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
+          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12 dark:bg-none">
             {IS_CALCOM && (
               <>
                 <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
@@ -611,7 +608,7 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] lg:block lg:py-[6px] lg:pl-[6px] dark:bg-white/5">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
               <img
                 className="hidden dark:block"
@@ -622,7 +619,7 @@ export default function Signup({
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
               {FEATURES.map((feature) => (
                 <>
-                  <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                  <div className="mb-8 flex max-w-52 flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
                       <Icon name={feature.icon} className="mb-1 h-4 w-4" />
                       <span className="text-sm font-medium">{t(feature.title)}</span>

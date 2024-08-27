@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,6 +21,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -36,11 +39,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const rescheduledBy =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   useEffect(() => {
+    // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
 
@@ -48,6 +54,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     ...props,
     eventId: event?.data?.id,
     rescheduleUid,
+    rescheduledBy,
     bookingUid: bookingUid,
     layout: bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
@@ -55,6 +62,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
@@ -87,12 +95,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     extraOptions: routerQuery,
     prefillFormParams,
   });
-  const bookings = useBookings({
-    event,
-    hashedLink: props.hashedLink,
-    bookingForm: bookerForm.bookingForm,
-    metadata: metadata ?? {},
-  });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
     email: bookerForm.formEmail,
@@ -120,6 +122,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
+  const debouncedFormEmail = useDebounce(bookerForm.formEmail, 600);
   const schedule = useScheduleForEvent({
     prefetchNextMonth,
     username: props.username,
@@ -129,6 +132,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     month: props.month,
     duration: props.duration,
     selectedDate,
+    bookerEmail: debouncedFormEmail,
+  });
+  const bookings = useBookings({
+    event,
+    hashedLink: props.hashedLink,
+    bookingForm: bookerForm.bookingForm,
+    metadata: metadata ?? {},
+    teamMemberEmail: schedule.data?.teamMember,
   });
 
   const verifyCode = useVerifyCode({
@@ -188,6 +199,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       isRedirect={isRedirect}
       fromUserNameRedirected={fromUserNameRedirected}
       rescheduleUid={rescheduleUid}
+      rescheduledBy={rescheduledBy}
       bookingUid={bookingUid}
       hasSession={hasSession}
       extraOptions={routerQuery}

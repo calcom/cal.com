@@ -17,7 +17,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
     return (
       <div className="block items-center sm:flex">
         {label && (
-          <div className="min-w-48 mb-4 sm:mb-0">
+          <div className="mb-4 min-w-48 sm:mb-0">
             {React.createElement(
               descriptionAsLabel ? "div" : "label",
               {
@@ -48,7 +48,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     {...rest}
                     ref={ref}
                     type="checkbox"
-                    className="text-emphasis focus:ring-emphasis dark:text-muted border-default bg-default h-4 w-4 rounded"
+                    className="text-emphasis focus:ring-emphasis dark:text-muted border-default bg-default h-4 w-4 rounded transition"
                   />
                 </div>
                 <span className="ms-2 text-sm">{description}</span>

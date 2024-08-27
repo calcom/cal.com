@@ -7,14 +7,9 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { moveUserToOrg } from "@lib/orgMigration";
 
 import { test } from "./lib/fixtures";
+import { IS_STRIPE_ENABLED } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
-
-const IS_STRIPE_ENABLED = !!(
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_PRIVATE_KEY
-);
 
 const IS_SELF_HOSTED = !(
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || !!new URL(WEBAPP_URL).hostname.endsWith(".cal.com")

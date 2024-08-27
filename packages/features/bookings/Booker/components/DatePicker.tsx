@@ -6,9 +6,10 @@ import { default as DatePickerComponent } from "@calcom/features/calendars/DateP
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { User } from "@calcom/prisma/client";
 
 import { useBookerStore } from "../store";
-import type { useEventReturnType, useScheduleForEventReturnType } from "../utils/event";
+import type { useScheduleForEventReturnType } from "../utils/event";
 
 export const DatePicker = ({
   event,
@@ -16,7 +17,9 @@ export const DatePicker = ({
   classNames,
   scrollToTimeSlots,
 }: {
-  event: useEventReturnType;
+  event: {
+    data?: { users: Pick<User, "weekStart">[] } | null;
+  };
   schedule: useScheduleForEventReturnType;
   classNames?: {
     datePickerContainer?: string;
@@ -35,6 +38,33 @@ export const DatePicker = ({
     shallow
   );
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
+
+  const onMonthChange = (date: Dayjs) => {
+    setMonth(date.format("YYYY-MM"));
+    setSelectedDate(date.format("YYYY-MM-DD"));
+    setDayCount(null); // Whenever the month is changed, we nullify getting X days
+  };
+
+  const moveToNextMonthOnNoAvailability = () => {
+    const currentMonth = dayjs().startOf("month").format("YYYY-MM");
+    const browsingMonth = browsingDate.format("YYYY-MM");
+
+    // Insufficient data case
+    if (!schedule?.data?.slots) {
+      return;
+    }
+
+    // Not meeting the criteria to move to next month
+    // Has to be currentMonth and it must have all days unbookable
+    if (currentMonth != browsingMonth || nonEmptyScheduleDays.length) {
+      return;
+    }
+
+    onMonthChange(browsingDate.add(1, "month"));
+  };
+
+  moveToNextMonthOnNoAvailability();
 
   return (
     <DatePickerComponent
@@ -50,11 +80,7 @@ export const DatePicker = ({
       onChange={(date: Dayjs | null) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
       }}
-      onMonthChange={(date: Dayjs) => {
-        setMonth(date.format("YYYY-MM"));
-        setSelectedDate(date.format("YYYY-MM-DD"));
-        setDayCount(null); // Whenever the month is changed, we nullify getting X days
-      }}
+      onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}

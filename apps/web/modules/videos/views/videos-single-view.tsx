@@ -8,7 +8,8 @@ import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
+import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -49,11 +50,17 @@ export default function JoinCall(props: PageProps) {
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
       ...(hasTeamPlan && {
         customTrayButtons: {
+          recording: {
+            label: "Record",
+            tooltip: "Start or stop recording",
+            iconPath: RECORDING_DEFAULT_ICON,
+            iconPathDarkMode: RECORDING_DEFAULT_ICON,
+          },
           transcription: {
             label: "Cal.ai",
             tooltip: "Transcription powered by AI",
-            iconPath: `${WEBAPP_URL}/sparkles.svg`,
-            iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
+            iconPath: TRANSCRIPTION_STOPPED_ICON,
+            iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
           },
         },
       }),
@@ -87,13 +94,15 @@ export default function JoinCall(props: PageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <DailyProvider callObject={daily}>
-        <div className="mx-auto" style={{ zIndex: 2, position: "absolute", bottom: 60, width: "100%" }}>
+        <div
+          className="mx-auto hidden sm:block"
+          style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
           <CalAiTranscribe />
         </div>
         <div style={{ zIndex: 2, position: "relative" }}>
           {booking?.user?.organization?.calVideoLogo ? (
             <img
-              className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+              className="fixed z-10 hidden aspect-square h-16 min-h-16 w-16 min-w-16 rounded-full sm:inline-block"
               src={booking.user.organization.calVideoLogo}
               alt="My Org Logo"
               style={{
@@ -208,7 +217,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           "no-scrollbar fixed left-0 top-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-[232px]"
         )}>
-        <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
+        <main className="prose-sm prose prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full max-w-64 overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>

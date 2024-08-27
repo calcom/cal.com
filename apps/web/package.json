@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.1.4",
+  "version": "4.4.3",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -8,6 +8,7 @@
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "next dev",
+    "dev-https": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --experimental-https",
     "dx": "yarn dev",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
@@ -17,7 +18,8 @@
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
-    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
+    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
+    "translate-locales": "ts-node scripts/check-missing-translations.ts"
   },
   "engines": {
     "node": "18",
@@ -34,6 +36,7 @@
     "@calcom/embed-snippet": "workspace:*",
     "@calcom/features": "*",
     "@calcom/lib": "*",
+    "@calcom/platform-enums": "*",
     "@calcom/platform-types": "*",
     "@calcom/prisma": "*",
     "@calcom/trpc": "*",
@@ -59,7 +62,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@sentry/nextjs": "^7.73.0",
+    "@sentry/nextjs": "^8.8.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^5.17.15",
@@ -110,7 +113,6 @@
     "react-digit-input": "^2.1.0",
     "react-dom": "^18.2.0",
     "react-easy-crop": "^3.5.2",
-    "react-feather": "^2.0.10",
     "react-hook-form": "^7.43.3",
     "react-hot-toast": "^2.3.0",
     "react-intl": "^5.25.1",
@@ -142,7 +144,7 @@
     "@calcom/config": "*",
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
-    "@playwright/test": "^1.31.2",
+    "@playwright/test": "^1.45.3",
     "@testing-library/react": "^13.3.0",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.15",

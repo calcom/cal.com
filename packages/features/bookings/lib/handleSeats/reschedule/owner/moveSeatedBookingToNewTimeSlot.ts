@@ -6,8 +6,11 @@ import { sendRescheduledEmails } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import { addVideoCallDataToEvent, handleAppsStatus, findBookingQuery } from "../../../handleNewBooking";
-import type { Booking, createLoggerWithEventDetails } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent } from "../../../handleNewBooking";
+import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
+import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
+import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
+import type { Booking } from "../../../handleNewBooking/types";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
 const moveSeatedBookingToNewTimeSlot = async (
@@ -87,11 +90,14 @@ const moveSeatedBookingToNewTimeSlot = async (
   if (noEmail !== true && isConfirmedByDefault) {
     const copyEvent = cloneDeep(evt);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-    await sendRescheduledEmails({
-      ...copyEvent,
-      additionalNotes, // Resets back to the additionalNote input and not the override value
-      cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-    });
+    await sendRescheduledEmails(
+      {
+        ...copyEvent,
+        additionalNotes, // Resets back to the additionalNote input and not the override value
+        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+      },
+      eventType.metadata
+    );
   }
   const foundBooking = await findBookingQuery(newBooking.id);
 

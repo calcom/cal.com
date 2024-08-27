@@ -18,6 +18,7 @@ import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
+import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
@@ -102,12 +103,12 @@ export const viewerTeamsRouter = router({
     return handler(opts);
   }),
   /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
-  getUpgradeable: authedProcedure.query(async (opts) => {
+  getUpgradeable: authedProcedure.query(async ({ ctx }) => {
     const handler = await importHandler(
       namespaced("getUpgradeable"),
       () => import("./getUpgradeable.handler")
     );
-    return handler(opts);
+    return handler({ userId: ctx.user.id });
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
@@ -151,6 +152,13 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(
       namespaced("resendInvitation"),
       () => import("./resendInvitation.handler")
+    );
+    return handler(opts);
+  }),
+  roundRobinReassign: authedProcedure.input(ZRoundRobinReassignInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("roundRobinReassign"),
+      () => import("./roundRobin/roundRobinReassign.handler")
     );
     return handler(opts);
   }),

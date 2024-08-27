@@ -13,4 +13,5 @@ export const propsTypes = {
   checkbox: "multiselect",
   radio: "select",
   boolean: "boolean",
+  url: "text",
 } as const;

@@ -32,7 +32,6 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
-  justEmailInvites?: boolean;
   onExit: () => void;
   orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
   onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
@@ -231,10 +230,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 name="emailOrUsername"
                 control={newMemberFormMethods.control}
                 rules={{
-                  required: isOrg ? t("enter_email") : t("enter_email_or_username"),
+                  required: t("enter_email"),
                   validate: (value) => {
                     // orgs can only invite members by email
-                    if (typeof value === "string" && isOrg && !isEmail(value)) return t("enter_email");
+                    if (typeof value === "string" && !isEmail(value)) return t("enter_email");
                     if (typeof value === "string")
                       return validateUniqueInvite(value) || t("member_already_invited");
                   },
@@ -242,7 +241,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 render={({ field: { onChange }, fieldState: { error } }) => (
                   <>
                     <TextField
-                      label={props.justEmailInvites ? t("email") : t("email_or_username")}
+                      label={t("email")}
                       id="inviteUser"
                       name="inviteUser"
                       placeholder="email@example.com"

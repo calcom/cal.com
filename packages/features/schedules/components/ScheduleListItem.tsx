@@ -3,6 +3,7 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -30,6 +31,7 @@ export function ScheduleListItem({
   displayOptions?: {
     timeZone?: string;
     hour12?: boolean;
+    weekStart?: string;
   };
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
@@ -41,7 +43,7 @@ export function ScheduleListItem({
 
   return (
     <li key={schedule.id}>
-      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
+      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 sm:ltr:pl-0 rtl:pr-4 sm:rtl:pr-0">
         <div className="group flex w-full items-center justify-between sm:px-6">
           <Link
             href={`/availability/${schedule.id}`}
@@ -58,12 +60,17 @@ export function ScheduleListItem({
             <p className="text-subtle mt-1">
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
-                .map((availability) => (
-                  <Fragment key={availability.id}>
-                    {availabilityAsString(availability, {
-                      locale: i18n.language,
-                      hour12: displayOptions?.hour12,
-                    })}
+                .map((availability) =>
+                  availabilityAsString(availability, {
+                    locale: i18n.language,
+                    hour12: displayOptions?.hour12,
+                  })
+                )
+                // sort the availability strings as per user's weekstart (settings)
+                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
+                .map((availabilityString, index) => (
+                  <Fragment key={index}>
+                    {availabilityString}
                     <br />
                   </Fragment>
                 ))}
@@ -89,7 +96,7 @@ export function ScheduleListItem({
           </DropdownMenuTrigger>
           {!isPending && data && (
             <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownMenuItem className="focus:ring-muted min-w-40">
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
@@ -117,7 +124,7 @@ export function ScheduleListItem({
                   {t("duplicate")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownMenuItem className="focus:ring-muted min-w-40">
                 <DropdownItem
                   type="button"
                   color="destructive"

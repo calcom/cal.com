@@ -65,7 +65,7 @@ function TeamPage({
     // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
     const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
     return (
-      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
         <UnpublishedEntity
           {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
           logoUrl={team.parent?.logoUrl || team.logoUrl}
@@ -84,7 +84,7 @@ function TeamPage({
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -129,7 +129,7 @@ function TeamPage({
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full rounded-md">
+            <li key={i} className="hover:bg-muted w-full rounded-md transition">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">

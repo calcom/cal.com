@@ -2,6 +2,8 @@ import type { NextApiRequest } from "next";
 
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
@@ -45,6 +47,10 @@ import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
  *                 type: string
  *                 format: date-time
  *                 description: 'End time of the Event'
+ *               rescheduleUid:
+ *                 type: string
+ *                 format: UID
+ *                 description: 'Uid of the booking to reschedule'
  *               responses:
  *                 type: object
  *                 required:
@@ -218,7 +224,16 @@ async function handler(req: NextApiRequest) {
     req.userId = requestedUserId || userId;
   }
 
-  return await handleNewBooking(req, getBookingDataSchemaForApi);
+  try {
+    return await handleNewBooking(req, getBookingDataSchemaForApi);
+  } catch (error: unknown) {
+    const knownError = error as Error;
+    if (knownError?.message === ErrorCode.NoAvailableUsersFound) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    throw error;
+  }
 }
 
 export default defaultResponder(handler);

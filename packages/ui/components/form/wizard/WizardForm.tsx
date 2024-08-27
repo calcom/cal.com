@@ -1,3 +1,5 @@
+"use client";
+
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useRouter } from "next/navigation";
@@ -71,7 +73,7 @@ function WizardForm<T extends DefaultStep>(props: {
             : currentStep.content}
         </div>
         {!props.disableNavigation && (
-          <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
+          <div className="flex justify-end px-4 py-4 sm:px-6 print:hidden">
             {step > 1 && (
               <Button
                 color="secondary"

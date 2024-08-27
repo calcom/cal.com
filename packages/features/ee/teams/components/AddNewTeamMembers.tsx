@@ -143,7 +143,6 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
-                  isOrg: !!isOrg,
                 },
                 {
                   onSuccess: async (data) => {
@@ -153,7 +152,7 @@ export const AddNewTeamMembersForm = ({
                     if (Array.isArray(data.usernameOrEmail)) {
                       showToast(
                         t("email_invite_team_bulk", {
-                          userCount: data.usernameOrEmail.length,
+                          userCount: data.numUsersInvited,
                         }),
                         "success"
                       );
@@ -288,8 +287,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           className="h-[36px] w-[36px]"
           onClick={() => {
             removeMemberMutation.mutate({
-              teamId: teamId,
-              memberId: member.id,
+              teamIds: [teamId],
+              memberIds: [member.id],
               isOrg: !!props.isOrg,
             });
           }}

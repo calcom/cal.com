@@ -92,7 +92,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             handleSubmit={(values) => {
               mutation.mutate({
                 id: team.id,
-                theme: values.theme || null,
+                theme: values.theme === "" ? null : values.theme,
               });
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">

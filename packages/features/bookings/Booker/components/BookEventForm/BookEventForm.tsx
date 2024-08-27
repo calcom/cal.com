@@ -1,16 +1,16 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 
 import { useBookerStore } from "../../store";
-import type { useEventReturnType } from "../../utils/event";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
@@ -27,6 +27,7 @@ type BookEventFormProps = {
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
+  isVerificationCodeSending: boolean;
 };
 
 export const BookEventForm = ({
@@ -41,9 +42,14 @@ export const BookEventForm = ({
   bookingForm,
   children,
   extraOptions,
+  isVerificationCodeSending,
   isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
-  eventQuery: useEventReturnType;
+  eventQuery: {
+    isError: boolean;
+    isPending: boolean;
+    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+  };
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;
@@ -174,7 +180,11 @@ export const BookEventForm = ({
                 type="submit"
                 color="primary"
                 disabled={cpfError}
-                loading={loadingStates.creatingBooking || loadingStates.creatingRecurringBooking}
+                loading={
+                  loadingStates.creatingBooking ||
+                  loadingStates.creatingRecurringBooking ||
+                  isVerificationCodeSending
+                }
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>

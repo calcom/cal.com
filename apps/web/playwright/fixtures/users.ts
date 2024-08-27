@@ -91,6 +91,7 @@ const createTeamEventType = async (
     teamEventTitle?: string;
     teamEventSlug?: string;
     teamEventLength?: number;
+    seatsPerTimeSlot?: number;
   }
 ) => {
   return await prisma.eventType.create({
@@ -120,6 +121,7 @@ const createTeamEventType = async (
       title: scenario?.teamEventTitle ?? `${teamEventTitle}-team-id-${team.id}`,
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
       length: scenario?.teamEventLength ?? 30,
+      seatsPerTimeSlot: scenario?.seatsPerTimeSlot,
     },
   });
 };
@@ -134,6 +136,7 @@ const createTeamAndAddUser = async (
     organizationId,
     isDnsSetup,
     index,
+    orgRequestedSlug,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -143,11 +146,13 @@ const createTeamAndAddUser = async (
     hasSubteam?: true;
     organizationId?: number | null;
     index?: number;
+    orgRequestedSlug?: string;
   },
   workerInfo: WorkerInfo
 ) => {
   const slugIndex = index ? `-count-${index}` : "";
-  const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
+  const slug =
+    orgRequestedSlug ?? `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
   const data: PrismaType.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
     isOrganization: isOrg,
@@ -253,6 +258,8 @@ export const createUsersFixture = (
         isDnsSetup?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
+        seatsPerTimeSlot?: number;
+        orgRequestedSlug?: string;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -294,6 +301,10 @@ export const createUsersFixture = (
       }
 
       if (scenario.seedRoutingForms) {
+        const option2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const option1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const multiSelectLegacyFieldUuid = "d4292635-9f12-17b1-9153-c3a854649182";
+        const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
         await prisma.app_RoutingForms_Form.create({
           data: {
             routes: [
@@ -359,6 +370,26 @@ export const createUsersFixture = (
               },
               {
                 id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                action: { type: "customPageMessage", value: "Multiselect(Legacy) chosen" },
+                queryValue: {
+                  id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                  type: "group",
+                  children1: {
+                    "b98a8abb-cdef-4012-b456-718262343d27": {
+                      type: "rule",
+                      properties: {
+                        field: multiSelectLegacyFieldUuid,
+                        value: [["Option-2"]],
+                        operator: "multiselect_equals",
+                        valueSrc: ["value"],
+                        valueType: ["multiselect"],
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                id: "bb9ea8b9-0123-4456-b89a-b182623406d8",
                 action: { type: "customPageMessage", value: "Multiselect chosen" },
                 queryValue: {
                   id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
@@ -367,8 +398,8 @@ export const createUsersFixture = (
                     "b98a8abb-cdef-4012-b456-718262343d27": {
                       type: "rule",
                       properties: {
-                        field: "d4292635-9f12-17b1-9153-c3a854649182",
-                        value: [["Option-2"]],
+                        field: multiSelectFieldUuid,
+                        value: [[option2Uuid]],
                         operator: "multiselect_equals",
                         valueSrc: ["value"],
                         valueType: ["multiselect"],
@@ -392,11 +423,28 @@ export const createUsersFixture = (
                 required: true,
               },
               {
-                id: "d4292635-9f12-17b1-9153-c3a854649182",
+                id: multiSelectLegacyFieldUuid,
                 type: "multiselect",
-                label: "Multi Select",
+                label: "Multi Select(with Legacy `selectText`)",
                 identifier: "multi",
                 selectText: "Option-1\nOption-2",
+                required: false,
+              },
+              {
+                id: multiSelectFieldUuid,
+                type: "multiselect",
+                label: "Multi Select",
+                identifier: "multi-new-format",
+                options: [
+                  {
+                    id: option1Uuid,
+                    label: "Option-1",
+                  },
+                  {
+                    id: option2Uuid,
+                    label: "Option-2",
+                  },
+                ],
                 required: false,
               },
             ],
@@ -430,6 +478,7 @@ export const createUsersFixture = (
               isDnsSetup: scenario.isDnsSetup,
               hasSubteam: scenario.hasSubteam,
               organizationId: opts?.organizationId,
+              orgRequestedSlug: scenario.orgRequestedSlug,
             },
             workerInfo
           );
@@ -706,6 +755,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     },
     delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
     confirmPendingPayment: async () => confirmPendingPayment(store.page),
+    getFirstProfile: async () => {
+      return prisma.profile.findFirstOrThrow({
+        where: {
+          userId: user.id,
+        },
+      });
+    },
   };
 };
 
@@ -735,6 +791,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   schedule?: Schedule;
   password?: string | null;
   emailDomain?: string;
+  profileUsername?: string;
 };
 
 // creates the actual user in the db.
@@ -746,11 +803,12 @@ const createUser = (
       })
     | null
 ): PrismaType.UserUncheckedCreateInput => {
+  const suffixToMakeUsernameUnique = `-${workerInfo.workerIndex}-${Date.now()}`;
   // build a unique name for our user
   const uname =
     opts?.useExactUsername && opts?.username
       ? opts.username
-      : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+      : `${opts?.username || "user"}${suffixToMakeUsernameUnique}`;
 
   const emailDomain = opts?.emailDomain || "example.com";
   return {
@@ -769,7 +827,11 @@ const createUser = (
     role: opts?.role ?? "USER",
     twoFactorEnabled: opts?.twoFactorEnabled ?? false,
     disableImpersonation: opts?.disableImpersonation ?? false,
-    ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
+    ...getOrganizationRelatedProps({
+      organizationId: opts?.organizationId,
+      role: opts?.roleInOrganization,
+      profileUsername: opts?.profileUsername,
+    }),
     schedules:
       opts?.completedOnboarding ?? true
         ? {
@@ -789,9 +851,11 @@ const createUser = (
   function getOrganizationRelatedProps({
     organizationId,
     role,
+    profileUsername,
   }: {
     organizationId: number | null | undefined;
     role: MembershipRole | undefined;
+    profileUsername?: string;
   }) {
     if (!organizationId) {
       return null;
@@ -804,7 +868,7 @@ const createUser = (
       profiles: {
         create: {
           uid: ProfileRepository.generateProfileUid(),
-          username: uname,
+          username: profileUsername ? `${profileUsername}${suffixToMakeUsernameUnique}` : uname,
           organization: {
             connect: {
               id: organizationId,

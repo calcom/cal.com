@@ -3,11 +3,11 @@ import { createEvent } from "ics";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
-import generateIcsString from "../lib/generateIcsString";
+import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRequestedToRescheduleEmail extends OrganizerScheduledEmail {
@@ -20,22 +20,18 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
     const toAddresses = [this.calEvent.organizer.email];
 
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: generateIcsString({
-          event: this.calEvent,
-          title: this.t("request_reschedule_title_organizer", {
-            attendee: this.calEvent.attendees[0].name,
-          }),
-          subtitle: this.t("request_reschedule_subtitle_organizer", {
-            attendee: this.calEvent.attendees[0].name,
-          }),
-          role: "organizer",
-          status: "CANCELLED",
+      icalEvent: generateIcsFile({
+        calEvent: this.calEvent,
+        title: this.t("request_reschedule_title_organizer", {
+          attendee: this.calEvent.attendees[0].name,
         }),
-        method: "REQUEST",
-      },
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+        subtitle: this.t("request_reschedule_subtitle_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        }),
+        role: GenerateIcsRole.ORGANIZER,
+        status: "CANCELLED",
+      }),
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("rescheduled_event_type_subject", {
         eventType: this.calEvent.type,

@@ -8,6 +8,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -121,6 +122,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   hidden: true,
   assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
 });
 
 // TODO: Convert it to accept a single parameter with structured data
@@ -199,7 +201,7 @@ export const getPublicEvent = async (
         ),
         ...(orgDetails
           ? {
-              image: orgDetails?.logoUrl,
+              image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
               name: orgDetails?.name,
               username: org,
             }
@@ -210,6 +212,8 @@ export const getPublicEvent = async (
         fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
+        teamSlug: null,
+        logoUrl: null,
       },
       isInstantEvent: false,
     };
@@ -236,6 +240,7 @@ export const getPublicEvent = async (
                 }
               : {
                   username,
+                  profiles: { none: {} },
                 }),
           },
         },
@@ -243,13 +248,34 @@ export const getPublicEvent = async (
       };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
-  const event = await prisma.eventType.findFirst({
+  let event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
       ...usersOrTeamQuery,
     },
     select: publicEventSelect,
   });
+
+  // If no event was found, check for platform org user event
+  if (!event && !orgQuery) {
+    event = await prisma.eventType.findFirst({
+      where: {
+        slug: eventSlug,
+        users: {
+          some: {
+            username,
+            isPlatformManaged: false,
+            movedToProfile: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      },
+      select: publicEventSelect,
+    });
+  }
 
   if (!event) return null;
 
@@ -295,6 +321,19 @@ export const getPublicEvent = async (
     });
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
+
+  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
+  if (org) {
+    orgDetails = await prisma.team.findFirst({
+      where: {
+        slug: org,
+      },
+      select: {
+        logoUrl: true,
+        name: true,
+      },
+    });
+  }
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -323,7 +362,14 @@ export const getPublicEvent = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
+      ...(orgDetails
+        ? {
+            logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
+            name: orgDetails?.name,
+          }
+        : {}),
     },
+
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,

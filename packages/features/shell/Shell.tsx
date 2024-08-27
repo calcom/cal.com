@@ -34,7 +34,6 @@ import {
   InvalidAppCredentialBanners,
   type InvalidAppCredentialBannersProps,
 } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
@@ -44,7 +43,7 @@ import {
   DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
   IS_VISUAL_REGRESSION_TESTING,
-  JOIN_DISCORD,
+  JOIN_COMMUNITY,
   ROADMAP,
   TOP_BANNER_HEIGHT,
   WEBAPP_URL,
@@ -83,7 +82,6 @@ import {
   useCalcomTheme,
   type IconName,
 } from "@calcom/ui";
-import { Discord } from "@calcom/ui/components/icon/Discord";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
@@ -216,7 +214,8 @@ const useBanners = () => {
 
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
-
+  const pathname = usePathname();
+  const isFullPageWithoutSidebar = pathname.startsWith("/apps/routing-forms/reporting/");
   const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
@@ -255,9 +254,8 @@ const Layout = (props: LayoutProps) => {
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && !props.isPlatformUser && (
+        {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
-            <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
@@ -387,7 +385,8 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { data: user } = useMeQuery();
   const utils = trpc.useUtils();
   const bookerUrl = useBookerUrl();
-
+  const pathname = usePathname();
+  const isPlatformPages = pathname?.startsWith("/settings/platform");
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -450,7 +449,7 @@ function UserDropdown({ small }: UserDropdownProps) {
               </span>
               <Icon
                 name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
                 aria-hidden="true"
               />
             </span>
@@ -471,7 +470,7 @@ function UserDropdown({ small }: UserDropdownProps) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
-                {!isPlatformUser && (
+                {!isPlatformPages && (
                   <>
                     <DropdownMenuItem>
                       <DropdownItem
@@ -509,11 +508,11 @@ function UserDropdown({ small }: UserDropdownProps) {
 
                 <DropdownMenuItem>
                   <DropdownItem
-                    CustomStartIcon={<Discord className="text-default h-4 w-4" />}
+                    StartIcon="messages-square"
                     target="_blank"
                     rel="noreferrer"
-                    href={JOIN_DISCORD}>
-                    {t("join_our_discord")}
+                    href={JOIN_COMMUNITY}>
+                    {t("join_our_community")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -530,7 +529,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                {!isPlatformUser && (
+                {!isPlatformPages && (
                   <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="download"
@@ -542,6 +541,17 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownMenuItem>
                 )}
 
+                {!isPlatformPages && (
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownItem
+                      StartIcon="blocks"
+                      target="_blank"
+                      rel="noreferrer"
+                      href="/settings/platform">
+                      Platform
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
@@ -661,7 +671,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "insights",
     href: "/insights",
-    icon: "bar-chart",
+    icon: "chart-bar",
   },
 ];
 
@@ -674,7 +684,7 @@ const platformNavigation: NavigationItemType[] = [
   {
     name: "Documentation",
     href: "https://docs.cal.com/docs/platform",
-    icon: "bar-chart",
+    icon: "chart-bar",
     target: "_blank",
   },
   {
@@ -785,7 +795,7 @@ const NavigationItem: React.FC<{
           {item.icon && (
             <Icon
               name={item.icon}
-              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
+              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 md:ltr:mx-auto lg:ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -915,9 +925,11 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
   return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) {
+function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
+  const pathname = usePathname();
+  const isPlatformPages = pathname?.startsWith("/settings/platform");
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
@@ -956,8 +968,11 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
   return (
     <div className="relative">
       <aside
-        style={!isPlatformUser ? sidebarStylingAttributes : {}}
-        className="bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3">
+        style={!isPlatformPages ? sidebarStylingAttributes : {}}
+        className={classNames(
+          "bg-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
+          !isPlatformPages && "max-h-screen"
+        )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
@@ -987,7 +1002,7 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
                 </span>
               </div>
             )}
-            <div className="flex justify-end rtl:space-x-reverse">
+            <div className="flex w-full justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -1018,10 +1033,10 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
           <Link href="/event-types" className="text-center md:inline lg:hidden">
             <Logo small icon />
           </Link>
-          <Navigation isPlatformNavigation={isPlatformUser} />
+          <Navigation isPlatformNavigation={isPlatformPages} />
         </div>
 
-        {!isPlatformUser && (
+        {!isPlatformPages && (
           <div>
             <Tips />
             {bottomNavItems.map((item, index) => (
@@ -1091,6 +1106,7 @@ export function ShellMain(props: LayoutProps) {
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
+              data-testid="go-back-button"
             />
           )}
           {props.heading && (
@@ -1098,11 +1114,11 @@ export function ShellMain(props: LayoutProps) {
               className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                className={classNames("w-full truncate md:block ltr:mr-4 rtl:ml-4", props.headerClassName)}>
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "font-cal text-emphasis inline max-w-28 truncate text-lg font-semibold tracking-wide sm:max-w-72 sm:text-xl md:block md:max-w-80 xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl",
                       props.hideHeadingOnMobile && "hidden"
                     )}>
@@ -1121,7 +1137,7 @@ export function ShellMain(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 md:z-auto ltr:right-4 md:ltr:right-0 rtl:left-4 md:rtl:left-0",
                     "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {isLocaleReady && props.CTA}
@@ -1181,10 +1197,10 @@ function TopNav() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
+          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium transition lg:hidden">
             <KBarTrigger />
           </span>
-          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 transition focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
               <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
@@ -1248,7 +1264,7 @@ function ProfileDropdown() {
             </span>
             <Icon
               name="chevron-down"
-              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
               aria-hidden="true"
             />
           </span>
@@ -1261,7 +1277,7 @@ function ProfileDropdown() {
           onInteractOutside={() => {
             setMenuOpen(false);
           }}
-          className="min-w-56 hariom group overflow-hidden rounded-md">
+          className="hariom group min-w-56 overflow-hidden rounded-md">
           <DropdownMenuItem className="p-3 uppercase">
             <span>Switch to</span>
           </DropdownMenuItem>

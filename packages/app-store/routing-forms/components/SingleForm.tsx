@@ -36,7 +36,7 @@ import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { processRoute } from "../lib/processRoute";
-import type { Response, Route, SerializableForm } from "../types/types";
+import type { FormResponse, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
@@ -207,7 +207,7 @@ const Actions = ({
               action="toggle"
               routingForm={form}
               label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
             />
           </div>
         </FormActionsDropdown>
@@ -238,7 +238,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const { t } = useLocale();
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
-  const [response, setResponse] = useState<Response>({});
+  const [response, setResponse] = useState<FormResponse>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [eventTypeUrl, setEventTypeUrl] = useState("");
@@ -335,7 +335,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
-                <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
+                <div className="mb-6 md:mr-6 lg:min-w-72 lg:max-w-72">
                   <TextField
                     type="text"
                     containerClassName="mb-6"
@@ -360,7 +360,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         <AddMembersWithSwitch
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
-                            label: member.name || "",
+                            label: member.name || member.email,
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
@@ -368,7 +368,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
-                            priority: 1,
+                            priority: 2,
+                            weight: 100,
+                            weightAdjustment: 0,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(

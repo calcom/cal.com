@@ -22,7 +22,7 @@ export type ButtonBaseProps = {
   EndIcon?: IconName;
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
-  tooltip?: string;
+  tooltip?: string | React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
   disabled?: boolean;
@@ -162,7 +162,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               <>
                 <Icon
                   name={StartIcon}
-                  className="hidden h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2 md:inline-flex"
+                  className="hidden h-4 w-4 stroke-[1.5px] md:inline-flex ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
                 />
                 <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
               </>
@@ -240,7 +240,7 @@ const Wrapper = ({
   tooltipSide,
   tooltipOffset,
 }: {
-  tooltip?: string;
+  tooltip?: string | React.ReactNode;
   children: React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
