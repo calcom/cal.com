@@ -11,6 +11,7 @@ type WithLayoutParams<T extends Record<string, any>> = {
   Page?: (props: T) => React.ReactElement | null;
   getData?: (arg: GetServerSidePropsContext) => Promise<T | undefined>;
   isBookingPage?: boolean;
+  requiresLicense?: boolean;
 };
 
 export function WithLayout<T extends Record<string, any>>({
@@ -18,6 +19,7 @@ export function WithLayout<T extends Record<string, any>>({
   getData,
   Page,
   isBookingPage,
+  requiresLicense,
 }: WithLayoutParams<T>) {
   return async <P extends "P" | "L">(p: P extends "P" ? PageProps : LayoutProps) => {
     const h = headers();
@@ -33,7 +35,7 @@ export function WithLayout<T extends Record<string, any>>({
     return (
       <PageWrapper
         getLayout={getLayout}
-        requiresLicense={false}
+        requiresLicense={!!requiresLicense}
         nonce={nonce}
         themeBasis={null}
         isBookingPage={isBookingPage}
