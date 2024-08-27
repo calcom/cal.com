@@ -14,6 +14,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
@@ -68,6 +69,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [lastUsed, setLastUsed] = useLastUsed();
 
   const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
@@ -151,8 +153,10 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
     });
     if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
     // we're logged in! let's do a hard refresh to the desired url
-    else if (!res.error) router.push(callbackUrl);
-    else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    else if (!res.error) {
+      setLastUsed("credentials");
+      router.push(callbackUrl);
+    } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
     else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
     else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
     // fallback if error not found
@@ -232,7 +236,10 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                 color="primary"
                 disabled={formState.isSubmitting}
                 className="w-full justify-center">
-                {twoFactorRequired ? t("submit") : t("sign_in")}
+                <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
+                {lastUsed === "credentials" && (
+                  <span className="absolute right-3 text-xs text-gray-600">{t("last_used")}</span>
+                )}
               </Button>
             </div>
           </form>
@@ -249,11 +256,15 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                     CustomStartIcon={<GoogleIcon />}
                     onClick={async (e) => {
                       e.preventDefault();
-                      await signIn("google", {
+                      const res = await signIn("google", {
                         callbackUrl,
                       });
+                      if (res && !res.error) {
+                        setLastUsed("google");
+                      }
                     }}>
-                    {t("signin_with_google")}
+                    <span>{t("signin_with_google")}</span>
+                    {lastUsed === "google" && <LastUsed />}
                   </Button>
                 )}
                 {displaySSOLogin && (
