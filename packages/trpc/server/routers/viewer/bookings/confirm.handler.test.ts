@@ -22,7 +22,7 @@ describe("confirmHandler", () => {
     vi.clearAllMocks();
   });
 
-  it("should successfully confirm booking", async () => {
+  it("should successfully confirm booking when event type doesn't have any default location", async () => {
     const attendeeUser = getOrganizer({
       email: "test@example.com",
       name: "test name",
@@ -75,6 +75,7 @@ describe("confirmHandler", () => {
             endTime: `${plus1DateString}T05:15:00.000Z`,
             references: [],
             iCalUID,
+            location: "integrations:daily",
             attendees: [attendeeUser],
             responses: { name: attendeeUser.name, email: attendeeUser.email, guests: [] },
           },
