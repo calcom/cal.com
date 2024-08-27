@@ -2405,7 +2405,7 @@
   "create_account_password_hint": "Sie haben kein Konto-Passwort. Erstellen Sie eines, indem Sie zu Sicherheit -> Passwort navigieren. Die Verbindung kann nicht getrennt werden, bis ein Konto-Passwort erstellt wurde.",
   "disconnect_account": "Verbundenes Konto trennen",
   "disconnect_account_hint": "Das Trennen Ihres verbundenen Kontos ändert die Art und Weise, wie Sie sich anmelden. Sie können sich nur mit E-Mail + Passwort bei Ihrem Konto anmelden",
-  "cookie_consent_checkbox": "Ich stimme unseren Datenschutzrichtlinien und der Verwendung von Cookies zu",
+  "cookie_consent_checkbox": "Durch die Erstellung eines Kontos stimmen Sie unserer Datenschutzerklärung und der Verwendung von Cookies zu",
   "make_a_call": "Anruf tätigen",
   "skip_rr_assignment_label": "Round-Robin-Zuweisung überspringen, wenn der Kontakt in Salesforce existiert",
   "skip_rr_description": "URL muss die E-Mail des Kontakts als Parameter enthalten, z. B. ?email=contactEmail",
@@ -2471,5 +2471,11 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "Benutzer ist ein ausstehendes Mitglied der Organisation",
   "USER_ALREADY_INVITED_OR_MEMBER": "Benutzer ist bereits ein Mitglied oder eingeladen",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "Benutzer ist Mitglied einer Organisation, zu der dieses Team nicht angehört.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "Min.",
+  "hour_short": "Std.",
+  "minute_one_short": "{{count}} Min.",
+  "hour_one_short": "{{count}} Std.",
+  "apply_to_all_event_types": "Gilt für alle, einschließlich zukünftiger Ereignistypen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

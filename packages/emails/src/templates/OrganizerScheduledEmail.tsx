@@ -1,3 +1,5 @@
+import { SchedulingType } from "@prisma/client/enums";
+
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { BaseScheduledEmail } from "./BaseScheduledEmail";
@@ -32,6 +34,11 @@ export const OrganizerScheduledEmail = (
   const locale = props.teamMember?.language.locale || props.calEvent.organizer.language.locale;
   const timeFormat = props.teamMember?.timeFormat || props.calEvent.organizer?.timeFormat;
 
+  const isTeamEvent =
+    props.calEvent.schedulingType === SchedulingType.ROUND_ROBIN ||
+    props.calEvent.schedulingType === SchedulingType.COLLECTIVE;
+  const attendee = isTeamEvent && props.teamMember ? props.teamMember : props.attendee;
+
   return (
     <BaseScheduledEmail
       locale={locale}
@@ -50,6 +57,7 @@ export const OrganizerScheduledEmail = (
         </>
       }
       {...props}
+      attendee={attendee}
     />
   );
 };

@@ -4,6 +4,7 @@ import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
   BookingLimitsEnum_2024_06_14,
+  Frequency,
 } from "@calcom/platform-enums/monorepo";
 import {
   type CreateEventTypeInput_2024_06_14,
@@ -13,6 +14,7 @@ import {
   type TransformFutureBookingsLimitSchema_2024_06_14,
   type BookingLimitsKeyOutputType_2024_06_14,
   type TransformBookingLimitsSchema_2024_06_14,
+  type TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
@@ -123,7 +125,7 @@ function transformApiEventTypeIntervalLimits(
     Object.entries(inputBookingLimits).map(([key, value]) => {
       const outputKey: BookingLimitsKeyOutputType_2024_06_14 = BookingLimitsEnum_2024_06_14[
         key as keyof typeof BookingLimitsEnum_2024_06_14
-      ] as BookingLimitsKeyOutputType_2024_06_14;
+      ] satisfies BookingLimitsKeyOutputType_2024_06_14;
       res[outputKey] = value;
     });
   return res;
@@ -158,6 +160,17 @@ function transformApiEventTypeFutureBookingLimits(
     default:
       return undefined;
   }
+}
+
+function transformApiEventTypeRecurrence(
+  recurrence: CreateEventTypeInput_2024_06_14["recurrence"]
+): TransformRecurringEventSchema_2024_06_14 | undefined {
+  if (!recurrence) return undefined;
+  return {
+    interval: recurrence.interval,
+    count: recurrence.occurrences,
+    freq: Frequency[recurrence.frequency as keyof typeof Frequency],
+  } satisfies TransformRecurringEventSchema_2024_06_14;
 }
 
 export function transformSelectOptions(options: string[]) {
@@ -262,4 +275,5 @@ export {
   transformApiEventTypeBookingFields,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeRecurrence,
 };

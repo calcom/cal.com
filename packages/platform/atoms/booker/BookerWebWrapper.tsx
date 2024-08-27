@@ -38,6 +38,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const rescheduledBy =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
@@ -51,6 +53,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     ...props,
     eventId: event?.data?.id,
     rescheduleUid,
+    rescheduledBy,
     bookingUid: bookingUid,
     layout: bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
@@ -194,6 +197,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       isRedirect={isRedirect}
       fromUserNameRedirected={fromUserNameRedirected}
       rescheduleUid={rescheduleUid}
+      rescheduledBy={rescheduledBy}
       bookingUid={bookingUid}
       hasSession={hasSession}
       extraOptions={routerQuery}
