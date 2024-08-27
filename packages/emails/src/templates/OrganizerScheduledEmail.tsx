@@ -1,4 +1,4 @@
-import { SchedulingType } from "@prisma/client/enums";
+import { SchedulingType } from "@prisma/client";
 
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 

@@ -18,7 +18,7 @@ export const loadUsers = async (
   eventType: EventType,
   dynamicUserList: string[],
   req: IncomingMessage,
-  roundRobinUsernamePool?: string[]
+  roundRobinUsernamePool?: string[] | null
 ) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);
@@ -42,7 +42,7 @@ const loadUsersByEventType = async (
   const rrUsernamePoolSize = rrUsernamePoolSet.size;
   const hosts = eventType.hosts || [];
 
-  const users = hosts.reduce((userArray, host) => {
+  let users = hosts.reduce((userArray: NewBookingEventType["users"], host) => {
     const { user, isFixed, priority, weight, weightAdjustment } = host;
     if (rrUsernamePoolSize && rrUsernamePoolSize === userArray.length) return userArray;
 
@@ -61,21 +61,23 @@ const loadUsersByEventType = async (
     }
     return userArray;
   }, []);
-
   if (users.length) return users;
 
   // If we fallback to event type users we still need to filter on the rrUsernamePool
-  return eventType.users.reduce((userArray, user) => {
+
+  users = eventType.users.reduce((userArray: NewBookingEventType["users"], user) => {
     if (rrUsernamePoolSize === userArray.length) return userArray;
 
     if (rrUsernamePoolSize) {
-      if (rrUsernamePoolSet.has(user.username)) userArray.push(user);
+      if (user.username && rrUsernamePoolSet.has(user.username)) userArray.push(user);
     } else {
       userArray.push(user);
     }
 
     return userArray;
-  }, []);
+  }, [] as NewBookingEventType["users"]);
+
+  return users;
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {

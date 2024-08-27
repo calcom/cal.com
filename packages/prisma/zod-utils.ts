@@ -247,6 +247,7 @@ export const bookingCreateBodySchema = z.object({
   seatReferenceUid: z.string().optional(),
   orgSlug: z.string().optional(),
   teamMemberEmail: z.string().optional(),
+  roundRobinUsernamePool: z.array(z.string()).nullable().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
