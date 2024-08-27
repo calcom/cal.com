@@ -12,6 +12,7 @@ test.describe("React Embed", () => {
     }) => {
       const calNamespace = "inline";
       await embeds.gotoPlayground({ url: "/inline.html", calNamespace });
+      await page.waitForLoadState("networkidle");
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
       expect(embedIframe).toBeEmbedCalLink("", embeds.getActionFiredDetails, {
         pathname: "/pro",
@@ -29,8 +30,8 @@ test.describe("React Embed", () => {
       embeds,
     }) => {
       const calNamespace = "floating";
-      await page.waitForLoadState();
       await embeds.gotoPlayground({ url: "/floating.html", calNamespace });
+      await page.waitForLoadState("networkidle");
 
       await page.click("text=Book my Cal");
 
