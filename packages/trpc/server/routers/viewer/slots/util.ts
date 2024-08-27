@@ -527,6 +527,18 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
             },
           },
         },
+        {
+          startTime: { lte: endTimeDate },
+          endTime: { gte: startTimeDate },
+          eventType: {
+            id: eventType.id,
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
+          },
+          status: {
+            in: [BookingStatus.PENDING],
+          },
+        },
       ],
     },
     select: {
@@ -544,6 +556,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           afterEventBuffer: true,
           beforeEventBuffer: true,
           seatsPerTimeSlot: true,
+          requiresConfirmationWillBlockSlot: true,
+          requiresConfirmation: true,
         },
       },
       ...(!!eventType?.seatsPerTimeSlot && {
