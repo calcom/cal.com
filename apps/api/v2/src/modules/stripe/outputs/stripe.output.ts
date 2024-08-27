@@ -20,3 +20,14 @@ export class StripConnectOutputResponseDto {
   @Type(() => StripConnectOutputDto)
   data!: StripConnectOutputDto;
 }
+
+export class StripCredentialsCheckOutputResponseDto {
+  @ApiProperty({ example: SUCCESS_STATUS })
+  status!: typeof SUCCESS_STATUS;
+}
+
+export class StripCredentialsSaveOutputResponseDto {
+  @IsString()
+  @Expose()
+  readonly url!: string;
+}

@@ -1,7 +1,12 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { StripConnectOutputDto, StripConnectOutputResponseDto } from "@/modules/stripe/outputs/stripe.output";
+import {
+  StripConnectOutputDto,
+  StripConnectOutputResponseDto,
+  StripCredentialsCheckOutputResponseDto,
+  StripCredentialsSaveOutputResponseDto,
+} from "@/modules/stripe/outputs/stripe.output";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -71,7 +76,7 @@ export class StripeController {
     @Query("code") code: string,
     @Query("error") error: string | undefined,
     @Query("error_description") error_description: string | undefined
-  ): Promise<{ url: string }> {
+  ): Promise<StripCredentialsSaveOutputResponseDto> {
     const accessToken = JSON.parse(state).accessToken;
 
     // user cancels flow
@@ -89,7 +94,7 @@ export class StripeController {
   @Get("/check")
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async check(@GetUser() user: UserWithProfile): Promise<{ status: string }> {
+  async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
     return await this.stripeService.checkIfStripeAccountConnected(user.id);
   }
 }
