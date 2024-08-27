@@ -310,7 +310,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     bookingForm,
     hashedLink,
     metadata,
-    teamMemberEmail,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
