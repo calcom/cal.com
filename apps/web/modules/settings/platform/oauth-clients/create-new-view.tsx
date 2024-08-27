@@ -57,9 +57,9 @@ export default function CreateOAuthClient() {
     });
   };
 
-  if (!isUserLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">Loading...</div>;
 
-  if (true) {
+  if (isPlatformUser && isPaidUser) {
     return (
       <div>
         <Shell title={`OAuth client ${!!clientId ? "updation" : "creation"} form`} isPlatformUser={true}>
