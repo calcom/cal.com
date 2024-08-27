@@ -4,22 +4,7 @@ import { useRouter } from "next/navigation";
 
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout } from "@calcom/ui";
-
-const OnboardTeamMembersPage = () => {
-  const { t } = useLocale();
-
-  return (
-    <>
-      <Meta
-        title={t("invite_organization_admins")}
-        description={t("invite_organization_admins_description")}
-      />
-      <AddNewTeamMembers isOrg={true} />
-    </>
-  );
-};
+import { WizardLayout } from "@calcom/ui";
 
 export const LayoutWrapper = (page: React.ReactElement) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -39,4 +24,4 @@ export const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-export default OnboardTeamMembersPage;
+export default AddNewTeamMembers;

@@ -1,18 +1,7 @@
 "use client";
 
 import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout } from "@calcom/ui";
-
-const AddNewTeamsPage = () => {
-  const { t } = useLocale();
-  return (
-    <>
-      <Meta title={t("create_your_teams")} description={t("create_your_teams_description")} />
-      <AddNewTeamsForm />
-    </>
-  );
-};
+import { WizardLayout } from "@calcom/ui";
 
 export const LayoutWrapper = (page: React.ReactElement) => {
   return (
@@ -22,4 +11,4 @@ export const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-export default AddNewTeamsPage;
+export default AddNewTeamsForm;

@@ -1,21 +1,7 @@
 "use client";
 
 import { CreateANewPlatformForm } from "@calcom/features/ee/platform/components/index";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout, Meta } from "@calcom/ui";
-
-const CreateNewOrganizationPage = () => {
-  const { t } = useLocale();
-  return (
-    <>
-      <Meta
-        title={t("set_up_your_platform_organization")}
-        description={t("platform_organization_description")}
-      />
-      <CreateANewPlatformForm />
-    </>
-  );
-};
+import { WizardLayout } from "@calcom/ui";
 
 export const LayoutWrapper = (page: React.ReactElement) => {
   return (
@@ -25,4 +11,4 @@ export const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-export default CreateNewOrganizationPage;
+export default CreateANewPlatformForm;

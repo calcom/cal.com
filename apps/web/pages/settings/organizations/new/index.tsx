@@ -1,14 +1,22 @@
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Meta } from "@calcom/ui";
+
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-import CreateNewOrganizationPage, { LayoutWrapper } from "~/settings/organizations/new/create-new-view";
+import CreateANewOrganizationForm, { LayoutWrapper } from "~/settings/organizations/new/create-new-view";
 
-const Page = new Proxy<{
-  (): JSX.Element;
-  PageWrapper?: typeof PageWrapper;
-  getLayout?: typeof LayoutWrapper;
-}>(CreateNewOrganizationPage, {});
+const Page = () => {
+  const { t } = useLocale();
+  return (
+    <LicenseRequired>
+      <Meta title={t("set_up_your_organization")} description={t("organizations_description")} />
+      <CreateANewOrganizationForm />
+    </LicenseRequired>
+  );
+};
 
 Page.getLayout = LayoutWrapper;
 Page.PageWrapper = PageWrapper;

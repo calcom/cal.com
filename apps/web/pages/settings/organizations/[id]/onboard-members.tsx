@@ -1,14 +1,24 @@
 import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-import OnboardTeamMembersPage, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
+import AddNewTeamMembers, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
 
-const Page = new Proxy<{
-  (): JSX.Element;
-  PageWrapper?: typeof PageWrapper;
-  getLayout?: typeof LayoutWrapper;
-}>(OnboardTeamMembersPage, {});
+const Page = () => {
+  const { t } = useLocale();
+
+  return (
+    <>
+      <Meta
+        title={t("invite_organization_admins")}
+        description={t("invite_organization_admins_description")}
+      />
+      <AddNewTeamMembers isOrg={true} />
+    </>
+  );
+};
 
 Page.getLayout = LayoutWrapper;
 Page.PageWrapper = PageWrapper;
