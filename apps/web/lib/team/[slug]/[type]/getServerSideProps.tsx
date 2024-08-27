@@ -92,7 +92,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       orgSlug: org,
     });
   }
-  console.log("🚀 ~ getServerSideProps ~ roundRobinUsernamePool:", roundRobinUsernamePool);
 
   if (!eventData) {
     return {

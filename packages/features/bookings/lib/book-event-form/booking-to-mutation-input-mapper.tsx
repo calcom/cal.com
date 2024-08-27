@@ -21,6 +21,7 @@ export type BookingOptions = {
   hashedLink?: string | null;
   teamMemberEmail?: string;
   orgSlug?: string;
+  roundRobinUsernamePool?: string[] | null;
 };
 
 export const mapBookingToMutationInput = ({

@@ -36,7 +36,7 @@ export const loadUsers = async (
 
 const loadUsersByEventType = async (
   eventType: EventType,
-  roundRobinUsernamePool: string[] = []
+  roundRobinUsernamePool: string[] | null = []
 ): Promise<NewBookingEventType["users"]> => {
   const rrUsernamePoolSet = new Set(roundRobinUsernamePool);
   const rrUsernamePoolSize = rrUsernamePoolSet.size;
