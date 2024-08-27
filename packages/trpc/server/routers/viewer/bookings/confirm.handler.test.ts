@@ -26,6 +26,8 @@ describe("confirmHandler", () => {
     const attendeeUser = getOrganizer({
       email: "test@example.com",
       name: "test name",
+      id: 102,
+      schedules: [TestData.schedules.IstWorkHours],
     });
 
     const organizer = getOrganizer({
@@ -35,8 +37,8 @@ describe("confirmHandler", () => {
       schedules: [TestData.schedules.IstWorkHours],
     });
 
-    const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-    const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
+    const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
+    const iCalUID = `${uidOfBooking}@Cal.com`;
 
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
@@ -57,7 +59,7 @@ describe("confirmHandler", () => {
             id: 1,
             slotInterval: 15,
             length: 15,
-            location: null,
+            locations: [],
             users: [
               {
                 id: 101,
@@ -68,7 +70,7 @@ describe("confirmHandler", () => {
         bookings: [
           {
             id: 101,
-            uid: uidOfBookingToBeRescheduled,
+            uid: uidOfBooking,
             eventTypeId: 1,
             status: BookingStatus.PENDING,
             startTime: `${plus1DateString}T05:00:00.000Z`,
@@ -93,7 +95,8 @@ describe("confirmHandler", () => {
       user: {
         id: organizer.id,
         name: organizer.name,
-        ...organizer,
+        timeZone: organizer.timeZone,
+        username: organizer.username,
       } as NonNullable<TrpcSessionUser>,
     };
 
@@ -102,6 +105,6 @@ describe("confirmHandler", () => {
       input: { bookingId: 101, confirmed: true, reason: "" },
     });
 
-    expect(res.status).toBe(BookingStatus.ACCEPTED);
+    expect(res?.status).toBe(BookingStatus.ACCEPTED);
   });
 });
