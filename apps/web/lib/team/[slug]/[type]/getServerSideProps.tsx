@@ -91,7 +91,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let teamMemberEmail = null;
 
   if (eventData.schedulingType === SchedulingType.ROUND_ROBIN && email) {
-    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.id);
+    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email as string, eventData.id);
 
     if (crmContactOwner) {
       // Determine if the contactOwner is a part of the event type
