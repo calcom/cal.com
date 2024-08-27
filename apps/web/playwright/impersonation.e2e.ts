@@ -23,10 +23,10 @@ test.describe("Users can impersonate", async () => {
     });
 
     await adminUser.apiLogin();
-    await page.waitForLoadState();
+    await page.waitForLoadState("networkidle");
 
     await page.goto("/settings/admin/impersonation");
-    await page.waitForLoadState();
+    await page.waitForLoadState("networkidle");
     const adminInput = page.getByTestId("admin-impersonation-input");
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore the username does exist
