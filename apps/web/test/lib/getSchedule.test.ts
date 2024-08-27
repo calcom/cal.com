@@ -1141,6 +1141,99 @@ describe("getSchedule", () => {
       }
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
     });
+
+    test("a slot counts as being busy when the eventType is requiresConfirmation and requiresConfirmationWillBlockSlot", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      await createBookingScenario({
+        eventTypes: [
+          // A default Event Type which this user owns
+          {
+            id: 2,
+            length: 15,
+            slotInterval: 45,
+            users: [{ id: 101 }],
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
+          },
+          {
+            id: 3,
+            length: 15,
+            slotInterval: 45,
+            users: [{ id: 101 }],
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: false,
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser102@example.com",
+              },
+            ],
+            eventTypeId: 2,
+            status: "PENDING",
+            startTime: `${plus2DateString}T04:00:00.000Z`,
+            endTime: `${plus2DateString}T04:15:00.000Z`,
+          },
+          {
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser103@example.com",
+              },
+            ],
+            eventTypeId: 3,
+            status: "PENDING",
+            startTime: `${plus2DateString}T05:00:00.000Z`,
+            endTime: `${plus2DateString}T05:15:00.000Z`,
+          },
+        ],
+      });
+
+      // Requesting this user's availability for their
+      // individual Event Type
+      const thisUserAvailability = await getSchedule({
+        input: {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+        },
+      });
+
+      expect(thisUserAvailability).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`, // <- This slot should be occupied by the Pending Requires Confirmation booking blocking this slot
+          `04:15:00.000Z`,
+          `05:00:00.000Z`, // <- This slot should be availble to book as this event type (id: 3) has requires confirmation without blocking the slo
+          `05:45:00.000Z`,
+          `06:30:00.000Z`,
+          `07:15:00.000Z`,
+          `08:00:00.000Z`,
+          `08:45:00.000Z`,
+          `09:30:00.000Z`,
+          `10:15:00.000Z`,
+          `11:00:00.000Z`,
+          `11:45:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
   });
 
   describe("Team Event", () => {
