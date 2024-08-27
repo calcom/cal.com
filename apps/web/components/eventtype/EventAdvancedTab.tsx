@@ -279,6 +279,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         seatsEnabled={seatsEnabled}
         metadata={formMethods.getValues("metadata")}
         requiresConfirmation={requiresConfirmation}
+        requiresConfirmationWillBlockSlot={formMethods.getValues("requiresConfirmationWillBlockSlot")}
         onRequiresConfirmation={setRequiresConfirmation}
       />
       <Controller
@@ -581,14 +582,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 <ColorPicker
                   defaultValue={eventTypeColorState.lightEventTypeColor}
                   onChange={(value) => {
+                    const newVal = {
+                      ...eventTypeColorState,
+                      lightEventTypeColor: value,
+                    };
+                    formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                    setEventTypeColorState(newVal);
                     if (checkWCAGContrastColor("#ffffff", value)) {
-                      const newVal = {
-                        ...eventTypeColorState,
-                        lightEventTypeColor: value,
-                      };
                       setLightModeError(false);
-                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
-                      setEventTypeColorState(newVal);
                     } else {
                       setLightModeError(true);
                     }
@@ -606,14 +607,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 <ColorPicker
                   defaultValue={eventTypeColorState.darkEventTypeColor}
                   onChange={(value) => {
+                    const newVal = {
+                      ...eventTypeColorState,
+                      darkEventTypeColor: value,
+                    };
+                    formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                    setEventTypeColorState(newVal);
                     if (checkWCAGContrastColor("#101010", value)) {
-                      const newVal = {
-                        ...eventTypeColorState,
-                        darkEventTypeColor: value,
-                      };
                       setDarkModeError(false);
-                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
-                      setEventTypeColorState(newVal);
                     } else {
                       setDarkModeError(true);
                     }

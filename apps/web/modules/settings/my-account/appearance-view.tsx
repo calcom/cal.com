@@ -347,10 +347,10 @@ const AppearanceView = ({
                           onChange={(value) => {
                             if (checkWCAGContrastColor("#ffffff", value)) {
                               setLightModeError(false);
-                              brandColorsFormMethods.setValue("brandColor", value, { shouldDirty: true });
                             } else {
                               setLightModeError(true);
                             }
+                            brandColorsFormMethods.setValue("brandColor", value, { shouldDirty: true });
                           }}
                         />
                         {lightModeError ? (
@@ -375,10 +375,10 @@ const AppearanceView = ({
                           onChange={(value) => {
                             if (checkWCAGContrastColor("#101010", value)) {
                               setDarkModeError(false);
-                              brandColorsFormMethods.setValue("darkBrandColor", value, { shouldDirty: true });
                             } else {
                               setDarkModeError(true);
                             }
+                            brandColorsFormMethods.setValue("darkBrandColor", value, { shouldDirty: true });
                           }}
                         />
                         {darkModeError ? (

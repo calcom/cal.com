@@ -13,6 +13,7 @@ export const lucideIconList = new Set([
   "badge-check",
   "ban",
   "bell",
+  "blocks",
   "bold",
   "book-open-check",
   "book-open",
@@ -137,5 +138,4 @@ export const lucideIconList = new Set([
   "webhook",
   "x",
   "zap",
-  "blocks",
 ]);
