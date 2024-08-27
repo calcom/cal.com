@@ -88,7 +88,7 @@ describe("WebhooksController (e2e)", () => {
       });
   });
 
-  it("/organizations/:orgId/webhooks (POST) should fail to create a webhook that already has same userId / subcriberUrl combo", () => {
+  it("/organizations/:orgId/webhooks (POST) should fail to create a webhook that already has same orgId / subcriberUrl combo", () => {
     return request(app.getHttpServer())
       .post("/v2/organizations/:orgId/webhooks")
       .send({
