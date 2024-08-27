@@ -51,6 +51,24 @@ p.text-subtle.mt-2.text-sm.font-semibold {
 
 .adjust-title {
   margin-left: 120px !important;
+  /* padding-top: 30px !important; */
+}
+
+.custom-mobile-text {
+  font-size: 40px;
+  font-family:
+    Syne Variablefont Wght,
+    sans-serif;
+  font-weight: bold;
+  color: #114559;
+  line-height: 32px !important;
+  margin-top: 26px;
+
+  /* padding-top: 30px !important; */
+}
+
+.adjust-title {
+  margin-left: 120px !important;
 }
 
 h1.text-text.text-xl.font-semibold.my-2 {
