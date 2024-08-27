@@ -148,6 +148,8 @@ export type BookerStore = {
 
   org?: string | null;
   setOrg: (org: string | null | undefined) => void;
+
+  teamMemberEmail?: string | null;
 };
 
 /**
@@ -253,6 +255,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     durationConfig,
     org,
     isInstantMeeting,
+    teamMemberEmail,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -265,7 +268,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout &&
-      get().rescheduledBy === rescheduledBy
+      get().rescheduledBy === rescheduledBy &&
+      get().teamMemberEmail
     )
       return;
     set({
@@ -284,6 +288,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       selectedDate:
         selectedDateInStore ||
         (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
+      teamMemberEmail,
     });
 
     if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -372,6 +377,7 @@ export const useInitializeBookerStore = ({
   durationConfig,
   org,
   isInstantMeeting,
+  teamMemberEmail,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -389,6 +395,7 @@ export const useInitializeBookerStore = ({
       verifiedEmail,
       durationConfig,
       isInstantMeeting,
+      teamMemberEmail,
     });
   }, [
     initializeStore,
@@ -405,5 +412,6 @@ export const useInitializeBookerStore = ({
     verifiedEmail,
     durationConfig,
     isInstantMeeting,
+    teamMemberEmail,
   ]);
 };
