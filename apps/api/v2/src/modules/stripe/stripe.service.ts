@@ -102,7 +102,7 @@ export class StripeService {
     return { url: getReturnToValueFromQueryState(state) };
   }
 
-  async checkIfStripeAccountConnected(userId: number) {
+  async checkIfStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
     const stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
 
     if (!stripeCredentials) {
