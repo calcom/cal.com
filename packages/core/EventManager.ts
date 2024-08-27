@@ -186,9 +186,12 @@ export default class EventManager {
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
         if (evt.location && evt.responses) {
-          evt.responses["location"].value = {
-            optionValue: "",
-            value: evt.location,
+          evt.responses["location"] = {
+            label: "",
+            value: {
+              optionValue: "",
+              value: evt.location,
+            },
           };
         }
       }
