@@ -17,12 +17,13 @@ export const TotalBookingUsersTable = ({
       }[]
     | undefined;
 }) => {
+  const filteredUsers = data && data?.length > 0 ? data?.filter((item) => !!item.user) : [];
   return (
     <Table>
       <TableBody>
         <>
-          {data && data?.length > 0 ? (
-            data?.map((item) => (
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((item) => (
               <TableRow key={item.userId}>
                 <TableCell className="flex flex-row">
                   <Avatar
