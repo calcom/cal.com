@@ -699,6 +699,7 @@
   "default_duration": "Duração padrão",
   "default_duration_no_options": "Escolha as durações disponíveis primeiro",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minutos",
   "use_cal_ai_to_make_call_description": "Use Cal.ai para adquirir um número de telefone com IA ou faça ligações para convidados.",
   "round_robin": "Round Robin",
@@ -2394,7 +2395,7 @@
   "create_account_password_hint": "Você não tem uma senha de conta, crie uma em Securança -> Senha. Não é possível disconectar até uma senha de conta ser criada.",
   "disconnect_account": "Disconecte contas conectadas",
   "disconnect_account_hint": "Disconectar sua conta conectada mudará a maneira como você faz login. Você só poderá fazer login usando e-mail + senha",
-  "cookie_consent_checkbox": "Eu concordo com a política de privacidade e uso de cookies",
+  "cookie_consent_checkbox": "Ao criar uma conta, você concorda com nossa política de privacidade e o uso de cookies",
   "make_a_call": "Fazer uma Ligação",
   "ooo_reasons_unspecified": "Não especificado",
   "ooo_reasons_vacation": "Férias",
@@ -2438,5 +2439,6 @@
   "unable_to_subscribe_to_the_platform": "Um erro ocorreu ao tentar adicionar ao plano da plataforma, por favor tente novamente mais tarde",
   "updating_oauth_client_error": "Um erro ocorreu ao tentar atualizar o cliente OAuth, por favor tente novamente mais tarde",
   "creating_oauth_client_error": "Um erro ocorreu ao tentar criar o cliente OAuth, por favor tente novamente mais tarde",
+  "apply_to_all_event_types": "Aplicar a todos, incluindo tipos de eventos futuros",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
