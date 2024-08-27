@@ -68,6 +68,14 @@ RUN scripts/replace-placeholder.sh http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${N
 
 FROM node:18 as runner
 
+# Install cron
+RUN apt-get update && apt-get -y install cron
+
+COPY cron/jobs /etc/cron.d/jobs
+
+RUN chmod 0644 /etc/cron.d/jobs
+RUN crontab /etc/cron.d/jobs
+RUN touch /var/log/cron.log
 
 WORKDIR /calcom
 COPY --from=builder-two /calcom ./

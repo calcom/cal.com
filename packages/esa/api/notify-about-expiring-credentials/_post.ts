@@ -10,7 +10,7 @@ const getCredentialExpiry = (credential: { id: number; type: string; key: any })
   console.log(credential.type);
 
   return {
-    expiresAt: dayjs().add(4, "weeks").seconds(),
+    expiresAt: dayjs().add(4, "weeks").unix(),
     renewalUrl: ``,
   };
 };
@@ -41,7 +41,7 @@ async function postHandler(req: NextApiRequest) {
 
     const daysSinceLastNotify = dayjs()
       .startOf("day")
-      .diff(dayjs.unix(lastNotifiedAt || 0));
+      .diff(dayjs.unix(Number(lastNotifiedAt || 0)));
 
     if (weeksLeftToExpiry <= 4 && weeksLeftToExpiry > 1) {
       shouldNotify = daysSinceLastNotify >= 7;
@@ -52,7 +52,7 @@ async function postHandler(req: NextApiRequest) {
       isUrgent = shouldNotify;
     }
 
-    if (shouldNotify) {
+    if (shouldNotify && credential.userId) {
       const user = await prisma.user.findUnique({
         where: {
           id: credential.userId,
