@@ -10,7 +10,7 @@ const getCredentialExpiry = (credential: { id: number; type: string; key: any })
   console.log(credential.type);
 
   return {
-    expiresAt: dayjs().add(4, "weeks").unix(),
+    expiresAt: dayjs().add(7, "weeks").unix(),
     renewalUrl: ``,
   };
 };
@@ -60,12 +60,16 @@ async function postHandler(req: NextApiRequest) {
       });
 
       if (user) {
-        console.log("sending email for credential renewal reminder", {
-          user: user.email,
-          credential,
-          isUrgent,
-          renewalUrl,
-        });
+        console.log(
+          "sending email for credential renewal reminder",
+          JSON.stringify({
+            expiresAt,
+            user: user.email,
+            credential: credential.id,
+            isUrgent,
+            renewalUrl,
+          })
+        );
       }
     }
   }

@@ -1,1 +1,1 @@
-* * * * * curl -X POST http://localhost:3000/api/esa/notify-about-expiring-credentials >> /var/log/cron.log
+0 0 * * * curl -X POST http://localhost:3000/api/esa/notify-about-expiring-credentials >> /var/log/cron.log
