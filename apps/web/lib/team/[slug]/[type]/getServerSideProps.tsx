@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -9,6 +10,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
@@ -23,7 +25,12 @@ const paramsSchema = z.object({
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerSession(context);
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
-  const { rescheduleUid, duration: queryDuration, isInstantMeeting: queryIsInstantMeeting } = context.query;
+  const {
+    rescheduleUid,
+    duration: queryDuration,
+    isInstantMeeting: queryIsInstantMeeting,
+    email,
+  } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
@@ -81,6 +88,28 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
+  let teamMemberEmail = null;
+
+  if (eventData.schedulingType === SchedulingType.ROUND_ROBIN && email) {
+    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.id);
+
+    if (crmContactOwner) {
+      // Determine if the contactOwner is a part of the event type
+      const contactOwnerQuery = await prisma.user.findFirst({
+        where: {
+          email: crmContactOwner,
+          hosts: {
+            some: {
+              eventTypeId: eventData.id,
+            },
+          },
+        },
+      });
+
+      if (contactOwnerQuery) teamMemberEmail = crmContactOwner;
+    }
+  }
+
   return {
     props: {
       eventData: {
@@ -97,6 +126,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isInstantMeeting: eventData.isInstantEvent && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: eventData?.team?.parent?.bannerUrl ?? "",
+      teamMemberEmail,
     },
   };
 };
