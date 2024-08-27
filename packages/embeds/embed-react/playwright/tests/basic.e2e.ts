@@ -53,7 +53,7 @@ test.describe("React Embed", () => {
     }) => {
       const calNamespace = "element-click";
       await embeds.gotoPlayground({ url: "/element-click.html", calNamespace });
-      await page.waitForLoadState();
+      await page.waitForLoadState("networkidle");
       await page.click("text=Click me");
 
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
