@@ -14,6 +14,8 @@ const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 
+type EventTypeUsers = NonNullable<NewBookingEventType["users"]>;
+
 export const loadUsers = async (
   eventType: EventType,
   dynamicUserList: string[],
@@ -42,7 +44,7 @@ const loadUsersByEventType = async (
   const rrUsernamePoolSize = rrUsernamePoolSet.size;
   const hosts = eventType.hosts || [];
 
-  let users = hosts.reduce((userArray: NewBookingEventType["users"], host) => {
+  let users = hosts.reduce((userArray: EventTypeUsers, host) => {
     const { user, isFixed, priority, weight, weightAdjustment } = host;
     if (rrUsernamePoolSize && rrUsernamePoolSize === userArray.length) return userArray;
 
@@ -65,7 +67,7 @@ const loadUsersByEventType = async (
 
   // If we fallback to event type users we still need to filter on the rrUsernamePool
 
-  users = eventType.users.reduce((userArray: NewBookingEventType["users"], user) => {
+  users = eventType.users.reduce((userArray: EventTypeUsers, user) => {
     if (rrUsernamePoolSize === userArray.length) return userArray;
 
     if (rrUsernamePoolSize) {
@@ -75,7 +77,7 @@ const loadUsersByEventType = async (
     }
 
     return userArray;
-  }, [] as NewBookingEventType["users"]);
+  }, [] as EventTypeUsers);
 
   return users;
 };
