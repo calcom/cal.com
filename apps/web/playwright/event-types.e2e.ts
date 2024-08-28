@@ -264,10 +264,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
-        // sometimes the dropdown from previous location is open at the same time, causing there to be two "Cal Video (Gloabl)"
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(500);
-        await addAnotherLocation(page, "Cal Video (Global)");
+        await addAnotherLocation(page, "react-select-4-option-0-0");
 
         await saveEventType(page);
         await page.waitForLoadState("networkidle");
@@ -384,11 +381,11 @@ const selectAttendeePhoneNumber = async (page: Page) => {
 /**
  * Adds n+1 location to the event type
  */
-async function addAnotherLocation(page: Page, locationOptionText: string) {
+async function addAnotherLocation(page: Page, locationOptionId: string) {
   await page.locator("[data-testid=add-location]").click();
   // When adding another location, the dropdown opens automatically. So, we don't need to open it here.
   //
-  await page.locator(`text="${locationOptionText}"`).click();
+  await page.locator(`#${locationOptionId}`).click();
 }
 
 const fillLocation = async (page: Page, inputText: string, index: number, selectDisplayLocation = true) => {
