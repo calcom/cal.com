@@ -1876,6 +1876,7 @@
   "default_app_link_title": "Set a default app link",
   "default_app_link_description": "Setting a default app link allows all newly created event types to use the app link you set.",
   "organizer_default_conferencing_app": "Organizer's default app",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} has no default conferencing app",
   "under_maintenance": "Down for maintenance",
   "under_maintenance_description": "The {{appName}} team are performing scheduled maintenance. If you have any questions, please contact support.",
   "event_type_seats": "{{numberOfSeats}} seats",
@@ -2575,6 +2576,7 @@
   "number_of_options":"{{count}} options",
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
-   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
+  "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

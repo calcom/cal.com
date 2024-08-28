@@ -23,6 +23,18 @@ export const bookingsProcedure = authedProcedure
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     const { bookingId } = input;
     const loggedInUser = ctx.user;
+    const bookingInclude = {
+      attendees: true,
+      eventType: true,
+      destinationCalendar: true,
+      references: true,
+      user: {
+        include: {
+          destinationCalendar: true,
+          credentials: true,
+        },
+      },
+    };
 
     const bookingByBeingAdmin = await prisma.booking.findFirst({
       where: {
@@ -40,6 +52,7 @@ export const bookingsProcedure = authedProcedure
           },
         },
       },
+      include: bookingInclude,
     });
 
     if (!!bookingByBeingAdmin) {
@@ -69,18 +82,7 @@ export const bookingsProcedure = authedProcedure
           },
         ],
       },
-      include: {
-        attendees: true,
-        eventType: true,
-        destinationCalendar: true,
-        references: true,
-        user: {
-          include: {
-            destinationCalendar: true,
-            credentials: true,
-          },
-        },
-      },
+      include: bookingInclude,
     });
 
     if (!bookingByBeingOrganizerOrCollectiveEventMember) throw new TRPCError({ code: "UNAUTHORIZED" });

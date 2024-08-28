@@ -2,12 +2,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
-import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
-import {
-  getEventLocationType,
-  getSuccessPageLocationMessage,
-  guessEventLocationType,
-} from "@calcom/app-store/locations";
+import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
@@ -273,28 +269,35 @@ function BookingListItem(booking: BookingItemProps) {
       utils.viewer.bookings.invalidate();
     },
     onError: (e) => {
-      let message;
-      if (e.data.code === "UNAUTHORIZED") {
-        message = t("unauthorized");
-      } else {
-        message = t("location_update_failed");
-      }
+      const errorMessages: Record<string, string> = {
+        UNAUTHORIZED: t("you_are_unauthorized_to_make_this_change_to_the_booking"),
+        BAD_REQUEST: e.message,
+      };
+
+      const message = errorMessages[e.data?.code as string] || t("location_update_failed");
       showToast(message, "error");
     },
   });
 
-  const saveLocation = (
-    newLocationType: EventLocationType["type"],
-    details: {
-      [key: string]: string;
+  const saveLocation = async ({
+    newLocation,
+    credentialId,
+  }: {
+    newLocation: string;
+    /**
+     * It could be set for conferencing locations that support team level installations.
+     */
+    credentialId: number | null;
+  }) => {
+    try {
+      await setLocationMutation.mutateAsync({
+        bookingId: booking.id,
+        newLocation,
+        credentialId,
+      });
+    } catch {
+      // Errors are shown through the mutation onError handler
     }
-  ) => {
-    let newLocation = newLocationType as string;
-    const eventLocationType = getEventLocationType(newLocationType);
-    if (eventLocationType?.organizerInputType) {
-      newLocation = details[Object.keys(details)[0]];
-    }
-    setLocationMutation.mutate({ bookingId: booking.id, newLocation, details });
   };
 
   // Getting accepted recurring dates to show

@@ -443,3 +443,7 @@ export const getOrganizerInputLocationTypes = () => {
 
   return result;
 };
+
+export const isAttendeeInputRequired = (locationType: string) => {
+  return locationsTypes.find((l) => l.type === locationType)?.attendeeInputType !== null;
+};
