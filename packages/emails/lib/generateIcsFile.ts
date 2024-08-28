@@ -31,6 +31,7 @@ export default function generateIcsFile({
   if (
     role !== GenerateIcsRole.ATTENDEE &&
     calEvent.destinationCalendar &&
+    calEvent.destinationCalendar.length &&
     calEvent.destinationCalendar[0].integration === "office365_calendar"
   )
     return null;
