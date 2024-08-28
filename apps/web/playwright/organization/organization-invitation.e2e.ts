@@ -307,7 +307,10 @@ test.describe("Organization", () => {
           .fill(`${existingUser.username}-differnet-email@example.com`);
         await page.locator('input[name="password"]').fill("Password99!");
         await page.waitForLoadState("networkidle");
-        await expect(page.locator('button[type="submit"]')).toBeDisabled();
+
+        const submitButton = page.locator('button[type="submit"]');
+        await submitButton.waitFor({ state: "attached" });
+        await expect(submitButton).toBeDisabled();
       });
     });
 

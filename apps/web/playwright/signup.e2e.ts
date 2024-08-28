@@ -210,13 +210,17 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
+    await page.waitForLoadState("networkidle");
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
-    await page.click('button[type="submit"]');
+    const submitButton = page.locator('button[type="submit"]');
+    await submitButton.waitFor({ state: "attached" });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
 
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
     // Find the newly created user and add it to the fixture store
