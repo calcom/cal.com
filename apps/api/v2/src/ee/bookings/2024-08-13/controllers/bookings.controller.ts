@@ -3,6 +3,7 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
 import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
+import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -102,7 +103,7 @@ export class BookingsController_2024_08_13 {
     @Param("bookingUid") bookingUid: string,
     @Body() body: RescheduleBookingInput_2024_08_13,
     @Req() request: Request
-  ): Promise<CreateBookingOutput_2024_08_13> {
+  ): Promise<RescheduleBookingOutput_2024_08_13> {
     if (!bookingUid) {
       throw new BadRequestException("Booking UID is required in request path /:bookingUid/reschedule");
     }

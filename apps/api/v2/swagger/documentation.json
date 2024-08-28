@@ -2849,7 +2849,28 @@
     "/v2/bookings": {
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookings",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2973,7 +2994,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateBookingOutput_2024_08_13"
+                  "$ref": "#/components/schemas/RescheduleBookingOutput_2024_08_13"
                 }
               }
             }
@@ -9204,6 +9225,26 @@
       "RescheduleBookingInput_2024_08_13": {
         "type": "object",
         "properties": {}
+      },
+      "RescheduleBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CancelBookingInput_2024_08_13": {
         "type": "object",

@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
   ArrayMinSize,
@@ -102,15 +103,18 @@ export class GetBookingsInput_2024_08_13 {
   sortCreated?: SortOrderType;
 
   // note(Lauris): pagination
+  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(1)
-  @Max(100)
+  @Max(250)
   @IsOptional()
-  limit?: number;
+  take?: number;
 
+  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
+  @Min(0)
   @IsOptional()
-  cursor?: number;
+  skip?: number;
 }

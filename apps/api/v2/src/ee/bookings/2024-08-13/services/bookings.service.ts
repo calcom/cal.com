@@ -128,15 +128,15 @@ export class BookingsService_2024_08_13 {
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
       const isRescheduled = booking.rescheduled;
-      if (isRecurring) {
-        return this.outputService.getOutputRecurringBooking(booking);
-      }
       if (isRescheduled) {
         const toReschedule = await this.bookingsRepository.getByFromReschedule(uid);
         if (!toReschedule) {
           throw new Error(`Booking with fromReschedule=${uid} was not found in the database`);
         }
         return this.outputService.getOutputRescheduledBooking(booking, toReschedule);
+      }
+      if (isRecurring) {
+        return this.outputService.getOutputRecurringBooking(booking);
       }
       return this.outputService.getOutputBooking(booking);
     }
@@ -152,8 +152,8 @@ export class BookingsService_2024_08_13 {
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
     const fetchedBookings: { bookings: BookingWithAttendeesAndEventType[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
-      skip: queryParams.cursor ?? 0,
-      take: queryParams.limit ?? 10,
+      skip: queryParams.skip ?? 0,
+      take: queryParams.take ?? 100,
       // todo: add filters here like by eventtype id etc
       filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
@@ -181,18 +181,34 @@ export class BookingsService_2024_08_13 {
   }
 
   async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput_2024_08_13) {
-    const bookingRequest = await this.inputService.createRescheduleBookingRequest(request, bookingUid, body);
-    const booking = await handleNewBooking(bookingRequest);
-    if (!booking.id) {
-      throw new Error("Booking was not created");
-    }
+    try {
+      const bookingRequest = await this.inputService.createRescheduleBookingRequest(
+        request,
+        bookingUid,
+        body
+      );
+      const booking = await handleNewBooking(bookingRequest);
+      if (!booking.id) {
+        throw new Error("Booking was not created");
+      }
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
-    if (!databaseBooking) {
-      throw new Error(`Booking with id=${booking.id} was not found in the database`);
-    }
+      const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
+      if (!databaseBooking) {
+        throw new Error(`Booking with id=${booking.id} was not found in the database`);
+      }
 
-    return this.outputService.getOutputBooking(databaseBooking);
+      if (databaseBooking.recurringEventId) {
+        return this.outputService.getOutputRecurringBooking(databaseBooking);
+      }
+      return this.outputService.getOutputBooking(databaseBooking);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "no_available_users_found_error") {
+          throw new BadRequestException("User either already has booking at this time or is not available");
+        }
+      }
+      throw error;
+    }
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput_2024_08_13) {

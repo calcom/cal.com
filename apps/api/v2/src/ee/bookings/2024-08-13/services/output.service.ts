@@ -116,6 +116,7 @@ export class OutputBookingsService_2024_08_13 {
       reschedulingReason: bookingResponsesNew?.rescheduledReason,
       rescheduledFromUid: oldDatabaseBooking.fromReschedule || undefined,
       rescheduledToUid: newDatabaseBooking.uid,
+      recurringBookingUid: newDatabaseBooking.recurringEventId || undefined,
       start: oldDatabaseBooking.startTime,
       end: oldDatabaseBooking.endTime,
       duration,
@@ -161,7 +162,7 @@ export class OutputBookingsService_2024_08_13 {
       transformed.push(this.getOutputRecurringBooking(databaseBooking));
     }
 
-    return transformed;
+    return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
   getOutputRecurringBooking(
