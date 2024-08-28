@@ -4,14 +4,21 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
 
+enum ButtonState {
+  NONE = "none",
+  ALLOW = "allow",
+  DISABLE = "disable",
+  DENIED = "denied",
+}
+
 export const useNotifications = () => {
-  const [buttonToShow, setButtonToShow] = useState<"none" | "allow" | "disable" | "denied">("none");
+  const [buttonToShow, setButtonToShow] = useState<ButtonState>(ButtonState.NONE);
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useLocale();
 
   const { mutate: addSubscription } = trpc.viewer.addNotificationsSubscription.useMutation({
     onSuccess: () => {
-      setButtonToShow("disable");
+      setButtonToShow(ButtonState.DISABLE);
       showToast(t("browser_notifications_turned_on"), "success");
     },
     onError: (error) => {
@@ -23,7 +30,7 @@ export const useNotifications = () => {
   });
   const { mutate: removeSubscription } = trpc.viewer.removeNotificationsSubscription.useMutation({
     onSuccess: () => {
-      setButtonToShow("allow");
+      setButtonToShow(ButtonState.ALLOW);
       showToast(t("browser_notifications_turned_off"), "success");
     },
     onError: (error) => {
@@ -46,22 +53,22 @@ export const useNotifications = () => {
 
       const permission = Notification.permission;
 
-      if (permission === "denied") {
-        setButtonToShow("denied");
+      if (permission === ButtonState.DENIED) {
+        setButtonToShow(ButtonState.DENIED);
         return;
       }
 
       if (permission === "default") {
-        setButtonToShow("allow");
+        setButtonToShow(ButtonState.ALLOW);
         return;
       }
 
       if (!subscription) {
-        setButtonToShow("allow");
+        setButtonToShow(ButtonState.ALLOW);
         return;
       }
 
-      setButtonToShow("disable");
+      setButtonToShow(ButtonState.DISABLE);
     };
 
     decideButtonToShow();
@@ -71,8 +78,8 @@ export const useNotifications = () => {
     setIsLoading(true);
     const permissionResponse = await Notification.requestPermission();
 
-    if (permissionResponse === "denied") {
-      setButtonToShow("denied");
+    if (permissionResponse === ButtonState.DENIED) {
+      setButtonToShow(ButtonState.DENIED);
       setIsLoading(false);
       showToast(t("browser_notifications_denied"), "warning");
       return;
@@ -100,7 +107,7 @@ export const useNotifications = () => {
       // This happens in Brave browser as it does not have a push service
       console.error(error);
       setIsLoading(false);
-      setButtonToShow("none");
+      setButtonToShow(ButtonState.NONE);
       showToast(t("browser_notifications_not_supported"), "error");
       return;
     }
