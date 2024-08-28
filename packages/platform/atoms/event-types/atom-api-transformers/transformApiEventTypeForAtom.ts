@@ -190,7 +190,7 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
     const { displayLocationPublicly, type } = location;
 
     switch (type) {
-      case "address":
+      case "inPerson":
         return displayLocationPublicly ? location : { ...location, address: "" };
       case "link":
         return displayLocationPublicly ? location : { ...location, link: "" };
