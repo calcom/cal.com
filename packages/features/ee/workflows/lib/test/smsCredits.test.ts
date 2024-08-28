@@ -40,7 +40,7 @@ beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
 });
 
-describe("SMS credit limits", () => {
+describe("addCredits", () => {
   beforeEach(() => {
     i18nMock.getTranslation.mockImplementation(() => {
       return new Promise((resolve) => {
