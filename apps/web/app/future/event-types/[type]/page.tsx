@@ -4,8 +4,6 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
-import { APP_NAME } from "@calcom/lib/constants";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
@@ -22,7 +20,7 @@ export const generateMetadata = async ({
   const { eventType } = await getData(legacyCtx);
 
   return await _generateMetadata(
-    (t) => `${eventType.title} | ${t("event_type")} | ${APP_NAME}`,
+    (t) => `${eventType.title} | ${t("event_type")}`,
     () => ""
   );
 };
