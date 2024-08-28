@@ -147,8 +147,9 @@ export class InputBookingsService_2024_08_13 {
 
     newRequest.body = (bodyTransformed as any[]).map((event) => ({
       ...event,
-      noEmail: !oAuthParams.arePlatformEmailsEnabled,
     }));
+
+    newRequest.body.noEmail = !oAuthParams.arePlatformEmailsEnabled;
 
     return newRequest as unknown as BookingRequest;
   }
