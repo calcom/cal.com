@@ -64,11 +64,11 @@ export class StripeService {
     const { client_id, client_secret } = stripeKeysResponseSchema.parse(app?.keys);
 
     if (!client_id) {
-      throw new NotFoundException();
+      throw new NotFoundException("Stripe app not found");
     }
 
     if (!client_secret) {
-      throw new NotFoundException();
+      throw new NotFoundException("Stripe app not found");
     }
 
     return { client_id, client_secret };
