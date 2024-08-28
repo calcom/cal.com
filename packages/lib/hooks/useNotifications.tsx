@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
 
-enum ButtonState {
+export enum ButtonState {
   NONE = "none",
   ALLOW = "allow",
   DISABLE = "disable",

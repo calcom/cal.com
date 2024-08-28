@@ -12,7 +12,7 @@ import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQ
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications } from "@calcom/lib/hooks/useNotifications";
+import { useNotifications, ButtonState } from "@calcom/lib/hooks/useNotifications";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -152,12 +152,16 @@ export default function Bookings() {
       {buttonToShow && (
         <Button
           color="primary"
-          onClick={buttonToShow === "allow" ? enableNotifications : disableNotifications}
+          onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
           loading={isLoading}
-          disabled={buttonToShow === "denied"}
+          disabled={buttonToShow === ButtonState.DENIED}
           tooltipSide="bottom"
-          tooltip={buttonToShow === "denied" ? t("you_have_denied_notifications") : undefined}>
-          {t(buttonToShow === "disable" ? "disable_browser_notifications" : "allow_browser_notifications")}
+          tooltip={buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined}>
+          {t(
+            buttonToShow === ButtonState.DISABLE
+              ? "disable_browser_notifications"
+              : "allow_browser_notifications"
+          )}
         </Button>
       )}
     </div>
