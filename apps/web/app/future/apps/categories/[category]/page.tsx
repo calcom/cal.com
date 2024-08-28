@@ -12,7 +12,7 @@ import CategoryPage, { type PageProps } from "~/apps/categories/[category]/categ
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => `${APP_NAME} | ${APP_NAME}`,
+    () => `${APP_NAME}`,
     () => ""
   );
 };

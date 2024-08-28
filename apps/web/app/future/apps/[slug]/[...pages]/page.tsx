@@ -2,13 +2,11 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import type { GetServerSidePropsContext } from "next";
 import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import z from "zod";
 
-import { APP_NAME } from "@calcom/lib/constants";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -37,21 +35,16 @@ export const generateMetadata = async ({
 
   if (mainPage === "forms") {
     return await _generateMetadata(
-      () => `Forms | ${APP_NAME}`,
+      () => `Forms`,
       () => ""
     );
   }
 
-  const legacyContext = buildLegacyCtx(
-    headers(),
-    cookies(),
-    params,
-    searchParams
-  ) as unknown as GetServerSidePropsContext;
+  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const { form } = await getData(legacyContext);
 
   return await _generateMetadata(
-    () => `${form.name} | ${APP_NAME}`,
+    () => `${form.name}`,
     () => form.description
   );
 };
