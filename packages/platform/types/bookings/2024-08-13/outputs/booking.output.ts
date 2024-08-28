@@ -172,5 +172,6 @@ export class RecurringBookingOutput_2024_08_13 {
   meetingUrl?: string;
 
   @IsBoolean()
+  @Expose()
   absentHost!: boolean;
 }
