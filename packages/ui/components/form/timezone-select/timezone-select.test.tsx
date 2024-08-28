@@ -6,6 +6,7 @@ import { vi } from "vitest";
 import dayjs from "@calcom/dayjs";
 
 import { TimezoneSelect } from "./TimezoneSelect";
+import { CommonProps } from "react-select";
 
 const cityTimezonesMock = [
   { city: "Dawson City", timezone: "America/Dawson" },
@@ -55,7 +56,7 @@ const classNames = {
 
 const onChangeMock = vi.fn();
 
-const renderSelect = (newProps: SelectProps & { variant?: "default" | "minimal" }) => {
+const renderSelect = (newProps: CommonProps & { variant?: "default" | "minimal" }) => {
   render(
     <form aria-label="test-form">
       <label htmlFor="test">Test</label>
