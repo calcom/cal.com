@@ -28,8 +28,8 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   }
   req.prisma = customPrisma({ datasources: { db: { url: databaseUrl } } });
   /* @note:
-    In order to skip verifyApiKey for customPrisma requests, 
-    we pass isAdmin true, and userId 0, if we detect them later, 
+    In order to skip verifyApiKey for customPrisma requests,
+    we pass isAdmin true, and userId 0, if we detect them later,
     we skip verifyApiKey logic and pass onto next middleware instead.
      */
   req.isAdmin = true;

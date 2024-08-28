@@ -1,3 +1,4 @@
+import { redis } from "@esa/cal-additions/lib/redis";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -81,6 +82,7 @@ const zoomTokenSchema = z.object({
   token_type: z.literal("bearer"),
   access_token: z.string(),
   refresh_token: z.string(),
+  user_id: z.string().optional(),
 });
 
 type ZoomToken = z.infer<typeof zoomTokenSchema>;
@@ -162,9 +164,45 @@ const zoomAuth = (credential: CredentialPayload) => {
     return newTokens.access_token;
   };
 
+  const serverToServerAuth = async () => {
+    const cacheKey = `zoom.server.to.server.auth.access.token`;
+    const cachedToken = await redis.get(cacheKey);
+    if (cachedToken) {
+      return cachedToken;
+    }
+
+    const accountId = process.env.ZOOM_SERVER_TO_SERVER_ACCOUNT_ID || "";
+    const clientId = process.env.ZOOM_SERVER_TO_SERVER_CLIENT_ID || "";
+    const clientSecret = process.env.ZOOM_SERVER_TO_SERVER_CLIENT_SECRET || "";
+
+    const authHeader = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
+
+    const response = await fetch("https://zoom.us/oauth/token", {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "account_credentials",
+        account_id: accountId,
+      }),
+    });
+
+    const responseBody: { access_token: string; expires_in: number } = await handleZoomResponse(response);
+    await redis.setex(cacheKey, responseBody.expires_in - 1, responseBody.access_token);
+
+    return responseBody.access_token;
+  };
+
   return {
     getToken: async () => {
       const credentialKey = credential.key as ZoomToken;
+      const isManagedSetup = !!credentialKey.user_id;
+
+      if (isManagedSetup) {
+        return serverToServerAuth();
+      }
 
       return isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
@@ -183,6 +221,11 @@ type ZoomRecurrence = {
 };
 
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
+  const getUserId = () => {
+    const credentialKey = credential.key as ZoomToken;
+    return credentialKey.user_id || "me";
+  };
+
   const translateEvent = (event: CalendarEvent) => {
     const getRecurrence = ({
       recurringEvent,
@@ -284,7 +327,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
   const createMeeting = async (event: CalendarEvent): Promise<VideoCallData> => {
     try {
-      const response = await fetchZoomApi("users/me/meetings", {
+      const response = await fetchZoomApi(`users/${getUserId()}/meetings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -314,10 +357,13 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 
   return {
+    getZoomUsers: async () => {
+      return fetchZoomApi(`users`);
+    },
     getAvailability: async () => {
       try {
         // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
-        const responseBody = await fetchZoomApi("users/me/meetings?type=scheduled&page_size=300");
+        const responseBody = await fetchZoomApi(`users/${getUserId()}/meetings?type=scheduled&page_size=300`);
 
         const data = zoomMeetingsSchema.parse(responseBody);
         return data.meetings.map((meeting) => ({
@@ -389,7 +435,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         return Promise.reject(new Error("Failed to update meeting"));
       }
     },
-  };
+  } as unknown as VideoApiAdapter;
 };
 
 const handleZoomResponse = async (response: Response) => {
