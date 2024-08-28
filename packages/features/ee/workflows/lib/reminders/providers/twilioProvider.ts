@@ -185,19 +185,19 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
         dayjs(smsCreditCountTeam.limitReachedAt).isBefore(dayjs().startOf("month"))
       ) {
         // limit reached
-        const owners = await Promise.all(
+        const ownersAndAdmins = await Promise.all(
           acceptedMembers
-            .filter((member) => member.role === "OWNER")
+            .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
             .map(async (member) => {
               return {
                 email: member.user.email,
                 name: member.user.name,
-                t: await getTranslation(member.user.locale ?? "es", "common"),
+                t: await getTranslation(member.user.locale ?? "en", "common"),
               };
             })
         );
 
-        await sendSmsLimitReachedEmails({ name: team.name, owners });
+        await sendSmsLimitReachedEmails({ name: team.name, ownersAndAdmins });
 
         await prisma.smsCreditCount.update({
           where: {
@@ -215,9 +215,9 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
         !smsCreditCountTeam.warningSentAt ||
         dayjs(smsCreditCountTeam.warningSentAt).isBefore(dayjs().startOf("month"))
       ) {
-        const owners = await Promise.all(
+        const ownersAndAdmins = await Promise.all(
           acceptedMembers
-            .filter((member) => member.role === "OWNER")
+            .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
             .map(async (member) => {
               return {
                 email: member.user.email,
@@ -226,8 +226,9 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
               };
             })
         );
+
         // notification email to team owners when over 80% of credits used
-        await sendSmsLimitAlmostReachedEmails({ name: team.name, owners });
+        await sendSmsLimitAlmostReachedEmails({ name: team.name, ownersAndAdmins });
 
         await prisma.smsCreditCount.update({
           where: {

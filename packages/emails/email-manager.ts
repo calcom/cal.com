@@ -621,7 +621,7 @@ export const sendBookingRedirectNotification = async (bookingRedirect: IBookingR
 
 export const sendSmsLimitAlmostReachedEmails = async (team: {
   name: string;
-  owners: {
+  ownersAndAdmins: {
     email: string;
     name: string | null;
     t: TFunction;
@@ -630,7 +630,7 @@ export const sendSmsLimitAlmostReachedEmails = async (team: {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    ...team.owners.map((owner) => {
+    ...team.ownersAndAdmins.map((owner) => {
       return sendEmail(() => new SmsLimitAlmostReachedEmail({ teamName: team.name, user: owner }));
     })
   );
@@ -639,7 +639,7 @@ export const sendSmsLimitAlmostReachedEmails = async (team: {
 
 export const sendSmsLimitReachedEmails = async (team: {
   name: string;
-  owners: {
+  ownersAndAdmins: {
     email: string;
     name: string | null;
     t: TFunction;
@@ -648,7 +648,7 @@ export const sendSmsLimitReachedEmails = async (team: {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    ...team.owners.map((owner) => {
+    ...team.ownersAndAdmins.map((owner) => {
       return sendEmail(() => new SmsLimitReachedEmail({ teamName: team.name, user: owner }));
     })
   );

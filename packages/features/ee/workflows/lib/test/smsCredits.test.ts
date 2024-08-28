@@ -1,11 +1,13 @@
+import i18nMock from "../../../../../../tests/libs/__mocks__/libServerI18n";
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
-import { describe, test, expect } from "vitest";
+import { vi, describe, beforeAll, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { SmsCreditAllocationType } from "@calcom/prisma/enums";
-
-import { addCredits } from "../reminders/providers/twilioProvider";
+import { addCredits } from "@calcom/ee/workflows/lib/reminders/providers/twilioProvider";
+import { resetTestEmails } from "@calcom/lib/testEmails";
+import { MembershipRole, SmsCreditAllocationType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 interface SmsCreditCountWithTeam {
   id: number;
@@ -22,8 +24,29 @@ interface SmsCreditCountWithTeam {
   };
 }
 
+vi.mock("@calcom/features/flags/server/utils", () => {
+  // Mock kill switch to be false
+  return {
+    getFeatureFlag: vi.fn().mockResolvedValue(false),
+  };
+});
+
+beforeAll(() => {
+  vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+});
+
 describe("SMS credit limits", () => {
-  test.skip("should return null if no team has available credits for the user", async ({}) => {
+  beforeEach(() => {
+    i18nMock.getTranslation.mockImplementation(() => {
+      return new Promise((resolve) => {
+        const identityFn = (key: string) => key;
+        resolve(identityFn);
+      });
+    });
+    resetTestEmails();
+  });
+
+  test("should return null if no team has available credits for the user", async ({}) => {
     prismaMock.membership.findMany.mockResolvedValue([]);
 
     const result = await addCredits("+15555551234", 1, null);
@@ -93,27 +116,11 @@ describe("SMS credit limits", () => {
 
     expect(result).toEqual({ teamId: 2 });
   });
-
-  test("should send 'limit almost reached' email when 80% of credits are used", async () => {
-    prismaMock.membership.findMany.mockResolvedValue([
-      {
-        team: {
-          id: 1,
-          smsCreditAllocationType: SmsCreditAllocationType.ALL,
-          smsCreditAllocationValue: 0,
-          smsCreditCounts: [
-            {
-              credits: 6,
-            },
-          ],
-        },
-      },
-    ]);
-
+  test("should send 'limit almost reached' email when 80% of credits are used", async ({ emails }) => {
     prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
     prismaMock.smsCreditCount.update.mockResolvedValue({
       id: 1,
-      credits: 470,
+      credits: 650,
       limitReachedAt: null,
       warningSentAt: dayjs().subtract(3, "month").toDate(),
       userId: null,
@@ -123,9 +130,27 @@ describe("SMS credit limits", () => {
         members: [
           {
             accepted: true,
+            role: MembershipRole.ADMIN,
+            user: {
+              email: "admin@example.com",
+              name: "Admin name",
+            },
           },
           {
             accepted: true,
+            role: MembershipRole.OWNER,
+            user: {
+              email: "owner@example.com",
+              name: "Owner name",
+            },
+          },
+          {
+            accepted: true,
+            role: MembershipRole.MEMBER,
+            user: {
+              email: "member@example.com",
+              name: "Member name",
+            },
           },
         ],
       },
@@ -135,31 +160,33 @@ describe("SMS credit limits", () => {
 
     expect(result).toEqual({ teamId: 1 });
 
-    //test that the email was sent
+    const sentEmails = emails.get();
+
+    const areEmailsSentToAdmin = sentEmails?.some((email) => email.to === "admin@example.com");
+
+    const areEmailsSentToOwner = sentEmails?.some(
+      (email) => email.to === "owner@example.com" && email.subject === "sms_limit_almost_reached_subject"
+    );
+
+    const areEmailsSentToMember = sentEmails?.some(
+      (email) => email.to === "member@example.com" && email.subject === "sms_limit_almost_reached_subject"
+    );
+
+    expect(areEmailsSentToAdmin).toBe(true);
+    expect(areEmailsSentToOwner).toBe(true);
+    expect(areEmailsSentToMember).toBe(false);
   });
 
-  test("should not send 'limit almost reached' email when 80% of credits are used but email was already sent", async () => {
-    prismaMock.membership.findMany.mockResolvedValue([
-      {
-        team: {
-          id: 1,
-          smsCreditAllocationType: SmsCreditAllocationType.ALL,
-          smsCreditAllocationValue: 0,
-          smsCreditCounts: [
-            {
-              credits: 6,
-            },
-          ],
-        },
-      },
-    ]);
-    //we need to fake the date here otherwise this will be flaky at the beginning of the month
+  test("should not send 'limit almost reached' email when 80% of credits are used but email was already sent", async ({
+    emails,
+  }) => {
+    console.log(`time now ${dayjs().format()}`);
     prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
     prismaMock.smsCreditCount.update.mockResolvedValue({
       id: 1,
-      credits: 470,
+      credits: 230,
       limitReachedAt: null,
-      warningSentAt: dayjs().subtract(1, "days").toDate(),
+      warningSentAt: dayjs().subtract(3, "day").toDate(),
       userId: null,
       teamId: 1,
       team: {
@@ -167,9 +194,11 @@ describe("SMS credit limits", () => {
         members: [
           {
             accepted: true,
-          },
-          {
-            accepted: true,
+            role: MembershipRole.ADMIN,
+            user: {
+              email: "admin@example.com",
+              name: "Admin name",
+            },
           },
         ],
       },
@@ -179,6 +208,10 @@ describe("SMS credit limits", () => {
 
     expect(result).toEqual({ teamId: 1 });
 
-    //test that the email was not
+    const sentEmails = emails.get() ?? [];
+
+    const areEmailsSentToAdmin = sentEmails.some((email) => email.to === "admin@example.com");
+
+    expect(areEmailsSentToAdmin).toBe(false);
   });
 });
