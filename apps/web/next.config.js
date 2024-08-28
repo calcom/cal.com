@@ -355,7 +355,7 @@ const nextConfig = {
     let afterFiles = [
       {
         source: "/api/v2/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
+        destination: "https://api.agenda.yinflow.life/:path*",
       },
       {
         source: "/org/:slug",
