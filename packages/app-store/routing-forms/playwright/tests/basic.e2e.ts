@@ -351,11 +351,11 @@ test.describe("Routing Forms", () => {
       const routingForm = user.routingForms[0];
       page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
       await page.waitForLoadState("networkidle");
+      await page.locator('[data-testid="test-preview"]').waitFor({ state: "visible" });
       await page.click('[data-testid="test-preview"]');
 
       await Promise.all([page.waitForLoadState("domcontentloaded"), page.waitForLoadState("networkidle")]);
 
-      await page.waitForSelector('[data-testid="form-field-Test field"]', { state: "visible" });
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
       await page.click('[data-testid="test-routing"]');
       let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();

@@ -195,6 +195,7 @@ test.describe("Managed Event Types", () => {
 
       await memberUser.apiLogin();
       await page.goto("/event-types");
+      await page.waitForLoadState("networkidle");
 
       await page.getByTestId("event-types").locator('a[title="Managed Event Title"]').click();
       await page.waitForURL("event-types/**");
