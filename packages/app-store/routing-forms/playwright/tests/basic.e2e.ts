@@ -353,8 +353,8 @@ test.describe("Routing Forms", () => {
       await page.waitForLoadState("networkidle");
       await page.click('[data-testid="test-preview"]');
 
-      // //event redirect
-      await page.waitForLoadState("networkidle");
+      await Promise.all([page.waitForLoadState("domcontentloaded"), page.waitForLoadState("networkidle")]);
+
       await page.waitForSelector('[data-testid="form-field-Test field"]', { state: "visible" });
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
       await page.click('[data-testid="test-routing"]');
