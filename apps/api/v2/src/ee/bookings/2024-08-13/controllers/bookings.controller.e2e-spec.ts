@@ -18,10 +18,17 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_08_13,
+  X_CAL_CLIENT_ID,
+} from "@calcom/platform-constants";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
@@ -31,16 +38,20 @@ import {
   MarkAbsentBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Booking } from "@calcom/prisma/client";
+import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("User bookings", () => {
     let app: INestApplication;
+    let organization: Team;
 
     let userRepositoryFixture: UserRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let schedulesService: SchedulesService_2024_04_15;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let oAuthClient: PlatformOAuthClient;
+    let teamRepositoryFixture: TeamRepositoryFixture;
 
     const userEmail = "bookings-controller-e2e@api.com";
     let user: User;
@@ -70,7 +81,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+
+      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -137,6 +153,19 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       await app.init();
     });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["http://localhost:5555"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
 
     it("should be defined", () => {
       expect(userRepositoryFixture).toBeDefined();
@@ -886,6 +915,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post(`/v2/bookings/${rescheduledBooking.uid}/cancel`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(200)
           .then(async (response) => {
             const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
@@ -933,6 +963,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
     }
 
     afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
       await userRepositoryFixture.deleteByEmail(user.email);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
       await app.close();
