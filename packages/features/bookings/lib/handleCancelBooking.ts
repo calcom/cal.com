@@ -144,6 +144,7 @@ export type CustomRequest = NextApiRequest & {
   platformCancelUrl?: string;
   platformBookingUrl?: string;
   arePlatformEmailsEnabled?: boolean;
+  noEmail?: boolean;
 };
 
 export type HandleCancelBookingResponse = {
@@ -517,7 +518,7 @@ async function handler(req: CustomRequest) {
 
   try {
     // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+    if ((!platformClientId && req.body.noEmail !== true) || (platformClientId && arePlatformEmailsEnabled))
       await sendCancelledEmails(
         evt,
         { eventName: bookingToDelete?.eventType?.eventName },
