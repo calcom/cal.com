@@ -1,12 +1,22 @@
 import { describe, expect, it } from "vitest";
 
-import type { BookingField_2024_06_14, Location_2024_06_14 } from "@calcom/platform-types";
+import { FrequencyInput } from "@calcom/platform-enums/monorepo";
+import type {
+  BookingField_2024_06_14,
+  Location_2024_06_14,
+  BookingLimitsCount_2024_06_14,
+  BookingWindow_2024_06_14,
+  Recurrence_2024_06_14,
+} from "@calcom/platform-types";
 
-import type { UserField, OptionsField } from "./api-request";
+import type { UserField } from "./api-request";
 import {
   transformApiEventTypeLocations,
   transformApiEventTypeBookingFields,
   transformSelectOptions,
+  transformApiEventTypeIntervalLimits,
+  transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeRecurrence,
 } from "./api-request";
 
 describe("transformApiEventTypeLocations", () => {
@@ -336,7 +346,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -372,7 +382,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -443,7 +453,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -479,7 +489,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -534,6 +544,132 @@ describe("transformApiEventTypeBookingFields", () => {
     ];
 
     const result = transformApiEventTypeBookingFields(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeIntervalLimits", () => {
+  it("should transform booking limits count or booking limits duration", () => {
+    const input: BookingLimitsCount_2024_06_14 = {
+      day: 2,
+      week: 11,
+      month: 22,
+      year: 33,
+    };
+
+    const expectedOutput = {
+      PER_DAY: 2,
+      PER_WEEK: 11,
+      PER_MONTH: 22,
+      PER_YEAR: 33,
+    };
+    const result = transformApiEventTypeIntervalLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeFutureBookingLimits", () => {
+  it("should transform range type", () => {
+    const input: BookingWindow_2024_06_14 = {
+      type: "range",
+      value: ["2024-08-06", "2024-08-28"],
+    };
+
+    const expectedOutput = {
+      periodType: "RANGE",
+      periodStartDate: new Date("2024-08-06"),
+      periodEndDate: new Date("2024-08-28"),
+    };
+
+    const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should transform calendar days", () => {
+    const input: BookingWindow_2024_06_14 = {
+      type: "calendarDays",
+      value: 30,
+      rolling: false,
+    };
+
+    const expectedOutput = {
+      periodType: "ROLLING",
+      periodDays: 30,
+      periodCountCalendarDays: true,
+    };
+
+    const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should transform calendar days rolling-window", () => {
+    const input: BookingWindow_2024_06_14 = {
+      type: "calendarDays",
+      value: 30,
+      rolling: true,
+    };
+
+    const expectedOutput = {
+      periodType: "ROLLING_WINDOW",
+      periodDays: 30,
+      periodCountCalendarDays: true,
+    };
+
+    const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should transform Business days", () => {
+    const input: BookingWindow_2024_06_14 = {
+      type: "businessDays",
+      value: 30,
+      rolling: false,
+    };
+
+    const expectedOutput = {
+      periodType: "ROLLING",
+      periodDays: 30,
+      periodCountCalendarDays: false,
+    };
+
+    const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should transform Business days rolling-window", () => {
+    const input: BookingWindow_2024_06_14 = {
+      type: "businessDays",
+      value: 30,
+      rolling: true,
+    };
+
+    const expectedOutput = {
+      periodType: "ROLLING_WINDOW",
+      periodDays: 30,
+      periodCountCalendarDays: false,
+    };
+
+    const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeRecurrence", () => {
+  it("should transform recurrence", () => {
+    const input: Recurrence_2024_06_14 = {
+      frequency: FrequencyInput.weekly,
+      interval: 2,
+      occurrences: 10,
+    };
+    const expectedOutput = {
+      interval: 2,
+      count: 10,
+      freq: 2,
+    };
+    const result = transformApiEventTypeRecurrence(input);
 
     expect(result).toEqual(expectedOutput);
   });

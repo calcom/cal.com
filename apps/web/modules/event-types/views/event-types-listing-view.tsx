@@ -17,12 +17,14 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
+import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { User } from "@calcom/prisma/client";
@@ -168,7 +170,8 @@ const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
     },
     {
       refetchOnWindowFocus: true,
-      staleTime: 1 * 60 * 60 * 1000,
+      refetchOnMount: true,
+      staleTime: 0,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
@@ -213,6 +216,11 @@ const Item = ({
   readOnly: boolean;
 }) => {
   const { t } = useLocale();
+  const { resolvedTheme, forcedTheme } = useGetTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
+  const eventTypeColor =
+    parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
   const content = () => (
     <div>
@@ -238,40 +246,46 @@ const Item = ({
     </div>
   );
 
-  return readOnly ? (
-    <div className="flex-1 overflow-hidden pr-4 text-sm">
-      {content()}
-      <EventTypeDescription eventType={type} shortenDescription />
-    </div>
-  ) : (
-    <Link
-      href={`/event-types/${type.id}?tabName=setup`}
-      className="flex-1 overflow-hidden pr-4 text-sm"
-      title={type.title}>
-      <div>
-        <span
-          className="text-default font-semibold ltr:mr-1 rtl:ml-1"
-          data-testid={`event-type-title-${type.id}`}>
-          {type.title}
-        </span>
-        {group.profile.slug ? (
-          <small
-            className="text-subtle hidden font-normal leading-4 sm:inline"
-            data-testid={`event-type-slug-${type.id}`}>
-            {`/${group.profile.slug}/${type.slug}`}
-          </small>
-        ) : null}
-        {readOnly && (
-          <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
-            {t("readonly")}
-          </Badge>
+  return (
+    <div className="relative flex-1 overflow-hidden pr-4 text-sm">
+      {eventTypeColor && (
+        <div className="absolute h-full w-0.5" style={{ backgroundColor: eventTypeColor }} />
+      )}
+      <div className="ml-3">
+        {readOnly ? (
+          <div>
+            {content()}
+            <EventTypeDescription eventType={type} shortenDescription />
+          </div>
+        ) : (
+          <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
+            <div>
+              <span
+                className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+                data-testid={`event-type-title-${type.id}`}>
+                {type.title}
+              </span>
+              {group.profile.slug ? (
+                <small
+                  className="text-subtle hidden font-normal leading-4 sm:inline"
+                  data-testid={`event-type-slug-${type.id}`}>
+                  {`/${group.profile.slug}/${type.slug}`}
+                </small>
+              ) : null}
+              {readOnly && (
+                <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
+                  {t("readonly")}
+                </Badge>
+              )}
+            </div>
+            <EventTypeDescription
+              eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
+              shortenDescription
+            />
+          </Link>
         )}
       </div>
-      <EventTypeDescription
-        eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
-        shortenDescription
-      />
-    </Link>
+    </div>
   );
 };
 
@@ -470,7 +484,7 @@ export const EventTypeList = ({
           return (
             <li key={type.id}>
               <div className="hover:bg-muted flex w-full items-center justify-between transition">
-                <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
+                <div className="group flex w-full max-w-full items-center justify-between overflow-hidden py-4 pl-2 pr-4 sm:pl-3 sm:pr-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
                   )}
@@ -726,7 +740,7 @@ export const EventTypeList = ({
                         )}
                         <DropdownMenuSeparator />
                         {!isManagedEventType && (
-                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
+                          <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
                             <Skeleton
                               as={Label}
                               htmlFor="hiddenSwitch"
@@ -1267,7 +1281,7 @@ export const InfiniteEventTypeList = ({
                           )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
-                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
+                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"

@@ -138,7 +138,8 @@ const createNewSeat = async (
       newSeat,
       !!eventType.seatsShowAttendees,
       isHostConfirmationEmailsDisabled,
-      isAttendeeConfirmationEmailDisabled
+      isAttendeeConfirmationEmailDisabled,
+      eventType.metadata
     );
   }
   const credentials = await refreshCredentials(allCredentials);

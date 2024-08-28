@@ -1,24 +1,16 @@
 import LegacyPage from "@pages/workflows/[workflow]";
 import { withAppDirSsg } from "app/WithAppDirSsg";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
 import { headers, cookies } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import { getStaticProps } from "~/workflows/workflow-single-view.GetStaticProps";
+import { getStaticProps } from "~/workflows/workflow-single-view.getStaticProps";
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Record<string, string | string[]>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
-  const { workflow } = await getData(
-    buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
-  );
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+  const { workflow } = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
   return await _generateMetadata(
     () => workflow ?? "Untitled",
     () => ""
