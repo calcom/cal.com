@@ -20,6 +20,11 @@ interface SmsCreditCountWithTeam {
     name: string;
     members: Array<{
       accepted: boolean;
+      role: MembershipRole;
+      user: {
+        email: string;
+        name: string;
+      };
     }>;
   };
 }
@@ -103,10 +108,15 @@ describe("SMS credit limits", () => {
       userId: 1,
       teamId: 2,
       team: {
-        name: "test",
+        name: "Test Team",
         members: [
           {
             accepted: true,
+            role: MembershipRole.OWNER,
+            user: {
+              email: "owner@example.com",
+              name: "Owner name",
+            },
           },
         ],
       },
@@ -116,102 +126,232 @@ describe("SMS credit limits", () => {
 
     expect(result).toEqual({ teamId: 2 });
   });
-  test("should send 'limit almost reached' email when 80% of credits are used", async ({ emails }) => {
-    prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
-    prismaMock.smsCreditCount.update.mockResolvedValue({
-      id: 1,
-      credits: 650,
-      limitReachedAt: null,
-      warningSentAt: dayjs().subtract(3, "month").toDate(),
-      userId: null,
-      teamId: 1,
-      team: {
-        name: "test",
-        members: [
-          {
-            accepted: true,
-            role: MembershipRole.ADMIN,
-            user: {
-              email: "admin@example.com",
-              name: "Admin name",
+
+  describe("SMS limit almost reached", () => {
+    test("should send 'limit almost reached' email when 80% of credits are used", async ({ emails }) => {
+      prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
+      prismaMock.smsCreditCount.update.mockResolvedValue({
+        id: 1,
+        credits: 650,
+        limitReachedAt: null,
+        warningSentAt: dayjs().subtract(3, "month").toDate(),
+        userId: null,
+        teamId: 1,
+        team: {
+          name: "Test Team",
+          members: [
+            {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+              user: {
+                email: "admin@example.com",
+                name: "Admin name",
+              },
             },
-          },
-          {
-            accepted: true,
-            role: MembershipRole.OWNER,
-            user: {
-              email: "owner@example.com",
-              name: "Owner name",
+            {
+              accepted: true,
+              role: MembershipRole.OWNER,
+              user: {
+                email: "owner@example.com",
+                name: "Owner name",
+              },
             },
-          },
-          {
-            accepted: true,
-            role: MembershipRole.MEMBER,
-            user: {
-              email: "member@example.com",
-              name: "Member name",
+            {
+              accepted: true,
+              role: MembershipRole.MEMBER,
+              user: {
+                email: "member@example.com",
+                name: "Member name",
+              },
             },
-          },
-        ],
-      },
-    } as SmsCreditCountWithTeam);
+          ],
+        },
+      } as SmsCreditCountWithTeam);
 
-    const result = await addCredits("+15555551234", null, 1);
+      const result = await addCredits("+15555551234", null, 1);
 
-    expect(result).toEqual({ teamId: 1 });
+      expect(result).toEqual({ teamId: 1 });
 
-    const sentEmails = emails.get();
+      expect(prismaMock.smsCreditCount.update).toHaveBeenCalledWith({
+        data: {
+          warningSentAt: new Date(),
+        },
+        where: {
+          id: 1,
+        },
+      });
 
-    const areEmailsSentToAdmin = sentEmails?.some((email) => email.to === "admin@example.com");
+      const sentEmails = emails.get();
 
-    const areEmailsSentToOwner = sentEmails?.some(
-      (email) => email.to === "owner@example.com" && email.subject === "sms_limit_almost_reached_subject"
-    );
+      const areEmailsSentToAdmin = sentEmails?.some(
+        (email) => email.to === "admin@example.com" && email.subject === "sms_limit_almost_reached_subject"
+      );
 
-    const areEmailsSentToMember = sentEmails?.some(
-      (email) => email.to === "member@example.com" && email.subject === "sms_limit_almost_reached_subject"
-    );
+      const areEmailsSentToOwner = sentEmails?.some(
+        (email) => email.to === "owner@example.com" && email.subject === "sms_limit_almost_reached_subject"
+      );
 
-    expect(areEmailsSentToAdmin).toBe(true);
-    expect(areEmailsSentToOwner).toBe(true);
-    expect(areEmailsSentToMember).toBe(false);
+      const areEmailsSentToMember = sentEmails?.some(
+        (email) => email.to === "member@example.com" && email.subject === "sms_limit_almost_reached_subject"
+      );
+
+      expect(areEmailsSentToAdmin).toBe(true);
+      expect(areEmailsSentToOwner).toBe(true);
+      expect(areEmailsSentToMember).toBe(false);
+    });
+
+    test("should not send 'limit almost reached' email when 80% of credits are used but email was already sent", async ({
+      emails,
+    }) => {
+      prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
+      prismaMock.smsCreditCount.update.mockResolvedValue({
+        id: 1,
+        credits: 230,
+        limitReachedAt: null,
+        warningSentAt: dayjs().subtract(3, "day").toDate(),
+        userId: null,
+        teamId: 1,
+        team: {
+          name: "Test Team",
+          members: [
+            {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+              user: {
+                email: "admin@example.com",
+                name: "Admin name",
+              },
+            },
+          ],
+        },
+      } as SmsCreditCountWithTeam);
+
+      const result = await addCredits("+15555551234", null, 1);
+
+      expect(result).toEqual({ teamId: 1 });
+
+      const sentEmails = emails.get() ?? [];
+
+      const areEmailsSentToAdmin = sentEmails.some((email) => email.to === "admin@example.com");
+
+      expect(areEmailsSentToAdmin).toBe(false);
+    });
   });
 
-  test("should not send 'limit almost reached' email when 80% of credits are used but email was already sent", async ({
-    emails,
-  }) => {
-    console.log(`time now ${dayjs().format()}`);
-    prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
-    prismaMock.smsCreditCount.update.mockResolvedValue({
-      id: 1,
-      credits: 230,
-      limitReachedAt: null,
-      warningSentAt: dayjs().subtract(3, "day").toDate(),
-      userId: null,
-      teamId: 1,
-      team: {
-        name: "test",
-        members: [
-          {
-            accepted: true,
-            role: MembershipRole.ADMIN,
-            user: {
-              email: "admin@example.com",
-              name: "Admin name",
+  describe("SMS limit almost reached", () => {
+    test("should send 'limit reached' email when the credit limit is reached", async ({ emails }) => {
+      prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
+      prismaMock.smsCreditCount.update.mockResolvedValue({
+        id: 1,
+        credits: 752,
+        limitReachedAt: null,
+        warningSentAt: dayjs().subtract(3, "day").toDate(),
+        userId: null,
+        teamId: 1,
+        team: {
+          name: "Test Team",
+          members: [
+            {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+              user: {
+                email: "admin@example.com",
+                name: "Admin name",
+              },
             },
-          },
-        ],
-      },
-    } as SmsCreditCountWithTeam);
+            {
+              accepted: true,
+              role: MembershipRole.OWNER,
+              user: {
+                email: "owner@example.com",
+                name: "Owner name",
+              },
+            },
+            {
+              accepted: true,
+              role: MembershipRole.MEMBER,
+              user: {
+                email: "member@example.com",
+                name: "Member name",
+              },
+            },
+          ],
+        },
+      } as SmsCreditCountWithTeam);
 
-    const result = await addCredits("+15555551234", null, 1);
+      const result = await addCredits("+15555551234", null, 1);
 
-    expect(result).toEqual({ teamId: 1 });
+      expect(prismaMock.smsCreditCount.update).toHaveBeenCalledWith({
+        data: {
+          limitReachedAt: new Date(),
+        },
+        where: {
+          id: 1,
+        },
+      });
 
-    const sentEmails = emails.get() ?? [];
+      expect(result).toEqual({ teamId: 1 });
 
-    const areEmailsSentToAdmin = sentEmails.some((email) => email.to === "admin@example.com");
+      expect(prismaMock.smsCreditCount.update).toHaveBeenCalledWith({
+        data: {
+          limitReachedAt: new Date(),
+        },
+        where: {
+          id: 1,
+        },
+      });
 
-    expect(areEmailsSentToAdmin).toBe(false);
+      const sentEmails = emails.get();
+
+      const areEmailsSentToAdmin = sentEmails?.some(
+        (email) => email.to === "admin@example.com" && email.subject === "sms_limit_reached_subject"
+      );
+
+      const areEmailsSentToOwner = sentEmails?.some(
+        (email) => email.to === "owner@example.com" && email.subject === "sms_limit_reached_subject"
+      );
+
+      const areEmailsSentToMember = sentEmails?.some(
+        (email) => email.to === "member@example.com" && email.subject === "sms_limit_reached_subject"
+      );
+
+      expect(areEmailsSentToAdmin).toBe(true);
+      expect(areEmailsSentToOwner).toBe(true);
+      expect(areEmailsSentToMember).toBe(false);
+    });
+    test("should not send 'limit reached' email when all credits are used", async ({ emails }) => {
+      prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
+      prismaMock.smsCreditCount.update.mockResolvedValue({
+        id: 1,
+        credits: 253,
+        limitReachedAt: dayjs().subtract(3, "day").toDate(),
+        warningSentAt: dayjs().subtract(10, "day").toDate(),
+        userId: null,
+        teamId: 1,
+        team: {
+          name: "Test Team",
+          members: [
+            {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+              user: {
+                email: "admin@example.com",
+                name: "Admin name",
+              },
+            },
+          ],
+        },
+      } as SmsCreditCountWithTeam);
+
+      const result = await addCredits("+15555551234", null, 1);
+
+      expect(result).toEqual(null); // limit was already reached no team has available credits
+
+      const sentEmails = emails.get() ?? [];
+
+      const areEmailsSentToAdmin = sentEmails.some((email) => email.to === "admin@example.com");
+
+      expect(areEmailsSentToAdmin).toBe(false);
+    });
   });
 });
