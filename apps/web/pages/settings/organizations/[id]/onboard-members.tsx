@@ -4,7 +4,7 @@ import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-import AddNewTeamMembers, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
+import OrgAddNewTeamMembers, { LayoutWrapper } from "~/settings/organizations/[id]/onboard-members-view";
 
 const Page = () => {
   const { t } = useLocale();
@@ -15,7 +15,7 @@ const Page = () => {
         title={t("invite_organization_admins")}
         description={t("invite_organization_admins_description")}
       />
-      <AddNewTeamMembers isOrg={true} />
+      <OrgAddNewTeamMembers />
     </>
   );
 };

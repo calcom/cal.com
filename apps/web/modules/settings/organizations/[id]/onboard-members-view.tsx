@@ -24,4 +24,5 @@ export const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-export default AddNewTeamMembers;
+const OrgAddNewTeamMembers = () => <AddNewTeamMembers isOrg={true} />;
+export default OrgAddNewTeamMembers;
