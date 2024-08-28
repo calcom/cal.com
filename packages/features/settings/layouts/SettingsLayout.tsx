@@ -353,6 +353,12 @@ const TeamListCollapsible = () => {
                             textClassNames="px-3 text-emphasis font-medium text-sm"
                             disableChevron
                           />
+                          <VerticalTabItem
+                            name={t("sms_credits")}
+                            href={`/settings/teams/${team.id}/smsCredits`}
+                            textClassNames="px-3 text-emphasis font-medium text-sm"
+                            disableChevron
+                          />
                         </>
                       ) : null}
                     </>
