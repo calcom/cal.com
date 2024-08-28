@@ -262,8 +262,9 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
 
         // Add Attendee Phone Number location
         await selectAttendeePhoneNumber(page);
-        //wait for previous dropdown to close
-        await page.locator('[data-testid=react-select-3-listbox]').waitFor({ state: "detached" });
+        // wait for previous dropdown to close
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(750);
 
         // Add Cal Video location
         await addAnotherLocation(page, "Cal Video (Global)");
