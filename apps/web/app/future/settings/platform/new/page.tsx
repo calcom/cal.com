@@ -17,4 +17,5 @@ export default WithLayout({
   getLayout: LayoutWrapper,
   Page: LegacyPage,
   getData: withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps),
+  requiresLicense: true,
 });
