@@ -16,16 +16,23 @@ type Subscription = {
   };
 };
 
-// Required Format for payload
-// const payloadObj = {
-//   title: "This is a test",
-//   body: payload,
-//   icon: "/cal-com-icon.svg",
-// };
-// payload JSON.stringify(payloadObj)
-
-export const sendNotification = async (subscription: Subscription, payload: string) => {
+export const sendNotification = async ({
+  subscription,
+  title,
+  body,
+  icon,
+}: {
+  subscription: Subscription;
+  title: string;
+  body: string;
+  icon?: string;
+}) => {
   try {
+    const payload = JSON.stringify({
+      title,
+      body,
+      icon,
+    });
     await webpush.sendNotification(subscription, payload);
   } catch (error) {
     console.error("Error sending notification", error);
