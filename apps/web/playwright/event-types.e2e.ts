@@ -264,7 +264,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
-        await addAnotherLocation(page, "react-select-4-option-0-0");
+        await addAnotherLocation(page, `[id^="react-select-[4-5]-option-0-0"]`);
 
         await saveEventType(page);
         await page.waitForLoadState("networkidle");
