@@ -104,6 +104,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
     requiresConfirmation: false,
+    requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,
     minimumBookingNotice: 120,
