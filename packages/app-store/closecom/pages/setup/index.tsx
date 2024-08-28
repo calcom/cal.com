@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
+import { WebAppURL } from "@calcom/lib/WebAppURL";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
@@ -66,7 +67,7 @@ export default function CloseComSetup() {
                 form={form}
                 handleSubmit={async (values) => {
                   const { returnTo } = query;
-                  const url = new URL("/api/integrations/closecom/add");
+                  const url = new WebAppURL("/api/integrations/closecom/add");
                   if (returnTo) url.searchParams.append("returnTo", `${returnTo}`);
                   const res = await fetch(url.href, {
                     method: "POST",

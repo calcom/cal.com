@@ -109,7 +109,7 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/features/**/*.{test,spec}.tsx"],
           exclude: ["packages/features/form-builder/**/*", "packages/features/bookings/**/*"],
           environment: "jsdom",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.ts"],
         },
       },
 
@@ -133,6 +133,17 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
+          name: "@calcom/routing-forms/widgets",
+          include: [
+            "packages/app-store/routing-forms/components/react-awesome-query-builder/widgets.test.tsx",
+          ],
+          environment: "jsdom",
+          setupFiles: ["packages/ui/components/test-setup.ts"],
+        },
+      },
+      {
+        test: {
+          globals: true,
           name: "@calcom/ui",
           include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
@@ -145,7 +156,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/features/form-builder",
           include: ["packages/features/form-builder/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.ts"],
+          setupFiles: ["@calcom/features/form-builder/test-setup.ts"],
         },
       },
       {

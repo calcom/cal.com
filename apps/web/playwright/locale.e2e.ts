@@ -175,7 +175,7 @@ test.describe("unauthorized user sees correct translations (pt-br)", async () =>
 
 test.describe("unauthorized user sees correct translations (es-419)", async () => {
   test.use({
-    locale: "es-419",
+    locale: "es",
   });
 
   test("should use correct translations and html attributes", async ({ page }) => {

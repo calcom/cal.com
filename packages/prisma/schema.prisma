@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -43,17 +43,22 @@ enum PeriodType {
 }
 
 model Host {
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int
-  isFixed     Boolean   @default(false)
-  priority    Int?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
+  eventType        EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId      Int
+  isFixed          Boolean   @default(false)
+  priority         Int?
+  weight           Int?
+  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  weightAdjustment Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
 }
+
+
 
 model EventType {
   id          Int     @id @default(autoincrement())
@@ -101,6 +106,7 @@ model EventType {
   periodCountCalendarDays                 Boolean?
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
+  requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
@@ -137,6 +143,11 @@ model EventType {
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
+  isRRWeightsEnabled                      Boolean                   @default(false)
+
+  /// @zod.custom(imports.eventTypeColor)
+  eventTypeColor                   Json?
+  rescheduleWithSameRoundRobinHost Boolean @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -320,8 +331,9 @@ model User {
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
 
-  OutOfOfficeReasons OutOfOfficeReason[]
-  smsLockState       SMSLockState        @default(UNLOCKED)
+  OutOfOfficeReasons     OutOfOfficeReason[]
+  smsLockState           SMSLockState        @default(UNLOCKED)
+  smsLockReviewedByAdmin Boolean             @default(false)
 
   @@unique([email])
   @@unique([email, username])
@@ -412,6 +424,8 @@ model Team {
   smsLockState           SMSLockState            @default(UNLOCKED)
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
+  attributes             Attribute[]
+  smsLockReviewedByAdmin Boolean                 @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -441,14 +455,15 @@ enum MembershipRole {
 }
 
 model Membership {
-  id                   Int            @id @default(autoincrement())
+  id                   Int               @id @default(autoincrement())
   teamId               Int
   userId               Int
-  accepted             Boolean        @default(false)
+  accepted             Boolean           @default(false)
   role                 MembershipRole
-  team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  disableImpersonation Boolean        @default(false)
+  team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disableImpersonation Boolean           @default(false)
+  AttributeToUser      AttributeToUser[]
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -584,6 +599,10 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  /// @zod.email()
+  cancelledBy           String?
+  /// @zod.email()
+  rescheduledBy         String?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -727,26 +746,29 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id                String                     @id @unique
-  userId            Int?
-  teamId            Int?
-  eventTypeId       Int?
+  id                    String                     @id @unique
+  userId                Int?
+  teamId                Int?
+  eventTypeId           Int?
+  platformOAuthClientId String?
   /// @zod.url()
-  subscriberUrl     String
-  payloadTemplate   String?
-  createdAt         DateTime                   @default(now())
-  active            Boolean                    @default(true)
-  eventTriggers     WebhookTriggerEvents[]
-  user              User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team              Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  eventType         EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  app               App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId             String?
-  secret            String?
-  platform          Boolean                    @default(false)
-  scheduledTriggers WebhookScheduledTriggers[]
+  subscriberUrl         String
+  payloadTemplate       String?
+  createdAt             DateTime                   @default(now())
+  active                Boolean                    @default(true)
+  eventTriggers         WebhookTriggerEvents[]
+  user                  User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                  Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  eventType             EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  platformOAuthClient   PlatformOAuthClient?       @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+  app                   App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId                 String?
+  secret                String?
+  platform              Boolean                    @default(false)
+  scheduledTriggers     WebhookScheduledTriggers[]
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
+  @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
 }
 
 model Impersonations {
@@ -1297,6 +1319,7 @@ model PlatformOAuthClient {
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
+  webhook             Webhook[]
 
   bookingRedirectUri           String?
   bookingCancelRedirectUri     String?
@@ -1421,4 +1444,54 @@ model PlatformBilling {
   overdue           Boolean? @default(false)
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+enum AttributeType {
+  TEXT
+  NUMBER
+  SINGLE_SELECT
+  MULTI_SELECT
+}
+
+model AttributeOption {
+  id            String            @id @default(uuid())
+  attribute     Attribute         @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeId   String
+  value         String
+  slug          String
+  assignedUsers AttributeToUser[]
+
+  @@unique([attributeId, value])
+}
+
+model Attribute {
+  id String @id @default(uuid())
+
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId Int
+
+  type AttributeType
+
+  name String
+  slug String @unique
+
+  enabled Boolean @default(true)
+
+  usersCanEditRelation Boolean @default(false)
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  options   AttributeOption[]
+}
+
+model AttributeToUser {
+  id String @id @default(uuid())
+
+  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId Int
+
+  attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
+  attributeOptionId String
+
+  @@unique([memberId, attributeOptionId])
 }

@@ -31,6 +31,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import {
   BookingStatus,
   MembershipRole,
@@ -64,6 +65,21 @@ export const bookingSelect = {
     select: {
       slug: true,
       id: true,
+      schedulingType: true,
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+              destinationCalendar: {
+                select: {
+                  primaryEmail: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
   user: {
@@ -732,6 +748,8 @@ export async function scheduleBookingReminders(
         language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
           slug: booking.eventType?.slug,
+          schedulingType: booking.eventType?.schedulingType,
+          hosts: booking.eventType?.hosts,
         },
       };
       if (
@@ -744,6 +762,16 @@ export async function scheduleBookingReminders(
         switch (step.action) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = [bookingInfo.organizer?.email];
+            const schedulingType = bookingInfo.eventType.schedulingType;
+            const hosts = bookingInfo.eventType.hosts
+              ?.filter((host) => bookingInfo.attendees.some((attendee) => attendee.email === host.user.email))
+              .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+            if (
+              hosts &&
+              (schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE)
+            ) {
+              sendTo = sendTo.concat(hosts);
+            }
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
@@ -751,6 +779,7 @@ export async function scheduleBookingReminders(
           case WorkflowActions.EMAIL_ADDRESS:
             await verifyEmailSender(step.sendTo || "", userId, teamId);
             sendTo = [step.sendTo || ""];
+            break;
         }
         await scheduleEmailReminder({
           evt: bookingInfo,
