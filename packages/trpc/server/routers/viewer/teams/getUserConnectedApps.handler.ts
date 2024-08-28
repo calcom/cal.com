@@ -97,11 +97,13 @@ const checkCanUserAccessConnectedApps = async (
     },
   });
 
-  const teamMemberIds = teamMembers.map((member) => member.userId);
-  const invalidUserIds = userIds.filter((id) => !teamMemberIds.includes(id));
+  if (teamMembers.length !== userIds.length) {
+    const teamMemberIds = teamMembers.map((member) => member.userId);
+    const invalidUserIds = userIds.filter((id) => !teamMemberIds.includes(id));
 
-  if (invalidUserIds.length > 0) {
-    throw new Error(`Some user IDs do not belong to the team: ${invalidUserIds.join(", ")}`);
+    if (invalidUserIds.length > 0) {
+      throw new Error(`Some user IDs do not belong to the team: ${invalidUserIds.join(", ")}`);
+    }
   }
 };
 

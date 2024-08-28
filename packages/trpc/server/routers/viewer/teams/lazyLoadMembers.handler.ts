@@ -89,30 +89,25 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
     nextCursor = nextItem?.id;
   }
 
-  const members = await Promise.all(
-    teamMembers.map(async (member) => ({
-      ...member,
-      user: await UserRepository.enrichUserWithItsProfile({
+  const membersWithApps = await Promise.all(
+    teamMembers.map(async (member) => {
+      const user = await UserRepository.enrichUserWithItsProfile({
         user: member.user,
-      }),
-    }))
+      });
+      const { profile, ...restUser } = user;
+      return {
+        ...restUser,
+        username: profile?.username ?? restUser.username,
+        role: member.role,
+        profile: profile,
+        organizationId: profile?.organizationId ?? null,
+        organization: profile?.organization,
+        accepted: member.accepted,
+        disableImpersonation: user.disableImpersonation,
+        bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
+      };
+    })
   );
-
-  const membersWithApps = members.map((member) => {
-    // const { credentials, profile, ...restUser } = member.user;
-    const { profile, ...restUser } = member.user;
-    return {
-      ...restUser,
-      username: profile?.username ?? restUser.username,
-      role: member.role,
-      profile: profile,
-      organizationId: profile?.organizationId ?? null,
-      organization: profile?.organization,
-      accepted: member.accepted,
-      disableImpersonation: member.user.disableImpersonation,
-      bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
-    };
-  });
 
   return { members: membersWithApps, nextCursor };
 };
