@@ -5,7 +5,7 @@ import { redirect, useRouter } from "next/navigation";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout, WizardLayoutAppDir } from "@calcom/ui";
+import { Meta, WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -48,14 +48,14 @@ export const buildWrappedOnboardTeamMembersPage = (
   page: React.ReactElement
 ) => {
   return (
-    <WizardLayoutAppDir
+    <WizardLayout
       currentStep={4}
       maxSteps={5}
       isOptionalCallback={() => {
         redirect(`/settings/organizations/${id}/add-teams`);
       }}>
       {page}
-    </WizardLayoutAppDir>
+    </WizardLayout>
   );
 };
 

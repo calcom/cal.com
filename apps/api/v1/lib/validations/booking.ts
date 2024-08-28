@@ -14,6 +14,8 @@ const schemaBookingBaseBodyParams = Booking.pick({
   startTime: true,
   endTime: true,
   status: true,
+  rescheduledBy: true,
+  cancelledBy: true,
 }).partial();
 
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
@@ -33,6 +35,8 @@ const schemaBookingEditParams = z
     title: z.string().optional(),
     startTime: iso8601.optional(),
     endTime: iso8601.optional(),
+    cancelledBy: z.string().email({ message: "Invalid Email" }).optional(),
+    rescheduledBy: z.string().email({ message: "Invalid Email" }).optional(),
     // Not supporting responses in edit as that might require re-triggering emails
     // responses
   })
@@ -88,4 +92,6 @@ export const schemaBookingReadPublic = Booking.extend({
   status: true,
   responses: true,
   fromReschedule: true,
+  cancelledBy: true,
+  rescheduledBy: true,
 });
