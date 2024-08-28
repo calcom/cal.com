@@ -194,7 +194,7 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
         return displayLocationPublicly ? location : { ...location, address: "" };
       case "link":
         return displayLocationPublicly ? location : { ...location, link: "" };
-      case "phone":
+      case "userPhone":
         return displayLocationPublicly
           ? location
           : {
