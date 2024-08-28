@@ -355,7 +355,9 @@ test.describe("Routing Forms", () => {
 
       await Promise.all([page.waitForLoadState("domcontentloaded"), page.waitForLoadState("networkidle")]);
 
-      await page.waitForSelector('[data-testid="form-field-Test field"]', { state: "visible" });
+      const testPreviewButton = page.locator('[data-testid="test-preview"]');
+      await testPreviewButton.waitFor({ state: "visible" });
+      await Promise.all([testPreviewButton.click(), page.waitForEvent("dialog")]);
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
       await page.click('[data-testid="test-routing"]');
       let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();

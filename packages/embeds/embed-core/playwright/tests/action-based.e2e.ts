@@ -58,10 +58,15 @@ test.describe("Popup Tests", () => {
     const calNamespace = "e2ePopupLightTheme";
     await embeds.gotoPlayground({ calNamespace, url: "/" });
 
-    await page.waitForSelector(`[data-cal-namespace="${calNamespace}"]`, { state: "visible" });
-    await page.click(`[data-cal-namespace="${calNamespace}"]`);
+    const calElement = page.locator(`[data-cal-namespace="${calNamespace}"]`).waitFor({ state: "visible" });
+    await calElement.click();
 
     const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
+
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
 
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       pathname: "/free",
