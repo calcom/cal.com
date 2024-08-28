@@ -268,9 +268,8 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
 
         await saveEventType(page);
         await page.waitForLoadState("networkidle");
-        // Form is not made dirty if the save button is still in loading state.
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(1000);
+        await page.getByTestId("toast-success").waitFor({ state: "visible" });
+        await page.getByTestId("toast-success").waitFor({ state: "detached" });
 
         // Remove Attendee Phone Number Location
         const removeButtomId = "delete-locations.0.type";
