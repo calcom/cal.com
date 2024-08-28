@@ -4,7 +4,7 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 
@@ -143,7 +143,7 @@ export class BookingsService_2024_08_13 {
 
     const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendees(uid);
     if (!recurringBooking.length) {
-      throw new Error(`Booking with uid=${uid} was not found in the database`);
+      throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
 
     return this.outputService.getOutputRecurringBookings(recurringBooking);
