@@ -32,6 +32,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { UsersModule } from "@/modules/users/users.module";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { Module } from "@nestjs/common";
 
@@ -67,6 +68,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksRepository,
     OrganizationsWebhooksService,
     WebhooksRepository,
+    WebhooksService,
   ],
   exports: [
     OrganizationsService,
@@ -81,6 +83,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksRepository,
     OrganizationsWebhooksService,
     WebhooksRepository,
+    WebhooksService,
   ],
   controllers: [
     OrganizationsTeamsController,
