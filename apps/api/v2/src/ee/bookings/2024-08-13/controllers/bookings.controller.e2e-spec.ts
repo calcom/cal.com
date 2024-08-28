@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -185,6 +186,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
             expect(firstBooking.attendee).toEqual({ ...body.attendee, absent: false });
             expect(firstBooking.meetingUrl).toEqual(body.meetingUrl);
+            expect(firstBooking.recurringBookingUid).toBeDefined();
             expect(firstBooking.absentHost).toEqual(false);
 
             const secondBooking = data[1];
@@ -196,6 +198,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.end).toEqual(new Date(Date.UTC(2030, 1, 11, 14, 0, 0)).toISOString());
             expect(secondBooking.duration).toEqual(60);
             expect(secondBooking.eventTypeId).toEqual(recurringEventTypeId);
+            expect(secondBooking.recurringBookingUid).toBeDefined();
             expect(secondBooking.attendee).toEqual({ ...body.attendee, absent: false });
             expect(secondBooking.meetingUrl).toEqual(body.meetingUrl);
             expect(secondBooking.absentHost).toEqual(false);
@@ -209,6 +212,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(thirdBooking.end).toEqual(new Date(Date.UTC(2030, 1, 18, 14, 0, 0)).toISOString());
             expect(thirdBooking.duration).toEqual(60);
             expect(thirdBooking.eventTypeId).toEqual(recurringEventTypeId);
+            expect(thirdBooking.recurringBookingUid).toBeDefined();
             expect(thirdBooking.attendee).toEqual({ ...body.attendee, absent: false });
             expect(thirdBooking.meetingUrl).toEqual(body.meetingUrl);
             expect(thirdBooking.absentHost).toEqual(false);
@@ -222,8 +226,152 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should should get a booking", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/bookings/${createdBooking.uid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsBooking(responseBody.data)) {
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.id).toEqual(createdBooking.id);
+            expect(data.uid).toEqual(createdBooking.uid);
+            expect(data.hostId).toEqual(user.id);
+            expect(data.status).toEqual(createdBooking.status);
+            expect(data.start).toEqual(createdBooking.start);
+            expect(data.end).toEqual(createdBooking.end);
+            expect(data.duration).toEqual(createdBooking.duration);
+            expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
+            expect(data.attendee).toEqual(createdBooking.attendee);
+            expect(data.meetingUrl).toEqual(createdBooking.meetingUrl);
+            expect(data.absentHost).toEqual(createdBooking.absentHost);
+          } else {
+            throw new Error(
+              "Invalid response data - expected booking but received array of possibily recurring bookings"
+            );
+          }
+        });
+    });
+
+    it("should should get 1 recurrence of a recurring booking", async () => {
+      const recurrenceUid = createdRecurringBooking[0].uid;
+      return request(app.getHttpServer())
+        .get(`/v2/bookings/${recurrenceUid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsRecurranceBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsRecurranceBooking(responseBody.data)) {
+            const data: RecurringBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.id).toEqual(createdRecurringBooking[0].id);
+            expect(data.uid).toEqual(createdRecurringBooking[0].uid);
+            expect(data.hostId).toEqual(user.id);
+            expect(data.status).toEqual(createdRecurringBooking[0].status);
+            expect(data.start).toEqual(createdRecurringBooking[0].start);
+            expect(data.end).toEqual(createdRecurringBooking[0].end);
+            expect(data.duration).toEqual(createdRecurringBooking[0].duration);
+            expect(data.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
+            expect(data.recurringBookingUid).toEqual(createdRecurringBooking[0].recurringBookingUid);
+            expect(data.attendee).toEqual(createdRecurringBooking[0].attendee);
+            expect(data.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
+            expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
+            createdBooking = data;
+          } else {
+            throw new Error(
+              "Invalid response data - expected booking but received array of possibily recurring bookings"
+            );
+          }
+        });
+    });
+
+    it("should should all recurrences of the recurring bookings", async () => {
+      const recurringBookingUid = createdRecurringBooking[0].recurringBookingUid;
+      return request(app.getHttpServer())
+        .get(`/v2/bookings/${recurringBookingUid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsRecurringBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsRecurringBooking(responseBody.data)) {
+            const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
+            expect(data.length).toEqual(3);
+
+            const firstBooking = data[0];
+            expect(firstBooking.id).toEqual(createdRecurringBooking[0].id);
+            expect(firstBooking.uid).toEqual(createdRecurringBooking[0].uid);
+            expect(firstBooking.hostId).toEqual(user.id);
+            expect(firstBooking.status).toEqual(createdRecurringBooking[0].status);
+            expect(firstBooking.start).toEqual(createdRecurringBooking[0].start);
+            expect(firstBooking.end).toEqual(createdRecurringBooking[0].end);
+            expect(firstBooking.duration).toEqual(createdRecurringBooking[0].duration);
+            expect(firstBooking.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
+            expect(firstBooking.recurringBookingUid).toEqual(recurringBookingUid);
+            expect(firstBooking.attendee).toEqual(createdRecurringBooking[0].attendee);
+            expect(firstBooking.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
+            expect(firstBooking.absentHost).toEqual(createdRecurringBooking[0].absentHost);
+
+            const secondBooking = data[1];
+            expect(secondBooking.id).toEqual(createdRecurringBooking[1].id);
+            expect(secondBooking.uid).toEqual(createdRecurringBooking[1].uid);
+            expect(secondBooking.hostId).toEqual(user.id);
+            expect(secondBooking.status).toEqual(createdRecurringBooking[1].status);
+            expect(secondBooking.start).toEqual(createdRecurringBooking[1].start);
+            expect(secondBooking.end).toEqual(createdRecurringBooking[1].end);
+            expect(secondBooking.duration).toEqual(createdRecurringBooking[1].duration);
+            expect(secondBooking.eventTypeId).toEqual(createdRecurringBooking[1].eventTypeId);
+            expect(secondBooking.recurringBookingUid).toEqual(recurringBookingUid);
+            expect(secondBooking.attendee).toEqual(createdRecurringBooking[1].attendee);
+            expect(secondBooking.meetingUrl).toEqual(createdRecurringBooking[1].meetingUrl);
+            expect(secondBooking.absentHost).toEqual(createdRecurringBooking[1].absentHost);
+
+            const thirdBooking = data[2];
+            expect(thirdBooking.id).toEqual(createdRecurringBooking[2].id);
+            expect(thirdBooking.uid).toEqual(createdRecurringBooking[2].uid);
+            expect(thirdBooking.hostId).toEqual(user.id);
+            expect(thirdBooking.status).toEqual(createdRecurringBooking[2].status);
+            expect(thirdBooking.start).toEqual(createdRecurringBooking[2].start);
+            expect(thirdBooking.end).toEqual(createdRecurringBooking[2].end);
+            expect(thirdBooking.duration).toEqual(createdRecurringBooking[2].duration);
+            expect(thirdBooking.eventTypeId).toEqual(createdRecurringBooking[2].eventTypeId);
+            expect(thirdBooking.recurringBookingUid).toEqual(recurringBookingUid);
+            expect(thirdBooking.attendee).toEqual(createdRecurringBooking[2].attendee);
+            expect(thirdBooking.meetingUrl).toEqual(createdRecurringBooking[2].meetingUrl);
+            expect(thirdBooking.absentHost).toEqual(createdRecurringBooking[2].absentHost);
+
+            createdRecurringBooking = data;
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
     function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
       return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+    }
+
+    function responseDataIsRecurranceBooking(data: any): data is RecurringBookingOutput_2024_08_13 {
+      return (
+        !Array.isArray(data) &&
+        typeof data === "object" &&
+        data &&
+        "id" in data &&
+        "recurringBookingUid" in data
+      );
     }
 
     function responseDataIsRecurringBooking(data: any): data is RecurringBookingOutput_2024_08_13[] {
