@@ -3,6 +3,7 @@
   "locale": {
     "source": "en",
     "targets": [
+      "az",
       "cs",
       "de",
       "es",
