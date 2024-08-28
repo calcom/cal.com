@@ -1,3 +1,4 @@
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta } from "@calcom/ui";
 
@@ -10,13 +11,13 @@ import CreateNewOrganizationPage, { LayoutWrapper } from "~/settings/platform/ne
 const Page = () => {
   const { t } = useLocale();
   return (
-    <>
+    <LicenseRequired>
       <Meta
         title={t("set_up_your_platform_organization")}
         description={t("platform_organization_description")}
       />
       <CreateNewOrganizationPage />
-    </>
+    </LicenseRequired>
   );
 };
 
