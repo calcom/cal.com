@@ -128,6 +128,5 @@ async function getTeamMemberEmail(eventData: EventData, email?: string): Promise
     },
   });
   if (!contactOwnerQuery) return null;
-  // FIXME: getCRMContactOwnerForRRLeadSkip returns "any"
-  return crmContactOwnerEmail as string;
+  return crmContactOwnerEmail;
 }
