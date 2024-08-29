@@ -35,6 +35,7 @@ export default function Type({
   eventData,
   isInstantMeeting,
   orgBannerUrl,
+  isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -48,6 +49,7 @@ export default function Type({
         isTeamEvent
         entity={eventData.entity}
         bookingData={booking}
+        isSEOIndexable={isSEOIndexable ?? true}
       />
       <Booker
         username={user}

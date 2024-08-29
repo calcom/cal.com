@@ -14,6 +14,7 @@ type MinimumOrganizationSettings = Pick<
   OrganizationSettings,
   "orgAutoAcceptEmail" | "orgProfileRedirectsToVerifiedDomain" | "allowSEOIndexing"
 >;
+type SEOOrganizationSettings = Pick<OrganizationSettings, "allowSEOIndexing">;
 const orgSelect = {
   id: true,
   name: true,
@@ -208,6 +209,18 @@ export class OrganizationRepository {
       organizationSettings: MinimumOrganizationSettings | null;
       parent: {
         organizationSettings: MinimumOrganizationSettings | null;
+      } | null;
+    }) => {
+      if (!team) return null;
+      if (team.isOrganization) return team.organizationSettings ?? null;
+      if (!team.parent) return null;
+      return team.parent.organizationSettings ?? null;
+    },
+    getOrganizationSEOSettings: (team: {
+      isOrganization: boolean;
+      organizationSettings: SEOOrganizationSettings | null;
+      parent: {
+        organizationSettings: SEOOrganizationSettings | null;
       } | null;
     }) => {
       if (!team) return null;
