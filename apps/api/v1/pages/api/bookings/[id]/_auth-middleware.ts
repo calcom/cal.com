@@ -30,10 +30,42 @@ async function authMiddleware(req: NextApiRequest) {
     }
   }
 
+  // do -- if isTeamOwnerOrAdmin so that we allow team owner/admins access to these bookings
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      email: true,
+    },
+  });
+
+  if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
+
   const userWithBookingsAndTeamIds = await prisma.user.findUnique({
     where: { id: userId },
-    include: {
-      bookings: true,
+    select: {
+      bookings: {
+        where: {
+          OR: [
+            {
+              attendees: {
+                some: {
+                  email: user.email,
+                },
+              },
+            },
+            {
+              eventType: {
+                hosts: {
+                  some: {
+                    userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
       teams: {
         select: {
           teamId: true,
@@ -42,27 +74,23 @@ async function authMiddleware(req: NextApiRequest) {
     },
   });
 
-  if (!userWithBookingsAndTeamIds) throw new HttpError({ statusCode: 404, message: "User not found" });
+  const userBookingIds = userWithBookingsAndTeamIds?.bookings.map((booking) => booking.id);
 
-  const userBookingIds = userWithBookingsAndTeamIds.bookings.map((booking) => booking.id);
+  if (!userBookingIds?.includes(id)) {
+    // const teamBookings = await prisma.booking.findUnique({
+    //   where: {
+    //     id: id,
+    //     eventType: {
+    //       team: {
+    //         id: {
+    //           in: userWithBookingsAndTeamIds?.teams.map((team) => team.teamId),
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
 
-  if (!userBookingIds.includes(id)) {
-    const teamBookings = await prisma.booking.findUnique({
-      where: {
-        id: id,
-        eventType: {
-          team: {
-            id: {
-              in: userWithBookingsAndTeamIds.teams.map((team) => team.teamId),
-            },
-          },
-        },
-      },
-    });
-
-    if (!teamBookings) {
-      throw new HttpError({ statusCode: 403, message: "You are not authorized" });
-    }
+    throw new HttpError({ statusCode: 403, message: "You are not authorized" });
   }
 }
 
