@@ -36,7 +36,7 @@ export function WithLayout<T extends Record<string, any>>({
         requiresLicense={false}
         nonce={nonce}
         themeBasis={null}
-        isBookingPage={isBookingPage || (Page && "isBookingPage" in Page)}
+        isBookingPage={isBookingPage || !!(Page && "isBookingPage" in Page && Page.isBookingPage)}
         {...props}>
         {Page ? <Page {...props} /> : children}
       </PageWrapper>
