@@ -12,22 +12,26 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { Team, Webhook } from "@calcom/prisma/client";
+import { Team, User, Webhook } from "@calcom/prisma/client";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;
   const userEmail = "webhook-controller-e2e@api.com";
   let org: Team;
 
-  let organizationRepositoryFixture: OrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
   let webhookRepositoryFixture: WebhookRepositoryFixture;
-
+  let userRepositoryFixture: UserRepositoryFixture;
+  let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let webhook: TeamWebhookOutputResponseDto["data"];
   let otherWebhook: Webhook;
+  let user: User;
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -36,12 +40,26 @@ describe("WebhooksController (e2e)", () => {
         imports: [AppModule, PrismaModule, UsersModule, TokensModule],
       })
     ).compile();
-    organizationRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-    webhookRepositoryFixture = new WebhookRepositoryFixture(moduleRef);
 
-    org = await organizationRepositoryFixture.create({
+    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+    webhookRepositoryFixture = new WebhookRepositoryFixture(moduleRef);
+    membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+
+    user = await userRepositoryFixture.create({
+      email: userEmail,
+      username: userEmail,
+    });
+
+    org = await organizationsRepositoryFixture.create({
       name: "Test Organization",
       isOrganization: true,
+    });
+
+    await membershipsRepositoryFixture.create({
+      role: "ADMIN",
+      user: { connect: { id: user.id } },
+      team: { connect: { id: org.id } },
     });
 
     otherWebhook = await webhookRepositoryFixture.create({
