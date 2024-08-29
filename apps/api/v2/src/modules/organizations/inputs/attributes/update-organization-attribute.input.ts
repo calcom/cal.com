@@ -15,10 +15,6 @@ export class UpdateOrganizationAttributeInput {
   @IsNotEmpty()
   readonly type!: AttributeType;
 
-  @IsString({ each: true })
-  @IsOptional()
-  readonly options?: string[];
-
   @IsBoolean()
   @IsOptional()
   readonly enabled?: boolean;

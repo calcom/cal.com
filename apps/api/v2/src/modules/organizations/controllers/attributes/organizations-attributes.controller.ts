@@ -8,7 +8,6 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import {
   CreateOrganizationAttributeInput,
-  UpdateOrganizationAttributeInput,
 } from "@/modules/organizations/inputs/attributes/create-organization-attribute.input";
 import {
   Body,
@@ -25,13 +24,17 @@ import {
 } from "@nestjs/common";
 
 import { SkipTakePagination } from "@calcom/platform-types";
-
+import { UpdateOrganizationAttributeInput } from "@/modules/organizations/inputs/attributes/update-organization-attribute.input";
+import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 @Controller({
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 export class OrganizationsAttributesController {
+  constructor(private readonly organizationsAttributesService: OrganizationAttributesService) {}
+  // Gets all attributes for an organization
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes")
@@ -40,21 +43,30 @@ export class OrganizationsAttributesController {
     @Query() queryParams: SkipTakePagination
   ) {
     const { skip, take } = queryParams;
-    // return this.organizationsAttributesService.getOrganizationAttributes(orgId);
-    return "";
+    const attributes = await this.organizationsAttributesService.getOrganizationAttributes(orgId, skip, take);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: attributes,
+    };
   }
 
+  // Gets a single attribute for an organization
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/:attributeId")
   async getOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("attributeId", ParseIntPipe) attributeId: number
+    @Param("attributeId") attributeId: string
   ) {
-    // return this.organizationsAttributesService.getOrganizationAttribute(orgId, attributeId);
-    return "";
+    const attribute = await this.organizationsAttributesService.getOrganizationAttribute(orgId, attributeId);
+    return {
+      status: SUCCESS_STATUS,
+      data: attribute,
+    };
   }
 
+  // Creates an attribute for an organization
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/attributes")
@@ -62,67 +74,42 @@ export class OrganizationsAttributesController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() bodyAttribute: CreateOrganizationAttributeInput
   ) {
-    // return this.organizationsAttributesService.createOrganizationAttribute(orgId, bodyAttribute);
-    return "";
+    const attribute = await this.organizationsAttributesService.createOrganizationAttribute(orgId, bodyAttribute);
+    return {
+      status: SUCCESS_STATUS,
+      data: attribute,
+    };
   }
 
+  // Updates an attribute for an organization
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/attributes/:attributeId")
   async updateOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("attributeId", ParseIntPipe) attributeId: number,
+    @Param("attributeId") attributeId: string,
     @Body() bodyAttribute: UpdateOrganizationAttributeInput
   ) {
-    // return this.organizationsAttributesService.updateOrganizationAttribute(orgId, attributeId, bodyAttribute);
-    return "";
+    const attribute = await this.organizationsAttributesService.updateOrganizationAttribute(orgId, attributeId, bodyAttribute);
+    return {
+      status: SUCCESS_STATUS,
+      data: attribute,
+    };
   }
 
+  // Deletes an attribute for an organization
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/attributes/:attributeId")
   async deleteOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("attributeId", ParseIntPipe) attributeId: number
+    @Param("attributeId") attributeId: string
   ) {
-    // return this.organizationsAttributesService.deleteOrganizationAttribute(orgId, attributeId);
-    return "";
+    const attribute = await this.organizationsAttributesService.deleteOrganizationAttribute(orgId, attributeId);
+    return {
+      status: SUCCESS_STATUS,
+      data: attribute,
+    };
   }
 
-  @Roles("ORG_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @Post("/attributes/assign/:userId")
-  async assignOrganizationAttributeToUser(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("userId", ParseIntPipe) userId: number,
-    @Body() bodyAttribute: AssignOrganizationAttributeToUserInput
-  ) {
-    // return this.organizationsAttributesService.assignOrganizationAttributeToUser(orgId, userId, bodyAttribute);
-    return "";
-  }
-
-  @Roles("ORG_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @Delete("/attributes/assign/:userId")
-  async unassignOrganizationAttributeFromUser(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("userId", ParseIntPipe) userId: number,
-    @Body() bodyAttribute: AssignOrganizationAttributeToUserInput
-  ) {
-    // return this.organizationsAttributesService.unassignOrganizationAttributeFromUser(orgId, userId, bodyAttribute);
-    return "";
-  }
-
-  @Roles("ORG_MEMBER")
-  @PlatformPlan("ESSENTIALS")
-  @Get("/attributes/assigned/:userId")
-  async getAssignedOrganizationAttributesToUser(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("userId", ParseIntPipe) userId: number,
-    @Query() queryParams: SkipTakePagination
-  ) {
-    const { skip, take } = queryParams;
-    // return this.organizationsAttributesService.getAssignedOrganizationAttributesToUser(orgId, userId, skip, take);
-    return "";
-  }
 }
