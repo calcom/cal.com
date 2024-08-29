@@ -48,6 +48,7 @@ export type FormValues = {
   disableGuests: boolean;
   lockTimeZoneToggleOnBookingPage: boolean;
   requiresConfirmation: boolean;
+  requiresConfirmationWillBlockSlot: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;

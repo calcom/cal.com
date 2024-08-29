@@ -15,6 +15,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
+import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
@@ -46,6 +47,8 @@ import { SingleUseLinksController } from "@components/eventtype/SingleUseLinksCo
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 import { DisableAllEmailsSetting } from "./settings/DisableAllEmailsSetting";
+
+type BookingField = z.infer<typeof fieldSchema>;
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
@@ -165,7 +168,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
   ];
   const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
-
   return (
     <div className="flex flex-col space-y-4">
       {/**
@@ -271,8 +273,16 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           {...shouldLockDisableProps("bookingFields")}
           dataStore={{
             options: {
-              locations: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+              locations: {
+                // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                source: { label: "Location" },
+                value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+              },
             },
+          }}
+          shouldConsiderRequired={(field: BookingField) => {
+            // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+            return field.name === "location" ? true : field.required;
           }}
         />
       </div>
@@ -281,6 +291,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         seatsEnabled={seatsEnabled}
         metadata={formMethods.getValues("metadata")}
         requiresConfirmation={requiresConfirmation}
+        requiresConfirmationWillBlockSlot={formMethods.getValues("requiresConfirmationWillBlockSlot")}
         onRequiresConfirmation={setRequiresConfirmation}
       />
       <Controller
@@ -556,14 +567,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 <ColorPicker
                   defaultValue={eventTypeColorState.lightEventTypeColor}
                   onChange={(value) => {
+                    const newVal = {
+                      ...eventTypeColorState,
+                      lightEventTypeColor: value,
+                    };
+                    formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                    setEventTypeColorState(newVal);
                     if (checkWCAGContrastColor("#ffffff", value)) {
-                      const newVal = {
-                        ...eventTypeColorState,
-                        lightEventTypeColor: value,
-                      };
                       setLightModeError(false);
-                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
-                      setEventTypeColorState(newVal);
                     } else {
                       setLightModeError(true);
                     }
@@ -581,14 +592,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 <ColorPicker
                   defaultValue={eventTypeColorState.darkEventTypeColor}
                   onChange={(value) => {
+                    const newVal = {
+                      ...eventTypeColorState,
+                      darkEventTypeColor: value,
+                    };
+                    formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                    setEventTypeColorState(newVal);
                     if (checkWCAGContrastColor("#101010", value)) {
-                      const newVal = {
-                        ...eventTypeColorState,
-                        darkEventTypeColor: value,
-                      };
                       setDarkModeError(false);
-                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
-                      setEventTypeColorState(newVal);
                     } else {
                       setDarkModeError(true);
                     }

@@ -301,6 +301,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       periodCountCalendarDays: eventType.periodCountCalendarDays ? true : false,
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
+      requiresConfirmationWillBlockSlot: eventType.requiresConfirmationWillBlockSlot,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata: eventType.metadata,
