@@ -483,15 +483,8 @@ async function handler(
   if (eventType.seatsPerTimeSlot) {
     const booking = await prisma.booking.findFirst({
       where: {
-        OR: [
-          {
-            uid: rescheduleUid || reqBody.bookingUid,
-          },
-          {
-            eventTypeId: eventType.id,
-            startTime: new Date(dayjs(reqBody.start).utc().format()),
-          },
-        ],
+        eventTypeId: eventType.id,
+        startTime: new Date(dayjs(reqBody.start).utc().format()),
         status: BookingStatus.ACCEPTED,
       },
     });
@@ -1003,6 +996,7 @@ async function handler(
       eventTrigger,
       responses,
       workflows,
+      rescheduledBy: reqBody.rescheduledBy,
     });
 
     if (newBooking) {
@@ -1073,6 +1067,7 @@ async function handler(
       data: {
         rescheduled: true,
         status: BookingStatus.CANCELLED,
+        rescheduledBy: reqBody.rescheduledBy,
       },
     });
   }
@@ -1568,6 +1563,7 @@ async function handler(
     eventTypeId,
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
+    rescheduledBy: reqBody.rescheduledBy,
   };
 
   if (bookingRequiresPayment) {
@@ -1748,7 +1744,11 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = {
+    ...evt,
+    metadata,
+    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+  };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
     await scheduleMandatoryReminder(

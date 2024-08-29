@@ -11,6 +11,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
+import { SchedulingType } from "@calcom/platform-enums";
+
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
 import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
@@ -20,9 +22,9 @@ import {
 } from "./booking-limits-duration.input";
 import type { BookingWindow_2024_06_14 } from "./booking-window.input";
 import { ValidateBookingWindow } from "./booking-window.input";
-import { SchedulingType } from "./enums/scheduling-type";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
+import { Recurrence_2024_06_14 } from "./recurrence.input";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_TITLE_EXAMPLE = "Learn the secrets of masterchief!";
@@ -102,6 +104,11 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
   @Min(1)
   offsetStart?: number;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Recurrence_2024_06_14)
+  recurrence?: Recurrence_2024_06_14;
 }
 
 export enum HostPriority {
