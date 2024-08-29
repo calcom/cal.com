@@ -40,7 +40,6 @@ const DisableTeamImpersonation = ({
           setAllowImpersonation(_allowImpersonation);
           mutation.mutate({ teamId, memberId, disableImpersonation: !_allowImpersonation });
         }}
-        switchContainerClassName="mt-6"
       />
     </>
   );
