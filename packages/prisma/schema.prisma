@@ -435,6 +435,8 @@ model OrganizationSettings {
   isOrganizationConfigured            Boolean    @default(false)
   // It decides if new organization members can be auto-accepted or not
   isOrganizationVerified              Boolean    @default(false)
+  // It is a domain e.g "acme.com". Any email with this domain might be auto-accepted
+  // Also, it is the domain to which the organization profile is redirected.
   orgAutoAcceptEmail                  String
   lockEventTypeCreationForUsers       Boolean    @default(false)
   adminGetsNoSlotsNotification        Boolean    @default(false)
