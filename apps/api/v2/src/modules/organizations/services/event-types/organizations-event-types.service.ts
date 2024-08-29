@@ -1,5 +1,6 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
@@ -27,7 +28,8 @@ export class OrganizationsEventTypesService {
     private readonly outputService: OutputOrganizationsEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly inputUserEventTypesService: InputEventTypesService_2024_06_14
   ) {}
 
   async createTeamEventType(
@@ -56,6 +58,14 @@ export class OrganizationsEventTypesService {
       recurrence,
       ...rest
     } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
+
+    await this.inputUserEventTypesService.validateEventTypeInputs(
+      undefined,
+      rest.seatsPerTimeSlot > 0,
+      locations,
+      requiresConfirmation
+    );
+
     const { eventType: eventTypeCreated } = await createEventType({
       input: { teamId: teamId, locations, ...rest },
       ctx: {
@@ -178,6 +188,13 @@ export class OrganizationsEventTypesService {
       eventTypeId,
       teamId,
       body
+    );
+
+    await this.inputUserEventTypesService.validateEventTypeInputs(
+      eventTypeId,
+      bodyTransformed.seatsPerTimeSlot > 0,
+      bodyTransformed.locations,
+      bodyTransformed.requiresConfirmation
     );
 
     await updateEventType({

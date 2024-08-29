@@ -18,6 +18,7 @@ import type {
   BookerLayoutsTransformedSchema,
   EventTypeColorsTransformedSchema,
   TransformRecurringEventSchema_2024_06_14,
+  SeatOptionsTransformedSchema,
 } from "@calcom/platform-types";
 
 import type { UserField } from "./api-request";
@@ -30,6 +31,7 @@ import {
   getResponseEventTypeRequiresConfirmation,
   getResponseEventTypeRecurrence,
   getResponseEventTypeColors,
+  getResponseSeatOptions,
 } from "./api-response";
 
 describe("getResponseEventTypeLocations", () => {
@@ -762,6 +764,26 @@ describe("getResponseEventTypeColors", () => {
     expect(result).toEqual(expectedOutput);
   });
 });
+describe("getResponseSeatOptions", () => {
+  it("should reverse transform event type seats", () => {
+    const transformedSeats: SeatOptionsTransformedSchema = {
+      seatsPerTimeSlot: 10,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: false,
+    };
+
+    const expectedOutput = {
+      seatsPerTimeSlot: 10,
+      showAttendeeInfo: true,
+      showAvailabilityCount: false,
+    };
+
+    const result = getResponseSeatOptions(transformedSeats);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
 describe("getResponseEventTypeRecurrence", () => {
   it("should reverse transform recurringEvent", () => {
     const transformedField: TransformRecurringEventSchema_2024_06_14 = {

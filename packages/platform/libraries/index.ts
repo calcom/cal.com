@@ -108,6 +108,8 @@ export {
   transformApiEventTypeRequiresConfirmation,
   getResponseEventTypeColors,
   transformApiEventTypeColors,
+  transformApiSeatOptions,
+  getResponseSeatOptions,
   transformApiEventTypeRecurrence,
   getResponseEventTypeRecurrence,
 } from "@calcom/lib/event-types/transformers";

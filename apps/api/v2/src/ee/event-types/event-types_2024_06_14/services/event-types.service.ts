@@ -50,8 +50,19 @@ export class EventTypesService_2024_06_14 {
       requiresConfirmation = undefined,
       eventTypeColor = undefined,
       recurrence = undefined,
+      seatsPerTimeSlot = undefined,
+      seatsShowAttendees = undefined,
+      seatsShowAvailabilityCount = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
+
+    await this.inputEventTypesService.validateEventTypeInputs(
+      undefined,
+      seatsPerTimeSlot > 0,
+      bodyTransformed.locations,
+      requiresConfirmation
+    );
+
     const { eventType: eventTypeCreated } = await createEventType({
       input: bodyTransformed,
       ctx: {
@@ -76,6 +87,9 @@ export class EventTypesService_2024_06_14 {
         requiresConfirmation,
         eventTypeColor,
         recurrence,
+        seatsPerTimeSlot,
+        seatsShowAttendees,
+        seatsShowAvailabilityCount,
         ...bodyTransformed,
       },
       ctx: {
@@ -252,6 +266,14 @@ export class EventTypesService_2024_06_14 {
       body,
       eventTypeId
     );
+
+    await this.inputEventTypesService.validateEventTypeInputs(
+      eventTypeId,
+      bodyTransformed.seatsPerTimeSlot > 0,
+      bodyTransformed.locations,
+      bodyTransformed.requiresConfirmation
+    );
+
     await updateEventType({
       input: { id: eventTypeId, ...bodyTransformed },
       ctx: {

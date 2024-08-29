@@ -29,6 +29,8 @@ import type {
   EventTypeColor_2024_06_14,
   Recurrence_2024_06_14,
   TransformRecurringEventSchema_2024_06_14,
+  SeatOptionsTransformedSchema,
+  Seats_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
@@ -284,19 +286,20 @@ function getResponseEventTypeBookerLayouts(transformedBookerLayouts: BookerLayou
 function getResponseEventTypeRequiresConfirmation(
   requiresConfirmation: boolean,
   requiresConfirmationThreshold: NoticeThreshold_2024_06_14
-): RequiresConfirmation_2024_06_14 {
-  if (requiresConfirmation) {
-    return {
-      confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
-    };
-  } else {
+): RequiresConfirmation_2024_06_14 | undefined {
+  if (requiresConfirmationThreshold?.unit) {
     return {
       confirmationPolicy: ConfirmationPolicyEnum.TIME,
       noticeThreshold: {
         ...requiresConfirmationThreshold,
       },
     };
+  } else if (requiresConfirmation) {
+    return {
+      confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+    };
   }
+  return undefined;
 }
 function getResponseEventTypeColors(
   transformedColors: EventTypeColorsTransformedSchema
@@ -304,6 +307,13 @@ function getResponseEventTypeColors(
   return {
     darkThemeColor: transformedColors.darkEventTypeColor,
     lightThemeColor: transformedColors.lightEventTypeColor,
+  };
+}
+function getResponseSeatOptions(transformedSeats: SeatOptionsTransformedSchema): Seats_2024_06_14 {
+  return {
+    seatsPerTimeSlot: transformedSeats.seatsPerTimeSlot,
+    showAttendeeInfo: transformedSeats.seatsShowAttendees,
+    showAvailabilityCount: transformedSeats.seatsShowAvailabilityCount,
   };
 }
 function getResponseEventTypeRecurrence(
@@ -324,5 +334,6 @@ export {
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
   getResponseEventTypeColors,
+  getResponseSeatOptions,
   getResponseEventTypeRecurrence,
 };

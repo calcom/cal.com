@@ -16,6 +16,8 @@ import type {
   RequiresConfirmation_2024_06_14,
   EventTypeColor_2024_06_14,
   Recurrence_2024_06_14,
+  CreateEventTypeInput_2024_06_14,
+  SeatOptionsTransformedSchema,
 } from "@calcom/platform-types";
 
 import type { UserField } from "./api-request";
@@ -29,6 +31,7 @@ import {
   transformApiEventTypeRequiresConfirmation,
   transformApiEventTypeRecurrence,
   transformApiEventTypeColors,
+  transformApiSeatOptions,
 } from "./api-request";
 
 describe("transformApiEventTypeLocations", () => {
@@ -729,6 +732,25 @@ describe("transformApiEventTypeColors", () => {
     };
 
     const result = transformApiEventTypeColors(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+describe("transformApiSeatOptions", () => {
+  it("should transform seat options", () => {
+    const input: CreateEventTypeInput_2024_06_14["seats"] = {
+      seatsPerTimeSlot: 20,
+      showAttendeeInfo: true,
+      showAvailabilityCount: false,
+    };
+
+    const expectedOutput: SeatOptionsTransformedSchema = {
+      seatsPerTimeSlot: 20,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: false,
+    };
+
+    const result = transformApiSeatOptions(input);
 
     expect(result).toEqual(expectedOutput);
   });

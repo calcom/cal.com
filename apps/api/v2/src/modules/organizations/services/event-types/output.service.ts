@@ -56,6 +56,7 @@ type Input = Pick<
   | "hideCalendarNotes"
   | "lockTimeZoneToggleOnBookingPage"
   | "eventTypeColor"
+  | "seatsShowAttendees"
 >;
 
 @Injectable()

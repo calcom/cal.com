@@ -27,6 +27,7 @@ type InputEventTransformed = Omit<
   | "hideCalendarNotes"
   | "lockTimeZoneToggleOnBookingPage"
   | "eventTypeColor"
+  | "seats"
 > & {
   length: number;
   slug: string;
@@ -57,7 +58,12 @@ export class EventTypesRepository_2024_06_14 {
   async getEventTypeWithSeats(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
+      select: {
+        users: { select: { id: true } },
+        seatsPerTimeSlot: true,
+        locations: true,
+        requiresConfirmation: true,
+      },
     });
   }
 

@@ -16,6 +16,7 @@ import {
   Host as TeamEventTypeHostInput,
   BookingLimitsDuration_2024_06_14,
   EventTypeColor_2024_06_14,
+  Seats_2024_06_14,
 } from "../inputs";
 import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
@@ -122,17 +123,11 @@ export class EventTypeOutput_2024_06_14 {
   @IsBoolean()
   lockTimeZoneToggleOnBookingPage!: boolean;
 
-  @IsInt()
-  seatsPerTimeSlot!: number | null;
-
   @IsBoolean()
   forwardParamsSuccessRedirect!: boolean | null;
 
   @IsString()
   successRedirectUrl!: string | null;
-
-  @IsBoolean()
-  seatsShowAvailabilityCount!: boolean | null;
 
   @IsBoolean()
   isInstantEvent!: boolean;
@@ -175,6 +170,10 @@ export class EventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => EventTypeColor_2024_06_14)
   eventTypeColor?: EventTypeColor_2024_06_14;
+
+  @IsOptional()
+  @Type(() => Seats_2024_06_14)
+  seats?: Seats_2024_06_14;
 
   @IsOptional()
   @IsInt()
@@ -249,17 +248,11 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsBoolean()
   lockTimeZoneToggleOnBookingPage!: boolean;
 
-  @IsInt()
-  seatsPerTimeSlot!: number | null;
-
   @IsBoolean()
   forwardParamsSuccessRedirect!: boolean | null;
 
   @IsString()
   successRedirectUrl!: string | null;
-
-  @IsBoolean()
-  seatsShowAvailabilityCount!: boolean | null;
 
   @IsBoolean()
   isInstantEvent!: boolean;
@@ -321,6 +314,10 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => EventTypeColor_2024_06_14)
   eventTypeColor?: EventTypeColor_2024_06_14;
+
+  @IsOptional()
+  @Type(() => Seats_2024_06_14)
+  seats?: Seats_2024_06_14;
 
   @IsOptional()
   @IsInt()

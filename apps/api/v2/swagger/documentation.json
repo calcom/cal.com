@@ -7020,6 +7020,32 @@
           "darkThemeColor"
         ]
       },
+      "Seats_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Number of seats available per time slot",
+            "example": 4
+          },
+          "showAttendeeInfo": {
+            "type": "boolean",
+            "description": "Show attendee information to other guests",
+            "example": true
+          },
+          "showAvailabilityCount": {
+            "type": "boolean",
+            "description": "Display the count of available seats",
+            "example": true
+          }
+        },
+        "required": [
+          "seatsPerTimeSlot",
+          "showAttendeeInfo",
+          "showAvailabilityCount"
+        ]
+      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7093,20 +7119,12 @@
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
           },
-          "seatsPerTimeSlot": {
-            "type": "number",
-            "nullable": true
-          },
           "forwardParamsSuccessRedirect": {
             "type": "boolean",
             "nullable": true
           },
           "successRedirectUrl": {
             "type": "string",
-            "nullable": true
-          },
-          "seatsShowAvailabilityCount": {
-            "type": "boolean",
             "nullable": true
           },
           "isInstantEvent": {
@@ -7164,6 +7182,9 @@
           "eventTypeColor": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
+          "seats": {
+            "$ref": "#/components/schemas/Seats_2024_06_14"
+          },
           "offsetStart": {
             "type": "number",
             "minimum": 1
@@ -7184,10 +7205,8 @@
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
-          "seatsPerTimeSlot",
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
-          "seatsShowAvailabilityCount",
           "isInstantEvent",
           "scheduleId",
           "hosts"

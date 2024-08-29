@@ -21,6 +21,7 @@ import {
   getResponseEventTypeRequiresConfirmation,
   getResponseEventTypeColors,
   parseEventTypeColor,
+  getResponseSeatOptions,
 } from "@calcom/platform-libraries-1.2.3";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
@@ -71,6 +72,7 @@ type Input = Pick<
   | "requiresBookerEmailVerification"
   | "hideCalendarNotes"
   | "eventTypeColor"
+  | "seatsShowAttendees"
 >;
 
 @Injectable()
@@ -101,6 +103,7 @@ export class OutputEventTypesService_2024_06_14 {
       offsetStart,
       requiresBookerEmailVerification,
       hideCalendarNotes,
+      seatsShowAttendees,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -122,6 +125,7 @@ export class OutputEventTypesService_2024_06_14 {
     );
     delete metadata["bookerLayouts"];
     delete metadata["requiresConfirmationThreshold"];
+    const seats = this.transformSeats(seatsPerTimeSlot, seatsShowAttendees, seatsShowAvailabilityCount);
     const bookingWindow = this.transformBookingWindow({
       periodType: databaseEventType.periodType,
       periodDays: databaseEventType.periodDays,
@@ -150,10 +154,8 @@ export class OutputEventTypesService_2024_06_14 {
       price,
       currency,
       lockTimeZoneToggleOnBookingPage,
-      seatsPerTimeSlot,
       forwardParamsSuccessRedirect,
       successRedirectUrl,
-      seatsShowAvailabilityCount,
       isInstantEvent,
       users,
       scheduleId,
@@ -167,6 +169,7 @@ export class OutputEventTypesService_2024_06_14 {
       requiresBookerEmailVerification,
       hideCalendarNotes,
       eventTypeColor,
+      seats,
     };
   }
 
@@ -233,5 +236,18 @@ export class OutputEventTypesService_2024_06_14 {
     if (!eventTypeColor) return undefined;
     const parsedeventTypeColor = parseEventTypeColor(eventTypeColor);
     return getResponseEventTypeColors(parsedeventTypeColor);
+  }
+
+  transformSeats(
+    seatsPerTimeSlot: number | null,
+    seatsShowAttendees: boolean | null,
+    seatsShowAvailabilityCount: boolean | null
+  ) {
+    if (!seatsPerTimeSlot) return undefined;
+    return getResponseSeatOptions({
+      seatsPerTimeSlot,
+      seatsShowAttendees: !!seatsShowAttendees,
+      seatsShowAvailabilityCount: !!seatsShowAvailabilityCount,
+    });
   }
 }

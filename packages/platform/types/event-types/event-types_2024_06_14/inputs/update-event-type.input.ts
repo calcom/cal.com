@@ -17,6 +17,7 @@ import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { RequiresConfirmation_2024_06_14, ValidateRequiresConfirmation } from "./requires-confirmation.input";
+import { Seats_2024_06_14 } from "./seats.input";
 
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -120,6 +121,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @Type(() => EventTypeColor_2024_06_14)
   eventTypeColor?: EventTypeColor_2024_06_14;
+
+  @IsOptional()
+  @Type(() => Seats_2024_06_14)
+  seats?: Seats_2024_06_14;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -242,4 +247,8 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @Type(() => EventTypeColor_2024_06_14)
   eventTypeColor?: EventTypeColor_2024_06_14;
+
+  @IsOptional()
+  @Type(() => Seats_2024_06_14)
+  seats?: Seats_2024_06_14;
 }

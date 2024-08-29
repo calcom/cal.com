@@ -304,6 +304,11 @@ describe("Organizations Event Types Endpoints", () => {
           darkThemeColor: "#292929",
           lightThemeColor: "#fafafa",
         },
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
       };
 
       return request(app.getHttpServer())
@@ -331,6 +336,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.eventTypeColor).toEqual(body.eventTypeColor);
+          expect(data.seats).toEqual(body.seats);
 
           collectiveEventType = responseBody.data;
         });

@@ -21,6 +21,7 @@ import type {
   TransformBookingLimitsSchema_2024_06_14,
   TransformRecurringEventSchema_2024_06_14,
   EventTypeColorsTransformedSchema,
+  SeatOptionsTransformedSchema,
 } from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
@@ -197,7 +198,7 @@ function transformApiEventTypeRequiresConfirmation(
       };
     case ConfirmationPolicyEnum.TIME:
       return {
-        requiresConfirmation: false,
+        requiresConfirmation: true,
         requiresConfirmationThreshold: {
           ...inputRequiresConfirmation.noticeThreshold,
         } as NoticeThreshold_2024_06_14,
@@ -212,6 +213,17 @@ function transformApiEventTypeColors(
   return {
     darkEventTypeColor: inputEventTypeColors.darkThemeColor,
     lightEventTypeColor: inputEventTypeColors.lightThemeColor,
+  };
+}
+function transformApiSeatOptions(
+  inputSeats: CreateEventTypeInput_2024_06_14["seats"]
+): SeatOptionsTransformedSchema | undefined {
+  if (!inputSeats) return undefined;
+
+  return {
+    seatsPerTimeSlot: inputSeats.seatsPerTimeSlot,
+    seatsShowAttendees: inputSeats.showAttendeeInfo,
+    seatsShowAvailabilityCount: inputSeats.showAvailabilityCount,
   };
 }
 
@@ -331,5 +343,6 @@ export {
   transformApiEventTypeBookerLayouts,
   transformApiEventTypeRequiresConfirmation,
   transformApiEventTypeColors,
+  transformApiSeatOptions,
   transformApiEventTypeRecurrence,
 };

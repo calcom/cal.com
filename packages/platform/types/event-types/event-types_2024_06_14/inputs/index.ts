@@ -10,3 +10,4 @@ export * from "./get-event-types-query.input";
 export * from "./booker-layouts.input";
 export * from "./requires-confirmation.input";
 export * from "./event-type-color.input";
+export * from "./seats.input";
