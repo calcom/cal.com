@@ -505,70 +505,87 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
-
-  const currentBookingsAllUsers = await prisma.booking.findMany({
-    where: {
-      OR: [
-        // User is primary host (individual events, or primary organizer)
-        {
-          ...sharedQuery,
-          userId: {
-            in: allUserIds,
-          },
-        },
-        // The current user has a different booking at this time he/she attends
-        {
-          ...sharedQuery,
-          attendees: {
-            some: {
-              email: {
-                in: usersWithCredentials.map((user) => user.email),
-              },
-            },
-          },
-        },
-        {
-          startTime: { lte: endTimeDate },
-          endTime: { gte: startTimeDate },
-          eventType: {
-            id: eventType.id,
-            requiresConfirmation: true,
-            requiresConfirmationWillBlockSlot: true,
-          },
-          status: {
-            in: [BookingStatus.PENDING],
-          },
-        },
-      ],
+  const bookingsSelect = {
+    id: true,
+    uid: true,
+    userId: true,
+    startTime: true,
+    endTime: true,
+    title: true,
+    attendees: true,
+    eventType: {
+      select: {
+        id: true,
+        onlyShowFirstAvailableSlot: true,
+        afterEventBuffer: true,
+        beforeEventBuffer: true,
+        seatsPerTimeSlot: true,
+        requiresConfirmationWillBlockSlot: true,
+        requiresConfirmation: true,
+      },
     },
-    select: {
-      id: true,
-      uid: true,
-      userId: true,
-      startTime: true,
-      endTime: true,
-      title: true,
-      attendees: true,
-      eventType: {
+    ...(!!eventType?.seatsPerTimeSlot && {
+      _count: {
         select: {
-          id: true,
-          onlyShowFirstAvailableSlot: true,
-          afterEventBuffer: true,
-          beforeEventBuffer: true,
-          seatsPerTimeSlot: true,
-          requiresConfirmationWillBlockSlot: true,
-          requiresConfirmation: true,
+          seatsReferences: true,
         },
       },
-      ...(!!eventType?.seatsPerTimeSlot && {
-        _count: {
-          select: {
-            seatsReferences: true,
-          },
-        },
-      }),
+    }),
+  };
+
+  const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
+    where: {
+      ...sharedQuery,
+      userId: {
+        in: allUserIds,
+      },
+    },
+    select: {
+      ...bookingsSelect,
     },
   });
+
+  const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
+    where: {
+      ...sharedQuery,
+      attendees: {
+        some: {
+          email: {
+            in: usersWithCredentials.map((user) => user.email),
+          },
+        },
+      },
+    },
+    select: {
+      ...bookingsSelect,
+    },
+  });
+
+  const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
+    where: {
+      startTime: { lte: endTimeDate },
+      endTime: { gte: startTimeDate },
+      eventType: {
+        id: eventType.id,
+        requiresConfirmation: true,
+        requiresConfirmationWillBlockSlot: true,
+      },
+      status: {
+        in: [BookingStatus.PENDING],
+      },
+    },
+    select: {
+      ...bookingsSelect,
+    },
+  });
+
+  const [resultOne, resultTwo, resultThree] = await Promise.all([
+    currentBookingsAllUsersQueryOne,
+    currentBookingsAllUsersQueryTwo,
+    currentBookingsAllUsersQueryThree,
+  ]);
+
+  const currentBookingsAllUsers = [...resultOne, ...resultTwo, ...resultThree];
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
