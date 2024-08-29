@@ -156,7 +156,7 @@ export const schemaUserReadPublic = User.pick({
   email: true,
   emailVerified: true,
   bio: true,
-  avatar: true,
+  // avatar: true,
   timeZone: true,
   weekStart: true,
   endTime: true,
