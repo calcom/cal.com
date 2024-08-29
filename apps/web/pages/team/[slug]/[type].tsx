@@ -49,7 +49,7 @@ export default function Type({
         isTeamEvent
         entity={eventData.entity}
         bookingData={booking}
-        isSEOIndexable={isSEOIndexable ?? true}
+        isSEOIndexable={isSEOIndexable}
       />
       <Booker
         username={user}
