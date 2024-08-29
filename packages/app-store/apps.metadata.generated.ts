@@ -47,6 +47,7 @@ import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
 import mock_payment_app_config_json from "./mock-payment-app/config.json";
 import n8n_config_json from "./n8n/config.json";
+import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
 import paypal_config_json from "./paypal/config.json";
@@ -140,6 +141,7 @@ export const appStoreMetadata = {
   mirotalk: mirotalk_config_json,
   "mock-payment-app": mock_payment_app_config_json,
   n8n: n8n_config_json,
+  nextcloudtalk: nextcloudtalk_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
   paypal: paypal_config_json,

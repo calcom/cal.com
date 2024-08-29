@@ -22,6 +22,7 @@ import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
+import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import office365video_config_json from "./office365video/config.json";
 import ping_config_json from "./ping/config.json";
 import plausible_config_json from "./plausible/config.json";
@@ -66,6 +67,7 @@ export const appStoreMetadata = {
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
+  nextcloudtalk: nextcloudtalk_config_json,
   office365video: office365video_config_json,
   ping: ping_config_json,
   plausible: plausible_config_json,
