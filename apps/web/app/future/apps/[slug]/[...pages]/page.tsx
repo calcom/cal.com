@@ -2,12 +2,11 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import type { GetServerSidePropsResult } from "next";
 import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import z from "zod";
-
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -41,17 +40,18 @@ export const generateMetadata = async ({
   }
 
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const { form } = await getData(legacyContext);
+  const data = await getData(legacyContext);
+  const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
+  const formName = form?.name ?? "Forms";
+  const formDescription = form?.description ?? "";
 
   return await _generateMetadata(
-    () => `${form.name}`,
-    () => form.description
+    () => formName,
+    () => formDescription
   );
 };
 
-type T = inferSSRProps<typeof getServerSideProps>;
-// @ts-expect-error TODO: fix the type error
-const getData = withAppDirSsr<T>(getServerSideProps);
+const getData = withAppDirSsr<GetServerSidePropsResult<any>>(getServerSideProps);
 
 export default WithLayout({
   getLayout,

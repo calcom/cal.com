@@ -1,6 +1,6 @@
 "use client";
 
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
@@ -109,7 +109,9 @@ const paramsSchema = z.object({
   pages: z.array(z.string()),
 });
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(
+  context: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult<any>> {
   const { params, req, res } = context;
   if (!params) {
     return {
@@ -127,9 +129,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const appName = parsedParams.data.slug;
   const pages = parsedParams.data.pages;
   const route = getRoute(appName, pages);
+
   if (route.notFound) {
-    return route;
+    return { notFound: true };
   }
+
   if (route.getServerSideProps) {
     // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
@@ -138,6 +142,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const session = await getServerSession({ req, res });
     const user = session?.user;
     const app = await getAppWithMetadata({ slug: appName });
+
     if (!app) {
       return {
         notFound: true,
@@ -154,18 +159,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       user,
       ssrInit
     );
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+
     if (result.notFound) {
-      return {
-        notFound: true,
-      };
+      return { notFound: true };
     }
+
     if (result.redirect) {
-      return {
-        redirect: result.redirect,
-      };
+      return { redirect: result.redirect };
     }
+
     return {
       props: {
         appName,
