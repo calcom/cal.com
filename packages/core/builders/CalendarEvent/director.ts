@@ -72,7 +72,7 @@ export class CalendarEventDirector {
       this.builder.setUId(this.existingBooking.uid);
       this.builder.setCancellationReason(this.cancellationReason);
       this.builder.setDescription(this.existingBooking.description);
-      await this.builder.buildRescheduleLink(this.existingBooking);
+      await this.builder.buildRescheduleLink({ calEvent: this.existingBooking });
     } else {
       throw new Error("buildWithoutEventTypeForRescheduleEmail.missing.params.required");
     }
