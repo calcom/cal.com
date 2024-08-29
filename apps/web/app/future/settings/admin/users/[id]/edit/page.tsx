@@ -13,7 +13,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(params);
   if (!input.success) {
     return await _generateMetadata(
-      () => "",
+      () => `Editing user`,
       () => "Here you can edit a current user."
     );
   }
