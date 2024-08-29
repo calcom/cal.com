@@ -3,8 +3,9 @@
   "locale": {
     "source": "en",
     "targets": [
-      "de",
+      "az",
       "cs",
+      "de",
       "es",
       "es-419",
       "fr",
@@ -20,9 +21,7 @@
   },
   "buckets": {
     "json": {
-      "include": [
-        "apps/web/public/static/locales/[locale]/common.json"
-      ]
+      "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
   }
 }
