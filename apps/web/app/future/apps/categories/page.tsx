@@ -8,8 +8,8 @@ import Page from "~/apps/categories/categories-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => `Categories`,
-    () => ""
+    () => "Apps Store",
+    () => "Connecting people, technology and the workplace."
   );
 };
 
