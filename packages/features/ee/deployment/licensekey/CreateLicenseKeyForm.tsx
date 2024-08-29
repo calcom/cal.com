@@ -1,3 +1,5 @@
+"use client";
+
 import type { SessionContextValue } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
