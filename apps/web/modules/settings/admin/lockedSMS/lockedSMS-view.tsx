@@ -1,10 +1,11 @@
 "use client";
 
-import UsersTable from "@pages/settings/admin/lockedSMS/UsersTable";
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc";
 import { Button, Meta, TextField, showToast } from "@calcom/ui";
+
+import UsersTable from "./UsersTable";
 
 export default function LockedSMSView() {
   const [username, setUsername] = useState("");

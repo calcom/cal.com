@@ -1,9 +1,7 @@
-"use client";
-
 import PageWrapper from "@components/PageWrapper";
 import { getLayout } from "@components/auth/layouts/AdminLayout";
 
-import LockedSMSView from "./lockedSMSView";
+import LockedSMSView from "~/settings/admin/lockedSMS/lockedSMS-view";
 
 const LockedSMSPage = () => <LockedSMSView />;
 
