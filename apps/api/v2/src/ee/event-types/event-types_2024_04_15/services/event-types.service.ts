@@ -6,6 +6,7 @@ import { EventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
@@ -24,7 +25,8 @@ export class EventTypesService_2024_04_15 {
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly dbWrite: PrismaWriteService
+    private readonly dbWrite: PrismaWriteService,
+    private usersService: UsersService
   ) {}
 
   async createUserEventType(
@@ -53,11 +55,11 @@ export class EventTypesService_2024_04_15 {
   }
 
   async getUserToCreateEvent(user: UserWithProfile) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     return {
       id: user.id,
       role: user.role,
@@ -80,7 +82,7 @@ export class EventTypesService_2024_04_15 {
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
 
     const isUserOrganizationAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
@@ -153,7 +155,7 @@ export class EventTypesService_2024_04_15 {
   }
 
   async getUserToUpdateEvent(user: UserWithProfile) {
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return { ...user, profile: { id: profileId }, selectedCalendars };
   }

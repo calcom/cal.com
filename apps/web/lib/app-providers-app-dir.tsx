@@ -10,6 +10,7 @@ import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import CacheProvider from "react-inlinesvg/provider";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -273,7 +274,10 @@ const AppProviders = (props: PageWrapperProps) => {
                 isBookingPage={props.isBookingPage || isBookingPage}>
                 <FeatureFlagsProvider>
                   <OrgBrandProvider>
-                    <MetaProvider>{props.children}</MetaProvider>
+                    {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+                    <CacheProvider>
+                      <MetaProvider>{props.children}</MetaProvider>
+                    </CacheProvider>
                   </OrgBrandProvider>
                 </FeatureFlagsProvider>
               </CalcomThemeProvider>
