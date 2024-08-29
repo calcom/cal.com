@@ -183,6 +183,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
           open={bulkUpdateModal}
           setOpen={setBulkUpdateModal}
           isPending={updateLocationsMutation.isPending}
+          description={t("default_conferencing_bulk_description")}
         />
       )}
     </>

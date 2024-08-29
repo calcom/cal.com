@@ -7,11 +7,22 @@ on:
 jobs:
   label-pr:
     runs-on: ubuntu-latest
-
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: write
     steps:
       - name: Label PR as ready for E2E
         if: github.event.review.state == 'approved'
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions/github-script@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: process.env.labels.split(', '),
+            })
+        env:
+          github_token: ${{ secrets.READY_FOR_E2E_PAT }}
           labels: 'ready-for-e2e'

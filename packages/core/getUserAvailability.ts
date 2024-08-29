@@ -171,11 +171,6 @@ const _getCurrentSeats = async (
           email: true,
         },
       },
-      _count: {
-        select: {
-          attendees: true,
-        },
-      },
     },
   });
 
@@ -323,8 +318,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
-  const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
-  const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+  const schedule = eventType?.schedule ? eventType.schedule : userSchedule;
 
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule.id;
 
@@ -334,7 +328,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       chosenSchedule: schedule,
       eventTypeSchedule: eventType?.schedule,
       userSchedule: userSchedule,
-      useHostSchedulesForTeamEvent: eventType?.metadata?.config?.useHostSchedulesForTeamEvent,
     })
   );
 

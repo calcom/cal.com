@@ -91,44 +91,80 @@ jobs:
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
 
+  deps:
+    name: Install dependencies
+    needs: [changes, check-label]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/yarn-install.yml
+
+  i18n:
+    name: Run i18n
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      # Doing this custom checkout of the common.json files from the PR since we don't
+      # want to checkout the entire branch for security reasons as this job is granted
+      # write permissions.
+      - run: git fetch --depth=2 origin ${{ github.event.pull_request.head.sha }}
+        if: ${{ github.event.pull_request.head.sha != '' }}
+      - run: find apps/web/public/static/locales/** -name "common.json" | xargs git checkout ${{ github.event.pull_request.head.sha }} --
+        if: ${{ github.event.pull_request.head.sha != '' }}
+        shell: bash
+      - run: git checkout ${{ github.event.pull_request.head.sha }} -- i18n.json
+        if: ${{ github.event.pull_request.head.sha != '' }}
+      - uses: replexica/replexica@main
+        with:
+          api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
+
   type-check:
     name: Type check
-    needs: [changes, check-label]
+    needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: [changes, check-label]
+    needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
-    needs: [changes, check-label]
+    needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   build-api-v1:
     name: Production builds
-    needs: [changes, check-label]
+    needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [changes, check-label]
+    needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
+  build-atoms:
+    name: Production builds
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/atoms-production-build.yml
+    secrets: inherit
+
   build:
     name: Production builds
-    needs: [changes, check-label]
+    needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
@@ -181,8 +217,42 @@ jobs:
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
+  merge-reports:
+    name: Merge reports
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    uses: ./.github/workflows/merge-reports.yml
+    secrets: inherit
+
+  publish-report:
+    name: Publish HTML report
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    needs: [changes, check-label, merge-reports]
+    uses: ./.github/workflows/publish-report.yml
+    secrets: inherit
+
   required:
-    needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-api-v2, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs:
+      [
+        changes,
+        lint,
+        type-check,
+        unit-test,
+        integration-test,
+        check-label,
+        build,
+        build-api-v1,
+        build-api-v2,
+        e2e,
+        e2e-api-v2,
+        e2e-embed,
+        e2e-embed-react,
+        e2e-app-store,
+      ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:

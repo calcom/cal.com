@@ -68,7 +68,7 @@ export const getEmbedIframe = async ({
         }, hardTimeout);
       });
     },
-    !process.env.CI ? 150000 : 15000
+    !process.env.CI ? 15000 : 15000
   );
   if (!iframeReady) {
     return null;
