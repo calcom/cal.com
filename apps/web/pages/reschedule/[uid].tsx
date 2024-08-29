@@ -19,8 +19,16 @@ export default function Type() {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
 
-  const { uid: bookingUid, seatReferenceUid } = z
-    .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
+  const {
+    uid: bookingUid,
+    seatReferenceUid,
+    rescheduledBy,
+  } = z
+    .object({
+      uid: z.string(),
+      seatReferenceUid: z.string().optional(),
+      rescheduledBy: z.string().optional(),
+    })
     .parse(context.query);
   const coepFlag = context.query["flag.coep"];
   const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
@@ -147,6 +155,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (coepFlag) {
     destinationUrlSearchParams.set("flag.coep", coepFlag as string);
   }
+
+  const currentUserEmail = rescheduledBy ?? session?.user?.email;
+
+  if (currentUserEmail) {
+    destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
+  }
+
   return {
     redirect: {
       destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${

@@ -6,7 +6,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => `${t("under_maintenance")} | ${APP_NAME}`,
+    (t) => `${t("under_maintenance")}`,
     (t) => t("under_maintenance_description", { appName: APP_NAME })
   );
 

@@ -104,7 +104,11 @@ describe("getLuckyUser tests", () => {
       expect(
         getLuckyUser("MAXIMIZE_AVAILABILITY", {
           availableUsers: [organizerThatShowedUp, organizerThatDidntShowUp],
-          eventTypeId,
+          eventType: {
+            id: eventTypeId,
+            isRRWeightsEnabled: false,
+          },
+          allRRHosts: [],
         })
       ).resolves.toStrictEqual(organizerThatDidntShowUp);
     });
@@ -170,7 +174,11 @@ describe("getLuckyUser tests", () => {
       expect(
         getLuckyUser("MAXIMIZE_AVAILABILITY", {
           availableUsers: [organizerWhoseAttendeeShowedUp, organizerWhoseAttendeeDidntShowUp],
-          eventTypeId,
+          eventType: {
+            id: eventTypeId,
+            isRRWeightsEnabled: false,
+          },
+          allRRHosts: [],
         })
       ).resolves.toStrictEqual(organizerWhoseAttendeeDidntShowUp);
     });
@@ -289,7 +297,11 @@ describe("getLuckyUser tests", () => {
             fixedHostOrganizerWhoseAttendeeDidNotShowUp,
             organizerWhoWasAttendeeAndDidntShowUp,
           ],
-          eventTypeId,
+          eventType: {
+            id: eventTypeId,
+            isRRWeightsEnabled: false,
+          },
+          allRRHosts: [],
         })
       ).resolves.toStrictEqual(organizerWhoWasAttendeeAndDidntShowUp);
     });
@@ -356,7 +368,11 @@ describe("getLuckyUser tests", () => {
       expect(
         getLuckyUser("MAXIMIZE_AVAILABILITY", {
           availableUsers: [user1, user2],
-          eventTypeId,
+          eventType: {
+            id: eventTypeId,
+            isRRWeightsEnabled: false,
+          },
+          allRRHosts: [],
         })
       ).resolves.toStrictEqual(user2);
     });

@@ -116,6 +116,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       name: string;
       slug: string;
       parentId?: number;
+      isPrivate?: boolean;
     };
   }[];
   schedules: {
@@ -185,6 +186,7 @@ type WhiteListedBookingProps = {
     credentialId?: number | null;
   })[];
   bookingSeat?: Prisma.BookingSeatCreateInput[];
+  createdAt?: string;
 };
 
 type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
