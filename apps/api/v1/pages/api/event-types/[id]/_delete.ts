@@ -49,8 +49,22 @@ async function checkPermissions(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   if (isSystemWideAdmin) return;
-  /** Only event type owners can delete it */
-  const eventType = await prisma.eventType.findFirst({ where: { id, userId } });
+  /** Only event type owners or team owners for team events can delete it */
+  const eventType = await prisma.eventType.findFirst({
+    where: {
+      id,
+      OR: [
+        { userId },
+        {
+          team: {
+            members: {
+              some: { userId, role: { in: ["ADMIN", "OWNER"] } },
+            },
+          },
+        },
+      ],
+    },
+  });
   if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
