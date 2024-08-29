@@ -84,7 +84,7 @@ export const schemaBookingReadPublic = Booking.extend({
   title: true,
   startTime: true,
   endTime: true,
-  // timeZone: true,
+  timeZone: true,
   attendees: true,
   user: true,
   payment: true,
@@ -94,4 +94,4 @@ export const schemaBookingReadPublic = Booking.extend({
   fromReschedule: true,
   cancelledBy: true,
   rescheduledBy: true,
-});
+} as any);

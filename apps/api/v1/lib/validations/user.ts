@@ -156,7 +156,7 @@ export const schemaUserReadPublic = User.pick({
   email: true,
   emailVerified: true,
   bio: true,
-  // avatar: true,
+  avatar: true,
   timeZone: true,
   weekStart: true,
   endTime: true,
@@ -174,6 +174,6 @@ export const schemaUserReadPublic = User.pick({
   verified: true,
   invitedTo: true,
   role: true,
-});
+} as any);
 
 export const schemaUsersReadPublic = z.array(schemaUserReadPublic);

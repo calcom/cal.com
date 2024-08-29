@@ -43,6 +43,6 @@ export const schemaDestinationCalendarReadPublic = DestinationCalendar.pick({
   integration: true,
   externalId: true,
   eventTypeId: true,
-  // bookingId: true,
+  bookingId: true,
   userId: true,
-});
+} as any);
