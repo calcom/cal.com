@@ -29,7 +29,7 @@ export const TeamEventTypeForm = ({
 }: props) => {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
-  const { data: team } = trpc.viewer.teams.getTeamWithMinimalData.useQuery(
+  const { data: team } = trpc.viewer.teams.getMinimal.useQuery(
     { teamId, isOrg: false },
     { enabled: !!teamId }
   );
