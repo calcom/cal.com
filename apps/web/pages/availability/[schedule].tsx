@@ -2,8 +2,6 @@ import { AvailabilitySettings } from "@calcom/atoms/monorepo";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function Availability() {
-  return <AvailabilitySettings />;
-}
+const Availability = () => <AvailabilitySettings />;
 
 Availability.PageWrapper = PageWrapper;

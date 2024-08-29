@@ -27,8 +27,7 @@ export const AvailabilitySettingsWebWrapper = () => {
     }
   );
 
-  const { data: travelSchedules, isPending: isPendingTravelSchedules } =
-    trpc.viewer.getTravelSchedules.useQuery();
+  const { data: travelSchedules } = trpc.viewer.getTravelSchedules.useQuery();
 
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
