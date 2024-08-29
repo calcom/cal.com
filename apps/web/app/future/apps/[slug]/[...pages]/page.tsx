@@ -8,9 +8,10 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import z from "zod";
 
+import { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import LegacyPage, { getLayout, getServerSideProps } from "~/apps/[slug]/[...pages]/pages-view";
+import LegacyPage, { getLayout } from "~/apps/[slug]/[...pages]/pages-view";
 
 const paramsSchema = z.object({
   slug: z.string(),
