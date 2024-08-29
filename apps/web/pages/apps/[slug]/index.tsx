@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 import type { GetStaticPaths, InferGetStaticPropsType } from "next";
 
 import { AppRepository } from "@calcom/lib/server/repository/app";
-import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 
@@ -16,13 +15,6 @@ export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
   let paths: { params: { slug: string } }[] = [];
 
   try {
-    const isPrismaAvailable = await isPrismaAvailableCheck();
-    if (!isPrismaAvailable) {
-      return {
-        paths: [],
-        fallback: "blocking",
-      };
-    }
     const appStore = await AppRepository.findAppStore();
     paths = appStore.map(({ slug }) => ({ params: { slug } }));
   } catch (e: unknown) {
