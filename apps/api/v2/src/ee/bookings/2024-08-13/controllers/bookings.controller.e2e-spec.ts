@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output copy";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
 import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
@@ -922,12 +923,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(200)
           .then(async (response) => {
-            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            const data: RecurringBookingOutput_2024_08_13 = responseBody.data;
+            const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hostId).toEqual(user.id);
@@ -944,6 +945,46 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const cancelledBooking = await bookingsRepositoryFixture.getByUid(rescheduledBooking.uid);
             expect(cancelledBooking).toBeDefined();
             expect(cancelledBooking?.status).toEqual("CANCELLED");
+          });
+      });
+
+      it("should cancel recurring booking", async () => {
+        const body: CancelBookingInput_2024_08_13 = {
+          cancellationReason: "Going on a vacation",
+        };
+
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${createdRecurringBooking[1].recurringBookingUid}/cancel`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsRecurringBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsRecurringBooking(responseBody.data)) {
+              const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
+              expect(data.length).toEqual(4);
+
+              const firstBooking = data[0];
+              expect(firstBooking.status).toEqual("cancelled");
+
+              const secondBooking = data[1];
+              expect(secondBooking.status).toEqual("cancelled");
+
+              const thirdBooking = data[2];
+              expect(thirdBooking.status).toEqual("cancelled");
+
+              const fourthBooking = data[3];
+              expect(fourthBooking.status).toEqual("cancelled");
+            } else {
+              throw new Error(
+                "Invalid response data - expected recurring booking but received non array response"
+              );
+            }
           });
       });
     });
