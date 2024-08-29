@@ -488,15 +488,8 @@ async function handler(
   if (eventType.seatsPerTimeSlot) {
     const booking = await prisma.booking.findFirst({
       where: {
-        OR: [
-          {
-            uid: rescheduleUid || reqBody.bookingUid,
-          },
-          {
-            eventTypeId: eventType.id,
-            startTime: new Date(dayjs(reqBody.start).utc().format()),
-          },
-        ],
+        eventTypeId: eventType.id,
+        startTime: new Date(dayjs(reqBody.start).utc().format()),
         status: BookingStatus.ACCEPTED,
       },
     });
@@ -618,7 +611,8 @@ async function handler(
           : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              eventTypeId: eventType.id,
+              allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+              eventType,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -1384,7 +1378,11 @@ async function handler(
           )
         );
 
-        sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers, eventType.metadata);
+        sendRoundRobinRescheduledEmailsAndSMS(
+          copyEventAdditionalInfo,
+          rescheduledMembers,
+          eventType.metadata
+        );
         sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers, eventType.metadata);
         sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
       } else {

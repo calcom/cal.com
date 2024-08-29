@@ -189,6 +189,7 @@ type WhiteListedBookingProps = {
     credentialId?: number | null;
   })[];
   bookingSeat?: Prisma.BookingSeatCreateInput[];
+  createdAt?: string;
 };
 
 type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;

@@ -66,6 +66,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       durationLimits: true,
       rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
+      isRRWeightsEnabled: true,
       parentId: true,
       parent: {
         select: {
@@ -98,6 +99,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           isFixed: true,
           priority: true,
+          weight: true,
+          weightAdjustment: true,
           user: {
             select: {
               credentials: {

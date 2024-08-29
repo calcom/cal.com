@@ -671,6 +671,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
   eventTypeColor: true,
   rescheduleWithSameRoundRobinHost: true,
 };
