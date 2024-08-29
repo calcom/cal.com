@@ -30,15 +30,6 @@ export const generateMetadata = async ({
     return notFound();
   }
 
-  const mainPage = p.data.pages[0];
-
-  if (mainPage === "forms") {
-    return await _generateMetadata(
-      () => `Forms`,
-      () => ""
-    );
-  }
-
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
