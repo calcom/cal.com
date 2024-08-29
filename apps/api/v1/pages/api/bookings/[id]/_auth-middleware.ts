@@ -34,48 +34,46 @@ async function authMiddleware(req: NextApiRequest) {
     where: { id: userId },
     select: {
       email: true,
-    },
-  });
-
-  if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
-
-  const userWithBookings = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
       bookings: {
         where: {
-          OR: [
-            {
-              attendees: { some: { email: user.email } },
-            },
-            {
-              eventType: {
-                OR: [
-                  {
-                    hosts: { some: { userId } },
-                  },
-                  {
-                    owner: { id: userId },
-                  },
-                  {
-                    team: {
-                      members: {
-                        some: { userId, role: { in: ["ADMIN", "OWNER"] } },
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          ],
+          id,
         },
       },
     },
   });
 
-  const userBookingIds = userWithBookings?.bookings.map((booking) => booking.id);
+  if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
 
-  if (!userBookingIds?.includes(id))
+  const userIsHost = user.bookings?.length;
+
+  const teamBookingsAsOwnerOrAdmin = await prisma.booking.findUnique({
+    where: {
+      id,
+      OR: [
+        {
+          attendees: { some: { email: user.email } },
+        },
+        {
+          eventType: {
+            OR: [
+              {
+                owner: { id: userId },
+              },
+              {
+                team: {
+                  members: {
+                    some: { userId, role: { in: ["ADMIN", "OWNER"] } },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  });
+
+  if (!userIsHost && !teamBookingsAsOwnerOrAdmin)
     throw new HttpError({ statusCode: 403, message: "You are not authorized" });
 }
 
