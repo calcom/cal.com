@@ -17,8 +17,10 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add_entry_ooo").click();
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -62,8 +64,10 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto(`/settings/my-account/out-of-office`);
+    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add_entry_ooo").click();
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -142,6 +146,7 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto(`/settings/my-account/out-of-office`);
+    await page.waitForLoadState("networkidle");
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -191,6 +196,7 @@ test.describe("Out of office", () => {
     });
 
     await page.goto(`/${user.username}`);
+    await page.waitForLoadState("networkidle");
 
     const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
     await eventTypeLink.click();

@@ -97,7 +97,9 @@ export const OutOfOfficeEntriesList = ({
                     {item.notes && (
                       <p className="px-2">
                         <span className="text-subtle">{t("notes")}: </span>
-                        <span>{item.notes}</span>
+                        <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
+                          {item.notes}
+                        </span>
                       </p>
                     )}
                   </div>
@@ -110,12 +112,13 @@ export const OutOfOfficeEntriesList = ({
                       type="button"
                       color="minimal"
                       variant="icon"
+                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: dayjs(item.start).startOf("d").toDate(),
+                            startDate: item.start,
                             endDate: dayjs(item.end).subtract(1, "d").toDate(),
                           },
                           offset: dayjs().utcOffset(),
