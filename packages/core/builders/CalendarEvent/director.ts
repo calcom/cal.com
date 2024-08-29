@@ -44,7 +44,7 @@ export class CalendarEventDirector {
      * By default we don't want to allow reschedule for cancelled bookings.
      */
     allowRescheduleForCancelledBooking?: boolean;
-  }): Promise<void> {
+  } = {}): Promise<void> {
     if (this.existingBooking && this.existingBooking.eventTypeId && this.existingBooking.uid) {
       await this.builder.buildEventObjectFromInnerClass(this.existingBooking.eventTypeId);
       await this.builder.buildUsersFromInnerClass();
