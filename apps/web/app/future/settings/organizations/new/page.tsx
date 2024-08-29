@@ -1,4 +1,4 @@
-import LegacyPage, { getServerSideProps, LayoutWrapperAppDir } from "@pages/settings/organizations/new/index";
+import LegacyPage, { getServerSideProps, LayoutWrapper } from "@pages/settings/organizations/new/index";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -12,7 +12,7 @@ export const generateMetadata = async () =>
   );
 
 export default WithLayout({
-  getLayout: LayoutWrapperAppDir,
+  getLayout: LayoutWrapper,
   Page: LegacyPage,
   getData: withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps),
 });
