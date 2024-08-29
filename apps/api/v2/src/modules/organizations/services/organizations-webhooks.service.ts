@@ -2,7 +2,7 @@ import { OrganizationsWebhooksRepository } from "@/modules/organizations/reposit
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { ConflictException, Injectable } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsWebhooksService {
@@ -31,8 +31,12 @@ export class OrganizationsWebhooksService {
     return this.organizationsWebhooksRepository.findWebhooksPaginated(orgId, skip, take);
   }
 
-  async getWebhook(orgId: number, webhookId: string) {
-    return this.organizationsWebhooksRepository.findWebhook(orgId, webhookId);
+  async getWebhook(webhookId: string) {
+    const webhook = await this.webhooksRepository.getWebhookById(webhookId);
+    if (!webhook) {
+      throw new NotFoundException(`Webhook (${webhookId}) not found`);
+    }
+    return webhook;
   }
 
   async updateWebhook(webhookId: string, body: UpdateWebhookInputDto) {

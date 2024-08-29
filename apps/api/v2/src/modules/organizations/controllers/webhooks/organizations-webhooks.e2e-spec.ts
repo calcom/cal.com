@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
   TeamWebhookOutputResponseDto,
@@ -18,7 +19,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { Team, User, Webhook } from "@calcom/prisma/client";
+import { Team, Webhook } from "@calcom/prisma/client";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;
@@ -31,7 +32,7 @@ describe("WebhooksController (e2e)", () => {
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let webhook: TeamWebhookOutputResponseDto["data"];
   let otherWebhook: Webhook;
-  let user: User;
+  let user: UserWithProfile;
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -76,13 +77,20 @@ describe("WebhooksController (e2e)", () => {
   });
 
   afterAll(async () => {
+    userRepositoryFixture.deleteByEmail(user.email);
     webhookRepositoryFixture.delete(otherWebhook.id);
     await app.close();
   });
 
+  it("should be defined", () => {
+    expect(userRepositoryFixture).toBeDefined();
+    expect(user).toBeDefined();
+    expect(org).toBeDefined();
+  });
+
   it("/organizations/:orgId/webhooks (POST)", () => {
     return request(app.getHttpServer())
-      .post("/v2/organizations/:orgId/webhooks")
+      .post(`/v2/organizations/${org.id}/webhooks`)
       .send({
         subscriberUrl: "https://example.com",
         triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
@@ -91,6 +99,7 @@ describe("WebhooksController (e2e)", () => {
       } satisfies CreateWebhookInputDto)
       .expect(201)
       .then(async (res) => {
+        process.stdout.write(JSON.stringify(res.body));
         expect(res.body).toMatchObject({
           status: "success",
           data: {
@@ -108,7 +117,7 @@ describe("WebhooksController (e2e)", () => {
 
   it("/organizations/:orgId/webhooks (POST) should fail to create a webhook that already has same orgId / subcriberUrl combo", () => {
     return request(app.getHttpServer())
-      .post("/v2/organizations/:orgId/webhooks")
+      .post(`/v2/organizations/${org.id}/webhooks`)
       .send({
         subscriberUrl: "https://example.com",
         triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
@@ -120,7 +129,7 @@ describe("WebhooksController (e2e)", () => {
 
   it("/organizations/:orgId/webhooks/:webhookId (PATCH)", () => {
     return request(app.getHttpServer())
-      .patch(`/v2/organizations/:orgId/webhooks/${webhook.id}`)
+      .patch(`/v2/organizations/${org.id}/webhooks/${webhook.id}`)
       .send({
         active: false,
       } satisfies UpdateWebhookInputDto)
@@ -132,7 +141,7 @@ describe("WebhooksController (e2e)", () => {
 
   it("/organizations/:orgId/webhooks/:webhookId (GET)", () => {
     return request(app.getHttpServer())
-      .get(`/v2/organizations/:orgId/webhooks/${webhook.id}`)
+      .get(`/v2/organizations/${org.id}/webhooks/${webhook.id}`)
       .expect(200)
       .then((res) => {
         expect(res.body).toMatchObject({
@@ -149,19 +158,19 @@ describe("WebhooksController (e2e)", () => {
       });
   });
 
-  it("/organizations/:orgId/webhooks/:webhookId (GET) should fail to get a webhook that does not exist", () => {
-    return request(app.getHttpServer()).get(`/v2/organizations/:orgId/webhooks/90284`).expect(404);
+  it("/organizations/:orgId/webhooks/:webhookId (GET) should say forbidden to get a webhook that does not exist", () => {
+    return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/webhooks/90284`).expect(403);
   });
 
   it("/organizations/:orgId/webhooks/:webhookId (GET) should fail to get a webhook that does not belong to org", () => {
     return request(app.getHttpServer())
-      .get(`/v2/organizations/:orgId/webhooks/${otherWebhook.id}`)
+      .get(`/v2/organizations/${org.id}/webhooks/${otherWebhook.id}`)
       .expect(403);
   });
 
   it("/organizations/:orgId/webhooks (GET)", () => {
     return request(app.getHttpServer())
-      .get("/v2/organizations/:orgId/webhooks")
+      .get(`/v2/organizations/${org.id}/webhooks`)
       .expect(200)
       .then((res) => {
         const responseBody = res.body as TeamWebhooksOutputResponseDto;
@@ -173,7 +182,7 @@ describe("WebhooksController (e2e)", () => {
 
   it("/organizations/:orgId/webhooks/:webhookId (DELETE)", () => {
     return request(app.getHttpServer())
-      .delete(`/v2/organizations/:orgId/webhooks/${webhook.id}`)
+      .delete(`/v2/organizations/${org.id}/webhooks/${webhook.id}`)
       .expect(200)
       .then((res) => {
         expect(res.body).toMatchObject({
@@ -191,12 +200,12 @@ describe("WebhooksController (e2e)", () => {
   });
 
   it("/organizations/:orgId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
-    return request(app.getHttpServer()).delete(`/v2/organizations/:orgId/webhooks/12993`).expect(404);
+    return request(app.getHttpServer()).delete(`/v2/organizations/${org.id}/webhooks/12993`).expect(403);
   });
 
   it("/organizations/:orgId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not belong to org", () => {
     return request(app.getHttpServer())
-      .delete(`/v2/organizations/:orgId/webhooks/${otherWebhook.id}`)
+      .delete(`/v2/organizations/${org.id}/webhooks/${otherWebhook.id}`)
       .expect(403);
   });
 });

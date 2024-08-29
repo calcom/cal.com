@@ -66,7 +66,11 @@ export class OrganizationsWebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: webhooks.map((webhook) => plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" })),
+      data: webhooks.map((webhook) =>
+        plainToClass(OrgWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+          strategy: "excludeAll",
+        })
+      ),
     };
   }
 
@@ -84,7 +88,9 @@ export class OrganizationsWebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+      data: plainToClass(OrgWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+        strategy: "excludeAll",
+      }),
     };
   }
 
@@ -93,14 +99,13 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Get("/:webhookId")
   @HttpCode(HttpStatus.OK)
-  async getOrganizationWebhook(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("webhookId", ParseIntPipe) webhookId: string
-  ): Promise<OrgWebhookOutputResponseDto> {
-    const webhook = await this.organizationsWebhooksService.getWebhook(orgId, webhookId);
+  async getOrganizationWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
+    const webhook = await this.organizationsWebhooksService.getWebhook(webhookId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+      data: plainToClass(OrgWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+        strategy: "excludeAll",
+      }),
     };
   }
 
@@ -109,9 +114,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
-  async deleteOrganizationWebhook(
-    @Param("webhookId", ParseIntPipe) webhookId: string
-  ): Promise<OrgWebhookOutputResponseDto> {
+  async deleteWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);
     return {
       status: SUCCESS_STATUS,
@@ -126,8 +129,8 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
-  async updateOrganizationWebhook(
-    @Param("webhookId", ParseIntPipe) webhookId: string,
+  async updateOrgWebhook(
+    @Param("webhookId") webhookId: string,
     @Body() body: UpdateWebhookInputDto
   ): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.organizationsWebhooksService.updateWebhook(
@@ -136,7 +139,9 @@ export class OrganizationsWebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgWebhookOutputDto, webhook, { strategy: "excludeAll" }),
+      data: plainToClass(OrgWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+        strategy: "excludeAll",
+      }),
     };
   }
 }
