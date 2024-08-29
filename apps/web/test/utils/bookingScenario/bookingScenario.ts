@@ -34,7 +34,7 @@ import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
-logger.settings.minLevel = 0;
+logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
