@@ -43,7 +43,7 @@ test.describe("Managed Event Types", () => {
       // and finish
       await page.getByTestId("finish-button").click();
       await page.waitForLoadState("networkidle");
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
       // Going to create an event type
       await page.goto("/event-types");
       await page.getByTestId("new-event-type").click();

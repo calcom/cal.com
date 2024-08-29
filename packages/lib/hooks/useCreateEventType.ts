@@ -41,10 +41,9 @@ export const useCreateEventType = (
       onSuccessMutation(eventType);
 
       if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getUserEventGroups.invalidate();
-        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+        await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
+          group: { teamId: eventType.teamId, parentId: eventType.parentId },
           limit: 10,
-          group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
         });
       } else {
         await utils.viewer.eventTypes.getByViewer.invalidate();

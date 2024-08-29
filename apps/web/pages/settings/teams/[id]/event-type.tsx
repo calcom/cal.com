@@ -63,11 +63,22 @@ const TeamEventTypePage = () => {
   );
 };
 
-export const GetLayout = (page: React.ReactElement) => (
-  <WizardLayout currentStep={3} maxSteps={3}>
-    {page}
-  </WizardLayout>
-);
+export const GetLayout = (page: React.ReactElement) => {
+  const router = useRouter();
+  const searchParams = useCompatSearchParams();
+  const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
+
+  return (
+    <WizardLayout
+      currentStep={3}
+      maxSteps={3}
+      isOptionalCallback={() => {
+        router.push(`/settings/teams/${teamId}/profile`);
+      }}>
+      {page}
+    </WizardLayout>
+  );
+};
 
 TeamEventTypePage.getLayout = GetLayout;
 TeamEventTypePage.PageWrapper = PageWrapper;
