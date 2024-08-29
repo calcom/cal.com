@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: replexica/replexica@main
         env:
-          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         with:
           api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
           pull-request: true
