@@ -1,13 +1,11 @@
 "use client";
 
-import { Prisma } from "@prisma/client";
 import MarkdownIt from "markdown-it";
-import type { GetStaticPaths, InferGetStaticPropsType } from "next";
+import type { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 import { showToast } from "@calcom/ui";
 
 import type { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
@@ -77,25 +75,5 @@ function SingleAppPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
     />
   );
 }
-
-export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  let paths: { params: { slug: string } }[] = [];
-
-  try {
-    const appStore = await prisma.app.findMany({ select: { slug: true } });
-    paths = appStore.map(({ slug }) => ({ params: { slug } }));
-  } catch (e: unknown) {
-    if (e instanceof Prisma.PrismaClientInitializationError) {
-      // Database is not available at build time, but that's ok – we fall back to resolving paths on demand
-    } else {
-      throw e;
-    }
-  }
-
-  return {
-    paths,
-    fallback: "blocking",
-  };
-};
 
 export default SingleAppPage;

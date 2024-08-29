@@ -6,7 +6,7 @@ import { WithLayout } from "app/layoutHOC";
 import type { InferGetStaticPropsType } from "next";
 import { cookies, headers } from "next/headers";
 
-import prisma from "@calcom/prisma";
+import { AppRepository } from "@calcom/lib/server/repository/app";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -28,7 +28,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
 export const generateStaticParams = async () => {
   try {
-    const appStore = await prisma.app.findMany({ select: { slug: true } });
+    const appStore = await AppRepository.findAppStore();
     return appStore.map(({ slug }) => ({ slug }));
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientInitializationError) {

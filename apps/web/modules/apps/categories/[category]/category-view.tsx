@@ -6,8 +6,6 @@ import Link from "next/link";
 import Shell from "@calcom/features/shell/Shell";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AppCategories } from "@calcom/prisma/enums";
-import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
 import type { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
@@ -54,20 +52,3 @@ export default function Apps({ apps }: PageProps) {
     </>
   );
 }
-
-export const getStaticPaths = async () => {
-  const paths = Object.keys(AppCategories);
-  const isPrismaAvailable = await isPrismaAvailableCheck();
-  if (!isPrismaAvailable) {
-    // Database is not available at build time. Make sure we fall back to building these pages on demand
-    return {
-      paths: [],
-      fallback: "blocking",
-    };
-  }
-
-  return {
-    paths: paths.map((category) => ({ params: { category } })),
-    fallback: false,
-  };
-};
