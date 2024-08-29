@@ -2,7 +2,6 @@ import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { APP_NAME } from "@calcom/lib/constants";
 import { AppCategories } from "@calcom/prisma/enums";
 import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 
@@ -12,8 +11,8 @@ import CategoryPage, { type PageProps } from "~/apps/categories/[category]/categ
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => `${APP_NAME}`,
-    () => ""
+    () => "Apps Store",
+    () => "Connecting people, technology and the workplace."
   );
 };
 
