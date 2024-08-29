@@ -7,7 +7,8 @@ import { cookies, headers } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import type { OnboardingPageProps } from "~/apps/installation/[[...step]]/step-view";
-import Page, { getServerSideProps } from "~/apps/installation/[[...step]]/step-view";
+import Page from "~/apps/installation/[[...step]]/step-view";
+import { getServerSideProps } from "~/apps/installation/[[...step]]/step-view.getServerSideProps";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
