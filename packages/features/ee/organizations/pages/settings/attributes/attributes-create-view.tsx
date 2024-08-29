@@ -9,7 +9,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, Button, useMeta, showToast } from "@calcom/ui";
+import { Button, useMeta, showToast } from "@calcom/ui";
 
 import { AttributeForm } from "./AttributesForm";
 
@@ -38,7 +38,6 @@ function CreateAttributesPage() {
   return (
     <>
       <LicenseRequired>
-        <Meta title="Attribute" description="Create an attribute for your team members" />
         <AttributeForm
           header={<CreateAttributeHeader isPending={mutation.isPending} />}
           onSubmit={(values) => {
@@ -90,10 +89,8 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
     </>
   );
 }
-function getLayout(page: React.ReactElement) {
+export function getLayout(page: React.ReactElement) {
   return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
-
-CreateAttributesPage.getLayout = getLayout;
 
 export default CreateAttributesPage;

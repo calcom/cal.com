@@ -2,12 +2,10 @@
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeamPrivateSwitch";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 const PrivacyView = () => {
-  const { t } = useLocale();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
   const isOrgAdminOrOwner =
     currentOrg &&

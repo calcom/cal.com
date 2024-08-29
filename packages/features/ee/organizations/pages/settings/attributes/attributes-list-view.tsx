@@ -132,7 +132,6 @@ function OrganizationAttributesPage() {
   if (isLoading) {
     return (
       <>
-        <Meta title={t("attributes")} description={t("attribute_meta_description")} />
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
           <ListSkeleton />
         </div>
@@ -206,10 +205,8 @@ function ListAttributeHeader() {
   );
 }
 
-function getLayout(page: React.ReactElement) {
+export function getLayout(page: React.ReactElement) {
   return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
-
-OrganizationAttributesPage.getLayout = getLayout;
 
 export default OrganizationAttributesPage;
