@@ -19,7 +19,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-// @ts-expect-error TODO: fix this type error
 const getData = withAppDirSsr<OnboardingPageProps>(getServerSideProps);
 
 export default WithLayout({ getLayout: null, getData, Page });
