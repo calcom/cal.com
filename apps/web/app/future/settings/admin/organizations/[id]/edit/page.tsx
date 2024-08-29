@@ -13,8 +13,8 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = orgIdSchema.safeParse(params);
   if (!input.success) {
     return await _generateMetadata(
-      () => "",
-      () => "Here you can edit an organization."
+      () => `Editing organization`,
+      () => "Here you can edit a current organization."
     );
   }
 
@@ -22,7 +22,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 
   return await _generateMetadata(
     () => `Editing organization: ${org?.name}`,
-    () => "Here you can edit an organization."
+    () => "Here you can edit a current organization."
   );
 };
 
