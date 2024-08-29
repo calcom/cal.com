@@ -3,12 +3,17 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
+import type { OrganizationSettings } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
 
+type MinimumOrganizationSettings = Pick<
+  OrganizationSettings,
+  "orgAutoAcceptEmail" | "orgProfileRedirectsToVerifiedDomain" | "allowSEOIndexing"
+>;
 const orgSelect = {
   id: true,
   name: true,
@@ -192,4 +197,26 @@ export class OrganizationRepository {
     }
     return getParsedTeam(org);
   }
+
+  static utils = {
+    /**
+     * Gets the organization setting if the team is an organization.
+     * If not, it gets the organization setting of the parent organization.
+     */
+    getOrganizationSettings: (team: {
+      isOrganization: boolean;
+      organizationSettings: MinimumOrganizationSettings | null;
+      parent: {
+        organizationSettings: MinimumOrganizationSettings | null;
+      } | null;
+    }) => {
+      if (!team) return null;
+      if (team.isOrganization) return team.organizationSettings ?? null;
+      if (!team.parent) return null;
+      return team.parent.organizationSettings ?? null;
+    },
+    getVerifiedDomain(settings: Pick<OrganizationSettings, "orgAutoAcceptEmail">) {
+      return settings.orgAutoAcceptEmail;
+    },
+  };
 }

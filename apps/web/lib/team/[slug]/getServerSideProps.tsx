@@ -7,10 +7,11 @@ import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import type { Team } from "@calcom/prisma/client";
+import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -19,6 +20,30 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
+
+function getOrgProfileRedirectToVerifiedDomain(
+  team: {
+    isOrganization: boolean;
+  },
+  settings: Pick<OrganizationSettings, "orgAutoAcceptEmail" | "orgProfileRedirectsToVerifiedDomain">
+) {
+  if (!team.isOrganization) {
+    return null;
+  }
+
+  const verifiedDomain = OrganizationRepository.utils.getVerifiedDomain(settings);
+
+  if (!settings.orgProfileRedirectsToVerifiedDomain || !verifiedDomain) {
+    return null;
+  }
+
+  return {
+    redirect: {
+      permanent: false,
+      destination: `https://${verifiedDomain}`,
+    },
+  };
+}
 
 const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefined): string | undefined => {
   if (value === undefined || typeof value === "string") {
@@ -35,7 +60,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.req,
     context.params?.orgSlug ?? context.query?.orgSlug
   );
-
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
   // Provided by Rewrite from next.config.js
@@ -70,6 +94,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
+  const ssr = await ssrInit(context);
+  const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
+
   // Taking care of sub-teams and orgs
   if (
     (!isValidOrgDomain && team?.parent) ||
@@ -78,31 +105,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   ) {
     return { notFound: true } as const;
   }
-
-  const organizationSettings = isOrgContext
-    ? team?.isOrganization
-      ? team?.organizationSettings
-      : team?.parent?.organizationSettings
-    : null;
-  let allowSEOIndexing = false;
-  if (!!organizationSettings) {
-    allowSEOIndexing = organizationSettings.allowSEOIndexing ?? false;
-    if (
-      team?.isOrganization &&
-      organizationSettings.orgProfileRedirectsToVerifiedDomain &&
-      organizationSettings.orgAutoAcceptEmail
-    ) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `https://${organizationSettings.orgAutoAcceptEmail}`,
-        },
-      };
-    }
-  }
-
-  const ssr = await ssrInit(context);
-  const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
 
   if (!team) {
     // Because we are fetching by requestedSlug being set, it can either be an organization or a regular team. But it can't be a sub-team i.e.
@@ -141,6 +143,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         trpcState: ssr.dehydrate(),
       },
     } as const;
+  }
+
+  const organizationSettings = OrganizationRepository.utils.getOrganizationSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+  const redirectToVerifiedDomain = organizationSettings
+    ? getOrgProfileRedirectToVerifiedDomain(team, organizationSettings)
+    : null;
+
+  if (redirectToVerifiedDomain) {
+    return redirectToVerifiedDomain;
   }
 
   const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
