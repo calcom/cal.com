@@ -114,12 +114,11 @@ jobs:
       - run: find apps/web/public/static/locales/** -name "common.json" | xargs git checkout ${{ github.event.pull_request.head.sha }} --
         if: ${{ github.event.pull_request.head.sha != '' }}
         shell: bash
+      - run: git checkout ${{ github.event.pull_request.head.sha }} -- i18n.json
+        if: ${{ github.event.pull_request.head.sha != '' }}
       - uses: replexica/replexica@main
-        env:
-          GH_TOKEN: ${{ github.token }}
         with:
           api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
-          pull-request: true
 
   type-check:
     name: Type check
