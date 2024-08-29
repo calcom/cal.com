@@ -315,8 +315,7 @@ export async function handler(req: NextApiRequest) {
 
     const [resultOne, resultTwo] = await Promise.all([queryOne, queryTwo]);
     data = [...resultOne, ...resultTwo];
-  }
-  {
+  } else {
     data = await prisma.booking.findMany(args);
   }
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
