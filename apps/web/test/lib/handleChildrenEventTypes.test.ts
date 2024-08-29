@@ -295,11 +295,11 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
-          singleUseLinks: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
+          hashedLink: undefined,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -410,7 +410,6 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
-          singleUseLinks: [],
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -426,6 +425,7 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
+          hashedLink: undefined,
         },
       });
       const { profileId, ...rest } = evType;
