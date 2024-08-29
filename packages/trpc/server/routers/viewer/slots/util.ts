@@ -579,13 +579,13 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     },
   });
 
-  const [result1, result2, result3] = await Promise.all([
+  const [resultOne, resultTwo, resultThree] = await Promise.all([
     currentBookingsAllUsersQueryOne,
     currentBookingsAllUsersQueryTwo,
     currentBookingsAllUsersQueryThree,
   ]);
 
-  const currentBookingsAllUsers = [...result1, ...result2, ...result3];
+  const currentBookingsAllUsers = [...resultOne, ...resultTwo, ...resultThree];
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
