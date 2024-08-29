@@ -241,7 +241,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     allowRescheduleForCancelledBooking = false,
   }: {
     allowRescheduleForCancelledBooking?: boolean;
-  }) {
+  } = {}) {
     try {
       this.rescheduleLink = getRescheduleLink({
         calEvent: this.calendarEvent,
