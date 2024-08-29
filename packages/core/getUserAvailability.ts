@@ -171,11 +171,6 @@ const _getCurrentSeats = async (
           email: true,
         },
       },
-      _count: {
-        select: {
-          attendees: true,
-        },
-      },
     },
   });
 
