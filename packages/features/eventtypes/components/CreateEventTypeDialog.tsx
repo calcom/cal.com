@@ -226,6 +226,7 @@ export default function CreateEventTypeDialog({
                   placeholder={t("quick_video_meeting")}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
+                  maxHeight="200px"
                 />
 
                 <div className="relative">
