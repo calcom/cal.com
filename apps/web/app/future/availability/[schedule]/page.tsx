@@ -2,7 +2,7 @@ import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { AvailabilitySettings } from "@calcom/atoms/monorepo";
+import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
 export const generateMetadata = async ({ searchParams }: PageProps) => {
   const { trpc } = await import("@calcom/trpc");
@@ -28,4 +28,4 @@ export const generateMetadata = async ({ searchParams }: PageProps) => {
   );
 };
 
-export default WithLayout({ getLayout: null, Page: AvailabilitySettings });
+export default WithLayout({ getLayout: null, Page: AvailabilitySettingsWebWrapper });

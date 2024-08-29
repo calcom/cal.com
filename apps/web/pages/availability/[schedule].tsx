@@ -1,7 +1,7 @@
-import { AvailabilitySettings } from "@calcom/atoms/monorepo";
-
 import PageWrapper from "@components/PageWrapper";
 
-const Availability = () => <AvailabilitySettings />;
+import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
+
+const Availability = () => <AvailabilitySettingsWebWrapper />;
 
 Availability.PageWrapper = PageWrapper;
