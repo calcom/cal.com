@@ -94,13 +94,14 @@ export async function getBusyTimes(params: {
   const endTimeAdjustedWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
 
   // startTime is less than endTimeDate and endTime grater than startTimeDate
-  const sharedQuery = {
+  const sharedQuery: Prisma.BookingWhereInput = {
     startTime: { lte: endTimeAdjustedWithMaxBuffer },
     endTime: { gte: startTimeAdjustedWithMaxBuffer },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
   };
+
   // INFO: Refactored to allow this method to take in a list of current bookings for the user.
   // Will keep support for retrieving a user's bookings if the caller does not already supply them.
   // This function is called from multiple places but we aren't refactoring all of them at this moment
@@ -122,6 +123,18 @@ export async function getBusyTimes(params: {
                 some: {
                   email: userEmail,
                 },
+              },
+            },
+            {
+              startTime: { lte: endTimeDate },
+              endTime: { gte: startTimeDate },
+              eventType: {
+                id: eventTypeId,
+                requiresConfirmation: true,
+                requiresConfirmationWillBlockSlot: true,
+              },
+              status: {
+                in: [BookingStatus.PENDING],
               },
             },
           ],

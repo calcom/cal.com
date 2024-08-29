@@ -45,7 +45,6 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -1011,6 +1010,7 @@ async function handler(
       eventTrigger,
       responses,
       workflows,
+      rescheduledBy: reqBody.rescheduledBy,
     });
 
     if (newBooking) {
@@ -1075,6 +1075,7 @@ async function handler(
       data: {
         rescheduled: true,
         status: BookingStatus.CANCELLED,
+        rescheduledBy: reqBody.rescheduledBy,
       },
     });
   }
@@ -1351,11 +1352,6 @@ async function handler(
             .concat(copyEvent.attendees) || [];
 
         const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) => {
-          if (!originalMember.email || originalMember.email === BOOKED_WITH_SMS_EMAIL) {
-            return originalMember.phoneNumber === newMember.phoneNumber;
-          } else if (!newMember.email || newMember.email === BOOKED_WITH_SMS_EMAIL) {
-            return newMember.phoneNumber === originalMember.phoneNumber;
-          }
           return originalMember.email === newMember.email;
         };
 
@@ -1592,6 +1588,7 @@ async function handler(
     eventTypeId,
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
+    rescheduledBy: reqBody.rescheduledBy,
   };
 
   if (bookingRequiresPayment) {
@@ -1773,7 +1770,11 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = {
+    ...evt,
+    metadata,
+    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+  };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
     await scheduleMandatoryReminder(

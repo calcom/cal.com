@@ -19,6 +19,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -332,6 +333,7 @@ function BookingListItem(booking: BookingItemProps) {
       email: attendee.email,
       id: attendee.id,
       noShow: attendee.noShow || false,
+      phoneNumber: attendee.phoneNumber,
     };
   });
   return (
@@ -676,7 +678,8 @@ const FirstAttendee = ({
 
 type AttendeeProps = {
   name?: string;
-  email: string | null;
+  email: string;
+  phoneNumber: string | null;
   id: number;
   noShow: boolean;
 };
@@ -687,7 +690,7 @@ type NoShowProps = {
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee } = attendeeProps;
+  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
   const { t } = useLocale();
 
   const [noShow, setNoShow] = useState(noShowAttendee);
@@ -731,32 +734,35 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem className="focus:outline-none">
-          <DropdownItem
-            StartIcon="mail"
-            href={`mailto:${email}`}
-            onClick={(e) => {
-              setOpenDropdown(false);
-              e.stopPropagation();
-            }}>
-            <a href={`mailto:${email}`}>{t("email")}</a>
-          </DropdownItem>
-        </DropdownMenuItem>
-        {email && (
+        {!isSmsCalEmail(email) && (
           <DropdownMenuItem className="focus:outline-none">
             <DropdownItem
-              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+              StartIcon="mail"
+              href={`mailto:${email}`}
               onClick={(e) => {
-                e.preventDefault();
-                copyToClipboard(email);
                 setOpenDropdown(false);
-                showToast(t("email_copied"), "success");
+                e.stopPropagation();
               }}>
-              {!isCopied ? t("copy") : t("copied")}
+              <a href={`mailto:${email}`}>{t("email")}</a>
             </DropdownItem>
           </DropdownMenuItem>
         )}
-        {isBookingInPast && email && (
+
+        <DropdownMenuItem className="focus:outline-none">
+          <DropdownItem
+            StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+            onClick={(e) => {
+              e.preventDefault();
+              const isEmailCopied = isSmsCalEmail(email);
+              copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
+              setOpenDropdown(false);
+              showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
+            }}>
+            {!isCopied ? t("copy") : t("copied")}
+          </DropdownItem>
+        </DropdownMenuItem>
+
+        {isBookingInPast && (
           <DropdownMenuItem className="focus:outline-none">
             {noShow ? (
               <DropdownItem
@@ -774,10 +780,6 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                 data-testid="mark-no-show"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (!email) {
-                    console.warn("Disabled due to missing email");
-                    return;
-                  }
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
                 }}
@@ -831,11 +833,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   });
 
   const onSubmit = (data: { attendees: AttendeeProps[] }) => {
-    const filteredData = data.attendees
-      .slice(1)
-      .filter(
-        (attendee): attendee is AttendeeProps & { email: string } => typeof attendee.email === "string"
-      );
+    const filteredData = data.attendees.slice(1);
     noShowMutation.mutate({ bookingUid, attendees: filteredData });
     setOpenDropdown(false);
   };
@@ -922,7 +920,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
               onClick={(e) => {
                 e.preventDefault();
-                setSelectedEmail(guest?.email ?? "");
+                setSelectedEmail(guest.email);
               }}>
               <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
             </DropdownItem>

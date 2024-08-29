@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
@@ -8,7 +8,7 @@ import { Info } from "./Info";
 const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => (
   <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
     {name} - {role} {phoneNumber}
-    {email !== BOOKED_WITH_SMS_EMAIL && (
+    {!isSmsCalEmail(email) && (
       <span style={{ color: "#4B5563" }}>
         <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
           {email}
@@ -31,12 +31,7 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             email={props.calEvent.organizer.email}
           />
           {props.calEvent.team?.members.map((member) => (
-            <PersonInfo
-              key={member.name}
-              name={member.name}
-              role={t("team_member")}
-              email={member?.email ?? undefined}
-            />
+            <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member?.email} />
           ))}
           {props.calEvent.attendees.map((attendee) => (
             <PersonInfo

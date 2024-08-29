@@ -36,7 +36,8 @@ import { describe, expect, beforeEach } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { WEBAPP_URL, WEBSITE_URL, BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -801,7 +802,7 @@ describe("handleNewBooking", () => {
 
             const TEST_ATTENDEE_NUMBER = "+918888888888";
             const booker = getBooker({
-              email: BOOKED_WITH_SMS_EMAIL,
+              email: "booker@example.com",
               name: "Booker",
               attendeePhoneNumber: TEST_ATTENDEE_NUMBER,
             });
@@ -1008,7 +1009,7 @@ describe("handleNewBooking", () => {
                 uid: createdBooking.uid!,
                 urlOrigin: `${WEBSITE_PROTOCOL}//team-1.cal.local:3000`,
               },
-              booker,
+              booker: { email: contructEmailFromPhoneNumber(TEST_ATTENDEE_NUMBER), name: booker.name },
               organizer,
               otherTeamMembers,
               emails,
@@ -1016,7 +1017,7 @@ describe("handleNewBooking", () => {
             });
 
             expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
+              booker: { email: contructEmailFromPhoneNumber(TEST_ATTENDEE_NUMBER), name: booker.name },
               organizer,
               location: BookingLocations.CalVideo,
               subscriberUrl: "http://my-webhook.example.com",
@@ -1041,8 +1042,9 @@ describe("handleNewBooking", () => {
             });
             const subscriberUrl = "http://my-webhook.example.com";
             const TEST_ATTENDEE_NUMBER = "+918888888888";
+
             const booker = getBooker({
-              email: BOOKED_WITH_SMS_EMAIL,
+              email: "booker@example.com",
               name: "Booker",
               attendeePhoneNumber: TEST_ATTENDEE_NUMBER,
             });
@@ -1187,6 +1189,7 @@ describe("handleNewBooking", () => {
                 // No Email Passed
                 responses: {
                   name: booker.name,
+                  email: "",
                   attendeePhoneNumber: booker.attendeePhoneNumber,
                   location: { optionValue: "", value: BookingLocations.CalVideo },
                 },
@@ -1214,13 +1217,12 @@ describe("handleNewBooking", () => {
             });
 
             expectBookingRequestedEmails({
-              booker,
               organizer,
               emails,
             });
 
             expectBookingRequestedWebhookToHaveBeenFired({
-              booker,
+              booker: { name: booker.name, email: contructEmailFromPhoneNumber(TEST_ATTENDEE_NUMBER) },
               organizer,
               location: BookingLocations.CalVideo,
               subscriberUrl,

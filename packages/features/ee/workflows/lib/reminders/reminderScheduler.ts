@@ -6,7 +6,7 @@ import {
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
@@ -16,7 +16,11 @@ import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 export type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
-  eventType: { slug?: string };
+  eventType: {
+    slug?: string;
+    schedulingType?: SchedulingType | null;
+    hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
+  };
 };
 
 type ProcessWorkflowStepParams = {
@@ -85,11 +89,18 @@ const processWorkflowStep = async (
         break;
       case WorkflowActions.EMAIL_HOST:
         sendTo = [evt.organizer?.email || ""];
+
+        const schedulingType = evt.eventType.schedulingType;
+        const isTeamEvent =
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+        if (isTeamEvent && evt.team?.members) {
+          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
+        }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
         const attendees = !!emailAttendeeSendToOverride
           ? [emailAttendeeSendToOverride]
-          : evt.attendees?.map((attendee) => attendee.email).filter((email): email is string => !!email);
+          : evt.attendees?.map((attendee) => attendee.email);
 
         sendTo = attendees;
 

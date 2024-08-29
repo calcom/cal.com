@@ -81,15 +81,24 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toHaveEmail(expectedEmail: ExpectedEmail, to: string): R;
+      toHaveEmail(expectedEmail: ExpectedEmail, to: string, subject?: string): R;
     }
   }
 }
 
 expect.extend({
-  toHaveEmail(emails: Fixtures["emails"], expectedEmail: ExpectedEmail, to: string) {
+  toHaveEmail(emails: Fixtures["emails"], expectedEmail: ExpectedEmail, to: string, subject?: string) {
     const { isNot } = this;
-    const testEmail = emails.get().find((email) => email.to.includes(to));
+    const testEmail = emails.get().find((email) => {
+      const filterConditions = [email.to.includes(to)];
+
+      if (subject) {
+        filterConditions.push(email.subject === subject);
+      }
+
+      return filterConditions.every((condition) => condition);
+    });
+
     const emailsToLog = emails
       .get()
       .map((email) => ({ to: email.to, html: email.html, ics: email.icalEvent }));
@@ -462,13 +471,19 @@ export function expectSuccessfulBookingCreationEmails({
       links: recurrence
         ? [
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=true&cancelledBy=${encodeURIComponent(
+                destinationEmail ?? organizer.email
+              )}`,
               text: "cancel",
             },
           ]
         : [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                destinationEmail ?? organizer.email
+              )}`,
               text: "reschedule",
             },
           ],
@@ -515,13 +530,17 @@ export function expectSuccessfulBookingCreationEmails({
       links: recurrence
         ? [
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=true&cancelledBy=${encodeURIComponent(booker.email)}`,
               text: "cancel",
             },
           ]
         : [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                booker.email
+              )}`,
               text: "reschedule",
             },
           ],
@@ -553,11 +572,17 @@ export function expectSuccessfulBookingCreationEmails({
           },
           links: [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                otherTeamMember.email
+              )}`,
               text: "reschedule",
             },
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=false&cancelledBy=${encodeURIComponent(
+                otherTeamMember.email
+              )}`,
               text: "cancel",
             },
           ],
@@ -752,10 +777,12 @@ export function expectSuccessfulBookingRescheduledEmails({
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
+  subject,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
+  subject?: string;
 }) {
   expect(emails).toHaveEmail(
     {
@@ -763,7 +790,8 @@ export function expectAwaitingPaymentEmails({
       to: `${booker.name} <${booker.email}>`,
       noIcs: true,
     },
-    `${booker.email}`
+    `${booker.email}`,
+    subject
   );
 }
 
@@ -774,7 +802,7 @@ export function expectBookingRequestedEmails({
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker?: { email: string; name: string };
 }) {
   expect(emails).toHaveEmail(
     {
@@ -785,14 +813,16 @@ export function expectBookingRequestedEmails({
     `${organizer.email}`
   );
 
-  expect(emails).toHaveEmail(
-    {
-      titleTag: "booking_submitted_subject",
-      to: `${booker.email}`,
-      noIcs: true,
-    },
-    `${booker.email}`
-  );
+  if (booker) {
+    expect(emails).toHaveEmail(
+      {
+        titleTag: "booking_submitted_subject",
+        to: `${booker.email}`,
+        noIcs: true,
+      },
+      `${booker.email}`
+    );
+  }
 }
 
 export function expectBookingRequestRescheduledEmails({

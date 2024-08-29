@@ -25,7 +25,7 @@ const handlePayment = async (
     uid: string;
   },
   bookerName: string,
-  bookerEmail?: string | null,
+  bookerEmail: string,
   bookerPhoneNumber?: string | null
 ) => {
   const paymentApp = (await appStore[

@@ -7,7 +7,9 @@ import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getWhen } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { Attendee, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+
+import { GenerateIcsRole } from "./generateIcsFile";
 
 export enum BookingAction {
   Create = "create",
@@ -30,7 +32,7 @@ const generateIcsString = ({
   title: string;
   subtitle: string;
   status: EventStatus;
-  role: "attendee" | "organizer";
+  role: GenerateIcsRole;
   isRequestReschedule?: boolean;
   t?: TFunction;
 }) => {
@@ -47,7 +49,7 @@ const generateIcsString = ({
 
   const getTextBody = (title: string, subtitle: string): string => {
     let body: string;
-    if (isRequestReschedule && role === "attendee" && t) {
+    if (isRequestReschedule && role === GenerateIcsRole.ATTENDEE && t) {
       body = `
       ${title}
       ${getWhen(event, t)}
@@ -79,9 +81,9 @@ const generateIcsString = ({
     organizer: { name: event.organizer.name, email: event.organizer.email },
     ...{ recurrenceRule },
     attendees: [
-      ...event.attendees.map((attendee: Attendee) => ({
+      ...event.attendees.map((attendee: Person) => ({
         name: attendee.name,
-        email: attendee.email ?? undefined,
+        email: attendee.email,
         partstat,
         role: icsRole,
         rsvp: true,

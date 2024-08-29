@@ -1,6 +1,5 @@
 import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import type { AttendeeInBookingInfo } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
@@ -11,8 +10,6 @@ import type { ExtendedCalendarEvent } from "./reminderScheduler";
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
 export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;
-
-export type AttendeeWithEmail = Omit<AttendeeInBookingInfo, "email"> & { email: string };
 
 export async function scheduleMandatoryReminder(
   evt: ExtendedCalendarEvent,
@@ -33,16 +30,12 @@ export async function scheduleMandatoryReminder(
 
     if (
       !hasExistingWorkflow &&
-      evt.attendees.some((attendee) => attendee.email?.includes("@gmail.com")) &&
+      evt.attendees.some((attendee) => attendee.email.includes("@gmail.com")) &&
       !requiresConfirmation
     ) {
       try {
-        const filteredAttendees = (evt.attendees ?? []).reduce((acc: AttendeeWithEmail[], attendee) => {
-          if (!!attendee.email && attendee.email.includes("@gmail.com")) {
-            acc.push(attendee as AttendeeWithEmail);
-          }
-          return acc;
-        }, []);
+        const filteredAttendees =
+          evt.attendees?.filter((attendee) => attendee.email.includes("@gmail.com")) || [];
 
         await scheduleEmailReminder({
           evt,

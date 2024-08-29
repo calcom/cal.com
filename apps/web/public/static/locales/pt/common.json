@@ -2405,7 +2405,7 @@
   "create_account_password_hint": "Você não tem uma palavra-passe de conta. Crie uma acedendo a Segurança -> Senha. Não pode desassociar até que seja criada uma palavra-passe de conta.",
   "disconnect_account": "Desligar conta associada",
   "disconnect_account_hint": "Desligar a sua conta associada irá alterar a forma como inicia sessão. Só poderá iniciar sessão na sua conta utilizando o e-mail + a palavra-passe",
-  "cookie_consent_checkbox": "Eu dou o meu consentimento relativamente à nossa política de privacidade e utilização de cookies",
+  "cookie_consent_checkbox": "Ao criar uma conta, você concorda com a nossa política de privacidade e o uso de cookies",
   "make_a_call": "Fazer uma chamada",
   "skip_rr_assignment_label": "Saltar a atribuição em distribuição equilibrada se o contacto existir no Salesforce",
   "skip_rr_description": "A URL deve conter o e-mail do contacto como um parâmetro, ex. ?email=contactEmail",
@@ -2471,5 +2471,11 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "O utilizador é um membro pendente da organização",
   "USER_ALREADY_INVITED_OR_MEMBER": "O utilizador já está convidado ou já é um membro",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "O utilizador é membro de uma organização da qual esta equipa não faz parte.",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "h",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} h",
+  "apply_to_all_event_types": "Aplicar a todos, incluindo tipos de eventos futuros",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

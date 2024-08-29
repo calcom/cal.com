@@ -32,7 +32,6 @@ import {
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -43,6 +42,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -164,6 +164,8 @@ export default function Success(props: PageProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
   const parsedRating = rating ? parseInt(rating, 10) : 3;
+  const currentUserEmail =
+    searchParams?.get("cancelledBy") ?? searchParams?.get("email") ?? session?.user?.email ?? undefined;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
@@ -568,7 +570,7 @@ export default function Success(props: PageProps) {
                                       {attendee.phoneNumber}
                                     </p>
                                   )}
-                                  {attendee.email !== BOOKED_WITH_SMS_EMAIL && (
+                                  {!isSmsCalEmail(attendee.email) && (
                                     <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
                                   )}
                                 </div>
@@ -708,7 +710,9 @@ export default function Success(props: PageProps) {
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
-                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
+                                      }`}
                                       legacyBehavior>
                                       {t("reschedule")}
                                     </Link>
@@ -746,6 +750,7 @@ export default function Success(props: PageProps) {
                             allRemainingBookings={allRemainingBookings}
                             seatReferenceUid={seatReferenceUid}
                             bookingCancelledEventProps={bookingCancelledEventProps}
+                            currentUserEmail={currentUserEmail}
                           />
                         </>
                       ))}

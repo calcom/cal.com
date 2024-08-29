@@ -23,7 +23,7 @@ import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent, Organizer } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -146,6 +146,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       cancellationReason,
       status: BookingStatus.CANCELLED,
       updatedAt: dayjs().toISOString(),
+      cancelledBy: user.email,
     },
   });
 
@@ -163,10 +164,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?
   const tAttendees = await getTranslation(mainAttendee.locale ?? "en", "common");
-  const usersToPeopleType = (
-    users: PersonAttendeeCommonFields[],
-    selectedLanguage: TFunction
-  ): Organizer[] => {
+  const usersToPeopleType = (users: PersonAttendeeCommonFields[], selectedLanguage: TFunction): Person[] => {
     return users?.map((user) => {
       return {
         email: user.email || "",
@@ -315,6 +313,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
       smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+      cancelledBy: user.email,
     }).catch((e) => {
       log.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,

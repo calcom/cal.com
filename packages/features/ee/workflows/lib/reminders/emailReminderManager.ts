@@ -57,7 +57,7 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
     attendees: [
       {
         name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
-        email: evt.attendees[0].email ?? undefined,
+        email: evt.attendees[0].email,
         partstat: status,
         role: "REQ-PARTICIPANT",
         rsvp: true,
@@ -196,7 +196,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       attendeeName: attendeeToBeUsedInMail.name,
       attendeeFirstName: attendeeToBeUsedInMail.firstName,
       attendeeLastName: attendeeToBeUsedInMail.lastName,
-      attendeeEmail: attendeeToBeUsedInMail.email ?? undefined,
+      attendeeEmail: attendeeToBeUsedInMail.email,
       eventDate: dayjs(startTime).tz(timeZone),
       eventEndTime: dayjs(endTime).tz(timeZone),
       timeZone: timeZone,

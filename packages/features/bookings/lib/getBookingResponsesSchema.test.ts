@@ -116,8 +116,8 @@ describe("getBookingResponsesSchema", () => {
         //@ts-ignore
         expect(parsedResponsesWithJustName.error.issues[0]).toEqual(
           expect.objectContaining({
-            code: "custom",
-            message: "{email}error_required_field",
+            path: ["email"],
+            message: ZOD_REQUIRED_FIELD_ERROR_MSG,
           })
         );
 

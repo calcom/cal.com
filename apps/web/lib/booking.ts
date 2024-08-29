@@ -128,7 +128,7 @@ export const handleSeatsEventTypeOnBooking = async (
   bookingInfo["responses"] = {};
   type seatAttendee = {
     attendee: {
-      email: string | null;
+      email: string;
       name: string;
       phoneNumber: string | null;
     };

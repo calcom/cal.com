@@ -4,7 +4,7 @@ import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { CalendarEvent, Organizer, Person, VideoCallData } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
   return {
@@ -31,20 +31,6 @@ export const buildPerson = (person?: Partial<Person>): Person => {
   };
 };
 
-const buildOrganizer = (): Organizer => {
-  return {
-    name: faker.name.firstName(),
-    email: faker.internet.email(),
-    timeZone: faker.address.timeZone(),
-    username: faker.internet.userName(),
-    id: faker.datatype.number(),
-    language: {
-      locale: faker.random.locale(),
-      translate: ((key: string) => key) as TFunction,
-    },
-  };
-};
-
 export const buildBooking = (
   booking?: Partial<Booking> & { references?: Partial<BookingReference>[] }
 ): Booking & { references?: Partial<BookingReference>[]; attendees?: [] } => {
@@ -67,6 +53,8 @@ export const buildBooking = (
     status: BookingStatus.ACCEPTED,
     paid: false,
     destinationCalendarId: null,
+    cancelledBy: null,
+    rescheduledBy: null,
     cancellationReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
@@ -116,6 +104,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
     requiresConfirmation: false,
+    requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,
     minimumBookingNotice: 120,
@@ -209,7 +198,7 @@ export const buildCalendarEvent = (
     attendees: [],
     customInputs: {},
     additionalNotes: faker.lorem.paragraph(),
-    organizer: buildOrganizer(),
+    organizer: buildPerson(),
     ...(!omitVideoCallData && { videoCallData: buildVideoCallData() }),
     ...event,
   };

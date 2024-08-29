@@ -17,7 +17,7 @@ export type NewSeatedBookingObject = {
   allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
-  bookerEmail?: string | null;
+  bookerEmail: string;
   bookerPhoneNumber?: string | null;
   tAttendees: TFunction;
   bookingSeat: BookingSeat;
@@ -39,6 +39,7 @@ export type NewSeatedBookingObject = {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
+  rescheduledBy?: string;
   workflows: Workflow[];
 };
 

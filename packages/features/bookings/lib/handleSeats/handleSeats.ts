@@ -2,7 +2,6 @@
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -31,6 +30,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventTrigger,
     evt,
     workflows,
+    rescheduledBy,
   } = newSeatedBookingObject;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
@@ -77,9 +77,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   // See if attendee is already signed up for timeslot
   if (
     seatedBooking.attendees.find((attendee) => {
-      if (!invitee[0].email || invitee[0].email === BOOKED_WITH_SMS_EMAIL) {
-        return attendee.phoneNumber === invitee[0].phoneNumber;
-      }
       return attendee.email === invitee[0].email;
     }) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
@@ -110,11 +107,21 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       await scheduleWorkflowReminders({
         workflows,
         smsReminderNumber: smsReminderNumber || null,
-        calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
+        calendarEvent: {
+          ...evt,
+          ...{
+            metadata,
+            eventType: {
+              slug: eventType.slug,
+              schedulingType: eventType.schedulingType,
+              hosts: eventType.hosts,
+            },
+          },
+        },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
-        emailAttendeeSendToOverride: bookerEmail ?? undefined,
+        emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
       });
     } catch (error) {
@@ -138,6 +145,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       eventTypeId,
       status: "ACCEPTED",
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
+      rescheduledBy,
     };
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });

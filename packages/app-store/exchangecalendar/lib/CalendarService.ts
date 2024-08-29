@@ -27,7 +27,6 @@ import {
   WellKnownFolderName,
 } from "ews-javascript-api";
 
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type {
@@ -63,11 +62,11 @@ export default class ExchangeCalendarService implements Calendar {
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
     event.attendees.forEach((attendee: Person) => {
-      appointment.RequiredAttendees.Add(new Attendee(attendee.email ?? BOOKED_WITH_SMS_EMAIL));
+      appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
     if (event.team?.members) {
       event.team.members.forEach((member: Person) => {
-        appointment.RequiredAttendees.Add(new Attendee(member.email ?? BOOKED_WITH_SMS_EMAIL));
+        appointment.RequiredAttendees.Add(new Attendee(member.email));
       });
     }
     return appointment
@@ -99,11 +98,11 @@ export default class ExchangeCalendarService implements Calendar {
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
     event.attendees.forEach((attendee: Person) => {
-      appointment.RequiredAttendees.Add(new Attendee(attendee.email ?? BOOKED_WITH_SMS_EMAIL));
+      appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
     if (event.team?.members) {
       event.team.members.forEach((member) => {
-        appointment.RequiredAttendees.Add(new Attendee(member.email ?? BOOKED_WITH_SMS_EMAIL));
+        appointment.RequiredAttendees.Add(new Attendee(member.email));
       });
     }
     return appointment
