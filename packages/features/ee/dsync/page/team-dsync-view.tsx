@@ -1,12 +1,13 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, SkeletonLoader, showToast } from "@calcom/ui";
+import { SkeletonLoader, showToast } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import ConfigureDirectorySync from "../components/ConfigureDirectorySync";
 
 // For Hosted Cal - Team view
@@ -36,7 +37,6 @@ const DirectorySync = () => {
 
   return (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
-      <Meta title={t("directory_sync")} description={t("directory_sync_description")} />
       {HOSTED_CAL_FEATURES && <ConfigureDirectorySync organizationId={currentOrg?.id || null} />}
       {/* TODO add additional settings for dsync */}
       {/* <SettingsToggle
@@ -55,7 +55,5 @@ const DirectorySync = () => {
     </div>
   );
 };
-
-DirectorySync.getLayout = getLayout;
 
 export default DirectorySync;
