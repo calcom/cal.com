@@ -186,16 +186,7 @@ function buildWhereClause(
     };
   } else {
     whereClause = {
-      OR: [
-        userFilter,
-        {
-          attendees: {
-            some: {
-              email: { in: userEmails },
-            },
-          },
-        },
-      ],
+      userFilter,
     };
   }
 
@@ -308,7 +299,26 @@ export async function handler(req: NextApiRequest) {
     }
   }
 
-  const data = await prisma.booking.findMany(args);
+  let data: Booking[] = [];
+
+  if (attendeeEmails.length > 0) {
+    const queryOne = prisma.booking.findMany(args);
+    const queryTwo = prisma.booking.findMany({
+      where: {
+        attendees: {
+          some: {
+            email: { in: userEmails },
+          },
+        },
+      },
+    });
+
+    const [resultOne, resultTwo] = await Promise.all([queryOne, queryTwo]);
+    data = [...resultOne, ...resultTwo];
+  }
+  {
+    data = await prisma.booking.findMany(args);
+  }
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
 
