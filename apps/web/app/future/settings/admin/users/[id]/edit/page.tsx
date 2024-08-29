@@ -6,7 +6,6 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UsersEditView } from "@calcom/features/ee/users/pages/users-edit-view";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 
@@ -19,17 +18,10 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  const username = await prisma.user.findFirst({
-    where: {
-      id: input.data.id,
-    },
-    select: {
-      username: true,
-    },
-  });
+  const user = await UserRepository.adminFindById(input.data.id);
 
   return await _generateMetadata(
-    () => `Editing user: ${username?.username}`,
+    () => `Editing user: ${user?.username}`,
     () => "Here you can edit a current user."
   );
 };
