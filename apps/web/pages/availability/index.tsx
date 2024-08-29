@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
@@ -19,7 +20,6 @@ import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { QueryCell } from "@lib/QueryCell";
 
 import PageWrapper from "@components/PageWrapper";
-import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();

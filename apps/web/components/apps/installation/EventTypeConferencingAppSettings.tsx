@@ -3,6 +3,9 @@ import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
+import type { TLocationOptions } from "@calcom/features/eventtypes/components/event-type/Locations";
+import type { TEventTypeLocation } from "@calcom/features/eventtypes/components/event-type/Locations";
+import Locations from "@calcom/features/eventtypes/components/event-type/Locations";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/client";
@@ -13,9 +16,6 @@ import { Skeleton, Label } from "@calcom/ui";
 import { QueryCell } from "@lib/QueryCell";
 
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
-import type { TLocationOptions } from "@components/eventtype/Locations";
-import type { TEventTypeLocation } from "@components/eventtype/Locations";
-import Locations from "@components/eventtype/Locations";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 
 const LocationsWrapper = ({

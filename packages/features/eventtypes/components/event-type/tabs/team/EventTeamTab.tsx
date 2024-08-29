@@ -1,6 +1,5 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps, Host } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -12,7 +11,12 @@ import AddMembersWithSwitch, {
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts, weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
-import type { FormValues, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import type {
+  FormValues,
+  TeamMember,
+  EventTypeSetupProps,
+  Host,
+} from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle } from "@calcom/ui";

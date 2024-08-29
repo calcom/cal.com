@@ -15,6 +15,7 @@ import {
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
+import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -22,7 +23,6 @@ import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form, PhoneIn
 
 import { QueryCell } from "@lib/QueryCell";
 
-import CheckboxField from "@components/ui/form/CheckboxField";
 import type { LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
 
