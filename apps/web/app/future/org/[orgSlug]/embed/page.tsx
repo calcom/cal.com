@@ -5,7 +5,6 @@ import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import type { Params, SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -20,9 +19,7 @@ export const generateMetadata = async ({
   params: Params;
   searchParams: SearchParams;
 }) => {
-  const props = await getData(
-    buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
-  );
+  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
   const teamName = props.team.name || "Nameless Team";
 
   return await _generateMetadata(
