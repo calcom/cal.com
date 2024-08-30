@@ -1,4 +1,4 @@
-import { CalendarsService } from "app/ee/calendars/services/calendars.service";
+import { CalendarsService } from "src/ee/calendars/services/calendars.service";
 
 export class CalendarsServiceMock {
   async getCalendars() {

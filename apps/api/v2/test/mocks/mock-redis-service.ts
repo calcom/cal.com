@@ -1,5 +1,5 @@
 import { Provider } from "@nestjs/common";
-import { RedisService } from "app/modules/redis/redis.service";
+import { RedisService } from "src/modules/redis/redis.service";
 
 export const MockedRedisService = {
   provide: RedisService,

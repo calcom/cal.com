@@ -1,8 +1,8 @@
 import { TestingModule } from "@nestjs/testing";
-import { PrismaReadService } from "app/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "app/modules/prisma/prisma-write.service";
 import * as crypto from "crypto";
 import { DateTime } from "luxon";
+import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
 
 export class TokensRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
-import { BaseStrategy } from "app/lib/passport/strategies/types";
-import { UsersRepository } from "app/modules/users/users.repository";
+import { BaseStrategy } from "src/lib/passport/strategies/types";
+import { UsersRepository } from "src/modules/users/users.repository";
 
 @Injectable()
 export class ApiAuthMockStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
