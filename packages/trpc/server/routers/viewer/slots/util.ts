@@ -391,11 +391,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           };
         });
 
-  if (
-    input.rescheduleUid &&
-    eventType.rescheduleWithSameRoundRobinHost &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN
-  ) {
+  if (input.rescheduleUid) {
     const originalRescheduledBooking = await prisma.booking.findFirst({
       where: {
         uid: input.rescheduleUid,
@@ -405,9 +401,37 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       },
       select: {
         userId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
-    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    if (
+      eventType.rescheduleWithSameRoundRobinHost &&
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    ) {
+      hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    }
+    // Get first attendee userid  and add it to hosts
+    const firstAttendee = originalRescheduledBooking?.attendees?.[0];
+    if (firstAttendee) {
+      const firstAttendeeUser = await prisma.user.findFirst({
+        where: {
+          email: firstAttendee.email,
+        },
+        select: {
+          ...availabilityUserSelect,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
+        },
+      });
+      if (firstAttendeeUser) {
+        hosts.push({ isFixed: true, user: firstAttendeeUser });
+      }
+    }
   }
 
   const teamMemberHost = hosts.find((host) => host.user.email === input?.teamMemberEmail);
