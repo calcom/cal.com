@@ -29,5 +29,6 @@ function TroubleshooterPage() {
     </>
   );
 }
+export { getLayout } from "@calcom/features/troubleshooter/layout";
 
 export default TroubleshooterPage;
