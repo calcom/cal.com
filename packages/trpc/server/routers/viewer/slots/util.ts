@@ -322,56 +322,6 @@ export interface IGetAvailableSlots {
   teamMember?: string | undefined;
 }
 
-async function getCRMContactOwnerForRRLeadSkip(
-  bookerEmail: string,
-  apps?: z.infer<typeof EventTypeAppMetadataSchema>
-) {
-  if (!apps) return;
-  const crm = await getCRMManagerWithRRLeadSkip(apps);
-
-  if (!crm) return;
-
-  const contact = await crm.getContacts(bookerEmail, true);
-  if (contact?.length) {
-    return contact[0].ownerEmail;
-  }
-}
-
-async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
-  let crmRoundRobinLeadSkip;
-  for (const appKey in apps) {
-    const app = apps[appKey as keyof typeof apps];
-    if (
-      app.enabled &&
-      typeof app.appCategories === "object" &&
-      app.appCategories.some((category: string) => category === "crm") &&
-      app.roundRobinLeadSkip
-    ) {
-      crmRoundRobinLeadSkip = app;
-      break;
-    }
-  }
-
-  if (crmRoundRobinLeadSkip) {
-    const crmCredential = await prisma.credential.findUnique({
-      where: {
-        id: crmRoundRobinLeadSkip.credentialId,
-      },
-      include: {
-        user: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-    if (crmCredential) {
-      return new CrmManager(crmCredential);
-    }
-  }
-  return;
-}
-
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const orgDetails = input?.orgSlug
     ? {
