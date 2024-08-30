@@ -25,7 +25,7 @@ export const initFormbricks = ({
       debug: process.env.NODE_ENV === "development",
       userId,
       attributes: filteredAttributes,
-    });
+    } as any);
   }
 };
 
