@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import React from "react";
 
 import { useEventTypeById, useIsPlatform } from "@calcom/atoms/monorepo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -40,6 +39,8 @@ export const BookEventFormWrapperComponent = ({
   child: ReactNode;
   eventLength?: number;
 }) => {
+  const occurenceCount = useBookerStore((state) => state.occurenceCount) || 1;
+  const hasOcurrence = occurenceCount > 1;
   const { i18n, t } = useLocale();
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -57,6 +58,7 @@ export const BookEventFormWrapperComponent = ({
             timeFormat={timeFormat}
             timeZone={timezone}
             language={i18n.language}
+            hasOcurrence={hasOcurrence}
           />
         </Badge>
         {(selectedDuration || eventLength) && (
@@ -65,6 +67,12 @@ export const BookEventFormWrapperComponent = ({
           </Badge>
         )}
       </div>
+      {hasOcurrence && (
+        <span className="mb-4 text-base">
+          O dia da semana e horário escolhidos serão reservados para você nas próximas semanas conforme o
+          plano escolhido.
+        </span>
+      )}
       {child}
     </>
   );

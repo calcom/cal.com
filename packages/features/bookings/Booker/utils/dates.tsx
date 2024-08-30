@@ -13,6 +13,7 @@ interface EventFromTime {
   timeFormat: TimeFormat;
   timeZone: string;
   language: string;
+  hasOcurrence?: boolean;
 }
 
 export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: EventFromTime) => {
@@ -76,6 +77,7 @@ export const FromTime = (props: EventFromTime) => {
   const formatted = formatEventFromTime(props);
   return (
     <>
+      {props.hasOcurrence && "A partir de "}
       {formatted.date}, {formatted.time}
     </>
   );
