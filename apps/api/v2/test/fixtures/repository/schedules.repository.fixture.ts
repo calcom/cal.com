@@ -1,7 +1,7 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { Schedule } from "@prisma/client";
+import { PrismaReadService } from "app/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "app/modules/prisma/prisma-write.service";
 
 import { Prisma } from "@calcom/prisma/client";
 

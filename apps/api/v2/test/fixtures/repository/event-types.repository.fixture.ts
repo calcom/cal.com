@@ -1,8 +1,8 @@
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { EventType } from "@prisma/client";
+import { CreateEventTypeInput_2024_04_15 } from "app/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { PrismaReadService } from "app/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "app/modules/prisma/prisma-write.service";
 
 import { Prisma } from "@calcom/prisma/client";
 
