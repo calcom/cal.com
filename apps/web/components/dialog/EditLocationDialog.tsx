@@ -16,15 +16,14 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
+import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
+import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-
-import type { LocationOption } from "@components/ui/form/LocationSelect";
-import LocationSelect from "@components/ui/form/LocationSelect";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 

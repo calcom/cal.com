@@ -7,6 +7,7 @@ import type { TLocationOptions } from "@calcom/features/eventtypes/components/ev
 import type { TEventTypeLocation } from "@calcom/features/eventtypes/components/event-type/Locations";
 import Locations from "@calcom/features/eventtypes/components/event-type/Locations";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
+import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -16,7 +17,6 @@ import { Skeleton, Label } from "@calcom/ui";
 import { QueryCell } from "@lib/QueryCell";
 
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
-import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 
 const LocationsWrapper = ({
   eventType,

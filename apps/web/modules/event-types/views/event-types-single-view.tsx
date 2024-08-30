@@ -1,6 +1,7 @@
 "use client";
 
 import { EventType } from "@calcom/features/eventtypes/components/event-type/EventType";
+import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 
 /* eslint-disable @typescript-eslint/no-empty-function */
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router

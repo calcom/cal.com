@@ -3,8 +3,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import type { TFunction } from "next-i18next";
 import dynamic from "next/dynamic";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
@@ -13,7 +11,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import {
   DEFAULT_PROMPT_VALUE,
@@ -26,6 +23,7 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
+import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -113,69 +111,6 @@ export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
-
-export const locationsResolver = (t: TFunction) => {
-  return z
-    .array(
-      z
-        .object({
-          type: z.string(),
-          address: z.string().optional(),
-          link: z.string().url().optional(),
-          phone: z
-            .string()
-            .refine((val) => isValidPhoneNumber(val))
-            .optional(),
-          hostPhoneNumber: z
-            .string()
-            .refine((val) => isValidPhoneNumber(val))
-            .optional(),
-          displayLocationPublicly: z.boolean().optional(),
-          credentialId: z.number().optional(),
-          teamName: z.string().optional(),
-        })
-        .passthrough()
-        .superRefine((val, ctx) => {
-          if (val?.link) {
-            const link = val.link;
-            const eventLocationType = getEventLocationType(val.type);
-            if (
-              eventLocationType &&
-              !eventLocationType.default &&
-              eventLocationType.linkType === "static" &&
-              eventLocationType.urlRegExp
-            ) {
-              const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(link).success;
-
-              if (!valid) {
-                const sampleUrl = eventLocationType.organizerInputPlaceholder;
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  path: [eventLocationType?.defaultValueVariable ?? "link"],
-                  message: t("invalid_url_error_message", {
-                    label: eventLocationType.label,
-                    sampleUrl: sampleUrl ?? "https://cal.com",
-                  }),
-                });
-              }
-              return;
-            }
-
-            const valid = z.string().url().optional().safeParse(link).success;
-
-            if (!valid) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: [eventLocationType?.defaultValueVariable ?? "link"],
-                message: `Invalid URL`,
-              });
-            }
-          }
-          return;
-        })
-    )
-    .optional();
-};
 
 export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Workflow[] }) => {
   const { t } = useLocale();
