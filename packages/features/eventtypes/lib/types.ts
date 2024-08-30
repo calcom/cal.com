@@ -48,6 +48,7 @@ export type FormValues = {
   disableGuests: boolean;
   lockTimeZoneToggleOnBookingPage: boolean;
   requiresConfirmation: boolean;
+  requiresConfirmationWillBlockSlot: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
@@ -132,3 +133,6 @@ export type FormValues = {
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
+
+export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
+export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];

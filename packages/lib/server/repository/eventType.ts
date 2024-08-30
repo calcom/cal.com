@@ -443,6 +443,7 @@ export class EventTypeRepository {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       recurringEvent: true,
       hideCalendarNotes: true,
