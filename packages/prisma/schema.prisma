@@ -9,7 +9,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["views"]
+  previewFeatures = ["views", "tracing"]
 }
 
 generator zod {
@@ -57,8 +57,6 @@ model Host {
   @@index([userId])
   @@index([eventTypeId])
 }
-
-
 
 model EventType {
   id          Int     @id @default(autoincrement())

@@ -188,7 +188,12 @@
     "@calcom/embed-core#build": {
       "cache": false,
       "outputs": ["../../../apps/web/public/embed/**"],
-      "env": ["EMBED_PUBLIC_VERCEL_URL", "EMBED_PUBLIC_WEBAPP_URL", "EMBED_PUBLIC_EMBED_FINGER_PRINT", "EMBED_PUBLIC_EMBED_VERSION"]
+      "env": [
+        "EMBED_PUBLIC_VERCEL_URL",
+        "EMBED_PUBLIC_WEBAPP_URL",
+        "EMBED_PUBLIC_EMBED_FINGER_PRINT",
+        "EMBED_PUBLIC_EMBED_VERSION"
+      ]
     },
     "embed-tests-update-snapshots:ci": {
       "cache": false,
@@ -290,6 +295,7 @@
     "EMAIL_SERVER_USER",
     "EMAIL_SERVER",
     "ENABLE_INFINITE_EVENT_TYPES_FOR_ORG",
+    "ENABLE_OPTIMIZE_EXTENSION",
     "EXCHANGE_DEFAULT_EWS_URL",
     "FORMBRICKS_FEEDBACK_SURVEY_ID",
     "AVATARAPI_USERNAME",
