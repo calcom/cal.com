@@ -181,7 +181,7 @@ function buildWhereClause(userId: number | null, attendeeEmails: string[], userI
     };
   } else {
     whereClause = {
-      userFilter,
+      ...userFilter,
     };
   }
 
