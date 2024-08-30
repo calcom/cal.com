@@ -2350,7 +2350,13 @@ checksums:
     success_entry_created: 7371d1da61d3b78c6859963bfc8df80d
     booking_redirect_email_subject: 59a74aa72e693a193f0bdb513794d808
     booking_redirect_email_title: 7c0ba7628b1a872d7abf0b4ee50be4df
-    booking_redirect_email_description: 25a33f4d57c0d1e249f87b788c765a81
+    booking_redirect_email_description: f229b4730fc5f8523ec6ca2c4b8577e2
+    booking_redirect_updated_email_subject: dc33a30036e9497f8a942ff509aaff70
+    booking_redirect_updated_email_title: 37409d1ca2685465afd1aa0898ef3e61
+    booking_redirect_updated_email_description: 175c4da94a06784b151359d02884abc7
+    booking_redirect_cancelled_email_subject: 489308ee958156e2ee21ee5ec9e1a647
+    booking_redirect_cancelled_email_title: b7ccf43f9dd77b870d919899c1e740a1
+    booking_redirect_cancelled_email_description: d38363f5b5415334abb61966024831e2
     success_accept_booking_redirect: f14fd998841a38aa2c23aeff4ce61605
     success_reject_booking_redirect: c9fb9a88a657c28b7f99839281961e47
     copy_link_booking_redirect_request: 086c87c753f24ffc12c0d68c6b2f8b0b
@@ -2361,6 +2367,7 @@ checksums:
     redirect_team_disabled: b9fd7df03323ee79d11ce17f0466e6b1
     out_of_office_unavailable_list: 520c67a2c96bb755ace26f5e408ca4b2
     success_deleted_entry_out_of_office: fdd769cc635cbbf57efcedcfa869d900
+    success_edited_entry_out_of_office: 199f8ccd780b9baa459112221745f29f
     temporarily_out_of_office: 4db0581e873e13161cce7d49aab9ca14
     add_a_redirect: dc4b4a5d76c88e739fad799882bc043d
     create_entry: be25d2f32deee78efc90009cb85f0e18
@@ -2484,6 +2491,7 @@ checksums:
     ooo_create_entry_modal: a12683240675561fb369b523b3e32108
     ooo_select_reason: 7056206df2c686f8fe1959c4e7d83652
     create_an_out_of_office: a12683240675561fb369b523b3e32108
+    edit_an_out_of_office: 2a5854a172d4733c9694ab97a5f4a619
     submit_feedback: e4cd90d4a9f7f08de8bcfbd73831c39f
     host_no_show: b7efc3f809401e4b69628c93e3dba2ac
     no_show_description: 149ef7905f5091cd12eb7bdf8e410282
