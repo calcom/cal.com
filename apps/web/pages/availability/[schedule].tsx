@@ -2,6 +2,8 @@ import PageWrapper from "@components/PageWrapper";
 
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
-const Availability = () => <AvailabilitySettingsWebWrapper />;
+const AvailabilitySettings = () => <AvailabilitySettingsWebWrapper />;
 
-Availability.PageWrapper = PageWrapper;
+AvailabilitySettings.PageWrapper = PageWrapper;
+
+export default AvailabilitySettings;
