@@ -1,4 +1,3 @@
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
@@ -6,6 +5,8 @@ import type { MultiValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import Locations from "@calcom/features/eventtypes/components/Locations";
+import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,8 +14,6 @@ import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Label, Select, SettingsToggle, Skeleton, TextField, Editor } from "@calcom/ui";
-
-import Locations from "@components/eventtype/Locations";
 
 export const EventSetupTab = (
   props: Pick<

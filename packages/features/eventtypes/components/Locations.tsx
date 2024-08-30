@@ -2,21 +2,19 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
-import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
+import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import CheckboxField from "@calcom/features/form/components/CheckboxField";
+import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
+import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, Input, PhoneInput, Button, showToast } from "@calcom/ui";
-
-import CheckboxField from "@components/ui/form/CheckboxField";
-import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
-import LocationSelect from "@components/ui/form/LocationSelect";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];

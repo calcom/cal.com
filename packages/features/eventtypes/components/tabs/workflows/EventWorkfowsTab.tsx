@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Trans } from "react-i18next";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEventWorkflowsTab";
+import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
+import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,11 +17,6 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
-
-import LicenseRequired from "../../common/components/LicenseRequired";
-import { getActionIcon } from "../lib/getActionIcon";
-import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
-import type { WorkflowType } from "./WorkflowListPage";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
