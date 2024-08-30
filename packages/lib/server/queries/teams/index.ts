@@ -317,19 +317,19 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
     },
   });
 
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps as any);
 
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
         if (eventType.schedulingType === "MANAGED") {
           const managedEventTypeValues = allManagedEventTypePropsZod
-            .omit(unlockedManagedEventTypeProps)
+            .omit(unlockedManagedEventTypeProps as any)
             .parse(eventType);
 
           // Define the values for unlocked properties to use on creation, not updation
           const unlockedEventTypeValues = allManagedEventTypePropsZod
-            .pick(unlockedManagedEventTypeProps)
+            .pick(unlockedManagedEventTypeProps as any)
             .parse(eventType);
 
           // Calculate if there are new workflows for which assigned members will get too
@@ -340,14 +340,19 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               ...managedEventTypeValues,
               ...unlockedEventTypeValues,
               bookingLimits:
-                (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+                ((managedEventTypeValues as any).bookingLimits as unknown as Prisma.InputJsonObject) ??
+                undefined,
               recurringEvent:
-                (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-              metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-              bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-              durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-              eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-              onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+                ((managedEventTypeValues as any).recurringEvent as unknown as Prisma.InputJsonValue) ??
+                undefined,
+              metadata: ((managedEventTypeValues as any).metadata as Prisma.InputJsonValue) ?? undefined,
+              bookingFields:
+                ((managedEventTypeValues as any).bookingFields as Prisma.InputJsonValue) ?? undefined,
+              durationLimits:
+                ((managedEventTypeValues as any).durationLimits as Prisma.InputJsonValue) ?? undefined,
+              eventTypeColor:
+                ((managedEventTypeValues as any).eventTypeColor as Prisma.InputJsonValue) ?? undefined,
+              onlyShowFirstAvailableSlot: (managedEventTypeValues as any).onlyShowFirstAvailableSlot ?? false,
               userId,
               users: {
                 connect: [{ id: userId }],
