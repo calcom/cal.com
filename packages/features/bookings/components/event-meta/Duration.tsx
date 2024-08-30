@@ -2,6 +2,7 @@ import type { TFunction } from "next-i18next";
 import { useEffect, useRef } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { classNames } from "@calcom/lib";
@@ -64,7 +65,7 @@ export const EventDuration = ({
   };
 
   const isDynamicEvent = "isDynamic" in event && event.isDynamic;
-
+  const isEmbed = useIsEmbed();
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
     // Only store event duration in url if event has multiple durations.
@@ -74,6 +75,9 @@ export const EventDuration = ({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      if (isEmbed) {
+        return;
+      }
       if (selectedDuration && itemRefs.current[selectedDuration]) {
         itemRefs.current[selectedDuration]?.scrollIntoView({
           behavior: "smooth",
@@ -83,7 +87,7 @@ export const EventDuration = ({
       }
     }, 100);
     return () => clearTimeout(timeout);
-  }, [selectedDuration]);
+  }, [selectedDuration, isEmbed]);
 
   if ((!event?.metadata?.multipleDuration && !isDynamicEvent) || isPlatform)
     return <>{getDurationFormatted(event.length, t)}</>;

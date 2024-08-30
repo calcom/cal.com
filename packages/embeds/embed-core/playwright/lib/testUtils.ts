@@ -29,6 +29,9 @@ export const getBooking = async (bookingId: string) => {
   return booking;
 };
 
+/**
+ * @deprecated use ensureEmbedIframe instead.
+ */
 export const getEmbedIframe = async ({
   calNamespace,
   page,
@@ -44,6 +47,7 @@ export const getEmbedIframe = async ({
       return new Promise((resolve) => {
         const interval = setInterval(() => {
           const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
+          // window.iframeReady is set by playwright/fixtures/embeds.ts
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           if (iframe && iframe.contentWindow && window.iframeReady) {
@@ -83,6 +87,22 @@ export const getEmbedIframe = async ({
   }
   console.log(`Embed iframe url pathname match. Expected: "${pathname}/embed"`, `Actual: ${u.pathname}`);
   return null;
+};
+
+export const ensureEmbedIframe = async ({
+  calNamespace,
+  page,
+  pathname,
+}: {
+  calNamespace: string;
+  page: Page;
+  pathname: string;
+}) => {
+  const embedIframe = await getEmbedIframe({ calNamespace, page, pathname });
+  if (!embedIframe) {
+    throw new Error("Embed iframe not found");
+  }
+  return embedIframe;
 };
 
 async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {

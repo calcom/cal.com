@@ -529,3 +529,20 @@ if (only === "all" || only == "ns:columnView") {
     callback,
   });
 }
+
+if (only === "all" || only == "ns:autoScrollTest") {
+  if (!calLink) {
+    throw new Error("cal-link parameter is required for autoScrollTest");
+  }
+  Cal("init", "autoScrollTest", {
+    debug: true,
+    origin: origin,
+  });
+  Cal.ns.autoScrollTest("inline", {
+    elementOrSelector: "#cal-booking-place-autoScrollTest .place",
+    calLink: calLink,
+    config: {
+      "flag.coep": "true",
+    },
+  });
+}

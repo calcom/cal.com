@@ -44,6 +44,7 @@ export default function RejectBooking(props: Props) {
 
   const rejectBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }

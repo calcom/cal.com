@@ -198,12 +198,14 @@ expect.extend({
     const u = new URL(iframe.url());
 
     const pathname = u.pathname;
-    const expectedPathname = `${expectedUrlDetails.pathname}/embed`;
-    if (expectedPathname && expectedPathname !== pathname) {
-      return {
-        pass: false,
-        message: () => `Expected pathname to be ${expectedPathname} but got ${pathname}`,
-      };
+    if (expectedUrlDetails.pathname) {
+      const expectedPathname = `${expectedUrlDetails.pathname}/embed`;
+      if (pathname !== expectedPathname) {
+        return {
+          pass: false,
+          message: () => `Expected pathname to be ${expectedPathname} but got ${pathname}`,
+        };
+      }
     }
 
     const origin = u.origin;
