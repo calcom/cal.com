@@ -18,7 +18,7 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-export default function Type({
+function Type({
   slug,
   user,
   isEmbed,
@@ -62,3 +62,7 @@ export default function Type({
     </main>
   );
 }
+
+Type.isBookingPage = true;
+
+export default Type;
