@@ -323,6 +323,17 @@ export interface IGetAvailableSlots {
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const bookerCalUser = input.teamMemberEmail
+    ? await prisma.user.findFirst({
+        where: {
+          email: input.teamMemberEmail,
+        },
+        select: {
+          credentials: { select: credentialForCalendarServiceSelect },
+          ...availabilityUserSelect,
+        },
+      })
+    : null;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
