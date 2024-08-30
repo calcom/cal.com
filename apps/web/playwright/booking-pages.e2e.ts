@@ -137,6 +137,48 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     });
   });
 
+  // test.describe("guest availability-awareness reschedule", () => {
+  //   test("reschedule with full non-cal.com user guests doesn't trigger guests availability awareness", async ({
+  //     page,
+  //     users,
+  //     bookings,
+  //   }) => {
+  //     const [pro] = users.get();
+  //     const [eventType] = pro.eventTypes;
+  //     await bookings.create(pro.id, pro.username, eventType.id, {
+  //       title: "",
+  //       rescheduled: false,
+  //       paid: false,
+  //       status: "ACCEPTED",
+  //       startTime,
+  //       endTime,
+  //       attendees: {
+  //         create: {
+  //           email: "attendee@example.com",
+  //           name: "Attendee Example",
+  //           timeZone: "Europe/London",
+  //         },
+  //       },
+  //     });
+
+  //     await pro.apiLogin();
+  //     await page.goto("/bookings/upcoming");
+  //     await page.waitForSelector('[data-testid="bookings"]');
+  //     await page.locator('[data-testid="edit_booking"]').nth(0).click();
+  //     await page.locator('[data-testid="reschedule"]').click();
+  //     await page.waitForURL((url) => {
+  //       const bookingId = url.searchParams.get("rescheduleUid");
+  //       return !!bookingId;
+  //     });
+  //     await selectFirstAvailableTimeSlotNextMonth(page);
+
+  //     await page.locator('[data-testid="confirm-reschedule-button"]').click();
+  //     await page.waitForURL((url) => {
+  //       return url.pathname.startsWith("/booking");
+  //     });
+  //   });
+  // });
+
   test("it redirects when a rescheduleUid does not match the current event type", async ({
     page,
     users,
