@@ -138,6 +138,7 @@ const BookerComponent = ({
   const scrolledToTimeslotsOnce = useRef(false);
   const scrollToTimeSlots = () => {
     if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Conditional within !isEmbed condition
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
       scrolledToTimeslotsOnce.current = true;
     }

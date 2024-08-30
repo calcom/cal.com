@@ -75,10 +75,9 @@ export const EventDuration = ({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (isEmbed) {
-        return;
-      }
+      if (isEmbed) return;
       if (selectedDuration && itemRefs.current[selectedDuration]) {
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Called on !isEmbed case
         itemRefs.current[selectedDuration]?.scrollIntoView({
           behavior: "smooth",
           block: "center",

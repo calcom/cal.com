@@ -12,7 +12,7 @@ export default createRule({
     },
     messages: {
       noScrollIntoViewForEmbed:
-        "Make sure to call scrollIntoView conditionally. Use useIsEmbed() to detect if embed mode and then don't call it for embed case.",
+        "Make sure to call scrollIntoView conditionally if it is called without user action. Use useIsEmbed() to detect if embed mode and then don't call it for embed case.",
     },
     type: "problem",
     schema: [],

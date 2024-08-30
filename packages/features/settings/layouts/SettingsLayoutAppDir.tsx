@@ -218,6 +218,7 @@ const SettingsSidebarContainer = ({
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -236,6 +237,7 @@ const SettingsSidebarContainer = ({
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }

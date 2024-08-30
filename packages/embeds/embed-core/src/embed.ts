@@ -380,6 +380,7 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Intentionally done
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
