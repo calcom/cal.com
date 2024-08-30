@@ -6995,10 +6995,14 @@
                 "$ref": "#/components/schemas/NoticeThreshold_2024_06_14"
               }
             ]
+          },
+          "blockCalendarForUnconfirmedBookings": {
+            "type": "boolean"
           }
         },
         "required": [
-          "confirmationPolicy"
+          "confirmationPolicy",
+          "blockCalendarForUnconfirmedBookings"
         ]
       },
       "EventTypeColor_2024_06_14": {

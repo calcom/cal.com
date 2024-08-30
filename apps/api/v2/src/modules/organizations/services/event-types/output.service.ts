@@ -57,6 +57,7 @@ type Input = Pick<
   | "lockTimeZoneToggleOnBookingPage"
   | "eventTypeColor"
   | "seatsShowAttendees"
+  | "requiresConfirmationWillBlockSlot"
 >;
 
 @Injectable()

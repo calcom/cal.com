@@ -66,6 +66,8 @@ export class InputEventTypesService_2024_06_14 {
           requiresConfirmationTransformed?.requiresConfirmationThreshold ?? undefined,
       },
       requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
+      requiresConfirmationWillBlockSlot:
+        requiresConfirmationTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(eventTypeColor),
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       ...this.transformInputSeatOptions(seats),
@@ -116,6 +118,8 @@ export class InputEventTypesService_2024_06_14 {
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
+      requiresConfirmationWillBlockSlot:
+        requiresConfirmationTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(eventTypeColor),
       ...this.transformInputSeatOptions(seats),
     };
@@ -182,7 +186,8 @@ export class InputEventTypesService_2024_06_14 {
           requiresConfirmationDb,
           true
         ));
-      locations.length > 1 &&
+      locations &&
+        locations.length > 1 &&
         (await this.validateLocationsInput(seatsEnabled, locations, seatsEnabledDb, true));
       requiresConfirmation &&
         (await this.validateRequiresConfirmationInput(
@@ -194,7 +199,7 @@ export class InputEventTypesService_2024_06_14 {
     } else {
       seatsEnabled &&
         (await this.validateSeatsInput(locations, requiresConfirmation, undefined, undefined, false));
-      locations.length > 1 && (await this.validateLocationsInput(seatsEnabled, locations, undefined, false));
+      locations?.length > 1 && (await this.validateLocationsInput(seatsEnabled, locations, undefined, false));
       requiresConfirmation &&
         (await this.validateRequiresConfirmationInput(requiresConfirmation, seatsEnabled, undefined, false));
     }
@@ -301,14 +306,14 @@ export class InputEventTypesService_2024_06_14 {
       // 1. If seats are enabled and requiresConfirmation is true, validate based on the stored value
       if (seatsEnabled && requiresConfirmation) {
         throw new BadRequestException(
-          "RequiresConfirmation Validation failed: Seats are enabled but requires confirmation is set."
+          "RequiresConfirmation Validation failed: RequiresConfirmation is set but Seats are enabled."
         );
       }
 
       // 2. If seats are enabled in the database and requiresConfirmation is true, throw an error
       if (seatsEnabledDb && requiresConfirmation) {
         throw new BadRequestException(
-          "RequiresConfirmation Validation failed: Seats are enabled but requires confirmation is true in the database."
+          "RequiresConfirmation Validation failed: RequiresConfirmation is set but Seats are enabled in the database."
         );
       }
 
@@ -320,7 +325,7 @@ export class InputEventTypesService_2024_06_14 {
       // 1. If seats are enabled and requiresConfirmation is true, throw an error.
       if (seatsEnabled && requiresConfirmation === true) {
         throw new BadRequestException(
-          "RequiresConfirmation Validation failed: Seats are enabled but requires confirmation is set."
+          "RequiresConfirmation Validation failed: RequiresConfirmation is set but Seats are enabled."
         );
       }
 

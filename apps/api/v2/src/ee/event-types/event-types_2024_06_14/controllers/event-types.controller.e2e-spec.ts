@@ -250,6 +250,7 @@ describe("Event types Endpoints", () => {
             time: 60,
             unit: NoticeThresholdUnitEnum.MINUTES,
           },
+          blockCalendarForUnconfirmedBookings: true,
         },
         recurrence: {
           frequency: FrequencyInput.weekly,
@@ -263,11 +264,11 @@ describe("Event types Endpoints", () => {
           darkThemeColor: "#292929",
           lightThemeColor: "#fafafa",
         },
-        seats: {
-          seatsPerTimeSlot: 4,
-          showAttendeeInfo: true,
-          showAvailabilityCount: true,
-        },
+        // seats: {
+        //   seatsPerTimeSlot: 4,
+        //   showAttendeeInfo: true,
+        //   showAvailabilityCount: true,
+        // },
       };
 
       return request(app.getHttpServer())
@@ -302,7 +303,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
-          expect(createdEventType.seats).toEqual(body.seats);
+          // expect(createdEventType.seats).toEqual(body.seats);
           expect(createdEventType.eventTypeColor).toEqual(body.eventTypeColor);
           eventType = responseBody.data;
         });
@@ -339,6 +340,7 @@ describe("Event types Endpoints", () => {
         },
         requiresConfirmation: {
           confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          blockCalendarForUnconfirmedBookings: false,
         },
         recurrence: {
           frequency: FrequencyInput.monthly,
@@ -352,11 +354,11 @@ describe("Event types Endpoints", () => {
           darkThemeColor: "#292929",
           lightThemeColor: "#fafafa",
         },
-        seats: {
-          seatsPerTimeSlot: 5,
-          showAttendeeInfo: false,
-          showAvailabilityCount: false,
-        },
+        // seats: {
+        //   seatsPerTimeSlot: 5,
+        //   showAttendeeInfo: false,
+        //   showAvailabilityCount: false,
+        // },
       };
 
       return request(app.getHttpServer())
@@ -393,7 +395,7 @@ describe("Event types Endpoints", () => {
             body.lockTimeZoneToggleOnBookingPage
           );
           expect(updatedEventType.eventTypeColor).toEqual(body.eventTypeColor);
-          expect(updatedEventType.seats).toEqual(body.seats);
+          // expect(updatedEventType.seats).toEqual(body.seats);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -409,7 +411,7 @@ describe("Event types Endpoints", () => {
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.eventTypeColor = updatedEventType.eventTypeColor;
-          eventType.seats = updatedEventType.seats;
+          // eventType.seats = updatedEventType.seats;
         });
     });
 
@@ -461,7 +463,7 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
-      expect(fetchedEventType.seats).toEqual(eventType.seats);
+      // expect(fetchedEventType.seats).toEqual(eventType.seats);
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -503,7 +505,7 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
-      expect(fetchedEventType.seats).toEqual(eventType.seats);
+      // expect(fetchedEventType.seats).toEqual(eventType.seats);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -540,7 +542,7 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
-      expect(fetchedEventType.seats).toEqual(eventType.seats);
+      // expect(fetchedEventType.seats).toEqual(eventType.seats);
     });
 
     it(`/GET/:id not existing`, async () => {

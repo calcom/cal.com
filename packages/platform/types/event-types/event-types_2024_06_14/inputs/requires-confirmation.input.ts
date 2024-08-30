@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsInt, ValidateNested } from "class-validator";
+import { IsEnum, IsOptional, IsInt, ValidateNested, IsBoolean } from "class-validator";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import { ValidatorConstraint, registerDecorator } from "class-validator";
 
@@ -41,6 +41,9 @@ export class RequiresConfirmation_2024_06_14 {
     type: NoticeThreshold_2024_06_14,
   })
   noticeThreshold?: NoticeThreshold_2024_06_14;
+
+  @IsBoolean()
+  blockCalendarForUnconfirmedBookings!: boolean;
 }
 
 // Validator for confirmation settings
@@ -85,4 +88,5 @@ export function ValidateRequiresConfirmation(validationOptions?: ValidationOptio
 export type RequiresConfirmationTransformedSchema = {
   requiresConfirmation: boolean;
   requiresConfirmationThreshold?: NoticeThreshold_2024_06_14;
+  requiresConfirmationWillBlockSlot: boolean;
 };

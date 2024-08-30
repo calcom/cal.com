@@ -705,6 +705,7 @@ describe("transformApiEventTypeRequiresConfirmation", () => {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
+      blockCalendarForUnconfirmedBookings: true,
     };
 
     const expectedOutput = {
@@ -713,6 +714,7 @@ describe("transformApiEventTypeRequiresConfirmation", () => {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
+      requiresConfirmationWillBlockSlot: true,
     };
     const result = transformApiEventTypeRequiresConfirmation(input);
 

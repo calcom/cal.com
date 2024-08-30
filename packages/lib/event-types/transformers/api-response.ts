@@ -285,7 +285,8 @@ function getResponseEventTypeBookerLayouts(transformedBookerLayouts: BookerLayou
 
 function getResponseEventTypeRequiresConfirmation(
   requiresConfirmation: boolean,
-  requiresConfirmationThreshold: NoticeThreshold_2024_06_14
+  requiresConfirmationThreshold: NoticeThreshold_2024_06_14,
+  requiresConfirmationWillBlockSlot: boolean
 ): RequiresConfirmation_2024_06_14 | undefined {
   if (requiresConfirmationThreshold?.unit) {
     return {
@@ -293,10 +294,12 @@ function getResponseEventTypeRequiresConfirmation(
       noticeThreshold: {
         ...requiresConfirmationThreshold,
       },
+      blockCalendarForUnconfirmedBookings: requiresConfirmationWillBlockSlot,
     };
   } else if (requiresConfirmation) {
     return {
       confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+      blockCalendarForUnconfirmedBookings: requiresConfirmationWillBlockSlot,
     };
   }
   return undefined;

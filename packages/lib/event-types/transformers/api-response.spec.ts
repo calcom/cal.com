@@ -730,6 +730,7 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
+      requiresConfirmationWillBlockSlot: true,
     };
 
     const expectedOutput = {
@@ -738,10 +739,12 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
+      blockCalendarForUnconfirmedBookings: true,
     };
     const result = getResponseEventTypeRequiresConfirmation(
       transformedField.requiresConfirmation,
-      transformedField.requiresConfirmationThreshold as NoticeThreshold_2024_06_14
+      transformedField.requiresConfirmationThreshold as NoticeThreshold_2024_06_14,
+      transformedField.requiresConfirmationWillBlockSlot
     );
 
     expect(result).toEqual(expectedOutput);

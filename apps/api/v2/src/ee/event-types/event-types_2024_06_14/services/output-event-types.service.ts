@@ -73,6 +73,7 @@ type Input = Pick<
   | "hideCalendarNotes"
   | "eventTypeColor"
   | "seatsShowAttendees"
+  | "requiresConfirmationWillBlockSlot"
 >;
 
 @Injectable()
@@ -121,7 +122,8 @@ export class OutputEventTypesService_2024_06_14 {
     );
     const requiresConfirmation = this.transformRequiresConfirmation(
       databaseEventType.requiresConfirmation,
-      metadata.requiresConfirmationThreshold as NoticeThreshold_2024_06_14
+      metadata.requiresConfirmationThreshold as NoticeThreshold_2024_06_14,
+      databaseEventType.requiresConfirmationWillBlockSlot
     );
     delete metadata["bookerLayouts"];
     delete metadata["requiresConfirmationThreshold"];
@@ -227,9 +229,14 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformRequiresConfirmation(
     requiresConfirmation: boolean,
-    requiresConfirmationThreshold: NoticeThreshold_2024_06_14
+    requiresConfirmationThreshold: NoticeThreshold_2024_06_14,
+    requiresConfirmationWillBlockSlot: boolean
   ) {
-    return getResponseEventTypeRequiresConfirmation(requiresConfirmation, requiresConfirmationThreshold);
+    return getResponseEventTypeRequiresConfirmation(
+      requiresConfirmation,
+      requiresConfirmationThreshold,
+      requiresConfirmationWillBlockSlot
+    );
   }
 
   transformEventTypeColor(eventTypeColor: any) {

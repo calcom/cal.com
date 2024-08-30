@@ -46,13 +46,13 @@ export class EventTypesService_2024_06_14 {
       periodCountCalendarDays = undefined,
       periodStartDate = undefined,
       periodEndDate = undefined,
-      metadata = undefined,
       requiresConfirmation = undefined,
+      requiresConfirmationWillBlockSlot = undefined,
       eventTypeColor = undefined,
-      recurrence = undefined,
       seatsPerTimeSlot = undefined,
       seatsShowAttendees = undefined,
       seatsShowAvailabilityCount = undefined,
+      recurringEvent = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
 
@@ -83,13 +83,13 @@ export class EventTypesService_2024_06_14 {
         periodCountCalendarDays,
         periodStartDate,
         periodEndDate,
-        metadata,
         requiresConfirmation,
+        requiresConfirmationWillBlockSlot,
         eventTypeColor,
-        recurrence,
         seatsPerTimeSlot,
         seatsShowAttendees,
         seatsShowAvailabilityCount,
+        recurringEvent,
         ...bodyTransformed,
       },
       ctx: {
