@@ -270,10 +270,22 @@ export async function getDynamicEventType(
   });
 }
 
-export function getRegularOrDynamicEventType(
+export async function getRegularOrDynamicEventType(
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
+  if (input.bookerEmail) {
+    const bookerUser = await prisma.user.findUnique({
+      where: { email: input.bookerEmail },
+      select: { username: true },
+    });
+
+    // opt for dynamic booking flow if booker is a cal user
+    if (bookerUser?.username && input.eventTypeSlug) {
+      input.usernameList?.push(bookerUser.username);
+    }
+  }
+
   const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
   return isDynamicBooking
     ? getDynamicEventType(input, organizationDetails)
