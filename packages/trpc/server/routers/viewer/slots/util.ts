@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, IFromUser, IToUser, GetAvailabilityUser } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -15,8 +15,8 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import {
-  isTimeOutOfBounds,
   calculatePeriodLimits,
+  isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -26,8 +26,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
@@ -390,7 +389,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
             user: user,
           };
         });
-
+  let attendeeUsers: GetAvailabilityUser[] = [];
   if (input.rescheduleUid) {
     const originalRescheduledBooking = await prisma.booking.findFirst({
       where: {
@@ -414,12 +413,15 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     ) {
       hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
     }
-    // Get first attendee userid  and add it to hosts
-    const firstAttendee = originalRescheduledBooking?.attendees?.[0];
-    if (firstAttendee) {
-      const firstAttendeeUser = await prisma.user.findFirst({
+
+    // Get attendees email ids
+    const attendeesEmails = originalRescheduledBooking?.attendees?.map((a) => a.email);
+    if (attendeesEmails?.length) {
+      attendeeUsers = await prisma.user.findMany({
         where: {
-          email: firstAttendee.email,
+          email: {
+            in: attendeesEmails,
+          },
         },
         select: {
           ...availabilityUserSelect,
@@ -428,9 +430,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           },
         },
       });
-      if (firstAttendeeUser) {
-        hosts.push({ isFixed: true, user: firstAttendeeUser });
-      }
     }
   }
 
@@ -447,6 +446,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           return usersArray;
         }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
 
+  if (attendeeUsers.length) {
+    usersWithCredentials.push(...attendeeUsers.map((user) => ({ ...user, isFixed: false })));
+  }
   const durationToUse = input.duration || 0;
 
   const startTimeDate =
