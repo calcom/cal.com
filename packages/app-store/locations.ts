@@ -105,7 +105,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.SomewhereElse,
-    label: "somewhere_else",
+    label: "custom_attendee_location",
     variable: "address",
     organizerInputType: null,
     messageForOrganizer: "Cal will ask your invitee to enter any location before scheduling.",

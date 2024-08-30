@@ -590,6 +590,7 @@
   "enter_address": "Enter address",
   "in_person_attendee_address": "In Person (Attendee Address)",
   "somewhere_else": "Somewhere Else",
+  "custom_attendee_location":"Custom attendee location",
   "any_location": "Any location",
   "yes": "Yes",
   "no": "No",

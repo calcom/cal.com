@@ -454,7 +454,9 @@ export const Components: Record<FieldType, Component> = {
                         checked={value?.value === option.value}
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">
-                        {getCleanLabel(option.label) ?? ""}
+                        {option.value === "somewhereElse"
+                          ? t("somewhere_else")
+                          : getCleanLabel(option.label) ?? ""}
                       </span>
                       <span>
                         {option.value === "phone" && (
