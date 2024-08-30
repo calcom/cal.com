@@ -457,8 +457,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           };
         });
 
-  console.log("hosts", hosts);
-
   if (
     input.rescheduleUid &&
     eventType.rescheduleWithSameRoundRobinHost &&
@@ -648,10 +646,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }
   );
 
-  console.log("allUsersAvailability", allUsersAvailability);
-  console.log("date ranges", allUsersAvailability?.[0].dateRanges);
-  console.log("user sche", allUsersAvailability?.[0].user.schedules);
-
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
     currentSeats,
@@ -674,8 +668,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const eventTimeZone =
     eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
 
-  // console.log("organiser timezoe", eventTimeZone);
-
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -686,8 +678,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
-
-  // console.log("timeSlots", timeSlots);
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
