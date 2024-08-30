@@ -22,14 +22,16 @@ export function AppStoreCategories({
         title={t("featured_categories")}
         items={categories}
         itemKey={(category) => category.name}
-        options={{
-          perView: 5,
-          breakpoints: {
-            768 /* and below */: {
-              perView: 2,
+        options={
+          {
+            perView: 5,
+            breakpoints: {
+              768 /* and below */: {
+                perView: 2,
+              },
             },
-          },
-        }}
+          } as any
+        }
         renderItem={(category) => (
           <Link
             key={category.name}
