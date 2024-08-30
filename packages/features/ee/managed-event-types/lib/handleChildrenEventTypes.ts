@@ -122,20 +122,20 @@ export default async function handleChildrenEventTypes({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
   });
 
-  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps as any);
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypeProps)
+    .omit(unlockedManagedEventTypeProps as any)
     .parse(eventType);
 
   // Check we are certainly dealing with a managed event type through its metadata
-  if (!managedEventTypeValues.metadata?.managedEventConfig)
+  if (!(managedEventTypeValues as any).metadata?.managedEventConfig)
     return {
       message: "No managed event metadata",
     };
 
   // Define the values for unlocked properties to use on creation, not updation
   const unlockedEventTypeValues = allManagedEventTypePropsZod
-    .pick(unlockedManagedEventTypeProps)
+    .pick(unlockedManagedEventTypeProps as any)
     .parse(eventType);
   // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
   const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
@@ -179,14 +179,19 @@ export default async function handleChildrenEventTypes({
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
             bookingLimits:
-              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+              ((managedEventTypeValues as any).bookingLimits as unknown as Prisma.InputJsonObject) ??
+              undefined,
             recurringEvent:
-              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-            metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-            bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-            eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-            onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+              ((managedEventTypeValues as any).recurringEvent as unknown as Prisma.InputJsonValue) ??
+              undefined,
+            metadata: ((managedEventTypeValues as any).metadata as Prisma.InputJsonValue) ?? undefined,
+            bookingFields:
+              ((managedEventTypeValues as any).bookingFields as Prisma.InputJsonValue) ?? undefined,
+            durationLimits:
+              ((managedEventTypeValues as any).durationLimits as Prisma.InputJsonValue) ?? undefined,
+            eventTypeColor:
+              ((managedEventTypeValues as any).eventTypeColor as Prisma.InputJsonValue) ?? undefined,
+            onlyShowFirstAvailableSlot: (managedEventTypeValues as any).onlyShowFirstAvailableSlot ?? false,
             userId,
             users: {
               connect: [{ id: userId }],
@@ -221,7 +226,7 @@ export default async function handleChildrenEventTypes({
       teamName: oldEventType.team?.name || null,
     });
 
-    const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig;
+    const { unlockedFields } = (managedEventTypeValues as any).metadata?.managedEventConfig;
     const unlockedFieldProps = !unlockedFields
       ? {}
       : Object.keys(unlockedFields).reduce((acc, key) => {
