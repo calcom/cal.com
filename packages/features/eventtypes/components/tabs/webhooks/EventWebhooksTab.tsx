@@ -1,12 +1,11 @@
 import type { Webhook } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
