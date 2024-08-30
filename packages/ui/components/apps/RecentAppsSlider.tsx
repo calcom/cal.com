@@ -14,14 +14,16 @@ export const RecentAppsSlider = <T extends App>({ items }: { items: T[] }) => {
         (a, b) => new Date(b?.createdAt || 0).valueOf() - new Date(a?.createdAt || 0).valueOf()
       )}
       itemKey={(app) => app.name}
-      options={{
-        perView: 3,
-        breakpoints: {
-          768 /* and below */: {
-            perView: 1,
+      options={
+        {
+          perView: 3,
+          breakpoints: {
+            768 /* and below */: {
+              perView: 1,
+            },
           },
-        },
-      }}
+        } as any
+      }
       renderItem={(app) => <AppCard app={app} />}
     />
   );
