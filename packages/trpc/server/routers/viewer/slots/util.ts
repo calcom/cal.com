@@ -376,6 +376,16 @@ async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMeta
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const bookerUser = await prisma.user.findUnique({
+    where: { email: input.bookerEmail },
+    select: { username: true },
+  });
+
+  //opt for dynamic booking flow if booker is a cal user
+  if (bookerUser?.username) {
+    input.usernameList?.push(bookerUser.username);
+  }
+
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -446,6 +456,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
             user: user,
           };
         });
+
+  console.log("hosts", hosts);
 
   if (
     input.rescheduleUid &&
@@ -636,6 +648,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }
   );
 
+  console.log("allUsersAvailability", allUsersAvailability);
+  console.log("date ranges", allUsersAvailability?.[0].dateRanges);
+  console.log("user sche", allUsersAvailability?.[0].user.schedules);
+
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
     currentSeats,
@@ -657,6 +673,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
   const eventTimeZone =
     eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
+
+  // console.log("organiser timezoe", eventTimeZone);
+
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -667,6 +686,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
+
+  // console.log("timeSlots", timeSlots);
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
