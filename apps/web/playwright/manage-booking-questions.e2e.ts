@@ -72,9 +72,9 @@ test.describe("Manage Booking Questions", () => {
         await addQuestionAndSave({
           page,
           question: {
-            name: "your-name",
-            type: "Short Text",
-            label: "Your name",
+            name: "agree-to-terms",
+            type: "Checkbox",
+            label: "Agree to [terms](https://example.com/terms)",
             required: true,
           },
         });
@@ -83,8 +83,12 @@ test.describe("Manage Booking Questions", () => {
           const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
           const userFieldLocator = allFieldsLocator.nth(5);
 
-          await expect(userFieldLocator.locator('[name="your-name"]')).toBeVisible();
-          expect(await getLabelText(userFieldLocator)).toBe("Your name");
+          await expect(userFieldLocator.locator('[name="agree-to-terms"]')).toBeVisible();
+          expect(await getLabelText(userFieldLocator)).toBe("Agree to terms");
+          // Verify that markdown is working
+          expect(await getLabelLocator(userFieldLocator).locator("a").getAttribute("href")).toBe(
+            "https://example.com/terms"
+          );
           await expect(userFieldLocator.locator("input")).toBeVisible();
         });
       });
