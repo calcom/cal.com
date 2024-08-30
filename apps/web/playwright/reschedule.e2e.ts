@@ -425,69 +425,101 @@ test.describe("Reschedule Tests", async () => {
     }) => {
       const host = await users.create();
       const eventType = host.eventTypes[0];
-
-      const attendeesCreateMany = Array.from({ length: 10 }, (_, i) => ({
+      const nonCalUserAttendees = Array.from({ length: 10 }, (_, i) => ({
         email: `attendee-${i}@example.com`,
         name: `Attendee Example ${i}`,
         timeZone: "Europe/London",
       }));
-
       const booking = await bookings.create(host.id, host.username, eventType.id, {
         attendees: {
-          createMany: attendeesCreateMany,
+          createMany: {
+            data: nonCalUserAttendees,
+          },
         },
       });
 
       await page.goto(`/reschedule/${booking.uid}`);
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await page.locator('[data-testid="confirm-reschedule-button"]').click();
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-    });
 
+      // Let current month dates fully render.
+      await page.click('[data-testid="incrementMonth"]');
+      // Waiting for full month increment
+      await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+      // Expect normal full availability which 32 time slots
+      await expect(page.locator('[data-testid="time"]')).toHaveCount(32);
+    });
     test("host reschedule with full cal.com user guests should trigger guests availability awareness", async ({
       page,
       users,
       bookings,
     }) => {
       const host = await users.create();
-      const guest = await users.create();
+      const guests = await Promise.all(
+        Array.from({ length: 10 }, (_, i) => users.create({ username: `guest-${i}` }))
+      );
       const eventType = host.eventTypes[0];
       const booking = await bookings.create(host.id, host.username, eventType.id, {
-        status: BookingStatus.ACCEPTED,
+        attendees: {
+          createMany: {
+            data: guests.map((guest) => ({
+              email: guest.email,
+              name: guest.username,
+              timeZone: "Europe/London",
+            })),
+          },
+        },
       });
-      await booking.addAttendee(guest.id, {
-        email: guest.email,
-        name: guest.username,
-        timeZone: "Europe/London",
-      });
+
+      await setGuestWorkingHours12PM5PM({ page, host, guest: guests[0] });
 
       await page.goto(`/reschedule/${booking.uid}`);
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await page.locator('[data-testid="confirm-reschedule-button"]').click();
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-    });
 
+      // Let current month dates fully render.
+      await page.click('[data-testid="incrementMonth"]');
+      // Waiting for full month increment
+      await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+      // Expect modified full availability which 8 time slots
+      await expect(page.locator('[data-testid="time"]')).toHaveCount(8);
+    });
     test("host reschedule with mixed cal.com and non-cal.com user guests should trigger guests availability awareness", async ({
       page,
       users,
       bookings,
     }) => {
       const host = await users.create();
-      const guest = await users.create();
+      const guests = await Promise.all(
+        Array.from({ length: 10 }, (_, i) => users.create({ username: `guest-${i}` }))
+      );
+      const nonCalUserAttendees = Array.from({ length: 5 }, (_, i) => ({
+        email: `attendee-${i}@example.com`,
+        name: `Attendee Example ${i}`,
+        timeZone: "Europe/London",
+      }));
       const eventType = host.eventTypes[0];
       const booking = await bookings.create(host.id, host.username, eventType.id, {
-        status: BookingStatus.ACCEPTED,
-      });
-      await booking.addAttendee(guest.id, {
-        email: guest.email,
-        name: guest.username,
-        timeZone: "Europe/London",
+        attendees: {
+          createMany: {
+            data: [
+              ...guests.map((guest, i) => ({
+                email: guest.email,
+                name: guest.username,
+                timeZone: "Europe/London",
+              })),
+              ...nonCalUserAttendees,
+            ],
+          },
+        },
       });
 
+      await setGuestWorkingHours12PM5PM({ page, host, guest: guests[0] });
+
       await page.goto(`/reschedule/${booking.uid}`);
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await page.locator('[data-testid="confirm-reschedule-button"]').click();
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+      // Let current month dates fully render.
+      await page.click('[data-testid="incrementMonth"]');
+      // Waiting for full month increment
+      await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+      // Expect modified full availability which 8 time slots
+      await expect(page.locator('[data-testid="time"]')).toHaveCount(8);
     });
   });
 });
@@ -507,31 +539,70 @@ function expectUrlToBeABookingPageOnOrgForUsername({
   expect(usernameInUrl).toEqual(username);
 }
 
-async function setAvailabilityForGuests({ page, users }) {
-  const user = await users.create();
-  await user.apiLogin();
+async function setGuestWorkingHours12PM5PM({
+  page,
+  host,
+  guest,
+}: {
+  page: Page;
+  host: ReturnType<typeof createUsersFixture>;
+  guest: ReturnType<typeof createUsersFixture>;
+}) {
+  await host.logout();
+  await guest.apiLogin();
+
   await page.goto("/availability");
   // We wait until loading is finished
   await page.waitForSelector('[data-testid="schedules"]');
 
   await page.getByTestId("schedules").first().click();
-  await page.locator('[data-testid="Sunday-switch"]').first().click();
-  await page.locator('[data-testid="Saturday-switch"]').first().click();
+  const monday = (await localize("en"))("monday");
+  const save = (await localize("en"))("save");
+  const selectAll = (await localize("en"))("select_all");
+  const copyTimesTo = (await localize("en"))("copy_times_to");
 
-  await page.getByTestId("add-override").click();
-  await page.locator('[id="modal-title"]').waitFor();
-  await page.getByTestId("incrementMonth").click();
-  await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
-  await page.getByTestId("date-override-mark-unavailable").click();
-  await page.getByTestId("add-override-submit-btn").click();
-  await page.getByTestId("dialog-rejection").click();
-  await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
-  await page.locator('[form="availability-form"][type="submit"]').click();
-  const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
-  const json = await response.json();
-  const nextMonth = dayjs().add(1, "month").startOf("month");
-  const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
-  await page.goto(troubleshooterURL);
-  await page.waitForLoadState("networkidle");
-  await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
+  await page
+    .locator("div")
+    .filter({ hasText: "Monday9:00am - 5:00pm" })
+    .getByTestId("select-control")
+    .first()
+    .click();
+  const testId12PM = `select-option-${getMillisecondsForTime(12)}`;
+  await page.getByTestId(testId12PM).click();
+  await expect(page.locator("div").filter({ hasText: "12:00pm" }).nth(1)).toBeVisible();
+
+  await page
+    .locator("div")
+    .filter({ hasText: "Monday12:00pm - 5:00pm" })
+    .getByTestId("copy-button")
+    .first()
+    .click();
+
+  await expect(page.locator("div").filter({ hasText: "6:00pm" }).nth(1)).toBeVisible();
+  await page.getByRole("button", { name: save }).click();
+  await expect(page.getByText("Sun - Tue, Thu - Sat, 9:00 AM - 5:00 PM")).toBeVisible();
+  await expect(page.getByText("Sun, 5:00 PM - 6:00 PM")).toBeVisible();
+  await page
+    .locator("div")
+    .filter({ hasText: "Sunday9:00am - 5:00pm" })
+    .getByTestId("copy-button")
+    .first()
+    .click();
+  await expect(page.getByText(copyTimesTo)).toBeVisible();
+  await page.getByRole("checkbox", { name: selectAll }).check();
+  await page.getByRole("button", { name: "Apply" }).click();
+  await page.getByRole("button", { name: save }).click();
+  await expect(
+    page.locator("#availability-form div").filter({ hasText: "TimezoneEurope/London" }).locator("svg")
+  ).toBeVisible();
+
+  await guest.logout();
+  await host.apiLogin();
+}
+
+function getMillisecondsForTime(hour: number, minute: 15 | 30 | 45 | 0 = 0): number {
+  const today = new Date();
+  today.setHours(hour, minute, 0, 0);
+
+  return today.getTime();
 }
