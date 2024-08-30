@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
+import { AvailabilitySettings } from "@calcom/atoms/monorepo";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
