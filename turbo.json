@@ -188,7 +188,7 @@
     "@calcom/embed-core#build": {
       "cache": false,
       "outputs": ["../../../apps/web/public/embed/**"],
-      "env": ["EMBED_PUBLIC_VERCEL_URL", "EMBED_PUBLIC_WEBAPP_URL", "EMBED_PUBLIC_EMBED_FINGER_PRINT"]
+      "env": ["EMBED_PUBLIC_VERCEL_URL", "EMBED_PUBLIC_WEBAPP_URL", "EMBED_PUBLIC_EMBED_FINGER_PRINT", "EMBED_PUBLIC_EMBED_VERSION"]
     },
     "embed-tests-update-snapshots:ci": {
       "cache": false,
@@ -418,6 +418,7 @@
     "CLOUDFLARE_VERCEL_CNAME",
     "CLOUDFLARE_DNS",
     "EMBED_PUBLIC_EMBED_FINGER_PRINT",
+    "EMBED_PUBLIC_EMBED_VERSION",
     "EMBED_PUBLIC_WEBAPP_URL",
     "EMBED_PUBLIC_VERCEL_URL",
     "NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER",
