@@ -12,14 +12,16 @@ export const PopularAppsSlider = <T extends App>({ items }: { items: T[] }) => {
       title={t("most_popular")}
       items={items.sort((a, b) => (b.installCount || 0) - (a.installCount || 0))}
       itemKey={(app) => app.name}
-      options={{
-        perView: 3,
-        breakpoints: {
-          768 /* and below */: {
-            perView: 1,
+      options={
+        {
+          perView: 3,
+          breakpoints: {
+            768 /* and below */: {
+              perView: 1,
+            },
           },
-        },
-      }}
+        } as any
+      }
       renderItem={(app) => <AppCard app={app} />}
     />
   );
