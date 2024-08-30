@@ -27,7 +27,7 @@ export const Slider = <T extends string | unknown>({
   items,
   itemKey = (item) => `${item}`,
   renderItem,
-  options = {},
+  options = {} as any,
 }: {
   title?: string;
   className?: string;
@@ -37,14 +37,14 @@ export const Slider = <T extends string | unknown>({
   options?: Options;
 }) => {
   const glide = useRef(null);
-  const slider = useRef<Glide.Properties | null>(null);
+  const slider = useRef<any | null>(null);
   const { isLocaleReady } = useLocale();
   useEffect(() => {
     if (glide.current) {
       slider.current = new Glide(glide.current, {
-        type: "carousel",
         ...options,
-      }).mount();
+        type: "carousel",
+      } as any).mount();
     }
 
     return () => slider.current?.destroy();
