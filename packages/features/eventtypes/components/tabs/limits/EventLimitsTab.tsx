@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
@@ -9,7 +8,8 @@ import type { SingleValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { classNames } from "@calcom/lib";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
@@ -20,8 +20,6 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
-
-import CheckboxField from "@components/ui/form/CheckboxField";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 

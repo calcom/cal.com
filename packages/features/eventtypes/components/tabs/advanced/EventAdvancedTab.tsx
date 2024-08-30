@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -13,7 +12,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
@@ -44,12 +43,12 @@ import {
   ColorPicker,
 } from "@calcom/ui";
 
+import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import RequiresConfirmationController from "./RequiresConfirmationController";
-import { DisableAllEmailsSetting } from "./settings/DisableAllEmailsSetting";
 
 type BookingField = z.infer<typeof fieldSchema>;
 
-const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
+const CustomEventTypeModal = dynamic(() => import("./CustomEventTypeModal"));
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
