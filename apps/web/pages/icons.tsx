@@ -12,7 +12,7 @@ import { lucideIconList } from "../../../packages/ui/components/icon/icon-list.m
 export const getStaticProps = async () => {
   return {
     props: {
-      icons: Array.from(lucideIconList) as IconName[],
+      icons: Array.from(lucideIconList).sort() as IconName[],
     },
   };
 };
