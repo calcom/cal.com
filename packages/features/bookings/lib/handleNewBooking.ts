@@ -449,7 +449,7 @@ async function handler(
 
   let originalRescheduledBooking: BookingType = null;
 
-  const eventParticipants: IsFixedAwareUser[] = [];
+  const guestsList: IsFixedAwareUser[] = [];
 
   //this gets the original rescheduled booking
   if (rescheduleUid) {
@@ -497,7 +497,7 @@ async function handler(
         },
       });
       users.forEach((user) => {
-        eventParticipants.push({
+        guestsList.push({
           ...user,
           isFixed: true,
         });
@@ -552,7 +552,7 @@ async function handler(
         const end = req.body.allRecurringDates[i].end;
         if (isTeamEvent) {
           // each fixed user must be available
-          const fixedParticipants = [...fixedUsers, ...eventParticipants];
+          const fixedParticipants = [...fixedUsers, ...guestsList];
           for (const key in fixedParticipants) {
             await ensureAvailableUsers(
               { ...eventTypeWithUsers, users: [fixedParticipants[key]] },
@@ -567,7 +567,7 @@ async function handler(
           }
         } else {
           await ensureAvailableUsers(
-            { ...eventTypeWithUsers, users: [...eventTypeWithUsers.users, ...eventParticipants] },
+            { ...eventTypeWithUsers, users: [...eventTypeWithUsers.users, ...guestsList] },
             {
               dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
               dateTo: dayjs(end).tz(reqBody.timeZone).format(),
@@ -582,7 +582,7 @@ async function handler(
 
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
       const availableUsers = await ensureAvailableUsers(
-        { ...eventTypeWithUsers, users: [...eventTypeWithUsers.users, ...eventParticipants] },
+        { ...eventTypeWithUsers, users: [...eventTypeWithUsers.users, ...guestsList] },
         {
           dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
           dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
@@ -676,7 +676,7 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (fixedUserPool.length !== [...users, ...eventParticipants].filter((user) => user.isFixed).length) {
+      if (fixedUserPool.length !== [...users, ...guestsList].filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
