@@ -416,6 +416,80 @@ test.describe("Reschedule Tests", async () => {
       }
     });
   });
+
+  test.describe("Guest availability-awareness reschedule by host", () => {
+    test("host reschedule with full non-cal.com user guests shouldn't trigger guests availability awareness", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const host = await users.create();
+      const eventType = host.eventTypes[0];
+
+      const attendeesCreateMany = Array.from({ length: 10 }, (_, i) => ({
+        email: `attendee-${i}@example.com`,
+        name: `Attendee Example ${i}`,
+        timeZone: "Europe/London",
+      }));
+
+      const booking = await bookings.create(host.id, host.username, eventType.id, {
+        attendees: {
+          createMany: attendeesCreateMany,
+        },
+      });
+
+      await page.goto(`/reschedule/${booking.uid}`);
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await page.locator('[data-testid="confirm-reschedule-button"]').click();
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    });
+
+    test("host reschedule with full cal.com user guests should trigger guests availability awareness", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const host = await users.create();
+      const guest = await users.create();
+      const eventType = host.eventTypes[0];
+      const booking = await bookings.create(host.id, host.username, eventType.id, {
+        status: BookingStatus.ACCEPTED,
+      });
+      await booking.addAttendee(guest.id, {
+        email: guest.email,
+        name: guest.username,
+        timeZone: "Europe/London",
+      });
+
+      await page.goto(`/reschedule/${booking.uid}`);
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await page.locator('[data-testid="confirm-reschedule-button"]').click();
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    });
+
+    test("host reschedule with mixed cal.com and non-cal.com user guests should trigger guests availability awareness", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const host = await users.create();
+      const guest = await users.create();
+      const eventType = host.eventTypes[0];
+      const booking = await bookings.create(host.id, host.username, eventType.id, {
+        status: BookingStatus.ACCEPTED,
+      });
+      await booking.addAttendee(guest.id, {
+        email: guest.email,
+        name: guest.username,
+        timeZone: "Europe/London",
+      });
+
+      await page.goto(`/reschedule/${booking.uid}`);
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await page.locator('[data-testid="confirm-reschedule-button"]').click();
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    });
+  });
 });
 
 function expectUrlToBeABookingPageOnOrgForUsername({
@@ -431,4 +505,33 @@ function expectUrlToBeABookingPageOnOrgForUsername({
   const urlObject = new URL(url);
   const usernameInUrl = urlObject.pathname.split("/")[1];
   expect(usernameInUrl).toEqual(username);
+}
+
+async function setAvailabilityForGuests({ page, users }) {
+  const user = await users.create();
+  await user.apiLogin();
+  await page.goto("/availability");
+  // We wait until loading is finished
+  await page.waitForSelector('[data-testid="schedules"]');
+
+  await page.getByTestId("schedules").first().click();
+  await page.locator('[data-testid="Sunday-switch"]').first().click();
+  await page.locator('[data-testid="Saturday-switch"]').first().click();
+
+  await page.getByTestId("add-override").click();
+  await page.locator('[id="modal-title"]').waitFor();
+  await page.getByTestId("incrementMonth").click();
+  await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
+  await page.getByTestId("date-override-mark-unavailable").click();
+  await page.getByTestId("add-override-submit-btn").click();
+  await page.getByTestId("dialog-rejection").click();
+  await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
+  await page.locator('[form="availability-form"][type="submit"]').click();
+  const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
+  const json = await response.json();
+  const nextMonth = dayjs().add(1, "month").startOf("month");
+  const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
+  await page.goto(troubleshooterURL);
+  await page.waitForLoadState("networkidle");
+  await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
 }
