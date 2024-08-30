@@ -2,18 +2,13 @@ import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const { trpc } = await import("@calcom/trpc");
   const scheduleId = params?.schedule ? Number(params.schedule) : -1;
-
-  const { data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId },
-    {
-      enabled: !!scheduleId,
-    }
-  );
+  const schedule = await ScheduleRepository.findScheduleById({ id: scheduleId });
 
   if (!schedule) {
     return await _generateMetadata(
