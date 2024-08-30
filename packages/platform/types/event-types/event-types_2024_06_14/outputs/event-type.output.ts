@@ -182,13 +182,13 @@ class BaseEventTypeOutput {
 export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput {
   @IsInt()
   override ownerId!: number;
+
+  users!: User_2024_06_14[];
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   name!: string;
-
-  users!: User_2024_06_14[];
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput {

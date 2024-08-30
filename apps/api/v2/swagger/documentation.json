@@ -4480,10 +4480,6 @@
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -4491,12 +4487,16 @@
           "description": {
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
           }
         },
         "required": [
-          "lengthInMinutes",
           "title",
-          "description"
+          "description",
+          "lengthInMinutes"
         ]
       },
       "EventTypeOutput_2024_06_14": {
@@ -4581,7 +4581,20 @@
       },
       "UpdateEventTypeInput_2024_06_14": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          }
+        },
+        "required": [
+          "title",
+          "description"
+        ]
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -6752,10 +6765,6 @@
       "CreateTeamEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -6763,6 +6772,10 @@
           "description": {
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
           },
           "schedulingType": {
             "type": "object"
@@ -6778,9 +6791,9 @@
           }
         },
         "required": [
-          "lengthInMinutes",
           "title",
           "description",
+          "lengthInMinutes",
           "schedulingType",
           "hosts",
           "assignAllTeamMembers"
@@ -6816,6 +6829,29 @@
           "data"
         ]
       },
+      "TeamEventTypeResponseHost": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "default": false
+          },
+          "priority": {
+            "type": "object",
+            "default": "medium"
+          }
+        },
+        "required": [
+          "name",
+          "userId"
+        ]
+      },
       "Recurrence_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6842,29 +6878,6 @@
           "interval",
           "occurrences",
           "frequency"
-        ]
-      },
-      "TeamEventTypeResponseHost": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "number"
-          },
-          "mandatory": {
-            "type": "boolean",
-            "default": false
-          },
-          "priority": {
-            "type": "object",
-            "default": "medium"
-          }
-        },
-        "required": [
-          "name",
-          "userId"
         ]
       },
       "BookingLimitsCount_2024_06_14": {
@@ -7057,6 +7070,27 @@
             "type": "number",
             "example": 1
           },
+          "ownerId": {
+            "type": "number",
+            "nullable": true
+          },
+          "teamId": {
+            "type": "number",
+            "nullable": true
+          },
+          "parentEventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
+            }
+          },
+          "assignAllTeamMembers": {
+            "type": "boolean"
+          },
           "lengthInMinutes": {
             "type": "number",
             "minimum": 1
@@ -7138,27 +7172,6 @@
             "type": "number",
             "nullable": true
           },
-          "teamId": {
-            "type": "number",
-            "nullable": true
-          },
-          "ownerId": {
-            "type": "number",
-            "nullable": true
-          },
-          "parentEventTypeId": {
-            "type": "number",
-            "nullable": true
-          },
-          "hosts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
-            }
-          },
-          "assignAllTeamMembers": {
-            "type": "boolean"
-          },
           "bookingLimitsCount": {
             "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
           },
@@ -7196,6 +7209,7 @@
         },
         "required": [
           "id",
+          "hosts",
           "lengthInMinutes",
           "title",
           "slug",
@@ -7212,8 +7226,7 @@
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
           "isInstantEvent",
-          "scheduleId",
-          "hosts"
+          "scheduleId"
         ]
       },
       "GetTeamEventTypeOutput": {
@@ -7262,44 +7275,13 @@
       "UpdateTeamEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
-          "lengthInMinutes": {
-            "type": "number"
-          },
           "title": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
           },
           "description": {
-            "type": "string"
-          },
-          "locations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "number"
-          },
-          "minimumBookingNotice": {
-            "type": "number"
-          },
-          "beforeEventBuffer": {
-            "type": "number"
-          },
-          "afterEventBuffer": {
-            "type": "number"
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
           "hosts": {
             "type": "array",
@@ -7312,17 +7294,8 @@
           }
         },
         "required": [
-          "lengthInMinutes",
           "title",
-          "slug",
           "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
           "hosts",
           "assignAllTeamMembers"
         ]
