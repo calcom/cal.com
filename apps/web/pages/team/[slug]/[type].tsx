@@ -35,6 +35,7 @@ export default function Type({
   eventData,
   isInstantMeeting,
   orgBannerUrl,
+  teamMemberEmail,
   isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
@@ -69,6 +70,7 @@ export default function Type({
           eventData.length
         )}
         orgBannerUrl={orgBannerUrl}
+        teamMemberEmail={teamMemberEmail}
       />
     </main>
   );
