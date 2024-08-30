@@ -4,6 +4,7 @@ import type { InferGetStaticPropsType } from "next";
 import Head from "next/head";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import type { IconName } from "@calcom/ui";
 import { Icon, IconSprites } from "@calcom/ui";
 
 import { lucideIconList } from "../../../packages/ui/components/icon/icon-list.mjs";
@@ -11,7 +12,7 @@ import { lucideIconList } from "../../../packages/ui/components/icon/icon-list.m
 export const getStaticProps = async () => {
   return {
     props: {
-      icons: Array.from(lucideIconList),
+      icons: Array.from(lucideIconList) as IconName[],
     },
   };
 };
