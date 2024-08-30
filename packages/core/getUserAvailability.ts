@@ -839,13 +839,14 @@ const _getOutOfOfficeDays = async ({
 
 type GetUserAvailabilityQuery = Parameters<typeof getUserAvailability>[0];
 type GetUserAvailabilityInitialData = NonNullable<Parameters<typeof getUserAvailability>[1]>;
+export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
 
 const _getUsersAvailability = async ({
   users,
   query,
   initialData,
 }: {
-  users: (NonNullable<GetUserAvailabilityInitialData["user"]> & {
+  users: (GetAvailabilityUser & {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
