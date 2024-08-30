@@ -326,6 +326,7 @@ export default function Success(props: PageProps) {
     if (bookingInfo.user) {
       return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
         user: bookingInfo.user.name || bookingInfo.user.email,
+        attendees: bookingInfo.attendees.map((attendee) => attendee.name || attendee.email).join(", "),
       });
     }
     return t(`emailed_you_and_attendees${titleSuffix}`);
