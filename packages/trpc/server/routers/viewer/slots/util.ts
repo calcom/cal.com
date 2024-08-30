@@ -323,10 +323,10 @@ export interface IGetAvailableSlots {
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
-  const bookerCalUser = input.teamMemberEmail
+  const bookerCalUser = input.bookerEmail
     ? await prisma.user.findFirst({
         where: {
-          email: input.teamMemberEmail,
+          email: input.bookerEmail,
         },
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
@@ -334,6 +334,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         },
       })
     : null;
+  console.log("input", input);
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -425,15 +426,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const teamMemberHost = hosts.find((host) => host.user.email === input?.teamMemberEmail);
 
   // If the requested team member is a fixed host proceed as normal else get availability like the requested member is a fixed host
-  const usersWithCredentials =
-    !input.teamMemberEmail || !teamMemberHost || teamMemberHost.isFixed
+  const usersWithCredentials = [
+    ...(!input.teamMemberEmail || !teamMemberHost || teamMemberHost.isFixed
       ? hosts.map(({ isFixed, user }) => ({ isFixed, ...user }))
       : hosts.reduce((usersArray, host) => {
           if (host.isFixed || host.user.email === input.teamMemberEmail)
             usersArray.push({ ...host.user, isFixed: host.isFixed });
 
           return usersArray;
-        }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
+        }, [] as (GetAvailabilityUser & { isFixed: boolean })[])),
+    ...(bookerCalUser ? [bookerCalUser] : []),
+  ];
 
   const durationToUse = input.duration || 0;
 

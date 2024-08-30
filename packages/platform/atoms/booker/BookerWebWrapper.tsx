@@ -131,6 +131,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     duration: props.duration,
     selectedDate,
     teamMemberEmail: props.teamMemberEmail,
+    bookerEmail: bookerForm.formEmail,
   });
   const bookings = useBookings({
     event,
@@ -139,6 +140,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     metadata: metadata ?? {},
     teamMemberEmail: props.teamMemberEmail,
   });
+
+  console.log("bookerForm", bookerForm);
 
   const verifyCode = useVerifyCode({
     onSuccess: () => {

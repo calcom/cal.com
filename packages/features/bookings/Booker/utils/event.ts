@@ -66,6 +66,7 @@ export const useScheduleForEvent = ({
   selectedDate,
   orgSlug,
   teamMemberEmail,
+  bookerEmail,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -78,6 +79,7 @@ export const useScheduleForEvent = ({
   selectedDate?: string | null;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  bookerEmail?: string | null;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
@@ -108,6 +110,7 @@ export const useScheduleForEvent = ({
     isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
     orgSlug,
     teamMemberEmail,
+    bookerEmail,
   });
 
   return {

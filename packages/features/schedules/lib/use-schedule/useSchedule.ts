@@ -17,6 +17,7 @@ export type UseScheduleWithCacheArgs = {
   isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  bookerEmail?: string | null;
 };
 
 export const useSchedule = ({
@@ -34,6 +35,7 @@ export const useSchedule = ({
   isTeamEvent,
   orgSlug,
   teamMemberEmail,
+  bookerEmail,
 }: UseScheduleWithCacheArgs) => {
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -61,6 +63,7 @@ export const useSchedule = ({
       rescheduleUid,
       orgSlug,
       teamMemberEmail,
+      bookerEmail,
     },
     {
       trpc: {
