@@ -157,6 +157,8 @@ export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
   0
 );
 
+export const SMS_CREDITS_PER_MEMBER = 250;
+
 export const CLOUDFLARE_SITE_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_SITEKEY;
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { sendSmsLimitAlmostReachedEmails, sendSmsLimitReachedEmails } from "@calcom/emails";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, SMS_CREDITS_PER_MEMBER } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { setTestSMS } from "@calcom/lib/testSMS";
@@ -14,8 +14,6 @@ import { SmsCreditAllocationType, SMSLockState } from "@calcom/prisma/enums";
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
-
-const creditsPerMember = 250;
 
 async function getCountryCode(phoneNumber: string) {
   const twilio = createTwilioClient();
@@ -45,13 +43,14 @@ export async function getCreditsForNumber(phoneNumber: string) {
 
 export async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
   //todo: teamId should also be given for managed event types and user worklfows
-
+  //todo: orgs don't pay creditss
   const credits = await getCreditsForNumber(phoneNumber);
 
   const smsCreditCountSelect = {
     id: true,
-    limitReachedAt: true,
-    warningSentAt: true,
+    limitReached: true,
+    warningSent: true,
+    month: true,
     credits: true,
     team: {
       select: {
@@ -85,9 +84,8 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
           smsCreditCounts: {
             none: {
               userId: null,
-              limitReachedAt: {
-                gte: dayjs().startOf("month").toDate(),
-              },
+              month: dayjs().utc().startOf("month").toDate(),
+              limitReached: true,
             },
           },
         },
@@ -101,6 +99,7 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
             smsCreditCounts: {
               where: {
                 userId,
+                month: dayjs().utc().startOf("month").toDate(),
               },
               select: {
                 credits: true,
@@ -146,6 +145,7 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
       where: {
         teamId,
         userId: null,
+        month: dayjs().utc().startOf("month").toDate(),
       },
     });
 
@@ -169,6 +169,7 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
           teamId,
           userId,
           credits,
+          month: dayjs().utc().startOf("month").toDate(),
         },
         select: smsCreditCountSelect,
       });
@@ -177,13 +178,10 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
 
     const acceptedMembers = team.members.filter((member) => member.accepted);
 
-    const totalCredits = acceptedMembers.length * creditsPerMember;
+    const totalCredits = acceptedMembers.length * SMS_CREDITS_PER_MEMBER;
 
     if (smsCreditCountTeam.credits > totalCredits) {
-      if (
-        !smsCreditCountTeam.limitReachedAt ||
-        dayjs(smsCreditCountTeam.limitReachedAt).isBefore(dayjs().startOf("month"))
-      ) {
+      if (!smsCreditCountTeam.limitReached) {
         // limit reached
         const ownersAndAdmins = await Promise.all(
           acceptedMembers
@@ -204,17 +202,14 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
             id: smsCreditCountTeam.id,
           },
           data: {
-            limitReachedAt: new Date(),
+            limitReached: true,
           },
         });
         return { teamId }; // limit reached now, allow sending last sms
       }
       return null; // limit was already reached, don't send sms
     } else if (smsCreditCountTeam.credits > totalCredits * 0.8) {
-      if (
-        !smsCreditCountTeam.warningSentAt ||
-        dayjs(smsCreditCountTeam.warningSentAt).isBefore(dayjs().startOf("month"))
-      ) {
+      if (!smsCreditCountTeam.warningSent) {
         const ownersAndAdmins = await Promise.all(
           acceptedMembers
             .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
@@ -235,7 +230,7 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
             id: smsCreditCountTeam.id,
           },
           data: {
-            warningSentAt: new Date(),
+            warningSent: true,
           },
         });
       }
