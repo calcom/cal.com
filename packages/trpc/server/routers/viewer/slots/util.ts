@@ -466,7 +466,45 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
 
-  let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  const eventParticipants = hosts;
+
+  if (input.rescheduleUid) {
+    const originalRescheduledBooking = await prisma.booking.findFirst({
+      where: {
+        uid: input.rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+      },
+      select: {
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    const attendeesList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
+    const users = await prisma.user.findMany({
+      where: {
+        email: {
+          in: attendeesList,
+        },
+      },
+      select: {
+        credentials: { select: credentialForCalendarServiceSelect },
+        ...availabilityUserSelect,
+      },
+    });
+    users.forEach((user) => {
+      eventParticipants.push({
+        user: user,
+        isFixed: true,
+      });
+    });
+  }
+
+  let usersWithCredentials = eventParticipants.map(({ isFixed, user }) => ({ isFixed, ...user }));
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
     const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(

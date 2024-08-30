@@ -52,7 +52,7 @@ function determineRequiresConfirmation(eventType: EventType, bookingStartTime: s
   return requiresConfirmation;
 }
 
-function isUserReschedulingOwner(
+export function isUserReschedulingOwner(
   userId: number | undefined,
   originalRescheduledBookingOrganizerId: number | undefined
 ): boolean {
