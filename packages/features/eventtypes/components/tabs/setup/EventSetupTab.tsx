@@ -5,7 +5,7 @@ import type { MultiValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import Locations from "@calcom/features/eventtypes/components/event-type/Locations";
+import Locations from "@calcom/features/eventtypes/components/Locations";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";

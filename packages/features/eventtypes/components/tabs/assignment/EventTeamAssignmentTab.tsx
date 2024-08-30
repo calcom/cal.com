@@ -392,7 +392,7 @@ const Hosts = ({
   );
 };
 
-export const EventTeamTab = ({
+export const EventTeamAssignmentTab = ({
   team,
   teamMembers,
   eventType,

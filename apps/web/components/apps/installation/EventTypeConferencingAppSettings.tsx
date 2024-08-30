@@ -3,9 +3,9 @@ import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
-import type { TLocationOptions } from "@calcom/features/eventtypes/components/event-type/Locations";
-import type { TEventTypeLocation } from "@calcom/features/eventtypes/components/event-type/Locations";
-import Locations from "@calcom/features/eventtypes/components/event-type/Locations";
+import type { TLocationOptions } from "@calcom/features/eventtypes/components/Locations";
+import type { TEventTypeLocation } from "@calcom/features/eventtypes/components/Locations";
+import Locations from "@calcom/features/eventtypes/components/Locations";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

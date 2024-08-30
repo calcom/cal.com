@@ -46,7 +46,9 @@ const EventAvailabilityTab = dynamic(() =>
   import("./tabs/availability/EventAvailabilityTab").then((mod) => mod.EventAvailabilityTab)
 );
 
-const EventTeamTab = dynamic(() => import("./tabs/team/EventTeamTab").then((mod) => mod.EventTeamTab));
+const EventTeamAssignmentTab = dynamic(() =>
+  import("./tabs/assignment/EventTeamAssignmentTab").then((mod) => mod.EventTeamAssignmentTab)
+);
 
 const EventLimitsTab = dynamic(() =>
   import("./tabs/limits/EventLimitsTab").then((mod) => mod.EventLimitsTab)
@@ -361,7 +363,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       />
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
@@ -586,7 +588,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       const Components = [
         EventSetupTab,
         EventAvailabilityTab,
-        EventTeamTab,
+        EventTeamAssignmentTab,
         EventLimitsTab,
         EventAdvancedTab,
         EventInstantTab,

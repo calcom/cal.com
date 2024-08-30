@@ -1,7 +1,7 @@
 import type {
   EventTypeAssignedUsers,
   EventTypeHosts,
-} from "@calcom/features/eventtypes/components/event-type/EventType";
+} from "@calcom/features/eventtypes/components/EventType";
 
 // This function checks if EventType requires assignment.
 // returns true: if EventType requires assignment but there is no assignment yet done by the user.
