@@ -44,36 +44,47 @@ async function authMiddleware(req: NextApiRequest) {
 
   if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
 
-  const userIsHost = user.bookings?.length;
+  const userIsHost = !!user.bookings?.length;
 
-  const teamBookingsAsOwnerOrAdmin = await prisma.booking.findUnique({
+  const bookingsAsAttendee = prisma.booking.findMany({
     where: {
       id,
-      OR: [
-        {
-          attendees: { some: { email: user.email } },
-        },
-        {
-          eventType: {
-            OR: [
-              {
-                owner: { id: userId },
-              },
-              {
-                team: {
-                  members: {
-                    some: { userId, role: { in: ["ADMIN", "OWNER"] } },
-                  },
-                },
-              },
-            ],
-          },
-        },
-      ],
+      attendees: { some: { email: user.email } },
     },
   });
 
-  if (!userIsHost && !teamBookingsAsOwnerOrAdmin)
+  const bookingsAsEventTypeOwner = prisma.booking.findMany({
+    where: {
+      id,
+      eventType: {
+        owner: { id: userId },
+      },
+    },
+  });
+
+  const bookingsAsTeamOwnerOrAdmin = prisma.booking.findMany({
+    where: {
+      id,
+      eventType: {
+        team: {
+          members: {
+            some: { userId, role: { in: ["ADMIN", "OWNER"] }, accepted: true },
+          },
+        },
+      },
+    },
+  });
+
+  const [resultOne, resultTwo, resultThree] = await Promise.all([
+    bookingsAsAttendee,
+    bookingsAsEventTypeOwner,
+    bookingsAsTeamOwnerOrAdmin,
+  ]);
+
+  const teamBookingsAsOwnerOrAdmin = [...resultOne, ...resultTwo, ...resultThree];
+  const userHasTeamBookings = !!teamBookingsAsOwnerOrAdmin.length;
+
+  if (!userIsHost && !userHasTeamBookings)
     throw new HttpError({ statusCode: 403, message: "You are not authorized" });
 }
 
