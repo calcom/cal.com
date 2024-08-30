@@ -258,18 +258,22 @@ export default async function handleChildrenEventTypes({
             },
           });
 
-          const eventType = await prisma.eventType.update({
-            where: {
-              id: existingEventType ? existingEventType.id : undefined,
-            },
-            data: {
-              ...updatePayloadFiltered,
-              hashedLink:
-                "singleUseLinks" in unlockedFieldProps
-                  ? undefined
-                  : hashedLinkQuery(userId, existingHashedLink !== null),
-            },
-          });
+          let eventType = null;
+
+          if (existingEventType) {
+            eventType = await prisma.eventType.update({
+              where: {
+                id: existingEventType.id,
+              },
+              data: {
+                ...updatePayloadFiltered,
+                hashedLink:
+                  "singleUseLinks" in unlockedFieldProps
+                    ? undefined
+                    : hashedLinkQuery(userId, existingHashedLink !== null),
+              },
+            });
+          }
 
           return eventType;
         })
