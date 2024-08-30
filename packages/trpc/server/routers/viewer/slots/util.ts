@@ -376,6 +376,17 @@ async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMeta
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+  const bookerCalUser = input.bookerEmail
+    ? await prisma.user.findFirst({
+        where: {
+          email: input.bookerEmail,
+        },
+        select: {
+          credentials: { select: credentialForCalendarServiceSelect },
+          ...availabilityUserSelect,
+        },
+      })
+    : null;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -466,7 +477,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
 
-  let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  let usersWithCredentials = [
+    ...hosts.map(({ isFixed, user }) => ({ isFixed, ...user })),
+    ...(bookerCalUser ? [bookerCalUser] : []),
+  ];
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
     const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(

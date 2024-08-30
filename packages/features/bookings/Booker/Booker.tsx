@@ -10,7 +10,6 @@ import dayjs from "@calcom/dayjs";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
@@ -67,7 +66,6 @@ const BookerComponent = ({
   orgBannerUrl,
   customClassNames,
 }: BookerProps & WrappedBookerProps) => {
-  const { t } = useLocale();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
