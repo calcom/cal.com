@@ -299,7 +299,7 @@ export async function handler(req: NextApiRequest) {
 
   let data: Booking[] = [];
 
-  if (!filterByAttendeeEmails) {
+  if (!filterByAttendeeEmails && userEmailsToFilterBy.length > 0) {
     const queryOne = prisma.booking.findMany(args);
     const queryTwo = prisma.booking.findMany({
       where: {
