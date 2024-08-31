@@ -60,6 +60,7 @@ export type FormValues = {
     type: EventLocationType["type"];
     address?: string;
     attendeeAddress?: string;
+    somewhereElse?: string;
     link?: string;
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;
@@ -133,3 +134,6 @@ export type FormValues = {
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
+
+export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
+export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
