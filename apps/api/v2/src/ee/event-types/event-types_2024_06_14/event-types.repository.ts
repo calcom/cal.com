@@ -3,37 +3,17 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
+import { EventType, User, Schedule } from "@prisma/client";
 
-import {
-  getEventTypeById,
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeLocations,
-} from "@calcom/platform-libraries";
-import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import { getEventTypeById } from "@calcom/platform-libraries";
+import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 
-type InputEventTransformed = Omit<
-  CreateEventTypeInput_2024_06_14,
-  | "lengthInMinutes"
-  | "locations"
-  | "bookingFields"
-  | "bookingLimitsCount"
-  | "onlyShowFirstAvailableSlot"
-  | "bookingLimitsDuration"
-  | "offsetStart"
-  | "requiresConfirmation"
-  | "recurrence"
-  | "requiresBookerEmailVerification"
-  | "hideCalendarNotes"
-  | "lockTimeZoneToggleOnBookingPage"
-  | "eventTypeColor"
-  | "seats"
-> & {
-  length: number;
-  slug: string;
-  locations?: ReturnType<typeof transformApiEventTypeLocations>;
-  bookingFields?: ReturnType<typeof transformApiEventTypeBookingFields>;
+type EventTypeWithRelations = EventType & {
+  users: User[];
+  schedule: Schedule | null;
 };
+export type GetEventTypeById = EventTypeWithRelations | null;
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {
@@ -43,7 +23,7 @@ export class EventTypesRepository_2024_06_14 {
     private usersService: UsersService
   ) {}
 
-  async createUserEventType(userId: number, body: InputEventTransformed) {
+  async createUserEventType(userId: number, body: InputEventTransformed_2024_06_14) {
     return this.dbWrite.prisma.eventType.create({
       data: {
         ...body,
@@ -108,7 +88,7 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
-  async getEventTypeById(eventTypeId: number) {
+  async getEventTypeById(eventTypeId: number): Promise<GetEventTypeById> {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: { users: true, schedule: true },

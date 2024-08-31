@@ -13,12 +13,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
 import { dynamicEvent } from "@calcom/platform-libraries";
-import {
-  CreateEventTypeInput_2024_06_14,
-  UpdateEventTypeInput_2024_06_14,
-  GetEventTypesQuery_2024_06_14,
-  EventTypeOutput_2024_06_14,
-} from "@calcom/platform-types";
+import { GetEventTypesQuery_2024_06_14, InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -35,36 +30,12 @@ export class EventTypesService_2024_06_14 {
     private readonly schedulesRepository: SchedulesRepository_2024_06_11
   ) {}
 
-  async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
+  async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const {
-      bookingLimits,
-      durationLimits,
-      periodType = undefined,
-      periodDays = undefined,
-      periodCountCalendarDays = undefined,
-      periodStartDate = undefined,
-      periodEndDate = undefined,
-      requiresConfirmation = undefined,
-      requiresConfirmationWillBlockSlot = undefined,
-      eventTypeColor = undefined,
-      seatsPerTimeSlot = undefined,
-      seatsShowAttendees = undefined,
-      seatsShowAvailabilityCount = undefined,
-      recurringEvent = undefined,
-      ...bodyTransformed
-    } = this.inputEventTypesService.transformInputCreateEventType(body);
-
-    await this.inputEventTypesService.validateEventTypeInputs(
-      undefined,
-      seatsPerTimeSlot > 0,
-      bodyTransformed.locations,
-      requiresConfirmation
-    );
 
     const { eventType: eventTypeCreated } = await createEventType({
-      input: bodyTransformed,
+      input: body,
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -76,21 +47,7 @@ export class EventTypesService_2024_06_14 {
     await updateEventType({
       input: {
         id: eventTypeCreated.id,
-        bookingLimits,
-        durationLimits,
-        periodType,
-        periodDays,
-        periodCountCalendarDays,
-        periodStartDate,
-        periodEndDate,
-        requiresConfirmation,
-        requiresConfirmationWillBlockSlot,
-        eventTypeColor,
-        seatsPerTimeSlot,
-        seatsShowAttendees,
-        seatsShowAvailabilityCount,
-        recurringEvent,
-        ...bodyTransformed,
+        ...body,
       },
       ctx: {
         user: eventTypeUser,
@@ -106,10 +63,13 @@ export class EventTypesService_2024_06_14 {
       throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
     }
 
-    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
+    return {
+      ownerId: user.id,
+      ...eventType,
+    };
   }
 
-  async checkCanCreateEventType(userId: number, body: CreateEventTypeInput_2024_06_14) {
+  async checkCanCreateEventType(userId: number, body: InputEventTransformed_2024_06_14) {
     const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(userId, body.slug);
     if (existsWithSlug) {
       throw new BadRequestException("User already has an event type with this slug.");
@@ -129,7 +89,10 @@ export class EventTypesService_2024_06_14 {
       return null;
     }
 
-    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
+    return {
+      ownerId: user.id,
+      ...eventType,
+    };
   }
 
   async getEventTypesByUsername(username: string) {
@@ -137,7 +100,7 @@ export class EventTypesService_2024_06_14 {
     if (!user) {
       return [];
     }
-    return this.getUserEventTypes(user.id);
+    return await this.getUserEventTypes(user.id);
   }
 
   async getUserToCreateEvent(user: UserWithProfile) {
@@ -167,17 +130,19 @@ export class EventTypesService_2024_06_14 {
     }
 
     this.checkUserOwnsEventType(userId, eventType);
-    return this.outputEventTypesService.getResponseEventType(userId, eventType);
+
+    return {
+      ownerId: userId,
+      ...eventType,
+    };
   }
 
   async getUserEventTypes(userId: number) {
     const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId);
 
-    const eventTypePromises = eventTypes.map(async (eventType) => {
-      return await this.outputEventTypesService.getResponseEventType(userId, eventType);
+    return eventTypes.map((eventType) => {
+      return { ownerId: userId, ...eventType };
     });
-
-    return await Promise.all(eventTypePromises);
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
@@ -210,7 +175,7 @@ export class EventTypesService_2024_06_14 {
     return await getEventTypesPublic(user.id);
   }
 
-  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14): Promise<EventTypeOutput_2024_06_14[]> {
+  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
     const { username, eventSlug, usernames } = queryParams;
 
     if (username && eventSlug) {
@@ -238,12 +203,12 @@ export class EventTypesService_2024_06_14 {
         usersFiltered.push(user);
       }
     }
-
-    return this.outputEventTypesService.getResponseEventType(0, {
+    return {
+      ownerId: 0,
       ...dynamicEvent,
       users: usersFiltered,
       isInstantEvent: false,
-    });
+    };
   }
 
   async createUserDefaultEventTypes(userId: number) {
@@ -259,23 +224,16 @@ export class EventTypesService_2024_06_14 {
     return defaultEventTypes;
   }
 
-  async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_06_14, user: UserWithProfile) {
+  async updateEventType(
+    eventTypeId: number,
+    body: InputEventTransformed_2024_06_14 & { scheduleId: number },
+    user: UserWithProfile
+  ) {
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
-    const bodyTransformed = await this.inputEventTypesService.transformInputUpdateEventType(
-      body,
-      eventTypeId
-    );
-
-    await this.inputEventTypesService.validateEventTypeInputs(
-      eventTypeId,
-      bodyTransformed.seatsPerTimeSlot > 0,
-      bodyTransformed.locations,
-      bodyTransformed.requiresConfirmation
-    );
 
     await updateEventType({
-      input: { id: eventTypeId, ...bodyTransformed },
+      input: { id: eventTypeId, ...body },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -290,7 +248,10 @@ export class EventTypesService_2024_06_14 {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
+    return {
+      ownerId: user.id,
+      ...eventType,
+    };
   }
 
   async checkCanUpdateEventType(userId: number, eventTypeId: number, scheduleId: number | undefined) {

@@ -81,7 +81,6 @@ export class InputEventTypesService_2024_06_14 {
       lengthInMinutes,
       locations,
       bookingFields,
-      scheduleId,
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
@@ -104,7 +103,6 @@ export class InputEventTypesService_2024_06_14 {
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
       bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
-      schedule: scheduleId,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)

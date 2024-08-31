@@ -4477,108 +4477,6 @@
           "refreshToken"
         ]
       },
-      "CreateEventTypeInput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          }
-        },
-        "required": [
-          "title",
-          "description",
-          "lengthInMinutes"
-        ]
-      },
-      "EventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
-      "CreateEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetEventTypesOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "UpdateEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -4594,26 +4492,6 @@
         "required": [
           "title",
           "description"
-        ]
-      },
-      "UpdateEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-          }
-        },
-        "required": [
-          "status",
-          "data"
         ]
       },
       "DeleteData_2024_06_14": {

@@ -78,7 +78,7 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  async getResponseEventType(ownerId: number, databaseEventType: Input) {
+  getResponseEventType(ownerId: number, databaseEventType: Input) {
     const {
       id,
       length,
@@ -113,7 +113,7 @@ export class OutputEventTypesService_2024_06_14 {
       : [];
     const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
-    const users = this.transformUsers(databaseEventType.users);
+    const users = this.transformUsers(databaseEventType.users || []);
     const bookingLimitsCount = this.transformIntervalLimits(databaseEventType.bookingLimits);
     const bookingLimitsDuration = this.transformIntervalLimits(databaseEventType.durationLimits);
     const eventTypeColor = this.transformEventTypeColor(databaseEventType.eventTypeColor);
