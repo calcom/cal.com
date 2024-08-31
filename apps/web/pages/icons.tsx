@@ -28,6 +28,27 @@ export const getStaticProps = async () => {
   };
 };
 
+const IconGrid = (props: {
+  title: string;
+  icons: IconName[];
+  rootClassName?: string;
+  iconClassName?: string;
+}) => (
+  <div className={props.rootClassName}>
+    <h2 className="font-cal mt-6 text-lg font-medium">{props.title}</h2>
+    <div className="grid grid-cols-2 lg:grid-cols-6">
+      {props.icons.map((icon) => {
+        return (
+          <div key={icon} className="flex items-center gap-1">
+            <Icon name={icon} className={props.iconClassName} />
+            <div>{icon}</div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
 export default function IconsPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <div className="bg-subtle flex h-screen">
@@ -43,16 +64,13 @@ export default function IconsPage(props: InferGetStaticPropsType<typeof getStati
       <IconSprites />
       <div className="bg-default m-auto min-w-full rounded-md p-10 text-right ltr:text-left">
         <h1 className="text-emphasis font-cal text-2xl font-medium">Icons showcase</h1>
-        <div className="grid grid-cols-2 lg:grid-cols-6">
-          {props.icons.map((icon) => {
-            return (
-              <div key={icon} className="flex items-center gap-1">
-                <Icon name={icon} />
-                <div>{icon}</div>
-              </div>
-            );
-          })}
-        </div>
+        <IconGrid title="Regular Icons" icons={props.icons} />
+        <IconGrid
+          title="Filled Icons"
+          icons={props.icons}
+          rootClassName="bg-darkgray-100 text-gray-50"
+          iconClassName="fill-blue-500"
+        />
       </div>
     </div>
   );
