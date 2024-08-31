@@ -117,6 +117,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
       ? 2
       : undefined;
+
+  const attendeeEmails = props.bookingData?.attendees.map((attendee) => attendee.email);
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -131,14 +133,13 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     duration: props.duration,
     selectedDate,
     teamMemberEmail: props.teamMemberEmail,
-    bookerEmail: bookerForm.formEmail,
+    attendeeEmails,
   });
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,
     bookingForm: bookerForm.bookingForm,
     metadata: metadata ?? {},
-    teamMemberEmail: props.teamMemberEmail,
   });
 
   const verifyCode = useVerifyCode({

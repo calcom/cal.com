@@ -323,10 +323,12 @@ export interface IGetAvailableSlots {
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
-  const bookerCalUser = input.bookerEmail
-    ? await prisma.user.findFirst({
+  const attendeeCalUsers = input.attendeeEmails
+    ? await prisma.user.findMany({
         where: {
-          email: input.bookerEmail,
+          email: {
+            in: input.attendeeEmails,
+          },
         },
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
@@ -435,7 +437,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
           return usersArray;
         }, [] as (GetAvailabilityUser & { isFixed: boolean })[])),
-    ...(bookerCalUser ? [bookerCalUser] : []),
+    ...(attendeeCalUsers ? attendeeCalUsers : []),
   ];
 
   const durationToUse = input.duration || 0;
