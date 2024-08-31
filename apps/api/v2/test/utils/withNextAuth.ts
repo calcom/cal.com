@@ -1,6 +1,6 @@
 import { TestingModuleBuilder } from "@nestjs/testing";
-import { NextAuthStrategy } from "app/modules/auth/strategies/next-auth/next-auth.strategy";
-import { UsersRepository } from "app/modules/users/users.repository";
+import { NextAuthStrategy } from "src/modules/auth/strategies/next-auth/next-auth.strategy";
+import { UsersRepository } from "src/modules/users/users.repository";
 import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";
 
 export const withNextAuth = (email: string, module: TestingModuleBuilder) =>

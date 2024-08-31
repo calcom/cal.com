@@ -627,7 +627,7 @@ const navigation: NavigationItemType[] = [
     href: "/apps",
     icon: "grid-3x3",
     isCurrent: ({ pathname: path, item }) => {
-      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+      // During Server rendering path is /v2/srcs but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
     },
     child: [
@@ -635,7 +635,7 @@ const navigation: NavigationItemType[] = [
         name: "app_store",
         href: "/apps",
         isCurrent: ({ pathname: path, item }) => {
-          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+          // During Server rendering path is /v2/srcs but on client it becomes /apps(weird..)
           return (
             (path?.startsWith(item.href) ?? false) &&
             !(path?.includes("routing-forms/") ?? false) &&
@@ -648,7 +648,7 @@ const navigation: NavigationItemType[] = [
         href: "/apps/installed/calendar",
         isCurrent: ({ pathname: path }) =>
           (path?.startsWith("/apps/installed/") ?? false) ||
-          (path?.startsWith("/v2/apps/installed/") ?? false),
+          (path?.startsWith("/v2/srcs/installed/") ?? false),
       },
     ],
   },
