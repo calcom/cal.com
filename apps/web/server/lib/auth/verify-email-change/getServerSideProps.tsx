@@ -8,7 +8,13 @@ const tokenSchema = z.object({
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { token } = tokenSchema.parse(context.query);
+  const parsed = tokenSchema.safeParse(context.query);
+  if (!parsed.success) {
+    return {
+      notFound: true,
+    } as const;
+  }
+  const { token } = parsed.data;
 
   if (!token) {
     return {
