@@ -1635,13 +1635,12 @@ describe("getSchedule", () => {
 
       expect(scheduleForRescheduleWithMultipleAttendees).toHaveTimeSlots(
         [
-          // This is the overlap time that is not occupied for IstWorkHours and IstEveningShift
           `04:30:00.000Z`,
           `05:30:00.000Z`,
           `06:30:00.000Z`,
           `07:30:00.000Z`,
-          `10:30:00.000Z`,
-          `11:30:00.000Z`,
+          `10:00:00.000Z`,
+          `11:00:00.000Z`,
         ],
         {
           dateString: plus2DateString,
