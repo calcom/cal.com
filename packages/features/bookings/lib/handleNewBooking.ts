@@ -67,6 +67,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
@@ -481,7 +482,23 @@ async function handler(
       throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
     }
     const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
-    if (userReschedulingIsOwner) {
+    let isTeamOwnerOrAdmin = false;
+    if (isTeamEventType) {
+      const teamOwnerOrAdmin = await prisma.membership.findFirst({
+        where: {
+          teamId: eventType?.teamId || 0,
+          userId,
+          role: {
+            in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+        select: {
+          userId: true,
+        },
+      });
+      isTeamOwnerOrAdmin = !!teamOwnerOrAdmin;
+    }
+    if (userReschedulingIsOwner || isTeamOwnerOrAdmin) {
       const attendeesList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
       const users = await prisma.user.findMany({
         where: {
