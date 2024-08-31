@@ -170,6 +170,23 @@ export default function Success(props: PageProps) {
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
+  const fetchMembershipRole = ({ memberId, teamId }: { memberId: number; teamId: number }) => {
+    const query = trpc.viewer.teams.getMembershipbyUser.useQuery({ memberId, teamId });
+    return query;
+  };
+
+  const teamId = Number(eventType.teamId);
+  const propsUserId = props.trpcState.json?.queries[3].state.data?.user.id;
+  const memberId = Number(propsUserId) || Number(session?.user?.id);
+
+  let membershipRole: string | undefined;
+  let query: any;
+  if (memberId && teamId) {
+    query = fetchMembershipRole({ memberId, teamId });
+    membershipRole = query?.data?.role;
+  }
+  const isPending = query?.isPending;
+
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
       setIsFeedbackSubmitted(true);
@@ -323,10 +340,24 @@ export default function Success(props: PageProps) {
       }
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
+    //Scenerio when admin/owner views the bookings details for the team members.
+    if (teamId && memberId) {
+      if (bookingInfo.user && membershipRole) {
+        const roleBasedAttendees =
+          membershipRole === "OWNER" || membershipRole === "ADMIN"
+            ? bookingInfo.attendees.map((attendee) => attendee.name || attendee.email).join(", ")
+            : "You";
+
+        return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
+          user: bookingInfo.user.name || bookingInfo.user.email,
+          attendees: roleBasedAttendees,
+        });
+      }
+    }
     if (bookingInfo.user) {
       return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
         user: bookingInfo.user.name || bookingInfo.user.email,
-        attendees: bookingInfo.attendees.map((attendee) => attendee.name || attendee.email).join(", "),
+        attendees: "You",
       });
     }
     return t(`emailed_you_and_attendees${titleSuffix}`);
@@ -486,9 +517,11 @@ export default function Success(props: PageProps) {
                         id="modal-headline">
                         {successPageHeadline}
                       </h3>
-                      <div className="mt-3">
-                        <p className="text-default">{getTitle()}</p>
-                      </div>
+                      {!isPending && (
+                        <div className="mt-3">
+                          <p className="text-default">{getTitle()}</p>
+                        </div>
+                      )}
                       {props.paymentStatus &&
                         (bookingInfo.status === BookingStatus.CANCELLED ||
                           bookingInfo.status === BookingStatus.REJECTED) && (
