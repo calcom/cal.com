@@ -132,6 +132,13 @@ jobs:
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
+  build-atoms:
+    name: Production builds
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/atoms-production-build.yml
+    secrets: inherit
+
   build:
     name: Production builds
     needs: [changes, check-label, deps]
@@ -189,19 +196,19 @@ jobs:
 
   merge-reports:
     name: Merge reports
-    if: ${{ !cancelled() }}
-    needs: [e2e]
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
   publish-report:
     name: Publish HTML report
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     permissions:
       contents: write
       issues: write
       pull-requests: write
-    needs: [merge-reports]
+    needs: [changes, check-label, merge-reports]
     uses: ./.github/workflows/publish-report.yml
     secrets: inherit
 

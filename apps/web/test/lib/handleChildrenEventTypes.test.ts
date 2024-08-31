@@ -146,6 +146,7 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          eventTypeColor: undefined,
           userId: 4,
         },
       });
@@ -301,6 +302,7 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          eventTypeColor: undefined,
           hashedLink: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -417,6 +419,7 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          eventTypeColor: undefined,
           hashedLink: undefined,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,

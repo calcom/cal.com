@@ -85,11 +85,13 @@ export interface BookerProps {
    */
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
+  teamMemberEmail?: string | null;
 }
 
 export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
+  rescheduledBy: string | null;
   bookingUid: string | null;
   isRedirect: boolean;
   fromUserNameRedirected: string;
