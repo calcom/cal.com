@@ -9,7 +9,7 @@ import VerifyEmailChange from "~/auth/verify-email-change-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => "",
+    () => "Verify email change",
     () => ""
   );
 };
