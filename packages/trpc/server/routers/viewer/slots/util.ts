@@ -395,7 +395,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  console.log("users", eventType.users);
   let hosts =
     eventType.hosts?.length && eventType.schedulingType
       ? eventType.hosts
@@ -437,7 +436,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
           return usersArray;
         }, [] as (GetAvailabilityUser & { isFixed: boolean })[])),
-    ...(attendeeCalUsers ? attendeeCalUsers : []),
+    ...(attendeeCalUsers ? attendeeCalUsers.map((user) => ({ ...user, isFixed: false })) : []),
   ];
 
   const durationToUse = input.duration || 0;
