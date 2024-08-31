@@ -141,8 +141,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     teamMemberEmail: props.teamMemberEmail,
   });
 
-  console.log("bookerForm", bookerForm);
-
   const verifyCode = useVerifyCode({
     onSuccess: () => {
       verifyEmail.setVerifiedEmail(bookerForm.formEmail);

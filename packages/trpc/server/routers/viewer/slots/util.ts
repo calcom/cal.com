@@ -334,7 +334,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         },
       })
     : null;
-  console.log("input", input);
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -394,6 +393,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
+  console.log("users", eventType.users);
   let hosts =
     eventType.hosts?.length && eventType.schedulingType
       ? eventType.hosts
