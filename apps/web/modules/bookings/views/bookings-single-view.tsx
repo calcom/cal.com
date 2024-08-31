@@ -170,11 +170,6 @@ export default function Success(props: PageProps) {
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
-  const fetchMembershipRole = ({ memberId, teamId }: { memberId: number; teamId: number }) => {
-    const query = trpc.viewer.teams.getMembershipbyUser.useQuery({ memberId, teamId });
-    return query;
-  };
-
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
       setIsFeedbackSubmitted(true);
