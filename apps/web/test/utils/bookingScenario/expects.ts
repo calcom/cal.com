@@ -81,15 +81,24 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toHaveEmail(expectedEmail: ExpectedEmail, to: string): R;
+      toHaveEmail(expectedEmail: ExpectedEmail, to: string, subject?: string): R;
     }
   }
 }
 
 expect.extend({
-  toHaveEmail(emails: Fixtures["emails"], expectedEmail: ExpectedEmail, to: string) {
+  toHaveEmail(emails: Fixtures["emails"], expectedEmail: ExpectedEmail, to: string, subject?: string) {
     const { isNot } = this;
-    const testEmail = emails.get().find((email) => email.to.includes(to));
+    const testEmail = emails.get().find((email) => {
+      const filterConditions = [email.to.includes(to)];
+
+      if (subject) {
+        filterConditions.push(email.subject === subject);
+      }
+
+      return filterConditions.every((condition) => condition);
+    });
+
     const emailsToLog = emails
       .get()
       .map((email) => ({ to: email.to, html: email.html, ics: email.icalEvent }));
@@ -134,10 +143,9 @@ expect.extend({
 
     if (!isEmailContentMatched) {
       logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
-
       return {
         pass: false,
-        message: () => `Email content ${isNot ? "is" : "is not"} matching. ${JSON.stringify(emailsToLog)}`,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching.`,
         actual: actualEmailContent,
         expected: expectedEmailContent,
       };
@@ -452,13 +460,19 @@ export function expectSuccessfulBookingCreationEmails({
       links: recurrence
         ? [
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=true&cancelledBy=${encodeURIComponent(
+                destinationEmail ?? organizer.email
+              )}`,
               text: "cancel",
             },
           ]
         : [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                destinationEmail ?? organizer.email
+              )}`,
               text: "reschedule",
             },
           ],
@@ -505,13 +519,17 @@ export function expectSuccessfulBookingCreationEmails({
       links: recurrence
         ? [
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=true&cancelledBy=${encodeURIComponent(booker.email)}`,
               text: "cancel",
             },
           ]
         : [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                booker.email
+              )}`,
               text: "reschedule",
             },
           ],
@@ -543,11 +561,17 @@ export function expectSuccessfulBookingCreationEmails({
           },
           links: [
             {
-              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}?rescheduledBy=${encodeURIComponent(
+                otherTeamMember.email
+              )}`,
               text: "reschedule",
             },
             {
-              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
+              href: `${bookingUrlOrigin}/booking/${
+                booking.uid
+              }?cancel=true&allRemainingBookings=false&cancelledBy=${encodeURIComponent(
+                otherTeamMember.email
+              )}`,
               text: "cancel",
             },
           ],
@@ -742,10 +766,12 @@ export function expectSuccessfulBookingRescheduledEmails({
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
+  subject,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
   booker: { email: string; name: string };
+  subject?: string;
 }) {
   expect(emails).toHaveEmail(
     {
@@ -753,7 +779,8 @@ export function expectAwaitingPaymentEmails({
       to: `${booker.name} <${booker.email}>`,
       noIcs: true,
     },
-    `${booker.email}`
+    `${booker.email}`,
+    subject
   );
 }
 
@@ -790,8 +817,6 @@ export function expectBookingRequestRescheduledEmails({
   loggedInUser,
   booker,
   booking,
-  bookNewTimePath,
-  organizer,
 }: {
   emails: Fixtures["emails"];
   organizer: ReturnType<typeof getOrganizer>;
@@ -812,7 +837,7 @@ export function expectBookingRequestRescheduledEmails({
       subHeading: "request_reschedule_subtitle",
       links: [
         {
-          href: `${bookingUrlOrigin}${bookNewTimePath}?rescheduleUid=${booking.uid}`,
+          href: `${bookingUrlOrigin}/reschedule/${booking.uid}?allowRescheduleForCancelledBooking=true`,
           text: "Book a new time",
         },
       ],

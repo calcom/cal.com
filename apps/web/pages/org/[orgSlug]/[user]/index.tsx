@@ -12,10 +12,11 @@ export { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps
 
 export type PageProps = UserPageProps | TeamPageProps;
 
-export default function Page(props: PageProps) {
+function Page(props: PageProps) {
   if ((props as TeamPageProps)?.team) return <TeamPage {...(props as TeamPageProps)} />;
   return <UserPage {...(props as UserPageProps)} />;
 }
 
-Page.isBookingPage = true;
 Page.PageWrapper = PageWrapper;
+
+export default Page;
