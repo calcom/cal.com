@@ -3,12 +3,6 @@ import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-export interface PageProps {
-  token: string;
-  updateSession: string;
-  updatedEmail: string;
-}
-
 const tokenSchema = z.object({
   token: z.string(),
 });
@@ -19,7 +13,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!token) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const params = new URLSearchParams({
