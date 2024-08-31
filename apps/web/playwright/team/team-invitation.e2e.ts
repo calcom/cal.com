@@ -79,7 +79,7 @@ test.describe("Team", () => {
       });
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-      const inviteLink = await getInviteLink(page);
+      const inviteLink = await getInviteLink();
 
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();

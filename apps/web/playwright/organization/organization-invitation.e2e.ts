@@ -301,16 +301,13 @@ test.describe("Organization", () => {
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await page.locator('input[name="username"]').fill(existingUser.username!);
+        await page.locator('input[name="username"]').fill("john");
+        await page.waitForLoadState("networkidle");
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
         await page.locator('input[name="password"]').fill("Password99!");
-        await page.waitForLoadState("networkidle");
-
-        const submitButton = page.locator('button[type="submit"]');
-        await submitButton.waitFor({ state: "attached" });
-        await expect(submitButton).toBeDisabled();
+        await expect(page.locator('button[type="submit"]')).toBeDisabled();
       });
     });
 
@@ -557,6 +554,6 @@ function assertInviteLink(inviteLink: string | null | undefined): asserts invite
 async function copyInviteLink(page: Page) {
   await page.locator('button:text("Add")').click();
   await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-  const inviteLink = await getInviteLink(page);
+  const inviteLink = await getInviteLink(true);
   return inviteLink;
 }
