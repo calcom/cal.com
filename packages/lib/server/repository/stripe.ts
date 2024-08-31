@@ -22,8 +22,10 @@ export const ZStripeCheckoutSessionInputSchema = z
     }
   });
 
+export type TStripeCheckoutSessionInputSchema = z.infer<typeof ZStripeCheckoutSessionInputSchema>;
+
 export class StripeRepository {
-  static async getCheckoutSession(input: z.infer<typeof ZStripeCheckoutSessionInputSchema>) {
+  static async getCheckoutSession(input: TStripeCheckoutSessionInputSchema) {
     const { checkoutSessionId, stripeCustomerId } = input;
 
     // Moved the following data checks to superRefine

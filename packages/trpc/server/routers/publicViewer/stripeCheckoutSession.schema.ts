@@ -1,7 +1,3 @@
-import type { z } from "zod";
+export { ZStripeCheckoutSessionInputSchema } from "@calcom/lib/server/repository/stripe";
 
-import { ZStripeCheckoutSessionInputSchema } from "@calcom/lib/server/repository/stripe";
-
-export { ZStripeCheckoutSessionInputSchema };
-
-export type TStripeCheckoutSessionInputSchema = z.infer<typeof ZStripeCheckoutSessionInputSchema>;
+export type { TStripeCheckoutSessionInputSchema } from "@calcom/lib/server/repository/stripe";
