@@ -7,7 +7,7 @@ type StripeCheckoutSessionOptions = {
 };
 
 export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSessionOptions) => {
-  await StripeRepository.getCheckoutSession(input);
+  return await StripeRepository.getCheckoutSession(input);
 };
 
 export default stripeCheckoutSessionHandler;
