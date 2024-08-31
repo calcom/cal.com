@@ -22,7 +22,7 @@ export const generateMetadata = async ({ params }: _PageProps) => {
 
   if (!stripeCustomerId && !sessionId) {
     return await _generateMetadata(
-      () => "",
+      () => "Verify",
       () => ""
     );
   }
