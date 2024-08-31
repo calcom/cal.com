@@ -1,3 +1,7 @@
+import { z } from "zod";
+
+import stripe from "@calcom/app-store/stripepayment/lib/server";
+
 export const ZStripeCheckoutSessionInputSchema = z
   .object({
     stripeCustomerId: z.string().optional(),
@@ -19,7 +23,7 @@ export const ZStripeCheckoutSessionInputSchema = z
   });
 
 export class StripeRepository {
-  static async getCheckoutSession(input) {
+  static async getCheckoutSession(input: z.infer<typeof ZStripeCheckoutSessionInputSchema>) {
     const { checkoutSessionId, stripeCustomerId } = input;
 
     // Moved the following data checks to superRefine
