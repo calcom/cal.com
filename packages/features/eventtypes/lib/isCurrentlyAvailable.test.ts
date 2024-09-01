@@ -15,7 +15,7 @@ describe("isCurrentlyAvailable", () => {
       {
         startTime: new Date("1970-01-01T09:00:00Z"),
         endTime: new Date("1970-01-01T17:00:00Z"),
-        days: [1, 2, 3, 4, 5, 6, 7],
+        days: [0, 1, 2, 3, 4, 5, 6],
       },
     ];
 
@@ -61,7 +61,7 @@ describe("isCurrentlyAvailable", () => {
       {
         startTime: new Date("1970-01-01T12:00:00Z"),
         endTime: new Date("1970-01-01T17:00:00Z"),
-        days: [7],
+        days: [0],
       },
     ];
 
@@ -107,7 +107,7 @@ describe("isCurrentlyAvailable", () => {
       {
         startTime: new Date("1970-01-01T00:00:00Z"),
         endTime: new Date("1970-01-01T23:59:59Z"),
-        days: [1, 2, 3, 4, 5, 6, 7],
+        days: [0, 1, 2, 3, 4, 5, 6],
       },
       // Date-specific override
       {

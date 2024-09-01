@@ -146,7 +146,6 @@ export async function isCurrentlyAvailable({
 }): Promise<boolean> {
   const now = dayjs().tz(availabilityTimezone);
   const currentDay = now.day();
-  const normalizedCurrentDay = currentDay === 0 ? 7 : currentDay;
   const meetingEndTime = now.add(length, "minute");
 
   const res = await prisma.schedule.findUniqueOrThrow({
@@ -165,7 +164,7 @@ export async function isCurrentlyAvailable({
   }
 
   for (const availability of res.availability) {
-    if (!availability.date && availability.days.includes(normalizedCurrentDay)) {
+    if (!availability.date && availability.days.includes(currentDay)) {
       const isAvailable = isAvailableInTimeSlot(availability, now, meetingEndTime);
       if (isAvailable) {
         return true;
