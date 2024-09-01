@@ -502,9 +502,9 @@ test.describe("Reschedule Tests", async () => {
         attendees: {
           createMany: {
             data: [
-              ...guests.map((guest, i) => ({
+              ...guests.map((guest, idx) => ({
                 email: guest.email,
-                name: guest.username,
+                name: guest.username ?? `Guest ${idx}`,
                 timeZone: "Europe/London",
               })),
               ...nonCalUserAttendees,
