@@ -27,8 +27,6 @@ export class OutputEventTypesResponseInterceptor implements NestInterceptor {
           this.outputEventTypesService.getResponseEventType(eventType.ownerId, eventType)
         );
 
-        console.log("TransformedData: ", transformedData);
-
         return {
           data: transformedData,
           status: status,

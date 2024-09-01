@@ -224,11 +224,7 @@ export class EventTypesService_2024_06_14 {
     return defaultEventTypes;
   }
 
-  async updateEventType(
-    eventTypeId: number,
-    body: InputEventTransformed_2024_06_14 & { scheduleId: number },
-    user: UserWithProfile
-  ) {
+  async updateEventType(eventTypeId: number, body: InputEventTransformed_2024_06_14, user: UserWithProfile) {
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
