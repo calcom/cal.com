@@ -14,6 +14,7 @@ export type LocationOption = {
   address?: string;
   credentialId?: number;
   teamName?: string;
+  index?: number;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;
@@ -29,7 +30,10 @@ const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
   );
 };
 
-export default function LocationSelect(props: Props<LocationOption, false, GroupOptionType>) {
+export default function LocationSelect(
+  props: Props<LocationOption, false, GroupOptionType> & { index?: number }
+) {
+  const idx = props.index;
   return (
     <Select<LocationOption>
       name="location"
@@ -39,7 +43,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
         Option: (props) => {
           return (
             <components.Option {...props}>
-              <div data-testid={`location-select-item-${props.data.value}`}>
+              <div data-testid={`location-select${idx ? `-${idx}` : ""}-item-${props.data.value}`}>
                 <OptionWithIcon icon={props.data.icon} label={props.data.label} />
               </div>
             </components.Option>
@@ -47,7 +51,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
         },
         SingleValue: (props) => (
           <components.SingleValue {...props}>
-            <div data-testid={`location-select-item-${props.data.value}`}>
+            <div data-testid={`location-select${idx ? `-${idx}` : ""}-item-${props.data.value}`}>
               <OptionWithIcon icon={props.data.icon} label={props.data.label} />
             </div>
           </components.SingleValue>

@@ -220,9 +220,10 @@ const Locations: React.FC<LocationsProps> = ({
 
           const option = getLocationFromType(field.type, locationOptions);
           return (
-            <li key={field.id}>
+            <li key={field.type}>
               <div className="flex w-full items-center">
                 <LocationSelect
+                  index={index}
                   name={`locations[${index}].type`}
                   placeholder={t("select")}
                   options={locationOptions}
@@ -336,6 +337,7 @@ const Locations: React.FC<LocationsProps> = ({
         {(validLocations.length === 0 || showEmptyLocationSelect) && (
           <div className="flex">
             <LocationSelect
+              index={locationFields.length}
               defaultMenuIsOpen={showEmptyLocationSelect}
               placeholder={t("select")}
               options={locationOptions}

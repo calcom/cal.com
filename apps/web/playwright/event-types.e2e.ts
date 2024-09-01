@@ -267,12 +267,11 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await page.waitForTimeout(750);
 
         // Add Cal Video location
-        await addAnotherLocation(page, "Cal Video (Global)");
+        await addAnotherLocation(page, "location-select-1-item-integrations:daily");
 
         await saveEventType(page);
-        await page.waitForLoadState("networkidle");
-        await page.getByTestId("toast-success").waitFor({ state: "visible" });
-        await page.getByTestId("toast-success").waitFor({ state: "detached" });
+        await page.locator(".animate-spin").waitFor({ state: "visible" });
+        await page.locator(".animate-spin").waitFor({ state: "detached" });
 
         // Remove Attendee Phone Number Location
         const removeButtomId = "delete-locations.0.type";
@@ -383,11 +382,11 @@ const selectAttendeePhoneNumber = async (page: Page) => {
 /**
  * Adds n+1 location to the event type
  */
-async function addAnotherLocation(page: Page, locationOptionText: string) {
+async function addAnotherLocation(page: Page, locationOptionTestId: string) {
   await page.locator("[data-testid=add-location]").click();
   // When adding another location, the dropdown opens automatically. So, we don't need to open it here.
   //
-  await page.locator(`text="${locationOptionText}"`).click();
+  await page.locator(`[data-testid="${locationOptionTestId}"]`).click();
 }
 
 const fillLocation = async (page: Page, inputText: string, index: number, selectDisplayLocation = true) => {
