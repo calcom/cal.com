@@ -143,6 +143,7 @@ describe("handleChildrenEventTypes", () => {
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: null,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
@@ -199,6 +200,7 @@ describe("handleChildrenEventTypes", () => {
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: null,
           hashedLink: { create: { link: expect.any(String) } },
         },
         where: {
@@ -304,6 +306,7 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           hashedLink: undefined,
+          instantMeetingScheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           userId: 4,
@@ -357,6 +360,7 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: null,
         },
         where: {
           userId_parentId: {
@@ -421,6 +425,7 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           hashedLink: undefined,
+          instantMeetingScheduleId: null,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
