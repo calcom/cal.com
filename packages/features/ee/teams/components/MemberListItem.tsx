@@ -1,7 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
-import type { ConnectedAppsType } from "ee/teams/pages/team-members-view";
 import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useReducer, useState, useEffect, useCallback } from "react";
@@ -9,6 +8,7 @@ import { useMemo, useRef, useReducer, useState, useEffect, useCallback } from "r
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppCategories } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -31,11 +31,11 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
+import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitationModal";
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
 import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
-import MemberInvitationModal from "./MemberInvitationModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
@@ -44,6 +44,13 @@ interface Props {
 }
 
 export type User = RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
+
+export type ConnectedAppsType = {
+  name: string | null;
+  logo: string | null;
+  externalId: string | null;
+  app: { slug: string; categories: AppCategories[] } | null;
+};
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
@@ -587,7 +594,7 @@ export default function MemberListItem(props: Props) {
     return cols;
   }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
 
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
   const totalFetched = flatData.length;
 
   const fetchMoreOnBottomReached = useCallback(
@@ -731,57 +738,15 @@ export default function MemberListItem(props: Props) {
         />
       )}
       {state.inviteMember.showModal && (
-        <MemberInvitationModal
-          isPending={inviteMemberMutation.isPending}
-          isOpen={true}
-          orgMembers={props.orgMembersNotInThisTeam}
-          members={props.members}
+        <MemberInvitationModalWithoutMembers
           teamId={props.team.id}
           token={props.team.inviteToken?.token}
-          onExit={() =>
+          hideInvitationModal={() => {
             dispatch({
               type: "CLOSE_MODAL",
-            })
-          }
-          onSubmit={(values, resetFields) => {
-            inviteMemberMutation.mutate(
-              {
-                teamId: props.team.id,
-                language: i18n.language,
-                role: values.role,
-                usernameOrEmail: values.emailOrUsername,
-              },
-              {
-                onSuccess: async (data) => {
-                  await utils.viewer.teams.get.invalidate();
-                  await utils.viewer.organizations.getMembers.invalidate();
-                  dispatch({
-                    type: "CLOSE_MODAL",
-                  });
-
-                  if (Array.isArray(data.usernameOrEmail)) {
-                    showToast(
-                      t("email_invite_team_bulk", {
-                        userCount: data.numUsersInvited,
-                      }),
-                      "success"
-                    );
-                    resetFields();
-                  } else {
-                    showToast(
-                      t("email_invite_team", {
-                        email: data.usernameOrEmail,
-                      }),
-                      "success"
-                    );
-                  }
-                },
-                onError: (error) => {
-                  showToast(error.message, "error");
-                },
-              }
-            );
+            });
           }}
+          showMemberInvitationModal={true}
           onSettingsOpen={() => {
             dispatch({
               type: "INVITE_MEMBER",
@@ -837,7 +802,7 @@ export default function MemberListItem(props: Props) {
         <EditMemberSheet
           dispatch={dispatch}
           state={state}
-          connectedApps={connectedApps[state.editSheet.user.id as number] ?? []}
+          connectedApps={connectedApps[state.editSheet?.user?.id || 0] ?? []}
         />
       )}
     </>

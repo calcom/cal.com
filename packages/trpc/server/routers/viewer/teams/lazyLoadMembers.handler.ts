@@ -40,6 +40,12 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
     });
   }
 
+  const getTotalMembers = await prisma.membership.count({
+    where: {
+      teamId: teamId,
+    },
+  });
+
   const teamMembers = await prisma.membership.findMany({
     where: {
       teamId,
@@ -109,7 +115,13 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
     })
   );
 
-  return { members: membersWithApps, nextCursor };
+  return {
+    members: membersWithApps,
+    nextCursor,
+    meta: {
+      totalRowCount: getTotalMembers || 0,
+    },
+  };
 };
 
 const checkCanAccessMembers = async (ctx: LazyLoadMembersHandlerOptions["ctx"], teamId: number) => {

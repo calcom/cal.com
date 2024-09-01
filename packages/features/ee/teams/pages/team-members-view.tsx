@@ -7,7 +7,6 @@ import { useEffect } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Meta } from "@calcom/ui";
 
@@ -16,13 +15,6 @@ import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
-
-export type ConnectedAppsType = {
-  name: string | null;
-  logo: string | null;
-  externalId: string | null;
-  app: { slug: string; categories: AppCategories[] } | null;
-};
 
 const MembersView = () => {
   const { t } = useLocale();

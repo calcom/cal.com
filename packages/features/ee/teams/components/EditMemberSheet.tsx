@@ -14,9 +14,17 @@ import {
   Button,
 } from "@calcom/ui";
 
-import type { Action, State, User } from "./MemberListItem";
+import type { Action, ConnectedAppsType, State, User } from "./MemberListItem";
 
-export function EditMemberSheet({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
+export function EditMemberSheet({
+  state,
+  dispatch,
+  connectedApps,
+}: {
+  state: State;
+  dispatch: Dispatch<Action>;
+  connectedApps: ConnectedAppsType[];
+}) {
   const { t } = useLocale();
   const { user } = state.editSheet;
   const selectedUser = user as User;
@@ -32,7 +40,7 @@ export function EditMemberSheet({ state, dispatch }: { state: State; dispatch: D
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!selectedUser.username && `${bookerUrlWithoutProtocol}/${selectedUser.username}`;
 
-  const appList = selectedUser.connectedApps?.map(({ logo, name, externalId }) => {
+  const appList = connectedApps?.map(({ logo, name, externalId }) => {
     return logo ? (
       externalId ? (
         <div className="ltr:mr-2 rtl:ml-2 ">
@@ -74,19 +82,18 @@ export function EditMemberSheet({ state, dispatch }: { state: State; dispatch: D
               </div>
             </div>
             <div className="mt-6 flex flex-col space-y-5">
-              <DisplayInfo label={t("email")} value={selectedUser.email} displayCopy />
+              <DisplayInfo label={t("email")} value={selectedUser.email} />
               <DisplayInfo
                 label={t("bio")}
-                badgeColor="gray"
                 value={selectedUser.bio ? selectedUser?.bio : t("user_has_no_bio")}
               />
-              <DisplayInfo label={t("role")} value={selectedUser.role} asBadge badgeColor="blue" />
+              <DisplayInfo label={t("role")} value={selectedUser.role} />
 
               <div className="flex flex-col">
                 <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
                   {t("apps")}
                 </Label>
-                {selectedUser.connectedApps?.length === 0 ? (
+                {connectedApps?.length === 0 ? (
                   <div>{t("user_has_no_app_installed")}</div>
                 ) : (
                   <div className="flex">{appList}</div>
