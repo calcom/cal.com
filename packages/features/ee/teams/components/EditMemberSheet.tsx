@@ -1,13 +1,16 @@
 import type { Dispatch } from "react";
 
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
+import { OrganizationBanner } from "@calcom/features/users/components/UserTable/EditSheet/OrganizationBanner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Avatar,
-  Label,
+  Icon,
   Sheet,
   SheetContent,
   SheetFooter,
+  SheetHeader,
+  SheetBody,
   Skeleton,
   Tooltip,
   SheetClose,
@@ -38,7 +41,7 @@ export function EditMemberSheet({
 
   const bookerUrl = selectedUser.bookerUrl;
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
-  const bookingLink = !!selectedUser.username && `${bookerUrlWithoutProtocol}/${selectedUser.username}`;
+  const bookingLink = !!selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
 
   const appList = connectedApps?.map(({ logo, name, externalId }) => {
     return logo ? (
@@ -62,37 +65,35 @@ export function EditMemberSheet({
       onOpenChange={() => {
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent>
-        <div className="flex h-full flex-col">
-          <div className="flex-grow">
-            <div className="mt-4 flex items-center gap-2">
-              <Avatar
-                asChild
-                className="h-[36px] w-[36px]"
-                alt={`${name} avatar`}
-                imageSrc={selectedUser.avatarUrl}
-              />
-              <div className="space-between flex flex-col leading-none">
-                <Skeleton as="p" waitForTranslation={false}>
-                  <span className="text-emphasis text-lg font-semibold">{name}</span>
-                </Skeleton>
-                <Skeleton as="p" waitForTranslation={false}>
-                  <p className="subtle text-sm font-normal">{bookingLink}</p>
-                </Skeleton>
-              </div>
+      <SheetContent className="bg-muted">
+        <SheetHeader showCloseButton={false} className="w-full">
+          <div className="border-sublte bg-default w-full rounded-xl border p-4">
+            <OrganizationBanner />
+            <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
+              <Avatar asChild size="lg" alt={`${name} avatar`} imageSrc={selectedUser.avatarUrl} />
             </div>
-            <div className="mt-6 flex flex-col space-y-5">
-              <DisplayInfo label={t("email")} value={selectedUser.email} />
-              <DisplayInfo
-                label={t("bio")}
-                value={selectedUser.bio ? selectedUser?.bio : t("user_has_no_bio")}
-              />
-              <DisplayInfo label={t("role")} value={selectedUser.role} />
-
-              <div className="flex flex-col">
-                <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
-                  {t("apps")}
-                </Label>
+            <Skeleton as="p" waitForTranslation={false}>
+              <h2 className="text-emphasis font-sans text-2xl font-semibold">{name || "Nameless User"}</h2>
+            </Skeleton>
+            <Skeleton as="p" waitForTranslation={false}>
+              <p className="text-subtle max-h-[3em] overflow-hidden text-ellipsis text-sm font-normal">
+                {selectedUser.bio ? selectedUser?.bio : t("user_has_no_bio")}
+              </p>
+            </Skeleton>
+          </div>
+        </SheetHeader>
+        <SheetBody className="flex flex-col space-y-4 p-4">
+          <div className="mb-4 flex flex-col space-y-4">
+            <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
+            <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
+            <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
+            <DisplayInfo label={t("role")} value={selectedUser.role} icon="fingerprint" />
+            <div className="flex items-center gap-6">
+              <div className="flex w-[110px] items-center gap-2">
+                <Icon className="text-subtle h-4 w-4" name="grid-3x3" />
+                <label className="text-subtle text-sm font-medium">{t("apps")}</label>
+              </div>
+              <div className="flex flex-1">
                 {connectedApps?.length === 0 ? (
                   <div>{t("user_has_no_app_installed")}</div>
                 ) : (
@@ -101,37 +102,37 @@ export function EditMemberSheet({
               </div>
             </div>
           </div>
-          <SheetFooter className="mt-auto">
-            <SheetClose asChild>
-              <Button color="secondary" type="button" className="w-full justify-center lg:w-1/5">
-                {t("close")}
-              </Button>
-            </SheetClose>
-            <Button
-              type="button"
-              onClick={() => {
-                dispatch({
-                  type: "SET_CHANGE_MEMBER_ROLE_ID",
-                  payload: {
-                    user,
-                    showModal: true,
-                  },
-                });
-                dispatch({
-                  type: "EDIT_USER_SHEET",
-                  payload: {
-                    showModal: false,
-                  },
-                });
-              }}
-              className="w-full justify-center gap-2"
-              variant="icon"
-              key="EDIT_BUTTON"
-              StartIcon="pencil">
-              {t("edit")}
+        </SheetBody>
+        <SheetFooter className="mt-auto">
+          <SheetClose asChild>
+            <Button color="secondary" type="button" className="w-full justify-center lg:w-1/5">
+              {t("close")}
             </Button>
-          </SheetFooter>
-        </div>
+          </SheetClose>
+          <Button
+            type="button"
+            onClick={() => {
+              dispatch({
+                type: "SET_CHANGE_MEMBER_ROLE_ID",
+                payload: {
+                  user,
+                  showModal: true,
+                },
+              });
+              dispatch({
+                type: "EDIT_USER_SHEET",
+                payload: {
+                  showModal: false,
+                },
+              });
+            }}
+            className="w-full justify-center gap-2"
+            variant="icon"
+            key="EDIT_BUTTON"
+            StartIcon="pencil">
+            {t("edit")}
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );
