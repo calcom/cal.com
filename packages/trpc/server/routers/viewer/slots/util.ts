@@ -436,7 +436,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
           return usersArray;
         }, [] as (GetAvailabilityUser & { isFixed: boolean })[])),
-    ...(attendeeCalUsers ? attendeeCalUsers.map((user) => ({ ...user, isFixed: false })) : []),
+    ...(attendeeCalUsers ? attendeeCalUsers.map((user) => ({ ...user, isFixed: true })) : []),
   ];
 
   const durationToUse = input.duration || 0;
