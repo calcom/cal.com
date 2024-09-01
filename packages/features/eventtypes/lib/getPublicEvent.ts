@@ -158,6 +158,12 @@ export async function isCurrentlyAvailable({
     },
   });
 
+  const dateOverride = res.availability.find((a) => a.date && dayjs(a.date).isSame(now, "day"));
+
+  if (dateOverride) {
+    return !isAvailableInTimeSlot(dateOverride, now, meetingEndTime);
+  }
+
   for (const availability of res.availability) {
     if (!availability.date && availability.days.includes(normalizedCurrentDay)) {
       const isAvailable = isAvailableInTimeSlot(availability, now, meetingEndTime);
