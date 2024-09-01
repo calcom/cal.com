@@ -1,7 +1,6 @@
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
-import { randomBytes } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
@@ -9,7 +8,6 @@ import { createServer } from "http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
@@ -213,12 +211,10 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="install-app-button"]');
 }
 
-export async function getInviteLink(isOrganizationOrATeamInOrganization = false) {
-  const token = randomBytes(32).toString("hex");
-  const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-  const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-  if (isOrganizationOrATeamInOrganization) return orgInviteLink;
-  return teamInviteLink;
+export async function getInviteLink(page: Page) {
+  const response = await page.waitForResponse("**/api/trpc/teams/createInvite?batch=1");
+  const json = await response.json();
+  return json[0].result.data.json.inviteLink as string;
 }
 
 export async function getEmailsReceivedByUser({
