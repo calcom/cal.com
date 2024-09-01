@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
@@ -6,7 +7,9 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import type { createUsersFixture } from "./fixtures/users";
 import { test } from "./lib/fixtures";
+import { localize } from "./lib/testUtils";
 import {
   selectFirstAvailableTimeSlotNextMonth,
   bookTimeSlot,
@@ -460,9 +463,9 @@ test.describe("Reschedule Tests", async () => {
       const booking = await bookings.create(host.id, host.username, eventType.id, {
         attendees: {
           createMany: {
-            data: guests.map((guest) => ({
+            data: guests.map((guest, idx) => ({
               email: guest.email,
-              name: guest.username,
+              name: guest.username ?? `Guest ${idx}`,
               timeZone: "Europe/London",
             })),
           },
