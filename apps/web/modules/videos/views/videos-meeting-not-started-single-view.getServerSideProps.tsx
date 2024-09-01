@@ -1,9 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 // change the type
 export async function getServerSideProps(context: GetServerSidePropsContext) {
