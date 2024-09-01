@@ -4,7 +4,6 @@ import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
-import { getCsrfToken } from "next-auth/react";
 import { uuid } from "short-uuid";
 import { v4 } from "uuid";
 
@@ -951,7 +950,11 @@ export async function apiLogin(
   user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
   page: Page
 ) {
-  const csrfToken = await getCsrfToken();
+  const csrfToken = await page
+    .context()
+    .request.get("/api/auth/csrf")
+    .then((response) => response.json())
+    .then((json) => json.csrfToken);
   const data = {
     email: user.email ?? `${user.username}@example.com`,
     password: user.password ?? user.username,

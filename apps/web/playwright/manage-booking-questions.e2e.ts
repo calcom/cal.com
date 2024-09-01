@@ -746,7 +746,6 @@ test.describe("Text area min and max characters text", () => {
       await page.click('[data-testid="add-field"]');
       const locatorForSelect = page.locator("[id=test-field-type]").nth(0);
       await locatorForSelect.waitFor({ state: "visible" });
-      await locatorForSelect.waitFor({ state: "enabled" });
       await locatorForSelect.waitFor({ state: "attached" });
       await locatorForSelect.click();
       await locatorForSelect.locator(`text="Long Text"`).click();
