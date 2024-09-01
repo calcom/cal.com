@@ -58,21 +58,17 @@ test.describe("Popup Tests", () => {
     const calNamespace = "e2ePopupLightTheme";
     await embeds.gotoPlayground({ calNamespace, url: "/" });
 
-    await page.locator(`[data-cal-namespace="${calNamespace}"]`).waitFor({ state: "attached" });
     await page.click(`[data-cal-namespace="${calNamespace}"]`);
-    await page.waitForLoadState("networkidle");
 
     const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
-
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    if (!embedIframe) {
-      throw new Error("Embed iframe not found");
-    }
 
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       pathname: "/free",
     });
-
+    // expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
     const { uid: bookingId } = await bookFirstEvent("free", embedIframe, page);
     const booking = await getBooking(bookingId);
 
