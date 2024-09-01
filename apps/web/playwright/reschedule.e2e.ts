@@ -7,7 +7,6 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { createUsersFixture } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/testUtils";
 import {
@@ -542,15 +541,7 @@ function expectUrlToBeABookingPageOnOrgForUsername({
   expect(usernameInUrl).toEqual(username);
 }
 
-async function setGuestWorkingHours12PM5PM({
-  page,
-  host,
-  guest,
-}: {
-  page: Page;
-  host: ReturnType<typeof createUsersFixture>;
-  guest: ReturnType<typeof createUsersFixture>;
-}) {
+async function setGuestWorkingHours12PM5PM({ page, host, guest }: { page: Page; host: any; guest: any }) {
   await host.logout();
   await guest.apiLogin();
 
