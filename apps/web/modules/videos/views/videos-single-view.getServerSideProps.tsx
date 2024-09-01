@@ -10,11 +10,7 @@ import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
-
 import { ssrInit } from "@server/lib/ssr";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 

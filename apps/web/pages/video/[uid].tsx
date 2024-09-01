@@ -1,10 +1,10 @@
-import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+import PageWrapper from "@components/PageWrapper";
 
-import VideosSingleView from "~/videos/views/videos-single-view";
+import VideosSingleView, { type PageProps } from "~/videos/views/videos-single-view";
 
-export { getServerSideProps, type PageProps } from "~/videos/views/videos-single-view.getServerSideProps";
+export { getServerSideProps } from "~/videos/views/videos-single-view.getServerSideProps";
 
-const VideosSinglePage = VideosSingleView as unknown as CalPageWrapper;
+const VideosSinglePage = (props: PageProps) => <VideosSingleView {...props} />;
 
 VideosSinglePage.PageWrapper = PageWrapper;
 
