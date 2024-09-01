@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
@@ -111,6 +111,15 @@ export class BookingRepository {
     });
 
     return allBookings;
+  }
+
+  static async findBookingByUid({ bookingUid }: { bookingUid: string }) {
+    return await prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingMinimalSelect,
+    });
   }
 
   static async findBookingByUidAndUserId({ bookingUid, userId }: { bookingUid: string; userId: number }) {
