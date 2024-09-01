@@ -45,6 +45,9 @@ jobs:
           - 5432:5432
       redis:
         image: redis:latest
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         ports:
           - 6379:6379
         options: >-

@@ -46,6 +46,7 @@ export class EventTypesService_2024_06_14 {
       periodCountCalendarDays = undefined,
       periodStartDate = undefined,
       periodEndDate = undefined,
+      recurrence = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
@@ -68,6 +69,7 @@ export class EventTypesService_2024_06_14 {
         periodCountCalendarDays,
         periodStartDate,
         periodEndDate,
+        recurrence,
         ...bodyTransformed,
       },
       ctx: {
@@ -119,11 +121,11 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserToCreateEvent(user: UserWithProfile) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return {
       id: user.id,
@@ -159,7 +161,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
 
     const isUserOrganizationAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
@@ -270,7 +272,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserToUpdateEvent(user: UserWithProfile) {
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return { ...user, profile: { id: profileId }, selectedCalendars };
   }

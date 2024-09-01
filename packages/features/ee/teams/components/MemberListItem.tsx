@@ -1,11 +1,13 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
+import type { ConnectedAppsType } from "ee/teams/pages/team-members-view";
 import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
-import { useMemo, useRef, useReducer } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useRef, useReducer, useState, useEffect, useCallback } from "react";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -37,14 +39,11 @@ import MemberInvitationModal from "./MemberInvitationModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
-  team: RouterOutputs["viewer"]["teams"]["get"];
-  members: RouterOutputs["viewer"]["teams"]["get"]["members"];
-  orgMembersNotInThisTeam: RouterOutputs["viewer"]["organizations"]["getMembers"] | undefined;
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["getMinimal"]>;
   isOrgAdminOrOwner: boolean | undefined;
-  setQuery: Dispatch<SetStateAction<string>>;
 }
 
-export type User = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+export type User = RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
@@ -143,8 +142,102 @@ export default function MemberListItem(props: Props) {
   const utils = trpc.useUtils();
   const [state, dispatch] = useReducer(reducer, initialState);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [connectedApps, setConnectedApps] = useState<Record<number, ConnectedAppsType[]>>({});
+  const [userIds, setUserIds] = useState<number[]>([]);
+
+  const { data: getUserConnectedApps } = trpc.viewer.teams.getUserConnectedApps.useQuery(
+    { userIds, teamId: props.team.id },
+    { enabled: !!userIds.length }
+  );
+
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
+    {
+      limit: 10,
+      searchTerm: debouncedSearchTerm,
+      teamId: props.team.id,
+    },
+    {
+      enabled: !!props.team.id,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      placeholderData: keepPreviousData,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0,
+    }
+  );
+
+  // To defer fetching Connected Apps
+  useEffect(() => {
+    if (data?.pages) {
+      const userIds = data.pages[data.pages.length - 1].members.map((member) => member.id);
+      setUserIds(userIds);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (getUserConnectedApps) {
+      setConnectedApps((prev) => ({ ...prev, ...getUserConnectedApps }));
+    }
+  }, [getUserConnectedApps]);
+
+  const removeMemberFromCache = ({
+    utils,
+    memberId,
+    teamId,
+    searchTerm,
+  }: {
+    utils: ReturnType<typeof trpc.useUtils>;
+    memberId: number;
+    teamId: number;
+    searchTerm: string;
+  }) => {
+    utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+      {
+        limit: 10,
+        teamId,
+        searchTerm,
+      },
+      (data) => {
+        if (!data) {
+          return {
+            pages: [],
+            pageParams: [],
+          };
+        }
+
+        return {
+          ...data,
+          pages: data.pages.map((page) => ({
+            ...page,
+            members: page.members.filter((member) => member.id !== memberId),
+          })),
+        };
+      }
+    );
+  };
+
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+    onMutate: async ({ teamIds }) => {
+      await utils.viewer.teams.lazyLoadMembers.cancel();
+      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+        limit: 10,
+        teamId: teamIds[0],
+        searchTerm: searchTerm,
+      });
+
+      if (previousValue) {
+        removeMemberFromCache({
+          utils,
+          memberId: state.deleteMember.user?.id as number,
+          teamId: teamIds[0],
+          searchTerm: searchTerm,
+        });
+      }
+      return { previousValue };
+    },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
@@ -166,11 +259,11 @@ export default function MemberListItem(props: Props) {
     },
   });
 
-  const ownersInTeam = () => {
-    const { members } = props.team;
-    const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
-    return owners.length;
-  };
+  // const ownersInTeam = () => {
+  //   const { members } = props.team;
+  //   const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
+  //   return owners.length;
+  // };
 
   const isAdminOrOwner =
     props.team.membership.role === MembershipRole.OWNER ||
@@ -182,6 +275,8 @@ export default function MemberListItem(props: Props) {
       memberIds: [state.deleteMember.user?.id as number],
       isOrg: checkIsOrg(props.team),
     });
+
+  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
@@ -208,7 +303,7 @@ export default function MemberListItem(props: Props) {
       {
         id: "member",
         accessorFn: (data) => data.email,
-        header: `Member (${props.members.length})`,
+        header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -288,7 +383,7 @@ export default function MemberListItem(props: Props) {
           const isSelf = user.id === session?.user.id;
           const editMode =
             (props.team.membership?.role === MembershipRole.OWNER &&
-              (user.role !== MembershipRole.OWNER || ownersInTeam() > 1 || !isSelf)) ||
+              (user.role !== MembershipRole.OWNER || !isSelf)) ||
             (props.team.membership?.role === MembershipRole.ADMIN && user.role !== MembershipRole.OWNER) ||
             props.isOrgAdminOrOwner;
           const impersonationMode =
@@ -490,15 +585,33 @@ export default function MemberListItem(props: Props) {
     ];
 
     return cols;
-  }, [props.isOrgAdminOrOwner, dispatch, props.members, props.team]);
+  }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
 
-  const Data = useMemo<User[]>(() => props.members, [props.members]);
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
+  const totalFetched = flatData.length;
+
+  const fetchMoreOnBottomReached = useCallback(
+    (containerRefElement?: HTMLDivElement | null) => {
+      if (containerRefElement) {
+        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+        //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+          fetchNextPage();
+        }
+      }
+    },
+    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+  );
+
+  useEffect(() => {
+    fetchMoreOnBottomReached(tableContainerRef.current);
+  }, [fetchMoreOnBottomReached]);
 
   return (
     <>
       <DataTable
         data-testId="user-list-data-table"
-        onSearch={(value) => props.setQuery(value)}
+        onSearch={(value) => setSearchTerm(value)}
         selectionOptions={[
           {
             type: "render",
@@ -537,7 +650,8 @@ export default function MemberListItem(props: Props) {
           )
         }
         columns={memorisedColumns}
-        data={Data}
+        data={flatData}
+        isPending={isPending}
         filterableItems={[
           {
             tableAccessor: "role",
@@ -719,7 +833,13 @@ export default function MemberListItem(props: Props) {
           </DialogContent>
         </Dialog>
       )}
-      {state.editSheet.showModal && <EditMemberSheet dispatch={dispatch} state={state} />}
+      {state.editSheet.showModal && (
+        <EditMemberSheet
+          dispatch={dispatch}
+          state={state}
+          connectedApps={connectedApps[state.editSheet.user.id as number] ?? []}
+        />
+      )}
     </>
   );
 }
