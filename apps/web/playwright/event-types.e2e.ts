@@ -262,9 +262,6 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
 
         // Add Attendee Phone Number location
         await selectAttendeePhoneNumber(page);
-        // wait for previous dropdown to close
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(750);
 
         // Add Cal Video location
         await addAnotherLocation(page, "location-select-1-item-integrations:daily");
