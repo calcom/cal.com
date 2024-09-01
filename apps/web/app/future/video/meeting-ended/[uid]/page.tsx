@@ -2,6 +2,7 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
+import type { PageProps } from "~/videos/views/videos-meeting-ended-single-view";
 import MeetingEnded from "~/videos/views/videos-meeting-ended-single-view";
 import { getServerSideProps } from "~/videos/views/videos-meeting-ended-single-view.getServerSideProps";
 
@@ -11,6 +12,6 @@ export const generateMetadata = async () =>
     () => "Meeting Unavailable"
   );
 
-const getData = withAppDirSsr(getServerSideProps);
+const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
 export default WithLayout({ getData, Page: MeetingEnded, getLayout: null })<"P">;
