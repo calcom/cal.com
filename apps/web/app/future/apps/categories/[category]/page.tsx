@@ -11,7 +11,7 @@ import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => `${APP_NAME} | ${APP_NAME}`,
+    () => `${APP_NAME}`,
     () => ""
   );
 };

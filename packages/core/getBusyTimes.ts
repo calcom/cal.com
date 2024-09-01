@@ -1,4 +1,5 @@
 import type { Booking, EventType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -8,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyData, EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
@@ -96,62 +97,90 @@ export async function getBusyTimes(params: {
   const endTimeAdjustedWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
 
   // startTime is less than endTimeDate and endTime grater than startTimeDate
-  const sharedQuery = {
+  const sharedQuery: Prisma.BookingWhereInput = {
     startTime: { lte: endTimeAdjustedWithMaxBuffer },
     endTime: { gte: startTimeAdjustedWithMaxBuffer },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
   };
+
   // INFO: Refactored to allow this method to take in a list of current bookings for the user.
   // Will keep support for retrieving a user's bookings if the caller does not already supply them.
   // This function is called from multiple places but we aren't refactoring all of them at this moment
   // to avoid potential side effects.
-  const bookings = params.currentBookings
-    ? params.currentBookings
-    : await prisma.booking.findMany({
-        where: {
-          OR: [
-            // User is primary host (individual events, or primary organizer)
-            {
-              ...sharedQuery,
-              userId,
-            },
-            // The current user has a different booking at this time he/she attends
-            {
-              ...sharedQuery,
-              attendees: {
-                some: {
-                  email: userEmail,
-                },
-              },
-            },
-          ],
-        },
+  let bookings = params.currentBookings;
+
+  if (!bookings) {
+    const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
+      id: true,
+      uid: true,
+      userId: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      eventType: {
         select: {
           id: true,
-          uid: true,
-          userId: true,
-          startTime: true,
-          endTime: true,
-          title: true,
-          eventType: {
-            select: {
-              id: true,
-              afterEventBuffer: true,
-              beforeEventBuffer: true,
-              seatsPerTimeSlot: true,
-            },
-          },
-          ...(seatedEvent && {
-            _count: {
-              select: {
-                seatsReferences: true,
-              },
-            },
-          }),
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
         },
-      });
+      },
+      ...(seatedEvent && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      }),
+    });
+
+    const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
+      where: {
+        // User is primary host (individual events, or primary organizer)
+        ...sharedQuery,
+        userId,
+      },
+      select: bookingsSelect,
+    });
+
+    const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
+      where: {
+        ...sharedQuery,
+        attendees: {
+          some: {
+            email: userEmail,
+          },
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
+      where: {
+        startTime: { lte: endTimeDate },
+        endTime: { gte: startTimeDate },
+        eventType: {
+          id: eventTypeId,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+        status: {
+          in: [BookingStatus.PENDING],
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    const [resultOne, resultTwo, resultThree] = await Promise.all([
+      currentBookingsAllUsersQueryOne,
+      currentBookingsAllUsersQueryTwo,
+      currentBookingsAllUsersQueryThree,
+    ]);
+
+    bookings = [...resultOne, ...resultTwo, ...resultThree];
+  }
 
   const bookingSeatCountMap: { [x: string]: number } = {};
   const timeBlocks: { date: Date | null; startTime: Date; endTime: Date; days: number[] }[] = [];
