@@ -591,6 +591,9 @@ checksums:
     address: 5a9a8bc26f90d84c90105690a2eb23a1
     enter_address: ae81e883ee62fe3e92be6c93a1ea884d
     in_person_attendee_address: 9620fe8db891bf885df702be9581a2f8
+    somewhere_else: f8618b6cc854e1f7c8abb99bcdc5bce1
+    custom_attendee_location: 6a31f12d40c3d3e6a9605faf157479c8
+    any_location: edad9a60bd6a08f556b6ed2b7c74d562
     yes: ec580fd11a45779b039466f1e35eed2a
     no: 8c708225830b06df2d1141c536f2a0d6
     additional_notes: 416243d69874a5fd915db4c16a5311cc
