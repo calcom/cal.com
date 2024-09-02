@@ -20,6 +20,6 @@ export { useDeleteCalendarCredentials } from "./hooks/calendars/useDeleteCalenda
 export { useAddSelectedCalendar } from "./hooks/calendars/useAddSelectedCalendar";
 export { useRemoveSelectedCalendar } from "./hooks/calendars/useRemoveSelectedCalendar";
 export { useTeams } from "./hooks/teams/useTeams";
-export { SelectedCalendarSettingsPlatformWrapper as SelectedCalendarSettings } from "./selected-calendar/index";
+export { SelectedCalendarsSettingsPlatformWrapper as SelectedCalendarsSettings } from "./selected-calendars/index";
 export { DestinationCalendarSettingsPlatformWrapper as DestinationCalendarSettings } from "./destination-calendar/index";
 export { CalendarSettingsPlatformWrapper as CalendarSettings } from "./calendar-settings/index";

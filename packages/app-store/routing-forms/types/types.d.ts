@@ -10,7 +10,7 @@ export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 export type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 
-export type Response = Record<
+export type FormResponse = Record<
   // Field ID
   string,
   {
@@ -20,7 +20,7 @@ export type Response = Record<
 >;
 
 export type Fields = z.infer<typeof zodFieldsView>;
-export type Field = Fields[number];
+export type Field = NonNullable<Fields>[number];
 export type Routes = z.infer<typeof zodRoutesView>;
 export type Route = Routes[0];
 export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
@@ -56,4 +56,4 @@ export type SerializableRoute =
     })
   | GlobalRoute;
 
-export type OrderedResponses = Response[string][];
+export type OrderedResponses = FormResponse[string][];

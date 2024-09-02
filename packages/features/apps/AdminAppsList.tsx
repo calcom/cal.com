@@ -315,16 +315,18 @@ const AdminAppsListContainer = () => {
           />
         ))}
       </List>
-      <EditKeysModal
-        keys={modalState.keys}
-        dirName={modalState.dirName}
-        handleModelClose={handleModelClose}
-        isOpen={modalState.isOpen === "editKeys"}
-        slug={modalState.slug}
-        type={modalState.type}
-        fromEnabled={modalState.fromEnabled}
-        appName={modalState.appName}
-      />
+      {modalState.isOpen === "editKeys" && (
+        <EditKeysModal
+          keys={modalState.keys}
+          dirName={modalState.dirName}
+          handleModelClose={handleModelClose}
+          isOpen={modalState.isOpen === "editKeys"}
+          slug={modalState.slug}
+          type={modalState.type}
+          fromEnabled={modalState.fromEnabled}
+          appName={modalState.appName}
+        />
+      )}
     </>
   );
 };

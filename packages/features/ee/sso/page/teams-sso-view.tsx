@@ -19,7 +19,16 @@ const SAMLSSO = () => {
 
   const teamId = Number(params.id);
 
-  const { data: team, isPending, error } = trpc.viewer.teams.get.useQuery({ teamId });
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.getMinimal.useQuery(
+    { teamId },
+    {
+      enabled: !!teamId,
+    }
+  );
 
   useEffect(() => {
     if (!HOSTED_CAL_FEATURES) {

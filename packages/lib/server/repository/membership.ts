@@ -222,4 +222,13 @@ export class MembershipRepository {
       },
     });
   }
+
+  static async findFirstByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+      },
+    });
+  }
 }
