@@ -83,11 +83,6 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   rescheduledFromUid?: string;
 
-  @IsString()
-  @IsOptional()
-  @Expose()
-  rescheduledToUid?: string;
-
   @IsDateString()
   @Expose()
   start!: string;
@@ -147,6 +142,16 @@ export class RecurringBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   cancellationReason?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  reschedulingReason?: string;
+
+  @IsString()
+  @IsOptional()
+  @Expose()
+  rescheduledFromUid?: string;
 
   @IsDateString()
   @Expose()

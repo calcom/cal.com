@@ -774,7 +774,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should point rescheduled booking to the new one", async () => {
+      it("should set rescheduled booking status to cancelled", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${createdBooking.uid}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -784,8 +784,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             const data: BookingOutput_2024_08_13 = responseBody.data;
-            expect(data.rescheduledToUid).toEqual(rescheduledBooking.uid);
-            expect(data.status).toEqual("rescheduled");
+            expect(data.status).toEqual("cancelled");
 
             createdBooking = data;
           });

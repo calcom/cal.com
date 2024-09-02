@@ -44,10 +44,7 @@ export class OutputBookingsService_2024_08_13 {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
       hosts: [databaseBooking.user],
-      status:
-        databaseBooking.rescheduled && !databaseBooking.cancellationReason
-          ? "rescheduled"
-          : databaseBooking.status.toLowerCase(),
+      status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
@@ -65,53 +62,6 @@ export class OutputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
-    };
-
-    return plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
-  }
-
-  getOutputRescheduledBooking(rescheduledBooking: DatabaseBooking, newDatabaseBooking: DatabaseBooking) {
-    const dateStart = DateTime.fromISO(rescheduledBooking.startTime.toISOString());
-    const dateEnd = DateTime.fromISO(rescheduledBooking.endTime.toISOString());
-    const duration = dateEnd.diff(dateStart, "minutes").minutes;
-
-    const bookingResponses = bookingResponsesSchema.parse(rescheduledBooking.responses);
-    const bookingResponsesNew = bookingResponsesSchema.parse(newDatabaseBooking.responses);
-    const attendee = rescheduledBooking.attendees.find(
-      (attendee) => attendee.email === bookingResponses.email
-    );
-
-    if (!attendee) {
-      throw new Error("Attendee not found");
-    }
-
-    const booking = {
-      id: rescheduledBooking.id,
-      uid: rescheduledBooking.uid,
-      hosts: [rescheduledBooking.user],
-      status:
-        rescheduledBooking.rescheduled && !rescheduledBooking.cancellationReason
-          ? "rescheduled"
-          : rescheduledBooking.status.toLowerCase(),
-      cancellationReason: rescheduledBooking.cancellationReason || undefined,
-      reschedulingReason: bookingResponsesNew?.rescheduledReason,
-      rescheduledFromUid: rescheduledBooking.fromReschedule || undefined,
-      rescheduledToUid: newDatabaseBooking.uid,
-      recurringBookingUid: newDatabaseBooking.recurringEventId || undefined,
-      start: rescheduledBooking.startTime,
-      end: rescheduledBooking.endTime,
-      duration,
-      eventTypeId: rescheduledBooking.eventTypeId,
-      attendees: rescheduledBooking.attendees.map((attendee) => ({
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: attendee.locale,
-        absent: !!attendee.noShow,
-      })),
-      guests: bookingResponses.guests,
-      meetingUrl: rescheduledBooking.location,
-      absentHost: !!rescheduledBooking.noShowHost,
     };
 
     return plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -154,6 +104,8 @@ export class OutputBookingsService_2024_08_13 {
       hosts: [databaseBooking.user],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
+      reschedulingReason: bookingResponses?.rescheduledReason,
+      rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
       duration,
