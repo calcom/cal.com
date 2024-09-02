@@ -4,13 +4,11 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { InferGetServerSidePropsType } from "next";
 
-import { APP_NAME } from "@calcom/lib/constants";
-
 import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => `${t("login")} | ${APP_NAME}`,
+    (t) => `${t("login")}`,
     (t) => t("login")
   );
 };
