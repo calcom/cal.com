@@ -1,4 +1,3 @@
-import TypePage, { type PageProps } from "@pages/team/[slug]/[type]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { Params, SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -7,6 +6,9 @@ import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
+
+import type { PageProps } from "~/team/type-view";
+import TypePage from "~/team/type-view";
 
 export const generateMetadata = async ({
   params,

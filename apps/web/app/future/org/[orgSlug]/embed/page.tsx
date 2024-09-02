@@ -1,5 +1,3 @@
-import { type PageProps } from "@pages/team/[slug]";
-import EmbedPage from "@pages/team/[slug]/embed";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import type { Params, SearchParams } from "app/_types";
@@ -9,6 +7,9 @@ import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
+
+import type { PageProps } from "~/team/team-view";
+import EmbedPage from "~/team/team-view";
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
