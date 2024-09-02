@@ -1,8 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { getQueryKey, trpc } from "@calcom/trpc/react";
 import {
   Button,
   Dialog,
@@ -23,15 +24,17 @@ interface IRescheduleDialog {
 
 export const RescheduleDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
   const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
+  const queryClient = useQueryClient();
 
   const { mutate: rescheduleApi, isPending } = trpc.viewer.bookings.requestReschedule.useMutation({
     async onSuccess() {
       showToast(t("reschedule_request_sent"), "success");
       setIsOpenDialog(false);
-      await utils.viewer.bookings.invalidate();
+      const queryKeys = getQueryKey(trpc.viewer.bookings.get, undefined, "infinite");
+      queryClient.removeQueries({ queryKey: queryKeys });
+      queryClient.invalidateQueries(queryKeys);
     },
     onError() {
       showToast(t("unexpected_error_try_again"), "error");
