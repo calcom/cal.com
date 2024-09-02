@@ -1,5 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsBoolean, IsEmail, IsArray, ArrayMinSize } from "class-validator";
+import { Type } from "class-transformer";
+import { IsOptional, IsBoolean, IsEmail, IsArray, ArrayMinSize, ValidateNested } from "class-validator";
+
+class Attendee {
+  @IsEmail()
+  email!: string;
+
+  @IsBoolean()
+  absent!: boolean;
+}
 
 export class MarkAbsentBookingInput_2024_08_13 {
   @IsBoolean()
@@ -7,10 +16,11 @@ export class MarkAbsentBookingInput_2024_08_13 {
   @ApiProperty()
   host?: boolean;
 
-  @IsArray()
   @ArrayMinSize(1)
-  @IsEmail({}, { each: true })
-  @IsOptional()
   @ApiProperty({ type: [String] })
-  attendees?: string[];
+  @ValidateNested()
+  @Type(() => Attendee)
+  @IsArray()
+  @IsOptional()
+  attendees?: Attendee[];
 }

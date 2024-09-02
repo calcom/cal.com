@@ -393,7 +393,10 @@ export class InputBookingsService_2024_08_13 {
   transformInputMarkAbsentBooking(inputBooking: MarkAbsentBookingInput_2024_08_13) {
     return {
       noShowHost: inputBooking.host,
-      attendees: inputBooking.attendees?.map((email) => ({ email, noShow: true })),
+      attendees: inputBooking.attendees?.map((attendee) => ({
+        email: attendee.email,
+        noShow: attendee.absent,
+      })),
     };
   }
 }

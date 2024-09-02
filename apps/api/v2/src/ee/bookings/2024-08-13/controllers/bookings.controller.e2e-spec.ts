@@ -894,7 +894,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should mark attendee absent", async () => {
         const body: MarkAbsentBookingInput_2024_08_13 = {
-          attendees: ["mr_proper_recurring@gmail.com"],
+          attendees: [{ email: "mr_proper_recurring@gmail.com", absent: true }],
         };
 
         return request(app.getHttpServer())
