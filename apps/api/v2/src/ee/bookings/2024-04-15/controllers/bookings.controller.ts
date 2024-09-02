@@ -4,7 +4,9 @@ import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark
 import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
+import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
+import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -28,6 +30,7 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
@@ -90,7 +93,9 @@ export class BookingsController_2024_04_15 {
     private readonly oAuthFlowService: OAuthFlowService,
     private readonly prismaReadService: PrismaReadService,
     private readonly oAuthClientRepository: OAuthClientRepository,
-    private readonly billingService: BillingService
+    private readonly billingService: BillingService,
+    private readonly config: ConfigService,
+    private readonly apiKeyRepository: ApiKeyRepository
   ) {}
 
   @Get("/")
@@ -300,9 +305,17 @@ export class BookingsController_2024_04_15 {
 
   private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
-      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (accessToken) {
-        return this.oAuthFlowService.getOwnerId(accessToken);
+      const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
+      if (bearerToken) {
+        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+          return keyData?.userId;
+        } else {
+          // Access Token
+          return this.oAuthFlowService.getOwnerId(bearerToken);
+        }
       }
     } catch (err) {
       this.logger.error(err);
