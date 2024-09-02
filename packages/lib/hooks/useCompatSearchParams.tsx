@@ -1,10 +1,10 @@
 import { ReadonlyURLSearchParams, useParams, useSearchParams } from "next/navigation";
 
 export const useCompatSearchParams = () => {
-  const _searchParams = useSearchParams();
+  const _searchParams = useSearchParams() ?? new URLSearchParams();
   const params = useParams() ?? {};
 
-  const searchParams = new URLSearchParams(_searchParams?.toString() ?? "");
+  const searchParams = new URLSearchParams(_searchParams.toString());
   Object.getOwnPropertyNames(params).forEach((key) => {
     searchParams.delete(key);
 

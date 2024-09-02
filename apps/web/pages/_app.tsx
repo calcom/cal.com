@@ -12,15 +12,14 @@ function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.register("/service-worker.js");
-    } else {
-      console.log("Service workers not supported");
     }
   }, []);
 
-  if (Component.PageWrapper !== undefined) return Component.PageWrapper(props);
-  return <Component {...pageProps} />;
+  const content = Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />;
+
+  return content;
 }
 
 declare global {
