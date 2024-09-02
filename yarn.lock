@@ -3507,6 +3507,7 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
+    "@calcom/platform-enums": "*"
     "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.28"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
@@ -4371,6 +4372,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/nextcloudtalk@workspace:packages/app-store/nextcloudtalk":
+  version: 0.0.0-use.local
+  resolution: "@calcom/nextcloudtalk@workspace:packages/app-store/nextcloudtalk"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/office365calendar@workspace:packages/app-store/office365calendar":
   version: 0.0.0-use.local
   resolution: "@calcom/office365calendar@workspace:packages/app-store/office365calendar"
@@ -4430,6 +4440,14 @@ __metadata:
 "@calcom/platform-constants@*, @calcom/platform-constants@workspace:packages/platform/constants":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-constants@workspace:packages/platform/constants"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/platform-enums@*, @calcom/platform-enums@workspace:packages/platform/enums":
+  version: 0.0.0-use.local
+  resolution: "@calcom/platform-enums@workspace:packages/platform/enums"
+  dependencies:
+    "@calcom/platform-constants": "*"
   languageName: unknown
   linkType: soft
 
