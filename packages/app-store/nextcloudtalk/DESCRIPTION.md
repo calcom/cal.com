@@ -1,7 +1,7 @@
 ---
 items:
   - nextcloudtalk1.jpg
-  - nexxtcloudtalk2.jpg
+  - nextcloudtalk2.jpg
 ---
 
 {DESCRIPTION}
