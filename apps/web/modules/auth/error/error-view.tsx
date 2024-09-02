@@ -9,11 +9,13 @@ import { Button, Icon } from "@calcom/ui";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
+import type { PageProps } from "@server/lib/auth/error/getStaticProps";
+
 const querySchema = z.object({
   error: z.string().optional(),
 });
 
-export default function Error() {
+export default function Error(props: PageProps) {
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const { error } = querySchema.parse({ error: searchParams?.get("error") || undefined });
