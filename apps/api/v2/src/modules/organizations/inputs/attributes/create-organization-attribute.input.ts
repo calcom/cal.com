@@ -1,8 +1,21 @@
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
-
-import { AttributeType } from "@calcom/prisma/enums";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/inputs/attributes/options/create-organization-attribute-option.input";
 import { Type } from "class-transformer";
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from "class-validator";
+
+enum AttributeType {
+  TEXT = "TEXT",
+  SINGLE_SELECT = "SINGLE_SELECT",
+  MULTI_SELECT = "MULTI_SELECT",
+  NUMBER = "NUMBER",
+}
 
 export class CreateOrganizationAttributeInput {
   @IsString()

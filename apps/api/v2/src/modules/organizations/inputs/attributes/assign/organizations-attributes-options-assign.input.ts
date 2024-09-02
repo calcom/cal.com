@@ -11,10 +11,7 @@ export class AssignOrganizationAttributeOptionToUserInput {
   @IsNotEmpty()
   readonly attributeOptionId?: string;
 
-  constructor() {
-    if (!this.value && !this.attributeOptionId || this.value && this.attributeOptionId) {
-      throw new Error('Either value or attributeOptionId must be set');
-    }
-  }
-
+  @IsNotEmpty()
+  @IsString()
+  readonly attributeId!: string;
 }

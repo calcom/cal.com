@@ -6,9 +6,16 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { CreateOrganizationAttributeInput } from "@/modules/organizations/inputs/attributes/create-organization-attribute.input";
+import { UpdateOrganizationAttributeInput } from "@/modules/organizations/inputs/attributes/update-organization-attribute.input";
+import { CreateOrganizationAttributesOutput } from "@/modules/organizations/outputs/attributes/create-organization-attributes.output";
+import { DeleteOrganizationAttributesOutput } from "@/modules/organizations/outputs/attributes/delete-organization-attributes.output";
 import {
-  CreateOrganizationAttributeInput,
-} from "@/modules/organizations/inputs/attributes/create-organization-attribute.input";
+  GetOrganizationAttributesOutput,
+  GetSingleAttributeOutput,
+} from "@/modules/organizations/outputs/attributes/get-organization-attributes.output";
+import { UpdateOrganizationAttributesOutput } from "@/modules/organizations/outputs/attributes/update-organization-attributes.output";
+import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
 import {
   Body,
   Controller,
@@ -18,15 +25,13 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Put,
   Query,
   UseGuards,
 } from "@nestjs/common";
 
-import { SkipTakePagination } from "@calcom/platform-types";
-import { UpdateOrganizationAttributeInput } from "@/modules/organizations/inputs/attributes/update-organization-attribute.input";
-import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+
 @Controller({
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
@@ -41,7 +46,7 @@ export class OrganizationsAttributesController {
   async getOrganizationAttributes(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
-  ) {
+  ): Promise<GetOrganizationAttributesOutput> {
     const { skip, take } = queryParams;
     const attributes = await this.organizationsAttributesService.getOrganizationAttributes(orgId, skip, take);
 
@@ -58,7 +63,7 @@ export class OrganizationsAttributesController {
   async getOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string
-  ) {
+  ): Promise<GetSingleAttributeOutput> {
     const attribute = await this.organizationsAttributesService.getOrganizationAttribute(orgId, attributeId);
     return {
       status: SUCCESS_STATUS,
@@ -73,8 +78,11 @@ export class OrganizationsAttributesController {
   async createOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() bodyAttribute: CreateOrganizationAttributeInput
-  ) {
-    const attribute = await this.organizationsAttributesService.createOrganizationAttribute(orgId, bodyAttribute);
+  ): Promise<CreateOrganizationAttributesOutput> {
+    const attribute = await this.organizationsAttributesService.createOrganizationAttribute(
+      orgId,
+      bodyAttribute
+    );
     return {
       status: SUCCESS_STATUS,
       data: attribute,
@@ -89,8 +97,12 @@ export class OrganizationsAttributesController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string,
     @Body() bodyAttribute: UpdateOrganizationAttributeInput
-  ) {
-    const attribute = await this.organizationsAttributesService.updateOrganizationAttribute(orgId, attributeId, bodyAttribute);
+  ): Promise<UpdateOrganizationAttributesOutput> {
+    const attribute = await this.organizationsAttributesService.updateOrganizationAttribute(
+      orgId,
+      attributeId,
+      bodyAttribute
+    );
     return {
       status: SUCCESS_STATUS,
       data: attribute,
@@ -104,12 +116,14 @@ export class OrganizationsAttributesController {
   async deleteOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string
-  ) {
-    const attribute = await this.organizationsAttributesService.deleteOrganizationAttribute(orgId, attributeId);
+  ): Promise<DeleteOrganizationAttributesOutput> {
+    const attribute = await this.organizationsAttributesService.deleteOrganizationAttribute(
+      orgId,
+      attributeId
+    );
     return {
       status: SUCCESS_STATUS,
       data: attribute,
     };
   }
-
 }
