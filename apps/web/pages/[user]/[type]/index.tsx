@@ -1,16 +1,12 @@
-import { type AppProps } from "@lib/app-providers";
-
-import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+import PageWrapper from "@components/PageWrapper";
 
 import TypePage from "~/users/views/users-type-public-view";
+import type { PageProps } from "~/users/views/users-type-public-view.getServerSideProps";
 
 export { getServerSideProps } from "~/users/views/users-type-public-view.getServerSideProps";
 
-const Type = TypePage as unknown as CalPageWrapper & {
-  isBookingPage: AppProps["Component"]["isBookingPage"];
-};
+const Type = (props: PageProps) => <TypePage {...props} />;
 
-Type.isBookingPage = true;
 Type.PageWrapper = PageWrapper;
 
 export default Type;
