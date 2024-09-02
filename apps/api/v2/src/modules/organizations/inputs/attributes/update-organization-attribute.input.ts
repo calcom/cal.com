@@ -1,24 +1,19 @@
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 
-enum AttributeType {
-  TEXT = "TEXT",
-  SINGLE_SELECT = "SINGLE_SELECT",
-  MULTI_SELECT = "MULTI_SELECT",
-  NUMBER = "NUMBER",
-}
+import { AttributeType } from "@calcom/prisma/client";
 
 export class UpdateOrganizationAttributeInput {
   @IsString()
-  @IsNotEmpty()
-  readonly name!: string;
+  @IsOptional()
+  readonly name?: string;
 
   @IsString()
-  @IsNotEmpty()
-  readonly slug!: string;
+  @IsOptional()
+  readonly slug?: string;
 
   @IsEnum(AttributeType)
-  @IsNotEmpty()
-  readonly type!: AttributeType;
+  @IsOptional()
+  readonly type?: AttributeType;
 
   @IsBoolean()
   @IsOptional()

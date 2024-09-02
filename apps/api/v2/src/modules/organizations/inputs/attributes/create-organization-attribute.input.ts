@@ -10,12 +10,7 @@ import {
   ValidateNested,
 } from "class-validator";
 
-enum AttributeType {
-  TEXT = "TEXT",
-  SINGLE_SELECT = "SINGLE_SELECT",
-  MULTI_SELECT = "MULTI_SELECT",
-  NUMBER = "NUMBER",
-}
+import { AttributeType } from "@calcom/prisma/client";
 
 export class CreateOrganizationAttributeInput {
   @IsString()
