@@ -25,6 +25,7 @@ const MakeTeamPrivateSwitch = ({
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.getMinimal.invalidate();
       showToast(t(isOrg ? "your_org_updated_successfully" : "your_team_updated_successfully"), "success");
     },
   });
@@ -43,7 +44,7 @@ const MakeTeamPrivateSwitch = ({
           setTeamPrivate(checked);
           mutation.mutate({ id: teamId, isPrivate: checked });
         }}
-        switchContainerClassName="mt-6"
+        switchContainerClassName="my-6"
         data-testid="make-team-private-check"
       />
     </>
