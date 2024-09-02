@@ -86,6 +86,7 @@ export type Host = {
   priority: number;
   weight: number;
   weightAdjustment: number;
+  scheduleId?: number | null;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -113,6 +114,7 @@ export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
+export type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Workflow[] }) => {
   const { t } = useLocale();
@@ -362,7 +364,9 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    availability: (
+      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} teamMembers={teamMembers} />
+    ),
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,

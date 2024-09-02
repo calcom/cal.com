@@ -1,3 +1,5 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { TeamMembers } from "eventtypes/components/EventType";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
@@ -6,7 +8,12 @@ import { components } from "react-select";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { AvailabilityOption, FormValues, EventTypeSetup } from "@calcom/features/eventtypes/lib/types";
+import type {
+  AvailabilityOption,
+  FormValues,
+  EventTypeSetup,
+  Host,
+} from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -14,7 +21,8 @@ import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
   const { label, isDefault, isManaged = false } = props.data;
@@ -253,41 +261,180 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   );
 };
 
-const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
+const TeamMemberSchedule = ({
+  host,
+  index,
+  teamMembers,
+}: {
+  host: Host;
+  index: number;
+  teamMembers: TeamMembers;
+}) => {
   const { t } = useLocale();
-  const { setValue, resetField, getFieldState, getValues } = useFormContext<FormValues>();
 
-  const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
-    Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
+  const formMethods = useFormContext<FormValues>();
+  const { getValues } = formMethods;
+
+  const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
+    userId: host.userId,
+  });
+
+  const schedules = data?.schedules;
+  const options = schedules?.map((schedule) => ({
+    value: schedule.id,
+    label: schedule.name,
+    isDefault: schedule.isDefault,
+    isManaged: false,
+  }));
+
+  //Set to defaultSchedule if Host Schedule is not previously selected
+  const scheduleId = getValues(`hosts.${index}.scheduleId`);
+  const value = options?.find((option) =>
+    scheduleId
+      ? option.value === scheduleId
+      : option.value === schedules?.find((schedule) => schedule.isDefault)?.id
   );
 
+  const member = teamMembers.find((mem) => mem.id === host.userId);
+  const avatar = member?.avatar;
+  const label = member?.name;
+
   return (
-    <SettingsToggle
-      checked={useHostSchedulesForTeamEvent}
-      onCheckedChange={(checked) => {
-        setUseHostSchedulesForTeamEvent(checked);
-        if (checked) {
-          if (Boolean(eventType.schedule)) resetField("schedule");
-        } else {
-          setValue("schedule", null, { shouldDirty: Boolean(eventType.schedule) });
-        }
-      }}
-      title={t("choose_common_schedule_team_event")}
-      description={t("choose_common_schedule_team_event_description")}>
-      <EventTypeSchedule eventType={eventType} />
-    </SettingsToggle>
+    <>
+      <div className="flex w-full items-center">
+        <Avatar size="sm" imageSrc={avatar} alt={label || ""} />
+        <p className="text-emphasis my-auto ms-3 text-sm">{label}</p>
+      </div>
+      <div className="flex w-full flex-col pt-2 ">
+        {isPending ? (
+          <Spinner className="mt-2 h-6 w-6" />
+        ) : (
+          <Controller
+            name={`hosts.${index}.scheduleId`}
+            render={({ field }) => {
+              return (
+                <Select
+                  placeholder={t("select")}
+                  options={options}
+                  isSearchable={false}
+                  onChange={(selected) => {
+                    field.onChange(selected?.value || null);
+                  }}
+                  className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                  value={value as AvailabilityOption}
+                  components={{ Option, SingleValue }}
+                  isMulti={false}
+                  isDisabled={isPending}
+                />
+              );
+            }}
+          />
+        )}
+      </div>
+    </>
+  );
+};
+
+export const TeamAvailability = ({
+  hosts = [],
+  teamMembers = [],
+}: {
+  hosts: Host[];
+  teamMembers: TeamMembers;
+}) => {
+  const { t } = useLocale();
+  const [animationRef] = useAutoAnimate<HTMLUListElement>();
+
+  return (
+    <>
+      <div className="border-subtle flex flex-col rounded-md">
+        <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
+          <Label className="mb-1 text-sm font-semibold">{t("choose_hosts_schedule")}</Label>
+          <p className="text-subtle max-w-full break-words text-sm leading-tight">
+            {t("hosts_schedule_description")}
+          </p>
+        </div>
+        <div className="border-subtle rounded-b-md border border-t-0 p-6">
+          {hosts.length > 0 ? (
+            <ul
+              className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}
+              ref={animationRef}>
+              {hosts.map((host, index) => (
+                <li
+                  key={host.userId}
+                  className={`flex flex-col px-3 py-2 ${
+                    index === hosts.length - 1 ? "" : "border-subtle border-b"
+                  }`}>
+                  <TeamMemberSchedule host={host} index={index} teamMembers={teamMembers} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-subtle max-w-full break-words text-sm leading-tight">
+              {t("no_hosts_description")}
+            </p>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+const UseCommonScheduleSettingsToggle = ({
+  eventType,
+  teamMembers,
+}: {
+  eventType: EventTypeSetup;
+  teamMembers: TeamMembers;
+}) => {
+  const { t } = useLocale();
+  const { setValue, resetField, getFieldState, getValues, watch } = useFormContext<FormValues>();
+
+  const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
+    !Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
+  );
+
+  const watchHosts = watch("hosts");
+
+  return (
+    <>
+      <SettingsToggle
+        checked={!useHostSchedulesForTeamEvent}
+        onCheckedChange={(checked) => {
+          setUseHostSchedulesForTeamEvent(!checked);
+          if (checked) {
+            if (Boolean(eventType.schedule)) resetField("schedule");
+            getValues("hosts").map((_, index) => {
+              setValue(`hosts.${index}.scheduleId`, null, { shouldDirty: true });
+            });
+          } else {
+            setValue("schedule", null, { shouldDirty: Boolean(eventType.schedule) });
+          }
+        }}
+        title={t("choose_common_schedule_team_event")}
+        description={t("choose_common_schedule_team_event_description")}>
+        <EventTypeSchedule eventType={eventType} />
+      </SettingsToggle>
+      {useHostSchedulesForTeamEvent && (
+        <div className="lg:ml-14">
+          <TeamAvailability hosts={watchHosts} teamMembers={teamMembers} />
+        </div>
+      )}
+    </>
   );
 };
 
 export const EventAvailabilityTab = ({
   eventType,
   isTeamEvent,
+  teamMembers,
 }: {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
+  teamMembers: TeamMembers;
 }) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseCommonScheduleSettingsToggle eventType={eventType} />
+    <UseCommonScheduleSettingsToggle eventType={eventType} teamMembers={teamMembers} />
   ) : (
     <EventTypeSchedule eventType={eventType} />
   );
