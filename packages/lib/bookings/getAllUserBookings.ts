@@ -128,7 +128,7 @@ function getOrderBy(
     return { createdAt: sort.sortCreated };
   }
 
-  return { startTime: "desc" };
+  return { startTime: "asc" };
 }
 
 export default getAllUserBookings;
