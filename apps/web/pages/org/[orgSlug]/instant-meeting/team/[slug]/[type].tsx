@@ -7,3 +7,4 @@ const Page = (props: PageProps) => <Type {...props} />;
 Page.PageWrapper = PageWrapper;
 
 export { getServerSideProps } from "@server/lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
+export default Page;
