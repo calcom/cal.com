@@ -10,7 +10,14 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { AttributeType } from "@calcom/prisma/client";
+export const AttributeType = {
+  TEXT: "TEXT",
+  NUMBER: "NUMBER",
+  SINGLE_SELECT: "SINGLE_SELECT",
+  MULTI_SELECT: "MULTI_SELECT",
+} as const;
+
+export type AttributeType = (typeof AttributeType)[keyof typeof AttributeType];
 
 export class CreateOrganizationAttributeInput {
   @IsString()
