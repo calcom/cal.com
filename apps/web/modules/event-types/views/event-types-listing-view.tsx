@@ -17,7 +17,6 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import SkeletonLoader, {
   InfiniteSkeletonLoader,
 } from "@calcom/features/eventtypes/components/SkeletonLoader";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { parseEventTypeColor } from "@calcom/lib";
@@ -120,7 +119,7 @@ interface EventTypeListProps {
   lockedByOrg?: boolean;
 }
 
-interface InfiniteMobileTeamsTabProps {
+interface InfiniteTeamsTabProps {
   activeEventTypeGroup: InfiniteEventTypeGroup;
 }
 
@@ -160,7 +159,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   );
 };
 
-const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
+const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const { activeEventTypeGroup } = props;
   const { t } = useLocale();
 
@@ -1420,7 +1419,6 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
 const CTA = ({
   profileOptions,
   isOrganization,
-  isInfiniteScrollEnabled,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -1430,7 +1428,6 @@ const CTA = ({
     slug: string | null;
   }[];
   isOrganization: boolean;
-  isInfiniteScrollEnabled: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -1441,21 +1438,8 @@ const CTA = ({
       data-testid="new-event-type"
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
-      createDialog={() => (
-        <CreateEventTypeDialog
-          isInfiniteScrollEnabled={isInfiniteScrollEnabled}
-          profileOptions={profileOptions}
-        />
-      )}
+      createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
     />
-  );
-};
-
-const Actions = (props: { showDivider: boolean }) => {
-  return (
-    <div className="hidden items-center md:flex">
-      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={props.showDivider} />
-    </div>
   );
 };
 
@@ -1607,20 +1591,20 @@ const InfiniteScrollMain = ({
       {eventTypeGroups.length >= 1 && (
         <>
           <HorizontalTabs tabs={tabs} />
-          <InfiniteMobileTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
+          <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
         </>
       )}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
-      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog isInfiniteScrollEnabled />}
+      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
   );
 };
 
-const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
+const EventTypesPage: React.FC & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
-} = ({ isInfiniteScrollEnabled = false }) => {
+} = () => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const { open } = useIntercom();
@@ -1632,13 +1616,6 @@ const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
   const filters = getTeamsFiltersFromQuery(routerQuery);
   const router = useRouter();
 
-  const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
-    refetchOnWindowFocus: false,
-    gcTime: 1 * 60 * 60 * 1000,
-    staleTime: 1 * 60 * 60 * 1000,
-    enabled: !isInfiniteScrollEnabled,
-  });
-
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const {
     data: getUserEventGroupsData,
@@ -1648,7 +1625,6 @@ const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
     refetchOnWindowFocus: false,
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
-    enabled: isInfiniteScrollEnabled,
   });
 
   useEffect(() => {
@@ -1672,31 +1648,18 @@ const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
   }, [orgBranding, user]);
 
   const profileOptions =
-    (data?.profiles
-      ? data?.profiles
-          .filter((profile) => !profile.readOnly)
-          .filter((profile) => !profile.eventTypesLockedByOrg)
-          .map((profile) => {
-            return {
-              teamId: profile.teamId,
-              label: profile.name || profile.slug,
-              image: profile.image,
-              membershipRole: profile.membershipRole,
-              slug: profile.slug,
-            };
-          })
-      : getUserEventGroupsData?.profiles
-          ?.filter((profile) => !profile.readOnly)
-          ?.filter((profile) => !profile.eventTypesLockedByOrg)
-          ?.map((profile) => {
-            return {
-              teamId: profile.teamId,
-              label: profile.name || profile.slug,
-              image: profile.image,
-              membershipRole: profile.membershipRole,
-              slug: profile.slug,
-            };
-          })) ?? [];
+    getUserEventGroupsData?.profiles
+      ?.filter((profile) => !profile.readOnly)
+      ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.map((profile) => {
+        return {
+          teamId: profile.teamId,
+          label: profile.name || profile.slug,
+          image: profile.image,
+          membershipRole: profile.membershipRole,
+          slug: profile.slug,
+        };
+      }) ?? [];
 
   return (
     <Shell
@@ -1707,30 +1670,18 @@ const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      beforeCTAactions={
-        isInfiniteScrollEnabled ? undefined : <Actions showDivider={profileOptions.length > 0} />
-      }
-      CTA={
-        <CTA
-          isInfiniteScrollEnabled={isInfiniteScrollEnabled}
-          profileOptions={profileOptions}
-          isOrganization={!!user?.organizationId}
-        />
-      }>
+      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      {isInfiniteScrollEnabled ? (
-        <InfiniteScrollMain
-          profiles={getUserEventGroupsData?.profiles}
-          eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
-          status={getUserEventGroupsStatus}
-          errorMessage={getUserEventGroupsStatusError?.message}
-        />
-      ) : (
-        <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
-      )}
+
+      <InfiniteScrollMain
+        profiles={getUserEventGroupsData?.profiles}
+        eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
+        status={getUserEventGroupsStatus}
+        errorMessage={getUserEventGroupsStatusError?.message}
+      />
     </Shell>
   );
 };

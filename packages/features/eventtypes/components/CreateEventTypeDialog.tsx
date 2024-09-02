@@ -64,7 +64,6 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
-  isInfiniteScrollEnabled,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -72,7 +71,6 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
-  isInfiniteScrollEnabled: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
