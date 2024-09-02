@@ -6,7 +6,7 @@ import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, Icon } from "@calcom/ui";
 
-import type { getServerSideProps } from "./videos-meeting-ended-single-view.getServerSideProps";
+import type { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function MeetingUnavailable(props: PageProps) {

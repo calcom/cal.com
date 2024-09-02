@@ -2,7 +2,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import MeetingEnded, { type PageProps } from "~/videos/views/videos-meeting-ended-single-view";
 
-export { getServerSideProps } from "~/videos/views/videos-meeting-ended-single-view.getServerSideProps";
+export { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
 const MeetingEndedPage = (props: PageProps) => <MeetingEnded {...props} />;
 

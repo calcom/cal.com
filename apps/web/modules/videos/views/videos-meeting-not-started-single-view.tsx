@@ -6,7 +6,7 @@ import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, Icon, EmptyScreen } from "@calcom/ui";
 
-import { type getServerSideProps } from "./videos-meeting-not-started-single-view.getServerSideProps";
+import type { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 

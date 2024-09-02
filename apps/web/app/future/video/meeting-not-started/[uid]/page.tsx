@@ -5,9 +5,10 @@ import { WithLayout } from "app/layoutHOC";
 
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 
+import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
+
 import type { PageProps } from "~/videos/views/videos-meeting-not-started-single-view";
 import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
-import { getServerSideProps } from "~/videos/views/videos-meeting-not-started-single-view.getServerSideProps";
 
 export const generateMetadata = async ({ params }: _PageProps) => {
   const booking = await BookingRepository.findBookingByUid({

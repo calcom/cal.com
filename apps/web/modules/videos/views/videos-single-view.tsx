@@ -16,9 +16,9 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
 
-import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
+import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import type { getServerSideProps } from "./videos-single-view.getServerSideProps";
+import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
