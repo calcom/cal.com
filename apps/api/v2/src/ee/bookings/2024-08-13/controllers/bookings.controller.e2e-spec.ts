@@ -58,8 +58,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
-    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
-    let apiKeyString: string;
 
     const userEmail = "bookings-controller-e2e@api.com";
     let user: User;
@@ -92,7 +90,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
-      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({ name: "organization bookings" });
       oAuthClient = await createOAuthClient(organization.id);
@@ -100,9 +97,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
       user = await userRepositoryFixture.create({
         email: userEmail,
       });
-
-      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
-      apiKeyString = keyString;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: "working time",
