@@ -1,10 +1,13 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { bookingResponsesSchema } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
@@ -68,7 +71,9 @@ export class InputBookingsService_2024_08_13 {
     private readonly oAuthFlowService: OAuthFlowService,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly bookingsRepository: BookingsRepository_2024_08_13
+    private readonly bookingsRepository: BookingsRepository_2024_08_13,
+    private readonly config: ConfigService,
+    private readonly apiKeyRepository: ApiKeyRepository
   ) {}
 
   async createBookingRequest(
@@ -299,9 +304,17 @@ export class InputBookingsService_2024_08_13 {
 
   private async createBookingRequestOwnerId(req: Request): Promise<number | undefined> {
     try {
-      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (accessToken) {
-        return this.oAuthFlowService.getOwnerId(accessToken);
+      const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
+      if (bearerToken) {
+        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+          return keyData?.userId;
+        } else {
+          // Access Token
+          return this.oAuthFlowService.getOwnerId(bearerToken);
+        }
       }
     } catch (err) {
       this.logger.error(err);
