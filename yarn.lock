@@ -4123,11 +4123,13 @@ __metadata:
     "@lexical/react": ^0.9.0
     "@tanstack/react-table": ^8.9.3
     "@testing-library/react-hooks": ^8.0.1
+    "@types/web-push": ^3.6.3
     framer-motion: ^10.12.8
     lexical: ^0.9.0
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
     react-virtual: ^2.10.4
+    web-push: ^3.6.7
     zustand: ^4.3.2
   languageName: unknown
   linkType: soft
@@ -15937,6 +15939,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/web-push@npm:^3.6.3":
+  version: 3.6.3
+  resolution: "@types/web-push@npm:3.6.3"
+  dependencies:
+    "@types/node": "*"
+  checksum: 6fc6ac93dbb87d99ae1d08f065d1c80620ac69d966796d358363849903aaf6dcbf222cf3914a05b92db542289618484ef8cf5d6b50d1737d56527e9f2c65f578
+  languageName: node
+  linkType: hard
+
 "@types/webidl-conversions@npm:*":
   version: 6.1.1
   resolution: "@types/webidl-conversions@npm:6.1.1"
@@ -17761,7 +17772,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"asn1.js@npm:^5.2.0":
+"asn1.js@npm:^5.2.0, asn1.js@npm:^5.3.0":
   version: 5.4.1
   resolution: "asn1.js@npm:5.4.1"
   dependencies:
@@ -26567,6 +26578,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"http_ece@npm:1.2.0":
+  version: 1.2.0
+  resolution: "http_ece@npm:1.2.0"
+  checksum: 8b716baa83eb985104abe60fd7acdc5198e3d626e9608bdfa1de62851b6b420d89735b483d51045688e14c8fa2031a8f182ac1067394db61c307c7e541983b38
+  languageName: node
+  linkType: hard
+
 "https-browserify@npm:^1.0.0":
   version: 1.0.0
   resolution: "https-browserify@npm:1.0.0"
@@ -26621,6 +26639,16 @@ __metadata:
     agent-base: 6
     debug: 4
   checksum: 571fccdf38184f05943e12d37d6ce38197becdd69e58d03f43637f7fa1269cf303a7d228aa27e5b27bbd3af8f09fd938e1c91dcfefff2df7ba77c20ed8dfc765
+  languageName: node
+  linkType: hard
+
+"https-proxy-agent@npm:^7.0.0":
+  version: 7.0.5
+  resolution: "https-proxy-agent@npm:7.0.5"
+  dependencies:
+    agent-base: ^7.0.2
+    debug: 4
+  checksum: 2e1a28960f13b041a50702ee74f240add8e75146a5c37fc98f1960f0496710f6918b3a9fe1e5aba41e50f58e6df48d107edd9c405c5f0d73ac260dabf2210857
   languageName: node
   linkType: hard
 
@@ -42558,6 +42586,21 @@ __metadata:
   version: 1.0.8
   resolution: "weak-map@npm:1.0.8"
   checksum: ce030b3c6b1a461bda6eac88b3b3be57245ce26330c6ddb98d821d85c0636117ca94693ef8292407066fd367740ec6a1ef6cd9027111453d7ced43f4f78b327a
+  languageName: node
+  linkType: hard
+
+"web-push@npm:^3.6.7":
+  version: 3.6.7
+  resolution: "web-push@npm:3.6.7"
+  dependencies:
+    asn1.js: ^5.3.0
+    http_ece: 1.2.0
+    https-proxy-agent: ^7.0.0
+    jws: ^4.0.0
+    minimist: ^1.2.5
+  bin:
+    web-push: src/cli.js
+  checksum: 306862864675a28702f378c779dfc87f5f2d717fadbcb622c8b40231e0ec074a5592251cb937b96a7e85dcfeafd475d12f0ec9044be210134ad386872d8e56ec
   languageName: node
   linkType: hard
 
