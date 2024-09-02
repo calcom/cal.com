@@ -5,8 +5,11 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res, query } = context;

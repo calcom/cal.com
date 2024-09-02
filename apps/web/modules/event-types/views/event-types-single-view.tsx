@@ -6,12 +6,11 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 /* eslint-disable @typescript-eslint/no-empty-function */
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { trpc } from "@calcom/trpc/react";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import type { AppProps } from "@lib/app-providers";
-import type { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
+import type { PageProps } from "@lib/event-types/[type]/getServerSideProps";
 
-const EventTypePageWrapper: React.FC<inferSSRProps<typeof getServerSideProps>> & {
+const EventTypePageWrapper: React.FC<PageProps> & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
 } = (props) => {
