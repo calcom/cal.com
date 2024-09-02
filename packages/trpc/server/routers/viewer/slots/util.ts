@@ -472,7 +472,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
-  const bookingsSelect = {
+  const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
     id: true,
     uid: true,
     userId: true,
@@ -498,7 +498,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         },
       },
     }),
-  };
+  });
 
   const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
     where: {
@@ -507,9 +507,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         in: allUserIds,
       },
     },
-    select: {
-      ...bookingsSelect,
-    },
+    select: bookingsSelect,
   });
 
   const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
@@ -523,9 +521,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         },
       },
     },
-    select: {
-      ...bookingsSelect,
-    },
+    select: bookingsSelect,
   });
 
   const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
@@ -541,9 +537,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         in: [BookingStatus.PENDING],
       },
     },
-    select: {
-      ...bookingsSelect,
-    },
+    select: bookingsSelect,
   });
 
   const [resultOne, resultTwo, resultThree] = await Promise.all([
