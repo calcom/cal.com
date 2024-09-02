@@ -87,7 +87,7 @@ export function EditMemberSheet({
             <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
             <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
             <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
-            <DisplayInfo label={t("role")} value={selectedUser.role} icon="fingerprint" />
+            <DisplayInfo label={t("role")} value={[selectedUser.role]} icon="fingerprint" />
             <div className="flex items-center gap-6">
               <div className="flex w-[110px] items-center gap-2">
                 <Icon className="text-subtle h-4 w-4" name="grid-3x3" />

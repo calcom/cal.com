@@ -225,7 +225,6 @@ export default function MemberListItem(props: Props) {
     );
   };
 
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onMutate: async ({ teamIds }) => {
       await utils.viewer.teams.lazyLoadMembers.cancel();
@@ -615,7 +614,7 @@ export default function MemberListItem(props: Props) {
   }, [fetchMoreOnBottomReached]);
 
   return (
-    <>
+    <div className="mb-6">
       <DataTable
         data-testId="user-list-data-table"
         onSearch={(value) => setSearchTerm(value)}
@@ -805,6 +804,6 @@ export default function MemberListItem(props: Props) {
           connectedApps={connectedApps[state.editSheet?.user?.id || 0] ?? []}
         />
       )}
-    </>
+    </div>
   );
 }
