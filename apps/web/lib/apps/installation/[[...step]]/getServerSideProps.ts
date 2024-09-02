@@ -13,8 +13,8 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
+import { STEPS } from "~/apps/installation/[[...step]]/constants";
 import type { OnboardingPageProps, TEventType } from "~/apps/installation/[[...step]]/step-view";
-import { STEPS } from "~/apps/installation/[[...step]]/step-view";
 
 // Redirect Error map to give context on edge cases, this is for the devs, never shown to users
 const ERROR_MESSAGES = {

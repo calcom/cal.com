@@ -30,6 +30,8 @@ import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCa
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
+import { STEPS } from "~/apps/installation/[[...step]]/constants";
+
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
     EventTypeModel,
@@ -43,12 +45,6 @@ export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
 export type TEventTypesForm = {
   eventTypes: TEventType[];
 };
-
-export const STEPS = [
-  AppOnboardingSteps.ACCOUNTS_STEP,
-  AppOnboardingSteps.EVENT_TYPES_STEP,
-  AppOnboardingSteps.CONFIGURE_STEP,
-] as const;
 
 type StepType = (typeof STEPS)[number];
 
