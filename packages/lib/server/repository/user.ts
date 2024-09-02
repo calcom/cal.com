@@ -252,6 +252,20 @@ export class UserRepository {
     return user;
   }
 
+  static async findByIdWithOptionalSelect({ id, select }: { id: number; select?: Prisma.UserSelect }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select,
+    });
+
+    if (!user) {
+      return null;
+    }
+    return user;
+  }
+
   static async findManyByOrganization({ organizationId }: { organizationId: number }) {
     const profiles = await ProfileRepository.findManyForOrg({ organizationId });
     return profiles.map((profile) => profile.user);
