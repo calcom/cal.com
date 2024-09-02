@@ -113,12 +113,18 @@ export class BookingRepository {
     return allBookings;
   }
 
-  static async findBookingByUid({ bookingUid }: { bookingUid: string }) {
+  static async findBookingByUid({
+    bookingUid,
+    select,
+  }: {
+    bookingUid: string;
+    select?: Prisma.BookingSelect;
+  }) {
     return await prisma.booking.findUnique({
       where: {
         uid: bookingUid,
       },
-      select: bookingMinimalSelect,
+      select: { ...bookingMinimalSelect, ...select },
     });
   }
 

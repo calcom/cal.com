@@ -7,8 +7,9 @@ import {
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -19,12 +20,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const ssr = await ssrInit(context);
 
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: context.query.uid as string,
-    },
+  const booking = await BookingRepository.findBookingByUid({
+    bookingUid: context.query.uid as string,
     select: {
-      ...bookingMinimalSelect,
       uid: true,
       description: true,
       isRecorded: true,
