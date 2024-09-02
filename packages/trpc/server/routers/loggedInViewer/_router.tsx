@@ -13,7 +13,11 @@ import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLi
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
-import { ZOutOfOfficeInputSchema, ZOutOfOfficeDelete } from "./outOfOffice.schema";
+import {
+  ZOutOfOfficeInputSchema,
+  ZOutOfOfficeDelete,
+  ZOutOfOfficeEntriesListSchema,
+} from "./outOfOffice.schema";
 import { me } from "./procedures/me";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
@@ -433,7 +437,7 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate({ ctx, input });
     }),
-  outOfOfficeEntriesList: authedProcedure.query(async ({ ctx }) => {
+  outOfOfficeEntriesList: authedProcedure.input(ZOutOfOfficeEntriesListSchema).query(async (opts) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
       UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList = (
         await import("./outOfOffice.handler")
@@ -445,7 +449,7 @@ export const loggedInViewerRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList({ ctx });
+    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList(opts);
   }),
   outOfOfficeEntryDelete: authedProcedure.input(ZOutOfOfficeDelete).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete) {

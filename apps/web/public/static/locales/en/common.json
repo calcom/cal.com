@@ -2586,6 +2586,16 @@
   "number_of_options":"{{count}} options",
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
-   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
+  "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
+  "my_ooo": "My OOO",
+  "team_ooo": "Team OOO",
+  "out_of_office_team_description": "Manage you're team's OOO.",
+  "create_ooo_team_label": "Create out of office for team member",
+  "edit_ooo_team_label": "Edit out of office for team member",
+  "create_ooo_dialog_team_title": "Create Out of Office",
+  "ooo_team_empty_title": "Create OOO for your team",
+  "ooo_team_empty_description": "Communicate to your team member's bookers when you're team not available to take bookings. They can still book you're team upon their return or you can forward them to other team member.",
+  "forward_to_team_member_only": "Invalid Redirection!. OOO Forwarding can be done to a member of same team.",
+  "ooo_team_redirect_infinite_not_allowed": "There is already a reverse forwarding between these users.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

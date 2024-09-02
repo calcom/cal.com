@@ -45,6 +45,7 @@ export interface DataTableProps<TData, TValue> {
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
+  hideHeader?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -63,6 +64,7 @@ export function DataTable<TData, TValue>({
   onSearch,
   onRowMouseclick,
   onScroll,
+  hideHeader,
   ...rest
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
@@ -116,21 +118,23 @@ export function DataTable<TData, TValue>({
       />
       <div ref={tableContainerRef} onScroll={onScroll} data-testid={rest["data-testid"] ?? "data-table"}>
         <Table data-testid="">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
+          {!hideHeader && (
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+          )}
           <TableBody>
             {paddingTop > 0 && (
               <tr>

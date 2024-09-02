@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -25,17 +26,34 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
   currentlyEditingOutOfOfficeEntry,
+  oooType,
+  setTeamOOOEntriesUpdated,
+  setMyOOOEntriesUpdated,
 }: {
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
+  oooType: string;
+  setTeamOOOEntriesUpdated: Dispatch<SetStateAction<number>>;
+  setMyOOOEntriesUpdated: Dispatch<SetStateAction<number>>;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
   const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
-  const memberListOptions: {
+  const forwardingToMemberListOptions: {
+    value: number;
+    label: string;
+  }[] =
+    listMembers
+      ?.filter((member) => (oooType === "mine" ? me?.data?.id !== member.id : oooType === "team"))
+      .map((member) => ({
+        value: member.id,
+        label: member.name || "",
+      })) || [];
+
+  const oooForMemberListOptions: {
     value: number;
     label: string;
   }[] =
@@ -59,7 +77,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const { hasTeamPlan } = useHasTeamPlan();
 
-  const { handleSubmit, setValue, control, register } = useForm<BookingRedirectForm>({
+  const { handleSubmit, setValue, control, register, getValues } = useForm<BookingRedirectForm>({
     defaultValues: currentlyEditingOutOfOfficeEntry
       ? currentlyEditingOutOfOfficeEntry
       : {
@@ -70,6 +88,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           offset: dayjs().utcOffset(),
           toTeamUserId: null,
           reasonId: 1,
+          forUserId: null,
         },
   });
 
@@ -81,7 +100,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      utils.viewer.outOfOfficeEntriesList.invalidate();
+      oooType === "team"
+        ? setTeamOOOEntriesUpdated((previousValue) => previousValue + 1)
+        : setMyOOOEntriesUpdated((previousValue) => previousValue + 1);
       closeModal();
     },
     onError: (error) => {
@@ -104,9 +125,43 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           <div className="px-1">
             <DialogHeader
               title={
-                currentlyEditingOutOfOfficeEntry ? t("edit_an_out_of_office") : t("create_an_out_of_office")
+                currentlyEditingOutOfOfficeEntry
+                  ? t("edit_an_out_of_office")
+                  : oooType === "team"
+                  ? t("create_ooo_dialog_team_title")
+                  : t("create_an_out_of_office")
               }
             />
+
+            {/* In case of Team, Select Member for whom OOO is created */}
+            {oooType === "team" && (
+              <div className="mb-4 mt-4 h-16">
+                <p className="text-emphasis block text-sm font-medium">
+                  {currentlyEditingOutOfOfficeEntry ? t("edit_ooo_team_label") : t("create_ooo_team_label")}
+                </p>
+                <Controller
+                  control={control}
+                  name="forUserId"
+                  render={({ field: { onChange, value } }) => (
+                    <Select<Option>
+                      name="oooForUsername"
+                      data-testid="oooFor_username_select"
+                      value={oooForMemberListOptions.find((member) => member.value === value)}
+                      placeholder={t("select_team_member")}
+                      isSearchable
+                      options={oooForMemberListOptions}
+                      onChange={(selectedOption) => {
+                        if (selectedOption?.value) {
+                          onChange(selectedOption.value);
+                        }
+                      }}
+                      isDisabled={!!currentlyEditingOutOfOfficeEntry}
+                    />
+                  )}
+                />
+              </div>
+            )}
+
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
@@ -198,10 +253,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Select<Option>
                           name="toTeamUsername"
                           data-testid="team_username_select"
-                          value={memberListOptions.find((member) => member.value === value)}
+                          value={forwardingToMemberListOptions.find((member) => member.value === value)}
                           placeholder={t("select_team_member")}
                           isSearchable
-                          options={memberListOptions}
+                          options={forwardingToMemberListOptions.filter(
+                            (option) => option.value !== getValues("forUserId")
+                          )}
                           onChange={(selectedOption) => {
                             if (selectedOption?.value) {
                               onChange(selectedOption.value);
