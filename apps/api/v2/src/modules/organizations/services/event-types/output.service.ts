@@ -8,10 +8,10 @@ import { SchedulingType } from "@prisma/client";
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null; hosts: Host[] };
-type DatabaseEventType = EventType & EventTypeRelations;
+export type DatabaseTeamEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
-  DatabaseEventType,
+  DatabaseTeamEventType,
   | "id"
   | "length"
   | "title"
@@ -71,7 +71,7 @@ export class OutputOrganizationsEventTypesService {
   async getResponseTeamEventType(databaseEventType: Input) {
     const { teamId, userId, parentId, assignAllTeamMembers } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { ownerId, users, ...rest } = await this.outputEventTypesService.getResponseEventType(
+    const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
       0,
       databaseEventType
     );

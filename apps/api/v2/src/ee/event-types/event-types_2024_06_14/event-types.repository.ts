@@ -1,3 +1,4 @@
+import { DatabaseEventType } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -88,7 +89,7 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
-  async getEventTypeById(eventTypeId: number): Promise<GetEventTypeById> {
+  async getEventTypeById(eventTypeId: number): Promise<DatabaseEventType | null> {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: { users: true, schedule: true },

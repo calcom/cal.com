@@ -1,3 +1,4 @@
+import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
@@ -6,7 +7,7 @@ import { Injectable } from "@nestjs/common";
 export class OrganizationsEventTypesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async getTeamEventType(teamId: number, eventTypeId: number) {
+  async getTeamEventType(teamId: number, eventTypeId: number): Promise<DatabaseTeamEventType | null> {
     return this.dbRead.prisma.eventType.findUnique({
       where: {
         id: eventTypeId,
@@ -16,7 +17,7 @@ export class OrganizationsEventTypesRepository {
     });
   }
 
-  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string) {
+  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string): Promise<DatabaseTeamEventType | null> {
     return this.dbRead.prisma.eventType.findUnique({
       where: {
         teamId_slug: {
@@ -28,7 +29,7 @@ export class OrganizationsEventTypesRepository {
     });
   }
 
-  async getTeamEventTypes(teamId: number) {
+  async getTeamEventTypes(teamId: number): Promise<DatabaseTeamEventType[]> {
     return this.dbRead.prisma.eventType.findMany({
       where: {
         teamId,
@@ -37,21 +38,21 @@ export class OrganizationsEventTypesRepository {
     });
   }
 
-  async getEventTypeById(eventTypeId: number) {
+  async getEventTypeById(eventTypeId: number): Promise<DatabaseTeamEventType | null> {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: { users: true, schedule: true, hosts: true },
     });
   }
 
-  async getEventTypeChildren(eventTypeId: number) {
+  async getEventTypeChildren(eventTypeId: number): Promise<DatabaseTeamEventType[]> {
     return this.dbRead.prisma.eventType.findMany({
       where: { parentId: eventTypeId },
       include: { users: true, schedule: true, hosts: true },
     });
   }
 
-  async getTeamsEventTypes(orgId: number, skip: number, take: number) {
+  async getTeamsEventTypes(orgId: number, skip: number, take: number): Promise<DatabaseTeamEventType[]> {
     return this.dbRead.prisma.eventType.findMany({
       where: {
         team: {

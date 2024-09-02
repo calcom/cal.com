@@ -30,7 +30,7 @@ import {
 import { NoticeThreshold_2024_06_14 } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
-type DatabaseEventType = EventType & EventTypeRelations;
+export type DatabaseEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,

@@ -38,3 +38,17 @@ export type InputEventTransformed_2024_06_14 = Omit<
   > &
   Partial<ReturnType<typeof transformApiSeatOptions>> &
   Partial<ReturnType<typeof transformApiEventTypeFutureBookingLimits>>;
+
+export type InputTeamEventTransformed_2024_06_14 = InputEventTransformed_2024_06_14 & {
+  hosts: {
+    userId: number;
+    isFixed: boolean;
+    priority: number;
+  }[];
+  children: {
+    id: number;
+    name: string;
+    email: string;
+    eventTypeSlugs: string[];
+  }[];
+};
