@@ -1,11 +1,11 @@
 import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 
+import type { PageProps } from "~/apps/[slug]/setup/setup-view";
 import SetupView from "~/apps/[slug]/setup/setup-view";
 
-const Page = (props: inferSSRProps<typeof getServerSideProps>) => <SetupView {...props} />;
+const Page = (props: PageProps) => <SetupView {...props} />;
 
 Page.PageWrapper = PageWrapper;
 

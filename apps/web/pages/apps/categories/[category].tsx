@@ -1,5 +1,3 @@
-import type { InferGetStaticPropsType } from "next";
-
 import { AppCategories } from "@calcom/prisma/enums";
 import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 
@@ -7,9 +5,8 @@ import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
 import PageWrapper from "@components/PageWrapper";
 
+import type { PageProps } from "~/apps/categories/[category]/category-view";
 import CategoryView from "~/apps/categories/[category]/category-view";
-
-export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
 const Page = (props: PageProps) => <CategoryView {...props} />;
 Page.PageWrapper = PageWrapper;

@@ -9,7 +9,9 @@ import { Icon, SkeletonText } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 
-export default function Apps({ categories }: inferSSRProps<typeof getServerSideProps>) {
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Apps({ categories }: PageProps) {
   const { t, isLocaleReady } = useLocale();
 
   return (

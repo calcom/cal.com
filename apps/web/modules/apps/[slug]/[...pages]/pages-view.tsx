@@ -50,8 +50,9 @@ function getRoute(appName: string, pages: string[]) {
   }
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-const AppPage: AppPageType["default"] = function AppPage(props: inferSSRProps<typeof getServerSideProps>) {
+const AppPage: AppPageType["default"] = function AppPage(props: PageProps) {
   const appName = props.appName;
   const params = useParamsWithFallback();
   const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];

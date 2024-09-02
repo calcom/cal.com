@@ -15,7 +15,9 @@ import App from "@components/apps/App";
 
 const md = new MarkdownIt("default", { html: true, breaks: true });
 
-function SingleAppPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+
+function SingleAppPage(props: PageProps) {
   const { error, setQuery: setError } = useRouterQuery("error");
   const { t } = useLocale();
   if (error === "account_already_linked") {
