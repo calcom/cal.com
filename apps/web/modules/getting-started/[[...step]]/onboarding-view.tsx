@@ -11,8 +11,11 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+
+import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
@@ -42,8 +45,9 @@ const stepRouteSchema = z.object({
   from: z.string().optional(),
 });
 
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
-const OnboardingPage = () => {
+const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
 
