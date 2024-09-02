@@ -454,7 +454,9 @@ export const Components: Record<FieldType, Component> = {
                         checked={value?.value === option.value}
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">
-                        {getCleanLabel(option.label) ?? ""}
+                        {option.value === "somewhereElse"
+                          ? t("somewhere_else")
+                          : getCleanLabel(option.label) ?? ""}
                       </span>
                       <span>
                         {option.value === "phone" && (
@@ -467,13 +469,15 @@ export const Components: Record<FieldType, Component> = {
               ) : (
                 // Use the only option itself to determine if the field is required or not.
                 <>
-                  <Label className="flex">
+                  <Label className="flex items-center">
                     {/* We still want to show the label of the field if it is changed by the user otherwise the best label would be the option label */}
-                    {getCleanLabel(
-                      didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
-                    )}
+                    {options[0].value === "somewhereElse"
+                      ? translatedDefaultLabel
+                      : getCleanLabel(
+                          didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                        )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
+                      <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
                     ) : null}
                     {options[0].value === "phone" && (
                       <InfoBadge content={t("number_in_international_format")} />
