@@ -1,14 +1,11 @@
 import type { GetServerSidePropsContext } from "next";
 
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 
 // change the type
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: context.query.uid as string,
-    },
-    select: bookingMinimalSelect,
+  const booking = await BookingRepository.findBookingByUid({
+    bookingUid: context.query.uid as string,
   });
 
   if (!booking) {
