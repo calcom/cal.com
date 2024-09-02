@@ -9,7 +9,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 
 import type { PageProps } from "~/team/team-view";
-import EmbedPage from "~/team/team-view";
+import TeamPage from "~/team/team-view";
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
@@ -32,7 +32,7 @@ export const generateMetadata = async ({
 const getEmbedData = withEmbedSsrAppDir(getData);
 
 export default WithLayout({
-  Page: EmbedPage,
+  Page: TeamPage,
   getData: getEmbedData,
   getLayout: null,
   isBookingPage: true,
