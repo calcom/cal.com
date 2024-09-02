@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 export const appKeysSchema = z.object({
-  nextcloudTalkHost: z.string().optional().describe("Your Nextcloud base URL."),
+  nextcloudTalkHost: z.string(),
   nextcloudTalkPattern: z.string().optional(),
+  nextcloudTalkUser: z.string(),
+  nextcloudTalkPassword: z.string(),
 });
 
 export const appDataSchema = z.object({});

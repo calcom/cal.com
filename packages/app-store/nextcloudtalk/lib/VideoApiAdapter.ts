@@ -1,21 +1,24 @@
-import getAppKeysFromSlug from "_utils/getAppKeysFromSlug";
 import { v4 as uuidv4 } from "uuid";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-const NextcloudTalkApiAdapter = (): VideoApiAdapter => {
-  const type = "nextcloudtalk_video";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+
+const NextcloudTalkVideoApiAdapter = (): VideoApiAdapter => {
+  const slug = "nextcloudtalk";
   return {
     getAvailability: () => {
       return Promise.resolve([]);
     },
     createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
-      const appKeys = await getAppKeysFromSlug(type);
+      const appKeys = await getAppKeysFromSlug(slug);
 
       const meetingPattern = (appKeys.nextcloudTalkPattern as string) || "{uuid}";
       const hostUrl = appKeys.nextcloudTalkHost as string;
+      const user = appKeys.nextcloudTalkUser as string;
+      const password = appKeys.nextcloudTalkPassword as string;
 
       //Allows "/{Type}-with-{Attendees}" slug
       const meetingID = meetingPattern
@@ -32,30 +35,49 @@ const NextcloudTalkApiAdapter = (): VideoApiAdapter => {
       const videoLink = await fetch(`${hostUrl}/ocs/v2.php/apps/spreed/api/v4/room`, {
         method: "POST",
         headers: {
+          Accept: "application/json",
+          Authorization: `Basic ${Buffer.from(`${user}:${password}`).toString("base64")}`,
           "Content-Type": "application/json",
-          "OCS-APIRequest": true,
+          "OCS-APIRequest": "true",
         },
-        body: {
+        body: JSON.stringify({
           roomType: 3,
           roomName: `${meetingID}`,
-        },
+        }),
       });
 
       const videoLinkData = await videoLink.json();
 
       return Promise.resolve({
-        type: type,
-        id: videoLinkData.token,
+        type: slug,
+        id: videoLinkData.ocs.data.token,
         password: "",
-        url: `${hostUrl}/${videoLinkData.token}}`,
+        url: `${hostUrl}/call/${videoLinkData.ocs.data.token}`,
       });
     },
-    deleteMeeting: async (): Promise<void> => {
-      Promise.resolve();
+    deleteMeeting: async (uid: string): Promise<void> => {
+      const appKeys = await getAppKeysFromSlug(slug);
+
+      const hostUrl = appKeys.nextcloudTalkHost as string;
+      const user = appKeys.nextcloudTalkUser as string;
+      const password = appKeys.nextcloudTalkPassword as string;
+
+      // Remove video link
+      await fetch(`${hostUrl}/ocs/v2.php/apps/spreed/api/v4/room/${uid}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Basic ${Buffer.from(`${user}:${password}`).toString("base64")}`,
+          "Content-Type": "application/json",
+          "OCS-APIRequest": "true",
+        },
+      });
+
+      return Promise.resolve();
     },
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       return Promise.resolve({
-        type: type,
+        type: slug,
         id: bookingRef.meetingId as string,
         password: bookingRef.meetingPassword as string,
         url: bookingRef.meetingUrl as string,
@@ -64,4 +86,4 @@ const NextcloudTalkApiAdapter = (): VideoApiAdapter => {
   };
 };
 
-export default NextcloudTalkApiAdapter;
+export default NextcloudTalkVideoApiAdapter;
