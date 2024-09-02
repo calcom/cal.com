@@ -1219,6 +1219,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -1321,6 +1331,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1648,8 +1668,25 @@
     },
     "/v2/organizations/{orgId}/memberships/{membershipId}": {
       "get": {
-        "operationId": "OrganizationsMembershipsController_getUserSchedule",
-        "parameters": [],
+        "operationId": "OrganizationsMembershipsController_getOrgMembership",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2248,6 +2285,214 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/webhooks": {
+      "get": {
+        "operationId": "OrganizationsWebhooksController_getAllWebhooks",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsWebhooksController_createWebhook",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/webhooks/{webhookId}": {
+      "get": {
+        "operationId": "OrganizationsWebhooksController_getOrgWebhook",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsWebhooksController_deleteWebhook",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      },
+      "patch": {
+        "operationId": "OrganizationsWebhooksController_updateWebhook",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_04_15_createSchedule",
@@ -2360,6 +2605,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_04_15"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -6079,6 +6334,57 @@
           "data"
         ]
       },
+      "CreateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
+      },
       "CreateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -6126,6 +6432,52 @@
           "status",
           "data"
         ]
+      },
+      "UpdateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        }
       },
       "UpdateScheduleOutput_2024_06_11": {
         "type": "object",
@@ -6689,43 +7041,32 @@
           "data"
         ]
       },
-      "RecurringEvent_2024_06_14": {
+      "Recurrence_2024_06_14": {
         "type": "object",
         "properties": {
-          "dtstart": {
-            "format": "date-time",
-            "type": "string"
-          },
           "interval": {
-            "type": "number"
-          },
-          "count": {
-            "type": "number"
-          },
-          "freq": {
             "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
             "enum": [
-              0,
-              1,
-              2,
-              3,
-              4,
-              5,
-              6
-            ]
-          },
-          "until": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "tzid": {
+              "yearly",
+              "monthly",
+              "weekly"
+            ],
             "type": "string"
           }
         },
         "required": [
           "interval",
-          "count",
-          "freq"
+          "occurrences",
+          "frequency"
         ]
       },
       "TeamEventTypeResponseHost": {
@@ -6862,11 +7203,11 @@
             "type": "object",
             "nullable": true
           },
-          "recurringEvent": {
+          "recurrence": {
             "nullable": true,
             "allOf": [
               {
-                "$ref": "#/components/schemas/RecurringEvent_2024_06_14"
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
               }
             ]
           },
@@ -6956,7 +7297,7 @@
           "bookingFields",
           "disableGuests",
           "schedulingType",
-          "recurringEvent",
+          "recurrence",
           "metadata",
           "requiresConfirmation",
           "price",
@@ -7261,6 +7602,26 @@
           "userId"
         ]
       },
+      "GetDefaultScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateAvailabilityInput_2024_04_15": {
         "type": "object",
         "properties": {
@@ -7556,6 +7917,66 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "UpdateScheduleInput_2024_04_15": {
+        "type": "object",
+        "properties": {
+          "timeZone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "schedule": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "dateOverrides": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "timeZone",
+          "name",
+          "isDefault",
+          "schedule"
         ]
       },
       "EventTypeModel_2024_04_15": {
@@ -8967,6 +9388,84 @@
           "active"
         ]
       },
+      "OrgWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "userId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "GetAllOrgWebhooksDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "userId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
       "UserWebhookOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -8980,6 +9479,26 @@
           },
           "data": {
             "$ref": "#/components/schemas/UserWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OrgWebhooksResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetAllOrgWebhooksDto"
           }
         },
         "required": [

@@ -70,6 +70,7 @@ export const apiHandlers = {
   skype: import("./skype/api"),
   stripepayment: import("./stripepayment/api"),
   sylapsvideo: import("./sylapsvideo/api"),
+  synthflow: import("./synthflow/api"),
   tandemvideo: import("./tandemvideo/api"),
   telegram: import("./telegram/api"),
   basic: import("./templates/basic/api"),
