@@ -35,7 +35,7 @@ export function WithLayout<T extends Record<string, any>>({
     return (
       <PageWrapper
         getLayout={getLayout}
-        requiresLicense={!!requiresLicense}
+        requiresLicense={requiresLicense || !!(Page && "requiresLicense" in Page && Page.requiresLicense)}
         nonce={nonce}
         themeBasis={null}
         isBookingPage={isBookingPage || !!(Page && "isBookingPage" in Page && Page.isBookingPage)}
