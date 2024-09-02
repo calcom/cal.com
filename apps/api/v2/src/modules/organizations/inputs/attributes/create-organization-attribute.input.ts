@@ -1,4 +1,5 @@
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/inputs/attributes/options/create-organization-attribute-option.input";
+import { AttributeType } from "@prisma/client";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -9,15 +10,6 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-
-export const AttributeType = {
-  TEXT: "TEXT",
-  NUMBER: "NUMBER",
-  SINGLE_SELECT: "SINGLE_SELECT",
-  MULTI_SELECT: "MULTI_SELECT",
-} as const;
-
-export type AttributeType = (typeof AttributeType)[keyof typeof AttributeType];
 
 export class CreateOrganizationAttributeInput {
   @IsString()
