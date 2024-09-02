@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { TeamMembers } from "eventtypes/components/EventType";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
@@ -8,6 +7,7 @@ import { components } from "react-select";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { TeamMembers } from "@calcom/features/eventtypes/components/EventType";
 import type {
   AvailabilityOption,
   FormValues,
