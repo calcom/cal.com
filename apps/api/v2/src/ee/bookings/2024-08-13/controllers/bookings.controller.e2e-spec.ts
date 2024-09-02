@@ -206,13 +206,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
-              expect(data.hostId).toEqual(user.id);
+              expect(data.hosts[0].id).toEqual(user.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(eventTypeId);
-              expect(data.attendee).toEqual({ ...body.attendee, absent: false });
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
               expect(data.meetingUrl).toEqual(body.meetingUrl);
               expect(data.absentHost).toEqual(false);
               createdBooking = data;
@@ -255,13 +260,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const firstBooking = data[0];
               expect(firstBooking.id).toBeDefined();
               expect(firstBooking.uid).toBeDefined();
-              expect(firstBooking.hostId).toEqual(user.id);
+              expect(firstBooking.hosts[0].id).toEqual(user.id);
               expect(firstBooking.status).toEqual("accepted");
               expect(firstBooking.start).toEqual(new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString());
               expect(firstBooking.end).toEqual(new Date(Date.UTC(2030, 1, 4, 14, 0, 0)).toISOString());
               expect(firstBooking.duration).toEqual(60);
               expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
-              expect(firstBooking.attendee).toEqual({ ...body.attendee, absent: false });
+              expect(firstBooking.attendees[0]).toEqual({
+                name: body.attendee.name,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
               expect(firstBooking.meetingUrl).toEqual(body.meetingUrl);
               expect(firstBooking.recurringBookingUid).toBeDefined();
               expect(firstBooking.absentHost).toEqual(false);
@@ -269,28 +279,38 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const secondBooking = data[1];
               expect(secondBooking.id).toBeDefined();
               expect(secondBooking.uid).toBeDefined();
-              expect(secondBooking.hostId).toEqual(user.id);
+              expect(secondBooking.hosts[0].id).toEqual(user.id);
               expect(secondBooking.status).toEqual("accepted");
               expect(secondBooking.start).toEqual(new Date(Date.UTC(2030, 1, 11, 13, 0, 0)).toISOString());
               expect(secondBooking.end).toEqual(new Date(Date.UTC(2030, 1, 11, 14, 0, 0)).toISOString());
               expect(secondBooking.duration).toEqual(60);
               expect(secondBooking.eventTypeId).toEqual(recurringEventTypeId);
               expect(secondBooking.recurringBookingUid).toBeDefined();
-              expect(secondBooking.attendee).toEqual({ ...body.attendee, absent: false });
+              expect(secondBooking.attendees[0]).toEqual({
+                name: body.attendee.name,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
               expect(secondBooking.meetingUrl).toEqual(body.meetingUrl);
               expect(secondBooking.absentHost).toEqual(false);
 
               const thirdBooking = data[2];
               expect(thirdBooking.id).toBeDefined();
               expect(thirdBooking.uid).toBeDefined();
-              expect(thirdBooking.hostId).toEqual(user.id);
+              expect(thirdBooking.hosts[0].id).toEqual(user.id);
               expect(thirdBooking.status).toEqual("accepted");
               expect(thirdBooking.start).toEqual(new Date(Date.UTC(2030, 1, 18, 13, 0, 0)).toISOString());
               expect(thirdBooking.end).toEqual(new Date(Date.UTC(2030, 1, 18, 14, 0, 0)).toISOString());
               expect(thirdBooking.duration).toEqual(60);
               expect(thirdBooking.eventTypeId).toEqual(recurringEventTypeId);
               expect(thirdBooking.recurringBookingUid).toBeDefined();
-              expect(thirdBooking.attendee).toEqual({ ...body.attendee, absent: false });
+              expect(thirdBooking.attendees[0]).toEqual({
+                name: body.attendee.name,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
               expect(thirdBooking.meetingUrl).toEqual(body.meetingUrl);
               expect(thirdBooking.absentHost).toEqual(false);
 
@@ -320,13 +340,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.id).toEqual(createdBooking.id);
               expect(data.uid).toEqual(createdBooking.uid);
-              expect(data.hostId).toEqual(user.id);
+              expect(data.hosts[0].id).toEqual(user.id);
               expect(data.status).toEqual(createdBooking.status);
               expect(data.start).toEqual(createdBooking.start);
               expect(data.end).toEqual(createdBooking.end);
               expect(data.duration).toEqual(createdBooking.duration);
               expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
-              expect(data.attendee).toEqual(createdBooking.attendee);
+              expect(data.attendees[0]).toEqual(createdBooking.attendees[0]);
               expect(data.meetingUrl).toEqual(createdBooking.meetingUrl);
               expect(data.absentHost).toEqual(createdBooking.absentHost);
             } else {
@@ -353,14 +373,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const data: RecurringBookingOutput_2024_08_13 = responseBody.data;
               expect(data.id).toEqual(createdRecurringBooking[0].id);
               expect(data.uid).toEqual(createdRecurringBooking[0].uid);
-              expect(data.hostId).toEqual(user.id);
+              expect(data.hosts[0].id).toEqual(user.id);
               expect(data.status).toEqual(createdRecurringBooking[0].status);
               expect(data.start).toEqual(createdRecurringBooking[0].start);
               expect(data.end).toEqual(createdRecurringBooking[0].end);
               expect(data.duration).toEqual(createdRecurringBooking[0].duration);
               expect(data.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
               expect(data.recurringBookingUid).toEqual(createdRecurringBooking[0].recurringBookingUid);
-              expect(data.attendee).toEqual(createdRecurringBooking[0].attendee);
+              expect(data.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
               expect(data.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
               expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
             } else {
@@ -390,42 +410,42 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const firstBooking = data[0];
               expect(firstBooking.id).toEqual(createdRecurringBooking[0].id);
               expect(firstBooking.uid).toEqual(createdRecurringBooking[0].uid);
-              expect(firstBooking.hostId).toEqual(user.id);
+              expect(firstBooking.hosts[0].id).toEqual(user.id);
               expect(firstBooking.status).toEqual(createdRecurringBooking[0].status);
               expect(firstBooking.start).toEqual(createdRecurringBooking[0].start);
               expect(firstBooking.end).toEqual(createdRecurringBooking[0].end);
               expect(firstBooking.duration).toEqual(createdRecurringBooking[0].duration);
               expect(firstBooking.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
               expect(firstBooking.recurringBookingUid).toEqual(recurringBookingUid);
-              expect(firstBooking.attendee).toEqual(createdRecurringBooking[0].attendee);
+              expect(firstBooking.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
               expect(firstBooking.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
               expect(firstBooking.absentHost).toEqual(createdRecurringBooking[0].absentHost);
 
               const secondBooking = data[1];
               expect(secondBooking.id).toEqual(createdRecurringBooking[1].id);
               expect(secondBooking.uid).toEqual(createdRecurringBooking[1].uid);
-              expect(secondBooking.hostId).toEqual(user.id);
+              expect(secondBooking.hosts[0].id).toEqual(user.id);
               expect(secondBooking.status).toEqual(createdRecurringBooking[1].status);
               expect(secondBooking.start).toEqual(createdRecurringBooking[1].start);
               expect(secondBooking.end).toEqual(createdRecurringBooking[1].end);
               expect(secondBooking.duration).toEqual(createdRecurringBooking[1].duration);
               expect(secondBooking.eventTypeId).toEqual(createdRecurringBooking[1].eventTypeId);
               expect(secondBooking.recurringBookingUid).toEqual(recurringBookingUid);
-              expect(secondBooking.attendee).toEqual(createdRecurringBooking[1].attendee);
+              expect(secondBooking.attendees[0]).toEqual(createdRecurringBooking[1].attendees[0]);
               expect(secondBooking.meetingUrl).toEqual(createdRecurringBooking[1].meetingUrl);
               expect(secondBooking.absentHost).toEqual(createdRecurringBooking[1].absentHost);
 
               const thirdBooking = data[2];
               expect(thirdBooking.id).toEqual(createdRecurringBooking[2].id);
               expect(thirdBooking.uid).toEqual(createdRecurringBooking[2].uid);
-              expect(thirdBooking.hostId).toEqual(user.id);
+              expect(thirdBooking.hosts[0].id).toEqual(user.id);
               expect(thirdBooking.status).toEqual(createdRecurringBooking[2].status);
               expect(thirdBooking.start).toEqual(createdRecurringBooking[2].start);
               expect(thirdBooking.end).toEqual(createdRecurringBooking[2].end);
               expect(thirdBooking.duration).toEqual(createdRecurringBooking[2].duration);
               expect(thirdBooking.eventTypeId).toEqual(createdRecurringBooking[2].eventTypeId);
               expect(thirdBooking.recurringBookingUid).toEqual(recurringBookingUid);
-              expect(thirdBooking.attendee).toEqual(createdRecurringBooking[2].attendee);
+              expect(thirdBooking.attendees[0]).toEqual(createdRecurringBooking[2].attendees[0]);
               expect(thirdBooking.meetingUrl).toEqual(createdRecurringBooking[2].meetingUrl);
               expect(thirdBooking.absentHost).toEqual(createdRecurringBooking[2].absentHost);
 
@@ -742,11 +762,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.rescheduledFromUid).toEqual(createdBooking.uid);
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
-            expect(data.hostId).toEqual(user.id);
+            expect(data.hosts[0].id).toEqual(user.id);
             expect(data.status).toEqual(createdBooking.status);
             expect(data.duration).toEqual(createdBooking.duration);
             expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
-            expect(data.attendee).toEqual(createdBooking.attendee);
+            expect(data.attendees[0]).toEqual(createdBooking.attendees[0]);
             expect(data.meetingUrl).toEqual(createdBooking.meetingUrl);
             expect(data.absentHost).toEqual(createdBooking.absentHost);
 
@@ -791,14 +811,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const data: RecurringBookingOutput_2024_08_13 = responseBody.data;
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
-            expect(data.hostId).toEqual(user.id);
+            expect(data.hosts[0].id).toEqual(user.id);
             expect(data.status).toEqual(createdRecurringBooking[0].status);
             expect(data.start).toEqual(body.start);
             expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 9, 15, 0, 0)).toISOString());
             expect(data.duration).toEqual(createdRecurringBooking[0].duration);
             expect(data.recurringBookingUid).toEqual(createdRecurringBooking[0].recurringBookingUid);
             expect(data.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
-            expect(data.attendee).toEqual(createdRecurringBooking[0].attendee);
+            expect(data.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
             expect(data.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
             expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
 
@@ -862,13 +882,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
-            expect(data.hostId).toEqual(user.id);
+            expect(data.hosts[0].id).toEqual(user.id);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
             expect(data.duration).toEqual(booking.duration);
             expect(data.eventTypeId).toEqual(booking.eventTypeId);
-            expect(data.attendee).toEqual(booking.attendee);
+            expect(data.attendees[0]).toEqual(booking.attendees[0]);
             expect(data.meetingUrl).toEqual(booking.meetingUrl);
           });
       });
@@ -894,13 +914,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
-            expect(data.hostId).toEqual(user.id);
+            expect(data.hosts[0].id).toEqual(user.id);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
             expect(data.duration).toEqual(booking.duration);
             expect(data.eventTypeId).toEqual(booking.eventTypeId);
-            expect(data.attendee.absent).toEqual(true);
+            expect(data.attendees[0].absent).toEqual(true);
             expect(data.absentHost).toEqual(booking.absentHost);
             expect(data.meetingUrl).toEqual(booking.meetingUrl);
           });
@@ -931,14 +951,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
-            expect(data.hostId).toEqual(user.id);
+            expect(data.hosts[0].id).toEqual(user.id);
             expect(data.status).toEqual("cancelled");
             expect(data.cancellationReason).toEqual(body.cancellationReason);
             expect(data.start).toEqual(rescheduledBooking.start);
             expect(data.end).toEqual(rescheduledBooking.end);
             expect(data.duration).toEqual(rescheduledBooking.duration);
             expect(data.eventTypeId).toEqual(rescheduledBooking.eventTypeId);
-            expect(data.attendee).toEqual(rescheduledBooking.attendee);
+            expect(data.attendees[0]).toEqual(rescheduledBooking.attendees[0]);
             expect(data.meetingUrl).toEqual(rescheduledBooking.meetingUrl);
             expect(data.absentHost).toEqual(rescheduledBooking.absentHost);
 
@@ -1035,7 +1055,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const teamUserEmail = "orgUser1team1@api.com";
+    const teamUserEmail2 = "orgUser2team1@api.com";
     let teamUser: User;
+    let teamUser2: User;
 
     let team1EventTypeId: number;
     let team2EventTypeId: number;
@@ -1081,6 +1103,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       teamUser = await userRepositoryFixture.create({
         email: teamUserEmail,
+        locale: "it",
+        name: "orgUser1team1",
+      });
+
+      teamUser2 = await userRepositoryFixture.create({
+        email: teamUserEmail2,
+        locale: "es",
+        name: "orgUser2team1",
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
@@ -1089,6 +1119,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         isDefault: true,
       };
       await schedulesService.createUserSchedule(teamUser.id, userSchedule);
+      await schedulesService.createUserSchedule(teamUser2.id, userSchedule);
 
       await profileRepositoryFixture.create({
         uid: `usr-${teamUser.id}`,
@@ -1105,6 +1136,21 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+      await profileRepositoryFixture.create({
+        uid: `usr-${teamUser2.id}`,
+        username: teamUserEmail2,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+      });
+
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: teamUser.id } },
@@ -1115,6 +1161,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: teamUser.id } },
+        team: { connect: { id: team2.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: teamUser2.id } },
         team: { connect: { id: team2.id } },
         accepted: true,
       });
@@ -1177,6 +1230,20 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+      await hostsRepositoryFixture.create({
+        isFixed: true,
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2EventType.id,
+          },
+        },
+      });
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -1212,13 +1279,20 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
-              expect(data.hostId).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(team1EventTypeId);
-              expect(data.attendee).toEqual({ ...body.attendee, absent: false });
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
               expect(data.meetingUrl).toEqual(body.meetingUrl);
               expect(data.absentHost).toEqual(false);
             } else {
@@ -1257,13 +1331,26 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
-              expect(data.hostId).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 11, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(team2EventTypeId);
-              expect(data.attendee).toEqual({ ...body.attendee, absent: false });
+              expect(data.attendees.length).toEqual(2);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.attendees[1]).toEqual({
+                name: teamUser2.name,
+                timeZone: teamUser2.timeZone,
+                language: teamUser2.locale,
+                absent: false,
+              });
               expect(data.meetingUrl).toEqual(body.meetingUrl);
               expect(data.absentHost).toEqual(false);
             } else {

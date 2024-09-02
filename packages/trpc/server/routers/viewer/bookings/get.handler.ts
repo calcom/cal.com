@@ -213,7 +213,6 @@ export async function getBookings({
     recurringEventId: true,
     location: true,
     responses: true,
-    userId: true,
     eventType: {
       select: {
         slug: true,

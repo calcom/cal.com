@@ -3,7 +3,6 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
-  IsEmail,
   IsEnum,
   IsInt,
   IsOptional,
@@ -21,10 +20,6 @@ class Attendee {
   @Expose()
   name!: string;
 
-  @IsEmail()
-  @Expose()
-  email!: string;
-
   @IsTimeZone()
   @Expose()
   // note(Lauris): setup CapitalizeTimezone
@@ -39,6 +34,22 @@ class Attendee {
   @Expose()
   absent!: boolean;
 }
+
+class Host {
+  @IsInt()
+  @Expose()
+  id!: number;
+
+  @IsString()
+  @Expose()
+  name!: string;
+
+  @IsTimeZone()
+  @Expose()
+  // note(Lauris): setup CapitalizeTimezone
+  timeZone!: string;
+}
+
 export class BookingOutput_2024_08_13 {
   @IsInt()
   @Expose()
@@ -48,9 +59,10 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   uid!: string;
 
-  @IsInt()
+  @ValidateNested({ each: true })
+  @Type(() => Host)
   @Expose()
-  hostId!: number;
+  hosts!: Host[];
 
   @IsEnum(["cancelled", "accepted", "rejected", "pending", "rescheduled"])
   @Expose()
@@ -92,10 +104,10 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   eventTypeId!: number;
 
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => Attendee)
   @Expose()
-  attendee!: Attendee;
+  attendees!: Attendee[];
 
   @IsArray()
   @IsString({ each: true })
@@ -122,9 +134,10 @@ export class RecurringBookingOutput_2024_08_13 {
   @Expose()
   uid!: string;
 
-  @IsInt()
+  @ValidateNested({ each: true })
+  @Type(() => Host)
   @Expose()
-  hostId!: number;
+  hosts!: Host[];
 
   @IsEnum(["cancelled", "accepted", "rejected", "pending"])
   @Expose()
@@ -155,10 +168,10 @@ export class RecurringBookingOutput_2024_08_13 {
   @Expose()
   recurringBookingUid!: string;
 
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => Attendee)
   @Expose()
-  attendee!: Attendee;
+  attendees!: Attendee[];
 
   @IsArray()
   @IsString({ each: true })

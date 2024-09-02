@@ -249,7 +249,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   async transformInputRescheduleBooking(bookingUid: string, inputBooking: RescheduleBookingInput_2024_08_13) {
-    const booking = await this.bookingsRepository.getByUidWithAttendees(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUser(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
@@ -374,7 +374,7 @@ export class InputBookingsService_2024_08_13 {
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
     let allRemainingBookings = false;
     let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendees(bookingUid);
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUser(bookingUid);
 
     if (recurringBooking.length) {
       // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event

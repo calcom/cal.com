@@ -22,35 +22,38 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
-  async getByIdWithAttendees(id: number) {
+  async getByIdWithAttendeesAndUser(id: number) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
         id,
       },
       include: {
         attendees: true,
+        user: true,
       },
     });
   }
 
-  async getByUidWithAttendees(uid: string) {
+  async getByUidWithAttendeesAndUser(uid: string) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
         uid,
       },
       include: {
         attendees: true,
+        user: true,
       },
     });
   }
 
-  async getRecurringByUidWithAttendees(uid: string) {
+  async getRecurringByUidWithAttendeesAndUser(uid: string) {
     return this.dbRead.prisma.booking.findMany({
       where: {
         recurringEventId: uid,
       },
       include: {
         attendees: true,
+        user: true,
       },
     });
   }
@@ -62,6 +65,7 @@ export class BookingsRepository_2024_08_13 {
       },
       include: {
         attendees: true,
+        user: true,
       },
     });
   }

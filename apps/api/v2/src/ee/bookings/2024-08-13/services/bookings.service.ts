@@ -4,7 +4,7 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 
@@ -38,16 +38,18 @@ type BookingWithAttendeesAndEventType = Booking & {
     noShow: boolean | null;
   }[];
   eventType: { id: number };
+  user: { id: number; name: string | null; email: string } | null;
 };
 
 type CreatedBooking = {
-  hostId: number;
+  hosts: { id: number }[];
   uid: string;
   start: string;
 };
 
 @Injectable()
 export class BookingsService_2024_08_13 {
+  private readonly logger = new Logger("BookingsService");
   constructor(
     private readonly inputService: InputBookingsService_2024_08_13,
     private readonly outputService: OutputBookingsService_2024_08_13,
@@ -82,7 +84,7 @@ export class BookingsService_2024_08_13 {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
     const booking = await handleInstantMeeting(bookingRequest);
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.bookingId);
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUser(booking.bookingId);
     if (!databaseBooking) {
       throw new Error(`Booking with id=${booking.bookingId} was not found in the database`);
     }
@@ -103,7 +105,7 @@ export class BookingsService_2024_08_13 {
       throw new Error("Recurring booking was not created");
     }
 
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendees(uid);
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUser(uid);
     return this.outputService.getOutputRecurringBookings(recurringBooking);
   }
 
@@ -114,7 +116,7 @@ export class BookingsService_2024_08_13 {
       throw new Error("Booking was not created");
     }
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUser(booking.id);
     if (!databaseBooking) {
       throw new Error(`Booking with id=${booking.id} was not found in the database`);
     }
@@ -123,7 +125,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async getBooking(uid: string) {
-    const booking = await this.bookingsRepository.getByUidWithAttendees(uid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUser(uid);
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
@@ -141,7 +143,7 @@ export class BookingsService_2024_08_13 {
       return this.outputService.getOutputBooking(booking);
     }
 
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendees(uid);
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUser(uid);
     if (!recurringBooking.length) {
       throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
@@ -153,8 +155,8 @@ export class BookingsService_2024_08_13 {
     const fetchedBookings: { bookings: BookingWithAttendeesAndEventType[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
-      take: queryParams.take ?? 100,
-      // todo: add filters here like by eventtype id etc
+      // note(Lauris): we substract -1 because getAllUSerBookings child function adds +1 for some reason
+      take: queryParams.take ? queryParams.take - 1 : 100,
       filters: this.inputService.transformGetBookingsFilters(queryParams),
       ctx: {
         user,
@@ -192,7 +194,7 @@ export class BookingsService_2024_08_13 {
         throw new Error("Booking was not created");
       }
 
-      const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
+      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUser(booking.id);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${booking.id} was not found in the database`);
       }
@@ -227,7 +229,7 @@ export class BookingsService_2024_08_13 {
       userId: bookingOwnerId,
     });
 
-    const booking = await this.bookingsRepository.getByUidWithAttendees(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUser(bookingUid);
 
     if (!booking) {
       throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
@@ -247,14 +249,26 @@ export class BookingsService_2024_08_13 {
   }
 
   async billBooking(booking: CreatedBooking) {
-    await this.billingService.increaseUsageByUserId(booking.hostId, {
+    const hostId = booking.hosts[0].id;
+    if (!hostId) {
+      this.logger.error(`Booking with uid=${booking.uid} has no host`);
+      return;
+    }
+
+    await this.billingService.increaseUsageByUserId(hostId, {
       uid: booking.uid,
       startTime: new Date(booking.start),
     });
   }
 
   async billRescheduledBooking(newBooking: CreatedBooking, oldBookingUid: string) {
-    await this.billingService.increaseUsageByUserId(newBooking.hostId, {
+    const hostId = newBooking.hosts[0].id;
+    if (!hostId) {
+      this.logger.error(`Booking with uid=${newBooking.uid} has no host`);
+      return;
+    }
+
+    await this.billingService.increaseUsageByUserId(hostId, {
       uid: newBooking.uid,
       startTime: new Date(newBooking.start),
       fromReschedule: oldBookingUid,
