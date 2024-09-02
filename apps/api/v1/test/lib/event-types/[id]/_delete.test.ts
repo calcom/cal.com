@@ -19,6 +19,44 @@ describe("DELETE /api/event-types/[id]", () => {
     vi.mocked(prismaMock.eventType.findFirst).mockClear();
   });
 
+  describe("Error", async () => {
+    test("Fails to remove event type if user is not OWNER/ADMIN of team associated with event type", async () => {
+      const eventTypeId = 1234567;
+      const teamId = 9999;
+      const userId = 444444;
+
+      // Mocks for DELETE request
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "DELETE",
+        body: {},
+        query: {
+          id: eventTypeId,
+        },
+      });
+
+      prismaMock.eventType.findFirst.mockResolvedValue(
+        buildEventType({
+          id: eventTypeId,
+          teamId,
+        })
+      );
+      prismaMock.team.findFirst.mockResolvedValue({
+        id: teamId,
+        members: [{ userId: userId, role: MembershipRole.MEMBER, teamId: teamId }],
+      });
+      prismaMock.membership.findFirst.mockResolvedValue({
+        teamId,
+        userId,
+        role: MembershipRole.MEMBER,
+      });
+      // Assign userId to the request objects
+      req.userId = userId;
+
+      await handler(req, res);
+      expect(res.statusCode).toBe(403); // Check if the deletion was successful
+    });
+  });
+
   describe("Success", async () => {
     test("Removes event type if user is owner of team associated with event type", async () => {
       const eventTypeId = 1234567;
@@ -37,12 +75,23 @@ describe("DELETE /api/event-types/[id]", () => {
       prismaMock.eventType.findFirst.mockResolvedValue(
         buildEventType({
           id: eventTypeId,
+          teamId,
           team: {
             id: teamId,
-            members: [{ userId: userId, role: MembershipRole.OWNER, accepted: true }],
+            members: [{ userId: userId, role: MembershipRole.OWNER, accepted: true, teamId: teamId }],
           },
         })
       );
+      prismaMock.team.findFirst.mockResolvedValue({
+        id: teamId,
+        members: [{ userId: userId, role: MembershipRole.MEMBER, teamId: teamId }],
+      });
+      prismaMock.membership.findFirst.mockResolvedValue({
+        teamId,
+        userId,
+        role: MembershipRole.OWNER,
+        accepted: true,
+      });
 
       // Assign userId to the request objects
       req.userId = userId;
