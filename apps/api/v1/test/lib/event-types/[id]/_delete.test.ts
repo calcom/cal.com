@@ -14,18 +14,49 @@ type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
 describe("DELETE /api/event-types/[id]", () => {
+  const eventTypeId = 1234567;
+  const teamId = 9999;
+  const adminUser = 1111;
+  const memberUser = 2222;
   beforeEach(() => {
-    vi.mocked(prismaMock.team.findFirst).mockClear();
-    vi.mocked(prismaMock.eventType.findFirst).mockClear();
+    vi.resetAllMocks();
+    // Mocking membership.findFirst
+    prismaMock.membership.findFirst.mockImplementation(({ where }) => {
+      const { userId, teamId, accepted, role } = where;
+      const mockData = [
+        { userId: 1111, teamId: teamId, accepted: true, role: MembershipRole.ADMIN },
+        { userId: 2222, teamId: teamId, accepted: true, role: MembershipRole.MEMBER },
+      ];
+      // Return the correct user based on the query conditions
+      return mockData.find(
+        (membership) =>
+          membership.userId === userId &&
+          membership.teamId === teamId &&
+          membership.accepted === accepted &&
+          role.in.includes(membership.role)
+      );
+    });
+
+    // Mocking eventType.findFirst
+    prismaMock.eventType.findFirst.mockResolvedValue(
+      buildEventType({
+        id: eventTypeId,
+        teamId,
+      })
+    );
+
+    // Mocking team.findUnique
+    prismaMock.team.findUnique.mockResolvedValue({
+      id: teamId,
+      members: [
+        { userId: memberUser, role: MembershipRole.MEMBER, teamId: teamId },
+        { userId: adminUser, role: MembershipRole.ADMIN, teamId: teamId },
+      ],
+    });
   });
 
   describe("Error", async () => {
     test("Fails to remove event type if user is not OWNER/ADMIN of team associated with event type", async () => {
-      const eventTypeId = 1234567;
-      const teamId = 9999;
-      const userId = 444444;
-
-      // Mocks for DELETE request
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "DELETE",
         body: {},
@@ -34,23 +65,8 @@ describe("DELETE /api/event-types/[id]", () => {
         },
       });
 
-      prismaMock.eventType.findFirst.mockResolvedValue(
-        buildEventType({
-          id: eventTypeId,
-          teamId,
-        })
-      );
-      prismaMock.team.findFirst.mockResolvedValue({
-        id: teamId,
-        members: [{ userId: userId, role: MembershipRole.MEMBER, teamId: teamId }],
-      });
-      prismaMock.membership.findFirst.mockResolvedValue({
-        teamId,
-        userId,
-        role: MembershipRole.MEMBER,
-      });
       // Assign userId to the request objects
-      req.userId = userId;
+      req.userId = memberUser;
 
       await handler(req, res);
       expect(res.statusCode).toBe(403); // Check if the deletion was successful
@@ -59,10 +75,6 @@ describe("DELETE /api/event-types/[id]", () => {
 
   describe("Success", async () => {
     test("Removes event type if user is owner of team associated with event type", async () => {
-      const eventTypeId = 1234567;
-      const teamId = 9999;
-      const userId = 333333;
-
       // Mocks for DELETE request
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "DELETE",
@@ -72,29 +84,8 @@ describe("DELETE /api/event-types/[id]", () => {
         },
       });
 
-      prismaMock.eventType.findFirst.mockResolvedValue(
-        buildEventType({
-          id: eventTypeId,
-          teamId,
-          team: {
-            id: teamId,
-            members: [{ userId: userId, role: MembershipRole.OWNER, accepted: true, teamId: teamId }],
-          },
-        })
-      );
-      prismaMock.team.findFirst.mockResolvedValue({
-        id: teamId,
-        members: [{ userId: userId, role: MembershipRole.MEMBER, teamId: teamId }],
-      });
-      prismaMock.membership.findFirst.mockResolvedValue({
-        teamId,
-        userId,
-        role: MembershipRole.OWNER,
-        accepted: true,
-      });
-
       // Assign userId to the request objects
-      req.userId = userId;
+      req.userId = adminUser;
 
       await handler(req, res);
       expect(res.statusCode).toBe(200); // Check if the deletion was successful
