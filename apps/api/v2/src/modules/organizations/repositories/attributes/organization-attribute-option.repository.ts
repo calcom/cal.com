@@ -2,6 +2,7 @@ import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organiza
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/inputs/attributes/options/create-organization-attribute-option.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/inputs/attributes/options/update-organizaiton-attribute-option.input.ts";
 import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
+import { OrganizationsMembershipService } from "@/modules/organizations/services/organizations-membership.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
@@ -15,7 +16,8 @@ export class OrganizationAttributeOptionRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
-    private readonly organizationsAttributesService: OrganizationAttributesService
+    private readonly organizationsAttributesService: OrganizationAttributesService,
+    private readonly organizationsMembershipsService: OrganizationsMembershipService
   ) {}
 
   async createOrganizationAttributeOption(
@@ -95,12 +97,9 @@ export class OrganizationAttributeOptionRepository {
     if (!TYPE_SUPPORTS_VALUE.has(attribute.type) && data.value) {
       throw new Error("Attribute type does not support value");
     }
+    const membership = await this.organizationsMembershipsService.getOrgMembership(organizationId, userId);
 
-    const membership = await this.dbRead.prisma.membership.findFirst({
-      where: { teamId: organizationId, userId, accepted: true },
-    });
-
-    if (!membership) throw new Error("Membership not found");
+    if (!membership || !membership.accepted) throw new Error("Membership not found");
 
     let attributeOptionId = data.attributeOptionId;
     if (data.value && !attributeOptionId) {
@@ -126,9 +125,7 @@ export class OrganizationAttributeOptionRepository {
     userId: number,
     attributeOptionId: string
   ) {
-    const membership = await this.dbRead.prisma.membership.findFirst({
-      where: { teamId: organizationId, userId, accepted: true },
-    });
+    const membership = await this.organizationsMembershipsService.getOrgMembership(organizationId, userId);
 
     if (!membership) throw new Error("Membership not found");
 
