@@ -244,7 +244,7 @@ export class BookingsController {
     const oAuthClientId = clientId?.toString();
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        await this.createNextApiBookingRequest(req, oAuthClientId)
+        await this.createNextApiRecurringBookingRequest(req, oAuthClientId)
       );
 
       createdBookings.forEach(async (booking) => {
@@ -348,6 +348,19 @@ export class BookingsController {
       : DEFAULT_PLATFORM_PARAMS;
     Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
     req.body = { ...req.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+  }
+
+  private async createNextApiRecurringBookingRequest(
+    req: BookingRequest,
+    oAuthClientId?: string,
+    platformBookingLocation?: string
+  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const userId = (await this.getOwnerId(req)) ?? -1;
+    const oAuthParams = oAuthClientId
+      ? await this.getOAuthClientsParams(oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
