@@ -71,6 +71,7 @@ import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/pri
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
   deleteAllWorkflowReminders,
   getAllWorkflowsFromEventType,
@@ -474,6 +475,24 @@ async function handler(
       !originalRescheduledBooking.rescheduled
     ) {
       throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
+    }
+    const availableSlots = await getAvailableSlots({
+      input: {
+        startTime: reqBody.start,
+        endTime: reqBody.end,
+        eventTypeId: eventTypeId,
+        eventTypeSlug: eventTypeSlug,
+        timeZone: reqBody.timeZone,
+        usernameList: dynamicUserList,
+        duration: reqEventLength - 1,
+        rescheduleUid: rescheduleUid,
+        isTeamEvent: isTeamEventType,
+        teamMemberEmail: reqBody.teamMemberEmail,
+      },
+    });
+    const startDate = dayjs(reqBody.start).format("YYYY-MM-DD");
+    if (!availableSlots?.slots[startDate]?.length) {
+      throw new HttpError({ statusCode: 400, message: ErrorCode.NoAvailableSlotsFound });
     }
   }
 

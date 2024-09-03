@@ -2556,7 +2556,7 @@ describe("handleSeats", () => {
 
         req.userId = organizer.id;
 
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NoAvailableSlotsFound);
       });
     });
 

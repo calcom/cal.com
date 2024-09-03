@@ -690,6 +690,117 @@ describe("handleNewBooking", () => {
         },
         timeout
       );
+      test(
+        "should reject reschedule if the requested slot is not available",
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const host1 = getOrganizer({
+            name: "host1",
+            email: "host1@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const user1 = getOrganizer({
+            name: "user1",
+            email: "user1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const uidOfBooking2 = "n5Wv3eHgconAED2j4gcVhQ";
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  length: 120,
+                  hosts: [
+                    {
+                      userId: 101,
+                      isFixed: true,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  userId: 101,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T07:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+                {
+                  uid: uidOfBooking2,
+                  eventTypeId: 1,
+                  userId: 101,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T09:00:00.000Z`,
+                  endTime: `${plus1DateString}T11:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+              ],
+              organizer: host1,
+              usersApartFromOrganizer: [user1],
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              user: host1.name,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T08:00:00.000Z`,
+              end: `${plus1DateString}T10:00:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+          // Expect await handleNewBooking(req); to throw exception
+          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
+        },
+        timeout
+      );
 
       describe("Event Type that requires confirmation", () => {
         test(
@@ -1869,7 +1980,234 @@ describe("handleNewBooking", () => {
         );
       });
     });
+
     describe("Team event-type", () => {
+      test(
+        "should reject reschedule if the requested slot is not available",
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const host1 = getOrganizer({
+            name: "host1",
+            email: "host1@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const user1 = getOrganizer({
+            name: "user1",
+            email: "user1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const uidOfBooking2 = "n5Wv3eHgconAED2j4gcVhQ";
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  length: 120,
+                  hosts: [
+                    {
+                      userId: 101,
+                      isFixed: true,
+                    },
+                  ],
+                  schedulingType: SchedulingType.ROUND_ROBIN,
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  userId: 101,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T07:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+                {
+                  uid: uidOfBooking2,
+                  eventTypeId: 1,
+                  userId: 101,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T09:00:00.000Z`,
+                  endTime: `${plus1DateString}T11:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+              ],
+              organizer: host1,
+              usersApartFromOrganizer: [user1],
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              user: host1.name,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T07:30:00.000Z`,
+              end: `${plus1DateString}T09:30:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+          // Expect await handleNewBooking(req); to throw exception
+          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
+        },
+        timeout
+      );
+      test(
+        "should allow reschedule if the requested slot overlaps only with the current booking",
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const host1 = getOrganizer({
+            name: "host1",
+            email: "host1@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const user1 = getOrganizer({
+            name: "user1",
+            email: "user1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const uidOfBooking2 = "n5Wv3eHgconAED2j4gcVhQ";
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  length: 120,
+                  hosts: [
+                    {
+                      userId: 101,
+                      isFixed: true,
+                    },
+                  ],
+                  schedulingType: SchedulingType.ROUND_ROBIN,
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  userId: 101,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T07:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+                {
+                  uid: uidOfBooking2,
+                  eventTypeId: 1,
+                  userId: 101,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T09:00:00.000Z`,
+                  endTime: `${plus1DateString}T11:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+              ],
+              organizer: host1,
+              usersApartFromOrganizer: [user1],
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              user: host1.name,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T06:00:00.000Z`,
+              end: `${plus1DateString}T08:00:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+          const createdBooking = await handleNewBooking(req);
+          //Expect created booking to have same dates as requested
+          expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T06:00:00.000Z`);
+          expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T08:00:00.000Z`);
+        },
+        timeout
+      );
       test(
         "should send correct schedule/cancellation emails to hosts when round robin is rescheduled to different host",
         async ({ emails }) => {
@@ -1880,7 +2218,7 @@ describe("handleNewBooking", () => {
           });
 
           const roundRobinHost1 = getOrganizer({
-            name: "RR Host 1",
+            name: "RR_Host_1",
             email: "rrhost1@example.com",
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
@@ -1889,7 +2227,7 @@ describe("handleNewBooking", () => {
           });
 
           const roundRobinHost2 = getOrganizer({
-            name: "RR Host 2",
+            name: "RR_Host_2",
             email: "rrhost2@example.com",
             id: 102,
             schedules: [TestData.schedules.IstWorkHours],
@@ -2035,7 +2373,7 @@ describe("handleNewBooking", () => {
           });
 
           const roundRobinHost1 = getOrganizer({
-            name: "RR Host 1",
+            name: "RR_Host_1",
             email: "rrhost1@example.com",
             id: 101,
             schedules: [TestData.schedules.IstMorningShift],
@@ -2044,7 +2382,7 @@ describe("handleNewBooking", () => {
           });
 
           const roundRobinHost2 = getOrganizer({
-            name: "RR Host 2",
+            name: "RR_Host_2",
             email: "rrhost2@example.com",
             id: 102,
             schedules: [TestData.schedules.IstEveningShift],
@@ -2184,7 +2522,7 @@ describe("handleNewBooking", () => {
           });
 
           const roundRobinHost1 = getOrganizer({
-            name: "RR Host 1",
+            name: "RR_Host_1",
             email: "rrhost1@example.com",
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
@@ -2193,7 +2531,7 @@ describe("handleNewBooking", () => {
           });
 
           const roundRobinHost2 = getOrganizer({
-            name: "RR Host 2",
+            name: "RR_Host_2",
             email: "rrhost2@example.com",
             id: 102,
             schedules: [TestData.schedules.IstWorkHours],
