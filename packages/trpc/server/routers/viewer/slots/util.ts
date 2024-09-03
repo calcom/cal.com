@@ -319,23 +319,9 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  teamMember?: string | undefined;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
-  const attendeeCalUsers = input.attendeeEmails
-    ? await prisma.user.findMany({
-        where: {
-          email: {
-            in: input.attendeeEmails,
-          },
-        },
-        select: {
-          credentials: { select: credentialForCalendarServiceSelect },
-          ...availabilityUserSelect,
-        },
-      })
-    : null;
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -405,25 +391,46 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           };
         });
 
+  const originalRescheduledBooking = input.rescheduleUid
+    ? await prisma.booking.findFirst({
+        where: {
+          uid: input.rescheduleUid,
+          status: {
+            in: [BookingStatus.ACCEPTED],
+          },
+        },
+        select: {
+          userId: true,
+          attendees: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      })
+    : null;
   if (
     input.rescheduleUid &&
     eventType.rescheduleWithSameRoundRobinHost &&
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const originalRescheduledBooking = await prisma.booking.findFirst({
-      where: {
-        uid: input.rescheduleUid,
-        status: {
-          in: [BookingStatus.ACCEPTED],
-        },
-      },
-      select: {
-        userId: true,
-      },
-    });
     hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
 
+  const attendeeEmails = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
+  const attendeeCalUsers = attendeeEmails
+    ? await prisma.user.findMany({
+        where: {
+          email: {
+            in: attendeeEmails,
+          },
+        },
+        select: {
+          credentials: { select: credentialForCalendarServiceSelect },
+          ...availabilityUserSelect,
+        },
+      })
+    : null;
   const teamMemberHost = hosts.find((host) => host.user.email === input?.teamMemberEmail);
 
   // If the requested team member is a fixed host proceed as normal else get availability like the requested member is a fixed host

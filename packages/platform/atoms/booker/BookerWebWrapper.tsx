@@ -118,7 +118,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       ? 2
       : undefined;
 
-  const attendeeEmails = props.bookingData?.attendees.map((attendee) => attendee.email);
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -133,7 +132,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     duration: props.duration,
     selectedDate,
     teamMemberEmail: props.teamMemberEmail,
-    attendeeEmails,
   });
   const bookings = useBookings({
     event,

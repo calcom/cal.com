@@ -457,7 +457,7 @@ test.describe("Reschedule Tests", async () => {
     }) => {
       const host = await users.create();
       const guests = await Promise.all(
-        Array.from({ length: 10 }, (_, i) => users.create({ username: `guest-${i}` }))
+        Array.from({ length: 2 }, (_, i) => users.create({ username: `guest-${i}` }))
       );
       const eventType = host.eventTypes[0];
       const booking = await bookings.create(host.id, host.username, eventType.id, {
@@ -470,6 +470,12 @@ test.describe("Reschedule Tests", async () => {
             })),
           },
         },
+      });
+
+      // Add one booking for one of the guests at time between 12PM and 5PM
+      await bookings.create(guests[0].id, guests[0].username, guests[0].eventTypes[0].id, {
+        startTime: new Date(getMillisecondsForTime(12)),
+        endTime: new Date(getMillisecondsForTime(12.5)),
       });
 
       await setGuestWorkingHours12PM5PM({ page, host, guest: guests[0] });
@@ -490,7 +496,7 @@ test.describe("Reschedule Tests", async () => {
     }) => {
       const host = await users.create();
       const guests = await Promise.all(
-        Array.from({ length: 10 }, (_, i) => users.create({ username: `guest-${i}` }))
+        Array.from({ length: 2 }, (_, i) => users.create({ username: `guest-${i}` }))
       );
       const nonCalUserAttendees = Array.from({ length: 5 }, (_, i) => ({
         email: `attendee-${i}@example.com`,
@@ -511,6 +517,12 @@ test.describe("Reschedule Tests", async () => {
             ],
           },
         },
+      });
+
+      // Add one booking for one of the guests at time between 12PM and 5PM
+      await bookings.create(guests[0].id, guests[0].username, guests[0].eventTypes[0].id, {
+        startTime: new Date(getMillisecondsForTime(12)),
+        endTime: new Date(getMillisecondsForTime(12.5)),
       });
 
       await setGuestWorkingHours12PM5PM({ page, host, guest: guests[0] });
