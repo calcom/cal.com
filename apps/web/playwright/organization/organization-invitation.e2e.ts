@@ -300,9 +300,9 @@ test.describe("Organization", () => {
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await page.locator('input[name="username"]').fill("john");
         await page.waitForLoadState("networkidle");
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
@@ -488,6 +488,8 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string) {
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   await page.locator('button:text("Send invite")').click();
   await page.waitForLoadState("networkidle");
+  const toast = await page.waitForSelector('[data-testid="toast-success"]');
+  expect(toast).toBeTruthy();
 }
 
 async function expectUserToBeAMemberOfOrganization({
@@ -535,6 +537,7 @@ async function expectUserToBeAMemberOfTeam({
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.reload();
+  await page.waitForLoadState("networkidle");
   expect(
     (
       await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()
