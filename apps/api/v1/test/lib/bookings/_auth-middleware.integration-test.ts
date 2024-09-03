@@ -104,7 +104,7 @@ describe("Booking ownership and access in Middleware", () => {
   const guestUserEmail = "guest@example.com";
   beforeEach(() => {
     vi.resetAllMocks();
-    prismaMock.user.findUnique.mockImplementation(async ({ where, select }) => {
+    prismaMock.user.findUnique.mockImplementation(({ where, select }) => {
       const { id: userId } = where;
 
       // Define mock user data including email and bookings
@@ -127,19 +127,17 @@ describe("Booking ownership and access in Middleware", () => {
       ];
 
       // Find the matching user based on userId
-      const user = mockUsers.find((u) => u.id === userId);
-
-      if (!user) return null;
+      const user = mockUsers.find((user) => user.id === userId);
 
       // Filter bookings if a specific booking id is requested
-      const filteredBookings = user.bookings.filter((booking) =>
-        select.bookings.where ? booking.id === select.bookings.where.id : true
+      const filteredBookings = user?.bookings.filter((booking) =>
+        select?.bookings?.where ? booking.id === select?.bookings?.where?.id : true
       );
 
-      // Return a Promise that resolves to the selected fields
+      // Return the selected fields
       return {
-        email: select.email ? user.email : undefined,
-        bookings: select.bookings ? filteredBookings : [],
+        email: select?.email ? user?.email : undefined,
+        bookings: select?.bookings ? filteredBookings : [],
       };
     });
 
@@ -246,9 +244,12 @@ describe("Booking ownership and access in Middleware", () => {
         id: 222,
       },
     });
-
+    const user1 = await prismaMock.user.findUnique({ where: { id: 1111 } });
+    const user2 = await prismaMock.user.findUnique({ where: { id: 1122 } });
+    const user3 = await prismaMock.user.findUnique({ where: { id: 2222 } });
+    console.log({ user1 }, { user2 }, { user3 });
     req.userId = memberUserId;
-
+    console.log({ req });
     await expect(authMiddleware(req)).rejects.toThrow();
   });
 
