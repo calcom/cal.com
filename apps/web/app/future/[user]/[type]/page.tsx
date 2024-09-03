@@ -4,6 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -15,17 +16,19 @@ import {
 } from "~/users/views/users-type-public-view.getServerSideProps";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const props = await getData(legacyCtx);
 
-  const { eventData, booking, user: username, slug: eventSlug } = props;
+  const { booking, user: username, slug: eventSlug } = props;
   const rescheduleUid = booking?.uid;
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
   const event = await EventRepository.getPublicEvent({
     username,
     eventSlug,
     isTeamEvent: false,
-    org: eventData.entity.orgSlug ?? null,
-    fromRedirectOfNonOrgLink: eventData.entity.fromRedirectOfNonOrgLink,
+    org: isValidOrgDomain ? currentOrgDomain : null,
+    fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
   });
 
   const profileName = event?.profile?.name ?? "";
