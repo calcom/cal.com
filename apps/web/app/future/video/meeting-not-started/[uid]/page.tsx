@@ -10,9 +10,10 @@ import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServ
 import type { PageProps } from "~/videos/views/videos-meeting-not-started-single-view";
 import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
 
-export const generateMetadata = async ({ params }: _PageProps) => {
+export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+  const p = { ...params, ...searchParams };
   const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
-    bookingUid: typeof params?.uid === "string" ? params.uid : "",
+    bookingUid: typeof p?.uid === "string" ? p.uid : "",
   });
 
   return await _generateMetadata(
