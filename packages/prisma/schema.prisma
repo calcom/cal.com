@@ -58,8 +58,6 @@ model Host {
   @@index([eventTypeId])
 }
 
-
-
 model EventType {
   id          Int     @id @default(autoincrement())
   /// @zod.min(1)
