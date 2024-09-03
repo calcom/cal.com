@@ -104,7 +104,7 @@ describe("Booking ownership and access in Middleware", () => {
   const guestUserEmail = "guest@example.com";
   beforeEach(() => {
     vi.resetAllMocks();
-    prismaMock.user.findUnique.mockImplementation(({ where, select }) => {
+    prismaMock.user.findUnique.mockImplementation(async ({ where, select }) => {
       const { id: userId } = where;
 
       // Define mock user data including email and bookings
@@ -136,7 +136,7 @@ describe("Booking ownership and access in Middleware", () => {
         select.bookings.where ? booking.id === select.bookings.where.id : true
       );
 
-      // Return the selected fields
+      // Return a Promise that resolves to the selected fields
       return {
         email: select.email ? user.email : undefined,
         bookings: select.bookings ? filteredBookings : [],
