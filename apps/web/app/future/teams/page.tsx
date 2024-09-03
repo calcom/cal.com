@@ -4,6 +4,7 @@ import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@lib/teams/getServerSideProps";
 
+import type { PageProps } from "~/teams/teams-view";
 import Page from "~/teams/teams-view";
 
 export const generateMetadata = async () =>
@@ -12,4 +13,8 @@ export const generateMetadata = async () =>
     (t) => t("create_manage_teams_collaborative")
   );
 
-export default WithLayout({ getData: withAppDirSsr(getServerSideProps), getLayout: null, Page })<"P">;
+export default WithLayout({
+  getData: withAppDirSsr<PageProps>(getServerSideProps),
+  getLayout: null,
+  Page,
+})<"P">;

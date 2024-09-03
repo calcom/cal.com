@@ -5,9 +5,13 @@ import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 
-function Teams() {
+import type { getServerSideProps } from "@lib/teams/getServerSideProps";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
+function Teams(props: PageProps) {
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
 
