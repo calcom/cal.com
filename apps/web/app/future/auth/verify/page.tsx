@@ -17,8 +17,9 @@ const querySchema = z.object({
   t: z.string().optional(),
 });
 
-export const generateMetadata = async ({ params }: _PageProps) => {
-  const { sessionId, stripeCustomerId } = querySchema.parse(params);
+export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+  const p = { ...params, ...searchParams };
+  const { sessionId, stripeCustomerId } = querySchema.parse(p);
 
   if (!stripeCustomerId && !sessionId) {
     return await _generateMetadata(
