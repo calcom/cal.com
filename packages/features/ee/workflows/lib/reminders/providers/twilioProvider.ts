@@ -138,6 +138,40 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
     )?.team;
 
     teamId = teamToPay?.id;
+
+    if (teamId) {
+      const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
+        where: {
+          teamId,
+          userId: userId,
+          month: dayjs().utc().startOf("month").toDate(),
+        },
+      });
+
+      if (existingSMSCreditCountUser) {
+        await prisma.smsCreditCount.update({
+          where: {
+            id: existingSMSCreditCountUser.id,
+          },
+          data: {
+            credits: {
+              increment: credits,
+            },
+          },
+          select: smsCreditCountSelect,
+        });
+      } else {
+        await prisma.smsCreditCount.create({
+          data: {
+            teamId,
+            userId,
+            credits,
+            month: dayjs().utc().startOf("month").toDate(),
+          },
+          select: smsCreditCountSelect,
+        });
+      }
+    }
   }
 
   if (teamId) {
@@ -167,13 +201,13 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
       smsCreditCountTeam = await prisma.smsCreditCount.create({
         data: {
           teamId,
-          userId,
           credits,
           month: dayjs().utc().startOf("month").toDate(),
         },
         select: smsCreditCountSelect,
       });
     }
+
     const team = smsCreditCountTeam.team;
 
     const acceptedMembers = team.members.filter((member) => member.accepted);
