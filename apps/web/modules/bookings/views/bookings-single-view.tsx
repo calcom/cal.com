@@ -1,6 +1,3 @@
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
@@ -73,52 +70,6 @@ import { timeZone } from "@calcom/web/lib/clock";
 
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 interface RescheduleOrCancelWarningProps {
   pastAppointment: boolean;
   startTime: dayjs.Dayjs;
@@ -196,9 +147,12 @@ const RescheduleOrCancelWarning = ({ pastAppointment, startTime }: RescheduleOrC
   ]);
 
   useEffect(() => {
-    supabase.then((data: any) => {
-      console.log(data);
-    });
+    supabase
+      .from("Booking")
+      .select()
+      .then((data: any) => {
+        console.log(data);
+      });
   }, [supabase]);
 
   if (!purchaseDate) return null;
@@ -241,19 +195,7 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
-  } = {
-    allRemainingBookings: false,
-    isSuccessBookingPage: false,
-    cancel: false,
-    reject: false,
-    formerTime: false,
-    email: false,
-    seatReferenceUid: false,
-    noShow: false,
-    rating: false,
-  };
-
-  // querySchema.parse(routerQuery);
+  } = querySchema.parse(routerQuery);
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -756,7 +698,7 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                       </div>
-                      <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
+                      <div className="text-default grid grid-cols-3 text-left rtl:text-right">
                         {Object.entries(bookingInfo.responses).map(([name, response]) => {
                           const field = eventType.bookingFields.find((field) => field.name === name);
                           // We show location in the "where" section
@@ -778,9 +720,9 @@ export default function Success(props: PageProps) {
 
                           return (
                             <>
-                              <div className="text-emphasis mt-4 font-medium">{label}</div>
+                              <div className="mt-3 font-medium">{label}</div>
                               <p
-                                className="text-default break-words"
+                                className="col-span-2 mt-3"
                                 data-testid="field-response"
                                 data-fob-field={field.name}>
                                 {field.type === "boolean"
@@ -1002,10 +944,10 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
-                    <RescheduleOrCancelWarning
+                    {/* <RescheduleOrCancelWarning
                       pastAppointment={isPastBooking}
                       startTime={dayjs(bookingInfo.startTime)}
-                    />
+                    /> */}
                     <div className="flex justify-center">
                       <span className=" text-xs">
                         Confira a nossa{" "}
@@ -1162,14 +1104,17 @@ export default function Success(props: PageProps) {
                   severity="warning"
                   message={
                     <div>
-                      <p className="font-semibold">{t("google_new_spam_policy")}</p>
-                      <span className="underline">
-                        <a
-                          target="_blank"
-                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
-                          {t("resolve")}
-                        </a>
-                      </span>
+                      <p className="font-semibold">
+                        Para adicionar o evento ao seu Google Calendar, abra o e-mail de confirmação, clique
+                        no botão "Adicionar à agenda" e, em seguida, no botão "Sim",{" "}
+                        <span className="underline">
+                          <a
+                            target="_blank"
+                            href="https://www.yinflow.life/habilitar-eventos-no-google-calendar">
+                            conforme demonstrado neste vídeo.
+                          </a>
+                        </span>
+                      </p>
                     </div>
                   }
                   CustomIcon="circle-alert"
