@@ -10,7 +10,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const session = await getServerSession({ req });
 
-  // @TODO res will not be available in future pages (app dir)
   if (session) {
     res.writeHead(302, { Location: "/" });
     res.end();
@@ -31,7 +30,6 @@ export async function getServerSidePropsAppDir(context: GetServerSidePropsContex
 
   const session = await getServerSession({ req });
 
-  // @TODO res will not be available in future pages (app dir)
   if (session) {
     const redirect = await import("next/navigation").then((mod) => mod.redirect);
     redirect("/");
