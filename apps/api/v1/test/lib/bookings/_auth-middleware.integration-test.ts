@@ -104,7 +104,7 @@ describe("Booking ownership and access in Middleware", () => {
   const guestUserEmail = "guest@example.com";
   beforeEach(() => {
     vi.resetAllMocks();
-    prismaMock.user.findUnique.mockImplementation(({ where, select }) => {
+    prismaMock.user.findUnique.mockImplementation(async ({ where, select }) => {
       const { id: userId } = where;
 
       const mockUsers = [
