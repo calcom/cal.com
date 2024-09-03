@@ -13,8 +13,15 @@ export type BookerLayoutsTransformedSchema = {
 
 @ValidatorConstraint({ name: "LayoutValidator", async: false })
 export class LayoutValidator implements ValidatorConstraintInterface {
-  validate(value: any) {
+  validate(value: BookerLayoutsInputEnum_2024_06_14 | BookerLayoutsInputEnum_2024_06_14[]) {
     const validValues = Object.values(BookerLayoutsInputEnum_2024_06_14);
+
+    // If the value is an array, check if every item in the array is valid
+    if (Array.isArray(value)) {
+      return value.every((layout) => validValues.includes(layout));
+    }
+
+    // If the value is a single layout, check if it is valid
     return validValues.includes(value);
   }
 
