@@ -1,16 +1,37 @@
-import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
-import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
+import type { NextApiRequest } from "next";
+import { stringify } from "querystring";
 
-import appConfig from "../config.json";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
-const handler: AppDeclarativeHandler = {
-  appType: appConfig.type,
-  variant: appConfig.variant,
-  slug: appConfig.slug,
-  supportsMultipleInstalls: false,
-  handlerType: "add",
-  createCredential: ({ appType, user, slug }) =>
-    createDefaultInstallation({ appType, user: user, slug, key: {} }),
-};
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
-export default handler;
+async function handler(req: NextApiRequest) {
+  // Get user
+  const user = req?.session?.user;
+  if (!user) {
+    return { status: 401, body: { error: "Unauthorized" } };
+  }
+
+  const appKeys = await getAppKeysFromSlug("nextcloudtalk");
+  const hostUrl = appKeys.nextcloudTalkHost as string;
+  const client_id = appKeys.nextcloudTalkClientId as string;
+  const client_secret = appKeys.nextcloudTalkClientSecret as string;
+  const state = encodeOAuthState(req);
+
+  const params = {
+    response_type: "code",
+    client_id,
+    client_secret,
+    redirect_uri: `${WEBAPP_URL}/api/integrations/campsite/callback`,
+    state,
+  };
+  const query = stringify(params);
+  const url = `${hostUrl}/index.php/apps/oauth2/authorize?${query}`;
+  return { url };
+}
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(handler) }),
+});
