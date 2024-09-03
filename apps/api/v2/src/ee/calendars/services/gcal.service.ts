@@ -131,11 +131,6 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const token = await oAuth2Client.getToken(parsedCode);
     // Google oAuth Credentials are stored in token.tokens
     const key = token.tokens;
-    const credential = await this.credentialRepository.createAppCredential(
-      GOOGLE_CALENDAR_TYPE,
-      key as Prisma.InputJsonValue,
-      ownerId
-    );
 
     oAuth2Client.setCredentials(key);
 
@@ -149,10 +144,30 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
     if (primaryCal?.id) {
-      await this.selectedCalendarsRepository.createSelectedCalendar(
-        primaryCal.id,
-        credential.id,
+      const alreadyExistingSelectedCalendar = await this.selectedCalendarsRepository.getUserSelectedCalendar(
         ownerId,
+        GOOGLE_CALENDAR_TYPE,
+        primaryCal.id
+      );
+
+      if (alreadyExistingSelectedCalendar) {
+        await this.calendarsService.createAndLinkCalendarEntry(
+          ownerId,
+          alreadyExistingSelectedCalendar.externalId,
+          key as Prisma.InputJsonValue,
+          GOOGLE_CALENDAR_TYPE,
+          alreadyExistingSelectedCalendar.credentialId
+        );
+
+        return {
+          url: redir || origin,
+        };
+      }
+
+      await this.calendarsService.createAndLinkCalendarEntry(
+        ownerId,
+        primaryCal.id,
+        key as Prisma.InputJsonValue,
         GOOGLE_CALENDAR_TYPE
       );
     }
