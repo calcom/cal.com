@@ -21,17 +21,22 @@ export const sendNotification = async ({
   title,
   body,
   icon,
+  url,
 }: {
   subscription: Subscription;
   title: string;
   body: string;
   icon?: string;
+  url?: string;
 }) => {
   try {
     const payload = JSON.stringify({
       title,
       body,
       icon,
+      data: {
+        url,
+      },
     });
     await webpush.sendNotification(subscription, payload);
   } catch (error) {
