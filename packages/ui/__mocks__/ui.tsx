@@ -1,5 +1,4 @@
-import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { vi } from "vitest";
 
 vi.mock("@calcom/ui", async (originalImport) => {
   const original = (await originalImport()) as Record<string, unknown>;
@@ -11,6 +10,4 @@ vi.mock("@calcom/ui", async (originalImport) => {
   };
 });
 
-afterEach(() => {
-  cleanup();
-});
+export {};

@@ -154,16 +154,16 @@ const workspaces = packagedEmbedTestsOnly
         test: {
           globals: true,
           name: "@calcom/features/form-builder",
-          include: ["packages/features/form-builder/**/*.{test,spec}.[jt]s?(x)"],
+          include: ["packages/features/form-builder/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",
-          setupFiles: ["@calcom/features/form-builder/test-setup.ts"],
+          setupFiles: ["packages/ui/components/test-setup.ts"],
         },
       },
       {
         test: {
           globals: true,
           name: "@calcom/features/bookings",
-          include: ["packages/features/bookings/**/*.{test,spec}.[jt]s?(x)"],
+          include: ["packages/features/bookings/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.ts"],
         },
