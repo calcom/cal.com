@@ -252,6 +252,14 @@ export class UserRepository {
     return user;
   }
 
+  static async findByIdOrThrow({ id }: { id: number }) {
+    const user = await UserRepository.findById({ id });
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    return user;
+  }
+
   static async findManyByOrganization({ organizationId }: { organizationId: number }) {
     const profiles = await ProfileRepository.findManyForOrg({ organizationId });
     return profiles.map((profile) => profile.user);

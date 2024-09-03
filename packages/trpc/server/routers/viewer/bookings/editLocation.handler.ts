@@ -3,20 +3,24 @@ import type { z } from "zod";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
-import dayjs from "@calcom/dayjs";
 import { sendLocationChangeEmails } from "@calcom/emails";
-import { parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { Prisma, Booking, BookingReference } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { EventResult } from "@calcom/types/EventManager";
+import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -30,6 +34,7 @@ type EditLocationOptions = {
   } & BookingsProcedureContext;
   input: TEditLocationInputSchema;
 };
+
 type UserMetadata = z.infer<typeof userMetadata>;
 
 /**
@@ -54,7 +59,7 @@ class SystemError extends Error {
 
 function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   organizer,
-  translate,
+  loggedInUserTranslate: translate,
 }: {
   organizer: {
     name: string;
@@ -62,7 +67,10 @@ function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
       defaultConferencingApp?: NonNullable<UserMetadata>["defaultConferencingApp"];
     } | null;
   };
-  translate: Awaited<ReturnType<typeof getTranslation>>;
+  /**
+   * translate is used to translate if any error is thrown
+   */
+  loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
 }) {
   const organizerMetadata = organizer.metadata;
   const defaultConferencingApp = organizerMetadata?.defaultConferencingApp;
@@ -97,123 +105,17 @@ function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   return appLink;
 }
 
-export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) => {
-  const {
-    bookingId,
-    /**
-     * It would be
-     * - Address for Organizer Address
-     * - Phone Number for Organizer Phone
-     * - Meeting Link for Link Meeting Type
-     * - {OrganizerDefaultConferencingAppType} for Organizer Default Conferencing App
-     */
-    newLocation,
-    credentialId,
-  } = input;
-  const { booking, user: loggedInUser } = ctx;
-
-  const organizerFromDb = await prisma.user.findFirstOrThrow({
-    where: {
-      id: booking.userId || 0,
-    },
-    select: {
-      name: true,
-      email: true,
-      timeZone: true,
-      locale: true,
-      metadata: true,
-    },
-  });
-
-  const organizer = {
-    ...organizerFromDb,
-    metadata: userMetadata.parse(organizerFromDb.metadata),
+const updateLocationInConnectedAppForBooking = async ({
+  evt,
+  eventManager,
+  booking,
+}: {
+  evt: CalendarEvent;
+  eventManager: EventManager;
+  booking: Booking & {
+    references: BookingReference[];
   };
-
-  let conferenceCredential: CredentialPayload | null = null;
-
-  if (credentialId) {
-    conferenceCredential = await prisma.credential.findFirst({
-      where: {
-        id: credentialId,
-      },
-      select: credentialForCalendarServiceSelect,
-    });
-  }
-
-  const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
-
-  const attendeesListPromises = booking.attendees.map(async (attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-    };
-  });
-
-  const attendeesList = await Promise.all(attendeesListPromises);
-
-  let newLocationInEvtFormat;
-
-  try {
-    newLocationInEvtFormat =
-      newLocation !== OrganizerDefaultConferencingAppType
-        ? newLocation
-        : getLocationForOrganizerDefaultConferencingAppInEvtFormat({
-            organizer: {
-              name: organizer.name ?? "Organizer",
-              metadata: organizer.metadata,
-            },
-            translate: await getTranslation(loggedInUser.locale ?? "en", "common"),
-          });
-  } catch (e) {
-    if (e instanceof UserError) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: e.message });
-    }
-    logger.error(safeStringify(e));
-    throw e;
-  }
-
-  const evt: CalendarEvent = {
-    title: booking.title || "",
-    type: (booking.eventType?.title as string) || booking?.title || "",
-    description: booking.description || "",
-    startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
-    endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
-    organizer: {
-      email: booking?.userPrimaryEmail ?? organizer.email,
-      name: organizer.name ?? "Nameless",
-      timeZone: organizer.timeZone,
-      language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
-    },
-    attendees: attendeesList,
-    uid: booking.uid,
-    recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-    location: newLocationInEvtFormat,
-    conferenceCredentialId: credentialId ?? undefined,
-    destinationCalendar: booking?.destinationCalendar
-      ? [booking?.destinationCalendar]
-      : booking?.user?.destinationCalendar
-      ? [booking?.user?.destinationCalendar]
-      : [],
-    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
-    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
-  };
-
-  const credentials = await getUsersCredentials(ctx.user);
-
-  const eventManager = new EventManager({
-    ...ctx.user,
-    credentials: [
-      ...(credentials ? credentials : []),
-      ...(conferenceCredential ? [conferenceCredential] : []),
-    ],
-  });
-
+}) => {
   const updatedResult = await eventManager.updateLocation(evt, booking);
   const results = updatedResult.results;
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -221,46 +123,167 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       errorCode: "BookingUpdateLocationFailed",
       message: "Updating location failed",
     };
-    logger.error(`Booking ${ctx.user.username} failed`, error, results);
+    logger.error(`Updating location failed`, safeStringify(error), safeStringify(results));
     throw new SystemError("Updating location failed");
-  } else {
-    const additionalInformation: AdditionalInformation = {};
-    logger.info(`Updating location and references in DB`, safeStringify(results));
-
-    if (results.length) {
-      additionalInformation.hangoutLink = results[0].updatedEvent?.hangoutLink;
-      additionalInformation.conferenceData = results[0].updatedEvent?.conferenceData;
-      additionalInformation.entryPoints = results[0].updatedEvent?.entryPoints;
-    }
-
-    const bookingMetadataUpdate = {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt),
-    };
-
-    await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: {
-        location: newLocationInEvtFormat,
-        metadata: {
-          ...(typeof booking.metadata === "object" && booking.metadata),
-          ...bookingMetadataUpdate,
-        },
-        references: {
-          create: updatedResult.referencesToCreate,
-        },
-      },
-    });
-
-    try {
-      await sendLocationChangeEmails(
-        { ...evt, additionalInformation },
-        booking?.eventType?.metadata as EventTypeMetadata
-      );
-    } catch (error) {
-      console.log("Error sending LocationChangeEmails", safeStringify(error));
-    }
   }
+  logger.info(`Got results from updateLocationInConnectedApp`, safeStringify(updatedResult.results));
+  return updatedResult;
+};
+
+const extractAdditionalInformation = (
+  result: Pick<EventResult<any>, "updatedEvent">
+): AdditionalInformation => {
+  const additionalInformation: AdditionalInformation = {};
+  if (result) {
+    additionalInformation.hangoutLink = result.updatedEvent?.hangoutLink;
+    additionalInformation.conferenceData = result.updatedEvent?.conferenceData;
+    additionalInformation.entryPoints = result.updatedEvent?.entryPoints;
+  }
+  return additionalInformation;
+};
+
+async function updateBookingLocationInDb({
+  booking,
+  evt,
+  referencesToCreate,
+}: {
+  booking: {
+    id: number;
+    metadata: Booking["metadata"];
+  };
+  evt: Ensure<CalendarEvent, "location">;
+  referencesToCreate: Prisma.BookingReferenceCreateInput[];
+}) {
+  const bookingMetadataUpdate = {
+    videoCallUrl: getVideoCallUrlFromCalEvent(evt),
+  };
+
+  await BookingRepository.updateLocationById({
+    data: {
+      location: evt.location,
+      metadata: {
+        ...(typeof booking.metadata === "object" && booking.metadata),
+        ...bookingMetadataUpdate,
+      },
+      referencesToCreate,
+    },
+    where: {
+      id: booking.id,
+    },
+  });
+
+  await prisma.booking.update({
+    where: {
+      id: booking.id,
+    },
+    data: {
+      location: evt.location,
+      metadata: {
+        ...(typeof booking.metadata === "object" && booking.metadata),
+        ...bookingMetadataUpdate,
+      },
+      references: {
+        create: referencesToCreate,
+      },
+    },
+  });
+}
+
+async function getAllCredentials({
+  user,
+  conferenceCredentialId,
+}: {
+  user: { id: number };
+  conferenceCredentialId: number | null;
+}) {
+  const credentials = await getUsersCredentials(user);
+
+  let conferenceCredential: CredentialPayload | null = null;
+
+  if (conferenceCredentialId) {
+    conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({
+      id: conferenceCredentialId,
+    });
+  }
+  return [...(credentials ? credentials : []), ...(conferenceCredential ? [conferenceCredential] : [])];
+}
+
+async function getLocationInEvtFormatOrThrow({
+  location,
+  organizer,
+  loggedInUserTranslate,
+}: {
+  location: string;
+  organizer: {
+    name: string | null;
+    metadata: UserMetadata;
+  };
+  loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
+}) {
+  try {
+    return location !== OrganizerDefaultConferencingAppType
+      ? location
+      : getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+          organizer: {
+            name: organizer.name ?? "Organizer",
+            metadata: organizer.metadata,
+          },
+          loggedInUserTranslate,
+        });
+  } catch (e) {
+    if (e instanceof UserError) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: e.message });
+    }
+    logger.error(safeStringify(e));
+    throw e;
+  }
+}
+
+export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) => {
+  const { newLocation, credentialId: conferenceCredentialId } = input;
+  const { booking, user: loggedInUser } = ctx;
+
+  const organizerFromDb = await UserRepository.findByIdOrThrow({ id: booking.userId || 0 });
+
+  const organizer = {
+    ...organizerFromDb,
+    metadata: userMetadata.parse(organizerFromDb.metadata),
+  };
+
+  const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
+    location: newLocation,
+    organizer,
+    loggedInUserTranslate: await getTranslation(loggedInUser.locale ?? "en", "common"),
+  });
+
+  const evt = await buildCalEventFromBooking({
+    booking,
+    organizer,
+    location: newLocationInEvtFormat,
+    conferenceCredentialId,
+  });
+
+  const eventManager = new EventManager({
+    ...ctx.user,
+    credentials: await getAllCredentials({ user: ctx.user, conferenceCredentialId }),
+  });
+
+  const updatedResult = await updateLocationInConnectedAppForBooking({
+    booking,
+    eventManager,
+    evt,
+  });
+
+  await updateBookingLocationInDb({ booking, evt, referencesToCreate: updatedResult.referencesToCreate });
+
+  try {
+    await sendLocationChangeEmails(
+      { ...evt, additionalInformation: extractAdditionalInformation(updatedResult.results[0]) },
+      booking?.eventType?.metadata as EventTypeMetadata
+    );
+  } catch (error) {
+    console.log("Error sending LocationChangeEmails", safeStringify(error));
+  }
+
   return { message: "Location updated" };
 };

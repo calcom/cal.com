@@ -445,5 +445,10 @@ export const getOrganizerInputLocationTypes = () => {
 };
 
 export const isAttendeeInputRequired = (locationType: string) => {
-  return locationsTypes.find((l) => l.type === locationType)?.attendeeInputType !== null;
+  const location = locationsTypes.find((l) => l.type === locationType);
+  if (!location) {
+    // Consider throwing an error here. This shouldn't happen normally.
+    return false;
+  }
+  return location.attendeeInputType;
 };

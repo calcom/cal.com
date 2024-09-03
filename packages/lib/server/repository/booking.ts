@@ -156,4 +156,29 @@ export class BookingRepository {
       },
     });
   }
+
+  static async updateLocationById({
+    where: { id },
+    data: { location, metadata, referencesToCreate },
+  }: {
+    where: { id: number };
+    data: {
+      location: string;
+      metadata: Record<string, unknown>;
+      referencesToCreate: Prisma.BookingReferenceCreateInput[];
+    };
+  }) {
+    await prisma.booking.update({
+      where: {
+        id,
+      },
+      data: {
+        location,
+        metadata,
+        references: {
+          create: referencesToCreate,
+        },
+      },
+    });
+  }
 }
