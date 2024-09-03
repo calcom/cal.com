@@ -947,7 +947,7 @@ export default function Success(props: PageProps) {
                     {/* <RescheduleOrCancelWarning
                       pastAppointment={isPastBooking}
                       startTime={dayjs(bookingInfo.startTime)}
-                    /> */}
+                    />
                     <div className="flex justify-center">
                       <span className=" text-xs">
                         Confira a nossa{" "}
@@ -955,7 +955,7 @@ export default function Success(props: PageProps) {
                           política de reagendamentos, cancelamentos e reembolsos.
                         </Link>
                       </span>{" "}
-                    </div>
+                    </div> */}
 
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
