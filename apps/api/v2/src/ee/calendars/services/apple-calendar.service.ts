@@ -6,6 +6,8 @@ import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { symmetricEncrypt, CalendarService } from "@calcom/platform-libraries";
+import { symmetricDecrypt } from "@calcom/platform-libraries-1.2.3";
+import { Credential } from "@calcom/prisma/client";
 
 @Injectable()
 export class AppleCalendarService implements CredentialSyncCalendarApp {
@@ -73,6 +75,27 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
       invalid: false,
     };
 
+    const existingAppleCalendarCredentials = await this.credentialRepository.getAllUserCredentialsByTypeAndId(
+      APPLE_CALENDAR_TYPE,
+      userId
+    );
+
+    if (existingAppleCalendarCredentials && existingAppleCalendarCredentials.length > 0) {
+      const hasUpdatedCalendar = existingAppleCalendarCredentials.filter((calendarCredential: Credential) => {
+        const decryptedKey = JSON.parse(
+          symmetricDecrypt(calendarCredential.key, process.env.CALENDSO_ENCRYPTION_KEY || "")
+        );
+
+        return decryptedKey.username == username && decryptedKey.password == password;
+      });
+
+      if (!!hasUpdatedCalendar && hasUpdatedCalendar.length == 1) {
+        return {
+          status: SUCCESS_STATUS,
+        };
+      }
+    }
+
     try {
       const dav = new CalendarService({
         id: 0,
@@ -80,7 +103,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         user: { email: userEmail },
       });
       await dav?.listCalendars();
-      await this.credentialRepository.createAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
+      await this.credentialRepository.persistAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
     } catch (reason) {
       throw new BadRequestException(`Could not add this apple calendar account: ${reason}`);
     }
