@@ -2201,6 +2201,7 @@
   "member_removed": "Member removed",
   "my_availability": "My Availability",
   "team_availability": "Team Availability",
+  "instant_meeting_availability": "Instant meeting availability",
   "backup_code": "Backup Code",
   "backup_codes": "Backup Codes",
   "backup_code_instructions": "Each backup code can be used exactly once to grant access without your authenticator.",

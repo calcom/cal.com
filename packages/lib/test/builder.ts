@@ -86,6 +86,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     position: 1,
     isInstantEvent: false,
     instantMeetingExpiryTimeOffsetInSeconds: 90,
+    instantMeetingScheduleId: null,
     locations: null,
     length: 15,
     offsetStart: 0,
