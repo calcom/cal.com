@@ -63,12 +63,28 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       month: dayjs().utc().startOf("month").toDate(),
     },
   });
+  const membersWithUsedCredits = await Promise.all(
+    members.map(async (member) => {
+      const smsCreditCount = await ctx.prisma.smsCreditCount.findFirst({
+        where: {
+          teamId: input.teamId,
+          userId: member.id,
+          month: dayjs().utc().startOf("month").toDate(),
+        },
+      });
+
+      return {
+        ...member,
+        smsCreditsUsed: smsCreditCount?.credits ?? 0,
+      };
+    })
+  );
 
   return {
     ...restTeam,
     smsCreditsUsed: smsCreditCount?.credits ?? 0,
     smsLimitReached: smsCreditCount?.limitReached,
-    members: shouldHideMembers() ? [] : members,
+    members: shouldHideMembers() ? [] : membersWithUsedCredits,
     safeBio: markdownToSafeHTML(team.bio),
     membership: {
       role: membership.role,

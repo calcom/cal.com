@@ -71,9 +71,23 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
     name: "smsCreditAllocationType",
   });
 
+  const smsCreditAllocationValue = useWatch({
+    control: form.control,
+    name: "smsCreditAllocationValue",
+  });
+
   const availableCredits = Math.max(totalSmsCredits - team.smsCreditsUsed, 0);
 
   const percentageReached = (team.smsCreditsUsed / totalSmsCredits) * 100;
+
+  const smsLimitForMembers =
+    smsCreditAllocationType === SmsCreditAllocationType.ALL
+      ? totalSmsCredits
+      : smsCreditAllocationType === SmsCreditAllocationType.NONE
+      ? 0
+      : smsCreditAllocationValue ?? 0;
+
+  const membersAboveLimit = team.members.filter((member) => member.smsCreditsUsed >= smsLimitForMembers);
 
   return (
     <>
@@ -156,13 +170,36 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                         type="number"
                         addOnSuffix="credits"
                         value={value}
-                        onChange={(e) => onChange(Number(e.target.value))}
+                        onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
                       />
                     )}
                   />
                 </div>
               )}
             </div>
+            {smsLimitForMembers > 0 && smsCreditAllocationType !== SmsCreditAllocationType.ALL ? (
+              <div className="mt-5 border-t text-sm">
+                <Label className="mt-5">Team members that reached limit:</Label>
+                {membersAboveLimit.length > 0 ? (
+                  <ul className="divide-subtle border-subtle mt-4 divide-y rounded-md border">
+                    {membersAboveLimit.map((member) => {
+                      return (
+                        <li key={member.id}>
+                          <div className="flex ">
+                            <div className="flex-1 border-r p-2">{member.username}</div>
+                            <div className="flex-1 p-2">{member.smsCreditsUsed} credits</div>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <div className="text-subtle">None</div>
+                )}
+              </div>
+            ) : (
+              <></>
+            )}
           </div>
           <SectionBottomActions align="end">
             <Button color="primary" type="submit" loading={mutation.isPending}>
