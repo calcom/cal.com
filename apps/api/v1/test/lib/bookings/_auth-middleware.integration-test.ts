@@ -128,9 +128,6 @@ describe("Booking ownership and access in Middleware", () => {
       // Find the matching user based on userId
       const user = mockUsers.find((user) => user.id === userId);
 
-      // If no user is found, return null
-      if (!user) return null;
-
       // Define the result type explicitly
       const result: {
         email?: string;
@@ -139,11 +136,11 @@ describe("Booking ownership and access in Middleware", () => {
 
       // Assign values conditionally
       if (select?.email) {
-        result.email = user.email;
+        result.email = user?.email;
       }
 
       if (select?.bookings) {
-        result.bookings = user.bookings.filter((booking) =>
+        result.bookings = user?.bookings.filter((booking) =>
           select.bookings.where ? booking.id === select.bookings.where.id : true
         );
       }
