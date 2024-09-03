@@ -8,7 +8,7 @@ import Page from "~/apps/installed/[category]/installed-category-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => `${t("installed_apps")}`,
+    (t) => t("installed_apps"),
     (t) => t("manage_your_connected_apps")
   );
 };

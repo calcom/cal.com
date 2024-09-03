@@ -8,11 +8,12 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Icon } from "@calcom/ui";
 import { AppSkeletonLoader as SkeletonLoader, Button, EmptyScreen, ShellSubHeading } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-import type { querySchemaType } from "@lib/apps/installed/[category]/getServerSideProps";
+import type { querySchemaType, getServerSideProps } from "@lib/apps/installed/[category]/getServerSideProps";
 
 import { AppList } from "@components/apps/AppList";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
@@ -108,7 +109,9 @@ type ModalState = {
   teamId?: number;
 };
 
-export default function InstalledApps() {
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function InstalledApps(props: PageProps) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const category = searchParams?.get("category") as querySchemaType["category"];
