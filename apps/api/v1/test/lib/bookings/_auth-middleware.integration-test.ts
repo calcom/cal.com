@@ -104,8 +104,6 @@ describe("Booking ownership and access in Middleware", () => {
   const guestUserEmail = "guest@example.com";
   beforeEach(() => {
     vi.resetAllMocks();
-
-    // Mock user.findUnique for the specific scenario
     prismaMock.user.findUnique.mockImplementation(({ where, select }) => {
       const { id: userId } = where;
 
@@ -145,14 +143,9 @@ describe("Booking ownership and access in Middleware", () => {
       };
     });
 
-    // Mocking bookings
     const mockAllBookings = () => {
       prismaMock.booking.findMany.mockImplementation(({ where }) => {
-        console.log("Mock called with where clause:", where);
-
         const { id, eventType, attendees } = where;
-
-        // Define your mock data for all scenarios
         const mockData = [
           {
             id: 111,
@@ -198,7 +191,6 @@ describe("Booking ownership and access in Middleware", () => {
         return mockData.filter((booking) => {
           // Check if the query is for attendees
           if (attendees) {
-            console.log("Handling attendees check...");
             return (
               booking.id === id &&
               booking.attendees?.some((attendee) => attendee.email === attendees.some.email)
@@ -207,13 +199,11 @@ describe("Booking ownership and access in Middleware", () => {
 
           // Check if the query is for eventType owner
           if (eventType?.owner) {
-            console.log("Handling eventType owner check...");
             return booking.id === id && booking.eventType?.owner?.id === eventType.owner.id;
           }
 
           // Check if the query is for team members (admin/owner)
           if (eventType?.team?.members) {
-            console.log("Handling team members check...");
             return (
               booking.id === id &&
               booking.eventType?.team?.members.some(
@@ -224,13 +214,10 @@ describe("Booking ownership and access in Middleware", () => {
               )
             );
           }
-
           return false;
         });
       });
     };
-
-    // Call this mock before your tests
     mockAllBookings();
   });
   test("should not throw error for bookings where user is an attendee", async () => {
@@ -251,6 +238,19 @@ describe("Booking ownership and access in Middleware", () => {
       throw new Error(`${error.statusCode}: ${error.message}`);
     }
   });
+  test("should throw error for bookings where user is not an attendee", async () => {
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      body: {},
+      query: {
+        id: 222,
+      },
+    });
+
+    req.userId = memberUserId;
+
+    await expect(authMiddleware(req)).rejects.toThrow();
+  });
 
   test("should not throw error for booking where user is the event type owner", async () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -269,23 +269,66 @@ describe("Booking ownership and access in Middleware", () => {
       throw new Error(`${error.statusCode}: ${error.message}`);
     }
   });
+  test("should throw error for booking where user is not the event type owner", async () => {
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      body: {},
+      query: {
+        id: 444,
+      },
+    });
+
+    req.userId = memberUserId;
+    await expect(authMiddleware(req)).rejects.toThrow();
+  });
 
   test("should not throw error for booking where user is team owner or admin", async () => {
-    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+    const { req: req1 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       body: {},
       query: {
         id: 555,
       },
     });
+    const { req: req2 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      body: {},
+      query: {
+        id: 666,
+      },
+    });
 
-    req.userId = ownerUserId;
+    req1.userId = adminUserId;
+    req2.userId = ownerUserId;
 
     try {
-      await authMiddleware(req);
+      await authMiddleware(req1);
+      await authMiddleware(req2);
       expect(true).toBe(true);
     } catch (error) {
       throw new Error(`${error.statusCode}: ${error.message}`);
     }
+  });
+  test("should throw error for booking where user is not team owner or admin", async () => {
+    const { req: req1 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      body: {},
+      query: {
+        id: 555,
+      },
+    });
+    const { req: req2 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      body: {},
+      query: {
+        id: 666,
+      },
+    });
+
+    req1.userId = memberUserId;
+    req2.userId = memberUserId;
+
+    await expect(authMiddleware(req1)).rejects.toThrow();
+    await expect(authMiddleware(req2)).rejects.toThrow();
   });
 });
