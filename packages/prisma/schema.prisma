@@ -331,9 +331,10 @@ model User {
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
 
-  OutOfOfficeReasons     OutOfOfficeReason[]
-  smsLockState           SMSLockState        @default(UNLOCKED)
-  smsLockReviewedByAdmin Boolean             @default(false)
+  OutOfOfficeReasons         OutOfOfficeReason[]
+  smsLockState               SMSLockState                 @default(UNLOCKED)
+  smsLockReviewedByAdmin     Boolean                      @default(false)
+  NotificationsSubscriptions NotificationsSubscriptions[]
 
   @@unique([email])
   @@unique([email, username])
@@ -344,6 +345,15 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+model NotificationsSubscriptions {
+  id           Int    @id @default(autoincrement())
+  userId       Int
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription String
+
+  @@index([userId, subscription])
 }
 
 // It holds Organization Profiles as well as User Profiles for users that have been added to an organization
