@@ -4,6 +4,8 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
+import { EventRepository } from "@calcom/lib/server/repository/event";
+
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import LegacyPage from "~/users/views/users-type-public-view";
@@ -15,19 +17,16 @@ import {
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
 
-  const { eventData, booking, user, slug } = props;
+  const { eventData, booking, user: username, slug: eventSlug } = props;
   const rescheduleUid = booking?.uid;
-  const { trpc } = await import("@calcom/trpc");
-  const { data: event } = trpc.viewer.public.event.useQuery(
-    {
-      username: user,
-      eventSlug: slug,
-      isTeamEvent: false,
-      org: eventData.entity.orgSlug ?? null,
-      fromRedirectOfNonOrgLink: eventData.entity.fromRedirectOfNonOrgLink,
-    },
-    { refetchOnWindowFocus: false }
-  );
+
+  const event = await EventRepository.getPublicEvent({
+    username,
+    eventSlug,
+    isTeamEvent: false,
+    org: eventData.entity.orgSlug ?? null,
+    fromRedirectOfNonOrgLink: eventData.entity.fromRedirectOfNonOrgLink,
+  });
 
   const profileName = event?.profile?.name ?? "";
   const title = event?.title ?? "";
