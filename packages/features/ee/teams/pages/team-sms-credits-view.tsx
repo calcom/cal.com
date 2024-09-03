@@ -1,12 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { SMS_CREDITS_PER_MEMBER } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,9 +29,9 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
   const totalSmsCredits = team?.members.filter((member) => member.accepted).length * SMS_CREDITS_PER_MEMBER;
 
   const allcationOptions = [
-    { value: SmsCreditAllocationType.ALL, label: "No Limit" },
-    { value: SmsCreditAllocationType.NONE, label: "None" },
-    { value: SmsCreditAllocationType.SPECIFIC, label: "Specific" },
+    { value: SmsCreditAllocationType.ALL, label: t("no_limit") },
+    { value: SmsCreditAllocationType.NONE, label: t("none") },
+    { value: SmsCreditAllocationType.SPECIFIC, label: t("specific") },
   ];
 
   const utils = trpc.useUtils();
@@ -104,42 +104,45 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
           }}>
           <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
             <div>
-              <p className="text-default text-base font-semibold">Usage</p>
+              <p className="text-default text-base font-semibold">{t("sms_usage")}</p>
               <p className="text-default">
-                Your team has 250 credits per member available. More information to sms credits{" "}
-                <a href="https://example.com" className="underline">
-                  here
-                </a>
+                <Trans i18nKey="sms_usage_description">
+                  Your team has 250 credits per member available. More information to sms credits{" "}
+                  <a href="https://example.com" className="underline">
+                    here
+                  </a>
+                </Trans>
               </p>
             </div>
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
-            <div className="text-sm">Total SMS Credits per month: {totalSmsCredits}</div>
-            <div className="mt-4 text-sm">SMS Credits used: {team.smsCreditsUsed}</div>
-            <div className="mt-4 text-sm">Available SMS Credits for this month: {availableCredits}</div>
+            <div className="text-sm">{t("total_sms_credits_per_month", { credits: totalSmsCredits })}</div>
+            <div className="mt-4 text-sm">{t("sms_credits_used", { credits: team.smsCreditsUsed })}</div>
+            <div className="mt-4 text-sm">{t("available_sms_credits", { credits: availableCredits })}</div>
             <div>
               {team.smsLimitReached ? (
                 <Badge className="mt-2" variant="red">
-                  Limit Reached
+                  {t("limit_reached")}
                 </Badge>
               ) : (
                 <></>
               )}
-              {percentageReached >= 80 ? <Badge variant="orange">{percentageReached}% used</Badge> : <></>}
+              {percentageReached >= 80 ? (
+                <Badge variant="orange">{t("percentage_used", { amount: percentageReached })}</Badge>
+              ) : (
+                <></>
+              )}
             </div>
           </div>
 
           <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
             <div>
-              <p className="text-default text-base font-semibold">Credit allocation for members</p>
-              <p className="text-default">
-                Manage how many of your team&apos;s credits can be used for team members&apos; personal event
-                types
-              </p>
+              <p className="text-default text-base font-semibold">{t("credit_allocation_for_members")}</p>
+              <p className="text-default">{t("credit_allocation_description")}</p>
             </div>
           </div>
           <div className="border-subtle border border-y-0 px-4 pb-4 pt-8 sm:px-6">
-            <Label>Amount of credits to be used for personal event types:</Label>
+            <Label>{t("amount_credits_for_personal_event_types")}</Label>
             <div className="mt-3 flex">
               <Controller
                 control={form.control}
@@ -187,14 +190,16 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                         <li key={member.id}>
                           <div className="flex ">
                             <div className="flex-1 border-r p-2">{member.username}</div>
-                            <div className="flex-1 p-2">{member.smsCreditsUsed} credits</div>
+                            <div className="flex-1 p-2">
+                              {t("nr_credits", { amount: member.smsCreditsUsed })}
+                            </div>
                           </div>
                         </li>
                       );
                     })}
                   </ul>
                 ) : (
-                  <div className="text-subtle">None</div>
+                  <div className="text-subtle">{t("none")}</div>
                 )}
               </div>
             ) : (
@@ -232,11 +237,6 @@ const SmsCreditsViewWrapper = () => {
     },
     [error]
   );
-
-  if (isPending)
-    return (
-      <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_team_description")} />
-    );
 
   if (!team) return null;
 
