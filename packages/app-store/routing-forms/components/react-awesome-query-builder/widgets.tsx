@@ -118,7 +118,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
       containerClassName="w-full"
       type={type}
       value={textValue}
-      labelSrOnly={noLabel}
+      noLabel={noLabel}
       placeholder={placeholder}
       disabled={readOnly}
       onChange={onChange}

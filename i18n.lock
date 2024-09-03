@@ -463,6 +463,14 @@ checksums:
     dynamic_booking: 927c71b4f3ba40240b664d7c9a1c8efd
     allow_seo_indexing: 421a6a2100fd741cbffa8764f5e0e72d
     seo_indexing: 8d91183c10c7e4b56e0208acecb79d21
+    allow_browser_notifications: cbe4e1677d717c5330816389fe2e6b28
+    you_have_denied_notifications: 6693a68b32a3baa592bc5b6063ec3c89
+    disable_browser_notifications: 16740fdd3fed13b0344fecd83c2bec4d
+    browser_notifications_turned_on: 20488a8e52be8be6c377c7666a15d8fb
+    browser_notifications_turned_off: f9ff8b96ea57c00e90d761af4f3494c3
+    browser_notifications_denied: 82aae055de0e798655fa07f96d426717
+    please_allow_notifications: 1ff79d465b45be45108352f8422cdb84
+    browser_notifications_not_supported: 3cdb7e333c9bfcf703047d66deab825e
     email: e7f34943a0c2fb849db1839ff6ef5cb5
     email_placeholder: 06962d9f03dcdbd4fa1b876f240054e8
     full_name: f45991923345e8322c9ff8cd6b7e2b16
