@@ -8,7 +8,7 @@ import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -113,6 +113,7 @@ export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
 export { symmetricEncrypt };
+export { symmetricDecrypt };
 export { CalendarService };
 
 export { getCalendar };
