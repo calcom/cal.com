@@ -19,7 +19,7 @@ test.describe("Team", () => {
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await test.step("To the team by email (external user)", async () => {
       const invitedUserEmail = users.trackEmail({
@@ -29,7 +29,7 @@ test.describe("Team", () => {
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -66,7 +66,7 @@ test.describe("Team", () => {
       // Check newly invited member is not pending anymore
       await page.bringToFront();
       await page.goto(`/settings/teams/${team.id}/members`);
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);
@@ -103,7 +103,7 @@ test.describe("Team", () => {
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await test.step("To the organization by email (internal user)", async () => {
       const invitedUserEmail = users.trackEmail({
@@ -113,7 +113,7 @@ test.describe("Team", () => {
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       await expectInvitationEmailToBeReceived(
         page,
         emails,

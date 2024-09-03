@@ -43,7 +43,7 @@ testBothFutureAndLegacyRoutes.describe("Payment", (routeVariant) => {
 
       await page.goto(`${user.username}/30-min`);
 
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);

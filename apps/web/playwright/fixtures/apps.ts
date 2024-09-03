@@ -62,11 +62,11 @@ export function createAppsFixture(page: Page) {
       }
       await page.locator("[data-testid=display-location]").last().check();
       await saveEventType(page);
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       await gotoBookingPage(page);
       await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
       await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
@@ -94,11 +94,11 @@ export function createAppsFixture(page: Page) {
     verifyConferencingAppNew: async (app: TApp, eventTypeIds: number[]) => {
       for (const id of eventTypeIds) {
         await page.goto(`/event-types/${id}`);
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
         await bookTimeSlot(page, { name: `Test Testson`, email: `test@example.com` });
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
       }

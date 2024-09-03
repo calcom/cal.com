@@ -47,7 +47,7 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
 
     await user1NotMemberOfOrg1.apiLogin();
     await page.goto("/event-types");
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     const userEventLinksLocators = await page
       .locator(`[data-testid=slug-${user1NotMemberOfOrg1.username}] [data-testid="preview-link-button"]`)

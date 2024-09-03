@@ -579,7 +579,7 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     // disable webhook
     await page.click('[data-testid="webhook-switch"]');
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
       where: {
@@ -608,7 +608,7 @@ test.describe("FORM_SUBMITTED", async () => {
 
     await user.apiLogin();
     const webhookReceiver = await webhooks.createReceiver();
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     const form = await routingForms.create({
       name: "Test Form",
@@ -624,7 +624,7 @@ test.describe("FORM_SUBMITTED", async () => {
       ],
     });
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";
@@ -693,7 +693,7 @@ test.describe("FORM_SUBMITTED", async () => {
       ],
     });
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const textFieldIdentifier = "name";

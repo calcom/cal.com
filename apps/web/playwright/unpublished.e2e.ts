@@ -47,7 +47,7 @@ test.describe("Unpublished", () => {
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     await page.goto(`/org/${requestedSlug}`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
     expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
@@ -65,7 +65,7 @@ test.describe("Unpublished", () => {
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug }] = org.children as { slug: string }[];
     await page.goto(`/org/${requestedSlug}/team/${subteamSlug}`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
     expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
@@ -84,7 +84,7 @@ test.describe("Unpublished", () => {
     const [{ slug: subteamSlug, id: subteamId }] = org.children as { slug: string; id: number }[];
     const { slug: subteamEventSlug } = await owner.getFirstTeamEvent(subteamId);
     await page.goto(`/org/${requestedSlug}/team/${subteamSlug}/${subteamEventSlug}`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
@@ -97,7 +97,7 @@ test.describe("Unpublished", () => {
     const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     await page.goto(`/org/${requestedSlug}/${owner.username}`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
     expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);
@@ -110,7 +110,7 @@ test.describe("Unpublished", () => {
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: ownerEventType }] = owner.eventTypes;
     await page.goto(`/org/${requestedSlug}/${owner.username}/${ownerEventType}`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
     expect(await page.locator(`h2:has-text("${title(org.name)}")`).count()).toBe(1);
     expect(await page.locator(`div:text("${description("organization")}")`).count()).toBe(1);

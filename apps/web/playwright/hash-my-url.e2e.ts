@@ -32,7 +32,7 @@ test.describe("hash my url", () => {
     // click update
     await page.locator('[data-testid="update-eventtype"]').press("Enter");
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     // book using generated url hash
     await page.goto($url);
@@ -59,7 +59,7 @@ test.describe("hash my url", () => {
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
     await page.locator("[data-testid=update-eventtype]").click();
     await page.getByTestId("toast-success").waitFor();
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
     await page.locator(".primary-navigation >> text=Advanced").click();
     const $url2 = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
     expect($url2.includes("somethingrandom")).toBeTruthy();

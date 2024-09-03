@@ -24,7 +24,7 @@ test.describe("Organization", () => {
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
       await page.goto("/settings/organizations/members");
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
@@ -104,7 +104,7 @@ test.describe("Organization", () => {
 
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
@@ -126,7 +126,7 @@ test.describe("Organization", () => {
           email: invitedUserEmail,
         });
 
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         const inviteLink = await expectInvitationEmailToBeReceived(
           page,
           emails,
@@ -206,7 +206,7 @@ test.describe("Organization", () => {
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
       await page.goto("/settings/organizations/members");
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
@@ -306,7 +306,7 @@ test.describe("Organization", () => {
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
         await page.locator('input[name="password"]').fill("Password99!");
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         await expect(page.locator('button[type="submit"]')).toBeDisabled();
       });
     });
@@ -331,7 +331,7 @@ test.describe("Organization", () => {
 
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail);
@@ -487,7 +487,7 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string) {
   await page.locator('button:text("Add")').click();
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   await page.locator('button:text("Send invite")').click();
-  await page.waitForLoadState("networkidle");
+  // await page.waitForLoadState("networkidle");
 }
 
 async function expectUserToBeAMemberOfOrganization({

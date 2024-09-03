@@ -96,7 +96,7 @@ test.describe("Managed Event Types", () => {
       await page.locator(`text=${optionText}`).click();
       await page.locator("[data-testid=update-eventtype]").click();
       await page.getByTestId("toast-success").waitFor();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await page.getByTestId("vertical-tab-assignment").click();
       await gotoBookingPage(page);
@@ -141,7 +141,7 @@ test.describe("Managed Event Types", () => {
 
       // Save changes
       await page.locator('[type="submit"]').click();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await page.goto("/auth/logout");
     });
@@ -154,7 +154,7 @@ test.describe("Managed Event Types", () => {
       await page.waitForURL("event-types/**");
 
       await expect(page.locator('input[name="title"]')).toBeEditable();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await page.goto("/auth/logout");
     });
@@ -171,7 +171,7 @@ test.describe("Managed Event Types", () => {
       // Save changes
       await page.locator('[type="submit"]').click();
       await page.getByTestId("toast-success").waitFor();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await page.goto("/auth/logout");
 
@@ -184,7 +184,7 @@ test.describe("Managed Event Types", () => {
       // Save changes
       await page.locator('[type="submit"]').click();
       await page.getByTestId("toast-success").waitFor();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await page.goto("/auth/logout");
 
