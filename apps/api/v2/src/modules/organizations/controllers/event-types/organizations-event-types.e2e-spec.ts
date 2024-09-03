@@ -296,7 +296,7 @@ describe("Organizations Event Types Endpoints", () => {
             time: 60,
             unit: NoticeThresholdUnitEnum.MINUTES,
           },
-          blockCalendarForUnconfirmedBookings: true,
+          blockUnconfirmedBookingsInBooker: true,
         },
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,

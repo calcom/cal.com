@@ -294,12 +294,12 @@ function getResponseEventTypeRequiresConfirmation(
       noticeThreshold: {
         ...requiresConfirmationThreshold,
       },
-      blockCalendarForUnconfirmedBookings: requiresConfirmationWillBlockSlot,
+      blockUnconfirmedBookingsInBooker: requiresConfirmationWillBlockSlot,
     };
   } else if (requiresConfirmation) {
     return {
       confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
-      blockCalendarForUnconfirmedBookings: requiresConfirmationWillBlockSlot,
+      blockUnconfirmedBookingsInBooker: requiresConfirmationWillBlockSlot,
     };
   }
   return undefined;

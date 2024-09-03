@@ -705,7 +705,7 @@ describe("transformApiEventTypeRequiresConfirmation", () => {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
-      blockCalendarForUnconfirmedBookings: true,
+      blockUnconfirmedBookingsInBooker: true,
     };
 
     const expectedOutput = {

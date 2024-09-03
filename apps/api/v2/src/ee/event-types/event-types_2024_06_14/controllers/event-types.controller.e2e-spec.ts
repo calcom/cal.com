@@ -250,7 +250,7 @@ describe("Event types Endpoints", () => {
             time: 60,
             unit: NoticeThresholdUnitEnum.MINUTES,
           },
-          blockCalendarForUnconfirmedBookings: true,
+          blockUnconfirmedBookingsInBooker: true,
         },
         recurrence: {
           frequency: FrequencyInput.weekly,
@@ -435,7 +435,7 @@ describe("Event types Endpoints", () => {
         scheduleId: firstSchedule.id,
         requiresConfirmation: {
           confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
-          blockCalendarForUnconfirmedBookings: false,
+          blockUnconfirmedBookingsInBooker: false,
         },
         seats: {
           seatsPerTimeSlot: 4,
@@ -459,7 +459,7 @@ describe("Event types Endpoints", () => {
         lengthInMinutes: 60,
         requiresConfirmation: {
           confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
-          blockCalendarForUnconfirmedBookings: false,
+          blockUnconfirmedBookingsInBooker: false,
         },
         scheduleId: firstSchedule.id,
       };
@@ -553,7 +553,7 @@ describe("Event types Endpoints", () => {
         lengthInMinutes: 60,
         requiresConfirmation: {
           confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
-          blockCalendarForUnconfirmedBookings: false,
+          blockUnconfirmedBookingsInBooker: false,
         },
         scheduleId: firstSchedule.id,
         seats: {
@@ -607,7 +607,7 @@ describe("Event types Endpoints", () => {
         .send({
           requiresConfirmation: {
             confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
-            blockCalendarForUnconfirmedBookings: false,
+            blockUnconfirmedBookingsInBooker: false,
           },
         })
         .expect(400);
@@ -644,7 +644,7 @@ describe("Event types Endpoints", () => {
         },
         requiresConfirmation: {
           confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
-          blockCalendarForUnconfirmedBookings: false,
+          blockUnconfirmedBookingsInBooker: false,
         },
         recurrence: {
           frequency: FrequencyInput.monthly,

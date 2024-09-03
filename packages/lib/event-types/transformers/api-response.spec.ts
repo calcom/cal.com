@@ -739,7 +739,7 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
-      blockCalendarForUnconfirmedBookings: true,
+      blockUnconfirmedBookingsInBooker: true,
     };
     const result = getResponseEventTypeRequiresConfirmation(
       transformedField.requiresConfirmation,

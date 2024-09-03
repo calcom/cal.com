@@ -43,7 +43,7 @@ export class RequiresConfirmation_2024_06_14 {
   noticeThreshold?: NoticeThreshold_2024_06_14;
 
   @IsBoolean()
-  blockCalendarForUnconfirmedBookings!: boolean;
+  blockUnconfirmedBookingsInBooker!: boolean;
 }
 
 // Validator for confirmation settings

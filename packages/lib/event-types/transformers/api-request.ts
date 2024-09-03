@@ -195,7 +195,7 @@ function transformApiEventTypeRequiresConfirmation(
       return {
         requiresConfirmation: true,
         requiresConfirmationThreshold: undefined,
-        requiresConfirmationWillBlockSlot: inputRequiresConfirmation.blockCalendarForUnconfirmedBookings,
+        requiresConfirmationWillBlockSlot: inputRequiresConfirmation.blockUnconfirmedBookingsInBooker,
       };
     case ConfirmationPolicyEnum.TIME:
       return {
@@ -203,7 +203,7 @@ function transformApiEventTypeRequiresConfirmation(
         requiresConfirmationThreshold: {
           ...inputRequiresConfirmation.noticeThreshold,
         } as NoticeThreshold_2024_06_14,
-        requiresConfirmationWillBlockSlot: inputRequiresConfirmation.blockCalendarForUnconfirmedBookings,
+        requiresConfirmationWillBlockSlot: inputRequiresConfirmation.blockUnconfirmedBookingsInBooker,
       };
   }
 }
