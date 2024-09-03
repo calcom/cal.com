@@ -114,7 +114,7 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
       <div className="items-start space-y-2 md:flex md:space-y-0">
         {types.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -575,15 +575,23 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
+  const defaultConfig = {
+    layout: BookerLayouts.MONTH_VIEW,
+  };
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
-    },
+      config: defaultConfig,
+    } as PreviewState["inline"],
     theme: Theme.auto,
-    layout: BookerLayouts.MONTH_VIEW,
-    floatingPopup: {},
-    elementClick: {},
+    layout: defaultConfig.layout,
+    floatingPopup: {
+      config: defaultConfig,
+    } as PreviewState["floatingPopup"],
+    elementClick: {
+      config: defaultConfig,
+    } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
       brandColor: "#000000",
@@ -707,11 +715,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const FloatingPopupPositionOptions = [
     {
-      value: "bottom-right",
+      value: "bottom-right" as const,
       label: "Bottom right",
     },
     {
-      value: "bottom-left",
+      value: "bottom-left" as const,
       label: "Bottom left",
     },
   ];
@@ -941,6 +949,27 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             setPreviewState((previewState) => {
                               return {
                                 ...previewState,
+                                inline: {
+                                  ...previewState.inline,
+                                  config: {
+                                    ...(previewState.inline.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
+                                floatingPopup: {
+                                  ...previewState.floatingPopup,
+                                  config: {
+                                    ...(previewState.floatingPopup.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
+                                elementClick: {
+                                  ...previewState.elementClick,
+                                  config: {
+                                    ...(previewState.elementClick.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
                                 theme: option.value,
                               };
                             });
@@ -1005,6 +1034,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return {
                                 ...previewState,
                                 floatingPopup: {
+                                  ...previewState.floatingPopup,
                                   config,
                                 },
                                 layout: option.value,

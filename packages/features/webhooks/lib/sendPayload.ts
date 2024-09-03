@@ -88,7 +88,9 @@ export type EventPayloadType = CalendarEvent &
     rescheduleEndTime?: string;
     downloadLink?: string;
     paymentId?: number;
-    paymentData?: Payment | { [key: string]: string | number | boolean | null };
+    rescheduledBy?: string;
+    cancelledBy?: string;
+    paymentData?: Payment;
   };
 
 export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;

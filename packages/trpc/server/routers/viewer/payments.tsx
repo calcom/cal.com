@@ -3,11 +3,9 @@ import { z } from "zod";
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -129,29 +127,20 @@ export const paymentsRouter = router({
 
         const userId = ctx.user.id || 0;
         const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId });
-
-        const subscriberOptions = {
+        const eventTypeId = booking.eventTypeId || 0;
+        const webhooks = await new WebhookService({
           userId,
-          eventTypeId: booking.eventTypeId || 0,
+          eventTypeId,
           triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
           orgId,
-        };
-
-        const subscribers = await getWebhooks(subscriberOptions);
-
-        const payload: EventPayloadType = {
+        });
+        await webhooks.sendPayload({
           ...evt,
           bookingId: booking.id,
           paymentId: payment.id,
           paymentData,
-          eventTypeId: subscriberOptions.eventTypeId,
-        };
-
-        await Promise.all(
-          subscribers.map(async (subscriber) => {
-            sendPayload(subscriber.secret, WebhookTriggerEvents.BOOKING_PAID, payload);
-          })
-        );
+          eventTypeId,
+        });
 
         await sendNoShowFeeChargedEmail(
           attendeesListPromises[0],
