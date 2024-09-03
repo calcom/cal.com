@@ -133,18 +133,30 @@ describe("Booking ownership and access in Middleware", () => {
       data: {
         id: 111,
         userId: 1111,
+        uid: "abcd111",
+        title: "Admin Booking",
+        startTime: "2024-08-30T05:45:00.000Z",
+        endTime: "2024-08-30T06:00:00.000Z",
       },
     });
     prismock.booking.create({
       data: {
         id: 12314,
         userId: 1122,
+        uid: "abcd12314",
+        title: "Owner Booking",
+        startTime: "2024-08-30T05:45:00.000Z",
+        endTime: "2024-08-30T06:00:00.000Z",
       },
     });
     prismock.booking.create({
       data: {
         id: 111,
         userId: 2222,
+        uid: "abcd111",
+        title: "Member Booking",
+        startTime: "2024-08-30T05:45:00.000Z",
+        endTime: "2024-08-30T06:00:00.000Z",
       },
     });
     prismaMock.user.findUnique.mockImplementation(({ where, select }) => {
