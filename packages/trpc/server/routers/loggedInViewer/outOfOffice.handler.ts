@@ -208,10 +208,10 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     },
   });
   let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
-  if (createdRedirect) {
+  if (createdOrUpdatedOutOfOffice) {
     const findRedirect = await prisma.outOfOfficeEntry.findFirst({
       where: {
-        uuid: createdRedirect.uuid,
+        uuid: createdOrUpdatedOutOfOffice.uuid,
       },
       select: selectOOOEntries,
     });
@@ -338,12 +338,14 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const payload: OOOEntryPayloadType = {
     oooEntry: {
-      id: createdRedirect.id,
-      start: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-      end: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-      createdAt: createdRedirect.createdAt.toISOString(),
-      updatedAt: createdRedirect.updatedAt.toISOString(),
-      notes: createdRedirect.notes,
+      id: createdOrUpdatedOutOfOffice.id,
+      start: dayjs(createdOrUpdatedOutOfOffice.start)
+        .tz(ctx.user.timeZone, true)
+        .format("YYYY-MM-DDTHH:mm:ssZ"),
+      end: dayjs(createdOrUpdatedOutOfOffice.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+      createdAt: createdOrUpdatedOutOfOffice.createdAt.toISOString(),
+      updatedAt: createdOrUpdatedOutOfOffice.updatedAt.toISOString(),
+      notes: createdOrUpdatedOutOfOffice.notes,
       reason: {
         emoji: reason?.emoji,
         reason: reason?.reason,
@@ -365,7 +367,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
             timeZone: toUser?.timeZone,
           }
         : null,
-      uuid: createdRedirect.uuid,
+      uuid: createdOrUpdatedOutOfOffice.uuid,
     },
   };
 
