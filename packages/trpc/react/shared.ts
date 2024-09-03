@@ -28,5 +28,6 @@ export const ENDPOINTS = [
   "appsRouter",
   "googleWorkspace",
   "oAuth",
+  "passkey",
   "attributes",
 ] as const;

@@ -21,6 +21,7 @@ import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
+import { passkeyRouter } from "./passkey/_router";
 import { paymentsRouter } from "./payments/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
@@ -60,6 +61,7 @@ export const viewerRouter = mergeRouters(
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
+    passkey: passkeyRouter,
     attributes: attributesRouter,
   })
 );
