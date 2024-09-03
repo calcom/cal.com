@@ -99,8 +99,6 @@ export default function InstantEventController({
     isManaged: false,
   }));
 
-  console.log("options", options);
-
   return (
     <LicenseRequired>
       <div className="block items-start sm:flex">
