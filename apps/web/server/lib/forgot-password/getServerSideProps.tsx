@@ -25,3 +25,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   };
 }
+
+export async function getServerSidePropsAppDir(context: GetServerSidePropsContext) {
+  const { req } = context;
+
+  const session = await getServerSession({ req });
+
+  // @TODO res will not be available in future pages (app dir)
+  if (session) {
+    const redirect = await import("next/navigation").then((mod) => mod.redirect);
+    redirect("/");
+    return { props: {} };
+  }
+  const locale = await getLocale(context.req);
+
+  return {
+    props: {
+      csrfToken: await getCsrfToken(context),
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
