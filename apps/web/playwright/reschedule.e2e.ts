@@ -441,6 +441,7 @@ test.describe("Reschedule Tests", async () => {
       });
 
       await page.goto(`/reschedule/${booking.uid}`);
+      await page.waitForLoadState("networkidle");
 
       // Let current month dates fully render.
       await page.click('[data-testid="incrementMonth"]');
