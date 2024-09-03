@@ -93,6 +93,7 @@ const mockedRegularTeam: TeamWithParent = {
   bannerUrl: "",
   isPlatform: false,
   smsLockState: "LOCKED",
+  smsLockReviewedByAdmin: true,
   createdByOAuthClientId: null,
 };
 
