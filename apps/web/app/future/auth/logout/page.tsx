@@ -29,7 +29,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   };
 
   return (
-    <PageWrapper requiresLicense={false} getLayout={null} nonce={nonce} themeBasis={null} {...props}>
+    <PageWrapper requiresLicense={false} getLayout={null} nonce={nonce} themeBasis={null}>
       <Logout {...props} />
     </PageWrapper>
   );
