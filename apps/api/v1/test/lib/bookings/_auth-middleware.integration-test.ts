@@ -1,3 +1,4 @@
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
@@ -104,10 +105,48 @@ describe("Booking ownership and access in Middleware", () => {
   const guestUserEmail = "guest@example.com";
   beforeEach(() => {
     vi.resetAllMocks();
-    type PrismaUserFindUniqueResult = {
-      email?: string;
-      bookings?: { id: number }[];
-    } | null;
+    prismock.user.create({
+      data: {
+        id: 1111,
+        username: "admin",
+        name: "Admin User",
+        email: adminUserEmail,
+      },
+    });
+    prismock.user.create({
+      data: {
+        id: 2222,
+        username: "member",
+        name: "Member User",
+        email: memberUserEmail,
+      },
+    });
+    prismock.user.create({
+      data: {
+        id: 1122,
+        username: "owner",
+        name: "Owner User",
+        email: ownerUserEmail,
+      },
+    });
+    prismock.booking.create({
+      data: {
+        id: 111,
+        userId: 1111,
+      },
+    });
+    prismock.booking.create({
+      data: {
+        id: 12314,
+        userId: 1122,
+      },
+    });
+    prismock.booking.create({
+      data: {
+        id: 111,
+        userId: 2222,
+      },
+    });
     prismaMock.user.findUnique.mockImplementation(({ where, select }) => {
       const { id: userId } = where;
 
