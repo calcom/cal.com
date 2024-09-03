@@ -150,7 +150,7 @@ export class InputBookingsService_2024_08_13 {
     const location = request.body.meetingUrl;
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
-    newRequest.body = (bodyTransformed as any[]).map((event) => ({
+    newRequest.body = bodyTransformed.map((event) => ({
       ...event,
     }));
 
