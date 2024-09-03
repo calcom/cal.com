@@ -18,7 +18,7 @@ import { DeleteAttributeOptionOutput } from "@/modules/organizations/outputs/att
 import { GetOptionUserOutput } from "@/modules/organizations/outputs/attributes/options/get-option-user.output";
 import { GetAllAttributeOptionOutput } from "@/modules/organizations/outputs/attributes/options/get-option.output";
 import { UpdateAttributeOptionOutput } from "@/modules/organizations/outputs/attributes/options/update-option.output";
-import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attreibute-option.service";
+import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attributes-option.service";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";

@@ -20,7 +20,7 @@ import { OrganizationSchedulesRepository } from "@/modules/organizations/reposit
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/repositories/organizations-teams-memberships.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
-import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attreibute-option.service";
+import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attributes-option.service";
 import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
