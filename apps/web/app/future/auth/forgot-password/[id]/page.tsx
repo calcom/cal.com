@@ -1,9 +1,11 @@
-import SetNewUserPassword from "@pages/auth/forgot-password/[id]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getServerSideProps } from "@server/lib/forgot-password/[id]/getServerSideProps";
+import { getServerSideProps } from "@server/lib/auth/forgot-password/[id]/getServerSideProps";
+
+import type { PageProps } from "~/auth/forgot-password/[id]/forgot-password-single-view";
+import SetNewUserPassword from "~/auth/forgot-password/[id]/forgot-password-single-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -15,5 +17,5 @@ export const generateMetadata = async () => {
 export default WithLayout({
   getLayout: null,
   Page: SetNewUserPassword,
-  getData: withAppDirSsr(getServerSideProps),
+  getData: withAppDirSsr<PageProps>(getServerSideProps),
 })<"P">;
