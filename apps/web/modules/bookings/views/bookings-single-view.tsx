@@ -325,7 +325,7 @@ export default function Success(props: PageProps) {
     }
     if (bookingInfo.user) {
       const isAttendees = !!bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
-      const attendee = bookingInfo.attendees.map((attendee) => attendee.name || attendee.email).join(", ");
+      const attendee = bookingInfo.attendees[0].name || bookingInfo.attendees[0].email;
       const isHost = bookingInfo.user.email === session?.user?.email;
 
       const roleBasedAttendees = (isAttendees || isHost) ? "You are" : attendee
