@@ -1,12 +1,16 @@
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import { createClient } from "app/utils/supabase/client";
 import classNames from "classnames";
 import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -69,6 +73,57 @@ import { timeZone } from "@calcom/web/lib/clock";
 
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+interface RescheduleOrCancelWarningProps {
+  pastAppointment: boolean;
+  startTime: dayjs.Dayjs;
+}
+
 const stringToBoolean = z
   .string()
   .optional()
@@ -104,6 +159,70 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
+const RescheduleOrCancelWarning = ({ pastAppointment, startTime }: RescheduleOrCancelWarningProps) => {
+  const supabase = createClient();
+  const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
+
+  const currentTime = dayjs();
+  const hasStarted = currentTime.isAfter(startTime);
+  const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
+  const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
+  const moreOrEqualThan7DaysFromPurchase = currentTime.isBefore(purchaseDate?.add(7, "days"));
+  const lessThan7DaysFromPurchase = !moreOrEqualThan7DaysFromPurchase;
+  const urgentMedicalAppointments = false;
+
+  const description = useMemo(() => {
+    switch (true) {
+      case pastAppointment:
+        return "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.";
+      case hasStarted:
+        return "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ";
+      // case urgentMedicalAppointments:
+      // return "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.";
+      case lessThan12HoursInAdvance:
+        return "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.";
+      case moreOrEqualThan7DaysFromPurchase:
+        return "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.";
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase:
+        return "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.";
+    }
+  }, [
+    hasStarted,
+    lessThan12HoursInAdvance,
+    lessThan7DaysFromPurchase,
+    moreOrEqualThan12HoursInAdvance,
+    moreOrEqualThan7DaysFromPurchase,
+    pastAppointment,
+  ]);
+
+  useEffect(() => {
+    supabase.then((data: any) => {
+      console.log(data);
+    });
+  }, [supabase]);
+
+  if (!purchaseDate) return null;
+
+  return (
+    <div className="my-6 flex items-center rounded border border-[#E6EBF0] bg-[#F4F6F8] p-2 text-xs text-[#598392]">
+      <svg
+        className="mr-2"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M7.33398 11.3333H8.66732V7.33325H7.33398V11.3333ZM8.00065 5.99992C8.18954 5.99992 8.34787 5.93603 8.47565 5.80825C8.60343 5.68047 8.66732 5.52214 8.66732 5.33325C8.66732 5.14436 8.60343 4.98603 8.47565 4.85825C8.34787 4.73047 8.18954 4.66658 8.00065 4.66658C7.81176 4.66658 7.65343 4.73047 7.52565 4.85825C7.39787 4.98603 7.33398 5.14436 7.33398 5.33325C7.33398 5.52214 7.39787 5.68047 7.52565 5.80825C7.65343 5.93603 7.81176 5.99992 8.00065 5.99992ZM8.00065 14.6666C7.07843 14.6666 6.21176 14.4916 5.40065 14.1416C4.58954 13.7916 3.88398 13.3166 3.28398 12.7166C2.68398 12.1166 2.20898 11.411 1.85898 10.5999C1.50898 9.78881 1.33398 8.92214 1.33398 7.99992C1.33398 7.0777 1.50898 6.21103 1.85898 5.39992C2.20898 4.58881 2.68398 3.88325 3.28398 3.28325C3.88398 2.68325 4.58954 2.20825 5.40065 1.85825C6.21176 1.50825 7.07843 1.33325 8.00065 1.33325C8.92287 1.33325 9.78954 1.50825 10.6007 1.85825C11.4118 2.20825 12.1173 2.68325 12.7173 3.28325C13.3173 3.88325 13.7923 4.58881 14.1423 5.39992C14.4923 6.21103 14.6673 7.0777 14.6673 7.99992C14.6673 8.92214 14.4923 9.78881 14.1423 10.5999C13.7923 11.411 13.3173 12.1166 12.7173 12.7166C12.1173 13.3166 11.4118 13.7916 10.6007 14.1416C9.78954 14.4916 8.92287 14.6666 8.00065 14.6666ZM8.00065 13.3333C9.48954 13.3333 10.7507 12.8166 11.784 11.7833C12.8173 10.7499 13.334 9.48881 13.334 7.99992C13.334 6.51103 12.8173 5.24992 11.784 4.21659C10.7507 3.18325 9.48954 2.66659 8.00065 2.66659C6.51176 2.66659 5.25065 3.18325 4.21732 4.21659C3.18398 5.24992 2.66732 6.51103 2.66732 7.99992C2.66732 9.48881 3.18398 10.7499 4.21732 11.7833C5.25065 12.8166 6.51176 13.3333 8.00065 13.3333Z"
+          fill="#598392"
+        />
+      </svg>
+
+      <span>{description}</span>
+    </div>
+  );
+};
+
 export default function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -122,7 +241,19 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
-  } = querySchema.parse(routerQuery);
+  } = {
+    allRemainingBookings: false,
+    isSuccessBookingPage: false,
+    cancel: false,
+    reject: false,
+    formerTime: false,
+    email: false,
+    seatReferenceUid: false,
+    noShow: false,
+    rating: false,
+  };
+
+  // querySchema.parse(routerQuery);
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -694,9 +825,8 @@ export default function Success(props: PageProps) {
                           <hr className="border-subtle mb-8" />
                           <div className="text-center last:pb-0">
                             <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                              {t("need_to_make_a_change")}
+                              Deseja fazer alguma alteração?
                             </span>
-
                             <>
                               {!props.recurringBookings && (
                                 <span className="text-default inline">
@@ -872,6 +1002,18 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
+                    <RescheduleOrCancelWarning
+                      pastAppointment={isPastBooking}
+                      startTime={dayjs(bookingInfo.startTime)}
+                    />
+                    <div className="flex justify-center">
+                      <span className=" text-xs">
+                        Confira a nossa{" "}
+                        <Link className="underline" href="">
+                          política de reagendamentos, cancelamentos e reembolsos.
+                        </Link>
+                      </span>{" "}
+                    </div>
 
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>

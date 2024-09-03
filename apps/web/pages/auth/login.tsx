@@ -1,35 +1,32 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
+import { useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import PageWrapper from "@components/PageWrapper";
-import BackupCode from "@components/auth/BackupCode";
-import TwoFactor from "@components/auth/TwoFactor";
-import AuthContainer from "@components/ui/AuthContainer";
 
 import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
+
+import Success from "../../modules/bookings/views/bookings-single-view";
 
 interface LoginValues {
   email: string;
@@ -180,105 +177,29 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
 
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
-      <AuthContainer
-        title={t("login")}
-        description={t("login")}
-        showLogo
-        heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
-        footerText={
-          twoFactorRequired
-            ? !totpEmail
-              ? TwoFactorFooter
-              : ExternalTotpFooter
-            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
-            ? LoginFooter
-            : null
-        }>
-        <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
-            <div>
-              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
-            </div>
-            <div className="space-y-6">
-              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
-                <EmailField
-                  id="email"
-                  label={t("email_address")}
-                  defaultValue={totpEmail || (searchParams?.get("email") as string)}
-                  placeholder="john.doe@example.com"
-                  required
-                  {...register("email")}
-                />
-                <div className="relative">
-                  <PasswordField
-                    id="password"
-                    autoComplete="off"
-                    required={!totpEmail}
-                    className="mb-0"
-                    {...register("password")}
-                  />
-                  <div className="absolute -top-[2px] ltr:right-0 rtl:left-0">
-                    <Link
-                      href="/auth/forgot-password"
-                      tabIndex={-1}
-                      className="text-default text-sm font-medium">
-                      {t("forgot")}
-                    </Link>
-                  </div>
-                </div>
-              </div>
-
-              {twoFactorRequired ? !twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center /> : null}
-
-              {errorMessage && <Alert severity="error" title={errorMessage} />}
-              <Button
-                type="submit"
-                color="primary"
-                disabled={formState.isSubmitting}
-                className="w-full justify-center">
-                <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && (
-                  <span className="absolute right-3 text-xs text-gray-600">{t("last_used")}</span>
-                )}
-              </Button>
-            </div>
-          </form>
-          {!twoFactorRequired && (
-            <>
-              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
-              <div className="space-y-3">
-                {isGoogleLoginEnabled && (
-                  <Button
-                    color="secondary"
-                    className="w-full justify-center"
-                    disabled={formState.isSubmitting}
-                    data-testid="google"
-                    CustomStartIcon={<GoogleIcon />}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      const res = await signIn("google", {
-                        callbackUrl,
-                      });
-                      if (res && !res.error) {
-                        setLastUsed("google");
-                      }
-                    }}>
-                    <span>{t("signin_with_google")}</span>
-                    {lastUsed === "google" && <LastUsed />}
-                  </Button>
-                )}
-                {displaySSOLogin && (
-                  <SAMLLogin
-                    samlTenantID={samlTenantID}
-                    samlProductID={samlProductID}
-                    setErrorMessage={setErrorMessage}
-                  />
-                )}
-              </div>
-            </>
-          )}
-        </FormProvider>
-      </AuthContainer>
+      <Success
+        userTimeFormat={null}
+        requiresLoginToUpdate={false}
+        rescheduledToUid={null}
+        orgSlug={null}
+        themeBasis={null}
+        hideBranding={false}
+        profile={{ name: "" }}
+        eventType={{ eventName: "", bookingFields: [] }}
+        recurringBookings={null}
+        trpcState={undefined}
+        dynamicEventName=""
+        bookingInfo={{
+          location: null,
+          attendees: [{ email: "", name: "", phone: "" }],
+          notes: null,
+          title: null,
+          startTime: new Date().setHours(new Date().getHours() + 13),
+          endTime: new Date().setHours(new Date().getHours() + 14),
+          responses: { name: "" },
+        }}
+        paymentStatus={null}
+      />
       <AddToHomescreen />
     </div>
   );
