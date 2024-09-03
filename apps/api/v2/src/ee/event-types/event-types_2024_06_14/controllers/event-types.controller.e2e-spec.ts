@@ -264,11 +264,6 @@ describe("Event types Endpoints", () => {
           darkThemeColor: "#292929",
           lightThemeColor: "#fafafa",
         },
-        // seats: {
-        //   seatsPerTimeSlot: 4,
-        //   showAttendeeInfo: true,
-        //   showAvailabilityCount: true,
-        // },
       };
 
       return request(app.getHttpServer())
@@ -303,10 +298,319 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
-          // expect(createdEventType.seats).toEqual(body.seats);
           expect(createdEventType.eventTypeColor).toEqual(body.eventTypeColor);
           eventType = responseBody.data;
         });
+    });
+
+    it(`/GET/even-types by username`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+
+      const fetchedEventType = responseBody.data?.[0];
+
+      expect(fetchedEventType?.id).toEqual(eventType.id);
+      expect(fetchedEventType?.title).toEqual(eventType.title);
+      expect(fetchedEventType?.description).toEqual(eventType.description);
+      expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.locations).toEqual(eventType.locations);
+      expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
+      expect(fetchedEventType?.ownerId).toEqual(user.id);
+      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
+      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
+      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
+      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
+      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
+      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
+      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
+      expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
+    });
+
+    it("should return an error when creating an event type with seats enabled and multiple locations", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 2",
+        slug: "coding-class-2",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+          {
+            type: "phone",
+            phone: "+37120993151",
+            public: true,
+          },
+        ],
+        scheduleId: firstSchedule.id,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when trying to enable seats for an event type with multiple locations", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 3",
+        slug: "coding-class-3",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+          {
+            type: "phone",
+            phone: "+37120993151",
+            public: true,
+          },
+        ],
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        locations: body.locations,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          seats: {
+            seatsPerTimeSlot: 4,
+            showAttendeeInfo: true,
+            showAvailabilityCount: true,
+          },
+        })
+        .expect(400);
+    });
+
+    it("should return an error when creating an event type with seats enabled and requiresConfirmation enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 4",
+        slug: "coding-class-4",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        scheduleId: firstSchedule.id,
+        requiresConfirmation: {
+          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          blockCalendarForUnconfirmedBookings: false,
+        },
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when trying to enable seats for an event type with requiresConfirmation enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 5",
+        slug: "coding-class-5",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        requiresConfirmation: {
+          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          blockCalendarForUnconfirmedBookings: false,
+        },
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+      console.log("createdEventType: ", createdEventType);
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        requiresConfirmation: body.requiresConfirmation,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          seats: {
+            seatsPerTimeSlot: 4,
+            showAttendeeInfo: true,
+            showAvailabilityCount: true,
+          },
+        })
+        .expect(400);
+    });
+
+    it("should return an error when trying to set multiple locations for an event type with seats enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 6",
+        slug: "coding-class-6",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        scheduleId: firstSchedule.id,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        seats: body.seats,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+            {
+              type: "phone",
+              phone: "+37120993151",
+              public: true,
+            },
+          ],
+        })
+        .expect(400);
+    });
+
+    it("should return an error when creating an event type with requiresConfirmation enabled and seats enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 7",
+        slug: "coding-class-7",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        requiresConfirmation: {
+          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          blockCalendarForUnconfirmedBookings: false,
+        },
+        scheduleId: firstSchedule.id,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when trying to enable requiresConfirmation for an event type with seats enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class 8",
+        slug: "coding-class-8",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      expect(createdEventType).toMatchObject({
+        id: expect.any(Number),
+        title: body.title,
+        description: body.description,
+        lengthInMinutes: body.lengthInMinutes,
+        seats: body.seats,
+        scheduleId: firstSchedule.id,
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          requiresConfirmation: {
+            confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+            blockCalendarForUnconfirmedBookings: false,
+          },
+        })
+        .expect(400);
     });
 
     it("should update event type", async () => {
@@ -354,11 +658,6 @@ describe("Event types Endpoints", () => {
           darkThemeColor: "#292929",
           lightThemeColor: "#fafafa",
         },
-        // seats: {
-        //   seatsPerTimeSlot: 5,
-        //   showAttendeeInfo: false,
-        //   showAvailabilityCount: false,
-        // },
       };
 
       return request(app.getHttpServer())
@@ -395,7 +694,6 @@ describe("Event types Endpoints", () => {
             body.lockTimeZoneToggleOnBookingPage
           );
           expect(updatedEventType.eventTypeColor).toEqual(body.eventTypeColor);
-          // expect(updatedEventType.seats).toEqual(body.seats);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -411,7 +709,6 @@ describe("Event types Endpoints", () => {
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.eventTypeColor = updatedEventType.eventTypeColor;
-          // eventType.seats = updatedEventType.seats;
         });
     });
 
@@ -463,49 +760,6 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
-      // expect(fetchedEventType.seats).toEqual(eventType.seats);
-    });
-
-    it(`/GET/even-types by username`, async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${username}`)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
-        .expect(200);
-
-      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
-
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data).toBeDefined();
-      expect(responseBody.data?.length).toEqual(1);
-
-      const fetchedEventType = responseBody.data?.[0];
-
-      expect(fetchedEventType?.id).toEqual(eventType.id);
-      expect(fetchedEventType?.title).toEqual(eventType.title);
-      expect(fetchedEventType?.description).toEqual(eventType.description);
-      expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
-      expect(fetchedEventType?.locations).toEqual(eventType.locations);
-      expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
-      expect(fetchedEventType?.ownerId).toEqual(user.id);
-      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
-      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
-      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
-      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
-      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
-      expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
-      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
-      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
-      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
-        eventType.requiresBookerEmailVerification
-      );
-      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
-      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
-        eventType.lockTimeZoneToggleOnBookingPage
-      );
-      expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
-      // expect(fetchedEventType.seats).toEqual(eventType.seats);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -542,7 +796,6 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.eventTypeColor).toEqual(eventType.eventTypeColor);
-      // expect(fetchedEventType.seats).toEqual(eventType.seats);
     });
 
     it(`/GET/:id not existing`, async () => {

@@ -6,7 +6,6 @@ import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
 import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/update-event-type.output";
 import { CreateEventTypeTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/create-event-type.transformer";
-import { ValidateEventTypeInputsPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/validate-event-type-inputs.pipe.ts";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
@@ -63,12 +62,18 @@ export class EventTypesController_2024_06_14 {
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
   @UsePipes(CreateEventTypeTransformPipe)
-  @UsePipes(ValidateEventTypeInputsPipe)
   @UseInterceptors(OutputEventTypeResponseInterceptor<CreateEventTypeOutput_2024_06_14>)
   async createEventType(
     @Body() body: InputEventTransformed_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<HandlerRespose> {
+    await this.inputEventTypesService.validateEventTypeInputs(
+      undefined,
+      !!(body.seatsPerTimeSlot && body?.seatsPerTimeSlot > 0),
+      body.locations,
+      body.requiresConfirmation
+    );
+
     const eventType = await this.eventTypesService.createUserEventType(user, body);
 
     return {
