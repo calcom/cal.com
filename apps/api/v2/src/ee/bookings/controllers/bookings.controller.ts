@@ -35,6 +35,7 @@ import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
+import { v4 as uuidv4 } from "uuid";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
@@ -243,6 +244,13 @@ export class BookingsController {
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
     try {
+      const recurringEventId = uuidv4();
+      for (const recurringEvent of req.body) {
+        if (!recurringEvent.recurringEventId) {
+          recurringEvent.recurringEventId = recurringEventId;
+        }
+      }
+
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
         await this.createNextApiRecurringBookingRequest(req, oAuthClientId)
       );
