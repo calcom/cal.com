@@ -1,6 +1,6 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
+import type { Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
@@ -105,106 +105,51 @@ describe("Booking ownership and access in Middleware", () => {
   const guestUserEmail = "guest@example.com";
   beforeEach(() => {
     vi.resetAllMocks();
-    prismock.user.create({
-      data: {
-        id: 1111,
-        username: "admin",
-        name: "Admin User",
-        email: adminUserEmail,
-      },
-    });
-    prismock.user.create({
-      data: {
-        id: 2222,
-        username: "member",
-        name: "Member User",
-        email: memberUserEmail,
-      },
-    });
-    prismock.user.create({
-      data: {
-        id: 1122,
-        username: "owner",
-        name: "Owner User",
-        email: ownerUserEmail,
-      },
-    });
-    prismock.booking.create({
-      data: {
-        id: 111,
-        userId: 1111,
-        uid: "abcd111",
-        title: "Admin Booking",
-        startTime: "2024-08-30T05:45:00.000Z",
-        endTime: "2024-08-30T06:00:00.000Z",
-      },
-    });
-    prismock.booking.create({
-      data: {
-        id: 12314,
-        userId: 1122,
-        uid: "abcd12314",
-        title: "Owner Booking",
-        startTime: "2024-08-30T05:45:00.000Z",
-        endTime: "2024-08-30T06:00:00.000Z",
-      },
-    });
-    prismock.booking.create({
-      data: {
-        id: 111,
-        userId: 2222,
-        uid: "abcd111",
-        title: "Member Booking",
-        startTime: "2024-08-30T05:45:00.000Z",
-        endTime: "2024-08-30T06:00:00.000Z",
-      },
-    });
-    prismaMock.user.findUnique.mockImplementation(({ where, select }) => {
-      const { id: userId } = where;
+    prismaMock.user.findUnique.mockImplementation(
+      ({ where, select }: { where: Prisma.UserWhereUniqueInput; select?: Prisma.UserSelect }) => {
+        const { id: userId } = where;
 
-      const mockUsers = [
-        {
-          id: 1111,
-          email: adminUserEmail,
-          bookings: [{ id: 111 }],
-        },
-        {
-          id: 1122,
-          email: ownerUserEmail,
-          bookings: [{ id: 12314 }],
-        },
-        {
-          id: 2222,
-          email: memberUserEmail,
-          bookings: [{ id: 111 }],
-        },
-      ];
+        const mockUsers = [
+          {
+            id: 1111,
+            email: adminUserEmail,
+            bookings: [{ id: 111 }],
+          },
+          {
+            id: 1122,
+            email: ownerUserEmail,
+            bookings: [{ id: 12314 }],
+          },
+          {
+            id: 2222,
+            email: memberUserEmail,
+            bookings: [{ id: 111 }],
+          },
+        ];
 
-      // Find the matching user based on userId
-      const user = mockUsers.find((user) => user.id === userId);
+        // Find the matching user based on userId
+        const user = mockUsers.find((user) => user.id === userId);
 
-      // If no user is found, return null
-      if (!user) return null;
+        // If no user is found, return null
+        if (!user) return null;
 
-      // Define the result type explicitly
-      const result: {
-        email?: string;
-        bookings?: { id: number }[];
-      } = {};
+        // Define the result type explicitly
+        const result: {
+          email?: string;
+          bookings?: { id: number }[];
+        } = {};
 
-      // Assign values conditionally
-      if (select?.email) {
+        // Assign values conditionally
+
         result.email = user.email;
-      }
 
-      if (select?.bookings) {
         result.bookings = user.bookings.filter((booking) =>
           select.bookings.where ? booking.id === select.bookings.where.id : true
         );
-      }
 
-      return result as PrismaUserFindUniqueResult;
-    });
+        return result;
+      }
+    );
 
     const mockAllBookings = () => {
       prismaMock.booking.findMany.mockImplementation(({ where }) => {
