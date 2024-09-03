@@ -10,7 +10,7 @@ import { Button, PasswordField, Form } from "@calcom/ui";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
-import type { getServerSideProps } from "@server/lib/forgot-password/[id]/getServerSideProps";
+import type { getServerSideProps } from "@server/lib/auth/forgot-password/[id]/getServerSideProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 

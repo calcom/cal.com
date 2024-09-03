@@ -13,7 +13,7 @@ import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
-import type { getServerSideProps } from "@server/lib/forgot-password/getServerSideProps";
+import type { getServerSideProps } from "@server/lib/auth/forgot-password/getServerSideProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 

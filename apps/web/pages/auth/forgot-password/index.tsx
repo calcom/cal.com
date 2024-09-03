@@ -8,4 +8,4 @@ Page.PageWrapper = PageWrapper;
 
 export default Page;
 
-export { getServerSideProps } from "@server/lib/forgot-password/getServerSideProps";
+export { getServerSideProps } from "@server/lib/auth/forgot-password/getServerSideProps";

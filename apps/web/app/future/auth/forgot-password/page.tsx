@@ -2,7 +2,7 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getServerSidePropsAppDir } from "@server/lib/forgot-password/getServerSideProps";
+import { getServerSidePropsAppDir } from "@server/lib/auth/forgot-password/getServerSideProps";
 
 import type { PageProps } from "~/auth/forgot-password/forgot-password-view";
 import ForgotPassword from "~/auth/forgot-password/forgot-password-view";
