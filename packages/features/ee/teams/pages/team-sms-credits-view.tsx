@@ -42,9 +42,7 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
     },
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
-      // TODO: Not all changes require list invalidation
-      await utils.viewer.teams.list.invalidate();
-      showToast(t("your_team_updated_successfully"), "success");
+      showToast("Changes have been successfully updated", "success");
     },
   });
 
@@ -54,14 +52,13 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
       SmsCreditAllocationType.NONE,
       SmsCreditAllocationType.SPECIFIC,
     ]),
-    smsCreditAllocationAmount: z.number().optional(),
+    smsCreditAllocationValue: z.number().optional(),
   });
 
   type FormValues = z.infer<typeof smsCreditAllocationSchema>;
-
   const defaultValues: FormValues = {
-    smsCreditAllocationType: SmsCreditAllocationType.SPECIFIC,
-    smsCreditAllocationAmount: 50,
+    smsCreditAllocationType: team.smsCreditAllocationType ?? SmsCreditAllocationType.SPECIFIC,
+    smsCreditAllocationValue: team.smsCreditAllocationValue ?? 50,
   };
 
   const form = useForm({
@@ -76,7 +73,7 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
 
   const availableCredits = Math.max(totalSmsCredits - team.smsCreditsUsed, 0);
 
-  const percentageReached = availableCredits * 100;
+  const percentageReached = (team.smsCreditsUsed / totalSmsCredits) * 100;
 
   return (
     <>
@@ -104,6 +101,7 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="text-sm">Total SMS Credits per month: {totalSmsCredits}</div>
+            <div className="mt-4 text-sm">SMS Credits used: {team.smsCreditsUsed}</div>
             <div className="mt-4 text-sm">Available SMS Credits for this month: {availableCredits}</div>
             <div>
               {team.smsLimitReached ? (
@@ -121,14 +119,14 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
             <div>
               <p className="text-default text-base font-semibold">Credit allocation for members</p>
               <p className="text-default">
-                Manage how many of your team&apos;s credits can be used by team members for their personal
-                event types
+                Manage how many of your team&apos;s credits can be used for team members&apos; personal event
+                types
               </p>
             </div>
           </div>
           <div className="border-subtle border border-y-0 px-4 pb-4 pt-8 sm:px-6">
-            <Label>Amount of credits team members can use for personal event types:</Label>
-            <div className="mt-2 flex">
+            <Label>Amount of credits to be used for personal event types:</Label>
+            <div className="mt-3 flex">
               <Controller
                 control={form.control}
                 name="smsCreditAllocationType"
@@ -152,13 +150,13 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                 <div className="max-w-40 ml-4">
                   <Controller
                     control={form.control}
-                    name="smsCreditAllocationAmount"
+                    name="smsCreditAllocationValue"
                     render={({ field: { name, value, onChange } }) => (
                       <TextField
                         type="number"
                         addOnSuffix="credits"
-                        defaultValue={50}
-                        onChange={(e) => onChange(e?.target.value)}
+                        value={value}
+                        onChange={(e) => onChange(Number(e.target.value))}
                       />
                     )}
                   />

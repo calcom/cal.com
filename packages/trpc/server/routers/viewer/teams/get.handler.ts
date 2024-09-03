@@ -66,8 +66,8 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
   return {
     ...restTeam,
-    smsCreditsUsed: smsCreditCount.credits ?? 0,
-    smsLimitReached: smsCreditCount.limitReached,
+    smsCreditsUsed: smsCreditCount?.credits ?? 0,
+    smsLimitReached: smsCreditCount?.limitReached,
     members: shouldHideMembers() ? [] : members,
     safeBio: markdownToSafeHTML(team.bio),
     membership: {

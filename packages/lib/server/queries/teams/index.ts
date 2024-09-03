@@ -91,6 +91,8 @@ export async function getTeamWithMembers(args: {
       hideBookATeamMember: true,
       isPrivate: true,
       metadata: true,
+      smsCreditAllocationType: true,
+      smsCreditAllocationValue: true,
       parent: {
         select: {
           id: true,
