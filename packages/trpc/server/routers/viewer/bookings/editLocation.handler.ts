@@ -15,11 +15,10 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Booking, BookingReference } from "@calcom/prisma/client";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { EventResult } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -28,6 +27,7 @@ import type { TrpcSessionUser } from "../../../trpc";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
 
+// #region EditLocation Types and Helpers
 type EditLocationOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -37,75 +37,7 @@ type EditLocationOptions = {
 
 type UserMetadata = z.infer<typeof userMetadata>;
 
-/**
- * An error that should be shown to the user
- */
-class UserError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "LocationError";
-  }
-}
-
-/**
- * An error that should not be shown to the user
- */
-class SystemError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SystemError";
-  }
-}
-
-function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
-  organizer,
-  loggedInUserTranslate: translate,
-}: {
-  organizer: {
-    name: string;
-    metadata: {
-      defaultConferencingApp?: NonNullable<UserMetadata>["defaultConferencingApp"];
-    } | null;
-  };
-  /**
-   * translate is used to translate if any error is thrown
-   */
-  loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
-}) {
-  const organizerMetadata = organizer.metadata;
-  const defaultConferencingApp = organizerMetadata?.defaultConferencingApp;
-  if (!defaultConferencingApp) {
-    throw new UserError(
-      translate("organizer_default_conferencing_app_not_found", { organizer: organizer.name })
-    );
-  }
-  const defaultConferencingAppSlug = defaultConferencingApp.appSlug;
-  const app = getAppFromSlug(defaultConferencingAppSlug);
-  const defaultConferencingAppLocationType = app?.appData?.location?.type;
-
-  if (!defaultConferencingAppLocationType) {
-    throw new SystemError("Default conferencing app has no location type");
-  }
-
-  const location = defaultConferencingAppLocationType;
-  const locationType = getEventLocationType(location);
-  if (!locationType) {
-    throw new SystemError(`Location type not found: ${location}`);
-  }
-
-  if (!locationType.default && locationType.linkType === "dynamic") {
-    // Dynamic location type need to return the location as it is e.g. integrations:zoom_video
-    return location;
-  }
-
-  const appLink = defaultConferencingApp.appLink;
-  if (!appLink) {
-    throw new SystemError(`Default conferencing app ${defaultConferencingAppSlug} has no app link`);
-  }
-  return appLink;
-}
-
-const updateLocationInConnectedAppForBooking = async ({
+async function updateLocationInConnectedAppForBooking({
   evt,
   eventManager,
   booking,
@@ -115,7 +47,7 @@ const updateLocationInConnectedAppForBooking = async ({
   booking: Booking & {
     references: BookingReference[];
   };
-}) => {
+}) {
   const updatedResult = await eventManager.updateLocation(evt, booking);
   const results = updatedResult.results;
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -128,11 +60,11 @@ const updateLocationInConnectedAppForBooking = async ({
   }
   logger.info(`Got results from updateLocationInConnectedApp`, safeStringify(updatedResult.results));
   return updatedResult;
-};
+}
 
-const extractAdditionalInformation = (
-  result: Pick<EventResult<any>, "updatedEvent">
-): AdditionalInformation => {
+function extractAdditionalInformation(result: {
+  updatedEvent: AdditionalInformation;
+}): AdditionalInformation {
   const additionalInformation: AdditionalInformation = {};
   if (result) {
     additionalInformation.hangoutLink = result.updatedEvent?.hangoutLink;
@@ -140,7 +72,7 @@ const extractAdditionalInformation = (
     additionalInformation.entryPoints = result.updatedEvent?.entryPoints;
   }
   return additionalInformation;
-};
+}
 
 async function updateBookingLocationInDb({
   booking,
@@ -238,17 +170,83 @@ async function getLocationInEvtFormatOrThrow({
     throw e;
   }
 }
+// #endregion
 
-export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) => {
+/**
+ * An error that should be shown to the user
+ */
+export class UserError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LocationError";
+  }
+}
+
+/**
+ * An error that should not be shown to the user
+ */
+export class SystemError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SystemError";
+  }
+}
+
+export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+  organizer,
+  loggedInUserTranslate: translate,
+}: {
+  organizer: {
+    name: string;
+    metadata: {
+      defaultConferencingApp?: NonNullable<UserMetadata>["defaultConferencingApp"];
+    } | null;
+  };
+  /**
+   * translate is used to translate if any error is thrown
+   */
+  loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
+}) {
+  const organizerMetadata = organizer.metadata;
+  const defaultConferencingApp = organizerMetadata?.defaultConferencingApp;
+  if (!defaultConferencingApp) {
+    throw new UserError(
+      translate("organizer_default_conferencing_app_not_found", { organizer: organizer.name })
+    );
+  }
+  const defaultConferencingAppSlug = defaultConferencingApp.appSlug;
+  const app = getAppFromSlug(defaultConferencingAppSlug);
+  if (!app) {
+    throw new SystemError(`Default conferencing app ${defaultConferencingAppSlug} not found`);
+  }
+  const defaultConferencingAppLocationType = app.appData?.location?.type;
+  if (!defaultConferencingAppLocationType) {
+    throw new SystemError("Default conferencing app has no location type");
+  }
+
+  const location = defaultConferencingAppLocationType;
+  const locationType = getEventLocationType(location);
+  if (!locationType) {
+    throw new SystemError(`Location type not found: ${location}`);
+  }
+
+  if (locationType.linkType === "dynamic") {
+    // Dynamic location type need to return the location as it is e.g. integrations:zoom_video
+    return location;
+  }
+
+  const appLink = defaultConferencingApp.appLink;
+  if (!appLink) {
+    throw new SystemError(`Default conferencing app ${defaultConferencingAppSlug} has no app link`);
+  }
+  return appLink;
+}
+
+export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
-  const organizerFromDb = await UserRepository.findByIdOrThrow({ id: booking.userId || 0 });
-
-  const organizer = {
-    ...organizerFromDb,
-    metadata: userMetadata.parse(organizerFromDb.metadata),
-  };
+  const organizer = await UserRepository.findByIdOrThrow({ id: booking.userId || 0 });
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
@@ -286,4 +284,4 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
   }
 
   return { message: "Location updated" };
-};
+}

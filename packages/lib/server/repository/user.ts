@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
@@ -249,7 +250,10 @@ export class UserRepository {
     if (!user) {
       return null;
     }
-    return user;
+    return {
+      ...user,
+      metadata: userMetadata.parse(user.metadata),
+    };
   }
 
   static async findByIdOrThrow({ id }: { id: number }) {

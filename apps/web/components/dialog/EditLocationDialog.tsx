@@ -241,10 +241,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               handleSubmit={async (values) => {
                 const { locationType: newLocationType } = values;
                 let newLocation;
-                // For, the locations that require organizer to type-in some values, we need the value
+                // For the locations that require organizer to type-in some values, we need the value
                 if (eventLocationType?.organizerInputType) {
-                  // Use one of the values. The component ensures that only one of them are shown and thus only one will be set
-                  newLocation = values.locationAddress || values.locationLink || values.locationPhoneNumber;
+                  newLocation = values[eventLocationType.variable];
                 } else {
                   // locationType itself can be used here e.g. For zoom we use the type itself which is "integrations:zoom". For Organizer's Default Conferencing App, it is OrganizerDefaultConferencingAppType constant
                   newLocation = newLocationType;
