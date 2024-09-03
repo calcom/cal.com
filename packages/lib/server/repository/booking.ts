@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -57,14 +58,16 @@ export class BookingRepository {
     });
   }
 
-  static async getAllBookingsForRoundRobin({
+  static async getBookingsForRoundRobin({
     users,
     eventTypeId,
+    fetchFromPastDays,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
+    fetchFromPastDays?: number;
   }) {
-    const whereClause: Prisma.BookingWhereInput = {
+    let whereClause: Prisma.BookingWhereInput = {
       OR: [
         {
           user: {
@@ -95,6 +98,15 @@ export class BookingRepository {
       status: BookingStatus.ACCEPTED,
       eventTypeId,
     };
+
+    if (!!fetchFromPastDays) {
+      whereClause = {
+        ...whereClause,
+        createdAt: {
+          gte: dayjs().utc().subtract(fetchFromPastDays, "day").toDate(),
+        },
+      };
+    }
 
     const allBookings = await prisma.booking.findMany({
       where: whereClause,

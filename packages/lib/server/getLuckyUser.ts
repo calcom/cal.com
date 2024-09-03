@@ -1,5 +1,7 @@
 import type { User } from "@prisma/client";
 
+import dayjs from "@calcom/dayjs";
+import { FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS } from "@calcom/lib/constants";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
@@ -152,9 +154,10 @@ async function getUsersBasedOnWeights<
     []
   );
 
-  const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+  const bookingsOfNotAvailableUsers = await BookingRepository.getBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: notAvailableHosts,
+    fetchFromPastDays: FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS,
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
@@ -221,7 +224,7 @@ export async function getLuckyUser<
     return availableUsers[0];
   }
 
-  const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+  const bookingsOfAvailableUsers = await BookingRepository.getBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
       return { id: user.id, email: user.email };
@@ -234,7 +237,11 @@ export async function getLuckyUser<
       if (eventType.isRRWeightsEnabled) {
         possibleLuckyUsers = await getUsersBasedOnWeights({
           ...getLuckyUserParams,
-          bookingsOfAvailableUsers,
+          bookingsOfAvailableUsers: bookingsOfAvailableUsers.filter(
+            (booking) =>
+              booking.createdAt >=
+              dayjs().utc().subtract(FETCH_BOOKINGS_FOR_RR_FROM_PAST_DAYS, "day").toDate()
+          ),
         });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
