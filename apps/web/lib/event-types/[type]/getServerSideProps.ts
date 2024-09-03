@@ -12,9 +12,9 @@ import { ssrInit } from "@server/lib/ssr";
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res, query } = context;
+  const { req, query } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   const typeParam = parseInt(asStringOrThrow(query.type));
   const ssr = await ssrInit(context);
