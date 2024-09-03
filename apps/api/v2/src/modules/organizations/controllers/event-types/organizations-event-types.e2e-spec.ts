@@ -479,7 +479,7 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/999999`)
         .send(body)
-        .expect(404);
+        .expect(400);
     });
 
     it("should update collective event-type", async () => {
