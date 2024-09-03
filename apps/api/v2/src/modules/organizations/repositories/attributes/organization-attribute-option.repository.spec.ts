@@ -148,7 +148,11 @@ describe("OrganizationAttributeOptionRepository", () => {
     (dbRead.prisma.membership.findFirst as jest.Mock).mockResolvedValue(membership);
     (dbWrite.prisma.attributeToUser.create as jest.Mock).mockResolvedValue(assignedOption);
 
-    const result = await repository.assignOrganizationAttributeOptionToUser(1, 1, input);
+    const result = await repository.assignOrganizationAttributeOptionToUser({
+      organizationId: 1,
+      membershipId: 1,
+      data: input,
+    });
 
     expect(result).toEqual(assignedOption);
     expect(organizationsAttributesService.getOrganizationAttribute).toHaveBeenCalledWith(1, "attr1");

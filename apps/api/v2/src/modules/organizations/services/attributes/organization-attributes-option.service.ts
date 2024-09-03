@@ -2,12 +2,18 @@ import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organiza
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/inputs/attributes/options/create-organization-attribute-option.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/inputs/attributes/options/update-organizaiton-attribute-option.input.ts";
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/repositories/attributes/organization-attribute-option.repository";
-import { Injectable } from "@nestjs/common";
+import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
+import { OrganizationsMembershipService } from "@/modules/organizations/services/organizations-membership.service";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+
+const TYPE_SUPPORTS_VALUE = new Set(["TEXT", "NUMBER"]);
 
 @Injectable()
 export class OrganizationAttributeOptionService {
   constructor(
-    private readonly organizationAttributeOptionRepository: OrganizationAttributeOptionRepository
+    private readonly organizationAttributeOptionRepository: OrganizationAttributeOptionRepository,
+    private readonly organizationAttributesService: OrganizationAttributesService,
+    private readonly organizationsMembershipsService: OrganizationsMembershipService
   ) {}
 
   async createOrganizationAttributeOption(
@@ -56,11 +62,26 @@ export class OrganizationAttributeOptionService {
     userId: number,
     data: AssignOrganizationAttributeOptionToUserInput
   ) {
-    return this.organizationAttributeOptionRepository.assignOrganizationAttributeOptionToUser(
+    const attribute = await this.organizationAttributesService.getOrganizationAttribute(
       organizationId,
-      userId,
-      data
+      data.attributeId
     );
+    if (!attribute) throw new NotFoundException("Attribute not found");
+
+    const membership = await this.organizationsMembershipsService.getOrgMembership(organizationId, userId);
+    if (!membership || !membership.accepted)
+      throw new NotFoundException("User is not a member of the organization");
+
+    if (!TYPE_SUPPORTS_VALUE.has(attribute.type) && data.value) {
+      throw new BadRequestException("Attribute type does not support value");
+    }
+
+    return this.organizationAttributeOptionRepository.assignOrganizationAttributeOptionToUser({
+      organizationId,
+      membershipId: userId,
+      value: data.value,
+      attributeId: data.attributeId,
+    });
   }
 
   async unassignOrganizationAttributeOptionFromUser(
