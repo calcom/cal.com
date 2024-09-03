@@ -4,12 +4,13 @@ import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/repositories/attributes/organization-attribute-option.repository";
 import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/services/organizations-membership.service";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 const TYPE_SUPPORTS_VALUE = new Set(["TEXT", "NUMBER"]);
 
 @Injectable()
 export class OrganizationAttributeOptionService {
+  private readonly logger = new Logger("OrganizationAttributeOptionService");
   constructor(
     private readonly organizationAttributeOptionRepository: OrganizationAttributeOptionRepository,
     private readonly organizationAttributesService: OrganizationAttributesService,
@@ -66,9 +67,16 @@ export class OrganizationAttributeOptionService {
       organizationId,
       data.attributeId
     );
-    if (!attribute) throw new NotFoundException("Attribute not found");
 
-    const membership = await this.organizationsMembershipsService.getOrgMembership(organizationId, userId);
+    if (!attribute) {
+      throw new NotFoundException("Attribute not found");
+    }
+
+    const membership = await this.organizationsMembershipsService.getOrgMembershipByUserId(
+      organizationId,
+      userId
+    );
+
     if (!membership || !membership.accepted)
       throw new NotFoundException("User is not a member of the organization");
 
@@ -78,9 +86,10 @@ export class OrganizationAttributeOptionService {
 
     return this.organizationAttributeOptionRepository.assignOrganizationAttributeOptionToUser({
       organizationId,
-      membershipId: userId,
+      membershipId: membership.id,
       value: data.value,
       attributeId: data.attributeId,
+      attributeOptionId: data.attributeOptionId,
     });
   }
 

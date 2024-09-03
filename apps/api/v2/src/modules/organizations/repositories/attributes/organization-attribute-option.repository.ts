@@ -3,12 +3,13 @@ import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/
 import { OrganizationsMembershipService } from "@/modules/organizations/services/organizations-membership.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationAttributeOptionRepository {
+  private readonly logger = new Logger("OrganizationAttributeOptionRepository");
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
@@ -29,12 +30,22 @@ export class OrganizationAttributeOptionRepository {
   }
 
   async deleteOrganizationAttributeOption(organizationId: number, attributeId: string, optionId: string) {
-    return this.dbWrite.prisma.attributeOption.delete({
-      where: {
-        id: optionId,
-        attributeId,
-      },
-    });
+    try {
+      const deletedAttributeOption = await this.dbWrite.prisma.attributeOption.delete({
+        where: {
+          id: optionId,
+          attributeId,
+        },
+      });
+      return deletedAttributeOption;
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        // P2025 is the Prisma error code for "Record to delete does not exist."
+        this.logger.warn(`Attribute option not found: ${optionId}`);
+        throw new NotFoundException("Attribute option not found");
+      }
+      throw error;
+    }
   }
 
   async updateOrganizationAttributeOption(
@@ -78,6 +89,7 @@ export class OrganizationAttributeOptionRepository {
 
     return options;
   }
+
   async assignOrganizationAttributeOptionToUser({
     organizationId,
     membershipId,
@@ -124,12 +136,25 @@ export class OrganizationAttributeOptionRepository {
     userId: number,
     attributeOptionId: string
   ) {
-    const membership = await this.organizationsMembershipsService.getOrgMembership(organizationId, userId);
+    const membership = await this.organizationsMembershipsService.getOrgMembershipByUserId(
+      organizationId,
+      userId
+    );
 
     if (!membership) throw new Error("Membership not found");
 
-    return this.dbWrite.prisma.attributeToUser.delete({
-      where: { memberId_attributeOptionId: { memberId: membership.id, attributeOptionId } },
-    });
+    try {
+      const deletedAttributeToUser = await this.dbWrite.prisma.attributeToUser.delete({
+        where: { memberId_attributeOptionId: { memberId: membership.id, attributeOptionId } },
+      });
+      return deletedAttributeToUser;
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        // P2025 is the Prisma error code for "Record to delete does not exist."
+        this.logger.warn(`Attribute option not found: ${attributeOptionId} for user ${userId}`);
+        throw new NotFoundException("Attribute does not belong to this user");
+      }
+      throw error;
+    }
   }
 }
