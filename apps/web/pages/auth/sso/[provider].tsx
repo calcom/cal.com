@@ -19,9 +19,8 @@ export default function Provider(props: SSOProviderPageProps) {
   const router = useRouter();
 
   useEffect(() => {
+    const email = searchParams?.get("email");
     if (props.provider === "saml") {
-      const email = searchParams?.get("email");
-
       if (!email) {
         router.push(`/auth/error?error=Email not provided`);
         return;
@@ -33,6 +32,8 @@ export default function Provider(props: SSOProviderPageProps) {
       }
 
       signIn("saml", {}, { tenant: props.tenant, product: props.product });
+    } else if (props.provider === "google" && email) {
+      signIn("google", {}, { login_hint: email });
     } else {
       signIn(props.provider);
     }
