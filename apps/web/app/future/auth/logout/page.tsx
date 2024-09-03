@@ -1,7 +1,6 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -19,17 +18,7 @@ export const generateMetadata = async () => {
 };
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/logout/delete-session-cookie`,
-    {
-      method: "GET",
-    }
-  );
-
-  if (!response.ok) {
-    return notFound();
-  }
-
+  // cookie will be cleared in `/apps/web/middleware.ts`
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
   const context = buildLegacyCtx(h, cookies(), params, searchParams);
