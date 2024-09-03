@@ -921,7 +921,8 @@ async function confirmPendingPayment(page: Page) {
     headers: { "stripe-signature": signature },
   });
 
-  if (response.status() !== 200) throw new Error(`Failed to confirm payment. Response: ${response.text()}`);
+  if (response.status() !== 200)
+    throw new Error(`Failed to confirm payment. Response: ${await response.text()}`);
 }
 
 // login using a replay of an E2E routine.
