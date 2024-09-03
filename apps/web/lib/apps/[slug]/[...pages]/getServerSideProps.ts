@@ -62,7 +62,7 @@ const paramsSchema = z.object({
 export async function getServerSideProps(
   context: GetServerSidePropsContext
 ): Promise<GetServerSidePropsResult<any>> {
-  const { params, req, res } = context;
+  const { params, req } = context;
   if (!params) {
     return {
       notFound: true,
@@ -89,7 +89,7 @@ export async function getServerSideProps(
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
     params.appPages = pages.slice(1);
-    const session = await getServerSession({ req, res });
+    const session = await getServerSession({ req });
     const user = session?.user;
     const app = await getAppWithMetadata({ slug: appName });
 

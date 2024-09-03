@@ -163,13 +163,13 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   try {
     let eventTypes: TEventType[] | null = null;
-    const { req, res, query, params } = context;
+    const { req, query, params } = context;
     const stepsEnum = z.enum(STEPS);
     const parsedAppSlug = z.coerce.string().parse(query?.slug);
     const parsedStepParam = z.coerce.string().parse(params?.step);
     const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
     const _ = stepsEnum.parse(parsedStepParam);
-    const session = await getServerSession({ req, res });
+    const session = await getServerSession({ req });
     const locale = await getLocale(context.req);
     const app = await getAppBySlug(parsedAppSlug);
     const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
