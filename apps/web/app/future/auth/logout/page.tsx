@@ -1,10 +1,14 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
 
-import { getServerSideProps } from "@server/lib/auth/logout/getServerSideProps";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import type { PageProps } from "~/auth/logout-view";
+import PageWrapper from "@components/PageWrapperAppDir";
+
+import { ssrInit } from "@server/lib/ssr";
+
 import Logout from "~/auth/logout-view";
 
 export const generateMetadata = async () => {
@@ -14,8 +18,32 @@ export const generateMetadata = async () => {
   );
 };
 
-export default WithLayout({
-  getLayout: null,
-  Page: Logout,
-  getData: withAppDirSsr<PageProps>(getServerSideProps),
-})<"P">;
+const Page = async ({ params, searchParams }: PageProps) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/logout/delete-session-cookie`,
+    {
+      method: "GET",
+    }
+  );
+
+  if (!response.ok) {
+    return notFound();
+  }
+
+  const h = headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+  const context = buildLegacyCtx(h, cookies(), params, searchParams);
+  const ssr = await ssrInit(context);
+  const props = {
+    trpcState: ssr.dehydrate(),
+    query: context.query,
+  };
+
+  return (
+    <PageWrapper requiresLicense={false} getLayout={null} nonce={nonce} themeBasis={null} {...props}>
+      <Logout {...props} />
+    </PageWrapper>
+  );
+};
+
+export default Page;
