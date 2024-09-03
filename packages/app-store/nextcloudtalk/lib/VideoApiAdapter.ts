@@ -19,12 +19,13 @@ import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import config from "../config.json";
 import { appKeysSchema } from "../zod";
 
-type NextcloudToken = {
-  access_token: string;
-};
-
 const nextcloudEventResultSchema = z.object({
   ocs: z.object({
+    meta: z.object({
+      status: z.string(),
+      statuscode: z.number(),
+      message: z.string(),
+    }),
     data: z.object({
       token: z.string(),
     }),
@@ -128,9 +129,6 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
     },
     createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
       const appKeys = await getAppKeysFromSlug(config.slug);
-      const keys = credential.key as NextcloudToken;
-      const { access_token } = keys;
-
       const meetingPattern = (appKeys.nextcloudTalkPattern as string) || "{uuid}";
       const hostUrl = appKeys.nextcloudTalkHost as string;
 
@@ -151,7 +149,6 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
           method: "POST",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${access_token}`,
             "Content-Type": "application/json",
             "OCS-APIRequest": "true",
           },
@@ -164,7 +161,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
 
         if (result.ocs && result.ocs.data) {
           return {
-            type: config.slug,
+            type: config.type,
             id: result.ocs.data.token,
             password: "",
             url: `${hostUrl}/call/${result.ocs.data.token}`,
@@ -178,25 +175,29 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
       }
     },
     deleteMeeting: async (uid: string): Promise<void> => {
-      const keys = credential.key as NextcloudToken;
-      const { access_token } = keys;
+      try {
+        // Remove video link from Nextcloud
+        const response = await fetchNextcloudApi(`ocs/v2.php/apps/spreed/api/v4/room/${uid}`, {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "OCS-APIRequest": "true",
+          },
+        });
+        const result = nextcloudEventResultSchema.parse(response);
 
-      // Remove video link
-      await fetchNextcloudApi(`ocs/v2.php/apps/spreed/api/v4/room/${uid}`, {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${access_token}`,
-          "Content-Type": "application/json",
-          "OCS-APIRequest": "true",
-        },
-      });
-
-      return Promise.resolve();
+        if (result.ocs && result.ocs.meta && result.ocs.meta.status === "ok") {
+          return Promise.resolve();
+        }
+        throw new Error(`Failed to delete meeting. Response is ${JSON.stringify(result)}`);
+      } catch (err) {
+        return Promise.reject(new Error("Failed to delete meeting"));
+      }
     },
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       return Promise.resolve({
-        type: config.slug,
+        type: config.type,
         id: bookingRef.meetingId as string,
         password: bookingRef.meetingPassword as string,
         url: bookingRef.meetingUrl as string,
