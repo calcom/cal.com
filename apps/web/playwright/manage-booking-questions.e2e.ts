@@ -257,7 +257,7 @@ test.describe("Manage Booking Questions", () => {
       const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
-        await page.getByTestId(`horizontal-tab-${team.name}`).click();
+        await page.getByTestId(`horizontal-tab-${team?.name}`).click();
         await page.waitForLoadState("networkidle");
 
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
