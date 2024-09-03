@@ -113,7 +113,7 @@ export class BookingRepository {
     return allBookings;
   }
 
-  static async findBookingByUid({
+  static async findBookingByUidWithOptionalSelect({
     bookingUid,
     select,
   }: {

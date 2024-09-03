@@ -11,7 +11,7 @@ import type { PageProps } from "~/videos/views/videos-meeting-not-started-single
 import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
 
 export const generateMetadata = async ({ params }: _PageProps) => {
-  const booking = await BookingRepository.findBookingByUid({
+  const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
     bookingUid: typeof params?.uid === "string" ? params.uid : "",
   });
 

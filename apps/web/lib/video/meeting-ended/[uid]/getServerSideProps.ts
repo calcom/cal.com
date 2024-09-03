@@ -6,7 +6,7 @@ import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const booking = await BookingRepository.findBookingByUid({
+  const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
     bookingUid: context.query.uid as string,
     select: {
       uid: true,

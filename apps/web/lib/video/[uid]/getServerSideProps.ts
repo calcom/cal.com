@@ -20,7 +20,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const ssr = await ssrInit(context);
 
-  const booking = await BookingRepository.findBookingByUid({
+  const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
     bookingUid: context.query.uid as string,
     select: {
       uid: true,
