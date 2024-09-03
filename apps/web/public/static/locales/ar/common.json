@@ -2201,6 +2201,7 @@
   "member_removed": "تمت إزالة العضو",
   "my_availability": "أوقاتي المتاحة",
   "team_availability": "أوقات الفريق المتاحة",
+  "instant_meeting_availability": "توفر الاجتماعات الفورية",
   "backup_code": "الرمز الاحتياطي",
   "backup_codes": "الرموز الاحتياطية",
   "backup_code_instructions": "يمكن استخدام كل رمز احتياطي لمرة واحدة فقط لمنح حق الوصول بدون مصادقة منك.",
