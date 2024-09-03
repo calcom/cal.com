@@ -13,11 +13,14 @@ import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
+
+import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
 import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
 
-import { type PageProps } from "./videos-single-view.getServerSideProps";
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
