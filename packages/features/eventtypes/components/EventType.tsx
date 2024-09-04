@@ -210,6 +210,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       instantMeetingExpiryTimeOffsetInSeconds: eventType.instantMeetingExpiryTimeOffsetInSeconds,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
+      instantMeetingSchedule: eventType.instantMeetingSchedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
       onlyShowFirstAvailableSlot: eventType.onlyShowFirstAvailableSlot || undefined,
       durationLimits: eventType.durationLimits || undefined,
