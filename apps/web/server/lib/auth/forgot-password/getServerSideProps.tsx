@@ -10,10 +10,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const session = await getServerSession({ req });
 
-  // @TODO res will not be available in future pages (app dir)
   if (session) {
     res.writeHead(302, { Location: "/" });
     res.end();
+    return { props: {} };
+  }
+  const locale = await getLocale(context.req);
+
+  return {
+    props: {
+      csrfToken: await getCsrfToken(context),
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
+
+export async function getServerSidePropsAppDir(context: GetServerSidePropsContext) {
+  const { req } = context;
+
+  const session = await getServerSession({ req });
+
+  if (session) {
+    const redirect = await import("next/navigation").then((mod) => mod.redirect);
+    redirect("/");
     return { props: {} };
   }
   const locale = await getLocale(context.req);
