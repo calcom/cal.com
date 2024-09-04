@@ -152,16 +152,18 @@ async function getLocationInEvtFormatOrThrow({
   };
   loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
 }) {
+  if (location !== OrganizerDefaultConferencingAppType) {
+    return location;
+  }
+
   try {
-    return location !== OrganizerDefaultConferencingAppType
-      ? location
-      : getLocationForOrganizerDefaultConferencingAppInEvtFormat({
-          organizer: {
-            name: organizer.name ?? "Organizer",
-            metadata: organizer.metadata,
-          },
-          loggedInUserTranslate,
-        });
+    return getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+      organizer: {
+        name: organizer.name ?? "Organizer",
+        metadata: organizer.metadata,
+      },
+      loggedInUserTranslate,
+    });
   } catch (e) {
     if (e instanceof UserError) {
       throw new TRPCError({ code: "BAD_REQUEST", message: e.message });

@@ -1,7 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  createBookingScenario,
+  getOrganizer,
+  TestData,
+  getScenarioData,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { getZoomAppCredential } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { expectSuccesfulLocationChangeEmails } from "@calcom/web/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { getLocationForOrganizerDefaultConferencingAppInEvtFormat } from "../editLocation.handler";
-import { UserError, SystemError } from "../editLocation.handler";
+import { describe, expect, vi, beforeEach } from "vitest";
+
+import { prisma } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
+
+import {
+  editLocationHandler,
+  getLocationForOrganizerDefaultConferencingAppInEvtFormat,
+  SystemError,
+  UserError,
+} from "../editLocation.handler";
 
 describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   const mockTranslate = vi.fn((key: string) => key);
@@ -11,7 +29,7 @@ describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   });
 
   describe("Dynamic link apps", () => {
-    it("should return the app type for Zoom", () => {
+    test("should return the app type for Zoom", () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -29,7 +47,7 @@ describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
       expect(result).toBe("integrations:zoom");
     });
 
-    it("should return the app type for Google Meet", () => {
+    test("should return the app type for Google Meet", () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -49,7 +67,7 @@ describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   });
 
   describe("Static link apps", () => {
-    it("should return the app type for Campfire", () => {
+    test("should return the app type for Campfire", () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -68,7 +86,7 @@ describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   });
 
   describe("Error handling", () => {
-    it("should throw a UserError if defaultConferencingApp is not set", () => {
+    test("should throw a UserError if defaultConferencingApp is not set", () => {
       const organizer = {
         name: "Test Organizer",
         metadata: null,
@@ -85,7 +103,7 @@ describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
       });
     });
 
-    it("should throw a SystemError if the app is not found", () => {
+    test("should throw a SystemError if the app is not found", () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -103,7 +121,7 @@ describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
       ).toThrow(SystemError);
     });
 
-    it("should throw a SystemError for static link apps if appLink is missing", () => {
+    test("should throw a SystemError for static link apps if appLink is missing", () => {
       const organizer = {
         name: "Test Organizer",
         metadata: {
@@ -119,6 +137,128 @@ describe("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
           loggedInUserTranslate: mockTranslate,
         })
       ).toThrow(SystemError);
+    });
+  });
+});
+
+describe("editLocation.handler", () => {
+  setupAndTeardown();
+
+  describe("Changing organizer default conferencing app", () => {
+    test("should update the booking location when organizer's default conferencing app changes", async ({
+      emails,
+    }) => {
+      const scenarioData = {
+        organizer: getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getZoomAppCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+          },
+          metadata: {
+            defaultConferencingApp: {
+              appSlug: "campfire",
+              appLink: "https://campfire.com",
+            },
+          },
+        }),
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [{ id: 101 }],
+          },
+        ],
+        bookings: [
+          {
+            id: 1,
+            uid: "booking-1",
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            endTime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
+            userId: 101,
+            attendees: [
+              {
+                id: 102,
+                name: "Attendee 1",
+                email: "attendee1@example.com",
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+          },
+        ],
+        apps: [TestData.apps["zoom"], TestData.apps["google-meet"]],
+      };
+
+      await createBookingScenario(getScenarioData(scenarioData));
+
+      const booking = await prisma.booking.findFirst({
+        where: {
+          uid: scenarioData.bookings[0].uid,
+        },
+        include: {
+          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+          user: true,
+          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+          attendees: true,
+          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+          references: true,
+        },
+      });
+
+      const organizerUser = await prisma.user.findFirst({
+        where: {
+          id: scenarioData.organizer.id,
+        },
+      });
+
+      expect(booking).not.toBeNull();
+
+      // Simulate changing the organizer's default conferencing app to Google Meet
+      const updatedOrganizer = {
+        ...booking.user,
+        metadata: {
+          ...booking.user.metadata,
+          defaultConferencingApp: {
+            appSlug: "google-meet",
+          },
+        },
+      };
+
+      await editLocationHandler({
+        ctx: {
+          booking,
+          user: organizerUser,
+        },
+        input: {
+          newLocation: "conferencing",
+        },
+        currentUserId: updatedOrganizer.id,
+      });
+
+      const updatedBooking = await prisma.booking.findFirstOrThrow({
+        where: {
+          uid: scenarioData.bookings[0].uid,
+        },
+      });
+
+      expect(updatedBooking.location).toBe("https://campfire.com");
+
+      expectSuccesfulLocationChangeEmails({
+        emails,
+        organizer: organizerUser,
+        location: {
+          href: "https://campfire.com",
+          linkText: "Link",
+        },
+      });
     });
   });
 });
