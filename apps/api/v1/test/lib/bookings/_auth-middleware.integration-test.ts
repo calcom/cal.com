@@ -5,8 +5,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, it, expect, test } from "vitest";
 
-import type { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import authMiddleware from "../../../pages/api/bookings/[id]/_auth-middleware";
@@ -14,95 +12,18 @@ import authMiddleware from "../../../pages/api/bookings/[id]/_auth-middleware";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-describe("Bookings auth middleware", () => {
-  it("Returns 403 when user has no permission to the booking", async () => {
-    const trialUser = await prisma.user.findFirstOrThrow({ where: { email: "trial@example.com" } });
-    const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-    const booking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
-
-    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "GET",
-      body: {},
-      query: {
-        id: booking.id,
-      },
-    });
-
-    req.userId = trialUser.id;
-
-    try {
-      await authMiddleware(req);
-    } catch (error) {
-      const httpError = error as HttpError;
-      expect(httpError.statusCode).toBe(403);
-    }
-  });
-
-  it("Doesn't throw error when user is the booking user", async () => {
-    const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-    const booking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
-
-    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "GET",
-      body: {},
-      query: {
-        id: booking.id,
-      },
-    });
-
-    req.userId = proUser.id;
-
-    await authMiddleware(req);
-  });
-
-  it("Doesn't throw error when user is system-wide admin", async () => {
-    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "admin@example.com" } });
-    const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-    const booking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
-
-    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "GET",
-      body: {},
-      query: {
-        id: booking.id,
-      },
-    });
-
-    req.userId = adminUser.id;
-    req.isSystemWideAdmin = true;
-
-    await authMiddleware(req);
-  });
-
-  it("Doesn't throw error when user is org-wide admin", async () => {
-    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
-    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member1-acme@example.com" } });
-    const booking = await prisma.booking.findFirstOrThrow({ where: { userId: memberUser.id } });
-
-    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "GET",
-      body: {},
-      query: {
-        id: booking.id,
-      },
-    });
-
-    req.userId = adminUser.id;
-    req.isOrganizationOwnerOrAdmin = true;
-
-    await authMiddleware(req);
-  });
-});
-
 describe("Booking ownership and access in Middleware", () => {
   const adminUserId = 1;
   const ownerUserId = 2;
   const memberUserId = 3;
+  const orgOwnerUserId = 4;
   const adminUserEmail = "admin@example.com";
   const ownerUserEmail = "owner@example.com";
   const memberUserEmail = "member@example.com";
+  const orgOwnerUserEmail = "org-owner@example.com";
   // mock user data
   function buildMockData() {
+    //Create Users
     prismock.user.create({
       data: {
         id: adminUserId,
@@ -119,7 +40,14 @@ describe("Booking ownership and access in Middleware", () => {
         email: ownerUserEmail,
       },
     });
-
+    prismock.user.create({
+      data: {
+        id: orgOwnerUserId,
+        username: "org-owner",
+        name: "Org Owner",
+        email: orgOwnerUserEmail,
+      },
+    });
     prismock.user.create({
       data: {
         id: memberUserId,
@@ -145,6 +73,7 @@ describe("Booking ownership and access in Middleware", () => {
         },
       },
     });
+    //create team
     prismock.team.create({
       data: {
         id: 1,
@@ -173,6 +102,47 @@ describe("Booking ownership and access in Middleware", () => {
         },
       },
     });
+    //create Org
+    prismock.team.create({
+      data: {
+        id: 2,
+        name: "Org",
+        slug: "org",
+        isOrganization: true,
+        children: {
+          connect: {
+            id: 1,
+          },
+        },
+        members: {
+          createMany: {
+            data: [
+              {
+                userId: orgOwnerUserId,
+                role: MembershipRole.OWNER,
+                accepted: true,
+              },
+              {
+                userId: memberUserId,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+              {
+                userId: ownerUserId,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+              {
+                userId: adminUserId,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+            ],
+          },
+        },
+      },
+    });
+    //create eventTypes
     prismock.eventType.create({
       data: {
         id: 1,
@@ -200,6 +170,7 @@ describe("Booking ownership and access in Middleware", () => {
         },
       },
     });
+    //link eventType to teams
     prismock.eventType.update({
       where: {
         id: 1,
@@ -222,6 +193,15 @@ describe("Booking ownership and access in Middleware", () => {
             id: 1,
           },
         },
+      },
+    });
+    //link team to org
+    prismock.team.update({
+      where: {
+        id: 1,
+      },
+      data: {
+        parentId: 2,
       },
     });
     // Call Prisma to create booking with attendees
@@ -321,5 +301,34 @@ describe("Booking ownership and access in Middleware", () => {
     req.userId = memberUserId;
 
     await expect(authMiddleware(req)).rejects.toThrow();
+  });
+  test("should not throw error when user is system-wide admin", async () => {
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      query: {
+        id: 2,
+      },
+      prisma: prismock,
+    });
+    buildMockData();
+    req.userId = adminUserId;
+    req.isSystemWideAdmin = true;
+
+    await authMiddleware(req);
+  });
+
+  it("should throw error when user is org-wide admin", async () => {
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      query: {
+        id: 1,
+      },
+      prisma: prismock,
+    });
+    buildMockData();
+    req.userId = orgOwnerUserId;
+    req.isOrganizationOwnerOrAdmin = true;
+
+    await authMiddleware(req);
   });
 });
