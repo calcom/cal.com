@@ -6,7 +6,15 @@ export const usePlatformMe = () => {
   const QUERY_KEY = "get-platform-me";
   const platformMeQuery = useQuery<UserResponse>({
     queryKey: [QUERY_KEY],
-    staleTime: 300000,
+    retryOnMount: false,
+    refetchOnMount: false,
+    staleTime: 6000,
+    retry: (failureCount, error) => {
+      if (error.message === "Internal Server Error") {
+        return false;
+      }
+      return failureCount < 3; // Retry up to 3 times for other errors
+    },
     queryFn: async () => {
       const response = await fetch(`/api/v2/me`, {
         method: "get",
