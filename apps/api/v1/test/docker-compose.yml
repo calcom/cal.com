@@ -1,6 +1,3 @@
-# Set the version of docker compose to use
-version: "3.9"
-
 # The containers that compose the project
 services:
   db:

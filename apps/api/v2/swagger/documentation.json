@@ -2287,7 +2287,7 @@
     },
     "/v2/organizations/{orgId}/webhooks": {
       "get": {
-        "operationId": "OrganizationsWebhooksController_getAllWebhooks",
+        "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
         "parameters": [
           {
             "name": "orgId",
@@ -2324,7 +2324,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhooksOutputResponseDto"
                 }
               }
             }
@@ -2335,7 +2335,7 @@
         ]
       },
       "post": {
-        "operationId": "OrganizationsWebhooksController_createWebhook",
+        "operationId": "OrganizationsWebhooksController_createOrganizationWebhook",
         "parameters": [
           {
             "name": "orgId",
@@ -2362,7 +2362,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -2375,16 +2375,8 @@
     },
     "/v2/organizations/{orgId}/webhooks/{webhookId}": {
       "get": {
-        "operationId": "OrganizationsWebhooksController_getOrgWebhook",
+        "operationId": "OrganizationsWebhooksController_getOrganizationWebhook",
         "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
           {
             "name": "webhookId",
             "required": true,
@@ -2400,7 +2392,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -2414,14 +2406,6 @@
         "operationId": "OrganizationsWebhooksController_deleteWebhook",
         "parameters": [
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -2436,7 +2420,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -2447,16 +2431,8 @@
         ]
       },
       "patch": {
-        "operationId": "OrganizationsWebhooksController_updateWebhook",
+        "operationId": "OrganizationsWebhooksController_updateOrgWebhook",
         "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
           {
             "name": "webhookId",
             "required": true,
@@ -2482,7 +2458,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -7602,6 +7578,189 @@
           "userId"
         ]
       },
+      "TeamWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "teamId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "TeamWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamWebhookOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "triggers",
+          "active",
+          "subscriberUrl"
+        ]
+      },
+      "TeamWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        }
+      },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -9296,59 +9455,6 @@
         "type": "object",
         "properties": {}
       },
-      "CreateWebhookInputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "triggers": {
-            "type": "string",
-            "example": [
-              "BOOKING_CREATED",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_CANCELLED",
-              "BOOKING_CONFIRMED",
-              "BOOKING_REJECTED",
-              "BOOKING_COMPLETED",
-              "BOOKING_NO_SHOW",
-              "BOOKING_REOPENED"
-            ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
-            ]
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "secret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "triggers",
-          "active",
-          "subscriberUrl"
-        ]
-      },
       "UserWebhookOutputDto": {
         "type": "object",
         "properties": {
@@ -9358,84 +9464,6 @@
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
           "userId": {
-            "type": "number"
-          },
-          "id": {
-            "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "secret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "payloadTemplate",
-          "userId",
-          "id",
-          "triggers",
-          "subscriberUrl",
-          "active"
-        ]
-      },
-      "OrgWebhookOutputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "id": {
-            "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "secret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "payloadTemplate",
-          "userId",
-          "id",
-          "triggers",
-          "subscriberUrl",
-          "active"
-        ]
-      },
-      "GetAllOrgWebhooksDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "teamId": {
             "type": "number"
           },
           "id": {
@@ -9485,74 +9513,6 @@
           "status",
           "data"
         ]
-      },
-      "OrgWebhooksResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/GetAllOrgWebhooksDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateWebhookInputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "triggers": {
-            "type": "string",
-            "example": [
-              "BOOKING_CREATED",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_CANCELLED",
-              "BOOKING_CONFIRMED",
-              "BOOKING_REJECTED",
-              "BOOKING_COMPLETED",
-              "BOOKING_NO_SHOW",
-              "BOOKING_REOPENED"
-            ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
-            ]
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "secret": {
-            "type": "string"
-          }
-        }
       },
       "UserWebhooksOutputResponseDto": {
         "type": "object",
