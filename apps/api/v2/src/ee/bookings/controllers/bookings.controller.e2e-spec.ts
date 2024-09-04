@@ -89,7 +89,7 @@ describe("Bookings Endpoints", () => {
       expect(user).toBeDefined();
     });
 
-    it("should fail to create a booking with no_available_users_found_error", async () => {
+    it("should create a booking", async () => {
       const bookingStart = "2040-05-21T09:30:00.000Z";
       const bookingEnd = "2040-05-21T10:30:00.000Z";
       const bookingEventTypeId = eventTypeId;
@@ -144,7 +144,7 @@ describe("Bookings Endpoints", () => {
         });
     });
 
-    it("should create a booking", async () => {
+    it("should fail to create a booking with no_available_users_found_error", async () => {
       const bookingStart = "2040-05-21T09:30:00.000Z";
       const bookingEnd = "2040-05-21T10:30:00.000Z";
       const bookingEventTypeId = eventTypeId;
