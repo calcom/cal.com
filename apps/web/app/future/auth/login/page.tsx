@@ -1,16 +1,15 @@
-import Login from "@pages/auth/login";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import type { InferGetServerSidePropsType } from "next";
-
-import { APP_NAME } from "@calcom/lib/constants";
 
 import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
+import type { PageProps } from "~/auth/login-view";
+import Login from "~/auth/login-view";
+
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => `${t("login")} | ${APP_NAME}`,
+    (t) => t("login"),
     (t) => t("login")
   );
 };
@@ -18,5 +17,5 @@ export const generateMetadata = async () => {
 export default WithLayout({
   getLayout: null,
   Page: Login,
-  getData: withAppDirSsr<InferGetServerSidePropsType<typeof getServerSideProps>>(getServerSideProps),
+  getData: withAppDirSsr<PageProps>(getServerSideProps),
 })<"P">;
