@@ -6,6 +6,8 @@ import { ValidatorConstraint, registerDecorator } from "class-validator";
 
 import { ConfirmationPolicyEnum, NoticeThresholdUnitEnum } from "@calcom/platform-enums";
 
+import type { Disabled_2024_06_14 } from "./disabled.input";
+
 // Class representing the notice threshold
 export class NoticeThreshold_2024_06_14 {
   @IsInt()
@@ -24,7 +26,7 @@ export class NoticeThreshold_2024_06_14 {
 }
 
 // Class representing the confirmation requirements
-export class RequiresConfirmation_2024_06_14 {
+export class BaseRequiresConfirmation_2024_06_14 {
   @IsEnum(ConfirmationPolicyEnum)
   @ApiProperty({
     description: "The policy that determines when confirmation is required",
@@ -43,27 +45,35 @@ export class RequiresConfirmation_2024_06_14 {
   noticeThreshold?: NoticeThreshold_2024_06_14;
 
   @IsBoolean()
-  blockUnconfirmedBookingsInBooker!: boolean;
+  blockCalendarForUnconfirmedBookings!: boolean;
+
+  disabled?: false;
 }
+
+export type RequiresConfirmation_2024_06_14 = BaseRequiresConfirmation_2024_06_14 | Disabled_2024_06_14;
 
 // Validator for confirmation settings
 @ValidatorConstraint({ name: "ConfirmationValidator", async: false })
 export class ConfirmationValidator implements ValidatorConstraintInterface {
   validate(value: RequiresConfirmation_2024_06_14): boolean {
-    const { confirmationPolicy, noticeThreshold } = value;
-
-    if (confirmationPolicy === ConfirmationPolicyEnum.ALWAYS) {
+    if ("disabled" in value) {
       return true;
     }
+    if ("confirmationPolicy" in value && "noticeThreshold" in value) {
+      const { confirmationPolicy, noticeThreshold } = value;
 
-    if (confirmationPolicy === ConfirmationPolicyEnum.TIME) {
-      return !!(
-        noticeThreshold &&
-        typeof noticeThreshold.time === "number" &&
-        typeof noticeThreshold.unit === "string"
-      );
+      if (confirmationPolicy === ConfirmationPolicyEnum.ALWAYS) {
+        return true;
+      }
+
+      if (confirmationPolicy === ConfirmationPolicyEnum.TIME) {
+        return !!(
+          noticeThreshold &&
+          typeof noticeThreshold.time === "number" &&
+          typeof noticeThreshold.unit === "string"
+        );
+      }
     }
-
     return false;
   }
 

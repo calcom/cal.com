@@ -250,7 +250,6 @@ export class OutputEventTypesService_2024_06_14 {
     seatsShowAttendees: boolean | null,
     seatsShowAvailabilityCount: boolean | null
   ) {
-    if (!seatsPerTimeSlot) return undefined;
     return getResponseSeatOptions({
       seatsPerTimeSlot,
       seatsShowAttendees: !!seatsShowAttendees,

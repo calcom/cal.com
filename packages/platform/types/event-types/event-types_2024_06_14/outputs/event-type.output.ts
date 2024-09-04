@@ -11,19 +11,19 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import type { Location_2024_06_14, BookingField_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
-import {
-  Host as TeamEventTypeHostInput,
+import type {
+  Location_2024_06_14,
+  BookingField_2024_06_14,
+  BookingWindow_2024_06_14,
   BookingLimitsDuration_2024_06_14,
-  EventTypeColor_2024_06_14,
-  Seats_2024_06_14,
 } from "../inputs";
+import { Host as TeamEventTypeHostInput, EventTypeColor_2024_06_14, Seats_2024_06_14 } from "../inputs";
 import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
-import { RequiresConfirmation_2024_06_14 } from "../inputs/requires-confirmation.input";
+import type { RequiresConfirmation_2024_06_14 } from "../inputs/requires-confirmation.input";
 
 enum SchedulingTypeEnum {
   ROUND_ROBIN = "ROUND_ROBIN",
@@ -143,7 +143,6 @@ class BaseEventTypeOutput {
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => BookingLimitsDuration_2024_06_14)
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
@@ -154,7 +153,6 @@ class BaseEventTypeOutput {
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
-  @Type(() => RequiresConfirmation_2024_06_14)
   requiresConfirmation?: RequiresConfirmation_2024_06_14;
 
   @IsOptional()

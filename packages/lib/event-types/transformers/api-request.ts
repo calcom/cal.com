@@ -22,6 +22,7 @@ import type {
   TransformRecurringEventSchema_2024_06_14,
   EventTypeColorsTransformedSchema,
   SeatOptionsTransformedSchema,
+  SeatOptionsDisabledSchema,
 } from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
@@ -128,6 +129,9 @@ function transformApiEventTypeIntervalLimits(
   inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]
 ) {
   const res: TransformBookingLimitsSchema_2024_06_14 = {};
+  if (inputBookingLimits?.disabled) {
+    return res;
+  }
   inputBookingLimits &&
     Object.entries(inputBookingLimits).map(([key, value]) => {
       const outputKey: BookingLimitsKeyOutputType_2024_06_14 = BookingLimitsEnum_2024_06_14[
@@ -141,6 +145,14 @@ function transformApiEventTypeIntervalLimits(
 function transformApiEventTypeFutureBookingLimits(
   inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingWindow"]
 ): TransformFutureBookingsLimitSchema_2024_06_14 | undefined {
+  if (!inputBookingLimits) {
+    return;
+  }
+  if (inputBookingLimits.disabled) {
+    return {
+      periodType: BookingWindowPeriodOutputTypeEnum_2024_06_14.UNLIMITED,
+    };
+  }
   switch (inputBookingLimits?.type) {
     case BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays:
       return {
@@ -190,6 +202,13 @@ function transformApiEventTypeRequiresConfirmation(
   inputRequiresConfirmation: CreateEventTypeInput_2024_06_14["requiresConfirmation"]
 ): RequiresConfirmationTransformedSchema | undefined {
   if (!inputRequiresConfirmation) return undefined;
+  if (inputRequiresConfirmation.disabled) {
+    return {
+      requiresConfirmation: false,
+      requiresConfirmationWillBlockSlot: false,
+      requiresConfirmationThreshold: undefined,
+    };
+  }
   switch (inputRequiresConfirmation.confirmationPolicy) {
     case ConfirmationPolicyEnum.ALWAYS:
       return {
@@ -218,10 +237,16 @@ function transformApiEventTypeColors(
     lightEventTypeColor: inputEventTypeColors.lightThemeColor,
   };
 }
+
 function transformApiSeatOptions(
   inputSeats: CreateEventTypeInput_2024_06_14["seats"]
-): SeatOptionsTransformedSchema | undefined {
+): SeatOptionsTransformedSchema | SeatOptionsDisabledSchema | undefined {
   if (!inputSeats) return undefined;
+
+  if (inputSeats.disabled)
+    return {
+      seatsPerTimeSlot: null,
+    };
 
   return {
     seatsPerTimeSlot: inputSeats.seatsPerTimeSlot,
@@ -232,8 +257,9 @@ function transformApiSeatOptions(
 
 function transformApiEventTypeRecurrence(
   recurrence: CreateEventTypeInput_2024_06_14["recurrence"]
-): TransformRecurringEventSchema_2024_06_14 | undefined {
-  if (!recurrence) return undefined;
+): TransformRecurringEventSchema_2024_06_14 | null {
+  if (!recurrence || recurrence.disabled) return null;
+
   return {
     interval: recurrence.interval,
     count: recurrence.occurrences,

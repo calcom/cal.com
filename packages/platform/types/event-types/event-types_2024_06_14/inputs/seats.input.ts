@@ -24,10 +24,16 @@ export class Seats_2024_06_14 {
     example: true,
   })
   showAvailabilityCount!: boolean;
+
+  disabled?: false;
 }
 
 export type SeatOptionsTransformedSchema = {
   seatsPerTimeSlot: number;
   seatsShowAttendees: boolean;
   seatsShowAvailabilityCount: boolean;
+};
+
+export type SeatOptionsDisabledSchema = {
+  seatsPerTimeSlot: null;
 };

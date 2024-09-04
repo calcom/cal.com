@@ -2,7 +2,9 @@ import { ApiProperty } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import { IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
 
-export class BookingLimitsDuration_2024_06_14 {
+import type { Disabled_2024_06_14 } from "./disabled.input";
+
+export class BaseBookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
@@ -38,8 +40,11 @@ export class BookingLimitsDuration_2024_06_14 {
     example: 240,
   })
   year?: number;
+
+  disabled?: false;
 }
 
+export type BookingLimitsDuration_2024_06_14 = BaseBookingLimitsDuration_2024_06_14 | Disabled_2024_06_14;
 @ValidatorConstraint({ name: "BookingLimitsDurationValidator", async: false })
 class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
   private errorDetails: {
@@ -48,36 +53,46 @@ class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
   } = {};
   validate(value: BookingLimitsDuration_2024_06_14) {
     if (!value) return false;
-
-    const { day, week, month, year } = value;
-
-    // Check if 'day' exceeds 'week', 'month', or 'year'
-    if (day && ((week && day > week) || (month && day > month) || (year && day > year))) {
-      this.errorDetails.invalidLimit = "day";
-      this.errorDetails.comparedLimit = week && day > week ? "week" : month && day > month ? "month" : "year";
-      return false;
+    if ("disabled" in value) {
+      return true;
     }
 
-    // Check if 'week' exceeds 'month' or 'year'
-    if (week && ((month && week > month) || (year && week > year))) {
-      this.errorDetails.invalidLimit = "week";
-      this.errorDetails.comparedLimit = month && week > month ? "month" : "year";
-      return false;
-    }
+    if ("day" in value && "week" in value && "month" in value && "year" in value) {
+      const { day, week, month, year } = value;
 
-    // Check if 'month' exceeds 'year'
-    if (month && year && month > year) {
-      this.errorDetails.invalidLimit = "month";
-      this.errorDetails.comparedLimit = "year";
-      return false;
-    }
+      // Check if 'day' exceeds 'week', 'month', or 'year'
+      if (day && ((week && day > week) || (month && day > month) || (year && day > year))) {
+        this.errorDetails.invalidLimit = "day";
+        this.errorDetails.comparedLimit =
+          week && day > week ? "week" : month && day > month ? "month" : "year";
+        return false;
+      }
 
-    return true;
+      // Check if 'week' exceeds 'month' or 'year'
+      if (week && ((month && week > month) || (year && week > year))) {
+        this.errorDetails.invalidLimit = "week";
+        this.errorDetails.comparedLimit = month && week > month ? "month" : "year";
+        return false;
+      }
+
+      // Check if 'month' exceeds 'year'
+      if (month && year && month > year) {
+        this.errorDetails.invalidLimit = "month";
+        this.errorDetails.comparedLimit = "year";
+        return false;
+      }
+
+      return true;
+    }
+    return false;
   }
 
   defaultMessage() {
     const { invalidLimit, comparedLimit } = this.errorDetails;
-    return `Invalid booking durations: The duration of bookings for ${invalidLimit} cannot exceed the duration of bookings for ${comparedLimit}.`;
+    if (invalidLimit && comparedLimit) {
+      return `Invalid booking durations: The duration of bookings for ${invalidLimit} cannot exceed the duration of bookings for ${comparedLimit}.`;
+    }
+    return `Invalid booking durations structure`;
   }
 }
 

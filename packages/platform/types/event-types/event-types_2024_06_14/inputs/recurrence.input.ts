@@ -21,4 +21,6 @@ export class Recurrence_2024_06_14 {
   @IsEnum(FrequencyInput)
   @ApiProperty({ enum: FrequencyInput })
   frequency!: FrequencyInput;
+
+  disabled?: false;
 }

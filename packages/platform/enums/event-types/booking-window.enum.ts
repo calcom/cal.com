@@ -8,4 +8,5 @@ export enum BookingWindowPeriodOutputTypeEnum_2024_06_14 {
   RANGE = "RANGE",
   ROLLING_WINDOW = "ROLLING_WINDOW",
   ROLLING = "ROLLING",
+  UNLIMITED = "UNLIMITED",
 }

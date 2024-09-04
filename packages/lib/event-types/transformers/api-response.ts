@@ -30,8 +30,10 @@ import type {
   Recurrence_2024_06_14,
   TransformRecurringEventSchema_2024_06_14,
   SeatOptionsTransformedSchema,
-  Seats_2024_06_14,
+  SeatOptionsDisabledSchema,
+  CreateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import type { Disabled_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/disabled.input";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
 
@@ -265,6 +267,11 @@ function getResponseEventTypeFutureBookingLimits(
         value: transformedFutureBookingsLimitsFields.periodDays,
         rolling: false,
       } as CalendarDaysWindow_2024_06_14 | BusinessDaysWindow_2024_06_14;
+
+    case BookingWindowPeriodOutputTypeEnum_2024_06_14.UNLIMITED:
+      return {
+        disabled: true,
+      } as Disabled_2024_06_14;
     default:
       return undefined;
   }
@@ -301,9 +308,14 @@ function getResponseEventTypeRequiresConfirmation(
       confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
       blockUnconfirmedBookingsInBooker: requiresConfirmationWillBlockSlot,
     };
+  } else if (!requiresConfirmationWillBlockSlot && !requiresConfirmation) {
+    return {
+      disabled: true,
+    };
   }
   return undefined;
 }
+
 function getResponseEventTypeColors(
   transformedColors: EventTypeColorsTransformedSchema
 ): EventTypeColor_2024_06_14 {
@@ -312,13 +324,22 @@ function getResponseEventTypeColors(
     lightThemeColor: transformedColors.lightEventTypeColor,
   };
 }
-function getResponseSeatOptions(transformedSeats: SeatOptionsTransformedSchema): Seats_2024_06_14 {
+
+function getResponseSeatOptions(
+  transformedSeats: SeatOptionsTransformedSchema | SeatOptionsDisabledSchema
+): CreateEventTypeInput_2024_06_14["seats"] {
+  if (transformedSeats.seatsPerTimeSlot == null) {
+    return {
+      disabled: true,
+    };
+  }
   return {
     seatsPerTimeSlot: transformedSeats.seatsPerTimeSlot,
     showAttendeeInfo: transformedSeats.seatsShowAttendees,
     showAvailabilityCount: transformedSeats.seatsShowAvailabilityCount,
   };
 }
+
 function getResponseEventTypeRecurrence(
   transformRecurringEvent: TransformRecurringEventSchema_2024_06_14
 ): Recurrence_2024_06_14 {

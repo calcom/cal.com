@@ -16,18 +16,19 @@ import { SchedulingType } from "@calcom/platform-enums";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
-import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
-import {
-  BookingLimitsDuration_2024_06_14,
-  ValidateBookingLimistsDuration,
-} from "./booking-limits-duration.input";
+import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
+import { ValidateBookingLimistsCount } from "./booking-limits-count.input";
+import type { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
+import { ValidateBookingLimistsDuration } from "./booking-limits-duration.input";
 import type { BookingWindow_2024_06_14 } from "./booking-window.input";
 import { ValidateBookingWindow } from "./booking-window.input";
+import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
-import { RequiresConfirmation_2024_06_14, ValidateRequiresConfirmation } from "./requires-confirmation.input";
+import type { RequiresConfirmation_2024_06_14 } from "./requires-confirmation.input";
+import { ValidateRequiresConfirmation } from "./requires-confirmation.input";
 import { Seats_2024_06_14 } from "./seats.input";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
@@ -89,7 +90,6 @@ export class BaseCreateEventTypeInput_2024_06_14 {
   scheduleId?: number;
 
   @IsOptional()
-  @Type(() => BookingLimitsCount_2024_06_14)
   @ValidateBookingLimistsCount()
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
@@ -98,7 +98,6 @@ export class BaseCreateEventTypeInput_2024_06_14 {
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => BookingLimitsDuration_2024_06_14)
   @ValidateBookingLimistsDuration()
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
@@ -117,12 +116,21 @@ export class BaseCreateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @ValidateRequiresConfirmation()
-  @Type(() => RequiresConfirmation_2024_06_14)
   requiresConfirmation?: RequiresConfirmation_2024_06_14;
 
   @ValidateNested()
-  @Type(() => Recurrence_2024_06_14)
-  recurrence?: Recurrence_2024_06_14;
+  @Transform(({ value }) => {
+    if (value && typeof value === "object") {
+      if ("interval" in value) {
+        return Object.assign(new Recurrence_2024_06_14(), value);
+      } else if ("disabled" in value) {
+        return Object.assign(new Disabled_2024_06_14(), value);
+      }
+    }
+    return value;
+  })
+  @ValidateNested()
+  recurrence?: Recurrence_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -141,8 +149,18 @@ export class BaseCreateEventTypeInput_2024_06_14 {
   eventTypeColor?: EventTypeColor_2024_06_14;
 
   @IsOptional()
-  @Type(() => Seats_2024_06_14)
-  seats?: Seats_2024_06_14;
+  @Transform(({ value }) => {
+    if (value && typeof value === "object") {
+      if ("seatsPerTimeSlot" in value) {
+        return Object.assign(new Seats_2024_06_14(), value);
+      } else if ("disabled" in value) {
+        return Object.assign(new Disabled_2024_06_14(), value);
+      }
+    }
+    return value;
+  })
+  @ValidateNested()
+  seats?: Seats_2024_06_14 | Disabled_2024_06_14;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput_2024_06_14 {
   @IsInt()
