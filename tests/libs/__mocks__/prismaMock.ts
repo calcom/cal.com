@@ -1,7 +1,7 @@
 import { beforeEach, vi } from "vitest";
 import { mockDeep, mockReset } from "vitest-mock-extended";
 
-import type { PrismaClient, PrismaClientForTesting } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
@@ -15,7 +15,4 @@ beforeEach(() => {
 });
 
 const prisma = mockDeep<PrismaClient>();
-const prismaWithoutAccelerate = mockDeep<PrismaClientForTesting>();
-
-export { prismaWithoutAccelerate };
 export default prisma;

@@ -56,10 +56,6 @@ if (process.env.NODE_ENV !== "production") {
 
 type PrismaClientWithExtensions = typeof prismaWithClientExtensions;
 export type PrismaClient = PrismaClientWithExtensions;
-
-// For tests that don’t use prisma accelerate; tests with prismaMock's mockImplementation
-type PrismaClientWithoutExtensions = typeof prismaWithoutClientExtensions;
-export type PrismaClientForTesting = PrismaClientWithoutExtensions;
 export default prisma;
 
 export * from "./selects";
