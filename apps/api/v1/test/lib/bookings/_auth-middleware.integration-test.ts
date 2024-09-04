@@ -1,5 +1,6 @@
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
+import type { Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
@@ -104,52 +105,54 @@ describe("Booking ownership and access in Middleware", () => {
   const guestUserEmail = "guest@example.com";
   beforeEach(() => {
     vi.resetAllMocks();
-    prismaMock.user.findUnique.mockResolvedValue(({ where, select }) => {
-      const { id: userId } = where;
+    prismaMock.user.findUnique.mockResolvedValue(
+      ({ where, select }: { where: Prisma.UserWhereUniqueInput; select: Prisma.UserSelect }) => {
+        const { id: userId } = where;
 
-      const mockUsers = [
-        {
-          id: 1111,
-          email: adminUserEmail,
-          bookings: [{ id: 111 }],
-        },
-        {
-          id: 1122,
-          email: ownerUserEmail,
-          bookings: [{ id: 12314 }],
-        },
-        {
-          id: 2222,
-          email: memberUserEmail,
-          bookings: [{ id: 111 }],
-        },
-      ];
+        const mockUsers = [
+          {
+            id: 1111,
+            email: adminUserEmail,
+            bookings: [{ id: 111 }],
+          },
+          {
+            id: 1122,
+            email: ownerUserEmail,
+            bookings: [{ id: 12314 }],
+          },
+          {
+            id: 2222,
+            email: memberUserEmail,
+            bookings: [{ id: 111 }],
+          },
+        ];
 
-      // Find the matching user based on userId
-      const user = mockUsers.find((user) => user.id === userId);
+        // Find the matching user based on userId
+        const user = mockUsers.find((user) => user.id === userId);
 
-      // If no user is found, return null
-      if (!user) return null;
+        // If no user is found, return null
+        if (!user) return null;
 
-      // Define the result type explicitly
-      const result = {
-        email: undefined,
-        bookings: undefined,
-      };
+        // Define the result type explicitly
+        const result = {
+          email: undefined,
+          bookings: undefined,
+        };
 
-      // Assign values conditionally
-      if (select.email) {
-        result.email = user.email;
+        // Assign values conditionally
+        if (select.email) {
+          result.email = user.email;
+        }
+
+        if (select.bookings) {
+          result.bookings = user.bookings.filter((booking) =>
+            select.bookings.where ? booking.id === select.bookings.where.id : true
+          );
+        }
+
+        return result;
       }
-
-      if (select.bookings) {
-        result.bookings = user.bookings.filter((booking) =>
-          select.bookings.where ? booking.id === select.bookings.where.id : true
-        );
-      }
-
-      return result;
-    });
+    );
 
     const mockAllBookings = () => {
       prismaMock.booking.findMany.mockImplementation(({ where }) => {
