@@ -151,6 +151,9 @@ export { ShellSubHeading } from "./components/layout";
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { default as MultiEmail } from "./form/MultiEmailLazy";
+export { default as PhoneInputNonLazy } from "./form/PhoneInput";
+export { default as AddressInputNonLazy } from "./form/AddressInput";
+
 export { UnstyledSelect } from "./form/Select";
 
 export {
@@ -172,7 +175,6 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
-export { WizardLayoutAppDir } from "./layouts/WizardLayoutAppDir";
 export { DataTable } from "./components/data-table";
 export {
   Sheet,

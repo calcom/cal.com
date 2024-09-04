@@ -1668,8 +1668,25 @@
     },
     "/v2/organizations/{orgId}/memberships/{membershipId}": {
       "get": {
-        "operationId": "OrganizationsMembershipsController_getUserSchedule",
-        "parameters": [],
+        "operationId": "OrganizationsMembershipsController_getOrgMembership",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2268,9 +2285,9 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/attributes": {
+    "/v2/organizations/{orgId}/webhooks": {
       "get": {
-        "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
+        "operationId": "OrganizationsWebhooksController_getAllWebhooks",
         "parameters": [
           {
             "name": "orgId",
@@ -2307,15 +2324,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetOrganizationAttributesOutput"
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
       },
       "post": {
-        "operationId": "OrganizationsAttributesController_createOrganizationAttribute",
+        "operationId": "OrganizationsWebhooksController_createWebhook",
         "parameters": [
           {
             "name": "orgId",
@@ -2331,7 +2351,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrganizationAttributeInput"
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
               }
             }
           }
@@ -2342,17 +2362,20 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateOrganizationAttributesOutput"
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
       }
     },
-    "/v2/organizations/{orgId}/attributes/{attributeId}": {
+    "/v2/organizations/{orgId}/webhooks/{webhookId}": {
       "get": {
-        "operationId": "OrganizationsAttributesController_getOrganizationAttribute",
+        "operationId": "OrganizationsWebhooksController_getOrgWebhook",
         "parameters": [
           {
             "name": "orgId",
@@ -2363,7 +2386,7 @@
             }
           },
           {
-            "name": "attributeId",
+            "name": "webhookId",
             "required": true,
             "in": "path",
             "schema": {
@@ -2377,15 +2400,54 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetSingleAttributeOutput"
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsWebhooksController_deleteWebhook",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
       },
       "patch": {
-        "operationId": "OrganizationsAttributesController_updateOrganizationAttribute",
+        "operationId": "OrganizationsWebhooksController_updateWebhook",
         "parameters": [
           {
             "name": "orgId",
@@ -2396,7 +2458,7 @@
             }
           },
           {
-            "name": "attributeId",
+            "name": "webhookId",
             "required": true,
             "in": "path",
             "schema": {
@@ -2409,7 +2471,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOrganizationAttributeInput"
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
               }
             }
           }
@@ -2420,338 +2482,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateOrganizationAttributesOutput"
+                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
                 }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "operationId": "OrganizationsAttributesController_deleteOrganizationAttribute",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "attributeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteOrganizationAttributesOutput"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v2/organizations/{orgId}/attributes/{attributeId}/options": {
-      "post": {
-        "operationId": "OrganizationsOptionsAttributesController_createOrganizationAttributeOption",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "attributeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrganizationAttributeOptionInput"
               }
             }
           }
         },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateAttributeOptionOutput"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptions",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "attributeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetAllAttributeOptionOutput"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}": {
-      "delete": {
-        "operationId": "OrganizationsOptionsAttributesController_deleteOrganizationAttributeOption",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "attributeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "optionId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteAttributeOptionOutput"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "operationId": "OrganizationsOptionsAttributesController_updateOrganizationAttributeOption",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "attributeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "optionId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOrganizationAttributeOptionInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateAttributeOptionOutput"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v2/organizations/{orgId}/attributes/options/{userId}": {
-      "post": {
-        "operationId": "OrganizationsOptionsAttributesController_assignOrganizationAttributeOptionToUser",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssignOrganizationAttributeOptionToUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AssignOptionUserOutput"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptionsForUser",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOptionUserOutput"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v2/organizations/{orgId}/attributes/options/{userId}/{attributeOptionId}": {
-      "delete": {
-        "operationId": "OrganizationsOptionsAttributesController_unassignOrganizationAttributeOptionFromUser",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "attributeOptionId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UnassignOptionUserOutput"
-                }
-              }
-            }
-          }
-        }
+        "tags": [
+          "Organizations Webhooks"
+        ]
       }
     },
     "/v2/schedules": {
@@ -10125,6 +9864,84 @@
           "active"
         ]
       },
+      "OrgWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "userId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "GetAllOrgWebhooksDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "userId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
       "UserWebhookOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -10138,6 +9955,26 @@
           },
           "data": {
             "$ref": "#/components/schemas/UserWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OrgWebhooksResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetAllOrgWebhooksDto"
           }
         },
         "required": [
