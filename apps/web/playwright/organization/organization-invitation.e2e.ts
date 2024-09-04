@@ -537,7 +537,7 @@ async function expectUserToBeAMemberOfTeam({
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.reload();
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   expect(
     (
       await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()

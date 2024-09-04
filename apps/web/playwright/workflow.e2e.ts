@@ -26,6 +26,7 @@ test.describe("Workflow Tab - Event Type", () => {
         await fillNameInput("Edited Workflow");
         await saveWorkflow();
         await page.getByTestId("go-back-button").click();
+        await page.waitForLoadState("networkidle");
         await hasWorkflowInList("Edited Workflow");
       });
 

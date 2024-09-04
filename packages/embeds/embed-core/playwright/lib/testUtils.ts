@@ -39,9 +39,10 @@ export const getEmbedIframe = async ({
   pathname: string;
 }) => {
   // We can't seem to access page.frame till contentWindow is available. So wait for that.
+  await page.waitForLoadState("networkidle");
   const iframeReady = await page.evaluate(
-    (hardTimeout) => {
-      return new Promise((resolve) => {
+    async (hardTimeout) => {
+      return await new Promise((resolve) => {
         const interval = setInterval(() => {
           const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -134,6 +135,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   booking.eventSlug = eventSlug;
 
   // Make sure we're navigated to the success page
+  await frame.waitForLoadState("networkidle");
   await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   // expect(await page.screenshot()).toMatchSnapshot("success-page.png");
 
@@ -149,6 +151,7 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   const responseObj = await response.json();
   const booking = responseObj.uid;
   // Make sure we're navigated to the success page
+  await frame.waitForLoadState("networkidle");
   await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   return booking;
 }

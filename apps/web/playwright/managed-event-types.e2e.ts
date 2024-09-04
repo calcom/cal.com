@@ -85,8 +85,7 @@ test.describe("Managed Event Types", () => {
 
       await page.getByTestId(`select-option-${memberUser.id}`).click();
       await page.locator('[type="submit"]').click();
-      const toast = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast).toBeTruthy();
+      await page.getByTestId("toast-success").waitFor();
     });
 
     await test.step("Managed event type can use Organizer's default app as location", async () => {
@@ -96,8 +95,7 @@ test.describe("Managed Event Types", () => {
       const optionText = (await localize("en"))("organizer_default_conferencing_app");
       await page.locator(`text=${optionText}`).click();
       await page.locator("[data-testid=update-eventtype]").click();
-      const toast = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast).toBeTruthy();
+      await page.getByTestId("toast-success").waitFor();
       await page.waitForLoadState("networkidle");
 
       await page.getByTestId("vertical-tab-assignment").click();
@@ -152,7 +150,6 @@ test.describe("Managed Event Types", () => {
       await memberUser.apiLogin();
       await page.goto("/event-types");
 
-      await page.getByTestId("event-types").waitFor({ state: "visible" });
       await page.getByTestId("event-types").locator('a[title="managed"]').click();
       await page.waitForURL("event-types/**");
 
@@ -173,8 +170,7 @@ test.describe("Managed Event Types", () => {
       await page.locator('input[name="title"]').fill(`Managed Event Title`);
       // Save changes
       await page.locator('[type="submit"]').click();
-      const toast1 = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast1).toBeTruthy();
+      await page.getByTestId("toast-success").waitFor();
       await page.waitForLoadState("networkidle");
 
       await page.goto("/auth/logout");
@@ -187,15 +183,13 @@ test.describe("Managed Event Types", () => {
       await page.locator('input[name="length"]').fill(`45`);
       // Save changes
       await page.locator('[type="submit"]').click();
-      const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast2).toBeTruthy();
+      await page.getByTestId("toast-success").waitFor();
       await page.waitForLoadState("networkidle");
 
       await page.goto("/auth/logout");
 
       await memberUser.apiLogin();
       await page.goto("/event-types");
-      await page.waitForLoadState("networkidle");
 
       await page.getByTestId("event-types").locator('a[title="Managed Event Title"]').click();
       await page.waitForURL("event-types/**");
@@ -207,8 +201,7 @@ test.describe("Managed Event Types", () => {
       await page.locator('input[name="title"]').fill(`managed`);
       // Save changes
       await page.locator('[type="submit"]').click();
-      const toast3 = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast3).toBeTruthy();
+      await page.getByTestId("toast-success").waitFor();
     });
   });
 });
