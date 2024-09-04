@@ -34,17 +34,14 @@ async function authMiddleware(req: NextApiRequest) {
     where: { id: userId },
     select: {
       email: true,
-      bookings: {
-        where: {
-          id,
-        },
-      },
+      bookings: true,
     },
   });
 
   if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
 
-  const userIsHost = !!user.bookings?.length;
+  const filteredBookings = user?.bookings?.filter((booking) => booking.id === id);
+  const userIsHost = !!filteredBookings?.length;
 
   const bookingsAsAttendee = prisma.booking.findMany({
     where: {
