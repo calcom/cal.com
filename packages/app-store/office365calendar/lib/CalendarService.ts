@@ -179,7 +179,7 @@ export default class Office365CalendarService implements Calendar {
           calendarIds.push(calendar.externalId);
 
         return calendarIds;
-      }, []);
+      }, [] as string[]);
 
       if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
         // Only calendars of other integrations selected
