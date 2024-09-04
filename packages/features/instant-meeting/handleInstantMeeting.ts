@@ -144,9 +144,16 @@ const triggerBrowserNotifications = async (args: {
         },
       },
       title: title,
-      body: "User is waiting for you to join",
-      icon: "https://app.cal.com/api/logo",
+      body: "User is waiting for you to join. Click to Connect",
       url: webhookData.connectAndJoinUrl,
+      actions: [
+        {
+          action: "connect-action",
+          title: "Connect and join",
+          type: "button",
+          icon: "https://cal.com/api/logo?type=icon",
+        },
+      ],
     });
   });
 

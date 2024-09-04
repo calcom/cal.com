@@ -22,12 +22,14 @@ export const sendNotification = async ({
   body,
   icon,
   url,
+  actions,
 }: {
   subscription: Subscription;
   title: string;
   body: string;
   icon?: string;
   url?: string;
+  actions?: { action: string; title: string; type: string; image: string | null }[];
 }) => {
   try {
     const payload = JSON.stringify({
@@ -37,6 +39,7 @@ export const sendNotification = async ({
       data: {
         url,
       },
+      actions,
     });
     await webpush.sendNotification(subscription, payload);
   } catch (error) {
