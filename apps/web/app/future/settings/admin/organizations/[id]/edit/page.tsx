@@ -1,6 +1,6 @@
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -29,7 +29,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 const Page = async ({ params }: { params: Params }) => {
   const input = orgIdSchema.safeParse(params);
 
-  if (!input.success) redirect("/404");
+  if (!input.success) notFound();
 
   try {
     const org = await OrganizationRepository.adminFindById({ id: input.data.id });
@@ -40,7 +40,7 @@ const Page = async ({ params }: { params: Params }) => {
       </LicenseRequired>
     );
   } catch {
-    redirect("/404");
+    notFound();
   }
 };
 

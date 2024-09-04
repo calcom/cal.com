@@ -1,6 +1,6 @@
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -30,7 +30,7 @@ const Page = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(params);
 
   if (!input.success) {
-    redirect("/404");
+    notFound();
   }
 
   try {
@@ -42,7 +42,7 @@ const Page = async ({ params }: { params: Params }) => {
       </LicenseRequired>
     );
   } catch {
-    redirect("/404");
+    notFound();
   }
 };
 
