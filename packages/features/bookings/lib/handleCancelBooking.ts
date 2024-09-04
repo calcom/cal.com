@@ -25,7 +25,11 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import {
+  bookingMetadataSchema,
+  EventTypeMetaDataSchema,
+  schemaBookingCancelParams,
+} from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import {
   deleteAllWorkflowReminders,
@@ -359,6 +363,7 @@ async function handler(req: CustomRequest) {
     smsReminderNumber: bookingToDelete.smsReminderNumber,
     evt: {
       ...evt,
+      metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
       ...{
         eventType: {
           slug: bookingToDelete.eventType?.slug,
