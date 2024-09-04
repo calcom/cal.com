@@ -67,10 +67,11 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
 });
 
 export const preparePageMetadata = (recipe: PageMetadataRecipe): Metadata => {
+  const { title, description } = recipe;
   const titleSuffix = `| ${APP_NAME}`;
-  const { description } = recipe;
+
   return {
-    title: recipe.title.includes(titleSuffix) ? recipe.title : `${recipe.title} ${titleSuffix}`,
+    title: title.length === 0 ? APP_NAME : title.includes(titleSuffix) ? title : `${title} ${titleSuffix}`,
     description,
     alternates: {
       canonical: recipe.canonical,
@@ -80,7 +81,7 @@ export const preparePageMetadata = (recipe: PageMetadataRecipe): Metadata => {
       url: recipe.canonical,
       type: "website",
       siteName: recipe.siteName,
-      title: recipe.title,
+      title,
       images: [recipe.image],
     },
     metadataBase: recipe.metadataBase,
