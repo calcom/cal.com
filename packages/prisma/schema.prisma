@@ -58,8 +58,6 @@ model Host {
   @@index([eventTypeId])
 }
 
-
-
 model EventType {
   id          Int     @id @default(autoincrement())
   /// @zod.min(1)
@@ -140,6 +138,8 @@ model EventType {
   durationLimits                          Json?
   isInstantEvent                          Boolean                   @default(false)
   instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
+  instantMeetingScheduleId                Int?
+  instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
@@ -624,13 +624,14 @@ model Booking {
 }
 
 model Schedule {
-  id           Int            @id @default(autoincrement())
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int
-  eventType    EventType[]
-  name         String
-  timeZone     String?
-  availability Availability[]
+  id                   Int            @id @default(autoincrement())
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               Int
+  eventType            EventType[]
+  instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
+  name                 String
+  timeZone             String?
+  availability         Availability[]
 
   @@index([userId])
 }
