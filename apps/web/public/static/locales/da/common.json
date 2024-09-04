@@ -2201,6 +2201,7 @@
   "member_removed": "Medlem fjernet",
   "my_availability": "Min tilgængelighed",
   "team_availability": "Teamets tilgængelighed",
+  "instant_meeting_availability": "Øjeblikkelig mødetilgængelighed",
   "backup_code": "Backup-kode",
   "backup_codes": "Backup-koder",
   "backup_code_instructions": "Hver backup-kode kan bruges præcis én gang til at give adgang uden din autentifikator.",
