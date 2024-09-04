@@ -1,3 +1,6 @@
+## 0.0.31 
+PR https://github.com/calcom/cal.com/pull/16414 fixed issue of deleting and rescheduling recurring events.
+
 ## 0.0.30 
 •	Feature: Added support for recurringEvent in api/v2/event-types.
 	•	Introduced the transformApiEventTypeRecurrence translator in packages/lib/event-types/transformers/api-request.ts. This enables the “recurringEvent” feature in the event-type API.
