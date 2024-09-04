@@ -234,8 +234,8 @@ function transformApiEventTypeColors(
   if (!inputEventTypeColors) return undefined;
 
   return {
-    darkEventTypeColor: inputEventTypeColors.darkThemeColor,
-    lightEventTypeColor: inputEventTypeColors.lightThemeColor,
+    darkEventTypeColor: inputEventTypeColors.darkThemeHex,
+    lightEventTypeColor: inputEventTypeColors.lightThemeHex,
   };
 }
 

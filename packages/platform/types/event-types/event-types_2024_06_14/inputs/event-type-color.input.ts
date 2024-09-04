@@ -9,7 +9,7 @@ export class EventTypeColor_2024_06_14 {
     description: "Color used for event types in light theme",
     example: "#292929",
   })
-  lightThemeColor!: string;
+  lightThemeHex!: string;
 
   @IsHexColor()
   @IsString()
@@ -17,7 +17,7 @@ export class EventTypeColor_2024_06_14 {
     description: "Color used for event types in dark theme",
     example: "#fafafa",
   })
-  darkThemeColor!: string;
+  darkThemeHex!: string;
 }
 
 export type EventTypeColorsTransformedSchema = {

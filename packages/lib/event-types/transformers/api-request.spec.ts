@@ -724,8 +724,8 @@ describe("transformApiEventTypeRequiresConfirmation", () => {
 describe("transformApiEventTypeColors", () => {
   it("should transform event type colors", () => {
     const input: EventTypeColor_2024_06_14 = {
-      darkThemeColor: "#292929",
-      lightThemeColor: "#fafafa",
+      darkThemeHex: "#292929",
+      lightThemeHex: "#fafafa",
     };
 
     const expectedOutput = {

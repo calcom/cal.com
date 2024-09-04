@@ -302,8 +302,8 @@ describe("Organizations Event Types Endpoints", () => {
         hideCalendarNotes: true,
         lockTimeZoneToggleOnBookingPage: true,
         eventTypeColor: {
-          darkThemeColor: "#292929",
-          lightThemeColor: "#fafafa",
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
         },
       };
 

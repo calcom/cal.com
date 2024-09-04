@@ -321,8 +321,8 @@ function getResponseEventTypeColors(
   transformedColors: EventTypeColorsTransformedSchema
 ): EventTypeColor_2024_06_14 {
   return {
-    darkThemeColor: transformedColors.darkEventTypeColor,
-    lightThemeColor: transformedColors.lightEventTypeColor,
+    darkThemeHex: transformedColors.darkEventTypeColor,
+    lightThemeHex: transformedColors.lightEventTypeColor,
   };
 }
 

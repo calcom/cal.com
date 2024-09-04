@@ -261,8 +261,8 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: false,
         lockTimeZoneToggleOnBookingPage: true,
         eventTypeColor: {
-          darkThemeColor: "#292929",
-          lightThemeColor: "#fafafa",
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
         },
       };
 
@@ -655,8 +655,8 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: true,
         lockTimeZoneToggleOnBookingPage: true,
         eventTypeColor: {
-          darkThemeColor: "#292929",
-          lightThemeColor: "#fafafa",
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
         },
       };
 
