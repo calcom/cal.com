@@ -16,6 +16,8 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/auth/forgot-password/:path*", process.env.APP_ROUTER_AUTH_FORGOT_PASSWORD_ENABLED === "1"] as const,
   ["/auth/login", process.env.APP_ROUTER_AUTH_LOGIN_ENABLED === "1"] as const,
   ["/auth/logout", process.env.APP_ROUTER_AUTH_LOGOUT_ENABLED === "1"] as const,
+  ["/auth/new", process.env.APP_ROUTER_AUTH_NEW_ENABLED === "1"] as const,
+  ["/auth/saml-idp", process.env.APP_ROUTER_AUTH_SAML_ENABLED === "1"] as const,
   ["/workflows/:path*", process.env.APP_ROUTER_WORKFLOWS_ENABLED === "1"] as const,
   ["/settings/teams/:path*", process.env.APP_ROUTER_SETTINGS_TEAMS_ENABLED === "1"] as const,
   ["/getting-started/:step", process.env.APP_ROUTER_GETTING_STARTED_STEP_ENABLED === "1"] as const,
