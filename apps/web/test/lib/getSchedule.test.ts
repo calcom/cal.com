@@ -1553,4 +1553,180 @@ describe("getSchedule", () => {
       );
     });
   });
+
+  describe("Rescheduling with multiple attendees", () => {
+    /**
+     * Helper function to create a test scenario for booking events.
+     */
+    async function setupBookingScenario() {
+      const plus1DateString = getDate({ dateIncrement: 1 }).dateString;
+      const plus2DateString = getDate({ dateIncrement: 2 }).dateString;
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            slotInterval: 60,
+            users: [{ id: 101 }],
+          },
+          {
+            id: 2,
+            length: 60,
+            slotInterval: 60,
+            users: [{ id: 102 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            email: "attendee1@example.com",
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 103,
+            email: "attendee2@example.com",
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+        bookings: [
+          {
+            uid: "some-uid",
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T07:00:00.000Z`,
+            endTime: `${plus2DateString}T08:00:00.000Z`,
+            attendees: [{ email: "attendee1@example.com" }, { email: "attendee2@example.com" }],
+          },
+          {
+            uid: "other-uid",
+            eventTypeId: 2,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
+            attendees: [{ email: "attendee2@example.com" }],
+          },
+        ],
+      });
+
+      return { plus1DateString, plus2DateString };
+    }
+
+    test("correctly identifies unavailable slots with Cal accounts", async () => {
+      const { plus1DateString, plus2DateString } = await setupBookingScenario();
+
+      const scheduleForReschedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          rescheduleUid: "some-uid",
+        },
+      });
+
+      expect(scheduleForReschedule).toHaveTimeSlots(
+        [
+          "04:30:00.000Z",
+          "05:30:00.000Z",
+          "06:30:00.000Z",
+          "07:30:00.000Z",
+          "10:00:00.000Z",
+          "11:00:00.000Z",
+        ],
+        { dateString: plus2DateString }
+      );
+    });
+
+    /**
+     * Tests the availability of slots when rescheduling with multiple attendees who do not have Cal accounts.
+     */
+    test("correctly identifies unavailable slots without Cal accounts", async () => {
+      const plus1DateString = getDate({ dateIncrement: 1 }).dateString;
+      const plus2DateString = getDate({ dateIncrement: 2 }).dateString;
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            slotInterval: 60,
+            users: [{ id: 101 }],
+          },
+          {
+            id: 2,
+            length: 60,
+            slotInterval: 60,
+            users: [{ id: 102 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+        bookings: [
+          {
+            uid: "some-uid",
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T07:00:00.000Z`,
+            endTime: `${plus2DateString}T08:00:00.000Z`,
+            attendees: [{ email: "attendee1@example.com" }, { email: "attendee2@example.com" }],
+          },
+          {
+            uid: "other-uid",
+            eventTypeId: 2,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
+            attendees: [{ email: "attendee2@example.com" }],
+          },
+        ],
+      });
+
+      const scheduleForReschedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          rescheduleUid: "some-uid",
+        },
+      });
+
+      // Since attendee2 is not a Cal user, all slots are shown as available when rescheduling.
+      expect(scheduleForReschedule).toHaveTimeSlots(
+        [
+          "04:30:00.000Z",
+          "05:30:00.000Z",
+          "06:30:00.000Z",
+          "07:30:00.000Z",
+          "08:30:00.000Z",
+          "09:30:00.000Z",
+          "10:30:00.000Z",
+          "11:30:00.000Z",
+        ],
+        { dateString: plus2DateString }
+      );
+    });
+  });
 });
