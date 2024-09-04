@@ -1,5 +1,5 @@
 import { VERSION_2024_04_15 } from "@/lib/api-versions";
-import { SlotsService } from "@/modules/slots/slots-2024-04-15/services/slots.service";
+import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
@@ -7,20 +7,20 @@ import { Response as ExpressResponse, Request as ExpressRequest } from "express"
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
-import { RemoveSelectedSlotInput, ReserveSlotInput } from "@calcom/platform-types";
-import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
+import { RemoveSelectedSlotInput_2024_04_15, ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
+import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/slots",
   version: VERSION_2024_04_15,
 })
 @DocsTags("Slots")
-export class SlotsController {
-  constructor(private readonly slotsService: SlotsService) {}
+export class SlotsController_2024_04_15 {
+  constructor(private readonly slotsService: SlotsService_2024_04_15) {}
 
   @Post("/reserve")
   async reserveSlot(
-    @Body() body: ReserveSlotInput,
+    @Body() body: ReserveSlotInput_2024_04_15,
     @Res({ passthrough: true }) res: ExpressResponse,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<string>> {
@@ -35,7 +35,7 @@ export class SlotsController {
 
   @Delete("/selected-slot")
   async deleteSelectedSlot(
-    @Query() params: RemoveSelectedSlotInput,
+    @Query() params: RemoveSelectedSlotInput_2024_04_15,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse> {
     const uid = req.cookies?.uid || params.uid;
@@ -49,7 +49,7 @@ export class SlotsController {
 
   @Get("/available")
   async getAvailableSlots(
-    @Query() query: GetAvailableSlotsInput,
+    @Query() query: GetAvailableSlotsInput_2024_04_15,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<AvailableSlotsType>> {
     const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);

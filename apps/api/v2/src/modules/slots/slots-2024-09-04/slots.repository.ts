@@ -7,7 +7,7 @@ import { MINUTES_TO_BOOK } from "@calcom/platform-libraries";
 import { ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 
 @Injectable()
-export class SlotsRepository_2024_04_15 {
+export class SlotsRepository_2024_09_04 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getBookingWithAttendees(bookingUid?: string) {

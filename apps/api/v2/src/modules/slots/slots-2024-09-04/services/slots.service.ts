@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid";
 import { ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 
 @Injectable()
-export class SlotsService_2024_04_15 {
+export class SlotsService_2024_09_04 {
   constructor(
     private readonly eventTypeRepo: EventTypesRepository_2024_04_15,
     private readonly slotsRepo: SlotsRepository_2024_04_15

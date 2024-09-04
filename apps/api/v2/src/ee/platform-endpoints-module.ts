@@ -7,7 +7,8 @@ import { MeModule } from "@/ee/me/me.module";
 import { ProviderModule } from "@/ee/provider/provider.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SlotsModule } from "@/modules/slots/slots-2024-04-15/slots.module";
+import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
+import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
@@ -22,7 +23,8 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     CalendarsModule,
     BookingsModule,
-    SlotsModule,
+    SlotsModule_2024_04_15,
+    SlotsModule_2024_09_04,
   ],
 })
 export class PlatformEndpointsModule implements NestModule {

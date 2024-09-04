@@ -1,7 +1,7 @@
 import { Transform } from "class-transformer";
 import { IsArray, IsBoolean, IsDateString, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
 
-export class GetAvailableSlotsInput {
+export class GetAvailableSlotsInput_2024_04_15 {
   @IsDateString()
   startTime!: string;
 
@@ -43,13 +43,13 @@ export class GetAvailableSlotsInput {
   orgSlug?: string;
 }
 
-export class RemoveSelectedSlotInput {
+export class RemoveSelectedSlotInput_2024_04_15 {
   @IsString()
   @IsOptional()
   uid?: string;
 }
 
-export class ReserveSlotInput {
+export class ReserveSlotInput_2024_04_15 {
   @IsInt()
   eventTypeId!: number;
 
