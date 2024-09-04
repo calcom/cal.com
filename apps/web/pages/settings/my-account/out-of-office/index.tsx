@@ -2,8 +2,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "@calcom/features/settings/CreateOrEditOutOfOfficeModal";
-import { OutOfOfficeEntriesList } from "@calcom/features/settings/OutOfOfficeEntriesList";
-import { OutOfOfficeEntriesListForTeam } from "@calcom/features/settings/OutOfOfficeEntriesListForTeam";
+import { OutOfOfficeEntriesList, OutOfOfficeTab } from "@calcom/features/settings/OutOfOfficeEntriesList";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -58,19 +57,17 @@ const OutOfOfficePage = () => {
     setOpenModal(true);
   };
 
-  const [oooType, setOOOType] = useState(searchParams?.get("type") ?? "mine");
-  const [myOOOEntriesUpdated, setMyOOOEntriesUpdated] = useState(0);
-  const [teamOOOEntriesUpdated, setTeamOOOEntriesUpdated] = useState(0);
-
+  const [selectedTab, setSelectedTab] = useState(searchParams?.get("type") ?? OutOfOfficeTab.MINE);
+  const [oooEntriesUpdated, setOOOEntriesUpdated] = useState(0);
   const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
 
   const { data } = trpc.viewer.organizations.listCurrent.useQuery();
   const isOrgAdminOrOwner =
     data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN);
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
-  const toggleGroupOptions = [{ value: "mine", label: t("my_ooo") }];
+  const toggleGroupOptions = [{ value: OutOfOfficeTab.MINE, label: t("my_ooo") }];
   if (!isOrgAndPrivate || isOrgAdminOrOwner) {
-    toggleGroupOptions.push({ value: "team", label: t("team_ooo") });
+    toggleGroupOptions.push({ value: OutOfOfficeTab.TEAM, label: t("team_ooo") });
   }
 
   return (
@@ -78,18 +75,20 @@ const OutOfOfficePage = () => {
       <Meta
         title={t("out_of_office")}
         description={
-          oooType === "mine" ? t("out_of_office_description") : t("out_of_office_team_description")
+          selectedTab === OutOfOfficeTab.TEAM
+            ? t("out_of_office_team_description")
+            : t("out_of_office_description")
         }
         borderInShellHeader={false}
         CTA={
           <div className="flex gap-2">
             <ToggleGroup
               className="hidden md:block"
-              defaultValue={oooType}
+              defaultValue={selectedTab}
               onValueChange={(value) => {
                 if (!value) return;
                 router.push(`${pathname}?${createQueryString("type", value)}`);
-                setOOOType(value);
+                setSelectedTab(value);
               }}
               options={toggleGroupOptions}
             />
@@ -115,22 +114,15 @@ const OutOfOfficePage = () => {
             setCurrentlyEditingOutOfOfficeEntry(null);
           }}
           currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
-          oooType={oooType}
-          setTeamOOOEntriesUpdated={setTeamOOOEntriesUpdated}
-          setMyOOOEntriesUpdated={setMyOOOEntriesUpdated}
+          oooType={selectedTab}
+          setOOOEntriesUpdated={setOOOEntriesUpdated}
         />
       )}
-      {oooType === "team" ? (
-        <OutOfOfficeEntriesListForTeam
-          editOutOfOfficeEntry={editOutOfOfficeEntry}
-          teamOOOEntriesUpdated={teamOOOEntriesUpdated}
-        />
-      ) : (
-        <OutOfOfficeEntriesList
-          editOutOfOfficeEntry={editOutOfOfficeEntry}
-          myOOOEntriesUpdated={myOOOEntriesUpdated}
-        />
-      )}
+      <OutOfOfficeEntriesList
+        editOutOfOfficeEntry={editOutOfOfficeEntry}
+        oooEntriesUpdated={oooEntriesUpdated}
+        selectedTab={selectedTab as OutOfOfficeTab}
+      />
     </>
   );
 };

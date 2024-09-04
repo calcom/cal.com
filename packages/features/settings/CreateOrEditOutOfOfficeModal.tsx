@@ -27,20 +27,18 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   closeModal,
   currentlyEditingOutOfOfficeEntry,
   oooType,
-  setTeamOOOEntriesUpdated,
-  setMyOOOEntriesUpdated,
+  setOOOEntriesUpdated,
 }: {
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
   oooType: string;
-  setTeamOOOEntriesUpdated: Dispatch<SetStateAction<number>>;
-  setMyOOOEntriesUpdated: Dispatch<SetStateAction<number>>;
+  setOOOEntriesUpdated: Dispatch<SetStateAction<number>>;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
+  const { data: listMembers, isPending: isPendingMembersList } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
   const forwardingToMemberListOptions: {
     value: number;
@@ -66,7 +64,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   type Option = { value: number; label: string };
 
-  const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
+  const { data: outOfOfficeReasonList, isPending: isPendingReasonList } =
+    trpc.viewer.outOfOfficeReasonList.useQuery();
 
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
@@ -100,9 +99,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      oooType === "team"
-        ? setTeamOOOEntriesUpdated((previousValue) => previousValue + 1)
-        : setMyOOOEntriesUpdated((previousValue) => previousValue + 1);
+      setOOOEntriesUpdated((previousValue) => previousValue + 1);
       closeModal();
     },
     onError: (error) => {
@@ -288,7 +285,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               form="create-or-edit-ooo-form"
               color="primary"
               type="submit"
-              disabled={createOrEditOutOfOfficeEntry.isPending}
+              disabled={createOrEditOutOfOfficeEntry.isPending || isPendingMembersList || isPendingReasonList}
               data-testid="create-or-edit-entry-ooo-redirect">
               {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
             </Button>

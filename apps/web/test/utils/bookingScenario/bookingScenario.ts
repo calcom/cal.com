@@ -103,7 +103,7 @@ type InputCredential = typeof TestData.credentials.google & {
 
 type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
 
-type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
+export type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
   defaultScheduleId?: number | null;
   credentials?: InputCredential[];
