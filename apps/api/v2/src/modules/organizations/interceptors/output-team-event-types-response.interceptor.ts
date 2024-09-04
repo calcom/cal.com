@@ -5,7 +5,7 @@ import { Observable } from "rxjs";
 import { switchMap } from "rxjs/operators";
 
 @Injectable()
-export class OutputEventTypesResponseInterceptor<T> implements NestInterceptor {
+export class OutputTeamEventTypesResponseInterceptor<T> implements NestInterceptor {
   constructor(private readonly outputOrganizationsEventTypesService: OutputOrganizationsEventTypesService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<T> {

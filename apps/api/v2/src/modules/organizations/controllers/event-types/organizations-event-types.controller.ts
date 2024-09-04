@@ -14,7 +14,7 @@ import { DeleteTeamEventTypeOutput } from "@/modules/organizations/controllers/e
 import { GetTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-type.output";
 import { GetTeamEventTypesOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-types.output";
 import { UpdateTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/update-team-event-type.output";
-import { OutputEventTypesResponseInterceptor } from "@/modules/organizations/interceptors/output-event-types-response.interceptor";
+import { OutputTeamEventTypesResponseInterceptor } from "@/modules/organizations/interceptors/output-team-event-types-response.interceptor";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
@@ -65,7 +65,7 @@ export class OrganizationsEventTypesController {
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @UseInterceptors(OutputEventTypesResponseInterceptor<CreateTeamEventTypeOutput>)
+  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<CreateTeamEventTypeOutput>)
   @Post("/teams/:teamId/event-types")
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
@@ -100,7 +100,7 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types/:eventTypeId")
-  @UseInterceptors(OutputEventTypesResponseInterceptor<GetTeamEventTypeOutput>)
+  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<GetTeamEventTypeOutput>)
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number
@@ -119,7 +119,7 @@ export class OrganizationsEventTypesController {
 
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
-  @UseInterceptors(OutputEventTypesResponseInterceptor<GetTeamEventTypesOutput>)
+  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<GetTeamEventTypesOutput>)
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
@@ -145,7 +145,7 @@ export class OrganizationsEventTypesController {
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @UseInterceptors(OutputEventTypesResponseInterceptor<GetTeamEventTypesOutput>)
+  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<GetTeamEventTypesOutput>)
   @Get("/teams/event-types")
   async getTeamsEventTypes(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -164,7 +164,7 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
-  @UseInterceptors(OutputEventTypesResponseInterceptor<UpdateTeamEventTypeOutput>)
+  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<UpdateTeamEventTypeOutput>)
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number,
