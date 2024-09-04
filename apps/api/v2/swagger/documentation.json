@@ -3373,6 +3373,16 @@
       "post": {
         "operationId": "SlotsController_2024_04_15_reserveSlot",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_04_15"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -3415,6 +3425,86 @@
       "get": {
         "operationId": "SlotsController_2024_04_15_getAvailableSlots",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      }
+    },
+    "/v2/slots": {
+      "post": {
+        "operationId": "SlotsController_2024_09_04_reserveSlot",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      },
+      "get": {
+        "operationId": "SlotsController_2024_09_04_getAvailableSlots",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSlotsOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      }
+    },
+    "/v2/slots/{uid}": {
+      "delete": {
+        "operationId": "SlotsController_2024_09_04_deleteSelectedSlot",
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -9434,6 +9524,58 @@
           },
           "data": {
             "$ref": "#/components/schemas/HandleMarkNoShowData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ReserveSlotInput_2024_04_15": {
+        "type": "object",
+        "properties": {}
+      },
+      "ReserveSlotInput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "ReserveSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "SlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "GetSlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SlotsOutput_2024_09_04"
           }
         },
         "required": [

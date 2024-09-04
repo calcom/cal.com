@@ -32,7 +32,7 @@ export class EventTypesRepository_2024_04_15 {
   async getEventTypeWithSeats(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
+      include: { users: { select: { id: true } } },
     });
   }
 
@@ -62,6 +62,10 @@ export class EventTypesRepository_2024_04_15 {
 
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({ where: { id: eventTypeId } });
+  }
+
+  async getEventTypeBySlug(slug: string) {
+    return this.dbRead.prisma.eventType.findFirst({ where: { slug } });
   }
 
   async getUserEventTypeBySlug(userId: number, slug: string) {

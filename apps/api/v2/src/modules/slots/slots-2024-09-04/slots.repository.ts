@@ -4,22 +4,26 @@ import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { MINUTES_TO_BOOK } from "@calcom/platform-libraries";
-import { ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 
 @Injectable()
 export class SlotsRepository_2024_09_04 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async getBookingWithAttendees(bookingUid?: string) {
-    return this.dbRead.prisma.booking.findUnique({
-      where: { uid: bookingUid },
+  async getBookingWithAttendeesByEventTypeIdAndStart(eventTypeId: number, startTime: Date) {
+    return this.dbRead.prisma.booking.findFirst({
+      where: { eventTypeId, startTime },
       select: { attendees: true },
     });
   }
 
-  async upsertSelectedSlot(userId: number, input: ReserveSlotInput_2024_04_15, uid: string, isSeat: boolean) {
-    const { slotUtcEndDate, slotUtcStartDate, eventTypeId } = input;
-
+  async upsertSelectedSlot(
+    userId: number,
+    eventTypeId: number,
+    slotUtcStartDate: string,
+    slotUtcEndDate: string,
+    uid: string,
+    isSeat: boolean
+  ) {
     const releaseAt = DateTime.utc()
       .plus({ minutes: parseInt(MINUTES_TO_BOOK) })
       .toISO();
