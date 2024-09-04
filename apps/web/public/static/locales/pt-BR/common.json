@@ -2201,6 +2201,7 @@
   "member_removed": "Membro removido",
   "my_availability": "Minha disponibilidade",
   "team_availability": "Disponibilidade da equipe",
+  "instant_meeting_availability": "Disponibilidade imediata para reuniões",
   "backup_code": "Código de reserva",
   "backup_codes": "Códigos de reserva",
   "backup_code_instructions": "Cada código de reserva pode ser usado exatamente uma vez para conceder acesso sem seu autenticador.",
