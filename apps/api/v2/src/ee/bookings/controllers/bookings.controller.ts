@@ -366,9 +366,32 @@ export class BookingsController {
 
     if (err instanceof Error) {
       const error = err as Error;
+      if (errorCodes.includes(error.message)) {
+        throw new HttpException(error.message, 400);
+      }
       throw new InternalServerErrorException(error?.message ?? errMsg);
     }
 
     throw new InternalServerErrorException(errMsg);
   }
 }
+
+const errorCodes = [
+  "payment_not_created_error",
+  "no_available_users_found_error",
+  "couldnt_charge_card_error",
+  "request_body_end_time_internal_error",
+  "already_signed_up_for_this_booking_error",
+  "hosts_unavailable_for_booking",
+  "event_type_not_found_error",
+  "booking_not_found_error",
+  "booking_seats_full_error",
+  "missing_payment_credential_error",
+  "missing_payment_app_id_error",
+  "not_enough_available_seats_error",
+  "availability_not_found_in_schedule_error",
+  "cancelled_bookings_cannot_be_rescheduled",
+  "unable_to_subscribe_to_the_platform",
+  "updating_oauth_client_error",
+  "creating_oauth_client_error",
+];
