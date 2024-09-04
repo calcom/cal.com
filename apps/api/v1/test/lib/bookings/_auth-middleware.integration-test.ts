@@ -146,7 +146,7 @@ describe("Booking ownership and access in Middleware", () => {
 
         if (select.bookings) {
           result.bookings = user.bookings.filter((booking) =>
-            select.bookings.where ? booking.id === select?.bookings?.where?.id : true
+            select?.bookings?.where ? booking.id === select.bookings.where.id : true
           );
         }
 
