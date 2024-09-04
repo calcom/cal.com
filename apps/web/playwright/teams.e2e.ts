@@ -54,14 +54,14 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       // Click [data-testid="invite-new-member-button"]
       await page.locator('[data-testid="invite-new-member-button"]').click();
       await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
+      await expect(page.locator('[data-testid="pending-member-item"]')).toHaveCount(2);
     });
 
     await test.step("Can remove members", async () => {
       const removeMemberButton = page.locator('[data-testid="remove-member-button"]');
       await removeMemberButton.click();
       await removeMemberButton.waitFor({ state: "hidden" });
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
+      await expect(page.locator('[data-testid="pending-member-item"]')).toHaveCount(1);
       // Cleanup here since this user is created without our fixtures.
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });

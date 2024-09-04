@@ -238,7 +238,7 @@ test.describe("Insights", async () => {
     await page.getByRole("button", { name: "Clear" }).click();
 
     // expect for "Team: test-insight" text in page
-    expect(await page.locator("text=Team: test-insights").isVisible()).toBeTruthy();
+    await expect(page.locator("text=Team: test-insights")).toBeVisible();
   });
 
   test("should test download button", async ({ page, users }) => {
@@ -255,13 +255,13 @@ test.describe("Insights", async () => {
     const downloadPromise = page.waitForEvent("download");
 
     // Expect download button to be visible
-    expect(await page.locator("text=Download").isVisible()).toBeTruthy();
+    await expect(page.locator("text=Download")).toBeVisible();
 
     // Click on Download button
     await page.getByText("Download").click();
 
     // Expect as csv option to be visible
-    expect(await page.locator("text=as CSV").isVisible()).toBeTruthy();
+    await expect(page.locator("text=as CSV")).toBeVisible();
 
     // Start waiting for download before clicking. Note no await.
     await page.getByText("as CSV").click();

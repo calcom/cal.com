@@ -33,7 +33,7 @@ test.describe("Routing Forms", () => {
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
-      expect(await page.locator('[data-testid="routing-forms-list"] > div').count()).toBe(1);
+      await expect(page.locator('[data-testid="routing-forms-list"] > div')).toHaveCount(1);
 
       await gotoRoutingLink({ page, formId });
       await expect(page.locator("text=Test Form Name")).toBeVisible();
@@ -57,8 +57,8 @@ test.describe("Routing Forms", () => {
         label,
       });
 
-      expect(await page.inputValue(`[data-testid="description"]`)).toBe(description);
-      expect(await page.locator('[data-testid="field"]').count()).toBe(types.length);
+      await expect(page.locator('[data-testid="description"]')).toHaveValue(description);
+      await expect(page.locator('[data-testid="field"]')).toHaveCount(types.length);
 
       fields.forEach((item, index) => {
         createdFields[index] = { label: item.label, typeIndex: index };
@@ -110,7 +110,7 @@ test.describe("Routing Forms", () => {
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        expect(await page.locator('[data-testid="field"]').count()).toBe(2);
+        await expect(page.locator('[data-testid="field"]')).toHaveCount(2);
         await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
         // Add 1 more field in F1
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
@@ -123,7 +123,7 @@ test.describe("Routing Forms", () => {
         await page.goto(`/routing-forms/form-edit/${form2Id}`);
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        expect(await page.locator('[data-testid="field"]').count()).toBe(3);
+        await expect(page.locator('[data-testid="field"]')).toHaveCount(3);
         await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
       });
       todo("Create relationship by using duplicate with live connect");
@@ -155,15 +155,15 @@ test.describe("Routing Forms", () => {
 
       await page.fill('[data-testid="form-field-Test Field Long Text"]', "manual-fill");
 
-      expect(await page.locator(`[data-testid="form-field-firstField"]`).inputValue()).toBe("456");
-      expect(await page.locator(`[data-testid="form-field-Test Field Number"]`).inputValue()).toBe("456");
+      await expect(page.locator('[data-testid="form-field-firstField"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test Field Number"]')).toHaveValue("456");
 
       // TODO: Verify select and multiselect has prefilled values.
       // expect(await page.locator(`[data-testid="form-field-Test Field Select"]`).inputValue()).toBe("456");
       // expect(await page.locator(`[data-testid="form-field-Test Field MultiSelect"]`).inputValue()).toBe("456");
 
-      expect(await page.locator(`[data-testid="form-field-Test Field Phone"]`).inputValue()).toBe("456");
-      expect(await page.locator(`[data-testid="form-field-Test Field Email"]`).inputValue()).toBe(
+      await expect(page.locator('[data-testid="form-field-Test Field Phone"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test Field Email"]')).toHaveValue(
         "456@example.com"
       );
 
@@ -343,7 +343,7 @@ test.describe("Routing Forms", () => {
         return document.querySelectorAll("input")[0].validity.valueMissing;
       });
       expect(firstInputMissingValue).toBe(true);
-      expect(await page.locator('button[type="submit"][disabled]').count()).toBe(0);
+      await expect(page.locator('button[type="submit"][disabled]')).toHaveCount(0);
     });
 
     test("Test preview should return correct route", async ({ page, users }) => {

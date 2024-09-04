@@ -170,7 +170,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -342,7 +342,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -477,7 +477,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 

@@ -130,9 +130,7 @@ test.describe("Manage Booking Questions", () => {
             email: "booker@example.com",
           });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-          expect(await page.locator('[data-testid="attendee-name-John Doe"]').nth(0).textContent()).toBe(
-            "John Doe"
-          );
+          await expect(page.locator('[data-testid="attendee-name-John Doe"]').first()).toHaveText("John Doe");
           await expectWebhookToBeCalled(webhookReceiver, {
             triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
             payload: {
@@ -857,14 +855,14 @@ test.describe("Text area min and max characters text", () => {
       await textAreaWithMin5Max10.fill("1234");
       await submitForm();
       // Expect the text: Min. 5 characters to be visible
-      expect(await page.locator(`text=Min. 5 characters required`).isVisible()).toBe(true);
+      await expect(page.locator(`text=Min. 5 characters required`)).toBeVisible();
 
       // update the text area with min 5 to have 5 characters
       await textAreaWithMin5.fill("12345");
       await submitForm();
 
       // Expect the text: Min. 5 characters to still be visible because textAreaWithMin5Max10 has less than 5 characters
-      expect(await page.locator(`text=Min. 5 characters required`).isVisible()).toBe(true);
+      await expect(page.locator(`text=Min. 5 characters required`)).toBeVisible();
 
       // Expect the text: Max. 10 characters to be visible and have value 1234567890
       expect(await textAreaWithMax10.inputValue()).toBe("1234567890");
@@ -875,7 +873,7 @@ test.describe("Text area min and max characters text", () => {
       await submitForm();
 
       // Expect the text: Max. 5 characters to be hidden
-      expect(await page.locator(`text=Min. 5 characters required`).isVisible()).toBe(false);
+      await expect(page.locator(`text=Min. 5 characters required`)).toBeHidden();
 
       await expect(page.locator('text="This meeting is scheduled"')).toBeVisible();
     });

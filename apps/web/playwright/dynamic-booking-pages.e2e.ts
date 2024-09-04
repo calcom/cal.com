@@ -96,8 +96,8 @@ test.skip("it contains the right event details", async ({ page }) => {
   const response = await page.goto(`http://acme.cal.local:3000/owner1+member1`);
   expect(response?.status()).toBe(200);
 
-  expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Group Meeting");
-  expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain("Acme Inc");
+  await expect(page.locator('[data-testid="event-title"]')).toHaveText("Group Meeting");
+  await expect(page.locator('[data-testid="event-meta"]')).toContainText("Acme Inc");
 
   expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
 });

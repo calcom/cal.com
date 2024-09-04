@@ -181,7 +181,7 @@ test.describe("Reschedule for booking with seats", () => {
     await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
     // Validate that the number of seats its 10
-    expect(await page.locator("text=9 / 10 Seats available").count()).toEqual(0);
+    await expect(page.locator("text=9 / 10 Seats available")).toHaveCount(0);
   });
 
   test("Should cancel with seats but event should be still accessible and with one less attendee/seat", async ({

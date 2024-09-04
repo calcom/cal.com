@@ -507,8 +507,8 @@ async function expectUserToBeAMemberOfOrganization({
 }) {
   // Check newly invited member is not pending anymore
   await page.goto("/settings/organizations/members");
-  expect(await page.locator(`[data-testid="member-${username}-username"]`).textContent()).toBe(username);
-  expect(await page.locator(`[data-testid="member-${username}-email"]`).textContent()).toBe(email);
+  await expect(page.locator(`[data-testid="member-${username}-username"]`)).toHaveText(username);
+  await expect(page.locator(`[data-testid="member-${username}-email"]`)).toHaveText(email);
   expect((await page.locator(`[data-testid="member-${username}-role"]`).textContent())?.toLowerCase()).toBe(
     role.toLowerCase()
   );
