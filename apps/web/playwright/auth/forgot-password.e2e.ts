@@ -8,7 +8,7 @@ import { test } from "../lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
 
-describe("Forgot password", async () => {
+test.describe("Forgot password", async () => {
   test("Can reset forgotten password", async ({ page, users }) => {
     const user = await users.create();
 

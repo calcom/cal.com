@@ -8,7 +8,7 @@ test.describe.configure({ mode: "parallel" });
 
 // a test to logout requires both a succesfull login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
-describe("user can login & logout succesfully", async () => {
+test.describe("user can login & logout succesfully", async () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
@@ -44,7 +44,7 @@ describe("user can login & logout succesfully", async () => {
   });
 });
 
-describe("Login and logout tests", () => {
+test.describe("Login and logout tests", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
@@ -57,7 +57,7 @@ describe("Login and logout tests", () => {
     await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
   });
 
-  describe("Login flow validations", async () => {
+  test.describe("Login flow validations", async () => {
     test("Should warn when user does not exist", async ({ page }) => {
       const alertMessage = (await localize("en"))("incorrect_email_password");
 
