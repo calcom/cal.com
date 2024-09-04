@@ -17,5 +17,5 @@ beforeEach(() => {
 const prisma = mockDeep<PrismaClient>();
 const prismaWithoutAccelerate = mockDeep<PrismaClientForTesting>();
 
-export prismaWithoutAccelerate;
+export { prismaWithoutAccelerate };
 export default prisma;
