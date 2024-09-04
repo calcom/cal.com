@@ -134,7 +134,7 @@ describe("Booking ownership and access in Middleware", () => {
         if (!user) return null;
 
         // Define the result type explicitly
-        const result = {
+        const result: { email?: string; bookings?: { id: number }[] } = {
           email: undefined,
           bookings: undefined,
         };
