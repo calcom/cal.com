@@ -9,7 +9,7 @@ import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 export class CredentialsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async persistAppCredential(
+  async upsertAppCredential(
     type: keyof typeof APPS_TYPE_ID_MAPPING,
     key: Prisma.InputJsonValue,
     userId: number,

@@ -157,18 +157,24 @@ export class CalendarsService {
     calendarType: keyof typeof APPS_TYPE_ID_MAPPING,
     credentialId?: number | null
   ) {
-    const credential = await this.credentialsRepository.persistAppCredential(
+    const credential = await this.credentialsRepository.upsertAppCredential(
       calendarType,
       key,
       userId,
       credentialId
     );
 
-    await this.selectedCalendarsRepository.persistSelectedCalendar(
+    await this.selectedCalendarsRepository.upsertSelectedCalendar(
       externalId,
       credential.id,
       userId,
       calendarType
     );
+  }
+
+  async checkCalendarCredentialValidity(userId: number, credentialId: number, type: string) {
+    const credential = await this.credentialsRepository.getUserCredentialById(userId, credentialId, type);
+
+    return !credential?.invalid;
   }
 }

@@ -175,13 +175,22 @@ export class OutlookService implements OAuthCalendarApp {
       );
 
       if (alreadyExistingSelectedCalendar) {
-        await this.calendarsService.createAndLinkCalendarEntry(
+        const isCredentialValid = await this.calendarsService.checkCalendarCredentialValidity(
           ownerId,
-          alreadyExistingSelectedCalendar.externalId,
-          office365OAuthCredentials,
-          OFFICE_365_CALENDAR_TYPE,
-          alreadyExistingSelectedCalendar.credentialId
+          alreadyExistingSelectedCalendar.credentialId ?? 0,
+          OFFICE_365_CALENDAR_TYPE
         );
+
+        // user credential probably got expired in this case
+        if (!isCredentialValid) {
+          await this.calendarsService.createAndLinkCalendarEntry(
+            ownerId,
+            alreadyExistingSelectedCalendar.externalId,
+            office365OAuthCredentials,
+            OFFICE_365_CALENDAR_TYPE,
+            alreadyExistingSelectedCalendar.credentialId
+          );
+        }
 
         return {
           url: redir || origin,

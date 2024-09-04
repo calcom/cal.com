@@ -151,13 +151,22 @@ export class GoogleCalendarService implements OAuthCalendarApp {
       );
 
       if (alreadyExistingSelectedCalendar) {
-        await this.calendarsService.createAndLinkCalendarEntry(
+        const isCredentialValid = await this.calendarsService.checkCalendarCredentialValidity(
           ownerId,
-          alreadyExistingSelectedCalendar.externalId,
-          key as Prisma.InputJsonValue,
-          GOOGLE_CALENDAR_TYPE,
-          alreadyExistingSelectedCalendar.credentialId
+          alreadyExistingSelectedCalendar.credentialId ?? 0,
+          GOOGLE_CALENDAR_TYPE
         );
+
+        // user credential probably got expired in this case
+        if (!isCredentialValid) {
+          await this.calendarsService.createAndLinkCalendarEntry(
+            ownerId,
+            alreadyExistingSelectedCalendar.externalId,
+            key as Prisma.InputJsonValue,
+            GOOGLE_CALENDAR_TYPE,
+            alreadyExistingSelectedCalendar.credentialId
+          );
+        }
 
         return {
           url: redir || origin,

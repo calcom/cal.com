@@ -6,7 +6,7 @@ import { Injectable } from "@nestjs/common";
 export class SelectedCalendarsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  persistSelectedCalendar(externalId: string, credentialId: number, userId: number, integration: string) {
+  upsertSelectedCalendar(externalId: string, credentialId: number, userId: number, integration: string) {
     return this.dbWrite.prisma.selectedCalendar.upsert({
       create: {
         userId,

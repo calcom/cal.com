@@ -63,33 +63,23 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
     if (username.length <= 1 || password.length <= 1)
       throw new BadRequestException(`Username or password cannot be empty`);
 
-    const data = {
-      type: APPLE_CALENDAR_TYPE,
-      key: symmetricEncrypt(
-        JSON.stringify({ username, password }),
-        process.env.CALENDSO_ENCRYPTION_KEY || ""
-      ),
-      userId: userId,
-      teamId: null,
-      appId: APPLE_CALENDAR_ID,
-      invalid: false,
-    };
-
     const existingAppleCalendarCredentials = await this.credentialRepository.getAllUserCredentialsByTypeAndId(
       APPLE_CALENDAR_TYPE,
       userId
     );
 
-    if (existingAppleCalendarCredentials && existingAppleCalendarCredentials.length > 0) {
-      const hasUpdatedCalendar = existingAppleCalendarCredentials.filter((calendarCredential: Credential) => {
-        const decryptedKey = JSON.parse(
-          symmetricDecrypt(calendarCredential.key, process.env.CALENDSO_ENCRYPTION_KEY || "")
-        );
+    if (existingAppleCalendarCredentials.length > 0) {
+      const hasCalendarWithGivenCredentials = existingAppleCalendarCredentials.filter(
+        (calendarCredential: Credential) => {
+          const decryptedKey = JSON.parse(
+            symmetricDecrypt(calendarCredential.key as string, process.env.CALENDSO_ENCRYPTION_KEY || "")
+          );
 
-        return decryptedKey.username == username && decryptedKey.password == password;
-      });
+          return decryptedKey.username === username && decryptedKey.password === password;
+        }
+      );
 
-      if (!!hasUpdatedCalendar && hasUpdatedCalendar.length == 1) {
+      if (!!hasCalendarWithGivenCredentials && hasCalendarWithGivenCredentials.length === 1) {
         return {
           status: SUCCESS_STATUS,
         };
@@ -97,13 +87,25 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
     }
 
     try {
+      const data = {
+        type: APPLE_CALENDAR_TYPE,
+        key: symmetricEncrypt(
+          JSON.stringify({ username, password }),
+          process.env.CALENDSO_ENCRYPTION_KEY || ""
+        ),
+        userId: userId,
+        teamId: null,
+        appId: APPLE_CALENDAR_ID,
+        invalid: false,
+      };
+
       const dav = new CalendarService({
         id: 0,
         ...data,
         user: { email: userEmail },
       });
       await dav?.listCalendars();
-      await this.credentialRepository.persistAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
+      await this.credentialRepository.upsertAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
     } catch (reason) {
       throw new BadRequestException(`Could not add this apple calendar account: ${reason}`);
     }
