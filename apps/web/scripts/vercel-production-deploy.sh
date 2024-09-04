@@ -16,6 +16,14 @@ checkRoute "$APP_ROUTER_APPS_SLUG_ENABLED" app/future/apps/\[slug\]
 checkRoute "$APP_ROUTER_APPS_SLUG_SETUP_ENABLED" app/future/apps/\[slug\]/setup
 checkRoute "$APP_ROUTER_APPS_CATEGORIES_ENABLED" app/future/apps/categories
 checkRoute "$APP_ROUTER_APPS_CATEGORIES_CATEGORY_ENABLED" app/future/apps/categories/\[category\]
+checkRoute "$APP_ROUTER_AUTH_FORGOT_PASSWORD_ENABLED" app/future/auth/forgot-password
+checkRoute "$APP_ROUTER_AUTH_LOGIN_ENABLED" app/future/auth/login
+checkRoute "$APP_ROUTER_AUTH_LOGOUT_ENABLED" app/future/auth/logout
+checkRoute "$APP_ROUTER_AUTH_NEW_ENABLED" app/future/auth/new
+checkRoute "$APP_ROUTER_AUTH_SAML_ENABLED" app/future/auth/saml-idp
+checkRoute "$APP_ROUTER_AUTH_ERROR_ENABLED" app/future/auth/error
+checkRoute "$APP_ROUTER_AUTH_PLATFORM_ENABLED" app/future/auth/platform
+checkRoute "$APP_ROUTER_AUTH_OAUTH2_ENABLED" app/future/auth/oauth2
 checkRoute "$APP_ROUTER_WORKFLOWS_ENABLED" app/future/workflows
 checkRoute "$APP_ROUTER_SETTINGS_TEAMS_ENABLED" app/future/settings/teams
 checkRoute "$APP_ROUTER_GETTING_STARTED_STEP_ENABLED" app/future/getting-started
