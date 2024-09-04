@@ -36,7 +36,6 @@ checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
 # Will stop removing gradually as we test and confirm that they are working
 rm -rf \
    app/future/[user]\
-   app/future/auth\
    app/future/booking\
    app/future/connect-and-join\
    app/future/d\
