@@ -20,7 +20,14 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
-import type { BookingRedirectForm } from "~/settings/my-account/out-of-office";
+export type BookingRedirectForm = {
+  dateRange: { startDate: Date; endDate: Date };
+  offset: number;
+  toTeamUserId: number | null;
+  reasonId: number;
+  notes?: string;
+  uuid?: string | null;
+};
 
 export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,

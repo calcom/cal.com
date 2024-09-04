@@ -2,6 +2,7 @@ import { Trans } from "next-i18next";
 import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import type { BookingRedirectForm } from "@calcom/features/settings/CreateOrEditOutOfOfficeModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -16,8 +17,6 @@ import {
   TableRow,
   Tooltip,
 } from "@calcom/ui";
-
-import type { BookingRedirectForm } from "~/settings/my-account/out-of-office";
 
 export const OutOfOfficeEntriesList = ({
   editOutOfOfficeEntry,

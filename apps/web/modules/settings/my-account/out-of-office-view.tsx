@@ -3,20 +3,12 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import type { BookingRedirectForm } from "@calcom/features/settings/CreateOrEditOutOfOfficeModal";
 import { CreateOrEditOutOfOfficeEntryModal } from "@calcom/features/settings/CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeEntriesList } from "@calcom/features/settings/OutOfOfficeEntriesList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Meta, SkeletonText } from "@calcom/ui";
-
-export type BookingRedirectForm = {
-  dateRange: { startDate: Date; endDate: Date };
-  offset: number;
-  toTeamUserId: number | null;
-  reasonId: number;
-  notes?: string;
-  uuid?: string | null;
-};
 
 const OutOfOfficePage = () => {
   const { t } = useLocale();
