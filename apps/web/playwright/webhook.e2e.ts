@@ -757,7 +757,7 @@ test.describe("OOO_CREATED", async () => {
 
     await page.getByTestId("notes_input").click();
     await page.getByTestId("notes_input").fill("Demo notes");
-    await page.getByTestId("create-entry-ooo-redirect").click();
+    await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
 
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
@@ -825,7 +825,7 @@ test.describe("OOO_CREATED", async () => {
 
     await page.getByTestId("notes_input").click();
     await page.getByTestId("notes_input").fill("Demo notes");
-    await page.getByTestId("create-entry-ooo-redirect").click();
+    await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
 
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
