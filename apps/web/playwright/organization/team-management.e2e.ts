@@ -70,8 +70,10 @@ test.describe("Teams", () => {
     });
 
     await test.step("Can finish team creation", async () => {
+      await expect(page.locator('button[value="ROUND_ROBIN"]')).toBeVisible();
+      await page.click('button[value="ROUND_ROBIN"]');
+      await page.fill("[name=title]", "roundRobin");
       await page.getByTestId("finish-button").click();
-      await page.waitForLoadState("networkidle");
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 

@@ -69,6 +69,9 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await test.step("Finishing brings you to team profile page", async () => {
       await page.locator("[data-testid=publish-button]").click();
       await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+      await expect(page.locator('button[value="ROUND_ROBIN"]')).toBeVisible();
+      await page.click('button[value="ROUND_ROBIN"]');
+      await page.fill("[name=title]", "roundRobin");
       await page.locator("[data-testid=finish-button]").click();
       await page.waitForLoadState("networkidle");
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
@@ -224,9 +227,11 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       // Click text=Continue
       await page.locator("[data-testid=publish-button]").click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
+      await expect(page.locator('button[value="ROUND_ROBIN"]')).toBeVisible();
+      await page.click('button[value="ROUND_ROBIN"]');
+      await page.fill("[name=title]", "roundRobin");
       // Click text = Finish
       await page.locator("[data-testid=finish-button]").click();
-      await page.waitForLoadState("networkidle");
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
