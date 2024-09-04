@@ -1,5 +1,5 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { SlotsService } from "@/modules/slots/services/slots.service";
+import { VERSION_2024_04_15 } from "@/lib/api-versions";
+import { SlotsService } from "@/modules/slots/slots-2024-04-15/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
@@ -12,7 +12,7 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/slots",
-  version: API_VERSIONS_VALUES,
+  version: VERSION_2024_04_15,
 })
 @DocsTags("Slots")
 export class SlotsController {
