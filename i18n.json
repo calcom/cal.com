@@ -3,6 +3,9 @@
   "locale": {
     "source": "en",
     "targets": [
+      "ar",
+      "cs",
+      "da",
       "az",
       "cs",
       "de",
