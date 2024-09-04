@@ -6,7 +6,6 @@ export const usePlatformMe = () => {
   const QUERY_KEY = "get-platform-me";
   const platformMeQuery = useQuery<UserResponse>({
     queryKey: [QUERY_KEY],
-    retryOnMount: false,
     staleTime: 300000,
     retry: (failureCount, error) => {
       if (error.message === "500") {
