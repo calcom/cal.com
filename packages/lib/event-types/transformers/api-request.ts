@@ -10,8 +10,8 @@ import {
   Frequency,
 } from "@calcom/platform-enums/monorepo";
 import type {
-  NoticeThreshold_2024_06_14,
-  RequiresConfirmationTransformedSchema,
+  ConfirmationPolicyTransformedSchema,
+  NoticeThresholdTransformedSchema,
   CreateEventTypeInput_2024_06_14,
   Integration_2024_06_14,
   BusinessDaysWindow_2024_06_14,
@@ -200,7 +200,7 @@ function transformApiEventTypeBookerLayouts(
 
 function transformApiEventTypeRequiresConfirmation(
   inputRequiresConfirmation: CreateEventTypeInput_2024_06_14["requiresConfirmation"]
-): RequiresConfirmationTransformedSchema | undefined {
+): ConfirmationPolicyTransformedSchema | undefined {
   if (!inputRequiresConfirmation) return undefined;
   if (inputRequiresConfirmation.disabled) {
     return {
@@ -209,7 +209,7 @@ function transformApiEventTypeRequiresConfirmation(
       requiresConfirmationThreshold: undefined,
     };
   }
-  switch (inputRequiresConfirmation.confirmationPolicy) {
+  switch (inputRequiresConfirmation.type) {
     case ConfirmationPolicyEnum.ALWAYS:
       return {
         requiresConfirmation: true,
@@ -220,8 +220,9 @@ function transformApiEventTypeRequiresConfirmation(
       return {
         requiresConfirmation: true,
         requiresConfirmationThreshold: {
-          ...inputRequiresConfirmation.noticeThreshold,
-        } as NoticeThreshold_2024_06_14,
+          unit: inputRequiresConfirmation.noticeThreshold?.unit,
+          time: inputRequiresConfirmation.noticeThreshold?.count,
+        } as NoticeThresholdTransformedSchema,
         requiresConfirmationWillBlockSlot: inputRequiresConfirmation.blockUnconfirmedBookingsInBooker,
       };
   }

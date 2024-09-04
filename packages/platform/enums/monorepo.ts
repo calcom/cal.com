@@ -6,4 +6,4 @@ export * from "./event-types/period-type";
 export * from "./event-types/scheduling-type";
 export * from "./event-types/frequency";
 export * from "./event-types/booker-layouts.enum";
-export * from "./event-types/requires-confirmation.enum";
+export * from "./event-types/confirmation-policy.enum";

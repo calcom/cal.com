@@ -13,7 +13,7 @@ import type {
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
   BookerLayouts_2024_06_14,
-  RequiresConfirmation_2024_06_14,
+  ConfirmationPolicy_2024_06_14,
   EventTypeColor_2024_06_14,
   Recurrence_2024_06_14,
   CreateEventTypeInput_2024_06_14,
@@ -699,10 +699,10 @@ describe("transformApiEventTypeBookerLayouts", () => {
 
 describe("transformApiEventTypeRequiresConfirmation", () => {
   it("should transform requires confirmation", () => {
-    const input: RequiresConfirmation_2024_06_14 = {
-      confirmationPolicy: ConfirmationPolicyEnum.TIME,
+    const input: ConfirmationPolicy_2024_06_14 = {
+      type: ConfirmationPolicyEnum.TIME,
       noticeThreshold: {
-        time: 60,
+        count: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
       blockUnconfirmedBookingsInBooker: true,

@@ -245,7 +245,7 @@ describe("Event types Endpoints", () => {
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
         requiresConfirmation: {
-          confirmationPolicy: ConfirmationPolicyEnum.TIME,
+          type: ConfirmationPolicyEnum.TIME,
           noticeThreshold: {
             time: 60,
             unit: NoticeThresholdUnitEnum.MINUTES,
@@ -434,7 +434,7 @@ describe("Event types Endpoints", () => {
         lengthInMinutes: 60,
         scheduleId: firstSchedule.id,
         requiresConfirmation: {
-          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
         seats: {
@@ -458,7 +458,7 @@ describe("Event types Endpoints", () => {
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
         requiresConfirmation: {
-          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
         scheduleId: firstSchedule.id,
@@ -552,7 +552,7 @@ describe("Event types Endpoints", () => {
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
         requiresConfirmation: {
-          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
         scheduleId: firstSchedule.id,
@@ -606,7 +606,7 @@ describe("Event types Endpoints", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send({
           requiresConfirmation: {
-            confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+            type: ConfirmationPolicyEnum.ALWAYS,
             blockUnconfirmedBookingsInBooker: false,
           },
         })
@@ -643,7 +643,7 @@ describe("Event types Endpoints", () => {
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
         requiresConfirmation: {
-          confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+          type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
         recurrence: {

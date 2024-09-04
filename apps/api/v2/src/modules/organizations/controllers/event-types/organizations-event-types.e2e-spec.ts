@@ -291,7 +291,7 @@ describe("Organizations Event Types Endpoints", () => {
         },
 
         requiresConfirmation: {
-          confirmationPolicy: ConfirmationPolicyEnum.TIME,
+          type: ConfirmationPolicyEnum.TIME,
           noticeThreshold: {
             time: 60,
             unit: NoticeThresholdUnitEnum.MINUTES,

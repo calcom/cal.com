@@ -26,6 +26,7 @@ import {
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
+  NoticeThresholdTransformedSchema,
 } from "@calcom/platform-types";
 import { NoticeThreshold_2024_06_14 } from "@calcom/platform-types";
 
@@ -122,7 +123,7 @@ export class OutputEventTypesService_2024_06_14 {
     );
     const requiresConfirmation = this.transformRequiresConfirmation(
       databaseEventType.requiresConfirmation,
-      metadata.requiresConfirmationThreshold as NoticeThreshold_2024_06_14,
+      metadata.requiresConfirmationThreshold as NoticeThresholdTransformedSchema,
       databaseEventType.requiresConfirmationWillBlockSlot
     );
     delete metadata["bookerLayouts"];
@@ -229,7 +230,7 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformRequiresConfirmation(
     requiresConfirmation: boolean,
-    requiresConfirmationThreshold: NoticeThreshold_2024_06_14,
+    requiresConfirmationThreshold: NoticeThresholdTransformedSchema,
     requiresConfirmationWillBlockSlot: boolean
   ) {
     return getResponseEventTypeRequiresConfirmation(

@@ -10,36 +10,35 @@ import type { Disabled_2024_06_14 } from "./disabled.input";
 
 // Class representing the notice threshold
 export class NoticeThreshold_2024_06_14 {
-  @IsInt()
-  @ApiProperty({
-    description: "The time value for the notice threshold",
-    example: 30,
-  })
-  time!: number;
-
   @IsEnum(NoticeThresholdUnitEnum)
   @ApiProperty({
     description: "The unit of time for the notice threshold (e.g., minutes, hours)",
     example: NoticeThresholdUnitEnum.MINUTES,
   })
   unit!: NoticeThresholdUnitEnum;
+
+  @IsInt()
+  @ApiProperty({
+    description: "The time value for the notice threshold",
+    example: 30,
+  })
+  count!: number;
 }
 
 // Class representing the confirmation requirements
-export class BaseRequiresConfirmation_2024_06_14 {
+export class BaseConfirmationPolicy_2024_06_14 {
   @IsEnum(ConfirmationPolicyEnum)
   @ApiProperty({
     description: "The policy that determines when confirmation is required",
     example: ConfirmationPolicyEnum.ALWAYS,
   })
-  confirmationPolicy!: ConfirmationPolicyEnum;
+  type!: ConfirmationPolicyEnum;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => NoticeThreshold_2024_06_14)
   @ApiPropertyOptional({
-    description:
-      "The notice threshold required before confirmation is needed. Required when confirmationPolicy is 'time'.",
+    description: "The notice threshold required before confirmation is needed. Required when type is 'time'.",
     type: NoticeThreshold_2024_06_14,
   })
   noticeThreshold?: NoticeThreshold_2024_06_14;
@@ -50,26 +49,26 @@ export class BaseRequiresConfirmation_2024_06_14 {
   disabled?: false;
 }
 
-export type RequiresConfirmation_2024_06_14 = BaseRequiresConfirmation_2024_06_14 | Disabled_2024_06_14;
+export type ConfirmationPolicy_2024_06_14 = BaseConfirmationPolicy_2024_06_14 | Disabled_2024_06_14;
 
 // Validator for confirmation settings
-@ValidatorConstraint({ name: "ConfirmationValidator", async: false })
-export class ConfirmationValidator implements ValidatorConstraintInterface {
-  validate(value: RequiresConfirmation_2024_06_14): boolean {
+@ValidatorConstraint({ name: "ConfirmationPolicyValidator", async: false })
+export class ConfirmationPolicyValidator implements ValidatorConstraintInterface {
+  validate(value: ConfirmationPolicy_2024_06_14): boolean {
     if ("disabled" in value) {
       return true;
     }
-    if ("confirmationPolicy" in value && "noticeThreshold" in value) {
-      const { confirmationPolicy, noticeThreshold } = value;
+    if ("type" in value && "noticeThreshold" in value) {
+      const { type, noticeThreshold } = value;
 
-      if (confirmationPolicy === ConfirmationPolicyEnum.ALWAYS) {
+      if (type === ConfirmationPolicyEnum.ALWAYS) {
         return true;
       }
 
-      if (confirmationPolicy === ConfirmationPolicyEnum.TIME) {
+      if (type === ConfirmationPolicyEnum.TIME) {
         return !!(
           noticeThreshold &&
-          typeof noticeThreshold.time === "number" &&
+          typeof noticeThreshold.count === "number" &&
           typeof noticeThreshold.unit === "string"
         );
       }
@@ -78,25 +77,30 @@ export class ConfirmationValidator implements ValidatorConstraintInterface {
   }
 
   defaultMessage(): string {
-    return `Invalid requiresConfirmation structure. Use "confirmationPolicy": "always" or provide a valid time and unit in "noticeThreshold" for "confirmationPolicy": "time".`;
+    return `Invalid requiresConfirmation structure. Use "type": "always" or provide a valid time and unit in "noticeThreshold" for "type": "time".`;
   }
 }
 
 // Custom decorator for confirmation validation
-export function ValidateRequiresConfirmation(validationOptions?: ValidationOptions) {
+export function ValidateConfirmationPolicy(validationOptions?: ValidationOptions) {
   return function (object: any, propertyName: string) {
     registerDecorator({
-      name: "ValidateRequiresConfirmation",
+      name: "ValidateConfirmationPolicy",
       target: object.constructor,
       propertyName,
       options: validationOptions,
-      validator: ConfirmationValidator,
+      validator: ConfirmationPolicyValidator,
     });
   };
 }
 
-export type RequiresConfirmationTransformedSchema = {
+export type NoticeThresholdTransformedSchema = {
+  unit: NoticeThresholdUnitEnum;
+  time: number;
+};
+
+export type ConfirmationPolicyTransformedSchema = {
   requiresConfirmation: boolean;
-  requiresConfirmationThreshold?: NoticeThreshold_2024_06_14;
+  requiresConfirmationThreshold?: NoticeThresholdTransformedSchema;
   requiresConfirmationWillBlockSlot: boolean;
 };

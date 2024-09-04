@@ -22,8 +22,8 @@ import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
+import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
-import type { RequiresConfirmation_2024_06_14 } from "../inputs/requires-confirmation.input";
 
 enum SchedulingTypeEnum {
   ROUND_ROBIN = "ROUND_ROBIN",
@@ -153,7 +153,7 @@ class BaseEventTypeOutput {
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
-  requiresConfirmation?: RequiresConfirmation_2024_06_14;
+  requiresConfirmation?: ConfirmationPolicy_2024_06_14;
 
   @IsOptional()
   @IsBoolean()

@@ -13,8 +13,7 @@ import type {
   IntegrationLocation_2024_06_14,
   TransformBookingLimitsSchema_2024_06_14,
   TransformFutureBookingsLimitSchema_2024_06_14,
-  RequiresConfirmationTransformedSchema,
-  NoticeThreshold_2024_06_14,
+  ConfirmationPolicyTransformedSchema,
   BookerLayoutsTransformedSchema,
   EventTypeColorsTransformedSchema,
   TransformRecurringEventSchema_2024_06_14,
@@ -724,7 +723,7 @@ describe("getResponseEventTypeBookerLayouts", () => {
 
 describe("getResponseEventTypeRequiresConfirmation", () => {
   it("should reverse transform requires confirmation", () => {
-    const transformedField: RequiresConfirmationTransformedSchema = {
+    const transformedField: ConfirmationPolicyTransformedSchema = {
       requiresConfirmation: false,
       requiresConfirmationThreshold: {
         time: 60,
@@ -734,16 +733,16 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
     };
 
     const expectedOutput = {
-      confirmationPolicy: ConfirmationPolicyEnum.TIME,
+      type: ConfirmationPolicyEnum.TIME,
       noticeThreshold: {
-        time: 60,
+        count: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
       blockUnconfirmedBookingsInBooker: true,
     };
     const result = getResponseEventTypeRequiresConfirmation(
       transformedField.requiresConfirmation,
-      transformedField.requiresConfirmationThreshold as NoticeThreshold_2024_06_14,
+      transformedField.requiresConfirmationThreshold,
       transformedField.requiresConfirmationWillBlockSlot
     );
 

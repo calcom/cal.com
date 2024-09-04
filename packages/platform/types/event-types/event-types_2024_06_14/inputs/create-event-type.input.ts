@@ -22,13 +22,13 @@ import type { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration
 import { ValidateBookingLimistsDuration } from "./booking-limits-duration.input";
 import type { BookingWindow_2024_06_14 } from "./booking-window.input";
 import { ValidateBookingWindow } from "./booking-window.input";
+import type { ConfirmationPolicy_2024_06_14 } from "./confirmation-policy.input";
+import { ValidateConfirmationPolicy } from "./confirmation-policy.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
-import type { RequiresConfirmation_2024_06_14 } from "./requires-confirmation.input";
-import { ValidateRequiresConfirmation } from "./requires-confirmation.input";
 import { Seats_2024_06_14 } from "./seats.input";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
@@ -115,8 +115,8 @@ export class BaseCreateEventTypeInput_2024_06_14 {
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
-  @ValidateRequiresConfirmation()
-  requiresConfirmation?: RequiresConfirmation_2024_06_14;
+  @ValidateConfirmationPolicy()
+  requiresConfirmation?: ConfirmationPolicy_2024_06_14;
 
   @ValidateNested()
   @Transform(({ value }) => {

@@ -8,7 +8,7 @@ import type {
   transformApiSeatOptions,
 } from "@calcom/lib/event-types/transformers";
 
-import type { CreateEventTypeInput_2024_06_14, RequiresConfirmationTransformedSchema } from "../inputs";
+import type { CreateEventTypeInput_2024_06_14, ConfirmationPolicyTransformedSchema } from "../inputs";
 
 export type InputEventTransformed_2024_06_14 = Omit<
   CreateEventTypeInput_2024_06_14,
@@ -34,7 +34,7 @@ export type InputEventTransformed_2024_06_14 = Omit<
   requiresConfirmation?: ReturnType<typeof transformApiEventTypeColors>;
   eventTypeColor?: ReturnType<typeof transformApiEventTypeColors>;
 } & Partial<
-    Pick<RequiresConfirmationTransformedSchema, "requiresConfirmation" | "requiresConfirmationWillBlockSlot">
+    Pick<ConfirmationPolicyTransformedSchema, "requiresConfirmation" | "requiresConfirmationWillBlockSlot">
   > &
   Partial<ReturnType<typeof transformApiSeatOptions>> &
   Partial<ReturnType<typeof transformApiEventTypeFutureBookingLimits>>;

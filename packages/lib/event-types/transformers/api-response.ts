@@ -22,8 +22,8 @@ import type {
   CalendarDaysWindow_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   BookingField_2024_06_14,
-  NoticeThreshold_2024_06_14,
-  RequiresConfirmation_2024_06_14,
+  NoticeThresholdTransformedSchema,
+  ConfirmationPolicy_2024_06_14,
   BookerLayoutsTransformedSchema,
   EventTypeColorsTransformedSchema,
   EventTypeColor_2024_06_14,
@@ -292,20 +292,21 @@ function getResponseEventTypeBookerLayouts(transformedBookerLayouts: BookerLayou
 
 function getResponseEventTypeRequiresConfirmation(
   requiresConfirmation: boolean,
-  requiresConfirmationThreshold: NoticeThreshold_2024_06_14,
+  requiresConfirmationThreshold: NoticeThresholdTransformedSchema,
   requiresConfirmationWillBlockSlot: boolean
-): RequiresConfirmation_2024_06_14 | undefined {
+): ConfirmationPolicy_2024_06_14 | undefined {
   if (requiresConfirmationThreshold?.unit) {
     return {
-      confirmationPolicy: ConfirmationPolicyEnum.TIME,
+      type: ConfirmationPolicyEnum.TIME,
       noticeThreshold: {
-        ...requiresConfirmationThreshold,
+        unit: requiresConfirmationThreshold.unit,
+        count: requiresConfirmationThreshold.time,
       },
       blockUnconfirmedBookingsInBooker: requiresConfirmationWillBlockSlot,
     };
   } else if (requiresConfirmation) {
     return {
-      confirmationPolicy: ConfirmationPolicyEnum.ALWAYS,
+      type: ConfirmationPolicyEnum.ALWAYS,
       blockUnconfirmedBookingsInBooker: requiresConfirmationWillBlockSlot,
     };
   } else if (!requiresConfirmationWillBlockSlot && !requiresConfirmation) {
