@@ -311,7 +311,13 @@ export default function MemberListItem(props: Props) {
         accessorFn: (data) => data.email,
         header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
-          const { username, email, avatarUrl } = row.original;
+          const { username, email, avatarUrl, accepted, name } = row.original;
+          const memberName =
+            name ||
+            (() => {
+              const emailName = email.split("@")[0];
+              return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+            })();
           return (
             <div className="flex items-center gap-2">
               <Avatar
@@ -321,14 +327,12 @@ export default function MemberListItem(props: Props) {
                   avatarUrl,
                 })}
               />
-              <div className="">
-                <div
-                  data-testid={`member-${username}-username`}
-                  className="text-emphasis text-sm font-medium leading-none">
-                  {username || "No username"}
+              <div data-testid={`member-${username}`}>
+                <div data-testid="member-name" className="text-emphasis text-sm font-medium leading-none">
+                  {memberName}
                 </div>
                 <div
-                  data-testid={`member-${username}-email`}
+                  data-testid={accepted ? "member-email" : `email-${email.replace("@", "")}-pending`}
                   className="text-subtle mt-1 text-sm leading-none">
                   {email}
                 </div>
@@ -347,7 +351,7 @@ export default function MemberListItem(props: Props) {
         accessorFn: (data) => data.role,
         header: "Role",
         cell: ({ row, table }) => {
-          const { role, username, accepted } = row.original;
+          const { role, accepted } = row.original;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {!accepted && (
@@ -362,7 +366,7 @@ export default function MemberListItem(props: Props) {
                 </Badge>
               )}
               <Badge
-                data-testid={`member-${username}-role`}
+                data-testid="member-role"
                 variant={role === "MEMBER" ? "gray" : "blue"}
                 onClick={() => {
                   table.getColumn("role")?.setFilterValue([role]);
@@ -616,7 +620,7 @@ export default function MemberListItem(props: Props) {
   return (
     <div className="mb-6">
       <DataTable
-        data-testId="user-list-data-table"
+        data-testId="team-member-list-container"
         onSearch={(value) => setSearchTerm(value)}
         selectionOptions={[
           {
@@ -648,7 +652,7 @@ export default function MemberListItem(props: Props) {
                   },
                 })
               }
-              data-testid="new-organization-member-button">
+              data-testid="new-member-button">
               {t("add")}
             </Button>
           ) : (
