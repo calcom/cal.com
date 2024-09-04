@@ -112,8 +112,7 @@ export type { SystemField, UserField } from "@calcom/lib/event-types/transformer
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
-export { symmetricEncrypt };
-export { symmetricDecrypt };
+export { symmetricEncrypt, symmetricDecrypt };
 export { CalendarService };
 
 export { getCalendar };
@@ -121,3 +120,5 @@ export { getCalendar };
 export { getTranslation };
 
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+
+export { ErrorCode } from "@calcom/lib/errorCodes";
