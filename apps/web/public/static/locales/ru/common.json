@@ -2201,6 +2201,7 @@
   "member_removed": "Участник удален",
   "my_availability": "Моя доступность",
   "team_availability": "Доступность команды",
+  "instant_meeting_availability": "Доступность для мгновенных встреч",
   "backup_code": "Код бэкапа",
   "backup_codes": "Коды бэкапа",
   "backup_code_instructions": "Каждый код бэкапа можно использовать только один раз, чтобы предоставить доступ без аутентификатора.",

@@ -89,6 +89,7 @@ async function generateSvgSprite({ files, inputDir, outputPath }) {
 
       svg.tagName = "symbol";
       svg.setAttribute("id", iconName(file));
+      svg.setAttribute("fill", "inherit");
       svg.removeAttribute("xmlns");
       svg.removeAttribute("xmlns:xlink");
       svg.removeAttribute("version");
