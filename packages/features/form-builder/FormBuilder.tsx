@@ -4,7 +4,6 @@ import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
-import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -12,6 +11,7 @@ import {
   Badge,
   BooleanToggleGroupField,
   Button,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -57,6 +57,7 @@ export const FormBuilder = function FormBuilder({
   disabled,
   LockedIcon,
   dataStore,
+  shouldConsiderRequired,
 }: {
   formProp: string;
   title: string;
@@ -68,8 +69,19 @@ export const FormBuilder = function FormBuilder({
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
   dataStore: {
-    options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
+    options: Record<
+      string,
+      {
+        source: { label: string };
+        value: { label: string; value: string; inputPlaceholder?: string }[];
+      }
+    >;
   };
+  /**
+   * This is kind of a hack to allow certain fields to be just shown as required when they might not be required in a strict sense
+   * e.g. Location field has a default value at backend so API can send no location but formBuilder in UI doesn't allow it.
+   */
+  shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -119,29 +131,38 @@ export const FormBuilder = function FormBuilder({
         <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
-            const options = field.options
-              ? field.options
-              : field.getOptionsAt
-              ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
-              : [];
+            let options = field.options ?? null;
+            const sources = [...(field.sources || [])];
+            const isRequired = shouldConsiderRequired ? shouldConsiderRequired(field) : field.required;
+            if (!options && field.getOptionsAt) {
+              const {
+                source: { label: sourceLabel },
+                value,
+              } = dataStore.options[field.getOptionsAt as keyof typeof dataStore] ?? [];
+              options = value;
+              options.forEach((option) => {
+                sources.push({
+                  id: option.value,
+                  label: sourceLabel,
+                  type: "system",
+                });
+              });
+            }
 
-            // Note: We recently started calling getAndUpdateNormalizedValues in the FormBuilder. It was supposed to be called only on booking pages earlier.
-            // Due to this we have to meet some strict requirements like of labelAsSafeHtml.
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
               field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
             }
-
-            const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
-            if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
+            const numOptions = options?.length ?? 0;
+            const firstOptionInput =
+              field.optionsInputs?.[options?.[0]?.value as keyof typeof field.optionsInputs];
+            const doesFirstOptionHaveInput = !!firstOptionInput;
+            // If there is only one option and it doesn't have an input required, we don't show the Field for it.
+            // Because booker doesn't see this in UI, there is no point showing it in FormBuilder to configure it.
+            if (field.hideWhenJustOneOption && numOptions <= 1 && !doesFirstOptionHaveInput) {
               return null;
             }
-            let fieldType = fieldTypesConfigMap[field.type];
-            let isRequired = field.required;
-            // For radioInput type, when there's only one option, the type and required takes the first options values
-            if (field.type === "radioInput" && options.length === 1) {
-              fieldType = fieldTypesConfigMap[field.optionsInputs?.[options[0].value].type || field.type];
-              isRequired = field.optionsInputs?.[options[0].value].required || field.required;
-            }
+
+            const fieldType = fieldTypesConfigMap[field.type];
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -151,7 +172,6 @@ export const FormBuilder = function FormBuilder({
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
             }
-            const sources = field.sources || [];
             const groupedBySourceLabel = sources.reduce((groupBy, source) => {
               const item = groupBy[source.label] || [];
               if (source.type === "user" || source.type === "default") {
@@ -166,7 +186,7 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
+                className="hover:bg-muted group relative flex items-center justify-between p-4 transition">
                 {!disabled && (
                   <>
                     {index >= 1 && (
@@ -224,7 +244,7 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-subtle rounded" }}
+                        classNames={{ container: "p-2 hover:bg-subtle rounded transition" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -244,16 +264,7 @@ export const FormBuilder = function FormBuilder({
                       data-testid="edit-field-action"
                       color="secondary"
                       onClick={() => {
-                        const fieldToEdit = field;
-                        // For radioInput type, when there's only one option, the type and required takes the only first options values
-                        if (fieldToEdit.type === "radioInput" && options.length === 1) {
-                          fieldToEdit.type =
-                            fieldToEdit.optionsInputs?.[options[0].value].type || fieldToEdit.type;
-                          fieldToEdit.required =
-                            fieldToEdit.optionsInputs?.[options[0].value].required || fieldToEdit.required;
-                        }
-
-                        editField(index, fieldToEdit);
+                        editField(index, field);
                       }}>
                       {t("edit")}
                     </Button>
@@ -316,6 +327,7 @@ export const FormBuilder = function FormBuilder({
               data: null,
             });
           }}
+          shouldConsiderRequired={shouldConsiderRequired}
         />
       )}
     </div>
@@ -413,10 +425,12 @@ function FieldEditDialog({
   dialog,
   onOpenChange,
   handleSubmit,
+  shouldConsiderRequired,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
+  shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -487,6 +501,10 @@ function FieldEditDialog({
                       }
                       label={t("identifier")}
                     />
+                    <CheckboxField
+                      description={t("disable_input_if_prefilled")}
+                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                    />
                     <InputField
                       {...fieldForm.register("label")}
                       // System fields have a defaultLabel, so there a label is not required
@@ -523,11 +541,14 @@ function FieldEditDialog({
                       name="required"
                       control={fieldForm.control}
                       render={({ field: { value, onChange } }) => {
+                        const isRequired = shouldConsiderRequired
+                          ? shouldConsiderRequired(fieldForm.getValues())
+                          : value;
                         return (
                           <BooleanToggleGroupField
                             data-testid="field-required"
                             disabled={fieldForm.getValues("editable") === "system"}
-                            value={value}
+                            value={isRequired}
                             onValueChange={(val) => {
                               onChange(val);
                             }}
@@ -704,7 +725,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded" }}
+          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded transition" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (
@@ -720,6 +741,11 @@ function VariantFields({
           fieldForm.getValues("editable") === "system-but-optional"
         }
         label={t("identifier")}
+      />
+
+      <CheckboxField
+        description={t("disable_input_if_prefilled")}
+        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
       />
 
       <ul

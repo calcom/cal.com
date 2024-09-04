@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
-import { X } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
@@ -10,15 +9,14 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/core/location";
+import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { Button, Form } from "@calcom/ui";
+import { Button, Form, Icon } from "@calcom/ui";
 
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
-
-import { locationsResolver } from "~/event-types/views/event-types-single-view";
 
 export type TFormType = {
   id: number;
@@ -101,7 +99,8 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
             ) : (
               <EventTypeAppSettingsWrapper {...props} />
             )}
-            <X
+            <Icon
+              name="x"
               data-testid={`remove-event-type-${eventType.id}`}
               className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
               onClick={() => !loading && handleDelete()}

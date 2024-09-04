@@ -22,6 +22,7 @@ import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -143,6 +144,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       cancellationReason,
       status: BookingStatus.CANCELLED,
       updatedAt: dayjs().toISOString(),
+      cancelledBy: user.email,
     },
   });
 
@@ -203,7 +205,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   director.setExistingBooking(bookingToReschedule);
   cancellationReason && director.setCancellationReason(cancellationReason);
   if (Object.keys(event).length) {
-    await director.buildForRescheduleEmail();
+    // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
+    await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
   }
@@ -240,9 +243,13 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
   // Send emails
-  await sendRequestRescheduleEmail(builder.calendarEvent, {
-    rescheduleLink: builder.rescheduleLink,
-  });
+  await sendRequestRescheduleEmail(
+    builder.calendarEvent,
+    {
+      rescheduleLink: builder.rescheduleLink,
+    },
+    eventType?.metadata as EventTypeMetadata
+  );
 
   const evt: CalendarEvent = {
     title: bookingToReschedule?.title,
@@ -297,6 +304,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
       smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+      cancelledBy: user.email,
     }).catch((e) => {
       log.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,

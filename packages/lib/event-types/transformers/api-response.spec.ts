@@ -5,10 +5,19 @@ import type {
   LinkLocation_2024_06_14,
   PhoneLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
+  TransformBookingLimitsSchema_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
+  TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { CommonField, OptionsField } from "./api-request";
-import { getResponseEventTypeLocations, getResponseEventTypeBookingFields } from "./api-response";
+import type { UserField } from "./api-request";
+import {
+  getResponseEventTypeLocations,
+  getResponseEventTypeBookingFields,
+  getResponseEventTypeIntervalLimits,
+  getResponseEventTypeFutureBookingLimits,
+  getResponseEventTypeRecurrence,
+} from "./api-response";
 
 describe("getResponseEventTypeLocations", () => {
   it("should reverse transform address location", () => {
@@ -99,7 +108,7 @@ describe("getResponseEventTypeLocations", () => {
 
 describe("getResponseEventTypeBookingFields", () => {
   it("should reverse transform name field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-name",
         type: "name",
@@ -134,7 +143,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform email field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-email",
         type: "email",
@@ -169,7 +178,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform phone field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-phone",
         type: "phone",
@@ -204,7 +213,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform address field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-address",
         type: "address",
@@ -239,7 +248,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform text field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-text",
         type: "text",
@@ -274,7 +283,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform number field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-number",
         type: "number",
@@ -309,7 +318,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform textarea field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-textarea",
         type: "textarea",
@@ -344,7 +353,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform select field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-select",
         type: "select",
@@ -384,7 +393,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform multiselect field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-multiselect",
         type: "multiselect",
@@ -422,7 +431,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform multiemail field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-multiemail",
         type: "multiemail",
@@ -457,7 +466,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform checkbox field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-checkbox",
         type: "checkbox",
@@ -495,7 +504,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform radio field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-radio",
         type: "radio",
@@ -533,7 +542,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform boolean field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "agree-to-terms",
         type: "boolean",
@@ -562,6 +571,131 @@ describe("getResponseEventTypeBookingFields", () => {
     ];
 
     const result = getResponseEventTypeBookingFields(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("getResponseEventTypeIntervalLimits", () => {
+  it("should reverse transform booking limits count or booking limits duration", () => {
+    const transformedField: TransformBookingLimitsSchema_2024_06_14 = {
+      PER_DAY: 2,
+      PER_WEEK: 11,
+      PER_MONTH: 22,
+      PER_YEAR: 33,
+    };
+
+    const expectedOutput = {
+      day: 2,
+      week: 11,
+      month: 22,
+      year: 33,
+    };
+    const result = getResponseEventTypeIntervalLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("getResponseEventTypeFutureBookingLimits", () => {
+  it("should reverse transform range type", () => {
+    const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
+      periodType: "RANGE",
+      periodStartDate: new Date("2024-08-06T09:14:30.000Z"),
+      periodEndDate: new Date("2024-08-28T18:30:00.000Z"),
+    };
+    const expectedOutput = {
+      type: "range",
+      value: ["2024-08-06", "2024-08-28"],
+    };
+
+    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should reverse transform calendar days", () => {
+    const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
+      periodType: "ROLLING",
+      periodDays: 30,
+      periodCountCalendarDays: true,
+    };
+    const expectedOutput = {
+      type: "calendarDays",
+      value: 30,
+      rolling: false,
+    };
+
+    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should reverse transform calendar days rolling-window", () => {
+    const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
+      periodType: "ROLLING_WINDOW",
+      periodDays: 30,
+      periodCountCalendarDays: true,
+    };
+
+    const expectedOutput = {
+      type: "calendarDays",
+      value: 30,
+      rolling: true,
+    };
+
+    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should reverse transform Business days", () => {
+    const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
+      periodType: "ROLLING",
+      periodDays: 30,
+      periodCountCalendarDays: false,
+    };
+
+    const expectedOutput = {
+      type: "businessDays",
+      value: 30,
+      rolling: false,
+    };
+
+    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+  it("should reverse transform Business days rolling-window", () => {
+    const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
+      periodType: "ROLLING_WINDOW",
+      periodDays: 30,
+      periodCountCalendarDays: false,
+    };
+
+    const expectedOutput = {
+      type: "businessDays",
+      value: 30,
+      rolling: true,
+    };
+
+    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("getResponseEventTypeRecurrence", () => {
+  it("should reverse transform recurringEvent", () => {
+    const transformedField: TransformRecurringEventSchema_2024_06_14 = {
+      interval: 2,
+      count: 10,
+      freq: 2,
+    };
+
+    const expectedOutput = {
+      frequency: "weekly",
+      interval: 2,
+      occurrences: 10,
+    };
+    const result = getResponseEventTypeRecurrence(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });

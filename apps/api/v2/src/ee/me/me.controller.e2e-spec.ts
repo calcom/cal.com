@@ -9,8 +9,10 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { User, Team } from "@prisma/client";
 import * as request from "supertest";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -25,9 +27,11 @@ describe("Me Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesRepositoryFixture: SchedulesRepositoryFixture;
-
+    let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     const userEmail = "me-controller-e2e@api.com";
     let user: User;
+    let org: Team;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -43,11 +47,28 @@ describe("Me Endpoints", () => {
         .compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
       schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
         username: userEmail,
+      });
+
+      org = await organizationsRepositoryFixture.create({
+        name: "Test org team",
+        isOrganization: true,
+        isPlatform: true,
+      });
+
+      await profilesRepositoryFixture.create({
+        uid: "asd-asd",
+        username: userEmail,
+        user: { connect: { id: user.id } },
+        organization: { connect: { id: org.id } },
+        movedFromUser: { connect: { id: user.id } },
       });
 
       app = moduleRef.createNestApplication();
@@ -75,6 +96,8 @@ describe("Me Endpoints", () => {
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
           expect(responseBody.data.timeZone).toEqual(user.timeZone);
+          expect(responseBody.data.organization?.isPlatform).toEqual(true);
+          expect(responseBody.data.organization?.id).toEqual(org.id);
         });
     });
 
@@ -138,6 +161,7 @@ describe("Me Endpoints", () => {
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
+      await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });
   });

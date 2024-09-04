@@ -4,6 +4,7 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
+import { getToken } from "next-auth/jwt";
 
 import { hasPermissions } from "@calcom/platform-utils";
 
@@ -24,6 +25,12 @@ export class PermissionsGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const authString = request.get("Authorization")?.replace("Bearer ", "");
+    const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
+    const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
+
+    if (nextAuthToken) {
+      return true;
+    }
 
     if (!authString) {
       return false;

@@ -143,9 +143,11 @@ describe("handleChildrenEventTypes", () => {
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: undefined,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          eventTypeColor: undefined,
           userId: 4,
         },
       });
@@ -198,6 +200,7 @@ describe("handleChildrenEventTypes", () => {
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: undefined,
           hashedLink: { create: { link: expect.any(String) } },
         },
         where: {
@@ -301,7 +304,9 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          eventTypeColor: undefined,
           hashedLink: undefined,
+          instantMeetingScheduleId: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           userId: 4,
@@ -355,6 +360,7 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {
@@ -417,7 +423,9 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
+          eventTypeColor: undefined,
           hashedLink: undefined,
+          instantMeetingScheduleId: undefined,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -444,6 +452,7 @@ describe("handleChildrenEventTypes", () => {
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           hashedLink: undefined,
+          instantMeetingScheduleId: undefined,
         },
         where: {
           userId_parentId: {

@@ -1,5 +1,6 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
@@ -7,13 +8,25 @@ import {
   getEventTypeById,
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
-} from "@calcom/platform-libraries-0.0.23";
+} from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 
 type InputEventTransformed = Omit<
   CreateEventTypeInput_2024_06_14,
-  "lengthInMinutes" | "locations" | "bookingFields"
+  | "lengthInMinutes"
+  | "locations"
+  | "bookingFields"
+  | "bookingLimitsCount"
+  | "onlyShowFirstAvailableSlot"
+  | "bookingLimitsDuration"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
+  | "recurrence"
 > & {
   length: number;
   slug: string;
@@ -23,7 +36,11 @@ type InputEventTransformed = Omit<
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService,
+    private usersService: UsersService
+  ) {}
 
   async createUserEventType(userId: number, body: InputEventTransformed) {
     return this.dbWrite.prisma.eventType.create({
@@ -69,7 +86,7 @@ export class EventTypesRepository_2024_06_14 {
     eventTypeId: number
   ) {
     return await getEventTypeById({
-      currentOrganizationId: user.movedToProfile?.organizationId || user.organizationId,
+      currentOrganizationId: this.usersService.getUserMainOrgId(user),
       eventTypeId,
       userId: user.id,
       prisma: this.dbRead.prisma as unknown as PrismaClient,

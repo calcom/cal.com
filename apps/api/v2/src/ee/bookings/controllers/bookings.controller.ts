@@ -4,7 +4,9 @@ import { MarkNoShowInput } from "@/ee/bookings/inputs/mark-no-show.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { MarkNoShowOutput } from "@/ee/bookings/outputs/mark-no-show.output";
+import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -28,6 +30,7 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
@@ -46,7 +49,7 @@ import {
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
-} from "@calcom/platform-libraries-0.0.23";
+} from "@calcom/platform-libraries";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -86,7 +89,9 @@ export class BookingsController {
     private readonly oAuthFlowService: OAuthFlowService,
     private readonly prismaReadService: PrismaReadService,
     private readonly oAuthClientRepository: OAuthClientRepository,
-    private readonly billingService: BillingService
+    private readonly billingService: BillingService,
+    private readonly config: ConfigService,
+    private readonly apiKeyRepository: ApiKeyRepository
   ) {}
 
   @Get("/")
@@ -211,6 +216,7 @@ export class BookingsController {
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard)
   async markNoShow(
+    @GetUser("id") userId: number,
     @Body() body: MarkNoShowInput,
     @Param("bookingUid") bookingUid: string
   ): Promise<MarkNoShowOutput> {
@@ -219,6 +225,7 @@ export class BookingsController {
         bookingUid: bookingUid,
         attendees: body.attendees,
         noShowHost: body.noShowHost,
+        userId,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
@@ -294,9 +301,17 @@ export class BookingsController {
 
   private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
-      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (accessToken) {
-        return this.oAuthFlowService.getOwnerId(accessToken);
+      const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
+      if (bearerToken) {
+        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+          return keyData?.userId;
+        } else {
+          // Access Token
+          return this.oAuthFlowService.getOwnerId(bearerToken);
+        }
       }
     } catch (err) {
       this.logger.error(err);
