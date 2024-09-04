@@ -1,13 +1,10 @@
-import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+import PageWrapper from "@components/PageWrapper";
 
-import MeetingEnded from "~/videos/views/videos-meeting-ended-single-view";
+import MeetingEnded, { type PageProps } from "~/videos/views/videos-meeting-ended-single-view";
 
-export {
-  getServerSideProps,
-  type PageProps,
-} from "~/videos/views/videos-meeting-ended-single-view.getServerSideProps";
+export { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
-const MeetingEndedPage = MeetingEnded as unknown as CalPageWrapper;
+const MeetingEndedPage = (props: PageProps) => <MeetingEnded {...props} />;
 
 MeetingEndedPage.PageWrapper = PageWrapper;
 
