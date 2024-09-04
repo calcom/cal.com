@@ -17,13 +17,14 @@ import {
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
 
-import { QueryCell } from "@lib/QueryCell";
+import { QueryCell } from "../../lib/QueryCell";
 
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type BookingItem = {
+  location: string;
+};
 
 interface ISetLocationDialog {
   saveLocation: ({

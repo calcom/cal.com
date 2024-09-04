@@ -162,6 +162,15 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
+          name: "@calcom/web/components",
+          include: ["apps/web/components/**/*.{test,spec}.[jt]sx"],
+          environment: "jsdom",
+          setupFiles: ["packages/ui/components/test-setup.ts"],
+        },
+      },
+      {
+        test: {
+          globals: true,
           name: "EventTypeAppCardInterface components",
           include: ["packages/app-store/_components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
