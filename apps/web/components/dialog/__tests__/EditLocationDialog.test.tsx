@@ -48,6 +48,8 @@ describe("EditLocationDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     QueryCell.mockImplementation(({ success }) => {
       return success({
         data: [
@@ -137,29 +139,38 @@ describe("EditLocationDialog", () => {
       });
     });
 
-    LocationSelect.mockImplementation(({ options, defaultValue, onChange }) => {
-      return (
-        <select
-          data-testid="location-select"
-          defaultValue={defaultValue}
-          onChange={(e) => {
-            const selectedOption = options
-              .flatMap((opt) => opt.options || [opt])
-              .find((opt) => opt.value === e.target.value);
-            onChange(selectedOption);
-          }}>
-          {options.map((group) => (
-            <optgroup key={group.value} label={group.label}>
-              {(group.options || [group]).map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      );
-    });
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    LocationSelect.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ({ options, defaultValue, onChange }: { options: any; defaultValue: any; onChange: any }) => {
+        return (
+          <select
+            data-testid="location-select"
+            defaultValue={defaultValue}
+            onChange={(e) => {
+              const selectedOption = options
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .flatMap((opt: any) => opt.options || [opt])
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .find((opt: any) => opt.value === e.target.value);
+              onChange(selectedOption);
+            }}>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {options.map((group: any) => (
+              <optgroup key={group.value} label={group.label}>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {(group.options || [group]).map((option: any) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        );
+      }
+    );
   });
 
   it("renders the dialog when open", () => {

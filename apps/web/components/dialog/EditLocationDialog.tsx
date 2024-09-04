@@ -22,10 +22,6 @@ import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form, PhoneIn
 
 import { QueryCell } from "../../lib/QueryCell";
 
-type BookingItem = {
-  location: string;
-};
-
 interface ISetLocationDialog {
   saveLocation: ({
     newLocation,
@@ -35,7 +31,9 @@ interface ISetLocationDialog {
     credentialId: number | null;
   }) => Promise<void>;
   selection?: LocationOption;
-  booking: BookingItem;
+  booking: {
+    location: string | null;
+  };
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
