@@ -164,8 +164,6 @@ export default class Office365CalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    console.log("🚀 ~ Office365CalendarService ~ dateTo:", dateTo);
-    console.log("🚀 ~ Office365CalendarService ~ dateFrom:", dateFrom);
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
