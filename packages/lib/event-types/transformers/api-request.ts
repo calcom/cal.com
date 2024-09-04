@@ -229,7 +229,7 @@ function transformApiEventTypeRequiresConfirmation(
 }
 
 function transformApiEventTypeColors(
-  inputEventTypeColors: CreateEventTypeInput_2024_06_14["eventTypeColor"]
+  inputEventTypeColors: CreateEventTypeInput_2024_06_14["color"]
 ): EventTypeColorsTransformedSchema | undefined {
   if (!inputEventTypeColors) return undefined;
 
@@ -258,8 +258,8 @@ function transformApiSeatOptions(
 
 function transformApiEventTypeRecurrence(
   recurrence: CreateEventTypeInput_2024_06_14["recurrence"]
-): TransformRecurringEventSchema_2024_06_14 | null {
-  if (!recurrence || recurrence.disabled) return null;
+): TransformRecurringEventSchema_2024_06_14 | undefined {
+  if (!recurrence || recurrence.disabled) return undefined;
 
   return {
     interval: recurrence.interval,

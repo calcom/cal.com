@@ -21,7 +21,7 @@ export type InputEventTransformed_2024_06_14 = Omit<
   | "bookerLayouts"
   | "requiresConfirmation"
   | "recurrence"
-  | "eventTypeColor"
+  | "color"
   | "seats"
 > & {
   length: number;

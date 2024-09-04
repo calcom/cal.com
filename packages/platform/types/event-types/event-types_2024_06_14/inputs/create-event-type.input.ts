@@ -146,7 +146,7 @@ export class BaseCreateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => EventTypeColor_2024_06_14)
-  eventTypeColor?: EventTypeColor_2024_06_14;
+  color?: EventTypeColor_2024_06_14;
 
   @IsOptional()
   @Transform(({ value }) => {

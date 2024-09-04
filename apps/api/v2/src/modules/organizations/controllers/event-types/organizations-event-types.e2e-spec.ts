@@ -293,7 +293,7 @@ describe("Organizations Event Types Endpoints", () => {
         requiresConfirmation: {
           type: ConfirmationPolicyEnum.TIME,
           noticeThreshold: {
-            time: 60,
+            count: 60,
             unit: NoticeThresholdUnitEnum.MINUTES,
           },
           blockUnconfirmedBookingsInBooker: true,
@@ -301,7 +301,7 @@ describe("Organizations Event Types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         lockTimeZoneToggleOnBookingPage: true,
-        eventTypeColor: {
+        color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
         },
@@ -331,7 +331,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
-          expect(data.eventTypeColor).toEqual(body.eventTypeColor);
+          expect(data.color).toEqual(body.color);
 
           collectiveEventType = responseBody.data;
         });

@@ -42,7 +42,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
-      eventTypeColor,
+      color,
       recurrence,
       seats,
       ...rest
@@ -68,7 +68,7 @@ export class InputEventTypesService_2024_06_14 {
       requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
         requiresConfirmationTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
-      eventTypeColor: this.transformInputEventTypeColor(eventTypeColor),
+      eventTypeColor: this.transformInputEventTypeColor(color),
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       ...this.transformInputSeatOptions(seats),
     };
@@ -86,7 +86,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingWindow,
       bookerLayouts,
       requiresConfirmation,
-      eventTypeColor,
+      color,
       recurrence,
       seats,
       ...rest
@@ -118,7 +118,7 @@ export class InputEventTypesService_2024_06_14 {
       requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
         requiresConfirmationTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
-      eventTypeColor: this.transformInputEventTypeColor(eventTypeColor),
+      eventTypeColor: this.transformInputEventTypeColor(color),
       ...this.transformInputSeatOptions(seats),
     };
 
@@ -155,8 +155,8 @@ export class InputEventTypesService_2024_06_14 {
     return transformApiEventTypeRecurrence(recurrence);
   }
 
-  transformInputEventTypeColor(eventTypeColor: CreateEventTypeInput_2024_06_14["eventTypeColor"]) {
-    return transformApiEventTypeColors(eventTypeColor);
+  transformInputEventTypeColor(color: CreateEventTypeInput_2024_06_14["color"]) {
+    return transformApiEventTypeColors(color);
   }
 
   transformInputSeatOptions(seats: CreateEventTypeInput_2024_06_14["seats"]) {
