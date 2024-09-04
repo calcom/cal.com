@@ -36,6 +36,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsShowAttendees: true,
   seatsShowAvailabilityCount: true,
   scheduleId: true,
+  instantMeetingScheduleId: true,
   price: true,
   currency: true,
   slotInterval: true,

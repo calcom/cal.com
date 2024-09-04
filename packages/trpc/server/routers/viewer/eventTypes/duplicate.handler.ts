@@ -90,6 +90,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
       secondaryEmailId,
+      instantMeetingScheduleId: _instantMeetingScheduleId,
       ...rest
     } = eventType;
 

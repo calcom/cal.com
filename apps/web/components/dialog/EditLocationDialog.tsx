@@ -337,7 +337,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   });
                   if (booking) {
                     locationOptions.map((location) =>
-                      location.options.filter((l) => !["phone", "attendeeInPerson"].includes(l.value))
+                      location.options.filter(
+                        (l) => !["phone", "attendeeInPerson", "somewhereElse"].includes(l.value)
+                      )
                     );
                   }
                   return (
