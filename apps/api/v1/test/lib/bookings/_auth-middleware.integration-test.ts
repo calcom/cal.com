@@ -144,13 +144,9 @@ describe("Booking ownership and access in Middleware", () => {
           result.email = user.email;
         }
 
-        if (select.bookings && select.bookings.where) {
-          result.bookings = user.bookings.filter((booking) => booking.id === select.bookings.where.id);
-        } else if (select.bookings) {
-          // If select.bookings is true and there's no where clause, return all bookings
+        if (select.bookings) {
           result.bookings = user.bookings;
         }
-
         return result;
       }
     );
