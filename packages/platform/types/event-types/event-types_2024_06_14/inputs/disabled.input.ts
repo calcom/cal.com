@@ -9,5 +9,5 @@ export class Disabled_2024_06_14 {
     example: true,
     default: false,
   })
-  disabled?: boolean = false;
+  disabled!: true;
 }

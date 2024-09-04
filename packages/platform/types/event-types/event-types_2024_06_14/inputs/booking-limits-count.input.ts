@@ -46,6 +46,8 @@ export class BaseBookingLimitsCount_2024_06_14 {
     example: 4,
   })
   year?: number;
+
+  disabled?: false;
 }
 
 export type BookingLimitsCount_2024_06_14 = BaseBookingLimitsCount_2024_06_14 | Disabled_2024_06_14;

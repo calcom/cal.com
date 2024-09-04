@@ -46,6 +46,8 @@ export class BaseRequiresConfirmation_2024_06_14 {
 
   @IsBoolean()
   blockCalendarForUnconfirmedBookings!: boolean;
+
+  disabled?: false;
 }
 
 export type RequiresConfirmation_2024_06_14 = BaseRequiresConfirmation_2024_06_14 | Disabled_2024_06_14;
