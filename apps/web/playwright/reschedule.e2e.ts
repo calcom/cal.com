@@ -420,7 +420,7 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test.describe("Guest availability-awareness reschedule by host", () => {
-    test("host reschedule with full non-cal.com user guests shouldn't trigger guests availability awareness", async ({
+    test("Host reschedule with only non-Cal.com user guests shouldn't trigger guests availability awareness", async ({
       page,
       users,
       bookings,
@@ -432,25 +432,23 @@ test.describe("Reschedule Tests", async () => {
         name: `Attendee Example ${i}`,
         timeZone: "Europe/London",
       }));
+
       const booking = await bookings.create(host.id, host.username, eventType.id, {
-        attendees: {
-          createMany: {
-            data: nonCalUserAttendees,
-          },
-        },
+        attendees: { createMany: { data: nonCalUserAttendees } },
       });
 
       await page.goto(`/reschedule/${booking.uid}`);
       await page.waitForLoadState("networkidle");
 
-      // Let current month dates fully render.
+      // Ensure current month's dates are fully rendered.
       await page.click('[data-testid="incrementMonth"]');
-      // Waiting for full month increment
       await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
-      // Expect normal full availability which 32 time slots
+
+      // Expect full availability with 32 time slots
       await expect(page.locator('[data-testid="time"]')).toHaveCount(32);
     });
-    test("host reschedule with full cal.com user guests should trigger guests availability awareness", async ({
+
+    test("Host reschedule with only Cal.com user guests should trigger guests availability awareness", async ({
       page,
       users,
       bookings,
@@ -460,6 +458,7 @@ test.describe("Reschedule Tests", async () => {
         Array.from({ length: 2 }, (_, i) => users.create({ username: `guest-${i}` }))
       );
       const eventType = host.eventTypes[0];
+
       const booking = await bookings.create(host.id, host.username, eventType.id, {
         attendees: {
           createMany: {
@@ -472,24 +471,23 @@ test.describe("Reschedule Tests", async () => {
         },
       });
 
-      // Add one booking for one of the guests at time between 12PM and 5PM
+      // Add a conflicting booking for one guest between 12 PM and 12:30 PM
       await bookings.create(guests[0].id, guests[0].username, guests[0].eventTypes[0].id, {
         startTime: new Date(getMillisecondsForTime(12)),
-        endTime: new Date(getMillisecondsForTime(12.5)),
+        endTime: new Date(getMillisecondsForTime(12, 30)),
       });
 
       await setGuestWorkingHours12PM5PM({ page, host, guest: guests[0] });
 
       await page.goto(`/reschedule/${booking.uid}`);
-
-      // Let current month dates fully render.
       await page.click('[data-testid="incrementMonth"]');
-      // Waiting for full month increment
       await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
-      // Expect modified full availability which 8 time slots
+
+      // Expect modified availability with 8 time slots
       await expect(page.locator('[data-testid="time"]')).toHaveCount(8);
     });
-    test("host reschedule with mixed cal.com and non-cal.com user guests should trigger guests availability awareness", async ({
+
+    test("Host reschedule with mixed Cal.com and non-Cal.com user guests should trigger guests availability awareness", async ({
       page,
       users,
       bookings,
@@ -503,6 +501,7 @@ test.describe("Reschedule Tests", async () => {
         name: `Attendee Example ${i}`,
         timeZone: "Europe/London",
       }));
+
       const eventType = host.eventTypes[0];
       const booking = await bookings.create(host.id, host.username, eventType.id, {
         attendees: {
@@ -519,21 +518,19 @@ test.describe("Reschedule Tests", async () => {
         },
       });
 
-      // Add one booking for one of the guests at time between 12PM and 5PM
+      // Add a conflicting booking for one guest between 12 PM and 12:30 PM
       await bookings.create(guests[0].id, guests[0].username, guests[0].eventTypes[0].id, {
         startTime: new Date(getMillisecondsForTime(12)),
-        endTime: new Date(getMillisecondsForTime(12.5)),
+        endTime: new Date(getMillisecondsForTime(12, 30)),
       });
 
       await setGuestWorkingHours12PM5PM({ page, host, guest: guests[0] });
 
       await page.goto(`/reschedule/${booking.uid}`);
-
-      // Let current month dates fully render.
       await page.click('[data-testid="incrementMonth"]');
-      // Waiting for full month increment
       await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
-      // Expect modified full availability which 8 time slots
+
+      // Expect modified availability with 8 time slots
       await expect(page.locator('[data-testid="time"]')).toHaveCount(8);
     });
   });
@@ -554,51 +551,43 @@ function expectUrlToBeABookingPageOnOrgForUsername({
   expect(usernameInUrl).toEqual(username);
 }
 
-async function setGuestWorkingHours12PM5PM({ page, host, guest }: { page: Page; host: any; guest: any }) {
+/** Utility function to set guest working hours between 12 PM to 5 PM. */
+async function setGuestWorkingHours12PM5PM({
+  page,
+  host,
+  guest,
+}: {
+  page: Page;
+  host: any;
+  guest: any;
+}): Promise<void> {
   await host.logout();
   await guest.apiLogin();
 
   await page.goto("/availability");
-  // We wait until loading is finished
   await page.waitForSelector('[data-testid="schedules"]');
 
-  await page.getByTestId("schedules").first().click();
-  const monday = (await localize("en"))("monday");
-  const save = (await localize("en"))("save");
-  const selectAll = (await localize("en"))("select_all");
-  const copyTimesTo = (await localize("en"))("copy_times_to");
+  const mondaySchedule = page.locator("div").filter({ hasText: "Monday9:00am - 5:00pm" });
+  const saveButtonLabel = (await localize("en"))("save");
+  const selectAllLabel = (await localize("en"))("select_all");
+  const copyTimesToLabel = (await localize("en"))("copy_times_to");
 
-  await page
-    .locator("div")
-    .filter({ hasText: "Monday9:00am - 5:00pm" })
-    .getByTestId("select-control")
-    .first()
-    .click();
-  const testId12PM = `select-option-${getMillisecondsForTime(12)}`;
-  await page.getByTestId(testId12PM).click();
+  await mondaySchedule.getByTestId("select-control").first().click();
+  await page.getByTestId(`select-option-${getMillisecondsForTime(12)}`).click();
   await expect(page.locator("div").filter({ hasText: "12:00pm" }).nth(1)).toBeVisible();
 
-  await page
-    .locator("div")
-    .filter({ hasText: "Monday12:00pm - 5:00pm" })
-    .getByTestId("copy-button")
-    .first()
-    .click();
-
+  await mondaySchedule.getByTestId("copy-button").first().click();
   await expect(page.locator("div").filter({ hasText: "6:00pm" }).nth(1)).toBeVisible();
-  await page.getByRole("button", { name: save }).click();
+  await page.getByRole("button", { name: saveButtonLabel }).click();
   await expect(page.getByText("Sun - Tue, Thu - Sat, 9:00 AM - 5:00 PM")).toBeVisible();
   await expect(page.getByText("Sun, 5:00 PM - 6:00 PM")).toBeVisible();
-  await page
-    .locator("div")
-    .filter({ hasText: "Sunday9:00am - 5:00pm" })
-    .getByTestId("copy-button")
-    .first()
-    .click();
-  await expect(page.getByText(copyTimesTo)).toBeVisible();
-  await page.getByRole("checkbox", { name: selectAll }).check();
+
+  const sundaySchedule = page.locator("div").filter({ hasText: "Sunday9:00am - 5:00pm" });
+  await sundaySchedule.getByTestId("copy-button").first().click();
+  await expect(page.getByText(copyTimesToLabel)).toBeVisible();
+  await page.getByRole("checkbox", { name: selectAllLabel }).check();
   await page.getByRole("button", { name: "Apply" }).click();
-  await page.getByRole("button", { name: save }).click();
+  await page.getByRole("button", { name: saveButtonLabel }).click();
   await expect(
     page.locator("#availability-form div").filter({ hasText: "TimezoneEurope/London" }).locator("svg")
   ).toBeVisible();
@@ -607,9 +596,9 @@ async function setGuestWorkingHours12PM5PM({ page, host, guest }: { page: Page; 
   await host.apiLogin();
 }
 
+/** Utility function to get milliseconds for a specific time of day. */
 function getMillisecondsForTime(hour: number, minute: 15 | 30 | 45 | 0 = 0): number {
   const today = new Date();
   today.setHours(hour, minute, 0, 0);
-
   return today.getTime();
 }
