@@ -45,7 +45,7 @@ export class BaseRequiresConfirmation_2024_06_14 {
   noticeThreshold?: NoticeThreshold_2024_06_14;
 
   @IsBoolean()
-  blockCalendarForUnconfirmedBookings!: boolean;
+  blockUnconfirmedBookingsInBooker!: boolean;
 
   disabled?: false;
 }
