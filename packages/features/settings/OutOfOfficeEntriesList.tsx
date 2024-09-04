@@ -16,7 +16,8 @@ import {
   TableRow,
   Tooltip,
 } from "@calcom/ui";
-import type { BookingRedirectForm } from "@calcom/web/pages/settings/my-account/out-of-office";
+
+import type { BookingRedirectForm } from "~/settings/my-account/out-of-office";
 
 export const OutOfOfficeEntriesList = ({
   editOutOfOfficeEntry,
