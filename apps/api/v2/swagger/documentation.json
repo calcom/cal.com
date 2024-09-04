@@ -1668,8 +1668,25 @@
     },
     "/v2/organizations/{orgId}/memberships/{membershipId}": {
       "get": {
-        "operationId": "OrganizationsMembershipsController_getUserSchedule",
-        "parameters": [],
+        "operationId": "OrganizationsMembershipsController_getOrgMembership",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2265,6 +2282,190 @@
         },
         "tags": [
           "Organizations Teams"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/webhooks": {
+      "get": {
+        "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsWebhooksController_createOrganizationWebhook",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/webhooks/{webhookId}": {
+      "get": {
+        "operationId": "OrganizationsWebhooksController_getOrganizationWebhook",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsWebhooksController_deleteWebhook",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
+        ]
+      },
+      "patch": {
+        "operationId": "OrganizationsWebhooksController_updateOrgWebhook",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Webhooks"
         ]
       }
     },
@@ -3824,6 +4025,38 @@
           "OAuthClients Webhooks"
         ]
       }
+    },
+    "/v2/destination-calendars": {
+      "put": {
+        "operationId": "DestinationCalendarsController_updateDestinationCalendars",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationCalendarsInputBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationCalendarsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Destination-Calendars",
+          "Select a third party destination calendar where events will be created"
+        ]
+      }
     }
   },
   "info": {
@@ -4953,6 +5186,9 @@
             "items": {
               "$ref": "#/components/schemas/Source"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -5527,6 +5763,9 @@
             "items": {
               "$ref": "#/components/schemas/Source"
             }
+          },
+          "disableOnPrefill": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -6726,33 +6965,6 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "locations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "number"
-          },
-          "minimumBookingNotice": {
-            "type": "number"
-          },
-          "beforeEventBuffer": {
-            "type": "number"
-          },
-          "afterEventBuffer": {
-            "type": "number"
-          },
           "schedulingType": {
             "type": "object"
           },
@@ -6770,13 +6982,6 @@
           "lengthInMinutes",
           "title",
           "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
           "schedulingType",
           "hosts",
           "assignAllTeamMembers"
@@ -6812,43 +7017,32 @@
           "data"
         ]
       },
-      "RecurringEvent_2024_06_14": {
+      "Recurrence_2024_06_14": {
         "type": "object",
         "properties": {
-          "dtstart": {
-            "format": "date-time",
-            "type": "string"
-          },
           "interval": {
-            "type": "number"
-          },
-          "count": {
-            "type": "number"
-          },
-          "freq": {
             "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
             "enum": [
-              0,
-              1,
-              2,
-              3,
-              4,
-              5,
-              6
-            ]
-          },
-          "until": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "tzid": {
+              "yearly",
+              "monthly",
+              "weekly"
+            ],
             "type": "string"
           }
         },
         "required": [
           "interval",
-          "count",
-          "freq"
+          "occurrences",
+          "frequency"
         ]
       },
       "TeamEventTypeResponseHost": {
@@ -6873,6 +7067,64 @@
           "name",
           "userId"
         ]
+      },
+      "BookingLimitsCount_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per day",
+            "example": 1
+          },
+          "week": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per week",
+            "example": 2
+          },
+          "month": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per month",
+            "example": 3
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per year",
+            "example": 4
+          }
+        }
+      },
+      "BookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          }
+        }
       },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -6927,11 +7179,11 @@
             "type": "object",
             "nullable": true
           },
-          "recurringEvent": {
+          "recurrence": {
             "nullable": true,
             "allOf": [
               {
-                "$ref": "#/components/schemas/RecurringEvent_2024_06_14"
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
               }
             ]
           },
@@ -6993,6 +7245,22 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean"
+          },
+          "bookingLimitsCount": {
+            "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+          },
+          "bookingWindow": {
+            "type": "object"
+          },
+          "offsetStart": {
+            "type": "number",
+            "minimum": 1
           }
         },
         "required": [
@@ -7005,7 +7273,7 @@
           "bookingFields",
           "disableGuests",
           "schedulingType",
-          "recurringEvent",
+          "recurrence",
           "metadata",
           "requiresConfirmation",
           "price",
@@ -7309,6 +7577,189 @@
           "role",
           "userId"
         ]
+      },
+      "TeamWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "teamId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "TeamWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamWebhookOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "triggers",
+          "active",
+          "subscriberUrl"
+        ]
+      },
+      "TeamWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        }
       },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
@@ -7932,6 +8383,21 @@
           "status"
         ]
       },
+      "MeOrgOutput": {
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "isPlatform",
+          "id"
+        ]
+      },
       "MeOutput": {
         "type": "object",
         "properties": {
@@ -7960,6 +8426,9 @@
           "organizationId": {
             "type": "number",
             "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/MeOrgOutput"
           }
         },
         "required": [
@@ -8986,59 +9455,6 @@
         "type": "object",
         "properties": {}
       },
-      "CreateWebhookInputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "triggers": {
-            "type": "string",
-            "example": [
-              "BOOKING_CREATED",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_CANCELLED",
-              "BOOKING_CONFIRMED",
-              "BOOKING_REJECTED",
-              "BOOKING_COMPLETED",
-              "BOOKING_NO_SHOW",
-              "BOOKING_REOPENED"
-            ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
-            ]
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "secret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "triggers",
-          "active",
-          "subscriberUrl"
-        ]
-      },
       "UserWebhookOutputDto": {
         "type": "object",
         "properties": {
@@ -9097,54 +9513,6 @@
           "status",
           "data"
         ]
-      },
-      "UpdateWebhookInputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "triggers": {
-            "type": "string",
-            "example": [
-              "BOOKING_CREATED",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_CANCELLED",
-              "BOOKING_CONFIRMED",
-              "BOOKING_REJECTED",
-              "BOOKING_COMPLETED",
-              "BOOKING_NO_SHOW",
-              "BOOKING_REOPENED"
-            ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
-            ]
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "secret": {
-            "type": "string"
-          }
-        }
       },
       "UserWebhooksOutputResponseDto": {
         "type": "object",
@@ -9346,6 +9714,74 @@
             "items": {
               "$ref": "#/components/schemas/OAuthClientWebhookOutputDto"
             }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DestinationCalendarsInputBodyDto": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "example": "apple_calendar",
+            "description": "The calendar service you want to integrate, as returned by the /calendars endpoint",
+            "enum": [
+              "apple_calendar",
+              "google_calendar",
+              "office365_calendar"
+            ]
+          },
+          "externalId": {
+            "type": "string",
+            "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
+            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
+      "DestinationCalendarsOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
+      },
+      "DestinationCalendarsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
           }
         },
         "required": [

@@ -163,6 +163,8 @@ export default function Success(props: PageProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
   const parsedRating = rating ? parseInt(rating, 10) : 3;
+  const currentUserEmail =
+    searchParams?.get("cancelledBy") ?? searchParams?.get("email") ?? session?.user?.email ?? undefined;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
@@ -413,7 +415,7 @@ export default function Success(props: PageProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
-            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
+            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm transition dark:hover:bg-transparent">
             <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -700,7 +702,9 @@ export default function Success(props: PageProps) {
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
-                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
+                                      }`}
                                       legacyBehavior>
                                       {t("reschedule")}
                                     </Link>
@@ -738,10 +742,11 @@ export default function Success(props: PageProps) {
                             allRemainingBookings={allRemainingBookings}
                             seatReferenceUid={seatReferenceUid}
                             bookingCancelledEventProps={bookingCancelledEventProps}
+                            currentUserEmail={currentUserEmail}
                           />
                         </>
                       ))}
-                    {userIsOwner && !isCancelled && isRejectionMode && (
+                    {!isCancelled && isRejectionMode && (
                       <>
                         <hr className="border-subtle" />
                         <RejectBooking

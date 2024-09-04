@@ -127,7 +127,10 @@ export const SelectField = function SelectField<
     <div className={cx(containerClassName)}>
       <div className={cx(className)}>
         {!!label && (
-          <Label htmlFor={id} {...labelProps} className={cx(props.error && "text-error")}>
+          <Label
+            htmlFor={id}
+            {...labelProps}
+            className={cx(props.error && "text-error", props.labelProps?.className)}>
             {label}
           </Label>
         )}

@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -14,45 +14,7 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const workflow = await prisma.workflow.findFirst({
-    where: {
-      id: input.id,
-    },
-    select: {
-      id: true,
-      name: true,
-      userId: true,
-      teamId: true,
-      isActiveOnAll: true,
-      team: {
-        select: {
-          id: true,
-          slug: true,
-          members: true,
-          name: true,
-          isOrganization: true,
-        },
-      },
-      time: true,
-      timeUnit: true,
-      activeOn: {
-        select: {
-          eventType: true,
-        },
-      },
-      activeOnTeams: {
-        select: {
-          team: true,
-        },
-      },
-      trigger: true,
-      steps: {
-        orderBy: {
-          stepNumber: "asc",
-        },
-      },
-    },
-  });
+  const workflow = await WorkflowRepository.getById({ id: input.id });
 
   const isUserAuthorized = await isAuthorized(workflow, ctx.user.id);
 
