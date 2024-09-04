@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import { prismaWithoutAccelerate as prismaMock } from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import type { Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
@@ -106,7 +106,7 @@ describe("Booking ownership and access in Middleware", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     prismaMock.user.findUnique.mockImplementation(
-      ({ where, select }: { where: Prisma.UserWhereUniqueInput; select: Prisma.UserSelect }) => {
+      ({ where, select }: { where: Prisma.UserWhereUniqueInput; select?: Prisma.UserSelect | null }) => {
         const { id: userId } = where;
 
         const mockUsers = [
