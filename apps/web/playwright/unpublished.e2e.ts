@@ -22,7 +22,7 @@ test.describe("Unpublished", () => {
     await page.goto(`/team/${requestedSlug}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(team.name)}")`)).toHaveCount(1);
-    await expect(page.locator(`div:text="${description("team")}"`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("team")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
@@ -38,7 +38,7 @@ test.describe("Unpublished", () => {
     await page.goto(`/team/${requestedSlug}/${teamEventSlug}`);
     await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
     await expect(page.locator(`h2:has-text("${title(team.name)}")`)).toHaveCount(1);
-    await expect(page.locator(`div:text="${description("team")}"`)).toHaveCount(1);
+    await expect(page.locator(`div:text("${description("team")}")`)).toHaveCount(1);
     await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
   });
 
