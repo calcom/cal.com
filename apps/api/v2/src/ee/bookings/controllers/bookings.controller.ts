@@ -49,6 +49,7 @@ import {
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
+  ErrorCode,
 } from "@calcom/platform-libraries";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
@@ -366,6 +367,9 @@ export class BookingsController {
 
     if (err instanceof Error) {
       const error = err as Error;
+      if (Object.values(ErrorCode).includes(error.message as unknown as ErrorCode)) {
+        throw new HttpException(error.message, 400);
+      }
       throw new InternalServerErrorException(error?.message ?? errMsg);
     }
 
