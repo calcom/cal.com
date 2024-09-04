@@ -59,7 +59,7 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
       expect(href).toContain(WEBAPP_URL);
     }
 
-    await page.getByTestId(`horizontal-tab-${team1MemberOfOrg1?.name}s Team`).click();
+    await page.getByTestId(`horizontal-tab-${team1MemberOfOrg1?.name}'s Team`).click();
 
     const teamEventLinksLocators = await page
       .locator(`[data-testid="event-types"] [data-testid="preview-link-button"]`)
