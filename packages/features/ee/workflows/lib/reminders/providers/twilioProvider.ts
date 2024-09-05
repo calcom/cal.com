@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
-import { SmsCreditAllocationType, SMSLockState } from "@calcom/prisma/enums";
+import { SmsCreditAllocationType, SMSLockState, WorkflowMethods } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
@@ -41,137 +41,183 @@ export async function getCreditsForNumber(phoneNumber: string) {
   return country?.credits || 3;
 }
 
-export async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
-  //todo: teamId should also be given for managed event types and user worklfows
-  //todo: orgs don't pay creditss
-  const credits = await getCreditsForNumber(phoneNumber);
-
-  const smsCreditCountSelect = {
-    id: true,
-    limitReached: true,
-    warningSent: true,
-    month: true,
-    credits: true,
-    team: {
-      select: {
-        name: true,
-        members: {
-          select: {
-            accepted: true,
-            role: true,
-            user: {
-              select: {
-                email: true,
-                name: true,
-                locale: true,
-              },
+const smsCreditCountSelect = {
+  id: true,
+  limitReached: true,
+  warningSent: true,
+  month: true,
+  credits: true,
+  team: {
+    select: {
+      name: true,
+      members: {
+        select: {
+          accepted: true,
+          role: true,
+          user: {
+            select: {
+              email: true,
+              name: true,
+              locale: true,
             },
           },
         },
       },
     },
-  };
+  },
+};
+
+async function getPayingTeamId(userId: number) {
+  let teamMembershipsWithAvailableCredits = await prisma.membership.findMany({
+    where: {
+      userId,
+      team: {
+        smsCreditAllocationType: {
+          not: SmsCreditAllocationType.NONE,
+        },
+        smsCreditCounts: {
+          none: {
+            userId: null,
+            month: dayjs().utc().startOf("month").toDate(),
+            limitReached: true,
+          },
+        },
+      },
+    },
+    select: {
+      team: {
+        select: {
+          id: true,
+          smsCreditAllocationType: true,
+          smsCreditAllocationValue: true,
+          smsCreditCounts: {
+            where: {
+              userId,
+              month: dayjs().utc().startOf("month").toDate(),
+            },
+            select: {
+              credits: true,
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  teamMembershipsWithAvailableCredits = teamMembershipsWithAvailableCredits.filter(
+    (membership) =>
+      membership.team.smsCreditAllocationType === SmsCreditAllocationType.ALL ||
+      (membership.team.smsCreditAllocationValue || 0) > (membership.team.smsCreditCounts[0]?.credits || 0)
+  );
+
+  //no teams of the user have credits available
+  if (!teamMembershipsWithAvailableCredits.length) return null;
+
+  const lowestCredits = Math.min(
+    ...teamMembershipsWithAvailableCredits.map(
+      (membership) => membership.team.smsCreditCounts[0]?.credits || 0
+    )
+  );
+
+  const teamToPay = teamMembershipsWithAvailableCredits.find(
+    (membership) =>
+      !membership.team.smsCreditCounts.length || membership.team.smsCreditCounts[0].credits === lowestCredits
+  )?.team;
+
+  return teamToPay?.id;
+}
+
+async function cancelAndMarkScheduledSms(teamId?: number | null, userId?: number | null) {
+  const smsRemindersToCancel = await prisma.workflowReminder.findMany({
+    where: {
+      method: WorkflowMethods.SMS,
+      scheduledDate: {
+        gte: dayjs().utc().startOf("month").toDate(),
+        lt: dayjs().utc().endOf("month").toDate(),
+      },
+      workflowStep: {
+        workflow: {
+          ...(userId && { userId }),
+          ...(teamId && { teamId }),
+        },
+      },
+    },
+    select: {
+      id: true,
+      scheduledDate: true,
+      workflowStepId: true,
+      referenceId: true,
+    },
+  });
+
+  await prisma.workflowReminder.updateMany({
+    where: {
+      id: {
+        in: smsRemindersToCancel.map((reminder) => reminder.id),
+      },
+    },
+    data: {
+      cancelled: true,
+    },
+  });
+
+  for (const reminder of smsRemindersToCancel.filter((reminder) => !reminder.referenceId)) {
+    if (reminder.referenceId) {
+      await cancelSMS(reminder.referenceId); // todo: resend in case user will get new credits by adding new member
+    }
+  }
+}
+
+export async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
+  //todo: teamId should also be given for managed event types and user worklfows
+  //todo: orgs don't pay creditss
+  const credits = await getCreditsForNumber(phoneNumber);
 
   if (!teamId && userId) {
     // user event types
-    let teamMembershipsWithAvailableCredits = await prisma.membership.findMany({
+    teamId = await getPayingTeamId(userId);
+
+    if (!teamId) return null;
+
+    const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
       where: {
-        userId,
-        team: {
-          smsCreditAllocationType: {
-            not: SmsCreditAllocationType.NONE,
-          },
-          smsCreditCounts: {
-            none: {
-              userId: null,
-              month: dayjs().utc().startOf("month").toDate(),
-              limitReached: true,
-            },
-          },
-        },
-      },
-      select: {
-        team: {
-          select: {
-            id: true,
-            smsCreditAllocationType: true,
-            smsCreditAllocationValue: true,
-            smsCreditCounts: {
-              where: {
-                userId,
-                month: dayjs().utc().startOf("month").toDate(),
-              },
-              select: {
-                credits: true,
-              },
-              take: 1,
-            },
-          },
-        },
+        teamId,
+        userId: userId,
+        month: dayjs().utc().startOf("month").toDate(),
       },
     });
 
-    teamMembershipsWithAvailableCredits = teamMembershipsWithAvailableCredits.filter(
-      (membership) =>
-        membership.team.smsCreditAllocationType === SmsCreditAllocationType.ALL ||
-        (membership.team.smsCreditAllocationValue || 0) > (membership.team.smsCreditCounts[0]?.credits || 0)
-    );
-
-    //no teams of the user have credits available
-    if (!teamMembershipsWithAvailableCredits.length) return null;
-
-    const lowestCredits = Math.min(
-      ...teamMembershipsWithAvailableCredits.map(
-        (membership) => membership.team.smsCreditCounts[0]?.credits || 0
-      )
-    );
-
-    /*
-    Find the team that needs to pay sms credits for the user event type:
-    1. The team that didn't pay any credits for this user yet (!membership.team.smsCreditCounts.length)
-    2. The team that paid the least amount of credits for this user
-    */
-    const teamToPay = teamMembershipsWithAvailableCredits.find(
-      (membership) =>
-        !membership.team.smsCreditCounts.length ||
-        membership.team.smsCreditCounts[0].credits === lowestCredits
-    )?.team;
-
-    teamId = teamToPay?.id;
-
-    if (teamId) {
-      const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
+    if (existingSMSCreditCountUser) {
+      await prisma.smsCreditCount.update({
         where: {
+          id: existingSMSCreditCountUser.id,
+        },
+        data: {
+          credits: {
+            increment: credits,
+          },
+        },
+        select: smsCreditCountSelect,
+      });
+    } else {
+      await prisma.smsCreditCount.create({
+        data: {
           teamId,
-          userId: userId,
+          userId,
+          credits,
           month: dayjs().utc().startOf("month").toDate(),
         },
+        select: smsCreditCountSelect,
       });
-
-      if (existingSMSCreditCountUser) {
-        await prisma.smsCreditCount.update({
-          where: {
-            id: existingSMSCreditCountUser.id,
-          },
-          data: {
-            credits: {
-              increment: credits,
-            },
-          },
-          select: smsCreditCountSelect,
-        });
-      } else {
-        await prisma.smsCreditCount.create({
-          data: {
-            teamId,
-            userId,
-            credits,
-            month: dayjs().utc().startOf("month").toDate(),
-          },
-          select: smsCreditCountSelect,
-        });
-      }
     }
+  }
+
+  //if no team id was returned then there are no more credits open for user
+
+  if (userId && !teamId) {
+    //user doesn't have any credits available
+    cancelAndMarkScheduledSms(userId);
   }
 
   if (teamId) {
@@ -272,52 +318,6 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
     return { teamId };
   }
   return null;
-}
-
-async function removeCredits(credits: number, userId?: number, teamId?: number) {
-  if (!teamId) {
-    // workflowReminder was created before sms credits were added and teamId isn't set yet
-    return;
-  }
-  const smsCreditCountTeam = await prisma.smsCreditCount.findFirst({
-    where: {
-      teamId,
-    },
-  });
-
-  if (smsCreditCountTeam) {
-    await prisma.smsCreditCount.update({
-      where: {
-        id: smsCreditCountTeam.id,
-      },
-      data: {
-        credits: {
-          decrement: credits,
-        },
-      },
-    });
-  }
-
-  if (!!userId) {
-    const smsCreditCountUser = await prisma.smsCreditCount.findFirst({
-      where: {
-        teamId,
-        userId,
-      },
-    });
-    if (smsCreditCountUser) {
-      await prisma.smsCreditCount.update({
-        where: {
-          id: smsCreditCountUser.id,
-        },
-        data: {
-          credits: {
-            decrement: credits,
-          },
-        },
-      });
-    }
-  }
 }
 
 function createTwilioClient() {
@@ -429,27 +429,21 @@ export const scheduleSMS = async (
     });
   }
 
-  if (!!payingTeam) {
-    const response = await twilio.messages.create({
-      body: body,
-      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-      to: getSMSNumber(phoneNumber, whatsapp),
-      scheduleType: "fixed",
-      sendAt: scheduledDate,
-      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-      statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback`,
-    });
-    return { ...response, teamId: payingTeam.teamId };
-  } else {
-    //send email instead
-  }
+  const response = await twilio.messages.create({
+    body: body,
+    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+    to: getSMSNumber(phoneNumber, whatsapp),
+    scheduleType: "fixed",
+    sendAt: scheduledDate,
+    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?userId=${userId}&teamId=${teamId}`,
+  });
+  return { ...response };
 };
 
-export const cancelSMS = async (referenceId: string, credits: number, userId?: number, teamId?: number) => {
+export const cancelSMS = async (referenceId: string) => {
   const twilio = createTwilioClient();
   await twilio.messages(referenceId).update({ status: "canceled" });
-
-  await removeCredits(credits, userId, teamId);
 };
 
 export const sendVerificationCode = async (phoneNumber: string) => {

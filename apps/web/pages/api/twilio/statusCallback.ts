@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
+import { addCredits } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { defaultHandler } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,7 +17,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (valid) {
       const messageStatus = req.body.MessageStatus;
       if (messageStatus === "sent") {
-        console.log("Add credits here");
+        const { userId, teamId } = req.query;
+
+        const parsedUserId = userId ? (Array.isArray(userId) ? Number(userId[0]) : Number(userId)) : null;
+        const parsedTeamId = teamId ? (Array.isArray(teamId) ? Number(teamId[0]) : Number(teamId)) : null;
+
+        const payingTeam = await addCredits("", parsedUserId, parsedTeamId);
+        if (payingTeam) {
+          return res
+            .status(200)
+            .send(`Credits added to teamId: ${payingTeam.teamId} (userId: ${req.body.userId}) `);
+        } else {
+          return res.status(200).send(`Credit limit was already reached`);
+        }
       }
     } else {
       res.status(401).send("Missing or invalid Twilio signature");

@@ -1050,7 +1050,7 @@ model WorkflowReminder {
   @@index([workflowStepId])
   @@index([seatReferenceId])
   @@index([method, scheduled, scheduledDate])
-  @@index([cancelled, scheduledDate])
+  @@index([teamId, cancelled, scheduledDate])
 }
 
 model WebhookScheduledTriggers {
