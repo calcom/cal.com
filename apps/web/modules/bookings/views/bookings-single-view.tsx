@@ -6,6 +6,7 @@ import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import "next/pa";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
@@ -78,9 +79,14 @@ interface RescheduleOrCancelWarningProps {
   urgentMedicalAppointments: boolean;
 }
 
-interface EnvetType {
+interface EventType {
   id: number;
   slug: string;
+}
+
+interface BookingInfo {
+  id: number;
+  createdAt: string;
 }
 
 const stringToBoolean = z
@@ -362,20 +368,23 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
+    const [_, secondArgument] = pathname.split("/bookings/");
+    const [bookingUid] = secondArgument.split("?");
+
     const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
-    const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&select=createdAt&apiKey=${"teste"}`;
+    const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
 
     fetch(getEventTypeSlugUrl)
       .then((data) => {
-        data.json().then((eventData) => {
-          console.log({ eventData });
+        data.json().then(({ data }: { data: EnvetType[] }) => {
           const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
-          const eventSlugs = (eventData as EnvetType[]).reduce((acc, { id, slug }) => {
+          const eventSlugs = data.reduce((acc, { id, slug }) => {
             if (eventTypeIds.includes(id)) {
               acc.push({ id, slug });
             }
             return acc;
           }, eventTypes);
+          console.log({ eventSlugs });
           setEventTypes(eventSlugs);
         });
       })
@@ -385,12 +394,16 @@ export default function Success(props: PageProps) {
 
     fetch(getBookedTimeUrl)
       .then((data) => {
-        console.log({ data });
+        data.json().then(({ data }: { data: BookingInfo[] }) => {
+          const findedBooking = data.find(({ id }) => id === bookingUid);
+          console.log({ findedBooking });
+          setPurchaseDate(dayjs(findedBooking?.createdAt));
+        });
       })
       .catch((error) => {
         console.log({ error });
       });
-  }, [eventTypes]);
+  }, [eventTypes, pathname]);
 
   useEffect(() => {
     setCalculatedDuration(dayjs(bookingInfo.endTime).diff(dayjs(bookingInfo.startTime), "minutes"));
