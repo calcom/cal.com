@@ -107,6 +107,7 @@ const workspaces = packagedEmbedTestsOnly
           globals: true,
           name: "@calcom/features",
           include: ["packages/features/**/*.{test,spec}.tsx"],
+          exclude: ["packages/features/form-builder/**/*", "packages/features/bookings/**/*"],
           environment: "jsdom",
           setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.ts"],
         },
@@ -145,6 +146,24 @@ const workspaces = packagedEmbedTestsOnly
           globals: true,
           name: "@calcom/ui",
           include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
+          environment: "jsdom",
+          setupFiles: ["packages/ui/components/test-setup.ts"],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/features/form-builder",
+          include: ["packages/features/form-builder/**/*.{test,spec}.[jt]sx"],
+          environment: "jsdom",
+          setupFiles: ["packages/ui/components/test-setup.ts"],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/features/bookings",
+          include: ["packages/features/bookings/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.ts"],
         },

@@ -33,6 +33,7 @@ type StoreInitializeType = {
   org?: string | null;
   isInstantMeeting?: boolean;
   timeZone?: string | null;
+  teamMemberEmail?: string | null;
 };
 
 type SeatedEventData = {
@@ -152,6 +153,8 @@ export type BookerStore = {
 
   timeZone: string | null;
   setTimeZone: (timeZone: string | null) => void;
+  
+  teamMemberEmail?: string | null;
 };
 
 /**
@@ -262,6 +265,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     org,
     isInstantMeeting,
     timeZone = null,
+    teamMemberEmail,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -275,7 +279,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout &&
       get().timeZone === timeZone &&
-      get().rescheduledBy === rescheduledBy
+      get().rescheduledBy === rescheduledBy &&
+      get().teamMemberEmail
     )
       return;
     set({
@@ -295,6 +300,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       selectedDate:
         selectedDateInStore ||
         (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
+      teamMemberEmail,
     });
 
     if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -384,6 +390,7 @@ export const useInitializeBookerStore = ({
   org,
   isInstantMeeting,
   timeZone = null,
+  teamMemberEmail,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -402,6 +409,7 @@ export const useInitializeBookerStore = ({
       durationConfig,
       isInstantMeeting,
       timeZone,
+      teamMemberEmail,
     });
   }, [
     initializeStore,
@@ -419,5 +427,6 @@ export const useInitializeBookerStore = ({
     durationConfig,
     isInstantMeeting,
     timeZone,
+    teamMemberEmail,
   ]);
 };

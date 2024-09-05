@@ -52,6 +52,7 @@ if (!globalCal || !globalCal.q) {
 // TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
 // But because it is built on local machine right now, it is much more reliable to have the commit hash.
 globalCal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
+globalCal.version = process.env.EMBED_PUBLIC_EMBED_VERSION as string;
 globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
@@ -810,6 +811,7 @@ export interface GlobalCalWithoutNs {
   instance?: Cal;
   __css?: string;
   fingerprint?: string;
+  version?: string;
   __logQueue?: unknown[];
 }
 
