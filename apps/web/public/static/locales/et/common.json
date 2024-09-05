@@ -239,7 +239,6 @@
   "blog": "Blogi",
   "blog_description": "Lugege meie viimaseid uudiseid ja artikleid",
   "join_our_community": "Liituge meie kogukonnaga",
-  "join_our_discord": "Liitu meie Discordiga",
   "404_claim_entity_user": "Taotle oma kasutajanimi ja ajasta üritusi",
   "popular_pages": "Populaarsed lehed",
   "register_now": "Registreeru kohe",
@@ -2414,7 +2413,7 @@
   "create_account_password_hint": "Teil pole konto parooli, looge see, navigeerides jaotisesse Turvalisus -> Parool. Ühendust ei saa katkestada enne, kui konto parool on loodud.",
   "disconnect_account": "Katkesta ühendatud konto ühendus",
   "disconnect_account_hint": "Ühendatud konto lahtiühendamine muudab sisselogimise viisi. Saate oma kontole sisse logida ainult e-posti + parooliga",
-  "cookie_consent_checkbox": "Nõustun meie privaatsuspoliitika ja küpsiste kasutamisega",
+  "cookie_consent_checkbox": "Konto loomisega nõustute meie privaatsuspoliitika ja küpsiste kasutamisega",
   "make_a_call": "Helista",
   "skip_rr_assignment_label": "Jäta ümberringi määramine vahele, kui Salesforce'is on kontakt olemas",
   "skip_rr_description": "URL peab sisaldama parameetrina kontakti e-posti aadressi, nt ?email=contactEmail",
@@ -2482,5 +2481,11 @@
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "Kasutaja on organisatsiooni liige, millesse see meeskond ei kuulu.",
   "rescheduling_not_possible": "Ümberajastamine ei ole võimalik, kuna sündmus on aegunud",
   "event_expired": "See sündmus on aegunud",
+  "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
+  "minute_short": "min",
+  "hour_short": "t",
+  "minute_one_short": "{{count}} min",
+  "hour_one_short": "{{count}} t",
+  "apply_to_all_event_types": "Kehtib kõigile, sealhulgas tulevaste sündmustüüpidele",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

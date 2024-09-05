@@ -1,4 +1,4 @@
-import type { Webhook } from "@prisma/client";
+import type { Payment, Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
@@ -60,6 +60,9 @@ export type WebhookDataType = CalendarEvent &
     createdAt: string;
     downloadLink?: string;
     paymentId?: number;
+    rescheduledBy?: string;
+    cancelledBy?: string;
+    paymentData?: Payment;
   };
 
 function addUTCOffset(

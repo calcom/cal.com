@@ -30,6 +30,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventTrigger,
     evt,
     workflows,
+    rescheduledBy,
   } = newSeatedBookingObject;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
@@ -104,7 +105,17 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       await scheduleWorkflowReminders({
         workflows,
         smsReminderNumber: smsReminderNumber || null,
-        calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
+        calendarEvent: {
+          ...evt,
+          ...{
+            metadata,
+            eventType: {
+              slug: eventType.slug,
+              schedulingType: eventType.schedulingType,
+              hosts: eventType.hosts,
+            },
+          },
+        },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         emailAttendeeSendToOverride: bookerEmail,
@@ -131,6 +142,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       eventTypeId,
       status: "ACCEPTED",
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
+      rescheduledBy,
     };
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
