@@ -191,7 +191,7 @@ export default function Success(props: PageProps) {
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
   const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
-  const [eventTypes, setEventTypes] = useState<EnvetType[]>([]);
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   const {
@@ -367,7 +367,7 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    const [_, secondArgument] = pathname.split("/bookings/");
+    const [_, secondArgument] = (pathname || "").split("/bookings/");
     const [bookingUid] = secondArgument.split("?");
 
     const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
@@ -375,7 +375,7 @@ export default function Success(props: PageProps) {
 
     fetch(getEventTypeSlugUrl)
       .then((data) => {
-        data.json().then(({ data }: { data: EnvetType[] }) => {
+        data.json().then(({ data }: { data: EventType[] }) => {
           const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
           const eventSlugs = data.reduce((acc, { id, slug }) => {
             if (eventTypeIds.includes(id)) {
@@ -394,7 +394,7 @@ export default function Success(props: PageProps) {
     fetch(getBookedTimeUrl)
       .then((data) => {
         data.json().then(({ data }: { data: BookingInfo[] }) => {
-          const findedBooking = data.find(({ id }) => id === bookingUid);
+          const findedBooking = data.find(({ id }) => id.toString() === bookingUid);
           console.log({ findedBooking });
           setPurchaseDate(dayjs(findedBooking?.createdAt));
         });
@@ -1012,6 +1012,7 @@ export default function Success(props: PageProps) {
                       pastAppointment={isPastBooking}
                       purchaseDate={purchaseDate}
                       startTime={dayjs(bookingInfo.startTime)}
+                      urgentMedicalAppointments={false}
                     />
                     <div className="flex justify-center">
                       <span className=" text-xs">
