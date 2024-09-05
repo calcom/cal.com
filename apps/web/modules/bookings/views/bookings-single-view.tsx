@@ -1,7 +1,6 @@
 "use client";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { createClient } from "app/utils/supabase/client";
 import classNames from "classnames";
 import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
@@ -68,11 +67,15 @@ import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import { GifModal } from "~/bookings/views/components/GifModal";
+
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 interface RescheduleOrCancelWarningProps {
   pastAppointment: boolean;
   startTime: dayjs.Dayjs;
+  purchaseDate: dayjs.Dayjs | null;
+  urgentMedicalAppointments: boolean;
 }
 
 const stringToBoolean = z
@@ -110,17 +113,18 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-const RescheduleOrCancelWarning = ({ pastAppointment, startTime }: RescheduleOrCancelWarningProps) => {
-  const supabase = createClient();
-  const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
-
+const RescheduleOrCancelWarning = ({
+  pastAppointment,
+  purchaseDate,
+  startTime,
+  urgentMedicalAppointments,
+}: RescheduleOrCancelWarningProps) => {
   const currentTime = dayjs();
   const hasStarted = currentTime.isAfter(startTime);
   const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
   const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
   const moreOrEqualThan7DaysFromPurchase = currentTime.isBefore(purchaseDate?.add(7, "days"));
   const lessThan7DaysFromPurchase = !moreOrEqualThan7DaysFromPurchase;
-  const urgentMedicalAppointments = false;
 
   const description = useMemo(() => {
     switch (true) {
@@ -128,8 +132,8 @@ const RescheduleOrCancelWarning = ({ pastAppointment, startTime }: RescheduleOrC
         return "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.";
       case hasStarted:
         return "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ";
-      // case urgentMedicalAppointments:
-      // return "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.";
+      case urgentMedicalAppointments:
+        return "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.";
       case lessThan12HoursInAdvance:
         return "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.";
       case moreOrEqualThan7DaysFromPurchase:
@@ -144,16 +148,8 @@ const RescheduleOrCancelWarning = ({ pastAppointment, startTime }: RescheduleOrC
     moreOrEqualThan12HoursInAdvance,
     moreOrEqualThan7DaysFromPurchase,
     pastAppointment,
+    urgentMedicalAppointments,
   ]);
-
-  useEffect(() => {
-    supabase
-      .from("Booking")
-      .select()
-      .then((data: any) => {
-        console.log(data);
-      });
-  }, [supabase]);
 
   if (!purchaseDate) return null;
 
@@ -184,6 +180,8 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
+  const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const {
     allRemainingBookings,
@@ -195,7 +193,18 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
-  } = querySchema.parse(routerQuery);
+  } = {
+    allRemainingBookings: false,
+    isSuccessBookingPage: false,
+    cancel: false,
+    reject: false,
+    formerTime: false,
+    email: false,
+    seatReferenceUid: false,
+    noShow: false,
+    rating: false,
+  };
+  // querySchema.parse(routerQuery);
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -347,6 +356,25 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
+    // const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
+    const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&select=createdAt&apiKey=${"teste"}`;
+    // fetch(getEventTypeSlugUrl)
+    //   .then((data: any) => {
+    //     console.log(data);
+    //   })
+    //   .catch((error: any) => {
+    //     console.log(error);
+    //   });
+    fetch(getBookedTimeUrl)
+      .then((data) => {
+        console.log({ data });
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+  }, []);
+
+  useEffect(() => {
     setCalculatedDuration(dayjs(bookingInfo.endTime).diff(dayjs(bookingInfo.startTime), "minutes"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -470,6 +498,12 @@ export default function Success(props: PageProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+      <GifModal
+        visible={showModal}
+        onClose={() => {
+          setShowModal(false);
+        }}
+      />
       {!isEmbed && !isFeedbackMode && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
@@ -944,18 +978,22 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
-                    {/* <RescheduleOrCancelWarning
+                    <RescheduleOrCancelWarning
                       pastAppointment={isPastBooking}
+                      purchaseDate={purchaseDate}
                       startTime={dayjs(bookingInfo.startTime)}
                     />
                     <div className="flex justify-center">
                       <span className=" text-xs">
                         Confira a nossa{" "}
-                        <Link className="underline" href="">
+                        <Link
+                          className="underline"
+                          target="_blank"
+                          href="https://www.yinflow.life/discover#politica-de-cancelamento-e-reembolso">
                           política de reagendamentos, cancelamentos e reembolsos.
                         </Link>
-                      </span>{" "}
-                    </div> */}
+                      </span>
+                    </div>
 
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
@@ -1107,10 +1145,11 @@ export default function Success(props: PageProps) {
                       <p className="font-semibold">
                         Para adicionar o evento ao seu Google Calendar, abra o e-mail de confirmação, clique
                         no botão "Adicionar à agenda" e, em seguida, no botão "Sim",{" "}
-                        <span className="underline">
+                        <span className="cursor-pointer underline">
                           <a
-                            target="_blank"
-                            href="https://www.yinflow.life/habilitar-eventos-no-google-calendar">
+                            onClick={() => {
+                              setShowModal(true);
+                            }}>
                             conforme demonstrado neste vídeo.
                           </a>
                         </span>
