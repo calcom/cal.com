@@ -2201,6 +2201,7 @@
   "member_removed": "Lid verwijderd",
   "my_availability": "Mijn beschikbaarheid",
   "team_availability": "Beschikbaarheid team",
+  "instant_meeting_availability": "Directe beschikbaarheid voor vergaderingen",
   "backup_code": "Back-upcode",
   "backup_codes": "Back-upcodes",
   "backup_code_instructions": "Elke back-upcode kan slechts één keer gebruikt worden om toegang te verlenen zonder uw authenticator.",
