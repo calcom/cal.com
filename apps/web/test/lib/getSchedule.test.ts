@@ -1225,6 +1225,89 @@ describe("getSchedule", () => {
         }
       );
     });
+
+    test("check the availability of guest when rescheduling if guest is a cal.com user", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            users: [{ id: 101 }],
+          },
+          {
+            id: 2,
+            slotInterval: 60,
+            length: 60,
+            users: [{ id: 102 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            email: "user1@example.com",
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            email: "user2@example.com",
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            uid: "uid1",
+            status: "ACCEPTED",
+            startTime: `${plus1DateString}T04:30:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [{ email: "user2@example.com" }],
+          },
+          {
+            userId: 102,
+            eventTypeId: 2,
+            uid: "uid2",
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T06:30:00.000Z`,
+            endTime: `${plus2DateString}T07:30:00.000Z`,
+          },
+        ],
+      });
+
+      const scheduleForTeamEventOnADayWithNoBooking = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          rescheduleUid: "uid1",
+        },
+      });
+
+      expect(scheduleForTeamEventOnADayWithNoBooking).toHaveTimeSlots(
+        [
+          `04:30:00.000Z`,
+          `05:30:00.000Z`,
+          // `06:30:00.000Z`, // <- This slot should be occupied by the Pending Requires Confirmation booking blocking this slot
+          `07:30:00.000Z`,
+          `08:30:00.000Z`,
+          `09:30:00.000Z`,
+          `10:30:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
   });
 
   describe("Team Event", () => {
