@@ -98,9 +98,9 @@ test.describe("Managed Event Types", () => {
     await page.getByTestId("vertical-tab-event_setup_tab_title").click();
 
     await page.locator("#location-select").click();
-    const optionText = (await localize("en"))("organizer_default_conferencing_app");
+    const optionText = page.locator(`text=${(await localize("en"))("organizer_default_conferencing_app")}`);
     await expect(optionText).toBeVisible();
-    await page.locator(`text=${optionText}`).click();
+    await optionText.click();
     await submitAndWaitForResponse(page);
 
     await page.getByTestId("vertical-tab-assignment").click();
