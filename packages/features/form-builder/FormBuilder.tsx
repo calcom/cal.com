@@ -431,9 +431,9 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
     <div className="mt-6">
       <Label>{t("label")}</Label>
       <Editor
-        {...fieldForm.register("label")}
         getText={() => md.render(fieldForm.getValues("label") || "")}
         setText={(value: string) => {
+          console.log({ v: value }, turndown(value));
           fieldForm.setValue("label", turndown(value), { shouldDirty: true });
         }}
         excludedToolbarItems={["blockType", "bold", "italic"]}
