@@ -14,14 +14,14 @@ type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    let data;
+    let data: Awaited<ReturnType<typeof prisma.bookingTimeStatus.groupBy>>;
     if (!!where["OR"]) {
       const queries = [];
       const existingWhereOr = where["OR"];
-      delete where["OR"];
+      const { OR, ...whereWithoutOr } = where;
       for (let i = 0; i < existingWhereOr.length; i++) {
         const newWhere = {
-          ...where,
+          ...whereWithoutOr,
           ...existingWhereOr[i],
         };
         queries.push(
@@ -36,7 +36,7 @@ class EventsInsights {
       }
 
       const results = await Promise.all(queries);
-      data = [...results];
+      data = results.flat();
     } else {
       data = await prisma.bookingTimeStatus.groupBy({
         where,
