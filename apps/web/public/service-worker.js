@@ -1,6 +1,5 @@
 self.addEventListener("push", async (event) => {
   let notificationData = event.data.json();
-  console.log("notificationData", notificationData);
 
   const allClients = await clients.matchAll({
     type: 'window',
@@ -16,6 +15,7 @@ self.addEventListener("push", async (event) => {
   const title = notificationData.title || "You have a new notification from Cal.com";
   const image = "https://cal.com/api/logo?type=icon";
   const newNotificationOptions = {
+    requireInteraction: true,
     ...notificationData,
     icon: image,
     badge: image,
@@ -24,7 +24,6 @@ self.addEventListener("push", async (event) => {
     },
     silent: false,
     vibrate: [300, 100, 400],
-    requireInteraction: true,
     tag: `notification-${Date.now()}-${Math.random()}`,
   };
 

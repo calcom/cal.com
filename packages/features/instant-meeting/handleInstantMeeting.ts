@@ -3,7 +3,6 @@ import { randomBytes } from "crypto";
 import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { z } from "zod";
 
 import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
@@ -23,14 +22,7 @@ import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-const subscriptionSchema = z.object({
-  endpoint: z.string(),
-  expirationTime: z.any().optional(),
-  keys: z.object({
-    auth: z.string(),
-    p256dh: z.string(),
-  }),
-});
+import { subscriptionSchema } from "./schema";
 
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
