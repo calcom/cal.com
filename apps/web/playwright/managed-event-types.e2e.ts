@@ -11,6 +11,7 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
+/** So we can test different areas in parallel and avoiding the creation flow each time */
 async function setupManagedEvent({
   users,
   unlockedFields,
