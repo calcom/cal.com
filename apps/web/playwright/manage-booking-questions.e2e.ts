@@ -812,6 +812,7 @@ test.describe("Text area min and max characters text", () => {
       // Expect the native <input> element to show an error message
 
       let validationMessage = await minInput?.evaluate((input: any) => input?.validationMessage as string);
+      // FIXME: This error message will be localized depending on the browser locale.
       expect(validationMessage?.toString()).toBe("Value must be less than or equal to 5.");
 
       await page.fill(minLengthSelector, "0");
