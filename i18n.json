@@ -11,22 +11,27 @@
       "de",
       "es",
       "es-419",
+      "et",
       "fr",
       "he",
+      "hu",
       "it",
+      "ja",
+      "km",
+      "ko",
       "nl",
-      "ru",
+      "no",
       "pl",
-      "pt",
       "pt-BR",
+      "pt",
+      "ro",
+      "ru",
       "zh-CN"
     ]
   },
   "buckets": {
     "json": {
-      "include": [
-        "apps/web/public/static/locales/[locale]/common.json"
-      ]
+      "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
   }
 }

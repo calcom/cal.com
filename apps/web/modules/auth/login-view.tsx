@@ -256,12 +256,10 @@ PageProps & WithNonceProps<{}>) {
                     CustomStartIcon={<GoogleIcon />}
                     onClick={async (e) => {
                       e.preventDefault();
-                      const res = await signIn("google", {
+                      setLastUsed("google");
+                      await signIn("google", {
                         callbackUrl,
                       });
-                      if (res && !res.error) {
-                        setLastUsed("google");
-                      }
                     }}>
                     <span>{t("signin_with_google")}</span>
                     {lastUsed === "google" && <LastUsed />}

@@ -93,6 +93,7 @@ export const Editor = (props: TextEditorProps) => {
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input"
+                  data-testid="editor-input"
                 />
               }
               placeholder={

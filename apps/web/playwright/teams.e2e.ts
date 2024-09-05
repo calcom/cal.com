@@ -68,7 +68,9 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
 
     await test.step("Finishing brings you to team profile page", async () => {
       await page.locator("[data-testid=publish-button]").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+      await page.locator("[data-testid=handle-later-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
@@ -220,7 +222,9 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       // Click text=Continue
       await page.locator("[data-testid=publish-button]").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
+      await page.locator("[data-testid=handle-later-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can access user and team with same slug", async () => {
