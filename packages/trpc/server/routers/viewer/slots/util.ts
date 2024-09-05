@@ -416,11 +416,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     ) {
       hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
     }
-    const attendees = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
-    const users = await prisma.user.findMany({
+    const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
+    const attendees = await prisma.user.findMany({
       where: {
         email: {
-          in: attendees,
+          in: attendeesEmailList,
         },
       },
       select: {
@@ -428,7 +428,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         ...availabilityUserSelect,
       },
     });
-    users.forEach((user) => {
+    attendees.forEach((user) => {
       guests.push({
         ...user,
         isFixed: true,

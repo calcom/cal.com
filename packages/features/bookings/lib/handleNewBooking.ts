@@ -499,21 +499,21 @@ async function handler(
       isTeamOwnerOrAdmin = !!teamOwnerOrAdmin;
     }
     if (userReschedulingIsOwner || isTeamOwnerOrAdmin) {
-      const attendeesList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
-      const users = await prisma.user.findMany({
+      const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
+      const attendees = await prisma.user.findMany({
         where: {
           email: {
-            in: attendeesList,
+            in: attendeesEmailList,
           },
         },
         select: {
           credentials: {
             select: credentialForCalendarServiceSelect,
-          }, // Don't leak to client
+          },
           ...userSelect.select,
         },
       });
-      users.forEach((user) => {
+      attendees.forEach((user) => {
         guestsList.push({
           ...user,
           isFixed: true,
