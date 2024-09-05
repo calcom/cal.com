@@ -24,9 +24,7 @@
   },
   "buckets": {
     "json": {
-      "include": [
-        "apps/web/public/static/locales/[locale]/common.json"
-      ]
+      "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
   }
 }
