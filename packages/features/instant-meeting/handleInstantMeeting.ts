@@ -99,10 +99,10 @@ const handleInstantMeetingWebhookTrigger = async (args: {
 
 const triggerBrowserNotifications = async (args: {
   title: string;
-  webhookData: Record<string, unknown>;
+  connectAndJoinUrl: string;
   teamId: number;
 }) => {
-  const { title, webhookData, teamId } = args;
+  const { title, connectAndJoinUrl, teamId } = args;
 
   const subscribers = await prisma.membership.findMany({
     where: {
@@ -145,19 +145,19 @@ const triggerBrowserNotifications = async (args: {
       },
       title: title,
       body: "User is waiting for you to join. Click to Connect",
-      url: webhookData.connectAndJoinUrl,
+      url: connectAndJoinUrl,
       actions: [
         {
           action: "connect-action",
           title: "Connect and join",
           type: "button",
-          icon: "https://cal.com/api/logo?type=icon",
+          image: "https://cal.com/api/logo?type=icon",
         },
       ],
     });
   });
 
-  await Promise.all(promises);
+  await Promise.allSettled(promises);
 };
 
 export type HandleInstantMeetingResponse = {
@@ -328,7 +328,7 @@ async function handler(req: NextApiRequest) {
 
   await triggerBrowserNotifications({
     title: newBooking.title,
-    webhookData,
+    connectAndJoinUrl: webhookData.connectAndJoinUrl,
     teamId: eventType.team?.id,
   });
 

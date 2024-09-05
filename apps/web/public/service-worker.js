@@ -1,7 +1,17 @@
 self.addEventListener("push", async (event) => {
-  console.log("push event", event);
   let notificationData = event.data.json();
   console.log("notificationData", notificationData);
+
+  const allClients = await clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true
+  });
+
+  if(!allClients.length) {
+    console.log("No open tabs, skipping the push notification.");
+    return;
+  }
+
 
   const title = notificationData.title || "You have a new notification from Cal.com";
   const image = "https://cal.com/api/logo?type=icon";
