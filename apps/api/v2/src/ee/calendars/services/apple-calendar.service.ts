@@ -5,8 +5,7 @@ import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
-import { symmetricEncrypt, CalendarService } from "@calcom/platform-libraries";
-import { symmetricDecrypt } from "@calcom/platform-libraries-1.2.3";
+import { symmetricEncrypt, CalendarService, symmetricDecrypt } from "@calcom/platform-libraries";
 import { Credential } from "@calcom/prisma/client";
 
 @Injectable()
