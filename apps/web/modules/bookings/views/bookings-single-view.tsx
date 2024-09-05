@@ -72,10 +72,7 @@ import { GifModal } from "~/bookings/views/components/GifModal";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 interface RescheduleOrCancelWarningProps {
-  pastAppointment: boolean;
-  startTime: dayjs.Dayjs;
-  purchaseDate: dayjs.Dayjs | null;
-  urgentMedicalAppointments: boolean;
+  description: string;
 }
 
 interface EventType {
@@ -123,46 +120,7 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-const RescheduleOrCancelWarning = ({
-  pastAppointment,
-  purchaseDate,
-  startTime,
-  urgentMedicalAppointments,
-}: RescheduleOrCancelWarningProps) => {
-  const currentTime = dayjs();
-  const hasStarted = currentTime.isAfter(startTime);
-  const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
-  const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
-  const moreOrEqualThan7DaysFromPurchase = currentTime.isBefore(purchaseDate?.add(7, "days"));
-  const lessThan7DaysFromPurchase = !moreOrEqualThan7DaysFromPurchase;
-
-  const description = useMemo(() => {
-    switch (true) {
-      case pastAppointment:
-        return "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.";
-      case hasStarted:
-        return "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ";
-      case urgentMedicalAppointments:
-        return "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.";
-      case lessThan12HoursInAdvance:
-        return "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.";
-      case moreOrEqualThan7DaysFromPurchase:
-        return "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.";
-      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase:
-        return "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.";
-    }
-  }, [
-    hasStarted,
-    lessThan12HoursInAdvance,
-    lessThan7DaysFromPurchase,
-    moreOrEqualThan12HoursInAdvance,
-    moreOrEqualThan7DaysFromPurchase,
-    pastAppointment,
-    urgentMedicalAppointments,
-  ]);
-
-  if (!purchaseDate) return null;
-
+const RescheduleOrCancelWarning = ({ description }: RescheduleOrCancelWarningProps) => {
   return (
     <div className="my-6 flex items-center rounded border border-[#E6EBF0] bg-[#F4F6F8] p-2 text-xs text-[#598392]">
       <svg
@@ -216,6 +174,54 @@ export default function Success(props: PageProps) {
     rating: false,
   };
   // querySchema.parse(routerQuery);
+
+  const { description } = useMemo(() => {
+    const currentTime = dayjs();
+    const startTime = dayjs(bookingInfo.startTime);
+    const pastAppointment = isPastBooking;
+    const hasStarted = currentTime.isAfter(startTime);
+    const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
+    const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
+    const lessThan7DaysFromPurchase = purchaseDate?.isAfter(currentTime.subtract(7, "days"));
+    const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
+    const urgentMedicalAppointments = false;
+
+    switch (true) {
+      case pastAppointment:
+        return {
+          description:
+            "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.",
+        };
+      case hasStarted:
+        return {
+          description:
+            "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ",
+        };
+      case urgentMedicalAppointments:
+        return {
+          description:
+            "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+        };
+      case lessThan12HoursInAdvance:
+        return {
+          description:
+            "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+        };
+      case moreOrEqualThan7DaysFromPurchase:
+        return {
+          description:
+            "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.",
+        };
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase:
+        return {
+          description:
+            "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.",
+        };
+      default:
+        return { description: "" };
+    }
+  }, [bookingInfo.startTime, isPastBooking, purchaseDate]);
+
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -1008,12 +1014,7 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
-                    <RescheduleOrCancelWarning
-                      pastAppointment={isPastBooking}
-                      purchaseDate={purchaseDate}
-                      startTime={dayjs(bookingInfo.startTime)}
-                      urgentMedicalAppointments={false}
-                    />
+                    <RescheduleOrCancelWarning description={description} />
                     <div className="flex justify-center">
                       <span className=" text-xs">
                         Confira a nossa{" "}
