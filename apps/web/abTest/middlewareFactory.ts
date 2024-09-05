@@ -28,6 +28,10 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/bookings/:status", process.env.APP_ROUTER_BOOKINGS_STATUS_ENABLED === "1"] as const,
   ["/video/:path*", process.env.APP_ROUTER_VIDEO_ENABLED === "1"] as const,
   ["/teams", process.env.APP_ROUTER_TEAMS_ENABLED === "1"] as const,
+  ["/more", process.env.APP_ROUTER_MORE_ENABLED === "1"] as const,
+  ["/maintenance", process.env.APP_ROUTER_MAINTENANCE_ENABLED === "1"] as const,
+  ["/upgrade", process.env.APP_ROUTER_UPGRADE_ENABLED === "1"] as const,
+  ["/connect-and-join", process.env.APP_ROUTER_CONNECT_AND_JOIN_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
