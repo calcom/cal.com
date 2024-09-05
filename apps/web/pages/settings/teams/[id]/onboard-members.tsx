@@ -22,7 +22,7 @@ const OnboardTeamMembersPage = () => {
 };
 
 export const GetLayout = (page: React.ReactElement) => (
-  <WizardLayout currentStep={2} maxSteps={2}>
+  <WizardLayout currentStep={2} maxSteps={3}>
     {page}
   </WizardLayout>
 );
