@@ -272,6 +272,13 @@ export class Cal {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
     }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (window.ENABLE_FUTURE_ROUTES) {
+      urlInstance.pathname = `/future${urlInstance.pathname}`;
+    }
+
     urlInstance.searchParams.set("embed", this.namespace);
 
     if (config.debug) {

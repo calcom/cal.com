@@ -2,7 +2,6 @@ import type { GetServerSidePropsContext } from "next";
 import { isNotFoundError } from "next/dist/client/components/not-found";
 import { getURLFromRedirectError, isRedirectError } from "next/dist/client/components/redirect";
 import { notFound, redirect } from "next/navigation";
-import { NextResponse } from "next/server";
 
 import { WebAppURL } from "@calcom/lib/WebAppURL";
 
@@ -15,11 +14,6 @@ export default function withEmbedSsrAppDir<T extends Record<string, any>>(
 ) {
   return async (context: GetServerSidePropsContext): Promise<T> => {
     const { embed, layout } = context.query;
-    const isCOEPEnabled = context.query["flag.coep"] === "true";
-    if (isCOEPEnabled) {
-      const response = NextResponse.next();
-      response.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
-    }
     try {
       const props = await getData(context);
 
