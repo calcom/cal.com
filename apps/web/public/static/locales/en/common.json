@@ -2543,8 +2543,10 @@
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
   "sms_limit_almost_reached_subject": "{{appName}}: SMS limit almost reached",
-  "sms_limit_almost_reached_first_part": "Your team {{teamName}} has reached 80% of your available SMS in August 2023. To avoid any interruptions in your SMS services, you can upgrade to our organizations plan or add additional team members to increase your SMS limit.",
-  "sms_limit_almost_reached_second_part": "After you reached the limit we will then send SMS to your attendees as Emails instead. For more information, please visit: https://example.com",
+  "sms_limit_reached_first_part": "Your team, {{teamName}}, has used all of its available SMS credits for {{month}}. We will automatically send SMS notifications to your attendes as emails instead. ",
+  "sms_limit_reached_second_part": "To avoid any interruptions in your SMS services, you can upgrade to our organizations plan or add additional team members to increase your SMS limit. For more details, please visit: https://example.com",
+  "sms_limit_almost_reached_first_part": "Your team, {{teamName}}, has reached 80% of its available SMS credits for {{month}}. To avoid any interruptions in your SMS services, you can upgrade to our organizations plan or add additional team members to increase your SMS limit.",
+  "sms_limit_almost_reached_second_part": "Once the limit is reached, we will automatically send SMS notifications to your attendees as emails instead. For more details, please visit: https://example.com",
   "sms_limit_reached_subject": "{{appName}}: SMS limit reached",
   "sms_credits": "SMS Credits",
   "managed_sms_credit_allocation": "Manage your team's SMS credits",
@@ -2560,7 +2562,6 @@
   "percentage_used": "{{amount}}% used",
   "credit_allocation_for_members":"Credit allocation for members",
   "amount_credits_for_personal_event_types":"Amount of credits to be used for personal event types:",
-  "nr_credits": "{{amount}} credits",
-  "credit_allocation_description": "Manage how many of your team's credits can be used for team members' personal eventtypes",
+  "credit_allocation_description": "Manage how many of your team's credits can be used for team members' personal event types",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

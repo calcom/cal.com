@@ -124,10 +124,7 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                 <Badge className="mt-2" variant="red">
                   {t("limit_reached")}
                 </Badge>
-              ) : (
-                <></>
-              )}
-              {percentageReached >= 80 ? (
+              ) : percentageReached >= 80 ? (
                 <Badge variant="orange">{t("percentage_used", { amount: percentageReached })}</Badge>
               ) : (
                 <></>
@@ -185,14 +182,19 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                 <Label className="mt-5">Team members that reached limit:</Label>
                 {membersAboveLimit.length > 0 ? (
                   <ul className="divide-subtle border-subtle mt-4 divide-y rounded-md border">
+                    <li>
+                      <div className="bg-subtle flex">
+                        <div className="flex-1 border-r p-2 ">Username</div>
+                        <div className="flex-1 p-2">Used credits</div>
+                      </div>
+                    </li>
+
                     {membersAboveLimit.map((member) => {
                       return (
                         <li key={member.id}>
-                          <div className="flex ">
-                            <div className="flex-1 border-r p-2">{member.username}</div>
-                            <div className="flex-1 p-2">
-                              {t("nr_credits", { amount: member.smsCreditsUsed })}
-                            </div>
+                          <div className="flex">
+                            <div className="flex-1 border-r p-2 ">{member.username}</div>
+                            <div className="flex-1 p-2">{member.smsCreditsUsed}</div>
                           </div>
                         </li>
                       );

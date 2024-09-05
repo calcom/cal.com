@@ -22,10 +22,10 @@ export const SmsLimitReachedEmail = (props: SmsLimitAlmostReachedData) => {
           {props.user.t("hi_user_name", { name: props.user.name })}!
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_almost_reached_first_part", { teamName: props.teamName })}
+          {props.user.t("sms_limit_reached_first_part", { teamName: props.teamName })}
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_almost_reached_second_part")}
+          {props.user.t("sms_limit_reached_second_part")}
         </p>
       </div>
       <div style={{ lineHeight: "6px" }}>
