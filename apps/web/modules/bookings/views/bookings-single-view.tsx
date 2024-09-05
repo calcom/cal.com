@@ -367,8 +367,8 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    const secondArgument = (pathname || "").split("/bookings/")[1];
-    const [bookingUid] = secondArgument.split("?");
+    // const secondArgument = (pathname || "").split("/bookings/")[1];
+    // const [bookingUid] = secondArgument.split("?");
 
     const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
     const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
