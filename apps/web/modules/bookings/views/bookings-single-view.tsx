@@ -84,7 +84,7 @@ interface EventType {
 }
 
 interface BookingInfo {
-  id: number;
+  uid: number;
   createdAt: string;
 }
 
@@ -367,11 +367,11 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    // const secondArgument = (pathname || "").split("/bookings/")[1];
-    // const [bookingUid] = secondArgument.split("?");
+    const secondArgument = (pathname || "").split("/bookings/")[1];
+    const [bookingUid] = secondArgument.split("?");
 
     const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
-    // const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
+    const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
 
     fetch(getEventTypeSlugUrl)
       .then((data) => {
@@ -383,7 +383,6 @@ export default function Success(props: PageProps) {
             }
             return acc;
           }, eventTypes);
-          console.log({ eventSlugs });
           setEventTypes(eventSlugs);
         });
       })
@@ -391,17 +390,17 @@ export default function Success(props: PageProps) {
         console.log(error);
       });
 
-    // fetch(getBookedTimeUrl)
-    //   .then((data) => {
-    //     data.json().then(({ data }: { data: BookingInfo[] }) => {
-    //       const findedBooking = data.find(({ id }) => id.toString() === bookingUid);
-    //       console.log({ findedBooking });
-    //       setPurchaseDate(dayjs(findedBooking?.createdAt));
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     console.log({ error });
-    //   });
+    fetch(getBookedTimeUrl)
+      .then((data) => {
+        data.json().then(({ data }: { data: BookingInfo[] }) => {
+          const findedBooking = data.find(({ uid }) => uid === bookingUid);
+          console.log({ findedBooking });
+          setPurchaseDate(dayjs(findedBooking?.createdAt));
+        });
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
   }, [eventTypes, pathname]);
 
   useEffect(() => {
