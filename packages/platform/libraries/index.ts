@@ -105,7 +105,7 @@ export {
   transformApiEventTypeBookerLayouts,
   getResponseEventTypeBookerLayouts,
   getResponseEventTypeRequiresConfirmation,
-  transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeConfirmationPolicy,
   getResponseEventTypeColors,
   transformApiEventTypeColors,
   transformApiSeatOptions,

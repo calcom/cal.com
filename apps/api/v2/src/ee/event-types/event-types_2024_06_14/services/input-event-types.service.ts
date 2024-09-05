@@ -11,7 +11,7 @@ import {
 } from "@calcom/platform-libraries";
 import {
   transformApiEventTypeBookerLayouts,
-  transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeConfirmationPolicy,
   transformApiEventTypeColors,
   transformApiSeatOptions,
 } from "@calcom/platform-libraries-1.2.3";
@@ -41,14 +41,13 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsDuration,
       bookingWindow,
       bookerLayouts,
-      requiresConfirmation,
+      confirmationPolicy,
       color,
       recurrence,
       seats,
       ...rest
     } = inputEventType;
-    const requiresConfirmationTransformed =
-      this.transformInputRequiresConfirmationThreshold(requiresConfirmation);
+    const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
     const eventType = {
       ...rest,
@@ -63,11 +62,11 @@ export class InputEventTypesService_2024_06_14 {
       metadata: {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
-          requiresConfirmationTransformed?.requiresConfirmationThreshold ?? undefined,
+          confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       },
-      requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
+      requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
-        requiresConfirmationTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+        confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(color),
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       ...this.transformInputSeatOptions(seats),
@@ -85,7 +84,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsDuration,
       bookingWindow,
       bookerLayouts,
-      requiresConfirmation,
+      confirmationPolicy,
       color,
       recurrence,
       seats,
@@ -96,8 +95,7 @@ export class InputEventTypesService_2024_06_14 {
       ? EventTypeMetaDataSchema.parse(eventTypeDb.metadata)
       : {};
 
-    const requiresConfirmationTransformed =
-      this.transformInputRequiresConfirmationThreshold(requiresConfirmation);
+    const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
     const eventType = {
       ...rest,
       length: lengthInMinutes,
@@ -112,12 +110,12 @@ export class InputEventTypesService_2024_06_14 {
         ...metadataTransformed,
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
-          requiresConfirmationTransformed?.requiresConfirmationThreshold ?? undefined,
+          confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
-      requiresConfirmation: requiresConfirmationTransformed?.requiresConfirmation ?? undefined,
+      requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
-        requiresConfirmationTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+        confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(color),
       ...this.transformInputSeatOptions(seats),
     };
@@ -146,10 +144,10 @@ export class InputEventTypesService_2024_06_14 {
     return transformApiEventTypeBookerLayouts(inputBookerLayouts);
   }
 
-  transformInputRequiresConfirmationThreshold(
-    requiresConfirmation: CreateEventTypeInput_2024_06_14["requiresConfirmation"]
+  transformInputConfirmationPolicy(
+    requiresConfirmation: CreateEventTypeInput_2024_06_14["confirmationPolicy"]
   ) {
-    return transformApiEventTypeRequiresConfirmation(requiresConfirmation);
+    return transformApiEventTypeConfirmationPolicy(requiresConfirmation);
   }
   transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
     return transformApiEventTypeRecurrence(recurrence);

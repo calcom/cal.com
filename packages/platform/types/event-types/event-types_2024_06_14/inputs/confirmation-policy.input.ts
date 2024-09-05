@@ -55,23 +55,23 @@ export type ConfirmationPolicy_2024_06_14 = BaseConfirmationPolicy_2024_06_14 | 
 @ValidatorConstraint({ name: "ConfirmationPolicyValidator", async: false })
 export class ConfirmationPolicyValidator implements ValidatorConstraintInterface {
   validate(value: ConfirmationPolicy_2024_06_14): boolean {
-    if ("disabled" in value) {
+    if (value.disabled) {
       return true;
     }
-    if ("type" in value && "noticeThreshold" in value) {
-      const { type, noticeThreshold } = value;
+    const { type, noticeThreshold } = value;
 
-      if (type === ConfirmationPolicyEnum.ALWAYS) {
-        return true;
-      }
+    if (!type) return false;
 
-      if (type === ConfirmationPolicyEnum.TIME) {
-        return !!(
-          noticeThreshold &&
-          typeof noticeThreshold.count === "number" &&
-          typeof noticeThreshold.unit === "string"
-        );
-      }
+    if (type === ConfirmationPolicyEnum.ALWAYS) {
+      return true;
+    }
+
+    if (type === ConfirmationPolicyEnum.TIME) {
+      return !!(
+        noticeThreshold &&
+        typeof noticeThreshold.count === "number" &&
+        typeof noticeThreshold.unit === "string"
+      );
     }
     return false;
   }

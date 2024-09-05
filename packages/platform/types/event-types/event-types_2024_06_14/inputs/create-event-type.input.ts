@@ -116,7 +116,7 @@ export class BaseCreateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @ValidateConfirmationPolicy()
-  requiresConfirmation?: ConfirmationPolicy_2024_06_14;
+  confirmationPolicy?: ConfirmationPolicy_2024_06_14;
 
   @ValidateNested()
   @Transform(({ value }) => {

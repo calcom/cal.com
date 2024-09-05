@@ -19,7 +19,7 @@ export type InputEventTransformed_2024_06_14 = Omit<
   | "bookingLimitsDuration"
   | "bookingWindow"
   | "bookerLayouts"
-  | "requiresConfirmation"
+  | "confirmationPolicy"
   | "recurrence"
   | "color"
   | "seats"
@@ -31,7 +31,6 @@ export type InputEventTransformed_2024_06_14 = Omit<
   bookingFields?: ReturnType<typeof transformApiEventTypeBookingFields>;
   durationLimits?: ReturnType<typeof transformApiEventTypeIntervalLimits>;
   recurringEvent?: ReturnType<typeof transformApiEventTypeRecurrence>;
-  requiresConfirmation?: ReturnType<typeof transformApiEventTypeColors>;
   eventTypeColor?: ReturnType<typeof transformApiEventTypeColors>;
 } & Partial<
     Pick<ConfirmationPolicyTransformedSchema, "requiresConfirmation" | "requiresConfirmationWillBlockSlot">

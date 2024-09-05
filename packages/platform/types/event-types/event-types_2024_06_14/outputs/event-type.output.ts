@@ -153,7 +153,7 @@ class BaseEventTypeOutput {
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
-  requiresConfirmation?: ConfirmationPolicy_2024_06_14;
+  confirmationPolicy?: ConfirmationPolicy_2024_06_14;
 
   @IsOptional()
   @IsBoolean()

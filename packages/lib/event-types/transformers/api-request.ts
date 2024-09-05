@@ -198,32 +198,32 @@ function transformApiEventTypeBookerLayouts(
   };
 }
 
-function transformApiEventTypeRequiresConfirmation(
-  inputRequiresConfirmation: CreateEventTypeInput_2024_06_14["requiresConfirmation"]
+function transformApiEventTypeConfirmationPolicy(
+  inputConfirmationPolicy: CreateEventTypeInput_2024_06_14["confirmationPolicy"]
 ): ConfirmationPolicyTransformedSchema | undefined {
-  if (!inputRequiresConfirmation) return undefined;
-  if (inputRequiresConfirmation.disabled) {
+  if (!inputConfirmationPolicy) return undefined;
+  if (inputConfirmationPolicy.disabled) {
     return {
       requiresConfirmation: false,
       requiresConfirmationWillBlockSlot: false,
       requiresConfirmationThreshold: undefined,
     };
   }
-  switch (inputRequiresConfirmation.type) {
+  switch (inputConfirmationPolicy.type) {
     case ConfirmationPolicyEnum.ALWAYS:
       return {
         requiresConfirmation: true,
         requiresConfirmationThreshold: undefined,
-        requiresConfirmationWillBlockSlot: inputRequiresConfirmation.blockUnconfirmedBookingsInBooker,
+        requiresConfirmationWillBlockSlot: inputConfirmationPolicy.blockUnconfirmedBookingsInBooker,
       };
     case ConfirmationPolicyEnum.TIME:
       return {
         requiresConfirmation: true,
         requiresConfirmationThreshold: {
-          unit: inputRequiresConfirmation.noticeThreshold?.unit,
-          time: inputRequiresConfirmation.noticeThreshold?.count,
+          unit: inputConfirmationPolicy.noticeThreshold?.unit,
+          time: inputConfirmationPolicy.noticeThreshold?.count,
         } as NoticeThresholdTransformedSchema,
-        requiresConfirmationWillBlockSlot: inputRequiresConfirmation.blockUnconfirmedBookingsInBooker,
+        requiresConfirmationWillBlockSlot: inputConfirmationPolicy.blockUnconfirmedBookingsInBooker,
       };
   }
 }
@@ -371,7 +371,7 @@ export {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeBookerLayouts,
-  transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeConfirmationPolicy,
   transformApiEventTypeColors,
   transformApiSeatOptions,
   transformApiEventTypeRecurrence,

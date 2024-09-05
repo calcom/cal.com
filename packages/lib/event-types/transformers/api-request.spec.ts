@@ -28,7 +28,7 @@ import {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeBookerLayouts,
-  transformApiEventTypeRequiresConfirmation,
+  transformApiEventTypeConfirmationPolicy,
   transformApiEventTypeRecurrence,
   transformApiEventTypeColors,
   transformApiSeatOptions,
@@ -697,7 +697,7 @@ describe("transformApiEventTypeBookerLayouts", () => {
   });
 });
 
-describe("transformApiEventTypeRequiresConfirmation", () => {
+describe("transformApiEventTypeConfirmationPolicy", () => {
   it("should transform requires confirmation", () => {
     const input: ConfirmationPolicy_2024_06_14 = {
       type: ConfirmationPolicyEnum.TIME,
@@ -716,7 +716,7 @@ describe("transformApiEventTypeRequiresConfirmation", () => {
       },
       requiresConfirmationWillBlockSlot: true,
     };
-    const result = transformApiEventTypeRequiresConfirmation(input);
+    const result = transformApiEventTypeConfirmationPolicy(input);
 
     expect(result).toEqual(expectedOutput);
   });

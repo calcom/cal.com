@@ -57,34 +57,30 @@ class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
       return true;
     }
 
-    if ("day" in value && "week" in value && "month" in value && "year" in value) {
-      const { day, week, month, year } = value;
+    const { day, week, month, year } = value;
 
-      // Check if 'day' exceeds 'week', 'month', or 'year'
-      if (day && ((week && day > week) || (month && day > month) || (year && day > year))) {
-        this.errorDetails.invalidLimit = "day";
-        this.errorDetails.comparedLimit =
-          week && day > week ? "week" : month && day > month ? "month" : "year";
-        return false;
-      }
-
-      // Check if 'week' exceeds 'month' or 'year'
-      if (week && ((month && week > month) || (year && week > year))) {
-        this.errorDetails.invalidLimit = "week";
-        this.errorDetails.comparedLimit = month && week > month ? "month" : "year";
-        return false;
-      }
-
-      // Check if 'month' exceeds 'year'
-      if (month && year && month > year) {
-        this.errorDetails.invalidLimit = "month";
-        this.errorDetails.comparedLimit = "year";
-        return false;
-      }
-
-      return true;
+    // Check if 'day' exceeds 'week', 'month', or 'year'
+    if (day && ((week && day > week) || (month && day > month) || (year && day > year))) {
+      this.errorDetails.invalidLimit = "day";
+      this.errorDetails.comparedLimit = week && day > week ? "week" : month && day > month ? "month" : "year";
+      return false;
     }
-    return false;
+
+    // Check if 'week' exceeds 'month' or 'year'
+    if (week && ((month && week > month) || (year && week > year))) {
+      this.errorDetails.invalidLimit = "week";
+      this.errorDetails.comparedLimit = month && week > month ? "month" : "year";
+      return false;
+    }
+
+    // Check if 'month' exceeds 'year'
+    if (month && year && month > year) {
+      this.errorDetails.invalidLimit = "month";
+      this.errorDetails.comparedLimit = "year";
+      return false;
+    }
+
+    return true;
   }
 
   defaultMessage() {

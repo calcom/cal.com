@@ -724,7 +724,7 @@ describe("getResponseEventTypeBookerLayouts", () => {
 describe("getResponseEventTypeRequiresConfirmation", () => {
   it("should reverse transform requires confirmation", () => {
     const transformedField: ConfirmationPolicyTransformedSchema = {
-      requiresConfirmation: false,
+      requiresConfirmation: true,
       requiresConfirmationThreshold: {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,

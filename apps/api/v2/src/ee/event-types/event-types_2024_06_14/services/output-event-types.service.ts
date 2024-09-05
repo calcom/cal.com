@@ -121,7 +121,7 @@ export class OutputEventTypesService_2024_06_14 {
     const bookerLayouts = this.transformBookerLayouts(
       metadata.bookerLayouts as unknown as BookerLayoutsTransformedSchema
     );
-    const requiresConfirmation = this.transformRequiresConfirmation(
+    const confirmationPolicy = this.transformRequiresConfirmation(
       databaseEventType.requiresConfirmation,
       metadata.requiresConfirmationThreshold as NoticeThresholdTransformedSchema,
       databaseEventType.requiresConfirmationWillBlockSlot
@@ -168,7 +168,7 @@ export class OutputEventTypesService_2024_06_14 {
       offsetStart,
       bookingWindow,
       bookerLayouts,
-      requiresConfirmation,
+      confirmationPolicy,
       requiresBookerEmailVerification,
       hideCalendarNotes,
       color,
