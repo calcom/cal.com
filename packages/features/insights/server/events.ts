@@ -50,7 +50,7 @@ class EventsInsights {
     return data.reduce(
       (aggregate: { [x: string]: number }, item) => {
         if (typeof item.timeStatus === "string") {
-          aggregate[item.timeStatus] = item._count._all;
+          aggregate[item.timeStatus] += item._count._all;
           aggregate["_all"] += item._count._all;
         }
         return aggregate;
