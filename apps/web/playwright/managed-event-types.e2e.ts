@@ -37,9 +37,11 @@ async function setupManagedEvent({
   return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle };
 }
 
+/** Short hand to get elements by translation key */
 const getByKey = async (page: Page, key: string) => page.getByText((await localize("en"))(key));
 
 test.describe("Managed Event Types", () => {
+  /** We don't use setupManagedEvent here to test the actual creation flow */
   test("Can create managed event type", async ({ page, users }) => {
     // Creating the owner user of the team
     const adminUser = await users.create(null, {
@@ -66,6 +68,7 @@ test.describe("Managed Event Types", () => {
     expect(page.url()).toContain("?tabName=team");
   });
 
+  /** From here we use setupManagedEvent to avoid repeating the previous flow */
   test("Managed event type has unlocked fields for admin", async ({ page, users }) => {
     const { adminUser, managedEvent } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
@@ -75,8 +78,6 @@ test.describe("Managed Event Types", () => {
     await expect(page.locator('input[name="slug"]')).toBeEditable();
     await expect(page.locator('input[name="length"]')).toBeEditable();
   });
-
-  // test("Managed event option exists for team admin", async () => {});
 
   test("Managed event type exists for added member", async ({ page, users }) => {
     const { memberUser, teamEventTitle } = await setupManagedEvent({
