@@ -7,7 +7,7 @@ import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
-function getNewSeachParams(args: {
+function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
 }) {
@@ -65,7 +65,7 @@ export const useBookingSuccessRedirect = () => {
         return;
       }
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
-      const newSearchParams = getNewSeachParams({
+      const newSearchParams = getNewSearchParams({
         query: {
           ...query,
           ...bookingExtraParams,
@@ -85,12 +85,12 @@ export const useBookingSuccessRedirect = () => {
     // This is specially true after App Router it seems
     const headersRelatedSearchParams = searchParams
       ? {
-          "flag.coep": searchParams.get("flag.coep"),
+          "flag.coep": searchParams.get("flag.coep") ?? "false",
         }
       : {};
 
     // We don't want to forward all search params, as they could possibly break the booking page.
-    const newSearchParams = getNewSeachParams({
+    const newSearchParams = getNewSearchParams({
       query,
       searchParams: new URLSearchParams(headersRelatedSearchParams),
     });
