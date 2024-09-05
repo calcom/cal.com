@@ -90,7 +90,10 @@ export const useBookingSuccessRedirect = () => {
       : {};
 
     // We don't want to forward all search params, as they could possibly break the booking page.
-    const newSearchParams = getNewSeachParams({ query, searchParams: headersRelatedSearchParams });
+    const newSearchParams = getNewSeachParams({
+      query,
+      searchParams: new URLSearchParams(headersRelatedSearchParams),
+    });
     return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
   };
 
