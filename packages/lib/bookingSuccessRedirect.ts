@@ -87,7 +87,7 @@ export const useBookingSuccessRedirect = () => {
       ? {
           "flag.coep": searchParams.get("flag.coep") ?? "false",
         }
-      : {};
+      : undefined;
 
     // We don't want to forward all search params, as they could possibly break the booking page.
     const newSearchParams = getNewSearchParams({
