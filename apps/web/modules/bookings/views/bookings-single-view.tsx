@@ -394,9 +394,9 @@ export default function Success(props: PageProps) {
       .then((data) => {
         data.json().then(({ data }: { data: BookingInfo[] }) => {
           console.log({ data });
-          // const findedBooking = data.find(({ uid }) => uid === bookingUid);
-          // console.log({ findedBooking });
-          // setPurchaseDate(dayjs(findedBooking?.createdAt));
+          const findedBooking = data.find(({ uid }) => uid === "2z7g2Hwp2A65GY2vkxRhHN");
+          console.log({ findedBooking });
+          setPurchaseDate(dayjs(findedBooking?.createdAt));
         });
       })
       .catch((error) => {
