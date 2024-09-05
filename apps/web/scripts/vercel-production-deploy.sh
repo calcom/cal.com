@@ -10,6 +10,7 @@ checkRoute () {
 # These conditionals are used to remove directories from the build that are not needed in production
 # This is to reduce the size of the build and prevent OOM errors
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
+checkRoute "$APP_ROUTER_AVAILABILITY_ENABLED" app/future/availability
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
 checkRoute "$APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED" app/future/apps/installed
 checkRoute "$APP_ROUTER_APPS_SLUG_ENABLED" app/future/apps/\[slug\]
@@ -36,7 +37,6 @@ checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
 # Will stop removing gradually as we test and confirm that they are working
 rm -rf \
    app/future/[user]\
-   app/future/auth\
    app/future/booking\
    app/future/connect-and-join\
    app/future/d\
