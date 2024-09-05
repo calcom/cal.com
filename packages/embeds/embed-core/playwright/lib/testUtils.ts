@@ -38,14 +38,6 @@ export const getEmbedIframe = async ({
   page: Page;
   pathname: string;
 }) => {
-  page.on("console", (msg) => {
-    console.log(`Browser Console: ${msg.type()}: ${msg.text()}`);
-  });
-
-  page.on("framenavigated", async (frame) => {
-    console.log(`Navigation occurred in frame: ${frame.url()}`);
-  });
-
   const handleFrameErrors = (frame: Frame) => {
     frame.on("pageerror", (error) => {
       console.error(`Iframe error (${frame.url()}): ${error.message}`);
@@ -57,13 +49,6 @@ export const getEmbedIframe = async ({
     });
   };
 
-  page.on("pageerror", (error) => {
-    console.error(`Page error: ${error.message}`);
-  });
-
-  page.on("requestfailed", (request) => {
-    console.error(`Failed request: ${request.url()}, ${request.failure()?.errorText}`);
-  });
   // We can't seem to access page.frame till contentWindow is available. So wait for that.
   const iframeReady = await page.evaluate(
     (hardTimeout) => {

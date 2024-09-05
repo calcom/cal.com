@@ -80,7 +80,17 @@ export const useBookingSuccessRedirect = () => {
       navigateInTopWindow(url.toString());
       return;
     }
-    const newSearchParams = getNewSeachParams({ query, searchParams: searchParams ?? undefined });
+
+    // TODO: Abstract it out and reuse at other places where we navigate within the embed. Though this is needed only in case of hard navigation happening but we aren't sure where hard navigation happens and where a soft navigation
+    // This is specially true after App Router it seems
+    const headersRelatedSearchParams = searchParams
+      ? {
+          "flag.coep": searchParams.get("flag.coep"),
+        }
+      : {};
+
+    // We don't want to forward all search params, as they could possibly break the booking page.
+    const newSearchParams = getNewSeachParams({ query, searchParams: headersRelatedSearchParams });
     return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
   };
 
