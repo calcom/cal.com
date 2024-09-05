@@ -26,16 +26,6 @@ function AdminOrgTable() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
-  const verifyMutation = trpc.viewer.organizations.adminVerify.useMutation({
-    onSuccess: async (_data, variables) => {
-      showToast(t("org_has_been_processed"), "success");
-      await invalidateQueries(utils, variables);
-    },
-    onError: (err) => {
-      console.error(err.message);
-      showToast(t("org_error_processing"), "error");
-    },
-  });
   const updateMutation = trpc.viewer.organizations.adminUpdate.useMutation({
     onSuccess: async (_data, variables) => {
       showToast(t("org_has_been_processed"), "success");
