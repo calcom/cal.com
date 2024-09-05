@@ -81,8 +81,8 @@ test.describe("Manage Booking Questions", () => {
         });
 
         await doOnFreshPreview(page, context, async (page) => {
-          const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
-          const userFieldLocator = allFieldsLocator.nth(5);
+          await expectSystemFieldsToBeThereOnBookingPage({ page });
+          const userFieldLocator = page.locator('[data-fob-field-name="agree-to-terms"]');
 
           await expect(userFieldLocator.locator('[name="agree-to-terms"]')).toBeVisible();
           expect(await getLabelText(userFieldLocator)).toBe("Agree to terms");
@@ -295,8 +295,8 @@ async function runTestStepsCommonForTeamAndUserEventType(
     });
 
     await doOnFreshPreview(page, context, async (page) => {
-      const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
-      const userFieldLocator = allFieldsLocator.nth(5);
+      await expectSystemFieldsToBeThereOnBookingPage({ page });
+      const userFieldLocator = page.locator('[data-fob-field-name="how-are-you"]');
 
       await expect(userFieldLocator.locator('[name="how-are-you"]')).toBeVisible();
       expect(await getLabelText(userFieldLocator)).toBe("How are you?");
@@ -420,13 +420,12 @@ async function expectSystemFieldsToBeThereOnBookingPage({
     guests: string[];
   }>;
 }) {
-  const allFieldsLocator = page.locator("[data-fob-field-name]:not(.hidden)");
-  const nameLocator = allFieldsLocator.nth(0);
-  const emailLocator = allFieldsLocator.nth(1);
+  const nameLocator = page.locator('[data-fob-field-name="name"]');
+  const emailLocator = page.locator('[data-fob-field-name="email"]');
   // Location isn't rendered unless explicitly set which isn't the case here
   // const locationLocator = allFieldsLocator.nth(2);
-  const additionalNotes = allFieldsLocator.nth(3);
-  const guestsLocator = allFieldsLocator.nth(4);
+  const additionalNotes = page.locator('[data-fob-field-name="notes"]');
+  const guestsLocator = page.locator('[data-fob-field-name="guests"]');
 
   if (isFirstAndLastNameVariant) {
     if (values?.name) {
@@ -466,7 +465,6 @@ async function expectSystemFieldsToBeThereOnBookingPage({
   } else {
     await expect(guestsLocator.locator("[data-testid='add-guests']")).toBeVisible();
   }
-  return allFieldsLocator;
 }
 
 //TODO: Add one question for each type and see they are rendering labels and only once and are showing appropriate native component
