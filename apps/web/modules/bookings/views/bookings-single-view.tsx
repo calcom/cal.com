@@ -78,6 +78,11 @@ interface RescheduleOrCancelWarningProps {
   urgentMedicalAppointments: boolean;
 }
 
+interface EnvetType {
+  id: number;
+  slug: string;
+}
+
 const stringToBoolean = z
   .string()
   .optional()
@@ -181,6 +186,7 @@ export default function Success(props: PageProps) {
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
   const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
+  const [eventTypes, setEventTypes] = useState<EnvetType[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   const {
@@ -356,15 +362,27 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    // const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
+    const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
     const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&select=createdAt&apiKey=${"teste"}`;
-    // fetch(getEventTypeSlugUrl)
-    //   .then((data: any) => {
-    //     console.log(data);
-    //   })
-    //   .catch((error: any) => {
-    //     console.log(error);
-    //   });
+
+    fetch(getEventTypeSlugUrl)
+      .then((data) => {
+        data.json().then((eventData) => {
+          console.log({ eventData });
+          const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
+          const eventSlugs = (eventData as EnvetType[]).reduce((acc, { id, slug }) => {
+            if (eventTypeIds.includes(id)) {
+              acc.push({ id, slug });
+            }
+            return acc;
+          }, eventTypes);
+          setEventTypes(eventSlugs);
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     fetch(getBookedTimeUrl)
       .then((data) => {
         console.log({ data });
@@ -372,7 +390,7 @@ export default function Success(props: PageProps) {
       .catch((error) => {
         console.log({ error });
       });
-  }, []);
+  }, [eventTypes]);
 
   useEffect(() => {
     setCalculatedDuration(dayjs(bookingInfo.endTime).diff(dayjs(bookingInfo.startTime), "minutes"));
