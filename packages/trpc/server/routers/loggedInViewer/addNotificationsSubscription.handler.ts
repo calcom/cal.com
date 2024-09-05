@@ -1,5 +1,6 @@
-import { subscriptionSchema } from "@calcom/features/instant-meeting/schema.ts";
+import { subscriptionSchema } from "@calcom/features/instant-meeting/schema";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -14,6 +15,8 @@ type AddSecondaryEmailOptions = {
   input: TAddNotificationsSubscriptionInputSchema;
 };
 
+const log = logger.getSubLogger({ prefix: ["[addNotificationsSubscriptionHandler]"] });
+
 export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSecondaryEmailOptions) => {
   const { user } = ctx;
   const { subscription } = input;
@@ -21,7 +24,7 @@ export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSec
   const parsedSubscription = subscriptionSchema.safeParse(JSON.parse(subscription));
 
   if (!parsedSubscription.success) {
-    logger.error("Invalid subscription", parsedSubscription.error, JSON.stringify(sub.user));
+    log.error("Invalid subscription", parsedSubscription.error, JSON.stringify(subscription));
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Invalid subscription",
