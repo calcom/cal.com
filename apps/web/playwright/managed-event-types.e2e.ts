@@ -38,10 +38,15 @@ test.describe("Managed Event Types", () => {
       await page.getByTestId("invite-new-member-button").click();
       // wait for the second member to be added to the pending-member-list.
       await page.getByTestId("pending-member-list").locator("li:nth-child(2)").waitFor();
-      // and publish
       await page.locator("[data-testid=publish-button]").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
-      // Going to create an event type
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+      // create a round-robin event type and finish
+      await expect(page.locator('button[value="ROUND_ROBIN"]')).toBeVisible();
+      await page.click('button[value="ROUND_ROBIN"]');
+      await page.fill("[name=title]", "roundRobin");
+      await page.getByTestId("finish-button").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      // Going to create an managed event type
       await page.goto("/event-types");
       await page.getByTestId("new-event-type").click();
       await page.getByTestId("option-team-1").click();
