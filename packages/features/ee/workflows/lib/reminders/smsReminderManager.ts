@@ -199,7 +199,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     ) {
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
-        currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
+        currentDate.isBefore(scheduledDate.subtract(15, "minute")) &&
         !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {

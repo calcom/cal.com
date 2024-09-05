@@ -2011,7 +2011,7 @@
   "collect_no_show_fee": "Collect no-show fee",
   "no_show_fee_charged": "No-show fee charged",
   "insights": "Insights",
-  "testing_workflow_info_message": "When testing this workflow, be aware that Emails and SMS can only be scheduled at least 1 hour in advance",
+  "testing_workflow_info_message": "When testing this workflow, be aware that emails can only be schedule at least 1 hour in advance, and SMS 15 minutes in advance",
   "insights_no_data_found_for_filter": "No data found for the selected filter or selected dates.",
   "acknowledge_booking_no_show_fee": "I acknowledge that if I do not attend this event that a {{amount, currency}} no show fee will be applied to my card.",
   "card_details": "Card details",
