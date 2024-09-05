@@ -174,10 +174,13 @@ export default class Office365CalendarService implements Calendar {
     const calendarSelectParams = "$select=showAs,start,end";
 
     try {
-      const selectedCalendarIds = selectedCalendars
-        .filter((e) => e.integration === this.integrationName)
-        .map((e) => e.externalId)
-        .filter(Boolean);
+      const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
+        if (calendar.integration === this.integrationName && calendar.externalId)
+          calendarIds.push(calendar.externalId);
+
+        return calendarIds;
+      }, [] as string[]);
+
       if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
         // Only calendars of other integrations selected
         return Promise.resolve([]);
@@ -373,6 +376,7 @@ export default class Office365CalendarService implements Calendar {
     maxRetries: number,
     retryCount = 0
   ): Promise<IBatchResponse> => {
+    const getRandomness = () => Number(Math.random().toFixed(3));
     let retryAfterTimeout = 0;
     if (retryCount >= maxRetries) {
       return { responses: settledPromises };
@@ -394,7 +398,7 @@ export default class Office365CalendarService implements Calendar {
     }
 
     // Await certain time from retry-after header
-    await new Promise((r) => setTimeout(r, retryAfterTimeout));
+    await new Promise((r) => setTimeout(r, retryAfterTimeout + getRandomness()));
 
     const newResponses = await this.apiGraphBatchCall(failedRequest);
     let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponses);

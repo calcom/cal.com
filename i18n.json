@@ -3,8 +3,12 @@
   "locale": {
     "source": "en",
     "targets": [
-      "de",
+      "ar",
       "cs",
+      "da",
+      "az",
+      "cs",
+      "de",
       "es",
       "es-419",
       "fr",
