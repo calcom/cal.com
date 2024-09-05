@@ -400,6 +400,7 @@ export const scheduleSMS = async (
   teamId?: number | null,
   whatsapp = false
 ) => {
+  //don't add smsCount for current month but instead add it for the month of the scheduledDate
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
@@ -428,8 +429,6 @@ export const scheduleSMS = async (
     });
   }
 
-  const payingTeam = await addCredits(phoneNumber, userId, teamId);
-
   if (!!payingTeam) {
     const response = await twilio.messages.create({
       body: body,
@@ -438,6 +437,7 @@ export const scheduleSMS = async (
       scheduleType: "fixed",
       sendAt: scheduledDate,
       from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+      statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback`,
     });
     return { ...response, teamId: payingTeam.teamId };
   } else {
