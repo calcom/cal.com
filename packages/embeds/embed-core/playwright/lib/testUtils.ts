@@ -38,12 +38,44 @@ export const getEmbedIframe = async ({
   page: Page;
   pathname: string;
 }) => {
+  page.on("console", (msg) => {
+    console.log(`Browser Console: ${msg.type()}: ${msg.text()}`);
+  });
+
+  page.on("framenavigated", async (frame) => {
+    console.log(`Navigation occurred in frame: ${frame.url()}`);
+  });
+
+  const handleFrameErrors = (frame: Frame) => {
+    frame.on("pageerror", (error) => {
+      console.error(`Iframe error (${frame.url()}): ${error.message}`);
+    });
+    frame.on("requestfailed", (request) => {
+      console.error(
+        `Iframe failed request (${frame.url()}): ${request.url()}, ${request.failure()?.errorText}`
+      );
+    });
+  };
+
+  page.on("pageerror", (error) => {
+    console.error(`Page error: ${error.message}`);
+  });
+
+  page.on("requestfailed", (request) => {
+    console.error(`Failed request: ${request.url()}, ${request.failure()?.errorText}`);
+  });
   // We can't seem to access page.frame till contentWindow is available. So wait for that.
   const iframeReady = await page.evaluate(
     (hardTimeout) => {
       return new Promise((resolve) => {
         const interval = setInterval(() => {
           const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
+          if (iframe) {
+            console.log("Iframe found");
+          }
+          if (iframe?.contentWindow) {
+            console.log("Iframe contentWindow found");
+          }
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           if (iframe && iframe.contentWindow && window.iframeReady) {
@@ -74,9 +106,12 @@ export const getEmbedIframe = async ({
     return null;
   }
 
+  page.on("frameattached", handleFrameErrors);
+
   // We just verified that iframeReady is true here, so obviously embedIframe is not null
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const embedIframe = page.frame(`cal-embed=${calNamespace}`)!;
+  handleFrameErrors(embedIframe);
   const u = new URL(embedIframe.url());
   if (u.pathname === `${pathname}/embed`) {
     return embedIframe;

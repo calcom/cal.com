@@ -2,6 +2,7 @@ import type { EventType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
@@ -44,6 +45,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
+  const isEmbed = useIsEmbed();
   const bookingSuccessRedirect = ({
     successRedirectUrl,
     query,
@@ -78,8 +80,8 @@ export const useBookingSuccessRedirect = () => {
       navigateInTopWindow(url.toString());
       return;
     }
-    const newSearchParams = getNewSeachParams({ query });
-    return router.push(`/booking/${booking.uid}?${newSearchParams.toString()}`);
+    const newSearchParams = getNewSeachParams({ query, searchParams: searchParams ?? undefined });
+    return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
   };
 
   return bookingSuccessRedirect;
