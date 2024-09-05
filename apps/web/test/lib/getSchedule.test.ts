@@ -1265,8 +1265,8 @@ describe("getSchedule", () => {
             eventTypeId: 1,
             uid: "uid1",
             status: "ACCEPTED",
-            startTime: `${plus1DateString}T04:30:00.000Z`,
-            endTime: `${plus1DateString}T05:30:00.000Z`,
+            startTime: `${plus1DateString}T06:30:00.000Z`,
+            endTime: `${plus1DateString}T07:30:00.000Z`,
             attendees: [{ email: "user2@example.com" }],
           },
           {
@@ -1274,13 +1274,13 @@ describe("getSchedule", () => {
             eventTypeId: 2,
             uid: "uid2",
             status: "ACCEPTED",
-            startTime: `${plus2DateString}T06:30:00.000Z`,
-            endTime: `${plus2DateString}T07:30:00.000Z`,
+            startTime: `${plus2DateString}T09:30:00.000Z`,
+            endTime: `${plus2DateString}T10:30:00.000Z`,
           },
         ],
       });
 
-      const scheduleForTeamEventOnADayWithNoBooking = await getSchedule({
+      const attendeeAvailability = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1292,16 +1292,14 @@ describe("getSchedule", () => {
         },
       });
 
-      expect(scheduleForTeamEventOnADayWithNoBooking).toHaveTimeSlots(
+      expect(attendeeAvailability).toHaveTimeSlots(
         [
           `04:30:00.000Z`,
           `05:30:00.000Z`,
-          // `06:30:00.000Z`, // <- This slot should be occupied by the Pending Requires Confirmation booking blocking this slot
+          `06:30:00.000Z`,
           `07:30:00.000Z`,
           `08:30:00.000Z`,
-          `09:30:00.000Z`,
-          `10:30:00.000Z`,
-          `11:30:00.000Z`,
+          `11:00:00.000Z`,
         ],
         {
           dateString: plus2DateString,
