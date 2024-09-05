@@ -197,7 +197,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
     ) {
-      // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+      // Can only schedule at least 15 minutes in advance and at most 7 days in advance
       if (
         currentDate.isBefore(scheduledDate.subtract(15, "minute")) &&
         !scheduledDate.isAfter(currentDate.add(7, "day"))
