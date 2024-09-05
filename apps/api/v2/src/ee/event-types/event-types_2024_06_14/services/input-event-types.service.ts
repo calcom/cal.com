@@ -5,6 +5,7 @@ import {
   transformApiEventTypeLocations,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeRecurrence,
 } from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
@@ -25,6 +26,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      recurrence,
       ...rest
     } = inputEventType;
 
@@ -38,6 +40,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
+      recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
     };
 
     return eventType;
@@ -52,6 +55,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      recurrence,
       ...rest
     } = inputEventType;
 
@@ -66,6 +70,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
+      recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
     };
 
     return eventType;
@@ -86,5 +91,9 @@ export class InputEventTypesService_2024_06_14 {
   transformInputBookingWindow(inputBookingWindow: CreateEventTypeInput_2024_06_14["bookingWindow"]) {
     const res = transformApiEventTypeFutureBookingLimits(inputBookingWindow);
     return !!res ? res : {};
+  }
+
+  transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
+    return transformApiEventTypeRecurrence(recurrence);
   }
 }

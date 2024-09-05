@@ -4,7 +4,9 @@ import { MarkNoShowInput } from "@/ee/bookings/inputs/mark-no-show.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { MarkNoShowOutput } from "@/ee/bookings/outputs/mark-no-show.output";
+import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -28,10 +30,12 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
+import { v4 as uuidv4 } from "uuid";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
@@ -46,6 +50,7 @@ import {
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
+  ErrorCode,
 } from "@calcom/platform-libraries";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
@@ -86,7 +91,9 @@ export class BookingsController {
     private readonly oAuthFlowService: OAuthFlowService,
     private readonly prismaReadService: PrismaReadService,
     private readonly oAuthClientRepository: OAuthClientRepository,
-    private readonly billingService: BillingService
+    private readonly billingService: BillingService,
+    private readonly config: ConfigService,
+    private readonly apiKeyRepository: ApiKeyRepository
   ) {}
 
   @Get("/")
@@ -238,8 +245,15 @@ export class BookingsController {
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
     try {
+      const recurringEventId = uuidv4();
+      for (const recurringEvent of req.body) {
+        if (!recurringEvent.recurringEventId) {
+          recurringEvent.recurringEventId = recurringEventId;
+        }
+      }
+
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        await this.createNextApiBookingRequest(req, oAuthClientId)
+        await this.createNextApiRecurringBookingRequest(req, oAuthClientId)
       );
 
       createdBookings.forEach(async (booking) => {
@@ -296,9 +310,17 @@ export class BookingsController {
 
   private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
-      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (accessToken) {
-        return this.oAuthFlowService.getOwnerId(accessToken);
+      const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
+      if (bearerToken) {
+        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+          return keyData?.userId;
+        } else {
+          // Access Token
+          return this.oAuthFlowService.getOwnerId(bearerToken);
+        }
       }
     } catch (err) {
       this.logger.error(err);
@@ -338,6 +360,19 @@ export class BookingsController {
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
+  private async createNextApiRecurringBookingRequest(
+    req: BookingRequest,
+    oAuthClientId?: string,
+    platformBookingLocation?: string
+  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const userId = (await this.getOwnerId(req)) ?? -1;
+    const oAuthParams = oAuthClientId
+      ? await this.getOAuthClientsParams(oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
+    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+  }
+
   private handleBookingErrors(
     err: Error | HttpError | unknown,
     type?: "recurring" | `instant` | "no-show"
@@ -353,6 +388,9 @@ export class BookingsController {
 
     if (err instanceof Error) {
       const error = err as Error;
+      if (Object.values(ErrorCode).includes(error.message as unknown as ErrorCode)) {
+        throw new HttpException(error.message, 400);
+      }
       throw new InternalServerErrorException(error?.message ?? errMsg);
     }
 

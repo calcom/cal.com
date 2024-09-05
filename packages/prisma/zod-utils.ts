@@ -235,6 +235,7 @@ export const bookingCreateBodySchema = z.object({
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
+  rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
   start: z.string(),
   timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
   user: z.union([z.string(), z.array(z.string())]).optional(),
@@ -245,7 +246,7 @@ export const bookingCreateBodySchema = z.object({
   hashedLink: z.string().nullish(),
   seatReferenceUid: z.string().optional(),
   orgSlug: z.string().optional(),
-  teamMemberEmail: z.string().optional(),
+  teamMemberEmail: z.string().nullish(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -292,7 +293,6 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
-    teamMemberEmail: z.string().optional(),
   })
 );
 
@@ -319,6 +319,7 @@ export const schemaBookingCancelParams = z.object({
   allRemainingBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
+  cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
 });
 
 export const vitalSettingsUpdateSchema = z.object({
@@ -641,6 +642,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   customInputs: true,
   disableGuests: true,
   requiresConfirmation: true,
+  requiresConfirmationWillBlockSlot: true,
   eventName: true,
   metadata: true,
   children: true,

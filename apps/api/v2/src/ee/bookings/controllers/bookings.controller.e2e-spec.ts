@@ -14,6 +14,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -21,7 +22,7 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import { handleNewBooking } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
+import { ApiSuccessResponse, ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
   describe("User Authenticated", () => {
@@ -31,6 +32,8 @@ describe("Bookings Endpoints", () => {
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let schedulesService: SchedulesService_2024_04_15;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+    let apiKeyString: string;
 
     const userEmail = "bookings-controller-e2e@api.com";
     let user: User;
@@ -56,11 +59,13 @@ describe("Bookings Endpoints", () => {
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
-
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       user = await userRepositoryFixture.create({
         email: userEmail,
       });
 
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
+      apiKeyString = keyString;
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: "working time",
         timeZone: "Europe/Rome",
@@ -120,6 +125,105 @@ describe("Bookings Endpoints", () => {
       return request(app.getHttpServer())
         .post("/v2/bookings")
         .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
+            response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.userPrimaryEmail).toBeDefined();
+          expect(responseBody.data.userPrimaryEmail).toEqual(userEmail);
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.uid).toBeDefined();
+          expect(responseBody.data.startTime).toEqual(bookingStart);
+          expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
+          expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
+          expect(responseBody.data.metadata).toEqual(bookingMetadata);
+
+          createdBooking = responseBody.data;
+        });
+    });
+
+    it("should fail to create a booking with no_available_users_found_error", async () => {
+      const bookingStart = "2040-05-21T09:30:00.000Z";
+      const bookingEnd = "2040-05-21T10:30:00.000Z";
+      const bookingEventTypeId = eventTypeId;
+      const bookingTimeZone = "Europe/London";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+      const bookingMetadata = {
+        timeFormat: "12",
+        meetingType: "organizer-phone",
+      };
+      const bookingResponses = {
+        name: "tester",
+        email: "tester@example.com",
+        location: {
+          value: "link",
+          optionValue: "",
+        },
+        notes: "test",
+        guests: [],
+      };
+
+      const body: CreateBookingInput = {
+        start: bookingStart,
+        end: bookingEnd,
+        eventTypeId: bookingEventTypeId,
+        timeZone: bookingTimeZone,
+        language: bookingLanguage,
+        metadata: bookingMetadata,
+        hashedLink: bookingHashedLink,
+        responses: bookingResponses,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .expect(400)
+        .then(async (response) => {
+          const responseBody: ApiErrorResponse = response.body;
+          expect(responseBody.error.message).toEqual("no_available_users_found_error");
+        });
+    });
+
+    it("should create a booking with api key to get owner id", async () => {
+      const bookingStart = "2040-05-22T09:30:00.000Z";
+      const bookingEnd = "2040-05-22T10:30:00.000Z";
+      const bookingEventTypeId = eventTypeId;
+      const bookingTimeZone = "Europe/London";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+      const bookingMetadata = {
+        timeFormat: "12",
+        meetingType: "organizer-phone",
+      };
+      const bookingResponses = {
+        name: "tester",
+        email: "tester@example.com",
+        location: {
+          value: "link",
+          optionValue: "",
+        },
+        notes: "test",
+        guests: [],
+      };
+
+      const body: CreateBookingInput = {
+        start: bookingStart,
+        end: bookingEnd,
+        eventTypeId: bookingEventTypeId,
+        timeZone: bookingTimeZone,
+        language: bookingLanguage,
+        metadata: bookingMetadata,
+        hashedLink: bookingHashedLink,
+        responses: bookingResponses,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(201)
         .then(async (response) => {
           const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
@@ -202,18 +306,22 @@ describe("Bookings Endpoints", () => {
         .get("/v2/bookings?filters[status]=upcoming")
         .then((response) => {
           const responseBody: GetBookingsOutput = response.body;
-          const fetchedBooking = responseBody.data.bookings[0];
 
-          expect(responseBody.data.bookings.length).toEqual(1);
+          expect(responseBody.data.bookings.length).toEqual(2);
+          const fetchedBooking = responseBody.data.bookings.find(
+            (booking) => booking.id === createdBooking.id
+          );
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(fetchedBooking).toBeDefined();
 
-          expect(fetchedBooking.id).toEqual(createdBooking.id);
-          expect(fetchedBooking.uid).toEqual(createdBooking.uid);
-          expect(fetchedBooking.startTime).toEqual(createdBooking.startTime);
-          expect(fetchedBooking.endTime).toEqual(createdBooking.endTime);
-          expect(fetchedBooking.user?.email).toEqual(userEmail);
+          if (fetchedBooking) {
+            expect(fetchedBooking.id).toEqual(createdBooking.id);
+            expect(fetchedBooking.uid).toEqual(createdBooking.uid);
+            expect(fetchedBooking.startTime).toEqual(createdBooking.startTime);
+            expect(fetchedBooking.endTime).toEqual(createdBooking.endTime);
+            expect(fetchedBooking.user?.email).toEqual(userEmail);
+          }
         });
     });
 
