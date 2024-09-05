@@ -30,40 +30,59 @@ async function authMiddleware(req: NextApiRequest) {
     }
   }
 
-  const userWithBookingsAndTeamIds = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: {
+    select: {
+      email: true,
       bookings: true,
-      teams: {
-        select: {
-          teamId: true,
+    },
+  });
+
+  if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
+
+  const filteredBookings = user?.bookings?.filter((booking) => booking.id === id);
+  const userIsHost = !!filteredBookings?.length;
+
+  const bookingsAsAttendee = prisma.booking.findMany({
+    where: {
+      id,
+      attendees: { some: { email: user.email } },
+    },
+  });
+
+  const bookingsAsEventTypeOwner = prisma.booking.findMany({
+    where: {
+      id,
+      eventType: {
+        owner: { id: userId },
+      },
+    },
+  });
+
+  const bookingsAsTeamOwnerOrAdmin = prisma.booking.findMany({
+    where: {
+      id,
+      eventType: {
+        team: {
+          members: {
+            some: { userId, role: { in: ["ADMIN", "OWNER"] }, accepted: true },
+          },
         },
       },
     },
   });
 
-  if (!userWithBookingsAndTeamIds) throw new HttpError({ statusCode: 404, message: "User not found" });
+  const [resultOne, resultTwo, resultThree] = await Promise.all([
+    bookingsAsAttendee,
+    bookingsAsEventTypeOwner,
+    bookingsAsTeamOwnerOrAdmin,
+  ]);
 
-  const userBookingIds = userWithBookingsAndTeamIds.bookings.map((booking) => booking.id);
+  const teamBookingsAsOwnerOrAdmin = [...resultOne, ...resultTwo, ...resultThree];
+  const userHasTeamBookings = !!teamBookingsAsOwnerOrAdmin.length;
 
-  if (!userBookingIds.includes(id)) {
-    const teamBookings = await prisma.booking.findUnique({
-      where: {
-        id: id,
-        eventType: {
-          team: {
-            id: {
-              in: userWithBookingsAndTeamIds.teams.map((team) => team.teamId),
-            },
-          },
-        },
-      },
-    });
-
-    if (!teamBookings) {
-      throw new HttpError({ statusCode: 403, message: "You are not authorized" });
-    }
-  }
+  if (!userIsHost && !userHasTeamBookings)
+    throw new HttpError({ statusCode: 403, message: "You are not authorized" });
 }
 
 export default authMiddleware;
