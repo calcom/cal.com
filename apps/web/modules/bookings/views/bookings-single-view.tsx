@@ -84,7 +84,7 @@ interface EventType {
 }
 
 interface BookingInfo {
-  uid: number;
+  uid: string;
   createdAt: string;
 }
 
@@ -393,9 +393,10 @@ export default function Success(props: PageProps) {
     fetch(getBookedTimeUrl)
       .then((data) => {
         data.json().then(({ data }: { data: BookingInfo[] }) => {
-          const findedBooking = data.find(({ uid }) => uid === bookingUid);
-          console.log({ findedBooking });
-          setPurchaseDate(dayjs(findedBooking?.createdAt));
+          console.log({ data });
+          // const findedBooking = data.find(({ uid }) => uid === bookingUid);
+          // console.log({ findedBooking });
+          // setPurchaseDate(dayjs(findedBooking?.createdAt));
         });
       })
       .catch((error) => {
