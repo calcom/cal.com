@@ -145,8 +145,18 @@ export const pageObject = {
     }) => {
       fireEvent.change(dialog.getAllByRole("textbox")[0], { target: { value: identifier } });
     },
-    fillInFieldLabel: ({ dialog, label }: { dialog: TestingLibraryElement; label: string }) => {
-      fireEvent.change(dialog.getAllByRole("textbox")[1], { target: { value: label } });
+    fillInFieldLabel: ({
+      dialog,
+      label,
+      fieldType,
+    }: {
+      dialog: TestingLibraryElement;
+      label: string;
+      fieldType: string;
+    }) => {
+      if (fieldType !== "boolean") {
+        fireEvent.change(dialog.getAllByRole("textbox")[1], { target: { value: label } });
+      }
     },
     close: ({ dialog }: { dialog: TestingLibraryElement }) => {
       fireEvent.click(dialog.getByTestId("dialog-rejection"));
@@ -183,7 +193,7 @@ export const verifier = {
     const dialog = pageObject.openAddFieldDialog();
     pageObject.dialog.selectFieldType({ dialog, fieldType: props.fieldType });
     pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: props.identifier });
-    pageObject.dialog.fillInFieldLabel({ dialog, label: props.label });
+    pageObject.dialog.fillInFieldLabel({ dialog, label: props.label, fieldType: props.fieldType });
     pageObject.dialog.saveField({ dialog: getEditDialogForm() });
 
     await waitFor(() => {

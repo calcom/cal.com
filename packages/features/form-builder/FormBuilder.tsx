@@ -6,7 +6,9 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import turndown from "@calcom/lib/turndownService";
 import {
   Badge,
   BooleanToggleGroupField,
@@ -24,6 +26,7 @@ import {
   Label,
   SelectField,
   showToast,
+  Editor,
   Switch,
 } from "@calcom/ui";
 
@@ -421,6 +424,27 @@ function Options({
   );
 }
 
+const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) => {
+  const { t } = useLocale();
+  const [firstRender, setFirstRender] = useState(true);
+  return (
+    <div className="mt-6">
+      <Label>{t("label")}</Label>
+      <Editor
+        getText={() => md.render(fieldForm.getValues("label") || "")}
+        setText={(value: string) => {
+          fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+        }}
+        excludedToolbarItems={["blockType", "bold", "italic"]}
+        disableLists
+        firstRender={firstRender}
+        setFirstRender={setFirstRender}
+        placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+      />
+    </div>
+  );
+};
+
 function FieldEditDialog({
   dialog,
   onOpenChange,
@@ -437,19 +461,22 @@ function FieldEditDialog({
     defaultValues: dialog.data || {},
     // resolver: zodResolver(fieldSchema),
   });
+  const formFieldType = fieldForm.getValues("type");
+
   useEffect(() => {
-    if (!fieldForm.getValues("type")) {
+    if (!formFieldType) {
       return;
     }
 
     const variantsConfig = getVariantsConfig({
-      type: fieldForm.getValues("type"),
+      type: formFieldType,
       variantsConfig: fieldForm.getValues("variantsConfig"),
     });
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue("variantsConfig", variantsConfig);
   }, [fieldForm]);
+
   const isFieldEditMode = !!dialog.data;
   const fieldType = getCurrentFieldType(fieldForm);
 
@@ -458,8 +485,11 @@ function FieldEditDialog({
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
+    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent
+        className="max-h-none p-0"
+        data-testid="edit-field-dialog"
+        forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
@@ -478,7 +508,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[fieldForm.getValues("type")]}
+              value={fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -505,16 +535,22 @@ function FieldEditDialog({
                       description={t("disable_input_if_prefilled")}
                       {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
-                    <InputField
-                      {...fieldForm.register("label")}
-                      // System fields have a defaultLabel, so there a label is not required
-                      required={
-                        !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
-                      }
-                      placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                      containerClassName="mt-6"
-                      label={t("label")}
-                    />
+                    <div>
+                      {formFieldType === "boolean" ? (
+                        <CheckboxFieldLabel fieldForm={fieldForm} />
+                      ) : (
+                        <InputField
+                          {...fieldForm.register("label")}
+                          // System fields have a defaultLabel, so there a label is not required
+                          required={
+                            !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                          }
+                          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                          containerClassName="mt-6"
+                          label={t("label")}
+                        />
+                      )}
+                    </div>
 
                     {fieldType?.isTextType ? (
                       <InputField
