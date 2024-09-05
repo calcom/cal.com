@@ -35,6 +35,7 @@ import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
+import { v4 as uuidv4 } from "uuid";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
@@ -49,6 +50,7 @@ import {
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
+  ErrorCode,
 } from "@calcom/platform-libraries";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
@@ -243,8 +245,15 @@ export class BookingsController {
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
     try {
+      const recurringEventId = uuidv4();
+      for (const recurringEvent of req.body) {
+        if (!recurringEvent.recurringEventId) {
+          recurringEvent.recurringEventId = recurringEventId;
+        }
+      }
+
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        await this.createNextApiBookingRequest(req, oAuthClientId)
+        await this.createNextApiRecurringBookingRequest(req, oAuthClientId)
       );
 
       createdBookings.forEach(async (booking) => {
@@ -351,6 +360,19 @@ export class BookingsController {
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
+  private async createNextApiRecurringBookingRequest(
+    req: BookingRequest,
+    oAuthClientId?: string,
+    platformBookingLocation?: string
+  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const userId = (await this.getOwnerId(req)) ?? -1;
+    const oAuthParams = oAuthClientId
+      ? await this.getOAuthClientsParams(oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
+    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+  }
+
   private handleBookingErrors(
     err: Error | HttpError | unknown,
     type?: "recurring" | `instant` | "no-show"
@@ -366,6 +388,9 @@ export class BookingsController {
 
     if (err instanceof Error) {
       const error = err as Error;
+      if (Object.values(ErrorCode).includes(error.message as unknown as ErrorCode)) {
+        throw new HttpException(error.message, 400);
+      }
       throw new InternalServerErrorException(error?.message ?? errMsg);
     }
 

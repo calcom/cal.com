@@ -13,6 +13,14 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/apps/:slug/setup", process.env.APP_ROUTER_APPS_SLUG_SETUP_ENABLED === "1"] as const,
   ["/apps/categories", process.env.APP_ROUTER_APPS_CATEGORIES_ENABLED === "1"] as const,
   ["/apps/categories/:category", process.env.APP_ROUTER_APPS_CATEGORIES_CATEGORY_ENABLED === "1"] as const,
+  ["/auth/forgot-password/:path*", process.env.APP_ROUTER_AUTH_FORGOT_PASSWORD_ENABLED === "1"] as const,
+  ["/auth/login", process.env.APP_ROUTER_AUTH_LOGIN_ENABLED === "1"] as const,
+  ["/auth/logout", process.env.APP_ROUTER_AUTH_LOGOUT_ENABLED === "1"] as const,
+  ["/auth/new", process.env.APP_ROUTER_AUTH_NEW_ENABLED === "1"] as const,
+  ["/auth/saml-idp", process.env.APP_ROUTER_AUTH_SAML_ENABLED === "1"] as const,
+  ["/auth/error", process.env.APP_ROUTER_AUTH_ERROR_ENABLED === "1"] as const,
+  ["/auth/platform/:path*", process.env.APP_ROUTER_AUTH_PLATFORM_ENABLED === "1"] as const,
+  ["/auth/oauth2/:path*", process.env.APP_ROUTER_AUTH_OAUTH2_ENABLED === "1"] as const,
   ["/workflows/:path*", process.env.APP_ROUTER_WORKFLOWS_ENABLED === "1"] as const,
   ["/settings/teams/:path*", process.env.APP_ROUTER_SETTINGS_TEAMS_ENABLED === "1"] as const,
   ["/getting-started/:step", process.env.APP_ROUTER_GETTING_STARTED_STEP_ENABLED === "1"] as const,
@@ -20,6 +28,7 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/bookings/:status", process.env.APP_ROUTER_BOOKINGS_STATUS_ENABLED === "1"] as const,
   ["/video/:path*", process.env.APP_ROUTER_VIDEO_ENABLED === "1"] as const,
   ["/teams", process.env.APP_ROUTER_TEAMS_ENABLED === "1"] as const,
+  ["/availability", process.env.APP_ROUTER_AVAILABILITY_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
