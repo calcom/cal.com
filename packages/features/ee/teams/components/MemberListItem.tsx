@@ -620,7 +620,7 @@ export default function MemberListItem(props: Props) {
   return (
     <div className="mb-6">
       <DataTable
-        data-testId="team-member-list-container"
+        data-testid="team-member-list-container"
         onSearch={(value) => setSearchTerm(value)}
         selectionOptions={[
           {
