@@ -1,4 +1,6 @@
+import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
+import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
 import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
 import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
@@ -27,6 +29,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
   CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -73,6 +76,22 @@ export class EventTypesController_2024_06_14 {
     return {
       status: SUCCESS_STATUS,
       data: eventType,
+    };
+  }
+
+  @Post("/:eventTypeId/create-phone-call")
+  @Permissions([EVENT_TYPE_WRITE])
+  @UseGuards(ApiAuthGuard)
+  async createPhoneCall(
+    @Param("eventTypeId") eventTypeId: number,
+    @Body() body: CreatePhoneCallInput,
+    @GetUser() user: UserWithProfile
+  ): Promise<CreatePhoneCallOutput> {
+    const data = await handleCreatePhoneCall({ user, input: { ...body, eventTypeId } });
+
+    return {
+      status: SUCCESS_STATUS,
+      data,
     };
   }
 

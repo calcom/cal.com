@@ -741,6 +741,46 @@
         ]
       }
     },
+    "/v2/event-types/{eventTypeId}/create-phone-call": {
+      "post": {
+        "operationId": "EventTypesController_2024_06_14_createPhoneCall",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEventTypeOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      }
+    },
     "/v2/selected-calendars": {
       "post": {
         "operationId": "SelectedCalendarsController_addSelectedCalendar",
@@ -10279,9 +10319,6 @@
             "type": "string"
           },
           "rescheduleUid": {
-            "type": "string"
-          },
-          "recurringEventId": {
             "type": "string"
           },
           "timeZone": {

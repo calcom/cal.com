@@ -175,6 +175,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         guestName: values.guestName && values.guestName.trim().length ? values.guestName : undefined,
         eventTypeId: eventType.id,
         calApiKey,
+        id: eventType.id,
       });
 
       createCallMutation.mutate(data);

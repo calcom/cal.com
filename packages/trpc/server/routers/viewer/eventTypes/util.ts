@@ -18,15 +18,22 @@ type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[n
 
 export const eventOwnerProcedure = authedProcedure
   .input(
-    z.object({
-      id: z.number(),
-      users: z.array(z.number()).optional().default([]),
-    })
+    z
+      .object({
+        id: z.number().optional(),
+        eventTypeId: z.number().optional(),
+        users: z.array(z.number()).optional().default([]),
+      })
+      .refine((data) => data.id !== undefined || data.eventTypeId !== undefined, {
+        message: "At least one of 'id' or 'eventTypeId' must be present",
+        path: ["id", "eventTypeId"],
+      })
   )
   .use(async ({ ctx, input, next }) => {
+    const id = input.eventTypeId ?? input.id;
     // Prevent non-owners to update/delete a team event
     const event = await ctx.prisma.eventType.findUnique({
-      where: { id: input.id },
+      where: { id },
       include: {
         users: {
           select: {
