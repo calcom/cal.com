@@ -69,7 +69,7 @@ test.describe("Managed Event Types", () => {
   });
 
   /** From here we use setupManagedEvent to avoid repeating the previous flow */
-  test("Managed event type has unlocked fields for admin", async ({ page, users }) => {
+  test("Has unlocked fields for admin", async ({ page, users }) => {
     const { adminUser, managedEvent } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
     await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
@@ -79,7 +79,7 @@ test.describe("Managed Event Types", () => {
     await expect(page.locator('input[name="length"]')).toBeEditable();
   });
 
-  test("Managed event type exists for added member", async ({ page, users }) => {
+  test("Exists for added member", async ({ page, users }) => {
     const { memberUser, teamEventTitle } = await setupManagedEvent({
       users,
     });
@@ -90,7 +90,7 @@ test.describe("Managed Event Types", () => {
     ).toBeVisible();
   });
 
-  test("Managed event type can use Organizer's default app as location", async ({ page, users }) => {
+  test("Can use Organizer's default app as location", async ({ page, users }) => {
     const { adminUser, managedEvent } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
     await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
@@ -108,7 +108,7 @@ test.describe("Managed Event Types", () => {
     await expect(page.getByTestId("success-page")).toBeVisible();
   });
 
-  test("Managed event type has locked fields for added member", async ({ page, users }) => {
+  test("Has locked fields for added member", async ({ page, users }) => {
     const { memberUser } = await setupManagedEvent({
       users,
     });
@@ -122,7 +122,7 @@ test.describe("Managed Event Types", () => {
     await expect(page.locator('input[name="length"]')).not.toBeEditable();
   });
 
-  test("Managed event type provides discrete field lock/unlock state for admin", async ({ page, users }) => {
+  test("Provides discrete field lock/unlock state for admin", async ({ page, users }) => {
     const { adminUser, teamEventTitle } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
     await page.goto("/event-types");
@@ -145,7 +145,7 @@ test.describe("Managed Event Types", () => {
     await expect(titleLockIndicator.locator("[data-state='unchecked']")).toHaveCount(1);
   });
 
-  test("Managed event type shows discretionally unlocked field to member", async ({ page, users }) => {
+  test("Shows discretionally unlocked field to member", async ({ page, users }) => {
     const { memberUser, teamEventTitle } = await setupManagedEvent({
       users,
       unlockedFields: {
@@ -160,7 +160,7 @@ test.describe("Managed Event Types", () => {
     await expect(page.locator('input[name="title"]')).toBeEditable();
   });
 
-  test("Managed event type should only update the unlocked fields modified by Admin", async ({
+  test("Should only update the unlocked fields modified by Admin", async ({
     page: memberPage,
     users,
     browser,
@@ -236,7 +236,7 @@ test.describe("Managed Event Types", () => {
   ];
 
   MANAGED_EVENT_TABS.forEach((tab) => {
-    test(`Managed event can render "${tab.slug}" tab`, async ({ page, users }) => {
+    test(`Can render "${tab.slug}" tab`, async ({ page, users }) => {
       const { adminUser, managedEvent } = await setupManagedEvent({ users });
       // First we work with owner user, logging in
       await adminUser.apiLogin();
