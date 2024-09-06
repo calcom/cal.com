@@ -42,7 +42,10 @@ export class BusinessDaysWindow_2024_06_14 extends BookingWindowBase {
   @IsOptional()
   @IsBoolean()
   rolling?: boolean;
-  disabled?: false;
+
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
 export class CalendarDaysWindow_2024_06_14 extends BookingWindowBase {
@@ -54,7 +57,9 @@ export class CalendarDaysWindow_2024_06_14 extends BookingWindowBase {
   @IsBoolean()
   rolling?: boolean;
 
-  disabled?: false;
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
 export class RangeWindow_2024_06_14 extends BookingWindowBase {
@@ -64,7 +69,9 @@ export class RangeWindow_2024_06_14 extends BookingWindowBase {
   @IsDefined()
   value!: string[];
 
-  disabled?: false;
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
 export type BookingWindow_2024_06_14 =

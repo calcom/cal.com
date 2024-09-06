@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
-import { IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
 
 import type { Disabled_2024_06_14 } from "./disabled.input";
 
@@ -47,7 +47,9 @@ export class BaseBookingLimitsCount_2024_06_14 {
   })
   year?: number;
 
-  disabled?: false;
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
 export type BookingLimitsCount_2024_06_14 = BaseBookingLimitsCount_2024_06_14 | Disabled_2024_06_14;

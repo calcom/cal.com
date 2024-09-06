@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsInt, Min } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, Min } from "class-validator";
 
 // Class representing the seat options
 export class Seats_2024_06_14 {
@@ -25,7 +25,9 @@ export class Seats_2024_06_14 {
   })
   showAvailabilityCount!: boolean;
 
-  disabled?: false;
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
 export type SeatOptionsTransformedSchema = {

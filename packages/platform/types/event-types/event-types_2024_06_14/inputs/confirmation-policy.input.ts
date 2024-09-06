@@ -46,7 +46,9 @@ export class BaseConfirmationPolicy_2024_06_14 {
   @IsBoolean()
   blockUnconfirmedBookingsInBooker!: boolean;
 
-  disabled?: false;
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
 export type ConfirmationPolicy_2024_06_14 = BaseConfirmationPolicy_2024_06_14 | Disabled_2024_06_14;
