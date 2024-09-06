@@ -5,26 +5,57 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import type { RawDataInput } from "./raw-data.schema";
 
-interface ITimeRange {
-  start: Dayjs;
-  end: Dayjs;
-}
-
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
+  static runSeparateQueriesForOrStatements = async (
+    where: Prisma.BookingTimeStatusWhereInput,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    queryReference: Function,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    originalArgs: any
+  ) => {
+    if (!where["OR"]) {
+      return await queryReference(originalArgs);
+    }
+
+    const queries = [];
+    const existingWhereOr = where["OR"];
+    const { OR: _throwAwayOr, ...whereWithoutOr } = where;
+    for (let i = 0; i < existingWhereOr.length; i++) {
+      const newWhere = {
+        ...whereWithoutOr,
+        ...existingWhereOr[i],
+      };
+      queries.push(
+        queryReference({
+          ...originalArgs,
+          where: newWhere,
+        })
+      );
+    }
+
+    const results = await Promise.all(queries);
+    return results.flat();
+  };
+
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const data = await prisma.bookingTimeStatus.groupBy({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryReference = (args: any) => prisma.bookingTimeStatus.groupBy(args);
+
+    const data = await EventsInsights.runSeparateQueriesForOrStatements(where, queryReference, {
       where,
       by: ["timeStatus"],
       _count: {
         _all: true,
       },
     });
+
     return data.reduce(
+      // @ts-expect-error Element implicitly has any type
       (aggregate: { [x: string]: number }, item) => {
         if (typeof item.timeStatus === "string") {
-          aggregate[item.timeStatus] = item._count._all;
+          aggregate[item.timeStatus] += item._count._all;
           aggregate["_all"] += item._count._all;
         }
         return aggregate;
@@ -53,12 +84,26 @@ class EventsInsights {
   };
 
   static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        noShowHost: true,
-      },
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryReference = (args: any) => prisma.bookingTimeStatus.count(args);
+    const originalWhereConditional = {
+      ...whereConditional,
+      noShowHost: true,
+    };
+
+    const results = await EventsInsights.runSeparateQueriesForOrStatements(
+      originalWhereConditional,
+      queryReference,
+      {
+        where: {
+          ...originalWhereConditional,
+        },
+      }
+    );
+
+    return results.length > 1
+      ? results.reduce((total: number, item: number) => total + (item || 0), 0)
+      : results;
   };
 
   static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
