@@ -2285,9 +2285,9 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/webhooks": {
+    "/v2/organizations/{orgId}/attributes": {
       "get": {
-        "operationId": "OrganizationsWebhooksController_getAllWebhooks",
+        "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
         "parameters": [
           {
             "name": "orgId",
@@ -2324,7 +2324,493 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/GetOrganizationAttributesOutput"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "OrganizationsAttributesController_createOrganizationAttribute",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationAttributeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrganizationAttributesOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/organizations/{orgId}/attributes/{attributeId}": {
+      "get": {
+        "operationId": "OrganizationsAttributesController_getOrganizationAttribute",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSingleAttributeOutput"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "OrganizationsAttributesController_updateOrganizationAttribute",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationAttributeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateOrganizationAttributesOutput"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "OrganizationsAttributesController_deleteOrganizationAttribute",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteOrganizationAttributesOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/organizations/{orgId}/attributes/{attributeId}/options": {
+      "post": {
+        "operationId": "OrganizationsOptionsAttributesController_createOrganizationAttributeOption",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationAttributeOptionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAttributeOptionOutput"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptions",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllAttributeOptionOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}": {
+      "delete": {
+        "operationId": "OrganizationsOptionsAttributesController_deleteOrganizationAttributeOption",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "optionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAttributeOptionOutput"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "OrganizationsOptionsAttributesController_updateOrganizationAttributeOption",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "optionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationAttributeOptionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateAttributeOptionOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/organizations/{orgId}/attributes/options/{userId}": {
+      "post": {
+        "operationId": "OrganizationsOptionsAttributesController_assignOrganizationAttributeOptionToUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignOrganizationAttributeOptionToUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignOptionUserOutput"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptionsForUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOptionUserOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/organizations/{orgId}/attributes/options/{userId}/{attributeOptionId}": {
+      "delete": {
+        "operationId": "OrganizationsOptionsAttributesController_unassignOrganizationAttributeOptionFromUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "attributeOptionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnassignOptionUserOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/organizations/{orgId}/webhooks": {
+      "get": {
+        "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamWebhooksOutputResponseDto"
                 }
               }
             }
@@ -2335,7 +2821,7 @@
         ]
       },
       "post": {
-        "operationId": "OrganizationsWebhooksController_createWebhook",
+        "operationId": "OrganizationsWebhooksController_createOrganizationWebhook",
         "parameters": [
           {
             "name": "orgId",
@@ -2362,7 +2848,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -2375,16 +2861,8 @@
     },
     "/v2/organizations/{orgId}/webhooks/{webhookId}": {
       "get": {
-        "operationId": "OrganizationsWebhooksController_getOrgWebhook",
+        "operationId": "OrganizationsWebhooksController_getOrganizationWebhook",
         "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
           {
             "name": "webhookId",
             "required": true,
@@ -2400,7 +2878,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -2414,14 +2892,6 @@
         "operationId": "OrganizationsWebhooksController_deleteWebhook",
         "parameters": [
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -2436,7 +2906,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -2447,16 +2917,8 @@
         ]
       },
       "patch": {
-        "operationId": "OrganizationsWebhooksController_updateWebhook",
+        "operationId": "OrganizationsWebhooksController_updateOrgWebhook",
         "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
           {
             "name": "webhookId",
             "required": true,
@@ -2482,7 +2944,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrgWebhooksResponseDto"
+                  "$ref": "#/components/schemas/TeamWebhookOutputResponseDto"
                 }
               }
             }
@@ -7602,6 +8064,665 @@
           "userId"
         ]
       },
+      "Attribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the attribute",
+            "example": "attr_123"
+          },
+          "teamId": {
+            "type": "number",
+            "description": "The team ID associated with the attribute",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the attribute",
+            "enum": [
+              "TEXT",
+              "NUMBER",
+              "SINGLE_SELECT",
+              "MULTI_SELECT"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the attribute",
+            "example": "Attribute Name"
+          },
+          "slug": {
+            "type": "string",
+            "description": "The slug of the attribute",
+            "example": "attribute-name"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the attribute is enabled and displayed on their profile",
+            "example": true
+          },
+          "usersCanEditRelation": {
+            "type": "boolean",
+            "description": "Whether users can edit the relation",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "teamId",
+          "type",
+          "name",
+          "slug",
+          "enabled"
+        ]
+      },
+      "GetOrganizationAttributesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attribute"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetSingleAttributeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attribute"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateOrganizationAttributeOptionInput": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "slug"
+        ]
+      },
+      "CreateOrganizationAttributeInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "object"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrganizationAttributeOptionInput"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "type",
+          "options"
+        ]
+      },
+      "CreateOrganizationAttributesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Attribute"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateOrganizationAttributeInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "object"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateOrganizationAttributesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Attribute"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteOrganizationAttributesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Attribute"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OptionOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the option",
+            "example": "attr_option_id"
+          },
+          "attributeId": {
+            "type": "string",
+            "description": "The ID of the attribute",
+            "example": "attr_id"
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the option",
+            "example": "option_value"
+          },
+          "slug": {
+            "type": "string",
+            "description": "The slug of the option",
+            "example": "option-slug"
+          }
+        },
+        "required": [
+          "id",
+          "attributeId",
+          "value",
+          "slug"
+        ]
+      },
+      "CreateAttributeOptionOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OptionOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteAttributeOptionOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OptionOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateOrganizationAttributeOptionInput": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateAttributeOptionOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OptionOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetAllAttributeOptionOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OptionOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "AssignOrganizationAttributeOptionToUserInput": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "attributeOptionId": {
+            "type": "string"
+          },
+          "attributeId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributeId"
+        ]
+      },
+      "AssignOptionUserOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the option assigned to the user"
+          },
+          "memberId": {
+            "type": "number",
+            "description": "The ID form the org membership for the user"
+          },
+          "attributeOptionId": {
+            "type": "string",
+            "description": "The value of the option"
+          }
+        },
+        "required": [
+          "id",
+          "memberId",
+          "attributeOptionId"
+        ]
+      },
+      "AssignOptionUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AssignOptionUserOutputData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UnassignOptionUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AssignOptionUserOutputData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetOptionUserOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the option assigned to the user"
+          },
+          "attributeId": {
+            "type": "string",
+            "description": "The ID of the attribute"
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the option"
+          },
+          "slug": {
+            "type": "string",
+            "description": "The slug of the option"
+          }
+        },
+        "required": [
+          "id",
+          "attributeId",
+          "value",
+          "slug"
+        ]
+      },
+      "GetOptionUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetOptionUserOutputData"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "TeamWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "teamId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "TeamWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamWebhookOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "triggers",
+          "active",
+          "subscriberUrl"
+        ]
+      },
+      "TeamWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        }
+      },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -9296,59 +10417,6 @@
         "type": "object",
         "properties": {}
       },
-      "CreateWebhookInputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "triggers": {
-            "type": "string",
-            "example": [
-              "BOOKING_CREATED",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_CANCELLED",
-              "BOOKING_CONFIRMED",
-              "BOOKING_REJECTED",
-              "BOOKING_COMPLETED",
-              "BOOKING_NO_SHOW",
-              "BOOKING_REOPENED"
-            ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
-            ]
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "secret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "triggers",
-          "active",
-          "subscriberUrl"
-        ]
-      },
       "UserWebhookOutputDto": {
         "type": "object",
         "properties": {
@@ -9358,84 +10426,6 @@
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
           "userId": {
-            "type": "number"
-          },
-          "id": {
-            "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "secret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "payloadTemplate",
-          "userId",
-          "id",
-          "triggers",
-          "subscriberUrl",
-          "active"
-        ]
-      },
-      "OrgWebhookOutputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "id": {
-            "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "secret": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "payloadTemplate",
-          "userId",
-          "id",
-          "triggers",
-          "subscriberUrl",
-          "active"
-        ]
-      },
-      "GetAllOrgWebhooksDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "teamId": {
             "type": "number"
           },
           "id": {
@@ -9485,74 +10475,6 @@
           "status",
           "data"
         ]
-      },
-      "OrgWebhooksResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/GetAllOrgWebhooksDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateWebhookInputDto": {
-        "type": "object",
-        "properties": {
-          "payloadTemplate": {
-            "type": "string",
-            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
-            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
-          },
-          "triggers": {
-            "type": "string",
-            "example": [
-              "BOOKING_CREATED",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_CANCELLED",
-              "BOOKING_CONFIRMED",
-              "BOOKING_REJECTED",
-              "BOOKING_COMPLETED",
-              "BOOKING_NO_SHOW",
-              "BOOKING_REOPENED"
-            ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
-            ]
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
-          "secret": {
-            "type": "string"
-          }
-        }
       },
       "UserWebhooksOutputResponseDto": {
         "type": "object",
