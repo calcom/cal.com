@@ -84,12 +84,7 @@ class EventsInsights {
       };
     }
 
-    return {
-      completed: 0,
-      rescheduled: 0,
-      cancelled: 0,
-      _all: 0,
-    };
+    return defaultValue;
   };
 
   static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
