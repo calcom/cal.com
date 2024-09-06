@@ -59,13 +59,12 @@ const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWith
   return `/${user.username}/${user.eventTypes.at(-1)?.slug}?month=${date.format("YYYY-MM")}`;
 };
 
-// eslint-disable-next-line playwright/no-skipped-test
-test.skip("Booking limits", () => {
+test.describe("Booking limits", () => {
   entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
     const limitUnit = intervalLimitKeyToUnit(limitKey);
 
     // test one limit at a time
-    test(limitUnit, async ({ page, users }) => {
+    test.fixme(`Per ${limitUnit}`, async ({ page, users }) => {
       const slug = `booking-limit-${limitUnit}`;
       const singleLimit = { [limitKey]: bookingLimit };
 
