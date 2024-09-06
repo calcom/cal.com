@@ -76,7 +76,7 @@ enum BookingTypes {
   MEDIC_APPOINTMENT = "Consulta Médica",
   URGENT_APPOINTMENT = "Consulta Médica de Urgência",
   OCCUPATIONAL_THERAPY = "Sessão de Terapia Ocupacional",
-  COGNTIVE_BEHAVIORAL_THERAPY = "Sessão de Terapia Cognitivo-Comportamental",
+  COGNTIVE_BEHAVIORAL_THERAPY = "Sessão de Psicologia",
 }
 
 enum VariantDescription {
@@ -364,10 +364,10 @@ export default function Success(props: PageProps) {
             setPurchaseDate(dayjs(findedBooking?.createdAt));
             setAppointmentType((_prev) => {
               switch (true) {
-                case findedBooking?.title.includes(BookingTypes.MEDIC_APPOINTMENT):
-                  return BookingTypes.MEDIC_APPOINTMENT;
                 case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
                   return BookingTypes.URGENT_APPOINTMENT;
+                case findedBooking?.title.includes(BookingTypes.MEDIC_APPOINTMENT):
+                  return BookingTypes.MEDIC_APPOINTMENT;
                 case findedBooking?.title.includes(BookingTypes.OCCUPATIONAL_THERAPY):
                   return BookingTypes.OCCUPATIONAL_THERAPY;
                 case findedBooking?.title.includes(BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY):
