@@ -6,6 +6,9 @@ import prisma from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
+import checkParentEventOwnership from "../_utils/checkParentEventOwnership";
+import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission";
+
 /**
  * @swagger
  * /event-types/{id}:
@@ -49,9 +52,18 @@ async function checkPermissions(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   if (isSystemWideAdmin) return;
-  /** Only event type owners can delete it */
-  const eventType = await prisma.eventType.findFirst({ where: { id, userId } });
+
+  const eventType = await prisma.eventType.findFirst({ where: { id } });
+
   if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+
+  /** Only event type owners or team owners for team events can delete it */
+  if (eventType.teamId) return await checkTeamEventEditPermission(req, { teamId: eventType.teamId });
+
+  if (eventType.parentId) return await checkParentEventOwnership(req);
+
+  if (eventType.userId && eventType.userId !== userId)
+    throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default defaultResponder(deleteHandler);
