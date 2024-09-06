@@ -806,6 +806,7 @@ export default function MemberListItem(props: Props) {
           dispatch={dispatch}
           state={state}
           connectedApps={connectedApps[state.editSheet?.user?.id || 0] ?? []}
+          currentMember={props.team.membership.role}
         />
       )}
     </div>
