@@ -19,7 +19,7 @@ function EditModeFooter() {
         {t("cancel")}
       </Button>
 
-      <Button type="submit" className="w-fit" form="edit-user-form" loading={isPending}>
+      <Button type="submit" className="w-fit" loading={isPending}>
         {t("update")}
       </Button>
     </>

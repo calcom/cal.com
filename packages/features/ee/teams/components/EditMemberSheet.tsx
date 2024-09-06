@@ -41,11 +41,13 @@ export function EditMemberSheet({
   dispatch,
   connectedApps,
   currentMember,
+  teamId,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
   connectedApps: ConnectedAppsType[];
   currentMember: MembershipRole;
+  teamId: number;
 }) {
   const { t } = useLocale();
   const { user } = state.editSheet;
@@ -59,6 +61,7 @@ export function EditMemberSheet({
     })();
 
   const bookerUrl = selectedUser.bookerUrl;
+  const utils = trpc.useUtils();
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
 
@@ -113,11 +116,9 @@ export function EditMemberSheet({
   });
 
   function changeRole(values: FormSchema) {
-    e.preventDefault();
-
     changeRoleMutation.mutate({
-      teamId: user.teamId,
-      memberId: user.memberId,
+      teamId: teamId,
+      memberId: user?.id as number,
       role: values.role,
     });
   }
@@ -145,8 +146,8 @@ export function EditMemberSheet({
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <Form form={form} handleSubmit={changeRole}>
-        <SheetContent className="bg-muted">
+      <SheetContent className="bg-muted">
+        <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
           <SheetHeader showCloseButton={false} className="w-full">
             <div className="border-sublte bg-default w-full rounded-xl border p-4">
               <OrganizationBanner />
@@ -207,8 +208,8 @@ export function EditMemberSheet({
           <SheetFooter className="mt-auto">
             <SheetFooterControls />
           </SheetFooter>
-        </SheetContent>
-      </Form>
+        </Form>
+      </SheetContent>
     </Sheet>
   );
 }

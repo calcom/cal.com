@@ -35,7 +35,6 @@ import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitat
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
 import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
-import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
@@ -62,7 +61,6 @@ type Payload = {
 };
 
 export type State = {
-  changeMemberRole: Payload;
   deleteMember: Payload;
   impersonateMember: Payload;
   inviteMember: Payload;
@@ -74,7 +72,6 @@ export type State = {
 export type Action =
   | {
       type:
-        | "SET_CHANGE_MEMBER_ROLE_ID"
         | "SET_DELETE_ID"
         | "SET_IMPERSONATE_ID"
         | "INVITE_MEMBER"
@@ -88,9 +85,6 @@ export type Action =
     };
 
 const initialState: State = {
-  changeMemberRole: {
-    showModal: false,
-  },
   deleteMember: {
     showModal: false,
   },
@@ -113,8 +107,6 @@ const initialState: State = {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "SET_CHANGE_MEMBER_ROLE_ID":
-      return { ...state, changeMemberRole: action.payload };
     case "SET_DELETE_ID":
       return { ...state, deleteMember: action.payload };
     case "SET_IMPERSONATE_ID":
@@ -130,7 +122,6 @@ function reducer(state: State, action: Action): State {
     case "CLOSE_MODAL":
       return {
         ...state,
-        changeMemberRole: { showModal: false },
         deleteMember: { showModal: false },
         impersonateMember: { showModal: false },
         inviteMember: { showModal: false },
@@ -725,21 +716,6 @@ export default function MemberListItem(props: Props) {
           </DialogContent>
         </Dialog>
       )}
-
-      {state.changeMemberRole.showModal && (
-        <MemberChangeRoleModal
-          isOpen={true}
-          currentMember={props.team.membership.role}
-          teamId={props.team?.id}
-          memberId={state.changeMemberRole.user?.id as number}
-          initialRole={state.changeMemberRole.user?.role as MembershipRole}
-          onExit={() =>
-            dispatch({
-              type: "CLOSE_MODAL",
-            })
-          }
-        />
-      )}
       {state.inviteMember.showModal && (
         <MemberInvitationModalWithoutMembers
           teamId={props.team.id}
@@ -807,6 +783,7 @@ export default function MemberListItem(props: Props) {
           state={state}
           connectedApps={connectedApps[state.editSheet?.user?.id || 0] ?? []}
           currentMember={props.team.membership.role}
+          teamId={props.team.id}
         />
       )}
     </div>
