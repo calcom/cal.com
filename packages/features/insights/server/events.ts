@@ -5,45 +5,43 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import type { RawDataInput } from "./raw-data.schema";
 
-interface ITimeRange {
-  start: Dayjs;
-  end: Dayjs;
-}
-
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
   static runSeparateQueriesForOrStatements = async (
     where: Prisma.BookingTimeStatusWhereInput,
-    queryReference: () => Promise<T>,
-    originalQueryParams: any
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    queryReference: Function,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    originalArgs: any
   ) => {
-    if (!!where["OR"]) {
-      const queries = [];
-      const existingWhereOr = where["OR"];
-      const { OR: throwAwayOr, ...whereWithoutOr } = where;
-      for (let i = 0; i < existingWhereOr.length; i++) {
-        const newWhere = {
-          ...whereWithoutOr,
-          ...existingWhereOr[i],
-        };
-        queries.push(
-          queryReference({
-            ...originalQueryParams,
-            where: newWhere,
-          })
-        );
-      }
-
-      const results = await Promise.all(queries);
-      return results.flat();
+    if (!where["OR"]) {
+      return await queryReference(originalArgs);
     }
 
-    return await queryReference(originalQueryParams);
+    const queries = [];
+    const existingWhereOr = where["OR"];
+    const { OR: _throwAwayOr, ...whereWithoutOr } = where;
+    for (let i = 0; i < existingWhereOr.length; i++) {
+      const newWhere = {
+        ...whereWithoutOr,
+        ...existingWhereOr[i],
+      };
+      queries.push(
+        queryReference({
+          ...originalArgs,
+          where: newWhere,
+        })
+      );
+    }
+
+    const results = await Promise.all(queries);
+    return results.flat();
   };
 
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const queryReference = async (args) => prisma.bookingTimeStatus.groupBy(args);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryReference = (args: any) => prisma.bookingTimeStatus.groupBy(args);
 
     const data = await EventsInsights.runSeparateQueriesForOrStatements(where, queryReference, {
       where,
@@ -54,6 +52,7 @@ class EventsInsights {
     });
 
     return data.reduce(
+      // @ts-expect-error Element implicitly has any type
       (aggregate: { [x: string]: number }, item) => {
         if (typeof item.timeStatus === "string") {
           aggregate[item.timeStatus] += item._count._all;
@@ -85,20 +84,24 @@ class EventsInsights {
   };
 
   static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    const queryReference = async (args) => prisma.bookingTimeStatus.count(args);
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryReference = (args: any) => prisma.bookingTimeStatus.count(args);
     const originalWhereConditional = {
-      where: {
-        ...whereConditional,
-        noShowHost: true,
-      },
+      ...whereConditional,
+      noShowHost: true,
     };
 
-    return await EventsInsights.runSeparateQueriesForOrStatements(
+    const results = await EventsInsights.runSeparateQueriesForOrStatements(
       originalWhereConditional,
       queryReference,
-      originalWhereConditional
+      {
+        where: {
+          ...originalWhereConditional,
+        },
+      }
     );
+
+    return results.reduce((total: number, item: number) => total + (item || 0), 0);
   };
 
   static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
