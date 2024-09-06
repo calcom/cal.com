@@ -269,7 +269,7 @@ export const OutOfOfficeEntriesList = ({
         <ToggleGroup
           className="hidden md:block"
           defaultValue={recordType}
-          onValueChange={(value) => setRecordType(value)}
+          onValueChange={(value) => setRecordType(value as OutOfOfficeRecordType)}
           options={toggleGroupOptions}
         />
       </div>
