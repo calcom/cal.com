@@ -64,13 +64,20 @@ test.describe("Teams", () => {
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
-    await test.step("Can finish team creation", async () => {
+    await test.step("Can finish team invitation", async () => {
       await page.getByTestId("publish-button").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+    });
+
+    await test.step("Can finish team creation", async () => {
+      await expect(page.locator('button[value="ROUND_ROBIN"]')).toBeVisible();
+      await page.click('button[value="ROUND_ROBIN"]');
+      await page.fill("[name=title]", "roundRobin");
+      await page.getByTestId("finish-button").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
       await page.getByTestId("disband-team-button").click();
       await page.getByTestId("dialog-confirmation").click();
       await page.waitForURL("/teams");
