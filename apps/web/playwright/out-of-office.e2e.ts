@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,7 +9,9 @@ import prisma from "@calcom/prisma";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
-test.afterEach(({ users }) => users.deleteAll());
+test.afterEach(async ({ users }) => {
+  await users.deleteAll();
+});
 
 test.describe("Out of office", () => {
   test("User can create out of office entry", async ({ page, users }) => {
@@ -17,10 +20,8 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
-    // await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add_entry_ooo").click();
-    // await page.waitForLoadState("networkidle");
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -64,10 +65,8 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto(`/settings/my-account/out-of-office`);
-    // await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add_entry_ooo").click();
-    // await page.waitForLoadState("networkidle");
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -83,7 +82,7 @@ test.describe("Out of office", () => {
     await page.locator("#react-select-3-input").press("Enter");
 
     // send request
-    await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
+    await submitAndWaitForResponse(page);
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -146,7 +145,6 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto(`/settings/my-account/out-of-office`);
-    // await page.waitForLoadState("networkidle");
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -163,7 +161,7 @@ test.describe("Out of office", () => {
     await page.locator("#react-select-3-input").press("Enter");
 
     // send request
-    await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
+    await submitAndWaitForResponse(page);
 
     // expect entry with new username exist.
     await expect(page.locator(`data-testid=table-redirect-${userToSecond.username}`)).toBeVisible();
@@ -196,7 +194,6 @@ test.describe("Out of office", () => {
     });
 
     await page.goto(`/${user.username}`);
-    // await page.waitForLoadState("networkidle");
 
     const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
     await eventTypeLink.click();
@@ -204,3 +201,10 @@ test.describe("Out of office", () => {
     await expect(page.getByTestId("away-emoji")).toBeTruthy();
   });
 });
+
+async function submitAndWaitForResponse(page: Page) {
+  const submitPromise = page.waitForResponse("/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1");
+  await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
+  const response = await submitPromise;
+  expect(response.status()).toBe(200);
+}
