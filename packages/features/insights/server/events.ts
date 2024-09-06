@@ -101,7 +101,9 @@ class EventsInsights {
       }
     );
 
-    return results.reduce((total: number, item: number) => total + (item || 0), 0);
+    return results.length > 1
+      ? results.reduce((total: number, item: number) => total + (item || 0), 0)
+      : results;
   };
 
   static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
