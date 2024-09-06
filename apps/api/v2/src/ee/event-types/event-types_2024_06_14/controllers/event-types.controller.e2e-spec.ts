@@ -244,10 +244,10 @@ describe("Event types Endpoints", () => {
           ],
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
-        requiresConfirmation: {
+        confirmationPolicy: {
           type: ConfirmationPolicyEnum.TIME,
           noticeThreshold: {
-            time: 60,
+            count: 60,
             unit: NoticeThresholdUnitEnum.MINUTES,
           },
           blockUnconfirmedBookingsInBooker: true,
@@ -256,6 +256,7 @@ describe("Event types Endpoints", () => {
           frequency: FrequencyInput.weekly,
           interval: 2,
           occurrences: 10,
+          disabled: false,
         },
         requiresBookerEmailVerification: false,
         hideCalendarNotes: false,
@@ -288,7 +289,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.offsetStart).toEqual(body.offsetStart);
           expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
           expect(createdEventType.bookerLayouts).toEqual(body.bookerLayouts);
-          expect(createdEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
+          expect(createdEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(createdEventType.recurrence).toEqual(body.recurrence);
           expect(createdEventType.requiresBookerEmailVerification).toEqual(
             body.requiresBookerEmailVerification
@@ -332,7 +333,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
-      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
+      expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
@@ -426,14 +427,14 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
-    it("should return an error when creating an event type with seats enabled and requiresConfirmation enabled", async () => {
+    it("should return an error when creating an event type with seats enabled and confirmationPolicy enabled", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class 4",
         slug: "coding-class-4",
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
         scheduleId: firstSchedule.id,
-        requiresConfirmation: {
+        confirmationPolicy: {
           type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
@@ -451,13 +452,13 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
-    it("should return an error when trying to enable seats for an event type with requiresConfirmation enabled", async () => {
+    it("should return an error when trying to enable seats for an event type with confirmationPolicy enabled", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class 5",
         slug: "coding-class-5",
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
-        requiresConfirmation: {
+        confirmationPolicy: {
           type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
@@ -478,7 +479,7 @@ describe("Event types Endpoints", () => {
         title: body.title,
         description: body.description,
         lengthInMinutes: body.lengthInMinutes,
-        requiresConfirmation: body.requiresConfirmation,
+        confirmationPolicy: body.confirmationPolicy,
         scheduleId: firstSchedule.id,
       });
 
@@ -545,13 +546,13 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
-    it("should return an error when creating an event type with requiresConfirmation enabled and seats enabled", async () => {
+    it("should return an error when creating an event type with confirmationPolicy enabled and seats enabled", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class 7",
         slug: "coding-class-7",
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
-        requiresConfirmation: {
+        confirmationPolicy: {
           type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
@@ -570,7 +571,7 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
-    it("should return an error when trying to enable requiresConfirmation for an event type with seats enabled", async () => {
+    it("should return an error when trying to enable confirmationPolicy for an event type with seats enabled", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class 8",
         slug: "coding-class-8",
@@ -605,7 +606,7 @@ describe("Event types Endpoints", () => {
         .patch(`/api/v2/event-types/${createdEventType.id}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send({
-          requiresConfirmation: {
+          confirmationPolicy: {
             type: ConfirmationPolicyEnum.ALWAYS,
             blockUnconfirmedBookingsInBooker: false,
           },
@@ -642,7 +643,7 @@ describe("Event types Endpoints", () => {
           ],
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
-        requiresConfirmation: {
+        confirmationPolicy: {
           type: ConfirmationPolicyEnum.ALWAYS,
           blockUnconfirmedBookingsInBooker: false,
         },
@@ -650,6 +651,7 @@ describe("Event types Endpoints", () => {
           frequency: FrequencyInput.monthly,
           interval: 4,
           occurrences: 10,
+          disabled: false,
         },
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
@@ -684,7 +686,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.offsetStart).toEqual(body.offsetStart);
           expect(updatedEventType.bookingWindow).toEqual(body.bookingWindow);
           expect(updatedEventType.bookerLayouts).toEqual(body.bookerLayouts);
-          expect(updatedEventType.requiresConfirmation).toEqual(body.requiresConfirmation);
+          expect(updatedEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(updatedEventType.recurrence).toEqual(body.recurrence);
           expect(updatedEventType.requiresBookerEmailVerification).toEqual(
             body.requiresBookerEmailVerification
@@ -703,7 +705,7 @@ describe("Event types Endpoints", () => {
           eventType.offsetStart = updatedEventType.offsetStart;
           eventType.bookingWindow = updatedEventType.bookingWindow;
           eventType.bookerLayouts = updatedEventType.bookerLayouts;
-          eventType.requiresConfirmation = updatedEventType.requiresConfirmation;
+          eventType.confirmationPolicy = updatedEventType.confirmationPolicy;
           eventType.recurrence = updatedEventType.recurrence;
           eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
@@ -750,7 +752,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
-      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
+      expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
@@ -786,7 +788,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
-      expect(fetchedEventType.requiresConfirmation).toEqual(eventType.requiresConfirmation);
+      expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification

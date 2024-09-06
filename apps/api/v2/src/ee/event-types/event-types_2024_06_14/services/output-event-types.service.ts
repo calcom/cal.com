@@ -27,8 +27,8 @@ import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
   NoticeThresholdTransformedSchema,
+  EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
-import { NoticeThreshold_2024_06_14 } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 export type DatabaseEventType = EventType & EventTypeRelations;
@@ -79,7 +79,7 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  getResponseEventType(ownerId: number, databaseEventType: Input) {
+  getResponseEventType(ownerId: number, databaseEventType: Input): EventTypeOutput_2024_06_14 {
     const {
       id,
       length,

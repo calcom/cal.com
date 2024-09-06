@@ -290,7 +290,7 @@ describe("Organizations Event Types Endpoints", () => {
           defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
         },
 
-        requiresConfirmation: {
+        confirmationPolicy: {
           type: ConfirmationPolicyEnum.TIME,
           noticeThreshold: {
             count: 60,
@@ -327,7 +327,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.offsetStart).toEqual(body.offsetStart);
           expect(data.bookingWindow).toEqual(body.bookingWindow);
           expect(data.bookerLayouts).toEqual(body.bookerLayouts);
-          expect(data.requiresConfirmation).toEqual(body.requiresConfirmation);
+          expect(data.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);

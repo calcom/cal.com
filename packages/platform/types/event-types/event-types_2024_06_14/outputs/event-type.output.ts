@@ -1,5 +1,5 @@
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
@@ -179,6 +179,7 @@ export class EventTypeOutput_2024_06_14 {
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
+  @Expose()
   @IsString()
   name!: string;
 }

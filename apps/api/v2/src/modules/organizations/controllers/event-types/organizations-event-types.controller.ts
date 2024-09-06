@@ -14,10 +14,12 @@ import { DeleteTeamEventTypeOutput } from "@/modules/organizations/controllers/e
 import { GetTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-type.output";
 import { GetTeamEventTypesOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-types.output";
 import { UpdateTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/update-team-event-type.output";
-import { OutputTeamEventTypesResponseInterceptor } from "@/modules/organizations/interceptors/output-team-event-types-response.interceptor";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
+import {
+  DatabaseTeamEventType,
+  OutputOrganizationsEventTypesService,
+} from "@/modules/organizations/services/event-types/output.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -33,15 +35,16 @@ import {
   HttpStatus,
   NotFoundException,
   Query,
-  UseInterceptors,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
   SkipTakePagination,
+  TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
@@ -59,20 +62,28 @@ export class OrganizationsEventTypesController {
   constructor(
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
     private readonly inputService: InputOrganizationsEventTypesService,
-    private readonly inputUserEventTypesService: InputEventTypesService_2024_06_14
+    private readonly inputUserEventTypesService: InputEventTypesService_2024_06_14,
+    private readonly outputOrganizationsEventTypesService: OutputOrganizationsEventTypesService
   ) {}
+
+  private async transformEventType(item: DatabaseTeamEventType): Promise<TeamEventTypeOutput_2024_06_14> {
+    return plainToClass(
+      TeamEventTypeOutput_2024_06_14,
+      await this.outputOrganizationsEventTypesService.getResponseTeamEventType(item),
+      { strategy: "exposeAll" }
+    );
+  }
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<CreateTeamEventTypeOutput>)
   @Post("/teams/:teamId/event-types")
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() bodyEventType: CreateTeamEventTypeInput_2024_06_14
-  ): Promise<EventTypeHandlerResponse> {
+  ): Promise<CreateTeamEventTypeOutput> {
     await this.inputService.validateHosts(teamId, bodyEventType.hosts);
     const transformedBody = await this.inputService.transformInputCreateTeamEventType(teamId, bodyEventType);
 
@@ -90,9 +101,13 @@ export class OrganizationsEventTypesController {
       transformedBody
     );
 
+    const transformedData = Array.isArray(eventType)
+      ? await Promise.all(eventType.map((item) => this.transformEventType(item)))
+      : await this.transformEventType(eventType);
+
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: transformedData,
     };
   }
 
@@ -100,63 +115,68 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types/:eventTypeId")
-  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<GetTeamEventTypeOutput>)
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number
-  ): Promise<EventTypeHandlerResponse> {
+  ): Promise<GetTeamEventTypeOutput> {
     const eventType = await this.organizationsEventTypesService.getTeamEventType(teamId, eventTypeId);
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
+    const transformedData = await this.transformEventType(eventType);
+
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: transformedData,
     };
   }
 
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
-  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<GetTeamEventTypesOutput>)
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
-  ): Promise<EventTypeHandlerResponse> {
+  ): Promise<GetTeamEventTypesOutput> {
     const { eventSlug } = queryParams;
+
     if (eventSlug) {
       const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
+      const data = eventType ? [eventType] : [];
+
+      const transformedData = await Promise.all(data.map((item) => this.transformEventType(item)));
 
       return {
         status: SUCCESS_STATUS,
-        data: eventType ? [eventType] : [],
+        data: transformedData,
       };
     }
 
     const eventTypes = await this.organizationsEventTypesService.getTeamEventTypes(teamId);
+    const transformedData = await Promise.all(eventTypes.map((item) => this.transformEventType(item)));
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypes,
+      data: transformedData,
     };
   }
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<GetTeamEventTypesOutput>)
   @Get("/teams/event-types")
   async getTeamsEventTypes(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
-  ): Promise<EventTypeHandlerResponse> {
+  ): Promise<GetTeamEventTypesOutput> {
     const { skip, take } = queryParams;
     const eventTypes = await this.organizationsEventTypesService.getTeamsEventTypes(orgId, skip, take);
+    const transformedData = await Promise.all(eventTypes.map((item) => this.transformEventType(item)));
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypes,
+      data: transformedData,
     };
   }
 
@@ -164,13 +184,12 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
-  @UseInterceptors(OutputTeamEventTypesResponseInterceptor<UpdateTeamEventTypeOutput>)
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number,
     @GetUser() user: UserWithProfile,
     @Body() bodyEventType: UpdateTeamEventTypeInput_2024_06_14
-  ): Promise<EventTypeHandlerResponse> {
+  ): Promise<UpdateTeamEventTypeOutput> {
     await this.inputService.validateHosts(teamId, bodyEventType.hosts);
     const transformedBody = await this.inputService.transformInputUpdateTeamEventType(
       eventTypeId,
@@ -192,9 +211,13 @@ export class OrganizationsEventTypesController {
       user
     );
 
+    const transformedData = Array.isArray(eventType)
+      ? await Promise.all(eventType.map((item) => this.transformEventType(item)))
+      : await this.transformEventType(eventType);
+
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: transformedData,
     };
   }
 
@@ -205,7 +228,7 @@ export class OrganizationsEventTypesController {
   @HttpCode(HttpStatus.OK)
   async deleteTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("eventTypeId") eventTypeId: number
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<DeleteTeamEventTypeOutput> {
     const eventType = await this.organizationsEventTypesService.deleteTeamEventType(teamId, eventTypeId);
 

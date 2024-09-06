@@ -1,5 +1,5 @@
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
-import { Type, Transform } from "class-transformer";
+import { Expose, Type, Transform } from "class-transformer";
 import {
   IsString,
   IsInt,
@@ -170,14 +170,17 @@ export enum HostPriority {
   highest = "highest",
 }
 export class Host {
+  @Expose()
   @IsInt()
   userId!: number;
 
   @IsOptional()
+  @Expose()
   @IsBoolean()
   mandatory?: boolean = false;
 
   @IsEnum(HostPriority)
+  @Expose()
   @IsOptional()
   priority?: keyof typeof HostPriority = "medium";
 }
