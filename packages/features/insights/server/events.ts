@@ -13,8 +13,11 @@ interface ITimeRange {
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
-  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    let data;
+  static runSeparateQueriesForOrStatements = async (
+    where: Prisma.BookingTimeStatusWhereInput,
+    originalQuery: any,
+    originalQueryParams: any
+  ) => {
     if (!!where["OR"]) {
       const queries = [];
       const existingWhereOr = where["OR"];
@@ -25,27 +28,32 @@ class EventsInsights {
           ...existingWhereOr[i],
         };
         queries.push(
-          prisma.bookingTimeStatus.groupBy({
+          originalQuery({
+            ...originalQueryParams,
             where: newWhere,
-            by: ["timeStatus"],
-            _count: {
-              _all: true,
-            },
           })
         );
       }
 
       const results = await Promise.all(queries);
-      data = results.flat();
-    } else {
-      data = await prisma.bookingTimeStatus.groupBy({
+      return results.flat();
+    }
+
+    return await originalQuery(originalQueryParams);
+  };
+
+  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const data = await EventsInsights.runSeparateQueriesForOrStatements(
+      where,
+      prisma.bookingTimeStatus.groupBy,
+      {
         where,
         by: ["timeStatus"],
         _count: {
           _all: true,
         },
-      });
-    }
+      }
+    );
 
     return data.reduce(
       (aggregate: { [x: string]: number }, item) => {
