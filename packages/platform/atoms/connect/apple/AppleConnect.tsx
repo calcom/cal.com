@@ -76,7 +76,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
       <Dialog open={isDialogOpen}>
         <DialogTrigger>
           <Button
-            StartIcon="calendar-days"
+            StartIcon="calendar"
             color="primary"
             disabled={isDisabled}
             className={cn("", className, isDisabled && "cursor-not-allowed", !isDisabled && "cursor-pointer")}

@@ -647,6 +647,7 @@ test.describe("FORM_SUBMITTED", async () => {
         responses: {
           name: {
             value: "John Doe",
+            response: "John Doe",
           },
         },
       },
@@ -673,14 +674,33 @@ test.describe("FORM_SUBMITTED", async () => {
           identifier: "name",
           required: true,
         },
+        {
+          type: "multiselect",
+          label: "Multi Select",
+          identifier: "multi",
+          required: true,
+          options: [
+            {
+              label: "Option-1",
+              id: "1",
+            },
+            {
+              label: "Option-2",
+              id: "2",
+            },
+          ],
+        },
       ],
     });
 
     await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
-    const fieldName = "name";
-    await page.fill(`[data-testid="form-field-${fieldName}"]`, "John Doe");
+    const textFieldIdentifier = "name";
+    const multiSelectFieldIdentifier = "multi";
+    await page.fill(`[data-testid="form-field-${textFieldIdentifier}"]`, "John Doe");
+    await page.click(`[data-testid="form-field-${multiSelectFieldIdentifier}"]`); // Open dropdown
+    await page.click("text=Option-2"); // Select option
     page.click('button[type="submit"]');
 
     await webhookReceiver.waitForRequestCount(1);
@@ -699,10 +719,23 @@ test.describe("FORM_SUBMITTED", async () => {
         responses: {
           name: {
             value: "John Doe",
+            response: "John Doe",
+          },
+          multi: {
+            value: ["Option-2"],
+            response: [
+              {
+                id: "2",
+                label: "Option-2",
+              },
+            ],
           },
         },
       },
+      /* Legacy fields Start */
       name: "John Doe",
+      multi: ["Option-2"],
+      /* Legacy fields End */
     });
 
     webhookReceiver.close();

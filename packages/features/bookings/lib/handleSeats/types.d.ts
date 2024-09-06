@@ -38,6 +38,7 @@ export type NewSeatedBookingObject = {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
+  rescheduledBy?: string;
   workflows: Workflow[];
 };
 

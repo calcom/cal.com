@@ -2654,7 +2654,12 @@ describe("handleNewBooking", () => {
 
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
-          expectAwaitingPaymentEmails({ organizer, booker, emails });
+          expectAwaitingPaymentEmails({
+            organizer,
+            booker,
+            emails,
+            subject: "complete_your_booking_subject",
+          });
           expectBookingPaymentIntiatedWebhookToHaveBeenFired({
             booker,
             organizer,

@@ -1,6 +1,7 @@
 import { FieldTypes } from "../pages/form-edit/[...appPages]";
 import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
 import { InitialConfig } from "./InitialConfig";
+import { getUIOptionsForSelect } from "./selectOptions";
 
 export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
   const fields: Record<
@@ -22,14 +23,7 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
       field = field.routerField;
     }
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
-      const optionValues = field.selectText?.trim().split("\n");
-      const options = optionValues?.map((value) => {
-        const title = value;
-        return {
-          value,
-          title,
-        };
-      });
+      const options = getUIOptionsForSelect(field);
 
       const widget = InitialConfig.widgets[field.type];
       const widgetType = widget.type;

@@ -11,7 +11,7 @@ export type { ArrowButtonProps } from "./components/arrow-button";
 export { Badge, UpgradeTeamsBadge, InfoBadge } from "./components/badge";
 export type { BadgeProps } from "./components/badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
-export { Button, LinkIconButton } from "./components/button";
+export { Button, LinkIconButton, buttonClasses } from "./components/button";
 export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export { EditableHeading } from "./components/editable-heading";
@@ -150,6 +150,10 @@ export { ShellSubHeading } from "./components/layout";
 /** ⬇️ TODO - Move these to components */
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
+export { default as MultiEmail } from "./form/MultiEmailLazy";
+export { default as PhoneInputNonLazy } from "./form/PhoneInput";
+export { default as AddressInputNonLazy } from "./form/AddressInput";
+
 export { UnstyledSelect } from "./form/Select";
 
 export {
@@ -171,7 +175,6 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
-export { WizardLayoutAppDir } from "./layouts/WizardLayoutAppDir";
 export { DataTable } from "./components/data-table";
 export {
   Sheet,
@@ -203,3 +206,4 @@ export type { OrgBannerProps } from "./components/organization-banner";
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
 export { default as Icon } from "./components/icon/Icon";
 export type { IconName } from "./components/icon/icon-names";
+export { IconSprites } from "./components/icon/IconSprites";

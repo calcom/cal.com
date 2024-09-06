@@ -26,6 +26,8 @@ export function getMockRequestDataForBooking({
     bookingUid?: string;
     recurringEventId?: string;
     recurringCount?: number;
+    rescheduledBy?: string;
+    cancelledBy?: string;
     schedulingType?: SchedulingType;
     responses: {
       email: string;

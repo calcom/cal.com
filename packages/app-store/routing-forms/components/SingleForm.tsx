@@ -36,7 +36,7 @@ import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { processRoute } from "../lib/processRoute";
-import type { Response, Route, SerializableForm } from "../types/types";
+import type { FormResponse, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
@@ -207,7 +207,7 @@ const Actions = ({
               action="toggle"
               routingForm={form}
               label="Disable Form"
-              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4"
+              extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
             />
           </div>
         </FormActionsDropdown>
@@ -238,7 +238,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const { t } = useLocale();
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
-  const [response, setResponse] = useState<Response>({});
+  const [response, setResponse] = useState<FormResponse>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [eventTypeUrl, setEventTypeUrl] = useState("");
@@ -368,7 +368,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
-                            priority: 1,
+                            priority: 2,
+                            weight: 100,
+                            weightAdjustment: 0,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(

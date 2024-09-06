@@ -28,7 +28,7 @@ type PageProps = Readonly<{
 
 const Page = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  await getPageProps(legacyCtx as unknown as GetServerSidePropsContext);
+  await getPageProps(legacyCtx);
 
   return null;
 };

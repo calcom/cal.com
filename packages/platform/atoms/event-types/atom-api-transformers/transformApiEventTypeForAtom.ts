@@ -1,7 +1,7 @@
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
-import type { CommonField, OptionsField, SystemField } from "@calcom/lib/event-types/transformers";
+import type { UserField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformApiEventTypeLocations,
   transformApiEventTypeBookingFields,
@@ -190,11 +190,11 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
     const { displayLocationPublicly, type } = location;
 
     switch (type) {
-      case "address":
+      case "inPerson":
         return displayLocationPublicly ? location : { ...location, address: "" };
       case "link":
         return displayLocationPublicly ? location : { ...location, link: "" };
-      case "phone":
+      case "userPhone":
         return displayLocationPublicly
           ? location
           : {
@@ -210,7 +210,7 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
 }
 
 function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
-  const transformedBookingFields: (CommonField | SystemField | OptionsField)[] =
+  const transformedBookingFields: (SystemField | UserField)[] =
     transformApiEventTypeBookingFields(bookingFields);
 
   // These fields should be added before other user fields

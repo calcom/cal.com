@@ -443,6 +443,7 @@ export class EventTypeRepository {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       recurringEvent: true,
       hideCalendarNotes: true,
@@ -457,6 +458,7 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
       forwardParamsSuccessRedirect: true,
@@ -519,11 +521,19 @@ export class EventTypeRepository {
           name: true,
         },
       },
+      instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       hosts: {
         select: {
           isFixed: true,
           userId: true,
           priority: true,
+          weight: true,
+          weightAdjustment: true,
         },
       },
       userId: true,

@@ -32,7 +32,7 @@ const querySchema = z.object({
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/core-features/event-types
+ *        url: https://docs.cal.com/docs/core-features/event-types
  *     responses:
  *       200:
  *         description: OK
