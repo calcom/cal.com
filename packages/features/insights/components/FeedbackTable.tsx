@@ -44,7 +44,7 @@ export const FeedbackTable = ({
                     <strong className="text-default">{item.rating}</strong>
                   </Text>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-left">
                   <Text>
                     <strong className="text-default">{item.feedback}</strong>
                   </Text>
