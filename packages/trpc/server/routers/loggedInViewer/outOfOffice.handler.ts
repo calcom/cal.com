@@ -321,6 +321,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const memberships = await prisma.membership.findMany({
     where: {
       userId: ctx.user.id,
+      accepted: true,
     },
   });
 
