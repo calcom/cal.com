@@ -33,9 +33,9 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
         type: widgetType,
         valueSources: ["value"],
         fieldSettings: {
-          listValues: options,
+          // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
+          listValues: field.type === "select" || field.type === "multiselect" ? options : undefined,
         },
-        // preferWidgets: field.type === "textarea" ? ["textarea"] : [],
       };
     } else {
       throw new Error(`Unsupported field type:${field.type}`);

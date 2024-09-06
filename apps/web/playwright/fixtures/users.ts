@@ -301,10 +301,14 @@ export const createUsersFixture = (
       }
 
       if (scenario.seedRoutingForms) {
-        const option2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
-        const option1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const multiSelectOption2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const multiSelectOption1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const selectOption1Uuid = "d0292635-9f12-17b1-9153-c3a854649182";
+        const selectOption2Uuid = "d0302635-9f12-17b1-9153-c3a854649182";
         const multiSelectLegacyFieldUuid = "d4292635-9f12-17b1-9153-c3a854649182";
         const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
+        const selectFieldUuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const legacySelectFieldUuid = "f0292635-9f12-17b1-9153-c3a854649182";
         await prisma.app_RoutingForms_Form.create({
           data: {
             routes: [
@@ -399,7 +403,7 @@ export const createUsersFixture = (
                       type: "rule",
                       properties: {
                         field: multiSelectFieldUuid,
-                        value: [[option2Uuid]],
+                        value: [[multiSelectOption2Uuid]],
                         operator: "multiselect_equals",
                         valueSrc: ["value"],
                         valueType: ["multiselect"],
@@ -437,11 +441,36 @@ export const createUsersFixture = (
                 identifier: "multi-new-format",
                 options: [
                   {
-                    id: option1Uuid,
+                    id: multiSelectOption1Uuid,
                     label: "Option-1",
                   },
                   {
-                    id: option2Uuid,
+                    id: multiSelectOption2Uuid,
+                    label: "Option-2",
+                  },
+                ],
+                required: false,
+              },
+              {
+                id: legacySelectFieldUuid,
+                type: "select",
+                label: "Legacy Select",
+                identifier: "test-select",
+                selectText: "Option-1\nOption-2",
+                required: false,
+              },
+              {
+                id: selectFieldUuid,
+                type: "select",
+                label: "Select",
+                identifier: "test-select-new-format",
+                options: [
+                  {
+                    id: selectOption1Uuid,
+                    label: "Option-1",
+                  },
+                  {
+                    id: selectOption2Uuid,
                     label: "Option-2",
                   },
                 ],

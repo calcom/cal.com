@@ -120,6 +120,8 @@ function Field({
       ],
     }) || [];
 
+  const isLegacyOptions = !watchedOptions[0]?.id;
+
   const setOptions = (updatedOptions: SelectOption[]) => {
     hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
   };
