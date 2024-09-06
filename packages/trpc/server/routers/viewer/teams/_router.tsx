@@ -2,6 +2,7 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
+import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -9,9 +10,12 @@ import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
+import { ZGetMinimalSchema } from "./getMinimal.schema";
+import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
+import { ZLazyLoadMembersInputSchema } from "./lazyLoadMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
@@ -30,6 +34,11 @@ export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure.input(ZGetInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
+    return handler(opts);
+  }),
+  // Returns team
+  getMinimal: authedProcedure.input(ZGetMinimalSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("getMinimal"), () => import("./getMinimal.handler"));
     return handler(opts);
   }),
   // Returns teams I a member of
@@ -114,6 +123,20 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
+  lazyLoadMembers: authedProcedure.input(ZLazyLoadMembersInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("lazyLoadMembers"),
+      () => import("./lazyLoadMembers.handler")
+    );
+    return handler(opts);
+  }),
+  getUserConnectedApps: authedProcedure.input(ZGetUserConnectedAppsInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getUserConnectedApps"),
+      () => import("./getUserConnectedApps.handler")
+    );
+    return handler(opts);
+  }),
   hasTeamPlan,
   listInvites: authedProcedure.query(async (opts) => {
     const handler = await importHandler(namespaced("listInvites"), () => import("./listInvites.handler"));
@@ -162,4 +185,13 @@ export const viewerTeamsRouter = router({
     );
     return handler(opts);
   }),
+  checkIfMembershipExists: authedProcedure
+    .input(ZCheckIfMembershipExistsInputSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("checkIfMembershipExists"),
+        () => import("./checkIfMembershipExists.handler")
+      );
+      return handler(opts);
+    }),
 });

@@ -25,7 +25,11 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import {
+  bookingMetadataSchema,
+  EventTypeMetaDataSchema,
+  schemaBookingCancelParams,
+} from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import {
   deleteAllWorkflowReminders,
@@ -155,7 +159,7 @@ export type HandleCancelBookingResponse = {
 };
 
 async function handler(req: CustomRequest) {
-  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
+  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid, cancelledBy } =
     schemaBookingCancelParams.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -342,6 +346,7 @@ async function handler(req: CustomRequest) {
       ...eventTypeInfo,
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+      cancelledBy: cancelledBy,
     }).catch((e) => {
       logger.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
@@ -358,6 +363,7 @@ async function handler(req: CustomRequest) {
     smsReminderNumber: bookingToDelete.smsReminderNumber,
     evt: {
       ...evt,
+      metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
       ...{
         eventType: {
           slug: bookingToDelete.eventType?.slug,
@@ -398,6 +404,7 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        cancelledBy: cancelledBy,
       },
     });
     const allUpdatedBookings = await prisma.booking.findMany({
@@ -440,6 +447,7 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        cancelledBy: cancelledBy,
         // Assume that canceling the booking is the last action
         iCalSequence: evt.iCalSequence || 100,
       },

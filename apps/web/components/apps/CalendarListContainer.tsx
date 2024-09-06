@@ -2,7 +2,7 @@ import { Fragment, useEffect } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import {
-  SelectedCalendarSettingsWebWrapper,
+  SelectedCalendarsSettingsWebWrapper,
   DestinationCalendarSettingsWebWrapper,
 } from "@calcom/atoms/monorepo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -107,7 +107,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                 {heading && (
                   <>
                     <DestinationCalendarSettingsWebWrapper />
-                    <SelectedCalendarSettingsWebWrapper
+                    <SelectedCalendarsSettingsWebWrapper
                       onChanged={onChanged}
                       fromOnboarding={fromOnboarding}
                       destinationCalendarId={data.destinationCalendar?.externalId}

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { FrequencyInput } from "@calcom/platform-enums/monorepo";
 import type {
   BookingField_2024_06_14,
   Location_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
+  Recurrence_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { UserField } from "./api-request";
@@ -14,6 +16,7 @@ import {
   transformSelectOptions,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeRecurrence,
 } from "./api-request";
 
 describe("transformApiEventTypeLocations", () => {
@@ -649,6 +652,24 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
     };
 
     const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeRecurrence", () => {
+  it("should transform recurrence", () => {
+    const input: Recurrence_2024_06_14 = {
+      frequency: FrequencyInput.weekly,
+      interval: 2,
+      occurrences: 10,
+    };
+    const expectedOutput = {
+      interval: 2,
+      count: 10,
+      freq: 2,
+    };
+    const result = transformApiEventTypeRecurrence(input);
 
     expect(result).toEqual(expectedOutput);
   });

@@ -5,11 +5,10 @@ import { WithLayout } from "app/layoutHOC";
 import type { InferGetServerSidePropsType } from "next";
 
 import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
-import { APP_NAME } from "@calcom/lib/constants";
 
 export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
   return await _generateMetadata(
-    () => `${params.slug} | ${APP_NAME}`,
+    () => `${params.slug}`,
     () => ""
   );
 };

@@ -14,17 +14,43 @@ type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const data = await prisma.bookingTimeStatus.groupBy({
-      where,
-      by: ["timeStatus"],
-      _count: {
-        _all: true,
-      },
-    });
+    let data;
+    if (!!where["OR"]) {
+      const queries = [];
+      const existingWhereOr = where["OR"];
+      const { OR: throwAwayOr, ...whereWithoutOr } = where;
+      for (let i = 0; i < existingWhereOr.length; i++) {
+        const newWhere = {
+          ...whereWithoutOr,
+          ...existingWhereOr[i],
+        };
+        queries.push(
+          prisma.bookingTimeStatus.groupBy({
+            where: newWhere,
+            by: ["timeStatus"],
+            _count: {
+              _all: true,
+            },
+          })
+        );
+      }
+
+      const results = await Promise.all(queries);
+      data = results.flat();
+    } else {
+      data = await prisma.bookingTimeStatus.groupBy({
+        where,
+        by: ["timeStatus"],
+        _count: {
+          _all: true,
+        },
+      });
+    }
+
     return data.reduce(
       (aggregate: { [x: string]: number }, item) => {
         if (typeof item.timeStatus === "string") {
-          aggregate[item.timeStatus] = item._count._all;
+          aggregate[item.timeStatus] += item._count._all;
           aggregate["_all"] += item._count._all;
         }
         return aggregate;
