@@ -11,11 +11,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { APPLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { Button, Form, PasswordField, TextField } from "@calcom/ui";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";
 import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
+import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
@@ -41,6 +43,21 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     initialData,
   });
 
+  const calendars = useConnectedCalendars({});
+  const exsitingAppleCalendars = calendars.data?.connectedCalendars.filter((calendar) => {
+    return calendar.integration.type === APPLE_CALENDAR_TYPE;
+  });
+
+  const existingCalendars = exsitingAppleCalendars?.map((cal) => {
+    return (
+      <div key={cal.credentialId} className="cursor-default border-[1px] border-red-500 bg-white text-black">
+        <h1>
+          {cal.primary?.name} - {cal.primary?.email}
+        </h1>
+      </div>
+    );
+  });
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   let displayedLabel = label || t("apple_connect_atom_label");
 
@@ -63,7 +80,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   });
 
   const isChecking = !checked;
-  const isDisabled = isChecking || !allowConnect;
+  const isDisabled = isChecking;
 
   if (isChecking) {
     displayedLabel = loadingLabel || t("apple_connect_atom_loading_label");
@@ -76,6 +93,8 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
       <Dialog open={isDialogOpen}>
         <DialogTrigger>
           <Button
+            tooltipSide="bottom"
+            tooltip={existingCalendars}
             StartIcon="calendar"
             color="primary"
             disabled={isDisabled}

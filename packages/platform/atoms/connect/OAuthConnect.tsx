@@ -42,7 +42,7 @@ export const OAuthConnect: FC<
   });
 
   const isChecking = !checked;
-  const isDisabled = isChecking || !allowConnect;
+  const isDisabled = isChecking;
 
   let displayedLabel = label;
 
@@ -57,6 +57,7 @@ export const OAuthConnect: FC<
       <Button
         StartIcon="calendar-days"
         color="primary"
+        tooltip={<>This is where we have our tooltip</>}
         disabled={isDisabled}
         className={cn(
           "",
