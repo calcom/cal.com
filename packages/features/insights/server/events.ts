@@ -43,7 +43,7 @@ class EventsInsights {
   };
 
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const queryReference = (args) => prisma.bookingTimeStatus.groupBy(args);
+    const queryReference = async (args) => prisma.bookingTimeStatus.groupBy(args);
 
     const data = await EventsInsights.runSeparateQueriesForOrStatements(where, queryReference, {
       where,
@@ -85,12 +85,20 @@ class EventsInsights {
   };
 
   static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
+    const queryReference = async (args) => prisma.bookingTimeStatus.count(args);
+
+    const originalWhereConditional = {
       where: {
         ...whereConditional,
         noShowHost: true,
       },
-    });
+    };
+
+    return await EventsInsights.runSeparateQueriesForOrStatements(
+      originalWhereConditional,
+      queryReference,
+      originalWhereConditional
+    );
   };
 
   static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
