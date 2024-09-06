@@ -254,6 +254,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },
+        metadata: booking.metadata,
       };
       for (const step of eventTypeWorkflow.steps) {
         if (

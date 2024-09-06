@@ -2,7 +2,7 @@
 
 import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout, WizardLayoutAppDir } from "@calcom/ui";
+import { Meta, WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -22,14 +22,6 @@ export const LayoutWrapper = (page: React.ReactElement) => {
     <WizardLayout currentStep={3} maxSteps={5}>
       {page}
     </WizardLayout>
-  );
-};
-
-export const WrappedAboutOrganizationPage = (page: React.ReactElement) => {
-  return (
-    <WizardLayoutAppDir currentStep={3} maxSteps={5}>
-      {page}
-    </WizardLayoutAppDir>
   );
 };
 

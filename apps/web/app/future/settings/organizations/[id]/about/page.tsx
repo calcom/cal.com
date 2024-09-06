@@ -1,4 +1,4 @@
-import LegacyPage, { WrappedAboutOrganizationPage } from "@pages/settings/organizations/[id]/about";
+import LegacyPage, { LayoutWrapper } from "@pages/settings/organizations/[id]/about";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
@@ -8,4 +8,4 @@ export const generateMetadata = async () =>
     (t) => t("about_your_organization_description")
   );
 
-export default WithLayout({ Page: LegacyPage, getLayout: WrappedAboutOrganizationPage });
+export default WithLayout({ Page: LegacyPage, getLayout: LayoutWrapper });

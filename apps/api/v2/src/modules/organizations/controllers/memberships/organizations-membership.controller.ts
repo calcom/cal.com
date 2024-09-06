@@ -1,6 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetMembership } from "@/modules/auth/decorators/get-membership/get-membership.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -36,7 +35,6 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
-import { Membership } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",
@@ -89,7 +87,11 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  async getUserSchedule(@GetMembership() membership: Membership): Promise<GetOrgMembership> {
+  async getOrgMembership(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("membershipId", ParseIntPipe) membershipId: number
+  ): Promise<GetOrgMembership> {
+    const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
