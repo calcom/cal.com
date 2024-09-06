@@ -3,6 +3,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { ssrInit } from "@server/lib/ssr";
 
