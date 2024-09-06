@@ -1,9 +1,9 @@
-import { FieldTypes } from "../pages/form-edit/[...appPages]";
 import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
+import { FieldTypes } from "./FieldTypes";
 import { InitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
 
-export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
+export function getQueryBuilderConfig(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: Record<
     string,
     {
@@ -22,10 +22,11 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
     if ("routerField" in field) {
       field = field.routerField;
     }
-    if (FieldTypes.map((f) => f.value).includes(field.type)) {
+    const fieldType = field.type as (typeof FieldTypes)[number]["value"];
+    if (FieldTypes.map((f) => f.value).includes(fieldType)) {
       const options = getUIOptionsForSelect(field);
 
-      const widget = InitialConfig.widgets[field.type];
+      const widget = InitialConfig.widgets[fieldType];
       const widgetType = widget.type;
 
       fields[field.id] = {
@@ -34,7 +35,7 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
         valueSources: ["value"],
         fieldSettings: {
           // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: field.type === "select" || field.type === "multiselect" ? options : undefined,
+          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
         },
       };
     } else {
