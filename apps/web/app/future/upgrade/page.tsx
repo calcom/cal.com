@@ -5,8 +5,8 @@ import LegacyPage from "~/upgrade/upgrade-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Your upgrade is here",
-    () => "Improve your scheduling experience by upgrading to the new plan and enjoy the new features."
+    () => "Upgrade",
+    () => ""
   );
 
 export default WithLayout({ getLayout: null, Page: LegacyPage })<"P">;
