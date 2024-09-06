@@ -964,9 +964,11 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       ? {
           name: "copy_referral_link",
           href: "",
-          onClick: (e: { preventDefault: () => void }) => {
+          onClick: async (e: { preventDefault: () => void }) => {
             e.preventDefault();
-            navigator.clipboard.writeText(`https://refer.cal.com/${user?.username}`);
+            const res = await fetch("/api/generate-referral-link");
+            const { shortLink } = await res.json();
+            navigator.clipboard.writeText(shortLink);
             showToast(t("link_copied"), "success");
           },
           icon: "copy",

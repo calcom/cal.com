@@ -945,34 +945,22 @@ export const getOptions = (req: NextApiRequest): AuthOptions => ({
       const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 10 * 60 * 1000);
       if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
         const { dclid } = req.cookies;
-        console.log({ dclid });
-        // here we use waitUntil – meaning this code will run async to not block the main thread
-        waitUntil(
-          Promise.allSettled([
-            // create a new short link for the user
-            // this will be used in the PoweredBy button on the Booking page
-            user.username &&
-              dub.links.create({
-                domain: "refer.cal.com",
-                key: user.username,
-                url: "https://cal.com?utm_source=embed&utm_medium=powered-by-button",
-                externalId: user.id.toString(), // @see https://d.to/externalId
-                trackConversion: true, // enable conversion tracking @see https://d.to/conversions
-              }),
-            // check if there's a dclid cookie set by @dub/analytics
+        // check if there's a dclid cookie set by @dub/analytics
+        if (dclid) {
+          // here we use waitUntil – meaning this code will run async to not block the main thread
+          waitUntil(
             // if so, send a lead event to Dub
             // @see https://d.to/conversions/next-auth
-            dclid &&
-              dub.track.lead({
-                clickId: dclid,
-                eventName: "Sign Up",
-                customerId: user.id.toString(),
-                customerName: user.name,
-                customerEmail: user.email,
-                customerAvatar: user.image,
-              }),
-          ])
-        );
+            dub.track.lead({
+              clickId: dclid,
+              eventName: "Sign Up",
+              customerId: user.id.toString(),
+              customerName: user.name,
+              customerEmail: user.email,
+              customerAvatar: user.image,
+            })
+          );
+        }
       }
     },
   },
