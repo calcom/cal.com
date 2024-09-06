@@ -326,39 +326,40 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    console.log({ pathname });
-    console.log({ props: props.profile });
+    if (pathname) {
+      const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
-    const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
-    const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
+      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
+      const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
 
-    fetch(getEventTypeSlugUrl)
-      .then((data) => {
-        data.json().then(({ data }: { data: EventType[] }) => {
-          const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
-          const eventSlugs = data.reduce((acc, { id, slug }) => {
-            if (eventTypeIds.includes(id)) {
-              acc.push({ id, slug });
-            }
-            return acc;
-          }, eventTypes);
-          setEventTypes(eventSlugs);
+      fetch(getEventTypeSlugUrl)
+        .then((data) => {
+          data.json().then(({ data }: { data: EventType[] }) => {
+            const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
+            const eventSlugs = data.reduce((acc, { id, slug }) => {
+              if (eventTypeIds.includes(id)) {
+                acc.push({ id, slug });
+              }
+              return acc;
+            }, eventTypes);
+            setEventTypes(eventSlugs);
+          });
+        })
+        .catch((error) => {
+          console.error(error);
         });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
 
-    fetch(getBookedTimeUrl)
-      .then((data) => {
-        data.json().then(({ data }: { data: BookingInfo[] }) => {
-          const findedBooking = data.find(({ uid }) => uid === "2z7g2Hwp2A65GY2vkxRhHN");
-          setPurchaseDate(dayjs(findedBooking?.createdAt));
+      fetch(getBookedTimeUrl)
+        .then((data) => {
+          data.json().then(({ data }: { data: BookingInfo[] }) => {
+            const findedBooking = data.find(({ uid }) => uid === bookingUID);
+            setPurchaseDate(dayjs(findedBooking?.createdAt));
+          });
+        })
+        .catch((error) => {
+          console.error({ error });
         });
-      })
-      .catch((error) => {
-        console.error({ error });
-      });
+    }
   }, [eventTypes, pathname]);
 
   useEffect(() => {
@@ -463,7 +464,7 @@ export default function Success(props: PageProps) {
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
 
-  const { description } = useMemo(() => {
+  const { description, rescheduleRoute } = useMemo(() => {
     const currentTime = dayjs();
     const startTime = dayjs(bookingInfo.startTime);
     const pastAppointment = isPastBooking;
@@ -474,31 +475,40 @@ export default function Success(props: PageProps) {
     const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
     const urgentMedicalAppointments = false;
 
+    const rescheduleRoute = `agenda.yinflow.life/${props.profile.slug}/${eventTypes[0]}`;
+
+    if (!purchaseDate) return { description: "", rescheduleRoute: "" };
+
     switch (true) {
       case pastAppointment:
         return {
           description:
             "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.",
+          rescheduleRoute,
         };
       case hasStarted:
         return {
           description:
             "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ",
+          rescheduleRoute,
         };
       case urgentMedicalAppointments:
         return {
           description:
             "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+          rescheduleRoute,
         };
       case lessThan12HoursInAdvance:
         return {
           description:
             "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+          rescheduleRoute,
         };
       case moreOrEqualThan7DaysFromPurchase:
         return {
           description:
             "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.",
+          rescheduleRoute,
         };
       case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase:
         return {
@@ -508,7 +518,7 @@ export default function Success(props: PageProps) {
       default:
         return { description: "" };
     }
-  }, [bookingInfo.startTime, isPastBooking, purchaseDate]);
+  }, [bookingInfo.startTime, eventTypes, isPastBooking, props.profile.slug, purchaseDate]);
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
@@ -841,11 +851,7 @@ export default function Success(props: PageProps) {
                               {!props.recurringBookings && (
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
-                                    <Link
-                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
-                                      }`}
-                                      legacyBehavior>
+                                    <Link href={rescheduleRoute} legacyBehavior>
                                       {t("reschedule")}
                                     </Link>
                                   </span>
