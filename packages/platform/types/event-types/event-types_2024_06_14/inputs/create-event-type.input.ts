@@ -36,20 +36,19 @@ export const CREATE_EVENT_TITLE_EXAMPLE = "Learn the secrets of masterchief!";
 export const CREATE_EVENT_DESCRIPTION_EXAMPLE =
   "Discover the culinary wonders of the Argentina by making the best flan ever!";
 
-export class BaseCreateEventTypeInput_2024_06_14 {
-  @IsOptional()
+// export class BaseCreateEventTypeInput_2024_06_14 {}
+export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
   @Min(1)
-  lengthInMinutes?: number;
+  @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
+  lengthInMinutes!: number;
 
-  @IsOptional()
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
-  title?: string;
+  title!: string;
 
-  @IsOptional()
   @IsString()
-  slug?: string;
+  slug!: string;
 
   @IsOptional()
   @IsString()
@@ -161,19 +160,6 @@ export class BaseCreateEventTypeInput_2024_06_14 {
   })
   @ValidateNested()
   seats?: Seats_2024_06_14 | Disabled_2024_06_14;
-}
-export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput_2024_06_14 {
-  @IsInt()
-  @Min(1)
-  @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
-  override lengthInMinutes!: number;
-
-  @IsString()
-  @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
-  override title!: string;
-
-  @IsString()
-  override slug!: string;
 }
 
 export enum HostPriority {

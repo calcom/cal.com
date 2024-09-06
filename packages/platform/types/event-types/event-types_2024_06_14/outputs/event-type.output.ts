@@ -57,14 +57,13 @@ class User_2024_06_14 {
 
   metadata!: Record<string, unknown>;
 }
-class BaseEventTypeOutput {
+export class EventTypeOutput_2024_06_14 {
   @IsInt()
   @DocsProperty({ example: 1 })
   id!: number;
 
   @IsInt()
-  @IsOptional()
-  ownerId?: number | null;
+  ownerId!: number;
 
   @IsInt()
   @Min(1)
@@ -78,6 +77,8 @@ class BaseEventTypeOutput {
 
   @IsString()
   description!: string;
+
+  users!: User_2024_06_14[];
 
   @ValidateLocations_2024_06_14()
   locations!: Location_2024_06_14[];
@@ -177,22 +178,131 @@ class BaseEventTypeOutput {
   offsetStart?: number;
 }
 
-export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput {
-  @IsInt()
-  override ownerId!: number;
-
-  users!: User_2024_06_14[];
-}
-
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   name!: string;
 }
 
-export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput {
+export class TeamEventTypeOutput_2024_06_14 {
+  @IsInt()
+  @DocsProperty({ example: 1 })
+  id!: number;
+
   @IsInt()
   @IsOptional()
-  override ownerId?: number | null;
+  ownerId?: number | null;
+
+  @IsInt()
+  @Min(1)
+  lengthInMinutes!: number;
+
+  @IsString()
+  title!: string;
+
+  @IsString()
+  slug!: string;
+
+  @IsString()
+  description!: string;
+
+  users!: User_2024_06_14[];
+
+  @ValidateLocations_2024_06_14()
+  locations!: Location_2024_06_14[];
+
+  @ValidateBookingFields_2024_06_14()
+  bookingFields!: BookingField_2024_06_14[];
+
+  @IsBoolean()
+  disableGuests!: boolean;
+
+  @IsInt()
+  @IsOptional()
+  slotInterval?: number | null;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  minimumBookingNotice?: number;
+
+  @IsInt()
+  @IsOptional()
+  beforeEventBuffer?: number;
+
+  @IsInt()
+  @IsOptional()
+  afterEventBuffer?: number;
+
+  @IsEnum(SchedulingTypeEnum)
+  schedulingType!: EventTypesOutputSchedulingType | null;
+
+  @Type(() => Recurrence_2024_06_14)
+  recurrence!: Recurrence_2024_06_14 | null;
+
+  @Type(() => Object)
+  metadata!: Record<string, unknown>;
+
+  @IsInt()
+  price!: number;
+
+  @IsString()
+  currency!: string;
+
+  @IsBoolean()
+  lockTimeZoneToggleOnBookingPage!: boolean;
+
+  @IsBoolean()
+  forwardParamsSuccessRedirect!: boolean | null;
+
+  @IsString()
+  successRedirectUrl!: string | null;
+
+  @IsBoolean()
+  isInstantEvent!: boolean;
+
+  @IsInt()
+  scheduleId!: number | null;
+
+  @IsOptional()
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
+
+  @IsOptional()
+  bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @Type(() => BookerLayouts_2024_06_14)
+  bookerLayouts?: BookerLayouts_2024_06_14;
+
+  @IsOptional()
+  confirmationPolicy?: ConfirmationPolicy_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresBookerEmailVerification?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideCalendarNotes?: boolean;
+
+  @IsOptional()
+  @Type(() => EventTypeColor_2024_06_14)
+  color?: EventTypeColor_2024_06_14;
+
+  @IsOptional()
+  @Type(() => Seats_2024_06_14)
+  seats?: Seats_2024_06_14;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offsetStart?: number;
 
   @IsInt()
   @IsOptional()
