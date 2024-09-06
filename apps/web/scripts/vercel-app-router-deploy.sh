@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Only deploy to production
-if [ "$VERCEL_ENV" != "production" ]; then exit 0; fi
-
 checkRoute () {
   if [ "$1" != '1' ]; then rm -rf $2; fi
 }
@@ -10,6 +7,7 @@ checkRoute () {
 # These conditionals are used to remove directories from the build that are not needed in production
 # This is to reduce the size of the build and prevent OOM errors
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
+checkRoute "$APP_ROUTER_AVAILABILITY_ENABLED" app/future/availability
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
 checkRoute "$APP_ROUTER_SETTINGS_PLATFORM_ENABLED" app/future/settings/platform
 checkRoute "$APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED" app/future/apps/installed

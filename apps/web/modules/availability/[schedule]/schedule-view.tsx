@@ -1,6 +1,9 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AvailabilitySettings } from "@calcom/atoms/monorepo";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,8 +11,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
-
-import { AvailabilitySettings } from "../AvailabilitySettings";
 
 export const AvailabilitySettingsWebWrapper = () => {
   const searchParams = useCompatSearchParams();
@@ -27,8 +28,7 @@ export const AvailabilitySettingsWebWrapper = () => {
     }
   );
 
-  const { data: travelSchedules, isPending: isPendingTravelSchedules } =
-    trpc.viewer.getTravelSchedules.useQuery();
+  const { data: travelSchedules } = trpc.viewer.getTravelSchedules.useQuery();
 
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
