@@ -15,7 +15,7 @@ type TimeViewType = "week" | "month" | "year" | "day";
 class EventsInsights {
   static runSeparateQueriesForOrStatements = async (
     where: Prisma.BookingTimeStatusWhereInput,
-    originalQuery: any,
+    queryReference: () => Promise<T>,
     originalQueryParams: any
   ) => {
     if (!!where["OR"]) {
@@ -28,7 +28,7 @@ class EventsInsights {
           ...existingWhereOr[i],
         };
         queries.push(
-          originalQuery({
+          queryReference({
             ...originalQueryParams,
             where: newWhere,
           })
@@ -39,21 +39,19 @@ class EventsInsights {
       return results.flat();
     }
 
-    return await originalQuery(originalQueryParams);
+    return await queryReference(originalQueryParams);
   };
 
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const data = await EventsInsights.runSeparateQueriesForOrStatements(
+    const queryReference = (args) => prisma.bookingTimeStatus.groupBy(args);
+
+    const data = await EventsInsights.runSeparateQueriesForOrStatements(where, queryReference, {
       where,
-      prisma.bookingTimeStatus.groupBy,
-      {
-        where,
-        by: ["timeStatus"],
-        _count: {
-          _all: true,
-        },
-      }
-    );
+      by: ["timeStatus"],
+      _count: {
+        _all: true,
+      },
+    });
 
     return data.reduce(
       (aggregate: { [x: string]: number }, item) => {
