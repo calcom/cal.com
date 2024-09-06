@@ -796,7 +796,147 @@ describe("handleNewBooking", () => {
             method: "POST",
             body: mockBookingData,
           });
-          // Expect await handleNewBooking(req); to throw exception
+          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
+        },
+        timeout
+      );
+      test(
+        "should reject reschedule if the requested slot is not available for users but not host",
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const host1 = getOrganizer({
+            name: "host1",
+            email: "host1@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const user1 = getOrganizer({
+            name: "user1",
+            email: "user1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const user2 = {
+            name: "user2",
+            email: "user2@example.com",
+            id: 103,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          };
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const uidOfBooking2 = "n5Wv3eHgconAED2j4gcVhQ";
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  length: 120,
+                  hosts: [
+                    {
+                      userId: 101,
+                      isFixed: true,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  userId: 101,
+                  attendees: [user1],
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T07:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+              ],
+              organizer: host1,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 2,
+                  length: 120,
+                  hosts: [
+                    {
+                      userId: 102,
+                      isFixed: true,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBooking2,
+                  eventTypeId: 2,
+                  userId: 102,
+                  attendees: [user2],
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T09:00:00.000Z`,
+                  endTime: `${plus1DateString}T11:00:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+              ],
+              organizer: user1,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              user: host1.name,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T08:00:00.000Z`,
+              end: `${plus1DateString}T10:00:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
           await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
         },
         timeout
@@ -2089,7 +2229,6 @@ describe("handleNewBooking", () => {
             method: "POST",
             body: mockBookingData,
           });
-          // Expect await handleNewBooking(req); to throw exception
           await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
         },
         timeout

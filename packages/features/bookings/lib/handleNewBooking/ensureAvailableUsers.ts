@@ -2,15 +2,17 @@ import type { Logger } from "tslog";
 
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
-import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
+import prisma, { userSelect } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { checkForConflicts } from "../conflictChecker/checkForConflicts";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
-import type { IsFixedAwareUser, BookingType } from "./types";
+import type { BookingType, IsFixedAwareUser } from "./types";
+
 
 type DateRange = {
   start: Dayjs;
@@ -64,11 +66,38 @@ export async function ensureAvailableUsers(
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
-
+  let attendeeUsers: IsFixedAwareUser[] = [];
+  if (input.originalRescheduledBooking?.uid) {
+    const attendeesEmails = input.originalRescheduledBooking?.attendees?.map((a) => a.email);
+    if (attendeesEmails?.length) {
+      let attendees = await prisma.user.findMany({
+        where: {
+          email: {
+            in: attendeesEmails,
+          },
+        },
+        select: {
+          ...userSelect.select,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
+        }
+      });
+      attendeeUsers = attendees.map((u) => {
+        return {
+          ...u,
+          isFixed: true,
+        };
+      });
+    }
+  }
+  const totalUsers = [...eventType.users, ...attendeeUsers].filter(
+    (user, index, self) => index === self.findIndex((t) => t.id === user.id)
+  );
   const busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> =
     eventType && (bookingLimits || durationLimits)
       ? await getBusyTimesForLimitChecks({
-          userIds: eventType.users.map((u) => u.id),
+          userIds: [...totalUsers.map((u) => u.id)],
           eventTypeId: eventType.id,
           startDate: startDateTimeUtc.format(),
           endDate: endDateTimeUtc.format(),
@@ -79,7 +108,7 @@ export async function ensureAvailableUsers(
       : [];
 
   const usersAvailability = await getUsersAvailability({
-    users: eventType.users,
+    users: totalUsers,
     query: {
       ...input,
       eventTypeId: eventType.id,
@@ -96,7 +125,7 @@ export async function ensureAvailableUsers(
   });
 
   usersAvailability.forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
-    const user = eventType.users[index];
+    const user = totalUsers[index];
 
     loggerWithEventDetails.debug(
       "calendarBusyTimes==>>>",
@@ -139,7 +168,21 @@ export async function ensureAvailableUsers(
     }
   });
 
-  if (!availableUsers.length) {
+  if (input.originalRescheduledBooking?.uid) {
+    const fixedAvailableUsers = availableUsers.filter((u) => u.isFixed);
+    const fixedTotalUsers = totalUsers.filter((u) => u.isFixed);
+    if(fixedAvailableUsers.length !== fixedTotalUsers.length) {
+      loggerWithEventDetails.error(
+        `Not all users are available for rescheduled booking.`,
+        safeStringify({
+          startDateTimeUtc,
+          endDateTimeUtc,
+          input,
+        })
+      );
+      throw new Error(ErrorCode.NoAvailableSlotsFound);
+    }
+  } else if (!availableUsers.length) {
     loggerWithEventDetails.error(
       `No available users found.`,
       safeStringify({

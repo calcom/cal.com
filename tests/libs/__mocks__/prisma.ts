@@ -14,6 +14,7 @@ vi.mock("@calcom/prisma", () => ({
 const handlePrismockBugs = () => {
   const __updateBooking = prismock.booking.update;
   const __findFirstOrThrowBooking = prismock.booking.findFirstOrThrow;
+  const __findManyUser = prismock.user.findMany;
   const __findManyWebhook = prismock.webhook.findMany;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismock.booking.update = (...rest: any[]) => {
@@ -54,6 +55,25 @@ const handlePrismockBugs = () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return __findManyWebhook(...rest);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prismock.user.findMany = (...rest: any[]) => {
+    if (rest[0].where?.email?.in) {
+      const emailIn = rest[0].where.email.in;
+
+      if (emailIn.length === 1) {
+        // Convert to a direct comparison if there is only one email
+        rest[0].where.email = emailIn[0];
+        logger.silly("Converted `email: { in: [...] }` to `email: ...` when array length is 1");
+      } else if (emailIn.length > 1) {
+        // Convert `in` clause to an `OR` clause for multiple emails
+        rest[0].where.OR = emailIn.map((email: string) => ({ email }));
+        delete rest[0].where.email;
+        logger.silly(`Converted \`email: { in: [...${emailIn.length} items] }\` to \`OR: [...]\``);
+      }
+    }
+    return __findManyUser(...rest);
   };
 };
 
