@@ -2597,5 +2597,7 @@
   "ooo_team_empty_description": "Communicate to your team member's bookers when you're team not available to take bookings. They can still book you're team upon their return or you can forward them to other team member.",
   "forward_to_team_member_only": "Invalid Redirection!. OOO Forwarding can be done to a member of same team.",
   "ooo_team_redirect_infinite_not_allowed": "There is already a reverse forwarding between these users.",
+  "previous_ooo_empty_title": "No previous OOO found",
+  "previous": "Previous",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

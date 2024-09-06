@@ -8,7 +8,18 @@ import dayjs from "@calcom/dayjs";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, DataTable, EmptyScreen, Icon, showToast, SkeletonText, Tooltip } from "@calcom/ui";
+import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOffice.schema";
+import {
+  Avatar,
+  Button,
+  DataTable,
+  EmptyScreen,
+  Icon,
+  showToast,
+  SkeletonText,
+  ToggleGroup,
+  Tooltip,
+} from "@calcom/ui";
 import type { BookingRedirectForm } from "@calcom/web/pages/settings/my-account/out-of-office";
 
 interface OutOfOfficeEntry {
@@ -46,6 +57,11 @@ export const OutOfOfficeEntriesList = ({
 }) => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [recordType, setRecordType] = useState(OutOfOfficeRecordType.CURRENT);
+  const toggleGroupOptions = [
+    { value: OutOfOfficeRecordType.CURRENT, label: t("current") },
+    { value: OutOfOfficeRecordType.PREVIOUS, label: t("previous") },
+  ];
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const { data, isPending, fetchNextPage, isFetching, refetch } =
@@ -54,6 +70,7 @@ export const OutOfOfficeEntriesList = ({
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
         searchTerm: selectedTab === OutOfOfficeTab.TEAM ? debouncedSearchTerm : undefined,
+        recordType: recordType,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -112,7 +129,7 @@ export const OutOfOfficeEntriesList = ({
   }
   columns.push({
     id: "outOfOffice",
-    header: `OutOfOffice (${totalDBRowCount})`,
+    header: `${t("out_of_office")} (${totalDBRowCount})`,
     cell: ({ row }) => {
       const item = row.original;
       return (
@@ -246,50 +263,72 @@ export const OutOfOfficeEntriesList = ({
       showToast(`An error ocurred`, "error");
     },
   });
-  if (
-    data === null ||
-    (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && debouncedSearchTerm === "") ||
-    (data === undefined && !isPending)
-  )
-    return (
-      <EmptyScreen
-        className="mt-6"
-        headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
-        description={
-          selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_description") : t("ooo_empty_description")
-        }
-        customIcon={
-          <div className="mt-4 h-[102px]">
-            <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
-              <div className="relative">
-                <div className="dark:bg-darkgray-50 absolute -left-3 -top-3 -z-20 h-[70px] w-[70px] -rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-40 dark:opacity-80">
-                  <div className="w-12" />
-                </div>
-                <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
-                  <div className="w-12" />
-                </div>
-                <div className="dark:bg-darkgray-50 relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                  <Icon name="clock" size={28} />
-                  <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
-                  <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+  return (
+    <>
+      <div className="mt-4 flex justify-start">
+        <ToggleGroup
+          className="hidden md:block"
+          defaultValue={recordType}
+          onValueChange={(value) => setRecordType(value)}
+          options={toggleGroupOptions}
+        />
+      </div>
+      {data === null ||
+      (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && debouncedSearchTerm === "") ||
+      (data === undefined && !isPending) ? (
+        <EmptyScreen
+          className="mt-6"
+          headline={
+            recordType === OutOfOfficeRecordType.PREVIOUS
+              ? t("previous_ooo_empty_title")
+              : selectedTab === OutOfOfficeTab.TEAM
+              ? t("ooo_team_empty_title")
+              : t("ooo_empty_title")
+          }
+          description={
+            recordType === OutOfOfficeRecordType.PREVIOUS
+              ? ""
+              : selectedTab === OutOfOfficeTab.TEAM
+              ? t("ooo_team_empty_description")
+              : t("ooo_empty_description")
+          }
+          customIcon={
+            <div className="mt-4 h-[102px]">
+              <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
+                <div className="relative">
+                  <div className="dark:bg-darkgray-50 absolute -left-3 -top-3 -z-20 h-[70px] w-[70px] -rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-40 dark:opacity-80">
+                    <div className="w-12" />
+                  </div>
+                  <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
+                    <div className="w-12" />
+                  </div>
+                  <div className="dark:bg-darkgray-50 relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
+                    <Icon name="clock" size={28} />
+                    <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
+                    <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        }
-      />
-    );
-  return (
-    <div>
-      <DataTable
-        hideHeader={selectedTab === OutOfOfficeTab.MINE}
-        data-testid="ooo-list-data-table"
-        onSearch={selectedTab === OutOfOfficeTab.TEAM ? (value) => setDebouncedSearchTerm(value) : undefined}
-        tableContainerRef={tableContainerRef}
-        columns={columns}
-        data={isPending || (isFetching && debouncedSearchTerm !== "") ? new Array(5).fill(null) : flatData}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-      />
-    </div>
+          }
+        />
+      ) : (
+        <div>
+          <DataTable
+            hideHeader={selectedTab === OutOfOfficeTab.MINE}
+            data-testid="ooo-list-data-table"
+            onSearch={
+              selectedTab === OutOfOfficeTab.TEAM ? (value) => setDebouncedSearchTerm(value) : undefined
+            }
+            tableContainerRef={tableContainerRef}
+            columns={columns}
+            data={
+              isPending || (isFetching && debouncedSearchTerm !== "") ? new Array(5).fill(null) : flatData
+            }
+            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+          />
+        </div>
+      )}
+    </>
   );
 };

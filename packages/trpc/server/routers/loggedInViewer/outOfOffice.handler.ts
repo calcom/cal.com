@@ -9,10 +9,11 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type {
-  TOutOfOfficeDelete,
-  TOutOfOfficeEntriesListSchema,
-  TOutOfOfficeInputSchema,
+import {
+  OutOfOfficeRecordType,
+  type TOutOfOfficeDelete,
+  type TOutOfOfficeEntriesListSchema,
+  type TOutOfOfficeInputSchema,
 } from "./outOfOffice.schema";
 
 // function getTeam() checks if there is a team where 'adminUserId' is admin or owner
@@ -440,7 +441,7 @@ type GetOptions = {
 };
 
 export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
-  const { cursor, limit, fetchTeamMembersEntries, searchTerm } = input;
+  const { cursor, limit, fetchTeamMembersEntries, searchTerm, recordType } = input;
   let fetchOOOEntriesForIds = [ctx.user.id];
 
   if (fetchTeamMembersEntries) {
@@ -486,52 +487,45 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
     fetchOOOEntriesForIds = userIds;
   }
 
-  const getTotalEntries = await prisma.outOfOfficeEntry.count({
-    where: {
-      userId: {
-        in: fetchOOOEntriesForIds,
-      },
-      ...(searchTerm && {
-        user: {
-          OR: [
-            {
-              email: {
-                contains: searchTerm,
-              },
-            },
-            {
-              username: {
-                contains: searchTerm,
-              },
-            },
-          ],
-        },
-      }),
+  const whereClause = {
+    userId: {
+      in: fetchOOOEntriesForIds,
     },
+    ...(recordType === OutOfOfficeRecordType.PREVIOUS
+      ? {
+          end: {
+            lt: new Date().toISOString(),
+          },
+        }
+      : {
+          end: {
+            gte: new Date().toISOString(),
+          },
+        }),
+    ...(searchTerm && {
+      user: {
+        OR: [
+          {
+            email: {
+              contains: searchTerm,
+            },
+          },
+          {
+            username: {
+              contains: searchTerm,
+            },
+          },
+        ],
+      },
+    }),
+  };
+
+  const getTotalEntries = await prisma.outOfOfficeEntry.count({
+    where: whereClause,
   });
 
   const outOfOfficeEntries = await prisma.outOfOfficeEntry.findMany({
-    where: {
-      userId: {
-        in: fetchOOOEntriesForIds,
-      },
-      ...(searchTerm && {
-        user: {
-          OR: [
-            {
-              email: {
-                contains: searchTerm,
-              },
-            },
-            {
-              username: {
-                contains: searchTerm,
-              },
-            },
-          ],
-        },
-      }),
-    },
+    where: whereClause,
     select: {
       id: true,
       uuid: true,

@@ -21,10 +21,11 @@ import {
   outOfOfficeEntriesList,
   outOfOfficeEntryDelete,
 } from "./outOfOffice.handler";
-import type {
-  TOutOfOfficeDelete,
-  TOutOfOfficeEntriesListSchema,
-  TOutOfOfficeInputSchema,
+import {
+  OutOfOfficeRecordType,
+  type TOutOfOfficeDelete,
+  type TOutOfOfficeEntriesListSchema,
+  type TOutOfOfficeInputSchema,
 } from "./outOfOffice.schema";
 
 const cleanup = async () => {
@@ -43,6 +44,28 @@ function setupAndTeardown() {
   afterEach(async () => {
     await cleanup();
   });
+}
+
+enum TimeOfDay {
+  START = "start",
+  END = "end",
+}
+
+function getFutureDateUTC(incrementDays: number, timeOfDay: TimeOfDay) {
+  const currentDate = new Date();
+
+  const updatedDate = new Date(currentDate);
+  updatedDate.setDate(currentDate.getDate() + incrementDays);
+
+  if (timeOfDay === TimeOfDay.START) {
+    // Set time to start of day "00:00:00.000Z"
+    updatedDate.setUTCHours(0, 0, 0, 0);
+  } else if (timeOfDay === TimeOfDay.END) {
+    // Set time to end of day "23:59:59.999Z"
+    updatedDate.setUTCHours(23, 59, 59, 999);
+  }
+
+  return updatedDate.toISOString();
 }
 
 async function populateOutOfOfficesForList() {
@@ -142,101 +165,101 @@ async function populateOutOfOfficesForList() {
       {
         userId: users[0].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-03T00:00:00.000Z"),
-        end: new Date("2024-09-03T23:59:59.999Z"),
+        start: getFutureDateUTC(2, TimeOfDay.START),
+        end: getFutureDateUTC(2, TimeOfDay.END),
         notes: "",
         reasonId: 1,
         toUserId: users[1].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[0].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-05T00:00:00.000Z"),
-        end: new Date("2024-09-05T23:59:59.999Z"),
+        start: getFutureDateUTC(4, TimeOfDay.START),
+        end: getFutureDateUTC(5, TimeOfDay.END),
         notes: "",
         reasonId: 2,
         toUserId: users[2].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[0].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-07T00:00:00.000Z"),
-        end: new Date("2024-09-07T23:59:59.999Z"),
+        start: getFutureDateUTC(7, TimeOfDay.START),
+        end: getFutureDateUTC(7, TimeOfDay.END),
         notes: "",
         reasonId: 2,
         toUserId: users[3].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[1].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-09T00:00:00.000Z"),
-        end: new Date("2024-09-11T23:59:59.999Z"),
+        start: getFutureDateUTC(9, TimeOfDay.START),
+        end: getFutureDateUTC(10, TimeOfDay.END),
         notes: "",
         reasonId: 2,
         toUserId: users[2].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[1].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-13T00:00:00.000Z"),
-        end: new Date("2024-09-15T23:59:59.999Z"),
+        start: getFutureDateUTC(12, TimeOfDay.START),
+        end: getFutureDateUTC(12, TimeOfDay.END),
         notes: "",
         reasonId: 2,
         toUserId: users[0].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[2].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-16T00:00:00.000Z"),
-        end: new Date("2024-09-17T23:59:59.999Z"),
+        start: getFutureDateUTC(14, TimeOfDay.START),
+        end: getFutureDateUTC(16, TimeOfDay.END),
         notes: "",
         reasonId: 1,
         toUserId: users[3].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[2].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-19T00:00:00.000Z"),
-        end: new Date("2024-09-21T23:59:59.999Z"),
+        start: getFutureDateUTC(18, TimeOfDay.START),
+        end: getFutureDateUTC(18, TimeOfDay.END),
         notes: "",
         reasonId: 2,
         toUserId: users[0].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[3].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-22T00:00:00.000Z"),
-        end: new Date("2024-09-24T23:59:59.999Z"),
+        start: getFutureDateUTC(20, TimeOfDay.START),
+        end: getFutureDateUTC(20, TimeOfDay.END),
         notes: "",
         reasonId: 1,
         toUserId: users[1].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         userId: users[3].id,
         uuid: uuidv4(),
-        start: new Date("2024-09-26T00:00:00.000Z"),
-        end: new Date("2024-09-28T23:59:59.999Z"),
+        start: getFutureDateUTC(22, TimeOfDay.START),
+        end: getFutureDateUTC(22, TimeOfDay.END),
         notes: "",
         reasonId: 2,
         toUserId: users[0].id,
-        createdAt: new Date("2024-09-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-09-01T00:00:00.000Z"),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
     ],
   });
@@ -1337,6 +1360,7 @@ describe("outOfOfficeHandler", () => {
       const input: TOutOfOfficeEntriesListSchema = {
         limit: 5,
         fetchTeamMembersEntries: false,
+        recordType: OutOfOfficeRecordType.CURRENT,
       };
 
       const result = await outOfOfficeEntriesList({ ctx, input });
@@ -1360,6 +1384,7 @@ describe("outOfOfficeHandler", () => {
       const input: TOutOfOfficeEntriesListSchema = {
         limit: 10,
         fetchTeamMembersEntries: true,
+        recordType: OutOfOfficeRecordType.CURRENT,
       };
 
       const result = await outOfOfficeEntriesList({ ctx, input });
