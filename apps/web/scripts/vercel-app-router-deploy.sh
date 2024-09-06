@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Only deploy to production
-if [ "$VERCEL_ENV" != "production" ]; then exit 0; fi
-
 checkRoute () {
   if [ "$1" != '1' ]; then rm -rf $2; fi
 }
