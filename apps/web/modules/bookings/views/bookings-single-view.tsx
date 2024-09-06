@@ -73,10 +73,10 @@ import { GifModal } from "~/bookings/views/components/GifModal";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 enum BookingTypes {
-  MEDIC_APPOINTMENT = "[Clínico Geral]",
-  URGENT_APPOINTMENT = "[]",
-  OCCUPATIONAL_THERAPY = "[Terapia Ocupacional]",
-  COGNTIVE_BEHAVIORAL_THERAPY = "[]",
+  MEDIC_APPOINTMENT = "Consulta Médica",
+  URGENT_APPOINTMENT = "Consulta Médica de Urgência",
+  OCCUPATIONAL_THERAPY = "Sessão de Terapia Ocupacional",
+  COGNTIVE_BEHAVIORAL_THERAPY = "Sessão de Terapia Cognitivo-Comportamental",
 }
 
 enum VariantDescription {
@@ -1111,18 +1111,20 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
-                    <RescheduleOrCancelWarning description={description} />
-                    <div className="flex justify-center">
-                      <span className=" text-xs">
-                        Confira a nossa{" "}
-                        <Link
-                          className="underline"
-                          target="_blank"
-                          href="https://www.yinflow.life/discover#politica-de-cancelamento-e-reembolso">
-                          política de reagendamentos, cancelamentos e reembolsos.
-                        </Link>
-                      </span>
-                    </div>
+                    {!isEventCancelled && <RescheduleOrCancelWarning description={description} />}
+                    {!isEventCancelled && (
+                      <div className="flex justify-center">
+                        <span className=" text-xs">
+                          Confira a nossa{" "}
+                          <Link
+                            className="underline"
+                            target="_blank"
+                            href="https://www.yinflow.life/discover#politica-de-cancelamento-e-reembolso">
+                            política de reagendamentos, cancelamentos e reembolsos.
+                          </Link>
+                        </span>
+                      </div>
+                    )}
 
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
