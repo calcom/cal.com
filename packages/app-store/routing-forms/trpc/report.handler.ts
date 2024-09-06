@@ -9,7 +9,7 @@ import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../lib/reportingUtils";
 import type { FormResponse } from "../types/types";
-import type { zodNonRouterField, zodFieldView } from "../zod";
+import type { zodFieldView } from "../zod";
 import type { TReportInputSchema } from "./report.schema";
 
 interface ReportHandlerOptions {
@@ -18,8 +18,6 @@ interface ReportHandlerOptions {
   };
   input: TReportInputSchema;
 }
-
-export type Field = z.infer<typeof zodNonRouterField>;
 
 export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
   // Can be any prisma `where` clause

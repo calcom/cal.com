@@ -54,7 +54,6 @@ export function getUIOptionsForSelect(field: Field) {
   // Because for legacy saved options, routes must have labels in them instead of ids
   const shouldUseLabelAsValue = areOptionsInLegacyFormat;
   return options.map((option) => {
-    console.log("option", option);
     // We prefer option.id as that doesn't change when we change the option text/label.
     // Fallback to option.label for fields saved in DB in old format which didn't have `options`
     const value = shouldUseLabelAsValue ? option.label : option.id ?? option.label;

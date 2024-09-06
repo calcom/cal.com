@@ -22,6 +22,7 @@ export function getQueryBuilderConfig(form: Pick<RoutingForm, "fields">, forRepo
     if ("routerField" in field) {
       field = field.routerField;
     }
+    // We can assert the type because otherwise we throw 'Unsupported field type' error
     const fieldType = field.type as (typeof FieldTypes)[number]["value"];
     if (FieldTypes.map((f) => f.value).includes(fieldType)) {
       const options = getUIOptionsForSelect(field);
