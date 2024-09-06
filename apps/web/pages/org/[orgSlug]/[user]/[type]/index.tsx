@@ -3,7 +3,7 @@
 import PageWrapper from "@components/PageWrapper";
 
 import UserTypePage from "~/users/views/users-type-public-view";
-import type { PageProps as UserTypePageProps } from "~/users/views/users-type-public-view.getServerSideProps";
+import type { PageProps as UserTypePageProps } from "~/users/views/users-type-public-view";
 
 import type { PageProps as TeamTypePageProps } from "../../../../team/[slug]/[type]";
 import TeamTypePage from "../../../../team/[slug]/[type]";

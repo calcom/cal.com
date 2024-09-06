@@ -6,11 +6,10 @@ import { headers, cookies } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
+import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+
+import type { PageProps as LegacyPageProps } from "~/users/views/users-type-public-view";
 import LegacyPage from "~/users/views/users-type-public-view";
-import {
-  getServerSideProps,
-  type PageProps as LegacyPageProps,
-} from "~/users/views/users-type-public-view.getServerSideProps";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
