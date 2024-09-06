@@ -1,3 +1,4 @@
+import { formatEventFromTime } from "bookings/Booker/utils/dates";
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
@@ -11,6 +12,8 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TimeFormat } from "@calcom/lib/timeFormat";
+import { Icon } from "@calcom/ui";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -103,6 +106,13 @@ export const EventMeta = ({
     ? "text-yellow-500"
     : "text-bookinghighlight";
 
+  const { date, time } = formatEventFromTime({
+    date: "2022-02-22T00:00:00.000Z",
+    timeFormat: TimeFormat.TWENTY_FOUR_HOUR,
+    timeZone: timezone,
+    language: i18n.language,
+  });
+
   return (
     <div
       className={`${classNames?.eventMetaContainer || ""} relative z-10 p-4 md:p-10`}
@@ -139,7 +149,7 @@ export const EventMeta = ({
             </>
           )}
           <div className="">
-            <div className=" space-y-4 font-medium md:ml-28 md:pl-2 ">
+            <div className="mb-4 flex items-center gap-4 space-y-4 font-medium md:ml-28 md:pl-2 ">
               {/* {rescheduleUid && bookingData && (
                 <EventMetaBlock icon="calendar">
                   {t("former_time")}
@@ -166,6 +176,12 @@ export const EventMeta = ({
                   />
                 </EventMetaBlock>
               )} */}
+              {event?.recurringEvent && (
+                <span className="text-bas -mb-4 flex items-center gap-2">
+                  <Icon name="calendar" data-testid="calendar-icon" className="h-3 w-3 stroke-[3px]" />A
+                  partir de {date}, {time}
+                </span>
+              )}
               <EventDetails event={event} isOcurrence={isOcurrence} />
               {/* <EventMetaBlock
                 className=".event-meta-block-fix cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
@@ -210,6 +226,12 @@ export const EventMeta = ({
                 </EventMetaBlock>
               ) : null}
             </div>
+            {event?.recurringEvent && (
+              <span className="text-base">
+                O dia da semana e horário escolhidos serão reservados para você nas próximas semanas conforme
+                o plano escolhido.
+              </span>
+            )}
           </div>
         </m.div>
       )}
