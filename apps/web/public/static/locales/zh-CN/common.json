@@ -2201,6 +2201,7 @@
   "member_removed": "成员已移除",
   "my_availability": "我的可预约时间",
   "team_availability": "团队可预约时间",
+  "instant_meeting_availability": "即时会议可用性",
   "backup_code": "备份代码",
   "backup_codes": "备份代码",
   "backup_code_instructions": "每个备份代码只能使用一次，用于在没有验证器的情况下授予访问权限。",
