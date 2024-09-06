@@ -257,7 +257,7 @@ export class UserRepository {
       where: {
         id,
       },
-      select,
+      select: { ...select },
     });
 
     if (!user) {
