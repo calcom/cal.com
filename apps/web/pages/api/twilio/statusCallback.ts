@@ -22,7 +22,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const parsedUserId = userId ? (Array.isArray(userId) ? Number(userId[0]) : Number(userId)) : null;
         const parsedTeamId = teamId ? (Array.isArray(teamId) ? Number(teamId[0]) : Number(teamId)) : null;
 
-        const payingTeam = await addCredits("", parsedUserId, parsedTeamId);
+        const payingTeam = await addCredits(req.body.To, parsedUserId, parsedTeamId); //todo: test if to phone number is in body
         if (payingTeam) {
           return res
             .status(200)
