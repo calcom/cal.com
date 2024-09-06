@@ -175,53 +175,6 @@ export default function Success(props: PageProps) {
   };
   // querySchema.parse(routerQuery);
 
-  const { description } = useMemo(() => {
-    const currentTime = dayjs();
-    const startTime = dayjs(bookingInfo.startTime);
-    const pastAppointment = isPastBooking;
-    const hasStarted = currentTime.isAfter(startTime);
-    const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
-    const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
-    const lessThan7DaysFromPurchase = purchaseDate?.isAfter(currentTime.subtract(7, "days"));
-    const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
-    const urgentMedicalAppointments = false;
-
-    switch (true) {
-      case pastAppointment:
-        return {
-          description:
-            "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.",
-        };
-      case hasStarted:
-        return {
-          description:
-            "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ",
-        };
-      case urgentMedicalAppointments:
-        return {
-          description:
-            "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.",
-        };
-      case lessThan12HoursInAdvance:
-        return {
-          description:
-            "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.",
-        };
-      case moreOrEqualThan7DaysFromPurchase:
-        return {
-          description:
-            "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.",
-        };
-      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase:
-        return {
-          description:
-            "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.",
-        };
-      default:
-        return { description: "" };
-    }
-  }, [bookingInfo.startTime, isPastBooking, purchaseDate]);
-
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -373,8 +326,8 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    // const secondArgument = (pathname || "").split("/bookings/")[1];
-    // const [bookingUid] = secondArgument.split("?");
+    console.log({ pathname });
+    console.log({ props: props.profile });
 
     const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
     const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
@@ -393,20 +346,18 @@ export default function Success(props: PageProps) {
         });
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
 
     fetch(getBookedTimeUrl)
       .then((data) => {
         data.json().then(({ data }: { data: BookingInfo[] }) => {
-          console.log({ data });
           const findedBooking = data.find(({ uid }) => uid === "2z7g2Hwp2A65GY2vkxRhHN");
-          console.log({ findedBooking });
           setPurchaseDate(dayjs(findedBooking?.createdAt));
         });
       })
       .catch((error) => {
-        console.log({ error });
+        console.error({ error });
       });
   }, [eventTypes, pathname]);
 
@@ -511,6 +462,53 @@ export default function Success(props: PageProps) {
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
+
+  const { description } = useMemo(() => {
+    const currentTime = dayjs();
+    const startTime = dayjs(bookingInfo.startTime);
+    const pastAppointment = isPastBooking;
+    const hasStarted = currentTime.isAfter(startTime);
+    const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
+    const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
+    const lessThan7DaysFromPurchase = purchaseDate?.isAfter(currentTime.subtract(7, "days"));
+    const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
+    const urgentMedicalAppointments = false;
+
+    switch (true) {
+      case pastAppointment:
+        return {
+          description:
+            "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.",
+        };
+      case hasStarted:
+        return {
+          description:
+            "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ",
+        };
+      case urgentMedicalAppointments:
+        return {
+          description:
+            "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+        };
+      case lessThan12HoursInAdvance:
+        return {
+          description:
+            "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+        };
+      case moreOrEqualThan7DaysFromPurchase:
+        return {
+          description:
+            "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.",
+        };
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase:
+        return {
+          description:
+            "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.",
+        };
+      default:
+        return { description: "" };
+    }
+  }, [bookingInfo.startTime, isPastBooking, purchaseDate]);
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
