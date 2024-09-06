@@ -745,10 +745,10 @@ test.describe("Text area min and max characters text", () => {
     // goto the advanced tab
     await page.click('[href$="tabName=advanced"]');
     const insertQuestion = async (questionName: string) => {
-      await page.click('[data-testid="add-field"]');
+      const element = page.locator('[data-testid="add-field"]');
+      await element.scrollIntoViewIfNeeded();
+      await element.click();
       const locatorForSelect = page.locator("[id=test-field-type]").nth(0);
-      await locatorForSelect.waitFor({ state: "visible" });
-      await locatorForSelect.waitFor({ state: "attached" });
       await locatorForSelect.click();
       await locatorForSelect.locator(`text="Long Text"`).click();
 

@@ -50,7 +50,6 @@ export const getEmbedIframe = async ({
   };
 
   // We can't seem to access page.frame till contentWindow is available. So wait for that.
-  await page.waitForLoadState("networkidle");
   const iframeReady = await page.evaluate(
     async (hardTimeout) => {
       return await new Promise((resolve) => {

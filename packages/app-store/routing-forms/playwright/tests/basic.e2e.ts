@@ -310,12 +310,12 @@ test.describe("Routing Forms", () => {
 
       // Router should be publicly accessible
       await users.logout();
-      page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
+      await page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
       await page.waitForURL((url) => {
         return url.pathname.endsWith("/pro/30min") && url.searchParams.get("Test field") === "event-routing";
       });
 
-      page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
+      await page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
         return (
           url.hostname.includes("google.com") && url.searchParams.get("Test field") === "external-redirect"
@@ -349,13 +349,10 @@ test.describe("Routing Forms", () => {
     test("Test preview should return correct route", async ({ page, users }) => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
-      page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
-      await page.waitForLoadState("networkidle");
-      await page.locator('[data-testid="test-preview"]').waitFor({ state: "visible" });
+      await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
       await page.click('[data-testid="test-preview"]');
 
-      await Promise.all([page.waitForLoadState("domcontentloaded"), page.waitForLoadState("networkidle")]);
-
+      //event redirect
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
       await page.click('[data-testid="test-routing"]');
       let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();

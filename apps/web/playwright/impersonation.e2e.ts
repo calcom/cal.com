@@ -8,25 +8,19 @@ test.describe("Users can impersonate", async () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
-
   test("App Admin can impersonate users with impersonation enabled", async ({ page, users }) => {
     // log in trail user
-    const adminUser = await users.create({
+    const user = await users.create({
       role: "ADMIN",
       password: "ADMINadmin2022!",
-      username: "admin-impersonator",
     });
+    console.log(user.username);
 
-    const userToImpersonate = await users.create({
-      disableImpersonation: false,
-      username: "impersonated-user",
-    });
+    const userToImpersonate = await users.create({ disableImpersonation: false });
 
-    await adminUser.apiLogin();
-    await page.waitForLoadState("networkidle");
-
+    await user.apiLogin();
     await page.goto("/settings/admin/impersonation");
-    await page.waitForLoadState("networkidle");
+    await expect(page.getByText("User Impersonation")).toBeVisible();
     const adminInput = page.getByTestId("admin-impersonation-input");
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore the username does exist
@@ -46,10 +40,11 @@ test.describe("Users can impersonate", async () => {
     await expect(impersonatedUser).toBe(userToImpersonate.username);
 
     await stopImpersonatingButton.click();
+    await expect(stopImpersonatingButton).toBeHidden();
 
-    await page.waitForLoadState("networkidle");
     // Return to user
     const ogUser = await impersonatedUsernameInput.inputValue();
-    await expect(ogUser).toBe(adminUser.username);
+
+    expect(ogUser).toBe(user.username);
   });
 });
