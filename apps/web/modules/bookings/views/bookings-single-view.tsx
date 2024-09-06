@@ -1,7 +1,6 @@
 "use client";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { createClient } from "app/utils/supabase/client";
 import classNames from "classnames";
 import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
@@ -32,6 +31,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { cpfMask } from "@calcom/features/form-builder/utils";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
@@ -68,11 +68,38 @@ import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import { GifModal } from "~/bookings/views/components/GifModal";
+
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
+enum BookingTypes {
+  MEDIC_APPOINTMENT = "Consulta Médica",
+  URGENT_APPOINTMENT = "Consulta Médica de Urgência",
+  OCCUPATIONAL_THERAPY = "Sessão de Terapia Ocupacional",
+  COGNTIVE_BEHAVIORAL_THERAPY = "Sessão de Psicologia",
+}
+
+enum VariantDescription {
+  PAST_APPOINTMENT = "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.",
+  HAS_STARTED = "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+  URGENT_MEDICAL_APPOINTMENT = "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+  LESS_THAN_12_HOURS = "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.",
+  MORE_THAN_12_HOURS_LESS_THAN_7_DAYS = "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.",
+  MORE_THAN_7_DAYS = "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.",
+}
+
 interface RescheduleOrCancelWarningProps {
-  pastAppointment: boolean;
-  startTime: dayjs.Dayjs;
+  description: string;
+}
+
+interface EventType {
+  [key: string]: string;
+}
+
+interface BookingInfo {
+  createdAt: string;
+  title: string;
+  uid: string;
 }
 
 const stringToBoolean = z
@@ -110,59 +137,14 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-const RescheduleOrCancelWarning = ({ pastAppointment, startTime }: RescheduleOrCancelWarningProps) => {
-  const supabase = createClient();
-  const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
-
-  const currentTime = dayjs();
-  const hasStarted = currentTime.isAfter(startTime);
-  const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
-  const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
-  const moreOrEqualThan7DaysFromPurchase = currentTime.isBefore(purchaseDate?.add(7, "days"));
-  const lessThan7DaysFromPurchase = !moreOrEqualThan7DaysFromPurchase;
-  const urgentMedicalAppointments = false;
-
-  const description = useMemo(() => {
-    switch (true) {
-      case pastAppointment:
-        return "Para reagendar uma evento passado será necessário realizar o pagamento de uma taxa de 50% do valor da sessão. Caso opte pelo cancelamento, você não terá direito de reembolso.";
-      case hasStarted:
-        return "Em caso de não comparecimento após 15 minutos do horário agendado, será necessário realizar o pagamento de uma taxa de 50% do valor do serviço para reagendar. Caso opte pelo cancelamento, você não terá direito à reembolso. ";
-      // case urgentMedicalAppointments:
-      // return "Para reagendar uma consulta de emergência, será cobrada uma nova consulta. Caso opte pelo cancelamento, você não terá direito à reembolso.";
-      case lessThan12HoursInAdvance:
-        return "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.";
-      case moreOrEqualThan7DaysFromPurchase:
-        return "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.";
-      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase:
-        return "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.";
-    }
-  }, [
-    hasStarted,
-    lessThan12HoursInAdvance,
-    lessThan7DaysFromPurchase,
-    moreOrEqualThan12HoursInAdvance,
-    moreOrEqualThan7DaysFromPurchase,
-    pastAppointment,
-  ]);
-
-  useEffect(() => {
-    supabase
-      .from("Booking")
-      .select()
-      .then((data: any) => {
-        console.log(data);
-      });
-  }, [supabase]);
-
-  if (!purchaseDate) return null;
-
+const RescheduleOrCancelWarning = ({ description }: RescheduleOrCancelWarningProps) => {
+  if (description === "") return null;
   return (
     <div className="my-6 flex items-center rounded border border-[#E6EBF0] bg-[#F4F6F8] p-2 text-xs text-[#598392]">
       <svg
         className="mr-2"
-        width="16"
-        height="16"
+        width="32"
+        height="32"
         viewBox="0 0 16 16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg">
@@ -184,6 +166,10 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
+  const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
+  const [eventTypes, setEventTypes] = useState<EventType | null>(null);
+  const [appointmentType, setAppointmentType] = useState<BookingTypes | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const {
     allRemainingBookings,
@@ -196,6 +182,7 @@ export default function Success(props: PageProps) {
     noShow,
     rating,
   } = querySchema.parse(routerQuery);
+
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -347,6 +334,57 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
+    if (pathname) {
+      const bookingUID = pathname.split("/booking/")[1].split("?")[0];
+
+      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
+      const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
+
+      fetch(getEventTypeSlugUrl)
+        .then((data) => {
+          data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
+            const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
+            const eventSlugs = data.reduce((acc, { id, slug }) => {
+              if (eventTypeIds.includes(id)) {
+                return { ...acc, [id]: slug };
+              }
+              return acc;
+            }, eventTypes);
+            setEventTypes(eventSlugs);
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
+      fetch(getBookedTimeUrl)
+        .then((data) => {
+          data.json().then(({ data }: { data: BookingInfo[] }) => {
+            const findedBooking = data.find(({ uid }) => uid === bookingUID);
+            setPurchaseDate(dayjs(findedBooking?.createdAt));
+            setAppointmentType((_prev) => {
+              switch (true) {
+                case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
+                  return BookingTypes.URGENT_APPOINTMENT;
+                case findedBooking?.title.includes(BookingTypes.MEDIC_APPOINTMENT):
+                  return BookingTypes.MEDIC_APPOINTMENT;
+                case findedBooking?.title.includes(BookingTypes.OCCUPATIONAL_THERAPY):
+                  return BookingTypes.OCCUPATIONAL_THERAPY;
+                case findedBooking?.title.includes(BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY):
+                  return BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
+                default:
+                  return null;
+              }
+            });
+          });
+        })
+        .catch((error) => {
+          console.error({ error });
+        });
+    }
+  }, [eventTypes, pathname]);
+
+  useEffect(() => {
     setCalculatedDuration(dayjs(bookingInfo.endTime).diff(dayjs(bookingInfo.startTime), "minutes"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -448,6 +486,132 @@ export default function Success(props: PageProps) {
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
 
+  const { description, rescheduleRoute } = useMemo(() => {
+    const currentTime = dayjs();
+    const startTime = dayjs(bookingInfo.startTime);
+    const pastAppointment = isPastBooking;
+    const hasStarted = currentTime.isAfter(startTime);
+    const moreOrEqualThan12HoursInAdvance = currentTime.isBefore(startTime.subtract(12, "hours"));
+    const lessThan12HoursInAdvance = !moreOrEqualThan12HoursInAdvance;
+    const lessThan7DaysFromPurchase = purchaseDate?.isAfter(currentTime.subtract(7, "days"));
+    const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
+
+    if (!purchaseDate || !eventTypes || !appointmentType) return { description: "", rescheduleRoute: "" };
+
+    const baseRescheduleRoute = `agenda.yinflow.life/${props.profile.slug}/`;
+    const urgentMedicalAppointments = appointmentType === BookingTypes.URGENT_APPOINTMENT;
+    const medicalAppointments = appointmentType === BookingTypes.MEDIC_APPOINTMENT;
+    const occupationalTherapy = appointmentType === BookingTypes.OCCUPATIONAL_THERAPY;
+    const cognitiveBehavioralTherapy = appointmentType === BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
+
+    switch (true) {
+      case urgentMedicalAppointments:
+        return {
+          description: VariantDescription.URGENT_MEDICAL_APPOINTMENT,
+          rescheduleRoute: `/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+            currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
+          }`,
+        };
+      case pastAppointment && medicalAppointments:
+        return {
+          description: VariantDescription.PAST_APPOINTMENT,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1246"],
+        };
+      case pastAppointment && occupationalTherapy:
+        return {
+          description: VariantDescription.PAST_APPOINTMENT,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1389"],
+        };
+      case pastAppointment && cognitiveBehavioralTherapy:
+        return {
+          description: VariantDescription.PAST_APPOINTMENT,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1375"],
+        };
+      case pastAppointment && urgentMedicalAppointments:
+        return {
+          description: VariantDescription.PAST_APPOINTMENT,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1146"],
+        };
+      case hasStarted && medicalAppointments:
+        return {
+          description: VariantDescription.HAS_STARTED,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1246"],
+        };
+      case hasStarted && occupationalTherapy:
+        return {
+          description: VariantDescription.HAS_STARTED,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1389"],
+        };
+      case hasStarted && cognitiveBehavioralTherapy:
+        return {
+          description: VariantDescription.HAS_STARTED,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1375"],
+        };
+      case hasStarted && urgentMedicalAppointments:
+        return {
+          description: VariantDescription.HAS_STARTED,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1146"],
+        };
+      case lessThan12HoursInAdvance && medicalAppointments:
+        return {
+          description: VariantDescription.LESS_THAN_12_HOURS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1246"],
+        };
+      case lessThan12HoursInAdvance && occupationalTherapy:
+        return {
+          description: VariantDescription.LESS_THAN_12_HOURS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1389"],
+        };
+      case lessThan12HoursInAdvance && cognitiveBehavioralTherapy:
+        return {
+          description: VariantDescription.LESS_THAN_12_HOURS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1375"],
+        };
+      case moreOrEqualThan7DaysFromPurchase && medicalAppointments:
+        return {
+          description: VariantDescription.MORE_THAN_7_DAYS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1154"],
+        };
+      case moreOrEqualThan7DaysFromPurchase && occupationalTherapy:
+        return {
+          description: VariantDescription.MORE_THAN_7_DAYS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
+        };
+      case moreOrEqualThan7DaysFromPurchase && cognitiveBehavioralTherapy:
+        return {
+          description: VariantDescription.MORE_THAN_7_DAYS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
+        };
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && medicalAppointments:
+        return {
+          description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1154"],
+        };
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && medicalAppointments:
+        return {
+          description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
+        };
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && medicalAppointments:
+        return {
+          description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
+        };
+      default:
+        return { description: "", rescheduleRoute: "" };
+    }
+  }, [
+    appointmentType,
+    bookingInfo.startTime,
+    bookingInfo?.uid,
+    currentUserEmail,
+    eventTypes,
+    isPastBooking,
+    props.profile.slug,
+    purchaseDate,
+    seatReferenceUid,
+  ]);
+
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
@@ -470,6 +634,12 @@ export default function Success(props: PageProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+      <GifModal
+        visible={showModal}
+        onClose={() => {
+          setShowModal(false);
+        }}
+      />
       {!isEmbed && !isFeedbackMode && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
@@ -718,6 +888,11 @@ export default function Success(props: PageProps) {
 
                           const label = field.label || t(field.defaultLabel || "");
 
+                          const maskedCPF =
+                            field.name === "CPF"
+                              ? cpfMask(response.toString() || "").value
+                              : response.toString();
+
                           return (
                             <>
                               <div className="mt-3 font-medium">{label}</div>
@@ -725,11 +900,7 @@ export default function Success(props: PageProps) {
                                 className="col-span-2 mt-3"
                                 data-testid="field-response"
                                 data-fob-field={field.name}>
-                                {field.type === "boolean"
-                                  ? response
-                                    ? t("yes")
-                                    : t("no")
-                                  : response.toString()}
+                                {field.type === "boolean" ? (response ? t("yes") : t("no")) : maskedCPF}
                               </p>
                             </>
                           );
@@ -773,11 +944,7 @@ export default function Success(props: PageProps) {
                               {!props.recurringBookings && (
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
-                                    <Link
-                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
-                                      }`}
-                                      legacyBehavior>
+                                    <Link href={rescheduleRoute} legacyBehavior>
                                       {t("reschedule")}
                                     </Link>
                                   </span>
@@ -944,18 +1111,20 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
-                    {/* <RescheduleOrCancelWarning
-                      pastAppointment={isPastBooking}
-                      startTime={dayjs(bookingInfo.startTime)}
-                    />
-                    <div className="flex justify-center">
-                      <span className=" text-xs">
-                        Confira a nossa{" "}
-                        <Link className="underline" href="">
-                          política de reagendamentos, cancelamentos e reembolsos.
-                        </Link>
-                      </span>{" "}
-                    </div> */}
+                    {!isEventCancelled && <RescheduleOrCancelWarning description={description} />}
+                    {!isEventCancelled && (
+                      <div className="flex justify-center">
+                        <span className=" text-xs">
+                          Confira a nossa{" "}
+                          <Link
+                            className="underline"
+                            target="_blank"
+                            href="https://www.yinflow.life/discover#politica-de-cancelamento-e-reembolso">
+                            política de reagendamentos, cancelamentos e reembolsos.
+                          </Link>
+                        </span>
+                      </div>
+                    )}
 
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
@@ -1107,10 +1276,11 @@ export default function Success(props: PageProps) {
                       <p className="font-semibold">
                         Para adicionar o evento ao seu Google Calendar, abra o e-mail de confirmação, clique
                         no botão "Adicionar à agenda" e, em seguida, no botão "Sim",{" "}
-                        <span className="underline">
+                        <span className="cursor-pointer underline">
                           <a
-                            target="_blank"
-                            href="https://www.yinflow.life/habilitar-eventos-no-google-calendar">
+                            onClick={() => {
+                              setShowModal(true);
+                            }}>
                             conforme demonstrado neste vídeo.
                           </a>
                         </span>
