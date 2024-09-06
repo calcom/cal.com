@@ -120,8 +120,6 @@ function Field({
       ],
     }) || [];
 
-  const isLegacyOptions = !watchedOptions[0]?.id;
-
   const setOptions = (updatedOptions: SelectOption[]) => {
     hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
   };
@@ -300,7 +298,8 @@ function Field({
               <ul ref={animationRef}>
                 {watchedOptions.map((option, index) => (
                   <li
-                    key={`select-option-${option.id}`}
+                    // We can't use option.id here as it is undefined and would make keys non-unique causing duplicate items
+                    key={`select-option-${index}`}
                     className="group mt-2 flex items-center gap-2"
                     onPaste={(event: ClipboardEvent) =>
                       handlePasteInOptionAtIndex({ event, optionIndex: index })
