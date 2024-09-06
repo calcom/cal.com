@@ -1,11 +1,14 @@
 import { type TFunction } from "next-i18next";
 
-import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml } from "../components";
 
-export type SmsLimitAlmostReachedData = {
-  teamName: string;
+export type SmsLimitReachedData = {
+  team: {
+    id: number;
+    name: string;
+  };
   user: {
     email: string;
     name: string | null;
@@ -13,7 +16,7 @@ export type SmsLimitAlmostReachedData = {
   };
 };
 
-export const SmsLimitReachedEmail = (props: SmsLimitAlmostReachedData) => {
+export const SmsLimitReachedEmail = (props: SmsLimitReachedData) => {
   //todo
   return (
     <BaseEmailHtml subject={props.user.t("sms_limit_almost_reached_subject", { appName: APP_NAME })}>
@@ -22,10 +25,12 @@ export const SmsLimitReachedEmail = (props: SmsLimitAlmostReachedData) => {
           {props.user.t("hi_user_name", { name: props.user.name })}!
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_reached_first_part", { teamName: props.teamName })}
+          {props.user.t("sms_limit_reached_first_part", { teamName: props.team.name })}
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_reached_second_part")}
+          {props.user.t("sms_limit_reached_second_part", {
+            url: `${WEBAPP_URL}/settings/team/${props.team.id}/smsCredits`,
+          })}
         </p>
       </div>
       <div style={{ lineHeight: "6px" }}>

@@ -1,13 +1,13 @@
 import { APP_NAME, EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "..";
-import type { SmsLimitAlmostReachedData } from "../src/templates/SmsLimitAlmostReachedEmail";
+import type { SmsLimitReachedData } from "../src/templates/SmsLimitReachedEmail";
 import BaseEmail from "./_base-email";
 
 export default class SmsLimitAlmostReachedEmail extends BaseEmail {
-  team: SmsLimitAlmostReachedData;
+  team: SmsLimitReachedData;
 
-  constructor(team: SmsLimitAlmostReachedData) {
+  constructor(team: SmsLimitReachedData) {
     super();
     this.team = team;
   }

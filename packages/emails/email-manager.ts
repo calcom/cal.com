@@ -620,6 +620,7 @@ export const sendBookingRedirectNotification = async (bookingRedirect: IBookingR
 };
 
 export const sendSmsLimitAlmostReachedEmails = async (team: {
+  id: number;
   name: string;
   ownersAndAdmins: {
     email: string;
@@ -631,13 +632,14 @@ export const sendSmsLimitAlmostReachedEmails = async (team: {
 
   emailsToSend.push(
     ...team.ownersAndAdmins.map((owner) => {
-      return sendEmail(() => new SmsLimitAlmostReachedEmail({ teamName: team.name, user: owner }));
+      return sendEmail(() => new SmsLimitAlmostReachedEmail({ team, user: owner }));
     })
   );
   await Promise.all(emailsToSend);
 };
 
 export const sendSmsLimitReachedEmails = async (team: {
+  id: number;
   name: string;
   ownersAndAdmins: {
     email: string;
@@ -649,7 +651,7 @@ export const sendSmsLimitReachedEmails = async (team: {
 
   emailsToSend.push(
     ...team.ownersAndAdmins.map((owner) => {
-      return sendEmail(() => new SmsLimitReachedEmail({ teamName: team.name, user: owner }));
+      return sendEmail(() => new SmsLimitReachedEmail({ team, user: owner }));
     })
   );
   await Promise.all(emailsToSend);

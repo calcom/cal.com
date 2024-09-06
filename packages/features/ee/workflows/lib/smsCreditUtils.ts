@@ -15,6 +15,7 @@ const smsCreditCountSelect = {
   credits: true,
   team: {
     select: {
+      id: true,
       name: true,
       members: {
         select: {
@@ -157,7 +158,7 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
             })
         );
 
-        await sendSmsLimitReachedEmails({ name: team.name, ownersAndAdmins });
+        await sendSmsLimitReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
 
         await prisma.smsCreditCount.update({
           where: {
@@ -185,7 +186,7 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
         );
 
         // notification email to team owners when over 80% of credits used
-        await sendSmsLimitAlmostReachedEmails({ name: team.name, ownersAndAdmins });
+        await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
 
         await prisma.smsCreditCount.update({
           where: {
