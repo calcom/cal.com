@@ -180,29 +180,6 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
 
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
-      {/* <Success
-        userTimeFormat={null}
-        requiresLoginToUpdate={false}
-        rescheduledToUid={null}
-        orgSlug={null}
-        themeBasis={null}
-        hideBranding={false}
-        profile={{ name: "" }}
-        eventType={{ eventName: "", bookingFields: [{ name: "cpf", label: "CPF" }] }}
-        recurringBookings={null}
-        trpcState={undefined}
-        dynamicEventName=""
-        bookingInfo={{
-          location: null,
-          attendees: [{ email: "", name: "", phone: "" }],
-          notes: null,
-          title: null,
-          startTime: new Date().setHours(new Date().getHours() + 13),
-          endTime: new Date().setHours(new Date().getHours() + 14),
-          responses: { teste: ["cpf", "127.942.036-73"] },
-        }}
-        paymentStatus={null}
-      /> */}
       <AuthContainer
         title={t("login")}
         description={t("login")}
