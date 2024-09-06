@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
@@ -52,7 +52,11 @@ export function EditMemberSheet({
   const { t } = useLocale();
   const { user } = state.editSheet;
   const selectedUser = user as User;
-  const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
+  const [editMode, setEditMode, setMutationLoading] = useEditMode(
+    (state) => [state.editMode, state.setEditMode, state.setMutationLoading],
+    shallow
+  );
+  const [role, setRole] = useState(selectedUser.role);
   const name =
     selectedUser.name ||
     (() => {
@@ -104,8 +108,11 @@ export function EditMemberSheet({
 
       return { previousValue };
     },
-    async onSuccess() {
+    onSuccess: async (_data, { role }) => {
+      setRole(role);
+      setMutationLoading(false);
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.lazyLoadMembers.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
       setEditMode(false);
@@ -116,6 +123,7 @@ export function EditMemberSheet({
   });
 
   function changeRole(values: FormSchema) {
+    setMutationLoading(true);
     changeRoleMutation.mutate({
       teamId: teamId,
       memberId: user?.id as number,
@@ -170,7 +178,7 @@ export function EditMemberSheet({
               <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
               <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
               {!editMode ? (
-                <DisplayInfo label={t("role")} value={[selectedUser.role]} icon="fingerprint" />
+                <DisplayInfo label={t("role")} value={[role]} icon="fingerprint" />
               ) : (
                 <div className="flex items-center gap-6">
                   <div className="flex w-[110px] items-center gap-2">
@@ -180,7 +188,7 @@ export function EditMemberSheet({
                   <div className="flex flex-1">
                     <ToggleGroup
                       isFullWidth
-                      defaultValue={selectedUser.role}
+                      defaultValue={role}
                       value={form.watch("role")}
                       options={options}
                       onValueChange={(value: FormSchema["role"]) => {
