@@ -187,7 +187,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        //send the correct teamId and boolean here
+        // todo: make sure teamId is always the teamId of the workflow
         await twilio.sendSMS(reminderPhone, smsMessage, senderID, userId, teamId, false);
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
@@ -203,8 +203,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {
-          const smsCredits = await twilio.getCreditsForNumber(reminderPhone);
-
           const scheduledSMS = await twilio.scheduleSMS(
             reminderPhone,
             smsMessage,
@@ -224,8 +222,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 scheduled: true,
                 referenceId: scheduledSMS.sid,
                 seatReferenceId: seatReferenceUid,
-                smsCredits,
-                teamId: scheduledSMS.teamId,
               },
             });
           }

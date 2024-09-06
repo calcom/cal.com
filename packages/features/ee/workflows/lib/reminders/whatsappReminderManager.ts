@@ -148,8 +148,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        //send the right teamId and boolean here
-        await twilio.sendSMS(reminderPhone, textMessage, "", userId, teamId, false, true);
+        // todo: make sure teamId is always the teamId of the workflow
+        await twilio.sendSMS(reminderPhone, textMessage, "", userId, teamId, false);
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
@@ -164,8 +164,6 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {
-          const smsCredits = await twilio.getCreditsForNumber(reminderPhone);
-
           const scheduledWHATSAPP = await twilio.scheduleSMS(
             reminderPhone,
             textMessage,
@@ -186,8 +184,6 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                 scheduled: true,
                 referenceId: scheduledWHATSAPP.sid,
                 seatReferenceId: seatReferenceUid,
-                teamId: scheduledWHATSAPP.teamId,
-                smsCredits,
               },
             });
           }

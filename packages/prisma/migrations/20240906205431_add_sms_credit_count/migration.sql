@@ -9,8 +9,7 @@ ALTER TABLE "Team" ADD COLUMN     "smsCreditAllocationType" "SmsCreditAllocation
 ADD COLUMN     "smsCreditAllocationValue" INTEGER DEFAULT 50;
 
 -- AlterTable
-ALTER TABLE "WorkflowReminder" ADD COLUMN     "smsCredits" INTEGER,
-ADD COLUMN     "teamId" INTEGER;
+ALTER TABLE "WorkflowReminder" ADD COLUMN     "smsCredits" INTEGER;
 
 -- CreateTable
 CREATE TABLE "SmsCountryCredits" (
@@ -37,12 +36,6 @@ CREATE TABLE "SmsCreditCount" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SmsCountryCredits_id_key" ON "SmsCountryCredits"("id");
-
--- CreateIndex
-CREATE INDEX "WorkflowReminder_teamId_cancelled_scheduledDate_idx" ON "WorkflowReminder"("teamId", "cancelled", "scheduledDate");
-
--- AddForeignKey
-ALTER TABLE "WorkflowReminder" ADD CONSTRAINT "WorkflowReminder_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SmsCreditCount" ADD CONSTRAINT "SmsCreditCount_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -88,7 +88,7 @@ export const sendSMS = async (
     });
     return { ...response, teamId: payingTeam.teamId };
   } else {
-    //send email instead
+    // todo: send sms as email instead
   }
 };
 
@@ -98,10 +98,9 @@ export const scheduleSMS = async (
   scheduledDate: Date,
   sender: string,
   userId?: number | null,
-  teamId?: number | null,
+  teamId?: number | null, // teamId of workflow
   whatsapp = false
 ) => {
-  //don't add smsCount for current month but instead add it for the month of the scheduledDate
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
@@ -118,7 +117,7 @@ export const scheduleSMS = async (
     console.log(
       "Skipped sending SMS because process.env.NEXT_PUBLIC_IS_E2E or process.env.INTEGRATION_TEST_MODE is set. SMS are available in globalThis.testSMS"
     );
-    return { sid: uuidv4(), teamId: null };
+    return { sid: uuidv4() };
   }
 
   const twilio = createTwilioClient();
@@ -139,7 +138,7 @@ export const scheduleSMS = async (
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
     statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?userId=${userId}&teamId=${teamId}`,
   });
-  return { ...response };
+  return response;
 };
 
 export const cancelSMS = async (referenceId: string) => {

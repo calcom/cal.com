@@ -421,7 +421,6 @@ model Team {
   smsCreditCounts          SmsCreditCount[]
   smsCreditAllocationType  SmsCreditAllocationType @default(SPECIFIC)
   smsCreditAllocationValue Int?                    @default(50)
-  workflowReminders        WorkflowReminder[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1042,15 +1041,11 @@ model WorkflowReminder {
   isMandatoryReminder Boolean?        @default(false)
   retryCount          Int             @default(0)
   smsCredits          Int?
-  // the team that paid credits for this sms
-  teamId              Int?
-  team                Team?           @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([bookingUid])
   @@index([workflowStepId])
   @@index([seatReferenceId])
   @@index([method, scheduled, scheduledDate])
-  @@index([teamId, cancelled, scheduledDate])
 }
 
 model WebhookScheduledTriggers {

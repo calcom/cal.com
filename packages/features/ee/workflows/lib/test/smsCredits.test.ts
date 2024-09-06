@@ -4,10 +4,11 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 import { vi, describe, beforeAll, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { addCredits } from "@calcom/ee/workflows/lib/reminders/providers/twilioProvider";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { MembershipRole, SmsCreditAllocationType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+import { addCredits } from "../smsCreditUtils";
 
 interface SmsCreditCountWithTeam {
   id: number;
@@ -30,7 +31,6 @@ interface SmsCreditCountWithTeam {
 }
 
 vi.mock("@calcom/features/flags/server/utils", () => {
-  // Mock kill switch to be false
   return {
     getFeatureFlag: vi.fn().mockResolvedValue(false),
   };
@@ -99,12 +99,33 @@ describe("addCredits", () => {
       },
     ]);
 
+    interface SmsCreditCountWithTeam {
+      id: number;
+      limitReached: Date | null;
+      warningSentAt: Date | null;
+      credits: number;
+      userId: number | null;
+      teamId: number;
+      team: {
+        name: string;
+        members: Array<{
+          accepted: boolean;
+          role: MembershipRole;
+          user: {
+            email: string;
+            name: string;
+          };
+        }>;
+      };
+    }
+
     prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
     prismaMock.smsCreditCount.update.mockResolvedValue({
       id: 1,
       credits: 6,
-      limitReachedAt: null,
-      warningSentAt: null,
+      limitReached: null,
+      warningSent: null,
+      month: dayjs().startOf("month").toDate(),
       userId: 1,
       teamId: 2,
       team: {

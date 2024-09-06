@@ -1758,6 +1758,7 @@ async function handler(
       evt.attendeeSeatId
     );
   }
+
   try {
     await scheduleWorkflowReminders({
       workflows,
