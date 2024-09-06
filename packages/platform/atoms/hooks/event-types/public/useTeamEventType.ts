@@ -35,6 +35,7 @@ export const useTeamEventType = (teamId: number  | undefined, eventSlug: string,
         });
       }
     },
+    enabled: Boolean(organizationId) && Boolean(teamId) && Boolean(eventSlug) && Boolean(isTeamEvent),
   });
 
   return event;
