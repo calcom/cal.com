@@ -122,9 +122,9 @@ export class OutputEventTypesService_2024_06_14 {
       metadata.bookerLayouts as unknown as BookerLayoutsTransformedSchema
     );
     const confirmationPolicy = this.transformRequiresConfirmation(
-      databaseEventType.requiresConfirmation,
-      metadata.requiresConfirmationThreshold as NoticeThresholdTransformedSchema,
-      databaseEventType.requiresConfirmationWillBlockSlot
+      !!databaseEventType.requiresConfirmation,
+      !!databaseEventType.requiresConfirmationWillBlockSlot,
+      metadata.requiresConfirmationThreshold as NoticeThresholdTransformedSchema
     );
     delete metadata["bookerLayouts"];
     delete metadata["requiresConfirmationThreshold"];
@@ -230,13 +230,13 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformRequiresConfirmation(
     requiresConfirmation: boolean,
-    requiresConfirmationThreshold: NoticeThresholdTransformedSchema,
-    requiresConfirmationWillBlockSlot: boolean
+    requiresConfirmationWillBlockSlot: boolean,
+    requiresConfirmationThreshold?: NoticeThresholdTransformedSchema
   ) {
     return getResponseEventTypeRequiresConfirmation(
       requiresConfirmation,
-      requiresConfirmationThreshold,
-      requiresConfirmationWillBlockSlot
+      requiresConfirmationWillBlockSlot,
+      requiresConfirmationThreshold
     );
   }
 

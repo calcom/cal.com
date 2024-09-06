@@ -13,11 +13,11 @@ import type {
   IntegrationLocation_2024_06_14,
   TransformBookingLimitsSchema_2024_06_14,
   TransformFutureBookingsLimitSchema_2024_06_14,
-  ConfirmationPolicyTransformedSchema,
   BookerLayoutsTransformedSchema,
   EventTypeColorsTransformedSchema,
   TransformRecurringEventSchema_2024_06_14,
   SeatOptionsTransformedSchema,
+  SeatOptionsDisabledSchema,
 } from "@calcom/platform-types";
 
 import type { UserField } from "./api-request";
@@ -694,10 +694,24 @@ describe("getResponseEventTypeFutureBookingLimits", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should reverse transform disabled", () => {
+    const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
+      periodType: "UNLIMITED",
+    };
+
+    const expectedOutput = {
+      disabled: true,
+    };
+
+    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("getResponseEventTypeBookerLayouts", () => {
-  it("should reverse transform booker limits", () => {
+  it("should reverse transform booker layout", () => {
     const transformedField: BookerLayoutsTransformedSchema = {
       enabledLayouts: [
         BookerLayoutsOutputEnum_2024_06_14.column_view,
@@ -722,8 +736,8 @@ describe("getResponseEventTypeBookerLayouts", () => {
 });
 
 describe("getResponseEventTypeRequiresConfirmation", () => {
-  it("should reverse transform requires confirmation", () => {
-    const transformedField: ConfirmationPolicyTransformedSchema = {
+  it("should reverse transform requires confirmation - time", () => {
+    const transformedField = {
       requiresConfirmation: true,
       requiresConfirmationThreshold: {
         time: 60,
@@ -742,13 +756,50 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
     };
     const result = getResponseEventTypeRequiresConfirmation(
       transformedField.requiresConfirmation,
-      transformedField.requiresConfirmationThreshold,
-      transformedField.requiresConfirmationWillBlockSlot
+      transformedField.requiresConfirmationWillBlockSlot,
+      transformedField.requiresConfirmationThreshold
+    );
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform requires confirmation - always", () => {
+    const transformedField = {
+      requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
+    };
+
+    const expectedOutput = {
+      type: ConfirmationPolicyEnum.ALWAYS,
+      blockUnconfirmedBookingsInBooker: true,
+    };
+    const result = getResponseEventTypeRequiresConfirmation(
+      transformedField.requiresConfirmation,
+      transformedField.requiresConfirmationWillBlockSlot,
+      undefined
+    );
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform requires confirmation - disabled", () => {
+    const transformedField = {
+      requiresConfirmation: false,
+    };
+
+    const expectedOutput = {
+      disabled: true,
+    };
+    const result = getResponseEventTypeRequiresConfirmation(
+      transformedField.requiresConfirmation,
+      !!undefined,
+      undefined
     );
 
     expect(result).toEqual(expectedOutput);
   });
 });
+
 describe("getResponseEventTypeColors", () => {
   it("should reverse transform event type colors", () => {
     const transformedField: EventTypeColorsTransformedSchema = {
@@ -766,6 +817,7 @@ describe("getResponseEventTypeColors", () => {
     expect(result).toEqual(expectedOutput);
   });
 });
+
 describe("getResponseSeatOptions", () => {
   it("should reverse transform event type seats", () => {
     const transformedSeats: SeatOptionsTransformedSchema = {
@@ -778,6 +830,20 @@ describe("getResponseSeatOptions", () => {
       seatsPerTimeSlot: 10,
       showAttendeeInfo: true,
       showAvailabilityCount: false,
+    };
+
+    const result = getResponseSeatOptions(transformedSeats);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should reverse transform event type seats - disabled", () => {
+    const transformedSeats: SeatOptionsDisabledSchema = {
+      seatsPerTimeSlot: null,
+    };
+
+    const expectedOutput = {
+      disabled: true,
     };
 
     const result = getResponseSeatOptions(transformedSeats);

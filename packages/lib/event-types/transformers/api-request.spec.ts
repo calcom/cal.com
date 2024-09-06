@@ -18,6 +18,7 @@ import type {
   Recurrence_2024_06_14,
   CreateEventTypeInput_2024_06_14,
   SeatOptionsTransformedSchema,
+  SeatOptionsDisabledSchema,
 } from "@calcom/platform-types";
 
 import type { UserField } from "./api-request";
@@ -670,6 +671,20 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should transform disabled", () => {
+    const input: BookingWindow_2024_06_14 = {
+      disabled: true,
+    };
+
+    const expectedOutput = {
+      periodType: "UNLIMITED",
+    };
+
+    const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformApiEventTypeBookerLayouts", () => {
@@ -698,7 +713,7 @@ describe("transformApiEventTypeBookerLayouts", () => {
 });
 
 describe("transformApiEventTypeConfirmationPolicy", () => {
-  it("should transform requires confirmation", () => {
+  it("should transform requires confirmation - time", () => {
     const input: ConfirmationPolicy_2024_06_14 = {
       type: ConfirmationPolicyEnum.TIME,
       noticeThreshold: {
@@ -709,12 +724,42 @@ describe("transformApiEventTypeConfirmationPolicy", () => {
     };
 
     const expectedOutput = {
-      requiresConfirmation: false,
+      requiresConfirmation: true,
       requiresConfirmationThreshold: {
         time: 60,
         unit: NoticeThresholdUnitEnum.MINUTES,
       },
       requiresConfirmationWillBlockSlot: true,
+    };
+    const result = transformApiEventTypeConfirmationPolicy(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform requires confirmation - always", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      type: ConfirmationPolicyEnum.ALWAYS,
+      blockUnconfirmedBookingsInBooker: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
+    };
+    const result = transformApiEventTypeConfirmationPolicy(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform requires confirmation - disabled", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      disabled: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: false,
+      requiresConfirmationWillBlockSlot: false,
+      requiresConfirmationThreshold: undefined,
     };
     const result = transformApiEventTypeConfirmationPolicy(input);
 
@@ -756,6 +801,20 @@ describe("transformApiSeatOptions", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should transform seat options - disabled", () => {
+    const input: CreateEventTypeInput_2024_06_14["seats"] = {
+      disabled: true,
+    };
+
+    const expectedOutput: SeatOptionsDisabledSchema = {
+      seatsPerTimeSlot: null,
+    };
+
+    const result = transformApiSeatOptions(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformApiEventTypeRecurrence", () => {
@@ -770,6 +829,15 @@ describe("transformApiEventTypeRecurrence", () => {
       count: 10,
       freq: 2,
     };
+    const result = transformApiEventTypeRecurrence(input);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform recurrence - disabled", () => {
+    const input: CreateEventTypeInput_2024_06_14["recurrence"] = {
+      disabled: true,
+    };
+    const expectedOutput = undefined;
     const result = transformApiEventTypeRecurrence(input);
     expect(result).toEqual(expectedOutput);
   });
