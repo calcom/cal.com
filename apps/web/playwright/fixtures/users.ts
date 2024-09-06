@@ -7,6 +7,7 @@ import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
 import { v4 } from "uuid";
 
+import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -92,6 +93,7 @@ const createTeamEventType = async (
     teamEventSlug?: string;
     teamEventLength?: number;
     seatsPerTimeSlot?: number;
+    managedEventUnlockedFields?: Record<string, boolean>;
   }
 ) => {
   return await prisma.eventType.create({
@@ -122,6 +124,20 @@ const createTeamEventType = async (
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
       length: scenario?.teamEventLength ?? 30,
       seatsPerTimeSlot: scenario?.seatsPerTimeSlot,
+      locations: [{ type: "integrations:daily" }],
+      metadata:
+        scenario?.schedulingType === SchedulingType.MANAGED
+          ? {
+              managedEventConfig: {
+                unlockedFields: {
+                  locations: true,
+                  scheduleId: true,
+                  destinationCalendar: true,
+                  ...scenario?.managedEventUnlockedFields,
+                },
+              },
+            }
+          : undefined,
     },
   });
 };
@@ -259,6 +275,8 @@ export const createUsersFixture = (
         hasSubteam?: true;
         isUnpublished?: true;
         seatsPerTimeSlot?: number;
+        addManagedEventToTeamMates?: boolean;
+        managedEventUnlockedFields?: Record<string, boolean>;
         orgRequestedSlug?: string;
       } = {}
     ) => {
@@ -521,6 +539,31 @@ export const createUsersFixture = (
               teamMates.push(teamUser);
               store.users.push(teammateFixture);
             }
+            // If the teamEvent is a managed one, we add the team mates to it.
+            if (scenario.schedulingType === SchedulingType.MANAGED && scenario.addManagedEventToTeamMates) {
+              await updateChildrenEventTypes({
+                eventTypeId: teamEvent.id,
+                currentUserId: user.id,
+                hashedLink: "",
+                connectedLink: null,
+                oldEventType: {
+                  team: null,
+                },
+                updatedEventType: teamEvent,
+                children: teamMates.map((tm) => ({
+                  hidden: false,
+                  owner: {
+                    id: tm.id,
+                    name: tm.name || tm.username || "Nameless",
+                    email: tm.email,
+                    eventTypeSlugs: [],
+                  },
+                })),
+                profileId: null,
+                prisma,
+                updatedValues: {},
+              });
+            }
             // Add Teammates to OrgUsers
             if (scenario.isOrg) {
               const orgProfilesCreate = teamMates
@@ -730,10 +773,11 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
           userId: user.id,
         },
       }),
-    getFirstTeamEvent: async (teamId: number) => {
+    getFirstTeamEvent: async (teamId: number, schedulingType?: SchedulingType) => {
       return prisma.eventType.findFirstOrThrow({
         where: {
           teamId,
+          schedulingType,
         },
       });
     },
