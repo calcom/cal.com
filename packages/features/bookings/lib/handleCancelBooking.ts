@@ -12,7 +12,7 @@ import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/remind
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -339,13 +339,6 @@ async function handler(req: CustomRequest) {
       bookingUid: bookingToDelete.uid,
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
-
-  const payload: EventPayloadType = {
-    ...evt,
-    ...eventTypeInfo,
-    status: "CANCELLED",
-    smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-  };
 
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
