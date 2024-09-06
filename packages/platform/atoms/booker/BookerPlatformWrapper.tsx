@@ -133,53 +133,40 @@ export const BookerPlatformWrapper = (
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamEventTypeData,
-    isFetching: isTeamFetching,
   } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent);
 
-  const event = useMemo(
-    () => {
-      if (
-        props.isTeamEvent &&
-        !isTeamFetching &&
-        !isTeamPending &&
-        teamId &&
-        teamEventTypeData &&
-        teamEventTypeData.length > 0
-      ) {
-        return {
-          isSuccess: isTeamSuccess,
-          isError: isTeamError,
-          isPending: isTeamPending,
-          data:
-            teamEventTypeData && teamEventTypeData.length > 0
-              ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
-              : undefined,
-        };
-      }
-
+  const event = useMemo(() => {
+    if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
       return {
-        isSuccess,
-        isError,
-        isPending,
-        data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
+        isSuccess: isTeamSuccess,
+        isError: isTeamError,
+        isPending: isTeamPending,
+        data:
+          teamEventTypeData && teamEventTypeData.length > 0
+            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
+            : undefined,
       };
-    }, // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      props.isTeamEvent,
-      teamId,
-      props.entity,
-      isTeamFetching,
-      teamEventTypeData,
+    }
+
+    return {
       isSuccess,
       isError,
       isPending,
-      data,
-      isTeamPending,
-      isTeamSuccess,
-      isTeamError,
-      isFetching,
-    ]
-  );
+      data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
+    };
+  }, [
+    props.isTeamEvent,
+    teamId,
+    props.entity,
+    teamEventTypeData,
+    isSuccess,
+    isError,
+    isPending,
+    data,
+    isTeamPending,
+    isTeamSuccess,
+    isTeamError,
+  ]);
 
   if (isDynamic && props.duration && event.data) {
     // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
