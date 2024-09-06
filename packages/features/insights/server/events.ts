@@ -13,7 +13,7 @@ class EventsInsights {
   static runSeparateQueriesForOrStatements = async <T, R>(
     where: Prisma.BookingTimeStatusWhereInput,
 
-    queryReference: (args: T) => AcceleratePromise<R | R[]>,
+    queryReference: (args: T) => AcceleratePromise<R>,
 
     originalArgs: T
   ) => {
@@ -43,13 +43,15 @@ class EventsInsights {
 
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
     const queryReference = (args: Prisma.BookingTimeStatusGroupByArgs) =>
-      prisma.bookingTimeStatus.groupBy(
-        args
-      ) as unknown as AcceleratePromise<Prisma.BookingTimeStatusGroupByOutputType>;
+      // casting since TS is not able to infer the type of the output of the query properly
+      // Typescript infers this as AcceleratePromise<{}[]> which is not specific enough
+      prisma.bookingTimeStatus.groupBy(args) as unknown as AcceleratePromise<
+        Prisma.BookingTimeStatusGroupByOutputType[]
+      >;
 
     const data = await EventsInsights.runSeparateQueriesForOrStatements<
       Prisma.BookingTimeStatusGroupByArgs,
-      Prisma.BookingTimeStatusGroupByOutputType
+      Prisma.BookingTimeStatusGroupByOutputType[]
     >(where, queryReference, {
       where,
       by: ["timeStatus"],
@@ -58,33 +60,21 @@ class EventsInsights {
       },
     });
 
-    const defaultValue = {
-      completed: 0,
-      rescheduled: 0,
-      cancelled: 0,
-      _all: 0,
-    };
-
-    // we don't know if WHERE clause contains OR, so we need to check if it's an array
-    if (Array.isArray(data)) {
-      return data.reduce((aggregate: { [x: string]: number }, item) => {
+    return data.reduce(
+      (aggregate: { [x: string]: number }, item) => {
         if (typeof item.timeStatus === "string" && item) {
           aggregate[item.timeStatus] += item?._count?._all ?? 0;
           aggregate["_all"] += item?._count?._all ?? 0;
         }
         return aggregate;
-      }, defaultValue);
-    }
-
-    if (typeof data.timeStatus === "string" && data) {
-      return {
-        ...defaultValue,
-        [data.timeStatus]: data?._count?._all ?? 0,
-        _all: data._count?._all ?? 0,
-      };
-    }
-
-    return defaultValue;
+      },
+      {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        _all: 0,
+      }
+    );
   };
 
   static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
