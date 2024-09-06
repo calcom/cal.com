@@ -2,10 +2,12 @@ import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
+import { components } from "react-select";
+import type { OptionProps, SingleValueProps } from "react-select";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetup, FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
@@ -24,12 +26,44 @@ import {
   showToast,
   TextField,
   Label,
+  Select,
+  Badge,
 } from "@calcom/ui";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
   paymentEnabled: boolean;
   isTeamEvent: boolean;
+};
+
+const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
+  const { label, isDefault } = props.data;
+  const { t } = useLocale();
+  return (
+    <components.Option {...props}>
+      <span>{label}</span>
+      {isDefault && (
+        <Badge variant="blue" className="ml-2">
+          {t("default")}
+        </Badge>
+      )}
+    </components.Option>
+  );
+};
+
+const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
+  const { label, isDefault } = props.data;
+  const { t } = useLocale();
+  return (
+    <components.SingleValue {...props}>
+      <span>{label}</span>
+      {isDefault && (
+        <Badge variant="blue" className="ml-2">
+          {t("default")}
+        </Badge>
+      )}
+    </components.SingleValue>
+  );
 };
 
 export default function InstantEventController({
@@ -42,13 +76,28 @@ export default function InstantEventController({
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
-  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
+  const { shouldLockDisableProps } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
 
   const instantLocked = shouldLockDisableProps("isInstantEvent");
 
   const isOrg = !!session.data?.user?.org?.id;
 
-  if (session.status === "loading") return <></>;
+  const { data, isPending } = trpc.viewer.availability.list.useQuery(undefined);
+
+  if (session.status === "loading" || isPending || !data) return <></>;
+
+  const schedules = data.schedules;
+
+  const options = schedules.map((schedule) => ({
+    value: schedule.id,
+    label: schedule.name,
+    isDefault: schedule.isDefault,
+    isManaged: false,
+  }));
 
   return (
     <LicenseRequired>
@@ -96,6 +145,32 @@ export default function InstantEventController({
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                     {instantEventState && (
                       <div className="flex flex-col gap-2">
+                        <Controller
+                          name="instantMeetingSchedule"
+                          render={({ field: { onChange, value } }) => {
+                            const optionValue: AvailabilityOption | undefined = options.find(
+                              (option) => option.value === value
+                            );
+                            return (
+                              <>
+                                <Label>{t("instant_meeting_availability")}</Label>
+                                <Select
+                                  placeholder={t("select")}
+                                  options={options}
+                                  isDisabled={shouldLockDisableProps("instantMeetingSchedule").disabled}
+                                  isSearchable={false}
+                                  onChange={(selected) => {
+                                    if (selected) onChange(selected.value);
+                                  }}
+                                  className="mb-4 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                                  value={optionValue}
+                                  components={{ Option, SingleValue }}
+                                  isMulti={false}
+                                />
+                              </>
+                            );
+                          }}
+                        />
                         <Controller
                           name="instantMeetingExpiryTimeOffsetInSeconds"
                           render={({ field: { value, onChange } }) => (
