@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UsersEditView } from "@calcom/features/ee/users/pages/users-edit-view";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
@@ -37,9 +38,11 @@ const Page = async ({ params }: { params: Params }) => {
     const user = await UserRepository.adminFindById(input.data.id);
 
     return (
-      <LicenseRequired>
-        <UsersEditView user={user} />
-      </LicenseRequired>
+      <SettingsHeader title="Editing user" description="Here you can edit a current user">
+        <LicenseRequired>
+          <UsersEditView user={user} />
+        </LicenseRequired>
+      </SettingsHeader>
     );
   } catch {
     notFound();

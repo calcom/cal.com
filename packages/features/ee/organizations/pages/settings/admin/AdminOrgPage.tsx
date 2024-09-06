@@ -3,26 +3,15 @@
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
-import NoSSR from "@calcom/core/components/NoSSR";
-import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  ConfirmationDialogContent,
-  Dialog,
-  DropdownActions,
-  Meta,
-  showToast,
-  Table,
-} from "@calcom/ui";
+import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
 
-import { getLayout } from "../../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
-function AdminOrgTable() {
+export function AdminOrgTable() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
@@ -230,21 +219,7 @@ function AdminOrgTable() {
   );
 }
 
-const AdminOrgList = () => {
-  const { t } = useLocale();
-  return (
-    <LicenseRequired>
-      <Meta title={t("organizations")} description={t("orgs_page_description")} />
-      <NoSSR>
-        <AdminOrgTable />
-      </NoSSR>
-    </LicenseRequired>
-  );
-};
-
-AdminOrgList.getLayout = getLayout;
-
-export default AdminOrgList;
+export default AdminOrgTable;
 
 const DeleteOrgDialog = ({
   org,

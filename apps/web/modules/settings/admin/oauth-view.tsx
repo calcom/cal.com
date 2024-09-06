@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Meta, Form, Button, Icon, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
+import { Form, Button, Icon, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
 
 type FormValues = {
   name: string;
@@ -33,7 +33,6 @@ export default function OAuthView() {
 
   return (
     <div>
-      <Meta title="OAuth" description="Add new OAuth Clients" />
       {!clientId ? (
         <Form
           form={oAuthForm}

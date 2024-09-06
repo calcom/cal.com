@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { OrgForm } from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgEditPage";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 const orgIdSchema = z.object({ id: z.coerce.number() });
@@ -35,9 +36,13 @@ const Page = async ({ params }: { params: Params }) => {
     const org = await OrganizationRepository.adminFindById({ id: input.data.id });
 
     return (
-      <LicenseRequired>
-        <OrgForm org={org} />
-      </LicenseRequired>
+      <SettingsHeader
+        title={`Editing organization: ${org.name}`}
+        description="Here you can edit an organization.">
+        <LicenseRequired>
+          <OrgForm org={org} />
+        </LicenseRequired>
+      </SettingsHeader>
     );
   } catch {
     notFound();

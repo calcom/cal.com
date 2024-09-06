@@ -21,7 +21,7 @@ export default function Header({
   backButton,
 }: HeaderProps) {
   return (
-    <>
+    <div>
       <header
         className={classNames(
           "border-subtle mx-auto block justify-between sm:flex",
@@ -52,6 +52,6 @@ export default function Header({
         </div>
       </header>
       <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
-    </>
+    </div>
   );
 }

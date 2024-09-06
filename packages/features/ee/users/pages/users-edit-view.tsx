@@ -7,16 +7,14 @@ import NoSSR from "@calcom/core/components/NoSSR";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { UserForm } from "../components/UserForm";
 import { userBodySchema } from "../schemas/userBodySchema";
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
 type User = UserAdminRouterOutputs["get"]["user"];
-
 const userIdSchema = z.object({ id: z.coerce.number() });
 
 const UsersEditPage = () => {
@@ -30,7 +28,6 @@ const UsersEditPage = () => {
 
   return (
     <LicenseRequired>
-      <Meta title={`Editing user: ${user.username}`} description="Here you can edit a current user." />
       <NoSSR>
         <UsersEditView user={user} />
       </NoSSR>
@@ -73,6 +70,4 @@ export const UsersEditView = ({ user }: { user: User }) => {
   );
 };
 
-UsersEditPage.getLayout = getLayout;
-
-export default UsersEditPage;
+export default UsersEditView;

@@ -1,10 +1,11 @@
 "use client";
 
-import UsersTable from "@pages/settings/admin/lockedSMS/UsersTable";
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc";
-import { Button, Meta, TextField, showToast } from "@calcom/ui";
+import { Button, TextField, showToast } from "@calcom/ui";
+
+import UsersTable from "./components/UsersTable";
 
 export default function LockedSMSView() {
   const [username, setUsername] = useState("");
@@ -35,7 +36,6 @@ export default function LockedSMSView() {
 
   return (
     <div>
-      <Meta title="lockedSMS" description="Lock or unlock SMS sending for users" />
       <div className="mb-4 flex w-full items-center justify-between space-x-2 rtl:space-x-reverse">
         <div className="flex">
           <TextField
