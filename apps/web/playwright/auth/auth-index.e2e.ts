@@ -1,7 +1,7 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
+import { submitAndWaitForResponse } from "../lib/testUtils";
 
 test.describe("Can signup from a team invite", async () => {
   test.beforeEach(async ({ users }) => {
@@ -54,7 +54,7 @@ test.describe("Can signup from a team invite", async () => {
     // Fill in form
     await newPage.fill('input[name="username"]', proUser.username); // Invalid username
     await newPage.fill('input[name="password"]', testUser.password);
-    await submitAndWaitForResponse(newPage, "/api/auth/signup", 409);
+    await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 409 });
     await expect(newPage.locator('text="Username or email is already taken"')).toBeVisible();
 
     // Successful signup
@@ -62,7 +62,7 @@ test.describe("Can signup from a team invite", async () => {
     await newPage.reload();
     await newPage.fill('input[name="username"]', testUser.username);
     await newPage.fill('input[name="password"]', testUser.password);
-    await submitAndWaitForResponse(newPage, "/api/auth/signup", 201);
+    await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 201 });
     // Since it's a new user, it shoud be redirected to the onboarding
     await newPage.locator('text="Welcome to Cal.com!"').waitFor();
     await expect(newPage.locator('text="Welcome to Cal.com!"')).toBeVisible();
@@ -93,10 +93,3 @@ test.describe("Can signup from a team invite", async () => {
     expect(createdUser.teams[0].accepted).toBe(true);
   });
 });
-
-async function submitAndWaitForResponse(page: Page, url: string, expectedStatusCode = 200) {
-  const submitPromise = page.waitForResponse(url);
-  await page.locator('[type="submit"]').click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(expectedStatusCode);
-}

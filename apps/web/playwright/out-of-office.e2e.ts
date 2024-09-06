@@ -7,6 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -82,7 +83,7 @@ test.describe("Out of office", () => {
     await page.locator("#react-select-3-input").press("Enter");
 
     // send request
-    await submitAndWaitForResponse(page);
+    await saveAndWaitForResponse(page);
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -161,7 +162,7 @@ test.describe("Out of office", () => {
     await page.locator("#react-select-3-input").press("Enter");
 
     // send request
-    await submitAndWaitForResponse(page);
+    await saveAndWaitForResponse(page);
 
     // expect entry with new username exist.
     await expect(page.locator(`data-testid=table-redirect-${userToSecond.username}`)).toBeVisible();
@@ -202,9 +203,8 @@ test.describe("Out of office", () => {
   });
 });
 
-async function submitAndWaitForResponse(page: Page) {
-  const submitPromise = page.waitForResponse("/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1");
-  await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+async function saveAndWaitForResponse(page: Page) {
+  await submitAndWaitForResponse(page, "/api/trpc/viewer/outOfOfficeCreateOrUpdate?batch=1", {
+    action: () => page.getByTestId("create-or-edit-entry-ooo-redirect").click(),
+  });
 }
