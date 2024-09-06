@@ -17,12 +17,6 @@ export class CreatePhoneCallOutput {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @IsString()
-  callId!: string;
-
-  @IsString()
-  agentId!: string;
-
   @ApiProperty({
     type: Data,
   })

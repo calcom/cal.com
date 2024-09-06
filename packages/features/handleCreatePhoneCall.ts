@@ -108,13 +108,16 @@ export const handleCreatePhoneCall = async ({
       },
     });
   } else {
-    const retellLLM = await retellAI.getRetellLLM(aiPhoneCallConfig.llmId);
+    // aiPhoneCallConfig.llmId would be set here in the else block
+    const retellLLM = await retellAI.getRetellLLM(aiPhoneCallConfig.llmId as string);
 
     const doWeNeedToUpdateLLM =
       retellLLM.general_prompt !== generalPrompt || retellLLM.begin_message !== beginMessage;
 
     if (doWeNeedToUpdateLLM) {
-      const updatedRetellLLM = await retellAI.updatedRetellLLMAndUpdateWebsocketUrl(aiPhoneCallConfig.llmId);
+      const updatedRetellLLM = await retellAI.updatedRetellLLMAndUpdateWebsocketUrl(
+        aiPhoneCallConfig.llmId as string
+      );
       logger.debug("updated Retell LLM", updatedRetellLLM);
     }
   }
