@@ -11,7 +11,7 @@ import http from "../../../lib/http";
 export const QUERY_KEY = "use-event-type";
 export type UsePublicEventReturnType = ReturnType<typeof useEventType>;
 
-export const useEventType = (username: string, eventSlug: string, isTeamEvent: boolean | undefined, teamId?: number) => {
+export const useEventType = (username: string, eventSlug: string, isTeamEvent: boolean | undefined) => {
 
 
   const requestUsername =  username;
