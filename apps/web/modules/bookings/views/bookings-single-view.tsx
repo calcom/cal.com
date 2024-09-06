@@ -328,7 +328,7 @@ export default function Success(props: PageProps) {
 
   useEffect(() => {
     if (pathname) {
-      // const bookingUID = pathname.split("/booking/")[1].split("?")[0];
+      const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
       const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
       const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
@@ -353,8 +353,8 @@ export default function Success(props: PageProps) {
       fetch(getBookedTimeUrl)
         .then((data) => {
           data.json().then(({ data }: { data: BookingInfo[] }) => {
-            // const findedBooking = data.find(({ uid }) => uid === bookingUID);
-            setPurchaseDate(dayjs(data[data.length - 1].createdAt));
+            const findedBooking = data.find(({ uid }) => uid === bookingUID);
+            setPurchaseDate(dayjs(findedBooking?.createdAt));
           });
         })
         .catch((error) => {
@@ -476,9 +476,9 @@ export default function Success(props: PageProps) {
     const moreOrEqualThan7DaysFromPurchase = !lessThan7DaysFromPurchase;
     const urgentMedicalAppointments = false;
 
-    const rescheduleRoute = `agenda.yinflow.life/${props.profile.slug}/${eventTypes[0]}`;
+    if (!purchaseDate || !eventTypes) return { description: "", rescheduleRoute: "" };
 
-    if (!purchaseDate) return { description: "", rescheduleRoute: "" };
+    const rescheduleRoute = `agenda.yinflow.life/${props.profile.slug}/${eventTypes[0]}`;
 
     switch (true) {
       case pastAppointment:
