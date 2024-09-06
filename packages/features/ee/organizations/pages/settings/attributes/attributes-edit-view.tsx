@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
+import SettingsLayoutAppDir from "@calcom/features/settings/layouts/SettingsLayoutAppDir";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, useMeta, showToast } from "@calcom/ui";
@@ -111,6 +112,10 @@ function EditAttributeHeader(props: { isPending: boolean }) {
 
 export function getLayout(page: React.ReactElement) {
   return <SettingsLayout hideHeader>{page}</SettingsLayout>;
+}
+
+export function getLayoutAppDir(page: React.ReactElement) {
+  return <SettingsLayoutAppDir hideHeader>{page}</SettingsLayoutAppDir>;
 }
 
 export default CreateAttributesPage;
