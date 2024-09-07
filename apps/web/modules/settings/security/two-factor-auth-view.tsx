@@ -31,8 +31,7 @@ const TwoFactorAuthView = () => {
   const [enableModalOpen, setEnableModalOpen] = useState<boolean>(false);
   const [disableModalOpen, setDisableModalOpen] = useState<boolean>(false);
 
-  if (isPending)
-    return <SkeletonLoader title={t("2fa")} description={t("set_up_two_factor_authentication")} />;
+  if (isPending) return <SkeletonLoader />;
 
   const isCalProvider = user?.identityProvider === "CAL";
   const canSetupTwoFactor = !isCalProvider && !user?.twoFactorEnabled && !user?.passwordAdded;
