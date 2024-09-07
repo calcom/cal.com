@@ -12,6 +12,7 @@ import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import { trpc } from "@calcom/trpc/react";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
@@ -69,9 +70,10 @@ const SlotItem = ({
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
   const timezoneFromBookerStore = useBookerStore((state) => state.timeZone);
+  const { data: userSettings } = trpc.viewer.me.useQuery();
   const { data: eventData } = event;
   const hasTimeSlots = !!seatsPerTimeSlot;
-  const timezone = timezoneFromBookerStore ?? preferenceTimeZone;
+  const timezone = timezoneFromBookerStore ?? userSettings?.timeZone ?? preferenceTimeZone;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
   const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);

@@ -139,14 +139,15 @@ const EmailEmbed = ({
   username,
   orgSlug,
   isTeamEvent,
+  userSettingsTimezone,
 }: {
   eventType?: EventType;
   username: string;
   orgSlug?: string;
   isTeamEvent: boolean;
+  userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-
   const [preferenceTimezone] = useTimePreferences((state) => [state.timezone]);
 
   useInitializeBookerStore({
@@ -176,7 +177,7 @@ const EmailEmbed = ({
   const event = useEvent();
   const schedule = useScheduleForEvent({ orgSlug });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const timezone = bookerStoreTimezone ?? preferenceTimezone;
+  const timezone = bookerStoreTimezone ?? userSettingsTimezone ?? preferenceTimezone;
 
   const onTimeSelect = (time: string) => {
     if (!eventType) {
@@ -317,6 +318,7 @@ const EmailEmbedPreview = ({
   month,
   selectedDateAndTime,
   calLink,
+  userSettingsTimezone,
 }: {
   eventType: EventType;
   timezone?: string;
@@ -325,11 +327,12 @@ const EmailEmbedPreview = ({
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
   calLink: string;
+  userSettingsTimezone?: string;
 }) => {
   const { t } = useLocale();
   const [timeFormat, preferenceTimezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const bookerStoreTimezone = useBookerStore((store) => store.timeZone);
-  const timezone = bookerStoreTimezone ?? preferenceTimezone;
+  const timezone = bookerStoreTimezone ?? userSettingsTimezone ?? preferenceTimezone;
 
   if (!eventType) {
     return null;
@@ -561,6 +564,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
+  const { data: userSettings } = trpc.viewer.me.useQuery();
 
   const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
@@ -758,6 +762,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <EmailEmbed
               eventType={eventTypeData?.eventType}
               username={teamSlug ?? (data?.user.username as string)}
+              userSettingsTimezone={userSettings?.timeZone}
               orgSlug={data?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
             />
@@ -1108,6 +1113,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         eventType={eventTypeData?.eventType}
                         emailContentRef={emailContentRef}
                         username={teamSlug ?? (data?.user.username as string)}
+                        userSettingsTimezone={userSettings?.timeZone}
                         month={month as string}
                         selectedDateAndTime={
                           selectedDatesAndTimes
