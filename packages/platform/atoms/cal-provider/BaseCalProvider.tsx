@@ -37,9 +37,12 @@ export function BaseCalProvider({
   labels,
   autoUpdateTimezone,
   language = EN,
+  organizationId,
   onTimezoneChange,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
+  const [stateOrgId, setOrganizationId] = useState<number>(0);
+
   const { data: me } = useMe();
 
   const { mutateAsync } = useUpdateUserTimezone();
@@ -64,8 +67,9 @@ export function BaseCalProvider({
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
     onError: setError,
-    onSuccess: () => {
+    onSuccess: (data) => {
       setError("");
+      setOrganizationId(data.organizationId);
     },
   });
 
@@ -120,7 +124,7 @@ export function BaseCalProvider({
         isInit: isInit,
         isValidClient: Boolean(!error && clientId && isInit),
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
-        organizationId: me?.data.organizationId || 0,
+        organizationId: organizationId || stateOrgId || me?.data.organizationId || 0,
         ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>

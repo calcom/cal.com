@@ -301,7 +301,10 @@ test.describe("Organization", () => {
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await page.locator('input[name="username"]').fill(existingUser.username!);
+        const usernameInput = page.locator('input[name="username"]');
+        await usernameInput.waitFor({ state: "attached" });
+        await usernameInput.waitFor({ state: "visible" });
+        await usernameInput.fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);

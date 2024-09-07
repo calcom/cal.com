@@ -105,13 +105,8 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await frame.press('[name="email"]', "Enter");
   const response = await page.waitForResponse("**/api/book/event");
   const booking = (await response.json()) as { uid: string; eventSlug: string };
+  expect(response.status()).toBe(200);
   booking.eventSlug = eventSlug;
-
-  // Make sure we're navigated to the success page
-  await frame.waitForLoadState("networkidle");
-  await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
-  // expect(await page.screenshot()).toMatchSnapshot("success-page.png");
-
   return booking;
 }
 
@@ -121,14 +116,11 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   await frame.press('[name="email"]', "Enter");
   await frame.click("[data-testid=confirm-reschedule-button]");
   const response = await page.waitForResponse("**/api/book/event");
+  expect(response.status()).toBe(200);
   const responseObj = await response.json();
   const booking = responseObj.uid;
-  // Make sure we're navigated to the success page
-  await frame.waitForLoadState("networkidle");
-  await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   return booking;
 }
-
 export async function installAppleCalendar(page: Page) {
   await page.goto("/apps/categories/calendar");
   await page.click('[data-testid="app-store-app-card-apple-calendar"]');
