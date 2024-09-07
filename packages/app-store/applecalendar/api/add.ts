@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -18,8 +18,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         email: true,
         id: true,
+        credentials: {
+          where: {
+            type: "apple_calendar",
+          },
+        },
       },
     });
+
+    const alreadyExists = user.credentials.find((credential) => {
+      const decryptedCredential = JSON.parse(symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || ""));
+      return decryptedCredential.username === username;
+    })
+
+
+    if (alreadyExists) return res.status(409).json({ message: "account_already_linked" });
 
     const data = {
       type: "apple_calendar",
