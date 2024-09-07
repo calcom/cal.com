@@ -23,10 +23,14 @@ const Page = async () => {
   const userId = session?.user?.id ?? -1;
   const orgId = session?.user?.org?.id ?? -1;
 
-  const currentOrg = await OrganizationRepository.findCurrentOrg({
-    orgId,
-    userId,
-  });
+  let currentOrg = null;
+  try {
+    currentOrg = await OrganizationRepository.findCurrentOrg({
+      orgId,
+      userId,
+    });
+  } catch {}
+
   return (
     <PageWrapper
       getLayout={null}
