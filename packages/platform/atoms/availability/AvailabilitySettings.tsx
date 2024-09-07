@@ -70,7 +70,7 @@ export type CustomClassNames = {
 
 export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
 
-export type AvailabilitySettingsProps = {
+type AvailabilitySettingsProps = {
   skeletonLabel?: string;
   schedule: {
     name: string;
