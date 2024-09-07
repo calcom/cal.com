@@ -421,7 +421,16 @@ export const EventTeamAssignmentTab = ({
     .filter(pendingMembers)
     .map((member) => mapUserToValue(member, t("pending")));
   const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
-    return mapMemberToChildrenOption(member, eventType.slug, t("pending"));
+    return mapMemberToChildrenOption(
+      {
+        ...member,
+        eventTypes: member.eventTypes.filter(
+          (et) => et !== eventType.slug || !eventType.children.some((c) => c.owner.id === member.id)
+        ),
+      },
+      eventType.slug,
+      t("pending")
+    );
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const { getValues, setValue } = useFormContext<FormValues>();

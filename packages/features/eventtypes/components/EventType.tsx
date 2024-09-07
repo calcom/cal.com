@@ -23,7 +23,6 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
-import { getSlugConflictsInChildren } from "@calcom/lib/event-types/utils/getSlugConflictsInChildren";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -633,7 +632,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
           id="event-type-form"
           handleSubmit={async (values) => {
             const { children } = values;
-            const conflicts = getSlugConflictsInChildren({ values, eventType });
+            const conflicts = children.filter((child) => child.owner.eventTypeSlugs.includes(values.slug));
             if (conflicts.length > 0) {
               setSlugExistsChildrenDialogOpen(conflicts);
               return;
