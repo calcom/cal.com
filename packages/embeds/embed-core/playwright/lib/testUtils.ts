@@ -38,7 +38,7 @@ export const getEmbedIframe = async ({
   page: Page;
   pathname: string;
 }) => {
-  const iframeReady = await page.waitForFunction(
+  const iframeReadyHandle = await page.waitForFunction(
     () => {
       const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -57,16 +57,15 @@ export const getEmbedIframe = async ({
     },
     { polling: 500 }
   );
+  const iframeReady = await iframeReadyHandle.jsonValue();
+
   if (!iframeReady) {
     return null;
   }
 
-  page.on("frameattached", handleFrameErrors);
-
   // We just verified that iframeReady is true here, so obviously embedIframe is not null
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const embedIframe = page.frame(`cal-embed=${calNamespace}`)!;
-  handleFrameErrors(embedIframe);
   const u = new URL(embedIframe.url());
   if (u.pathname === `${pathname}/embed`) {
     return embedIframe;
