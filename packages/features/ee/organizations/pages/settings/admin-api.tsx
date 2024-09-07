@@ -3,7 +3,7 @@
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Meta, ButtonGroup } from "@calcom/ui";
+import { Button, Icon, ButtonGroup } from "@calcom/ui";
 
 export const AdminAPIView = () => {
   const { t } = useLocale();
@@ -27,11 +27,6 @@ export const AdminAPIView = () => {
   ];
   return (
     <LicenseRequired>
-      <Meta
-        title={`${t("admin")} ${t("api_reference")}`}
-        description={t("leverage_our_api")}
-        borderInShellHeader={false}
-      />
       <div className="mt-8">
         <UpgradeTip
           plan="enterprise"
@@ -58,18 +53,4 @@ export const AdminAPIView = () => {
   );
 };
 
-const AdminAPIViewWrapper = () => {
-  const { t } = useLocale();
-  return (
-    <>
-      <Meta
-        title={`${t("admin")} ${t("api_reference")}`}
-        description={t("leverage_our_api")}
-        borderInShellHeader={false}
-      />
-      <AdminAPIView />
-    </>
-  );
-};
-
-export default AdminAPIViewWrapper;
+export default AdminAPIView;
