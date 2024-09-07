@@ -6,7 +6,7 @@ import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useInterco
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Meta } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 interface CtaRowProps {
   title: string;
@@ -42,7 +42,6 @@ const BillingView = () => {
 
   return (
     <>
-      <Meta title={t("billing")} description={t("manage_billing_description")} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-8 text-sm sm:space-y-8">
         <CtaRow title={t("view_and_manage_billing_details")} description={t("view_and_edit_billing_details")}>
           <Button color="primary" href={billingHref} target="_blank" EndIcon="external-link">

@@ -66,13 +66,6 @@ const ApiKeysView = () => {
 
   return (
     <>
-      <Meta
-        title={t("api_keys")}
-        description={t("create_first_api_key_description", { appName: APP_NAME })}
-        CTA={<NewApiKeyButton />}
-        borderInShellHeader={true}
-      />
-
       <LicenseRequired>
         <div>
           {data?.length ? (

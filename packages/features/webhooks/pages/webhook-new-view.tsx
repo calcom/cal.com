@@ -104,19 +104,4 @@ export const NewWebhookView = () => {
   );
 };
 
-const NewWebhookPage = () => {
-  const { t } = useLocale();
-  return (
-    <>
-      <Meta
-        title={t("add_webhook")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        backButton
-        borderInShellHeader={true}
-      />
-      <NewWebhookView />
-    </>
-  );
-};
-
-export default NewWebhookPage;
+export default NewWebhookView;

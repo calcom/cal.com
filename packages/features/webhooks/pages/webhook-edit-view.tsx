@@ -2,12 +2,10 @@
 
 import { useRouter } from "next/navigation";
 
-import { APP_NAME } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
+import { showToast, SkeletonContainer } from "@calcom/ui";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
@@ -23,35 +21,6 @@ type WebhookProps = {
   eventTriggers: WebhookTriggerEvents[];
   secret: string | null;
   platform: boolean;
-};
-
-const EditWebhookPage = () => {
-  const searchParams = useCompatSearchParams();
-  const id = searchParams?.get("id") ?? undefined;
-  const { t } = useLocale();
-
-  const { data: webhook } = trpc.viewer.webhook.get.useQuery(
-    { webhookId: id },
-    {
-      suspense: true,
-      enabled: !!id,
-    }
-  );
-
-  if (!id) return <SkeletonContainer />;
-
-  // I think we should do SSR for this page
-  return (
-    <>
-      <Meta
-        title={t("edit_webhook")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-        backButton
-      />
-      <EditWebhookView webhook={webhook} />
-    </>
-  );
 };
 
 export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
@@ -127,4 +96,4 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   );
 }
 
-export default EditWebhookPage;
+export default EditWebhookView;

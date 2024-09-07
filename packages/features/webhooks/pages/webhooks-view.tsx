@@ -56,12 +56,6 @@ const WebhooksView = () => {
 
   return (
     <>
-      <Meta
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : <></>}
-        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}
-      />
       <div>
         <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
       </div>
