@@ -46,7 +46,8 @@ export default async function checkParentEventOwnership(req: NextApiRequest) {
     where: {
       teamId: parentEventType.teamId,
       userId: userId,
-      OR: [{ role: "OWNER" }, { role: "ADMIN" }],
+      role: { in: ["ADMIN", "OWNER"] },
+      accepted: true,
     },
   });
 

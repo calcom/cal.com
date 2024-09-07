@@ -2,11 +2,12 @@ import type { EventType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
-function getNewSeachParams(args: {
+function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
 }) {
@@ -44,6 +45,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
+  const isEmbed = useIsEmbed();
   const bookingSuccessRedirect = ({
     successRedirectUrl,
     query,
@@ -63,7 +65,7 @@ export const useBookingSuccessRedirect = () => {
         return;
       }
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
-      const newSearchParams = getNewSeachParams({
+      const newSearchParams = getNewSearchParams({
         query: {
           ...query,
           ...bookingExtraParams,
@@ -78,8 +80,21 @@ export const useBookingSuccessRedirect = () => {
       navigateInTopWindow(url.toString());
       return;
     }
-    const newSearchParams = getNewSeachParams({ query });
-    return router.push(`/booking/${booking.uid}?${newSearchParams.toString()}`);
+
+    // TODO: Abstract it out and reuse at other places where we navigate within the embed. Though this is needed only in case of hard navigation happening but we aren't sure where hard navigation happens and where a soft navigation
+    // This is specially true after App Router it seems
+    const headersRelatedSearchParams = searchParams
+      ? {
+          "flag.coep": searchParams.get("flag.coep") ?? "false",
+        }
+      : undefined;
+
+    // We don't want to forward all search params, as they could possibly break the booking page.
+    const newSearchParams = getNewSearchParams({
+      query,
+      searchParams: new URLSearchParams(headersRelatedSearchParams),
+    });
+    return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
   };
 
   return bookingSuccessRedirect;
