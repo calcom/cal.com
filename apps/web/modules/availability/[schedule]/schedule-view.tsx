@@ -30,12 +30,13 @@ export const AvailabilitySettingsWebWrapper = ({
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data: scheduleData, isPending } = trpc.viewer.availability.schedule.get.useQuery(
+  const { data: scheduleData, isPending: isFetchingPending } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
       enabled: !!scheduleId && !scheduleProp,
     }
   );
+  const isPending = isFetchingPending && !scheduleProp;
   const schedule = scheduleProp ?? scheduleData;
 
   const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {

@@ -36,9 +36,16 @@ const Page = async ({ params }: PageProps) => {
   const userId = session?.user?.id ?? -1;
   const scheduleId = params?.schedule ? Number(params.schedule) : -1;
   const [schedule, travelSchedules] = await Promise.all([
-    ScheduleRepository.findScheduleById({ id: scheduleId }),
+    ScheduleRepository.findDetailedScheduleById({
+      scheduleId,
+      isManagedEventType: false,
+      userId,
+      timeZone: "UTC",
+      defaultScheduleId: -1,
+    }),
     TravelScheduleRepository.findTravelSchedulesByUserId(userId),
   ]);
+  console.log("BENNY10", schedule, travelSchedules);
   return (
     <PageWrapper
       getLayout={null}
