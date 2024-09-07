@@ -304,7 +304,7 @@ test.describe("Organization", () => {
         const usernameInput = page.locator('input[name="username"]');
         await usernameInput.waitFor({ state: "attached" });
         await usernameInput.waitFor({ state: "visible" });
-        await usernameInput.fill(existingUser.username);
+        await usernameInput.fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
