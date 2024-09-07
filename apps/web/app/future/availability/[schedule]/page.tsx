@@ -3,7 +3,6 @@ import { _generateMetadata } from "app/_utils";
 import { getServerSession } from "next-auth";
 import { headers } from "next/headers";
 
-import type { AvailabilitySettingsProps } from "@calcom/atoms/availability/AvailabilitySettings";
 import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
@@ -62,10 +61,7 @@ const Page = async ({ params }: PageProps) => {
       nonce={nonce}
       themeBasis={null}
       isBookingPage={false}>
-      <AvailabilitySettingsWebWrapper
-        schedule={schedule as unknown as AvailabilitySettingsProps["schedule"]}
-        travelSchedules={travelSchedules}
-      />
+      <AvailabilitySettingsWebWrapper schedule={schedule} travelSchedules={travelSchedules} />
     </PageWrapper>
   );
 };

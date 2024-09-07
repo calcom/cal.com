@@ -3,19 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { AvailabilitySettingsProps } from "@calcom/atoms/availability/AvailabilitySettings";
 import { AvailabilitySettings } from "@calcom/atoms/monorepo";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import type { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 type PageProps = {
-  schedule?: AvailabilitySettingsProps["schedule"] | null;
-  travelSchedules?: AvailabilitySettingsProps["travelSchedules"] | null;
+  schedule?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
 };
 
 export const AvailabilitySettingsWebWrapper = ({

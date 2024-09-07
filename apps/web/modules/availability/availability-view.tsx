@@ -13,6 +13,7 @@ import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/compone
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -171,8 +172,9 @@ function AvailabilityListWithQuery() {
 }
 
 type PageProps = {
-  currentOrg?: any;
+  currentOrg?: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>>;
 };
+
 export default function AvailabilityPage({ currentOrg }: PageProps) {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
