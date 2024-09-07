@@ -295,7 +295,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await pageTwo.goto(initialUrl);
     await pageTwo.waitForURL(initialUrl);
 
-    await pageTwo.waitForLoadState("networkidle");
+    await pageTwo.waitForSelector('[data-testid="event-type-link"]');
     const eventTypeLink = pageTwo.locator('[data-testid="event-type-link"]').first();
     await eventTypeLink.waitFor();
     await eventTypeLink.click();
@@ -329,7 +329,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await pageTwo.goto(initialUrl);
     await pageTwo.waitForURL(initialUrl);
 
-    await pageTwo.waitForLoadState("networkidle");
+    await pageTwo.waitForSelector('[data-testid="event-type-link"]');
     const eventTypeLinkTwo = pageTwo.locator('[data-testid="event-type-link"]').first();
     await eventTypeLinkTwo.waitFor();
     await eventTypeLinkTwo.click();

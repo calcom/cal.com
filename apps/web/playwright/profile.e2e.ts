@@ -296,10 +296,9 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("add-secondary-email-button").click();
 
-    await page.getByTestId("secondary-email-confirm-done-button").waitFor({ state: "visible" });
     await page.getByTestId("secondary-email-confirm-done-button").click();
 
-    await page.waitForLoadState("networkidle");
+    await expect(secondaryEmailInput).toBeHidden();
 
     return { user, email, secondaryEmail };
   };

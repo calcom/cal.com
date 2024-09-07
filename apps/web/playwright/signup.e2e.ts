@@ -210,7 +210,7 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);

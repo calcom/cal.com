@@ -485,10 +485,11 @@ export async function signupFromEmailInviteLink({
 async function inviteAnEmail(page: Page, invitedUserEmail: string) {
   await page.locator('button:text("Add")').click();
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-  await page.locator('button:text("Send invite")').click();
   await page.waitForLoadState("networkidle");
-  const toast = await page.waitForSelector('[data-testid="toast-success"]');
-  expect(toast).toBeTruthy();
+  const submitPromise = await page.waitForResponse("/api/trpc/teams/createInvite?batch=1");
+  await page.locator('button:text("Send invite")').click();
+  const response = await submitPromise;
+  expect(response.status()).toBe(200);
 }
 
 async function expectUserToBeAMemberOfOrganization({
