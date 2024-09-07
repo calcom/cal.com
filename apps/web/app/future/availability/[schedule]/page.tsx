@@ -7,6 +7,7 @@ import type { AvailabilitySettingsProps } from "@calcom/atoms/availability/Avail
 import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
@@ -34,14 +35,22 @@ const Page = async ({ params }: PageProps) => {
   const nonce = h.get("x-nonce") ?? undefined;
   const session = await getServerSession(AUTH_OPTIONS);
   const userId = session?.user?.id ?? -1;
+  const userData = await UserRepository.findUserByIdWithOptionalSelect({
+    userId,
+    select: {
+      timeZone: true,
+      defaultScheduleId: true,
+    },
+  });
+
   const scheduleId = params?.schedule ? Number(params.schedule) : -1;
   const [schedule, travelSchedules] = await Promise.all([
     ScheduleRepository.findDetailedScheduleById({
       scheduleId,
       isManagedEventType: false,
       userId,
-      timeZone: "UTC",
-      defaultScheduleId: -1,
+      timeZone: userData?.timeZone ?? "UTC",
+      defaultScheduleId: userData?.defaultScheduleId ?? -1,
     }),
     TravelScheduleRepository.findTravelSchedulesByUserId(userId),
   ]);
