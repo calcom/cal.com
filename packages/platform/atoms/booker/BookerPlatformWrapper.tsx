@@ -45,11 +45,13 @@ import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
-export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
+export type BookerPlatformWrapperAtomProps = Omit<
+  BookerProps,
+  "username" | "entity" | "isTeamEvent" | "teamId"
+> & {
   rescheduleUid?: string;
   rescheduledBy?: string;
   bookingUid?: string;
-  username: string | string[] | undefined;
   entity?: BookerProps["entity"];
   // values for the booking form and booking fields
   defaultFormValues?: {
@@ -73,11 +75,24 @@ export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "ent
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
-  teamId?: number;
 };
 
-export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
+type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
+  username: string | string[];
+  isTeamEvent?: false;
+};
+
+type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
+  username?: string | string[];
+  isTeamEvent: true;
+  teamId: number;
+};
+
+export const BookerPlatformWrapper = (
+  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+) => {
   const { clientId } = useAtomsContext();
+  const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
@@ -112,18 +127,18 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     isSuccess: isTeamSuccess,
     isError: isTeamError,
     isPending: isTeamPending,
-    data: teamData,
-  } = useTeamEventType(props.teamId, props.eventSlug, props.isTeamEvent);
+    data: teamEventTypeData,
+  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent);
 
   const event = useMemo(() => {
-    if (props.isTeamEvent) {
+    if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
       return {
         isSuccess: isTeamSuccess,
         isError: isTeamError,
         isPending: isTeamPending,
         data:
-          teamData && teamData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamData[0], props.entity)
+          teamEventTypeData && teamEventTypeData.length > 0
+            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
             : undefined,
       };
     }
@@ -136,15 +151,16 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     };
   }, [
     props.isTeamEvent,
+    teamId,
     props.entity,
+    teamEventTypeData,
     isSuccess,
     isError,
     isPending,
     data,
+    isTeamPending,
     isTeamSuccess,
     isTeamError,
-    isTeamPending,
-    teamData,
   ]);
 
   if (isDynamic && props.duration && event.data) {
@@ -212,19 +228,25 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   });
 
   const schedule = useAvailableSlots({
-    usernameList: getUsernameList(username ?? ""),
+    usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
     timeZone: session?.data?.timeZone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
+    ...(props.isTeamEvent
+      ? {
+          isTeamEvent: props.isTeamEvent,
+          teamId: teamId,
+        }
+      : {}),
     enabled:
-      Boolean(username) &&
+      Boolean(teamId || username) &&
       Boolean(month) &&
       Boolean(timezone) &&
-      // Should only wait for one or the other, not both.
-      (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
+      (props.isTeamEvent ? !isTeamPending : !isPending) &&
+      Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
   });
