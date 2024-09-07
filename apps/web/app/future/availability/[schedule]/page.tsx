@@ -45,7 +45,7 @@ const Page = async ({ params }: PageProps) => {
     }),
     TravelScheduleRepository.findTravelSchedulesByUserId(userId),
   ]);
-  console.log("BENNY10", schedule, travelSchedules);
+
   return (
     <PageWrapper
       getLayout={null}
