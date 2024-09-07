@@ -8,7 +8,6 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
 async function handler(req: NextApiRequest) {
-  // Get user
   const user = req?.session?.user;
   if (!user) {
     return { status: 401, body: { error: "Unauthorized" } };
