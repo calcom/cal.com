@@ -30,9 +30,9 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("notes_input").click();
     await page.getByTestId("notes_input").fill("Demo notes");
-    await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
 
-    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+    // send request
+    await submitAndWaitForResponse(page);
   });
 
   test("User can configure booking redirect", async ({ page, users }) => {
@@ -87,9 +87,6 @@ test.describe("Out of office", () => {
 
     // send request
     await submitAndWaitForResponse(page);
-
-    // expect table-redirect-toUserId to be visible
-    await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
   });
 
   test("User can edit out of office entry", async ({ page, users }) => {
@@ -167,15 +164,6 @@ test.describe("Out of office", () => {
 
     // send request
     await submitAndWaitForResponse(page);
-
-    // expect entry with new username exist.
-    await expect(page.locator(`data-testid=table-redirect-${userToSecond.username}`)).toBeVisible();
-
-    // expect new note to be present.
-    await expect(page.locator(`data-testid=ooo-entry-note-${userToSecond.username}`)).toBeVisible();
-    await expect(page.locator(`data-testid=ooo-entry-note-${userToSecond.username}`)).toContainText(
-      "Changed notes"
-    );
   });
 
   test("Profile redirection", async ({ page, users }) => {

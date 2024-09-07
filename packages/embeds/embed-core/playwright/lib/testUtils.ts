@@ -38,54 +38,24 @@ export const getEmbedIframe = async ({
   page: Page;
   pathname: string;
 }) => {
-  const handleFrameErrors = (frame: Frame) => {
-    frame.on("pageerror", (error) => {
-      console.error(`Iframe error (${frame.url()}): ${error.message}`);
-    });
-    frame.on("requestfailed", (request) => {
-      console.error(
-        `Iframe failed request (${frame.url()}): ${request.url()}, ${request.failure()?.errorText}`
-      );
-    });
-  };
-
-  // We can't seem to access page.frame till contentWindow is available. So wait for that.
-  const iframeReady = await page.evaluate(
-    async (hardTimeout) => {
-      return await new Promise((resolve) => {
-        const interval = setInterval(() => {
-          const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
-          if (iframe) {
-            console.log("Iframe found");
-          }
-          if (iframe?.contentWindow) {
-            console.log("Iframe contentWindow found");
-          }
+  const iframeReady = await page.waitForFunction(
+    () => {
+      const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      if (iframe && iframe.contentWindow && window.iframeReady) {
+        return true;
+      } else {
+        console.log("Waiting for all three to be true:", {
+          iframeElement: iframe,
+          contentWindow: iframe?.contentWindow,
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          if (iframe && iframe.contentWindow && window.iframeReady) {
-            clearInterval(interval);
-            resolve(true);
-          } else {
-            console.log("Waiting for all three to be true:", {
-              iframeElement: iframe,
-              contentWindow: iframe?.contentWindow,
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              iframeReady: window.iframeReady,
-            });
-          }
-        }, 500);
-
-        // A hard timeout if iframe isn't ready in that time. Avoids infinite wait
-        setTimeout(() => {
-          clearInterval(interval);
-          resolve(false);
-          // This is the time embed-iframe.ts loads in the iframe and fires atleast one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
-        }, hardTimeout);
-      });
+          iframeReady: window.iframeReady,
+        });
+      }
     },
-    !process.env.CI ? 15000 : 15000
+    { polling: 500 }
   );
   if (!iframeReady) {
     return null;

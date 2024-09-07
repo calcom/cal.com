@@ -118,7 +118,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
 
-      const submitPromise = page.waitForResponse("/api/trpc/viewer/eventTypes/duplicate?batch=1");
+      const submitPromise = page.waitForResponse("/api/trpc/eventTypes/duplicate?batch=1");
       await page.getByTestId("continue").click();
       const response = await submitPromise;
       expect(response.status()).toBe(200);
