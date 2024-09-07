@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth";
 
 import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
-import OutOfOfficeView from "~/settings/my-account/out-of-office-view";
+import CreateNewOutOfOfficeEntryButton from "@calcom/features/settings/outOfOffice/CreateNewOutOfOfficeEntryButton";
+import { OutOfOfficeEntriesList } from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -19,8 +19,11 @@ const Page = async () => {
   const t = await getFixedT(session?.user.locale || "en");
 
   return (
-    <SettingsHeader title={t("out_of_office")} description={t("out_of_office_description")}>
-      <OutOfOfficeView />
+    <SettingsHeader
+      title={t("out_of_office")}
+      description={t("out_of_office_description")}
+      CTA={<CreateNewOutOfOfficeEntryButton />}>
+      <OutOfOfficeEntriesList />
     </SettingsHeader>
   );
 };

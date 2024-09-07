@@ -1,8 +1,10 @@
+"use client";
+
 import { Trans } from "next-i18next";
+import { useState } from "react";
 import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import type { BookingRedirectForm } from "@calcom/features/settings/CreateOrEditOutOfOfficeModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -18,11 +20,10 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
-export const OutOfOfficeEntriesList = ({
-  editOutOfOfficeEntry,
-}: {
-  editOutOfOfficeEntry: (entry: BookingRedirectForm) => void;
-}) => {
+import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
+import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
+
+export const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { data, isPending } = trpc.viewer.outOfOfficeEntriesList.useQuery();
@@ -36,6 +37,16 @@ export const OutOfOfficeEntriesList = ({
       showToast(`An error ocurred`, "error");
     },
   });
+
+  const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
+    useState<BookingRedirectForm | null>(null);
+  const [openModal, setOpenModal] = useState(false);
+
+  const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
+    setCurrentlyEditingOutOfOfficeEntry(entry);
+    setOpenModal(true);
+  };
+
   if (data === null || data?.length === 0 || (data === undefined && !isPending))
     return (
       <EmptyScreen
@@ -168,6 +179,16 @@ export const OutOfOfficeEntriesList = ({
           )}
         </TableBody>
       </TableNew>
+      {openModal && (
+        <CreateOrEditOutOfOfficeEntryModal
+          openModal={openModal}
+          closeModal={() => {
+            setOpenModal(false);
+            setCurrentlyEditingOutOfOfficeEntry(null);
+          }}
+          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
+        />
+      )}
     </div>
   );
 };
