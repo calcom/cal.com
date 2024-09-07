@@ -1,4 +1,3 @@
-import { formatEventFromTime } from "bookings/Booker/utils/dates";
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
@@ -12,7 +11,6 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import { Icon } from "@calcom/ui";
 
 import { fadeInUp } from "../config";
@@ -61,7 +59,7 @@ export const EventMeta = ({
     eventMetaTimezoneSelect?: string;
   };
 }) => {
-  const { setTimezone, timeFormat, timezone } = useTimePreferences();
+  const { setTimezone, timeFormat, timezone: timeZone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
@@ -106,12 +104,19 @@ export const EventMeta = ({
     ? "text-yellow-500"
     : "text-bookinghighlight";
 
-  const { date, time } = formatEventFromTime({
-    date: "2022-02-22T00:00:00.000Z",
-    timeFormat: TimeFormat.TWENTY_FOUR_HOUR,
-    timeZone: timezone,
-    language: i18n.language,
-  });
+  const startDate = new Date("2022-02-02T00:00:00.000Z");
+  const date = new Intl.DateTimeFormat(i18n.language, {
+    timeZone,
+    dateStyle: "full",
+  }).format(startDate);
+
+  const time = new Intl.DateTimeFormat(i18n.language, {
+    timeZone,
+    timeStyle: "short",
+    hour12: false,
+  })
+    .format(startDate)
+    .toLowerCase();
 
   return (
     <div
