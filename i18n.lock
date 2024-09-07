@@ -489,6 +489,7 @@ checksums:
     meeting_ended: 758c721237c979537b271a6c47a51c16
     form_submitted: d81abd89531ce80f0561a90c4ac4aced
     booking_paid: a5e465bca749d839cab0f84ef26735dd
+    ooo_created: 18e3e50b88419c3a02fd59259febe493
     booking_no_show_updated: fdcfaf9b5d3eaa701629cba77ec4ded5
     event_triggers: ebba3ce0a361e6ac0632f921ac86aaec
     subscriber_url: 654ecae8a1b307053052d8c8823c3f3b
@@ -2477,7 +2478,7 @@ checksums:
     create_account_password_hint: 19792dcd3a8958a1374a9837f7383b39
     disconnect_account: c2d44bcc79bee8dc002bd937329eb5ac
     disconnect_account_hint: edf4b2a1c881878660a7bd814e17c795
-    cookie_consent_checkbox: ee39ccd2aa5cb939444a74e525893b23
+    cookie_consent_checkbox: 48b0bbfb8a7c6cb465e073a1b35a56f4
     make_a_call: 809ec7bb27e3b20c082999b9f7ab0c00
     skip_rr_assignment_label: 26980bd2315d3d2cfb7ba6e6364d88dc
     skip_rr_description: d402731f4a64fecb15438b2c80cba7b3
