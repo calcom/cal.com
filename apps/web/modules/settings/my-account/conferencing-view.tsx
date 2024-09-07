@@ -5,31 +5,20 @@ import { useReducer } from "react";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Meta, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Button, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
 import { AppList } from "@components/apps/AppList";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
     </SkeletonContainer>
-  );
-};
-
-const AddConferencingButton = () => {
-  const { t } = useLocale();
-
-  return (
-    <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
-      {t("add")}
-    </Button>
   );
 };
 
@@ -65,17 +54,9 @@ const ConferencingView = () => {
   return (
     <>
       <div className="bg-default w-full sm:mx-0 xl:mt-0">
-        <Meta
-          title={t("conferencing")}
-          description={t("conferencing_description")}
-          CTA={<AddConferencingButton />}
-          borderInShellHeader={true}
-        />
         <QueryCell
           query={query}
-          customLoader={
-            <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />
-          }
+          customLoader={<SkeletonLoader />}
           success={({ data }) => {
             console.log(data);
             if (!data.items.length) {

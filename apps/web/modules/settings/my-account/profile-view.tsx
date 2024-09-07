@@ -33,7 +33,6 @@ import {
   Form,
   ImageUploader,
   Label,
-  Meta,
   PasswordField,
   showToast,
   SkeletonAvatar,
@@ -50,10 +49,9 @@ import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfi
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -243,9 +241,7 @@ const ProfileView = () => {
   };
 
   if (isPending || !user) {
-    return (
-      <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
-    );
+    return <SkeletonLoader />;
   }
 
   const userEmail = user.email || "";
@@ -273,11 +269,6 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta
-        title={t("profile")}
-        description={t("profile_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-      />
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}

@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import AppearanceViewWrapper from "~/settings/my-account/appearance-view";
+import AppearancePage from "~/settings/my-account/appearance-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -19,7 +19,7 @@ const Page = async () => {
 
   return (
     <SettingsHeader title={t("appearance")} description={t("appearance_description")}>
-      <AppearanceViewWrapper />
+      <AppearancePage />
     </SettingsHeader>
   );
 };

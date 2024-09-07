@@ -16,7 +16,6 @@ import {
   Button,
   Form,
   Label,
-  Meta,
   Select,
   showToast,
   SkeletonButton,
@@ -50,10 +49,9 @@ export type FormValues = {
   }[];
 };
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -80,8 +78,7 @@ const GeneralQueryView = () => {
   const { data: travelSchedules, isPending: isPendingTravelSchedules } =
     trpc.viewer.getTravelSchedules.useQuery();
 
-  if (isPending || isPendingTravelSchedules)
-    return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  if (isPending || isPendingTravelSchedules) return <SkeletonLoader />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
@@ -189,7 +186,6 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
             weekStart: values.weekStart.value,
           });
         }}>
-        <Meta title={t("general")} description={t("general_description")} borderInShellHeader={true} />
         <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
           <Controller
             name="locale"

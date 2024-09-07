@@ -6,7 +6,7 @@ import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Button } from "@calcom/ui";
 
-import CalendarsView from "~/settings/my-account/calendars-view";
+import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -33,7 +33,7 @@ const Page = async () => {
       title={t("calendars")}
       description={t("calendars_description")}
       CTA={<AddCalendarButton />}>
-      <CalendarsView />
+      <CalendarListContainer />
     </SettingsHeader>
   );
 };
