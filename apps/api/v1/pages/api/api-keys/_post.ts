@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
-import { v4 } from "uuid";
+import { randomUUID } from "node:crypto";
 
 import { generateUniqueAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { HttpError } from "@calcom/lib/http-error";
@@ -15,7 +15,7 @@ async function postHandler(req: NextApiRequest) {
   const [hashedKey, apiKey] = generateUniqueAPIKey();
   const args: Prisma.ApiKeyCreateArgs = {
     data: {
-      id: v4(),
+      id: randomUUID(),
       userId,
       ...input,
       // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input

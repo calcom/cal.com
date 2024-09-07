@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID as uuidv4 } from "node:crypto";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
