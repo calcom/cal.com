@@ -4,6 +4,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
@@ -191,5 +192,50 @@ export class OrganizationRepository {
       return null;
     }
     return getParsedTeam(org);
+  }
+
+  static async findCurrentOrg({ userId, orgId }: { userId: number; orgId: number }) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        team: {
+          id: orgId,
+        },
+      },
+      include: {
+        team: true,
+      },
+    });
+
+    const organizationSettings = await prisma.organizationSettings.findUnique({
+      where: {
+        organizationId: orgId,
+      },
+      select: {
+        lockEventTypeCreationForUsers: true,
+        adminGetsNoSlotsNotification: true,
+        isAdminReviewed: true,
+      },
+    });
+
+    if (!membership) {
+      throw new Error("You do not have a membership to your organization");
+    }
+
+    const metadata = teamMetadataSchema.parse(membership?.team.metadata);
+
+    return {
+      canAdminImpersonate: !!organizationSettings?.isAdminReviewed,
+      organizationSettings: {
+        lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
+        adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
+      },
+      user: {
+        role: membership?.role,
+        accepted: membership?.accepted,
+      },
+      ...membership?.team,
+      metadata,
+    };
   }
 }
