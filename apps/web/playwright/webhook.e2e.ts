@@ -577,11 +577,9 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     expect(newMeetingEndedTriggers.length).toBe(0);
 
     // disable webhook
-    await page.click('[data-testid="webhook-switch"]');
-
-    await page.waitForLoadState("networkidle");
-    // wait for request to complete
-    await expect(page.getByRole("button", { name: "Disabled" })).toBeVisible();
+    await page.getByTestId("webhook-switch").click();
+    const response = await page.waitForResponse("/api/trpc/webhook/edit?batch=1");
+    expect(response.status()).toBe(200);
 
     const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
       where: {

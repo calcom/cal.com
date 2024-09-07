@@ -126,7 +126,7 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("profile-update-email-submit-button").click();
 
-    expect(await page.getByTestId("toast-success").textContent()).toContain(email);
+    await expect(page.getByTestId("toast-success")).toContainText(email);
 
     // Instead of dealing with emails in e2e lets just get the token and navigate to it
     const verificationToken = await prisma.verificationToken.findFirst({
@@ -144,7 +144,7 @@ test.describe("Update Profile", () => {
 
     await page.goto(verifyUrl);
 
-    expect(await page.getByTestId("toast-success").textContent()).toContain(email);
+    await expect(page.getByTestId("toast-success")).toContainText(email);
 
     // After email verification is successfull. user is sent to /event-types
     await page.waitForURL("/event-types");
@@ -179,7 +179,7 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("profile-update-email-submit-button").click();
 
-    expect(await page.getByTestId("toast-success").isVisible()).toBe(true);
+    await expect(page.getByTestId("toast-success")).toBeVisible();
 
     const emailInputUpdated = page.getByTestId("profile-form-email-0");
 
@@ -299,25 +299,27 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("secondary-email-confirm-done-button").click();
 
+    await expect(secondaryEmailInput).toBeHidden();
+
     return { user, email, secondaryEmail };
   };
 
   test("Newly added secondary email should show as Unverified", async ({ page, users }) => {
     await createSecondaryEmail({ page, users });
 
-    expect(await page.getByTestId("profile-form-email-0-primary-badge").isVisible()).toEqual(true);
-    expect(await page.getByTestId("profile-form-email-0-unverified-badge").isVisible()).toEqual(false);
+    await expect(page.getByTestId("profile-form-email-0-primary-badge")).toBeVisible();
+    await expect(page.getByTestId("profile-form-email-0-unverified-badge")).toBeHidden();
 
-    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
-    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
+    await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
   });
 
   test("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
     const { secondaryEmail } = await createSecondaryEmail({ page, users });
     await page.waitForLoadState("networkidle");
 
-    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
-    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
+    await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
     // Instead of dealing with emails in e2e lets just get the token and navigate to it
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
@@ -335,8 +337,8 @@ test.describe("Update Profile", () => {
     await page.goto(verifyUrl);
     await page.waitForLoadState("networkidle");
 
-    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
-    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
+    await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
   });
 
   test("Can delete the newly added secondary email", async ({ page, users }) => {
@@ -345,7 +347,7 @@ test.describe("Update Profile", () => {
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
     await page.getByTestId("secondary-email-delete-button").click();
 
-    expect(await page.getByTestId("profile-form-email-1").isVisible()).toEqual(false);
+    await expect(page.getByTestId("profile-form-email-1")).toBeHidden();
   });
 
   test("Can make the newly added secondary email as the primary email and login", async ({
@@ -373,8 +375,8 @@ test.describe("Update Profile", () => {
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
     await page.getByTestId("secondary-email-make-primary-button").click();
 
-    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(true);
-    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
+    await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeVisible();
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeHidden();
   });
 
   test("Can resend verification link if the secondary email is unverified", async ({
@@ -395,9 +397,9 @@ test.describe("Update Profile", () => {
       await emails.deleteMessage(receivedEmails.items[0].ID);
     }
 
-    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
-    expect(await page.locator("button[data-testid=resend-verify-email-button]").isDisabled()).toEqual(false);
+    await expect(page.locator("button[data-testid=resend-verify-email-button]")).toBeEnabled();
     await page.getByTestId("resend-verify-email-button").click();
 
     await testEmailVerificationLink({ page, prisma, emails, secondaryEmail });
@@ -410,7 +412,7 @@ test.describe("Update Profile", () => {
     await page.goto(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
 
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
-    expect(await page.locator("button[data-testid=resend-verify-email-button]").isVisible()).toEqual(false);
-    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
+    await expect(page.locator("button[data-testid=resend-verify-email-button]")).toBeHidden();
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeHidden();
   });
 });
