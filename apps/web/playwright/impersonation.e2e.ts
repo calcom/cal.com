@@ -14,7 +14,6 @@ test.describe("Users can impersonate", async () => {
       role: "ADMIN",
       password: "ADMINadmin2022!",
     });
-    console.log(user.username);
 
     const userToImpersonate = await users.create({ disableImpersonation: false });
 
