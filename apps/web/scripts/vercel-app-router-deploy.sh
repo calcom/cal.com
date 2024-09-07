@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Only deploy to production
-if [ "$VERCEL_ENV" != "production" ]; then exit 0; fi
-
 checkRoute () {
   if [ "$1" != '1' ]; then rm -rf $2; fi
 }
@@ -10,6 +7,7 @@ checkRoute () {
 # These conditionals are used to remove directories from the build that are not needed in production
 # This is to reduce the size of the build and prevent OOM errors
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
+checkRoute "$APP_ROUTER_AVAILABILITY_ENABLED" app/future/availability
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
 checkRoute "$APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED" app/future/apps/installed
 checkRoute "$APP_ROUTER_APPS_SLUG_ENABLED" app/future/apps/\[slug\]
@@ -31,18 +29,19 @@ checkRoute "$APP_ROUTER_APPS_ENABLED" app/future/apps
 checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
 checkRoute "$APP_ROUTER_VIDEO_ENABLED" app/future/video
 checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
+checkRoute "$APP_ROUTER_MORE_ENABLED" app/future/more
+checkRoute "$APP_ROUTER_MAINTENANCE_ENABLED" app/future/maintenance
+checkRoute "$APP_ROUTER_UPGRADE_ENABLED" app/future/upgrade
+checkRoute "$APP_ROUTER_CONNECT_AND_JOIN_ENABLED" app/future/connect-and-join
 
 # These are routes that don't have and environment variable to enable or disable them
 # Will stop removing gradually as we test and confirm that they are working
 rm -rf \
    app/future/[user]\
    app/future/booking\
-   app/future/connect-and-join\
    app/future/d\
    app/future/enterprise\
    app/future/insights\
-   app/future/maintenance\
-   app/future/more\
    app/future/org\
    app/future/payment\
    app/future/reschedule\
