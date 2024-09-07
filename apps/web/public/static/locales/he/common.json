@@ -2201,6 +2201,7 @@
   "member_removed": "החבר הוסר",
   "my_availability": "הזמינות שלי",
   "team_availability": "הזמינות של הצוות",
+  "instant_meeting_availability": "זמינות לפגישה מיידית",
   "backup_code": "קוד גיבוי",
   "backup_codes": "קודי גיבוי",
   "backup_code_instructions": "כל קוד גיבוי יכול לשמש פעם אחת בלבד להענקת גישה בלי היישום המאמת.",

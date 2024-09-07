@@ -2203,6 +2203,7 @@ checksums:
     member_removed: c0f44b0f3e20c1bda1bc152a9cc4da84
     my_availability: 66d2346a7c062fed7f2158fe7f553a05
     team_availability: 2b296f5c5e3ea333646f3ef46e891c1b
+    instant_meeting_availability: 9215228630b2a4b5dae15e7658ca82a1
     backup_code: 41b15061acd32f7f3512d5a27dcc34b9
     backup_codes: 5449c9decb63f6b7ca68f124958a512f
     backup_code_instructions: ecf77d8d17ccf64e1effc6ab131fea56
