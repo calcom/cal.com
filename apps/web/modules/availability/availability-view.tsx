@@ -172,7 +172,7 @@ function AvailabilityListWithQuery() {
 }
 
 type PageProps = {
-  currentOrg?: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>>;
+  currentOrg?: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
 };
 
 export default function AvailabilityPage({ currentOrg }: PageProps) {
