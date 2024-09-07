@@ -176,7 +176,7 @@ export const EventMeta = ({
                   />
                 </EventMetaBlock>
               )} */}
-              {event?.recurringEvent && (
+              {isOcurrence && (
                 <span className="text-bas -mb-4 flex items-center gap-2">
                   <Icon name="calendar" data-testid="calendar-icon" className="h-3 w-3 stroke-[3px]" />A
                   partir de {date}, {time}
@@ -226,7 +226,7 @@ export const EventMeta = ({
                 </EventMetaBlock>
               ) : null}
             </div>
-            {event?.recurringEvent && (
+            {isOcurrence && (
               <span className="text-base">
                 O dia da semana e horário escolhidos serão reservados para você nas próximas semanas conforme
                 o plano escolhido.
