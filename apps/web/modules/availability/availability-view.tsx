@@ -170,13 +170,17 @@ function AvailabilityListWithQuery() {
   );
 }
 
-export default function AvailabilityPage() {
+type PageProps = {
+  currentOrg?: any;
+};
+export default function AvailabilityPage({ currentOrg }: PageProps) {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const me = useMeQuery();
-  const { data } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: _data } = trpc.viewer.organizations.listCurrent.useQuery();
+  const data = currentOrg ?? _data;
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair

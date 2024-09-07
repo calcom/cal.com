@@ -14,8 +14,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 type PageProps = {
-  schedule: AvailabilitySettingsProps["schedule"] | null;
-  travelSchedules: AvailabilitySettingsProps["travelSchedules"] | null;
+  schedule?: AvailabilitySettingsProps["schedule"] | null;
+  travelSchedules?: AvailabilitySettingsProps["travelSchedules"] | null;
 };
 
 export const AvailabilitySettingsWebWrapper = ({
