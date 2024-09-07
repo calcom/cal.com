@@ -489,7 +489,7 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string) {
   await page.locator('button:text("Add")').click();
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   await page.waitForLoadState("networkidle");
-  const submitPromise = await page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+  const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
   await page.locator('button:text("Send invite")').click();
   const response = await submitPromise;
   expect(response.status()).toBe(200);
