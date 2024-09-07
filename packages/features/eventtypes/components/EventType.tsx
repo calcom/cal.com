@@ -23,6 +23,7 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
+import { getSlugConflictsInChildren } from "@calcom/lib/event-types/utils/getSlugConflictsInChildren";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -503,7 +504,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       length,
       ...input
     } = dirtyValues;
-    if (!Number(length)) throw new Error(t("event_setup_length_error"));
+    if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
     if (bookingLimits) {
       const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -632,6 +633,11 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
           id="event-type-form"
           handleSubmit={async (values) => {
             const { children } = values;
+            const conflicts = getSlugConflictsInChildren({ values, eventType });
+            if (conflicts.length > 0) {
+              setSlugExistsChildrenDialogOpen(conflicts);
+              return;
+            }
             const dirtyValues = getDirtyFields(values);
             const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
             const {
