@@ -16,7 +16,6 @@ import {
   Alert,
   Button,
   Form,
-  Meta,
   PasswordField,
   Select,
   SettingsToggle,
@@ -37,10 +36,9 @@ interface PasswordViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 border-x px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -171,7 +169,6 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   return (
     <>
-      <Meta title={t("password")} description={t("password_description")} borderInShellHeader={true} />
       {user && user.identityProvider !== IdentityProvider.CAL && !user.passwordAdded ? (
         <div className="border-subtle rounded-b-xl border border-t-0">
           <div className="px-4 py-6 sm:px-6">
@@ -310,8 +307,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 const PasswordViewWrapper = () => {
   const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const { t } = useLocale();
-  if (isPending || !user)
-    return <SkeletonLoader title={t("password")} description={t("password_description")} />;
+  if (isPending || !user) return <SkeletonLoader />;
 
   return <PasswordView user={user} />;
 };

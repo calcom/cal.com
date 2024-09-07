@@ -4,23 +4,14 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  Meta,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  Alert,
-  SettingsToggle,
-} from "@calcom/ui";
+import { Badge, SkeletonButton, SkeletonContainer, SkeletonText, Alert, SettingsToggle } from "@calcom/ui";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="mb-8 mt-6 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
@@ -47,7 +38,6 @@ const TwoFactorAuthView = () => {
   const canSetupTwoFactor = !isCalProvider && !user?.twoFactorEnabled && !user?.passwordAdded;
   return (
     <>
-      <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} borderInShellHeader={true} />
       {canSetupTwoFactor && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
