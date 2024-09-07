@@ -2,6 +2,7 @@
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "types": [],
     "paths": {
       "~/*": ["modules/*"],
       "@components/*": ["components/*"],
@@ -10,26 +11,26 @@
       "@server/*": ["server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
     },
+    "strictNullChecks": true,
+    "experimentalDecorators": true,
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "strictNullChecks": true,
-    "experimentalDecorators": true
+    ]
   },
   "include": [
-    /* Find a way to not require this - App files don't belong here. */
-    "../../packages/app-store/routing-forms/env.d.ts",
     "next-env.d.ts",
-    "../../packages/trpc/types/router.d.ts",
-    "../../packages/types/*.d.ts",
-    "../../packages/types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "../../packages/features/bookings/lib/getBookingInfo.ts",
-    "../../packages/features/bookings/lib/getUserBooking.ts"
+    // We should avoid importing all types and instead import them individually in used files
+    "../../packages/types/*.d.ts",
+    "../../packages/types/next-auth.d.ts",
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "app", "playwright", "test"],
+  "references": [
+    {
+      "path": "../../packages/trpc/tsconfig.json"
+    }
+  ]
 }

@@ -29,6 +29,7 @@
     "server"
   ],
   "compilerOptions": {
+    "composite": true,
     "isolatedModules": false,
     "noEmit": false,
     "declaration": true,
@@ -36,6 +37,6 @@
     "experimentalDecorators": true,
     "declarationMap": false,
     "resolveJsonModule": true,
-    "outFile": "types/router.d.ts"
+    "outDir": "types"
   }
 }
