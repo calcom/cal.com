@@ -26,13 +26,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const alreadyExists = user.credentials.find((credential) => {
-      const decryptedCredential = JSON.parse(symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || ""));
-      return decryptedCredential.username === username;
-    })
+    let alreadyExistsId = -1;
 
-
-    if (alreadyExists) return res.status(409).json({ message: "account_already_linked" });
+    for (const credential of user.credentials) {
+      const decryptedCredential = JSON.parse(
+        symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
+      );
+      if (decryptedCredential.username === username) {
+        if (decryptedCredential.password === password) {
+          return res.status(409).json({ message: "account_already_linked" });
+        } else {
+          alreadyExistsId = credential.id;
+        }
+      }
+    }
 
     const data = {
       type: "apple_calendar",
@@ -48,13 +55,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const dav = new CalendarService({
-        id: 0,
         ...data,
+        id: 0,
         user: { email: user.email },
       });
       await dav?.listCalendars();
-      await prisma.credential.create({
-        data,
+      await prisma.credential.upsert({
+        where: {
+          id: alreadyExistsId,
+        },
+        create: data,
+        update: data,
       });
     } catch (reason) {
       logger.error("Could not add this apple calendar account", reason);
