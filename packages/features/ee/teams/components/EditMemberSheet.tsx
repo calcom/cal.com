@@ -6,7 +6,6 @@ import { z } from "zod";
 import { shallow } from "zustand/shallow";
 
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
-import { OrganizationBanner } from "@calcom/features/users/components/UserTable/EditSheet/OrganizationBanner";
 import { SheetFooterControls } from "@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/features/users/components/UserTable/EditSheet/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -158,7 +157,13 @@ export function EditMemberSheet({
         <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
           <SheetHeader showCloseButton={false} className="w-full">
             <div className="border-sublte bg-default w-full rounded-xl border p-4">
-              <OrganizationBanner />
+              <div
+                className="block w-full rounded-lg ring-1 ring-[#0000000F]"
+                style={{
+                  background: "linear-gradient(to top right, var(--cal-bg-emphasis), var(--cal-bg))",
+                  height: "110px",
+                }}
+              />
               <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
                 <Avatar asChild size="lg" alt={`${name} avatar`} imageSrc={selectedUser.avatarUrl} />
               </div>

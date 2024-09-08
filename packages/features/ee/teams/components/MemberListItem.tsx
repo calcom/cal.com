@@ -277,7 +277,6 @@ export default function MemberListItem(props: Props) {
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
-      // Disabling select for this PR: Will work on actions etc in a follow up
       {
         id: "select",
         header: ({ table }) => (
@@ -627,6 +626,7 @@ export default function MemberListItem(props: Props) {
           },
         ]}
         tableContainerRef={tableContainerRef}
+        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         tableCTA={
           isAdminOrOwner || props.isOrgAdminOrOwner ? (
             <Button
