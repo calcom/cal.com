@@ -3,8 +3,6 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
 
-import { MINUTES_TO_BOOK } from "@calcom/platform-libraries";
-
 @Injectable()
 export class SlotsRepository_2024_09_04 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -16,28 +14,19 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
-  async upsertSelectedSlot(
+  async createSlot(
     userId: number,
     eventTypeId: number,
     slotUtcStartDate: string,
     slotUtcEndDate: string,
     uid: string,
-    isSeat: boolean
+    isSeat: boolean,
+    reservationLength: number
   ) {
-    const releaseAt = DateTime.utc()
-      .plus({ minutes: parseInt(MINUTES_TO_BOOK) })
-      .toISO();
-    return this.dbWrite.prisma.selectedSlots.upsert({
-      where: {
-        selectedSlotUnique: { userId, slotUtcStartDate, slotUtcEndDate, uid },
-      },
-      update: {
-        slotUtcEndDate,
-        slotUtcStartDate,
-        releaseAt,
-        eventTypeId,
-      },
-      create: {
+    const releaseAt = DateTime.utc().plus({ minutes: reservationLength }).toISO();
+
+    return this.dbWrite.prisma.selectedSlots.create({
+      data: {
         userId,
         eventTypeId,
         slotUtcStartDate,

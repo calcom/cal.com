@@ -1,4 +1,4 @@
-import { IsInt, IsDateString } from "class-validator";
+import { IsInt, IsDateString, IsOptional } from "class-validator";
 
 export class ReserveSlotInput_2024_09_04 {
   @IsInt()
@@ -6,4 +6,8 @@ export class ReserveSlotInput_2024_09_04 {
 
   @IsDateString()
   start!: string;
+
+  @IsInt()
+  @IsOptional()
+  reservationLength = 5;
 }

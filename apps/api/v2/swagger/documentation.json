@@ -3423,7 +3423,7 @@
     },
     "/v2/slots/available": {
       "get": {
-        "operationId": "SlotsController_2024_04_15_getAvailableSlots",
+        "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "parameters": [],
         "responses": {
           "200": {
@@ -3431,7 +3431,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetSlotsOutput_2024_09_04"
                 }
               }
             }
@@ -3463,25 +3463,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Slots"
-        ]
-      },
-      "get": {
-        "operationId": "SlotsController_2024_09_04_getAvailableSlots",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetSlotsOutput_2024_09_04"
                 }
               }
             }

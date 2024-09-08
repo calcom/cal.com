@@ -16,6 +16,7 @@ export const getAggregatedAvailability = (
     schedulingType === SchedulingType.COLLECTIVE ||
     schedulingType === SchedulingType.ROUND_ROBIN ||
     userAvailability.length > 1;
+
   const fixedHosts = userAvailability.filter(
     ({ user }) => !schedulingType || schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
   );

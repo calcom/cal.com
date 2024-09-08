@@ -9,7 +9,7 @@ import {
 import { DateTime } from "luxon";
 import { v4 as uuid } from "uuid";
 
-import { getAvailableSlots, dynamicEvent } from "@calcom/platform-libraries";
+import { getAvailableSlots, dynamicEvent } from "@calcom/platform-libraries-1.2.3";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 
 @Injectable()
@@ -21,10 +21,13 @@ export class SlotsService_2024_09_04 {
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     const eventType = await this.getEventType(query);
+    if (!eventType) {
+      throw new NotFoundException(`Event Type not found`);
+    }
     const isTeamEvent = !!eventType?.teamId;
 
     const startTime = query.start;
-    const endTime = query.end;
+    const endTime = this.adjustEndTime(query.end);
     const duration = eventType.length;
     const eventTypeId = eventType.id;
     const eventTypeSlug = eventType.slug;
@@ -47,13 +50,34 @@ export class SlotsService_2024_09_04 {
 
     const slots: { [key: string]: string[] } = {};
     for (const date in availableSlots.slots) {
-      slots[date] = availableSlots.slots[date].map((slot) => slot.time);
+      slots[date] = availableSlots.slots[date].map((slot) => {
+        const slotTimezoneAdjusted = timeZone
+          ? DateTime.fromISO(slot.time).setZone(timeZone).toISO()
+          : slot.time;
+        if (!slotTimezoneAdjusted) {
+          throw new BadRequestException(
+            `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
+          );
+        }
+
+        return slotTimezoneAdjusted;
+      });
     }
 
     return slots;
   }
+
+  adjustEndTime(endTime: string) {
+    let dateTime = DateTime.fromISO(endTime);
+    if (dateTime.hour === 0 && dateTime.minute === 0 && dateTime.second === 0) {
+      dateTime = dateTime.set({ hour: 23, minute: 59, second: 59 });
+    }
+
+    return dateTime.toISO();
+  }
+
   async reserveSlot(input: ReserveSlotInput_2024_09_04) {
-    const eventType = await this.eventTypeRepo.getEventTypeWithSeats(input.eventTypeId);
+    const eventType = await this.eventTypeRepo.getEventTypeWithHosts(input.eventTypeId);
     if (!eventType) {
       throw new NotFoundException(`Event Type with ID=${input.eventTypeId} not found`);
     }
@@ -68,44 +92,54 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid end date");
     }
 
-    if (eventType.seatsPerTimeSlot) {
-      const bookingWithAttendees = await this.slotsRepo.getBookingWithAttendeesByEventTypeIdAndStart(
-        input.eventTypeId,
-        startDate.toJSDate()
-      );
-      const attendeesCount = bookingWithAttendees?.attendees?.length;
-      if (!attendeesCount) {
-        throw new UnprocessableEntityException(`Can't reserve a slot because no booking has yet been made.`);
-      }
+    const booking = await this.slotsRepo.getBookingWithAttendeesByEventTypeIdAndStart(
+      input.eventTypeId,
+      startDate.toJSDate()
+    );
 
-      const seatsLeft = eventType.seatsPerTimeSlot - attendeesCount;
-      if (seatsLeft < 1) {
-        throw new UnprocessableEntityException(
-          `Booking with id=${input.eventTypeId} at ${input.start} has no more seats left.`
-        );
+    if (eventType.seatsPerTimeSlot) {
+      const attendeesCount = booking?.attendees?.length;
+      if (attendeesCount) {
+        const seatsLeft = eventType.seatsPerTimeSlot - attendeesCount;
+        if (seatsLeft < 1) {
+          throw new UnprocessableEntityException(
+            `Booking with id=${input.eventTypeId} at ${input.start} has no more seats left.`
+          );
+        }
       }
+    }
+    if (!eventType.seatsPerTimeSlot && booking) {
+      throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
     const uid = uuid();
-    await Promise.all(
-      eventType.users.map((user) =>
-        this.slotsRepo.upsertSelectedSlot(
-          user.id,
-          eventType.id,
-          startDate.toISO(),
-          endDate.toISO(),
-          uid,
-          eventType.seatsPerTimeSlot !== null
-        )
-      )
-    );
+    if (eventType.userId) {
+      await this.slotsRepo.createSlot(
+        eventType.userId,
+        eventType.id,
+        startDate.toISO(),
+        endDate.toISO(),
+        uid,
+        eventType.seatsPerTimeSlot !== null,
+        input.reservationLength
+      );
+    } else {
+      const host = eventType.hosts[0];
+      await this.slotsRepo.createSlot(
+        host.userId,
+        eventType.id,
+        startDate.toISO(),
+        endDate.toISO(),
+        uid,
+        eventType.seatsPerTimeSlot !== null,
+        input.reservationLength
+      );
+    }
 
     return uid;
   }
 
-  async deleteSelectedSlot(uid?: string) {
-    if (!uid) return;
-
+  async deleteSelectedSlot(uid: string) {
     return this.slotsRepo.deleteSelectedSlots(uid);
   }
 

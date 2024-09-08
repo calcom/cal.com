@@ -605,6 +605,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
   const eventTimeZone =
     eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
+
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -665,6 +666,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
       currentSeats = availabilityCheckProps.currentSeats;
     }
+
     availableTimeSlots = availableTimeSlots
       .map((slot) => {
         const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {

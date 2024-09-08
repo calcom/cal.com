@@ -43,6 +43,7 @@ export class EventTypesRepositoryFixture {
             id: userId,
           },
         },
+        users: { connect: { id: userId } },
       },
     });
   }

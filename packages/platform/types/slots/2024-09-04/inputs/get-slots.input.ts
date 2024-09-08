@@ -18,7 +18,7 @@ class GetAvailableSlotsInput_2024_09_04 {
 
   @IsTimeZone()
   @IsOptional()
-  timeZone!: string;
+  timeZone?: string;
 }
 
 export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {

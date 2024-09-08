@@ -33,7 +33,7 @@ export class SlotsController_2024_09_04 {
     };
   }
 
-  @Get("/")
+  @Get("/available")
   async getAvailableSlots(
     @Query(new GetSlotsInputPipe()) query: GetSlotsInput_2024_09_04
   ): Promise<GetSlotsOutput_2024_09_04> {
@@ -47,6 +47,7 @@ export class SlotsController_2024_09_04 {
 
   @Delete("/:uid")
   async deleteSelectedSlot(@Param("uid") uid: string): Promise<ApiResponse> {
+    // todo(Lauris): delete 1 or many by uid?
     await this.slotsService.deleteSelectedSlot(uid);
 
     return {
