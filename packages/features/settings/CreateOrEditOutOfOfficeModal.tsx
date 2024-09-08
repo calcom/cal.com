@@ -76,7 +76,14 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const { hasTeamPlan } = useHasTeamPlan();
 
-  const { handleSubmit, setValue, control, register, getValues } = useForm<BookingRedirectForm>({
+  const {
+    handleSubmit,
+    setValue,
+    control,
+    register,
+    formState: { isSubmitting },
+    getValues,
+  } = useForm<BookingRedirectForm>({
     defaultValues: currentlyEditingOutOfOfficeEntry
       ? currentlyEditingOutOfOfficeEntry
       : {
@@ -90,6 +97,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           forUserId: null,
         },
   });
+  console.log(isSubmitting);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
@@ -115,11 +123,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         }}>
         <form
           id="create-or-edit-ooo-form"
-          className="h-full"
           onSubmit={handleSubmit((data) => {
             createOrEditOutOfOfficeEntry.mutate(data);
           })}>
-          <div className="px-1">
+          <div className="h-full px-1">
             <DialogHeader
               title={
                 currentlyEditingOutOfOfficeEntry
@@ -269,28 +276,28 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               )}
             </div>
           </div>
+          <DialogFooter showDivider noSticky>
+            <div className="flex">
+              <Button
+                color="minimal"
+                type="button"
+                onClick={() => {
+                  closeModal();
+                }}
+                className="mr-1">
+                {t("cancel")}
+              </Button>
+              <Button
+                form="create-or-edit-ooo-form"
+                color="primary"
+                type="submit"
+                disabled={isSubmitting}
+                data-testid="create-or-edit-entry-ooo-redirect">
+                {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
+              </Button>
+            </div>
+          </DialogFooter>
         </form>
-        <DialogFooter showDivider noSticky>
-          <div className="flex">
-            <Button
-              color="minimal"
-              type="button"
-              onClick={() => {
-                closeModal();
-              }}
-              className="mr-1">
-              {t("cancel")}
-            </Button>
-            <Button
-              form="create-or-edit-ooo-form"
-              color="primary"
-              type="submit"
-              disabled={createOrEditOutOfOfficeEntry.isPending || isPendingMembersList || isPendingReasonList}
-              data-testid="create-or-edit-entry-ooo-redirect">
-              {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
-            </Button>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

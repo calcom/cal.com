@@ -41,7 +41,7 @@ const OutOfOfficePage = () => {
     [searchParams]
   );
 
-  const openModalOnStart = !!params?.get("om");
+  const openModalOnStart = !!params?.get("open");
   useEffect(() => {
     if (openModalOnStart) {
       setOpenModal(true);
