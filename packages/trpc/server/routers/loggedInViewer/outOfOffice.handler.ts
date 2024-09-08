@@ -104,6 +104,9 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   let oooUserId = ctx.user.id;
   let oooUserName = ctx.user.username;
   let oooUserEmail = ctx.user.email;
+  let oooUserTimeZone = ctx.user.timeZone;
+  let oooUserOrgId = ctx.user.organizationId;
+  let oooUserFullName = ctx.user.name;
 
   // Check If Admin or Owner is trying to create OOO for their team member, and is valid.
   let commonTeam;
@@ -115,11 +118,14 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     oooUserId = input.forUserId;
     const oooForUser = await prisma.user.findUnique({
       where: { id: input.forUserId },
-      select: { username: true, email: true },
+      select: { username: true, email: true, timeZone: true, organizationId: true, name: true },
     });
     if (oooForUser) {
       oooUserEmail = oooForUser.email;
       oooUserName = oooForUser.username;
+      oooUserFullName = oooForUser.name;
+      oooUserTimeZone = oooForUser.timeZone;
+      oooUserOrgId = oooForUser.organizationId;
     }
   }
 
@@ -236,8 +242,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         : "booking_redirect_infinite_not_allowed",
     });
   }
-  // const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
-  // const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
   const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
@@ -397,7 +401,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const memberships = await prisma.membership.findMany({
     where: {
-      userId: ctx.user.id,
+      userId: oooUserId,
       accepted: true,
     },
   });
@@ -406,9 +410,9 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   // Send webhook to notify other services
   const subscriberOptions: GetSubscriberOptions = {
-    userId: ctx.user.id,
+    userId: oooUserId,
     teamId: teamIds,
-    orgId: ctx.user.organizationId,
+    orgId: oooUserOrgId,
     triggerEvent: WebhookTriggerEvents.OOO_CREATED,
   };
 
@@ -418,9 +422,9 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     oooEntry: {
       id: createdOrUpdatedOutOfOffice.id,
       start: dayjs(createdOrUpdatedOutOfOffice.start)
-        .tz(ctx.user.timeZone, true)
+        .tz(oooUserTimeZone, true)
         .format("YYYY-MM-DDTHH:mm:ssZ"),
-      end: dayjs(createdOrUpdatedOutOfOffice.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+      end: dayjs(createdOrUpdatedOutOfOffice.end).tz(oooUserTimeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
       createdAt: createdOrUpdatedOutOfOffice.createdAt.toISOString(),
       updatedAt: createdOrUpdatedOutOfOffice.updatedAt.toISOString(),
       notes: createdOrUpdatedOutOfOffice.notes,
@@ -430,11 +434,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       },
       reasonId: input.reasonId,
       user: {
-        id: ctx.user.id,
-        name: ctx.user.name,
-        username: ctx.user.username,
-        email: ctx.user.email,
-        timeZone: ctx.user.timeZone,
+        id: oooUserId,
+        name: oooUserFullName,
+        username: oooUserName,
+        email: oooUserEmail,
+        timeZone: oooUserTimeZone,
       },
       toUser: toUserId
         ? {
