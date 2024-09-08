@@ -11,7 +11,6 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -181,10 +180,10 @@ export const EventMeta = ({
                   />
                 </EventMetaBlock>
               )} */}
-              <span className="text-bas -mb-4 flex items-center gap-2">
+              {/* <span className="text-bas -mb-4 flex items-center gap-2">
                 <Icon name="calendar" data-testid="calendar-icon" className="h-3 w-3 stroke-[3px]" />A partir
                 de {date}, {time}
-              </span>
+              </span> */}
               <EventDetails event={event} isOcurrence={isOcurrence} />
               {/* <EventMetaBlock
                 className=".event-meta-block-fix cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
@@ -229,10 +228,10 @@ export const EventMeta = ({
                 </EventMetaBlock>
               ) : null}
             </div>
-            <span className="text-base">
+            {/* <span className="text-base">
               O dia da semana e horário escolhidos serão reservados para você nas próximas semanas conforme o
               plano escolhido.
-            </span>
+            </span> */}
           </div>
         </m.div>
       )}
