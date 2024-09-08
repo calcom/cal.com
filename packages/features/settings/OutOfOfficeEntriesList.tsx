@@ -135,7 +135,7 @@ export const OutOfOfficeEntriesList = ({
       return (
         <>
           {row.original ? (
-            <div className="flex flex-row justify-between p-4">
+            <div className="flex flex-row justify-between">
               <div className="flex flex-row items-center">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
                   {item?.reason?.emoji || "🏝️"}
