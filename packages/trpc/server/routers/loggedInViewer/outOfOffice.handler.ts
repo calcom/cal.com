@@ -11,6 +11,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -21,7 +22,6 @@ import {
   type TOutOfOfficeEntriesListSchema,
   type TOutOfOfficeInputSchema,
 } from "./outOfOffice.schema";
-import { WebhookTriggerEvents } from ".prisma/client";
 
 // function getTeam() checks if there is a team where 'adminUserId' is admin or owner
 // and 'memberUserId' is a member.

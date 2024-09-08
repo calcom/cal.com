@@ -90,7 +90,7 @@ async function populateOutOfOfficesForList() {
       name: `User ${i + 1}`,
       username: `user-${i + 1}`,
       email: `user-${i + 1}@test.com`,
-      timeZone: "+5:30",
+      timeZone: "Asia/Kolkata",
       schedules: [TestData.schedules.IstWorkHours],
     });
   }
@@ -276,7 +276,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -329,7 +329,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -337,7 +337,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -409,7 +409,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -417,7 +417,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -483,7 +483,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -491,7 +491,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -499,7 +499,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 3",
           username: "user-3",
           email: "user-3@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -580,7 +580,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -588,7 +588,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -596,7 +596,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 3",
           username: "user-3",
           email: "user-3@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -677,7 +677,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -685,7 +685,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -693,7 +693,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 3",
           username: "user-3",
           email: "user-3@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -765,7 +765,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -832,7 +832,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -840,7 +840,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -927,7 +927,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -935,7 +935,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -943,7 +943,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 3",
           username: "user-3",
           email: "user-3@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -1038,7 +1038,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -1046,7 +1046,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -1126,7 +1126,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -1183,7 +1183,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -1191,7 +1191,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -1268,7 +1268,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 1",
           username: "user-1",
           email: "user-1@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
         {
@@ -1276,7 +1276,7 @@ describe("outOfOfficeHandler", () => {
           name: "User 2",
           username: "user-2",
           email: "user-2@test.com",
-          timeZone: "+5:30",
+          timeZone: "Asia/Kolkata",
           schedules: [TestData.schedules.IstWorkHours],
         },
       ];
@@ -1351,7 +1351,7 @@ describe("outOfOfficeHandler", () => {
         name: "User 1",
         username: "user-1",
         email: "user-1@test.com",
-        timeZone: "+5:30",
+        timeZone: "Asia/Kolkata",
       };
       const ctx = {
         user: loggedInUser as NonNullable<TrpcSessionUser>,
@@ -1375,7 +1375,7 @@ describe("outOfOfficeHandler", () => {
         name: "User 1",
         username: "user-1",
         email: "user-1@test.com",
-        timeZone: "+5:30",
+        timeZone: "Asia/Kolkata",
       };
       const ctx = {
         user: loggedInUser as NonNullable<TrpcSessionUser>,

@@ -38,7 +38,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: listMembers, isPending: isPendingMembersList } = trpc.viewer.teams.listMembers.useQuery({});
+  const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
   const forwardingToMemberListOptions: {
     value: number;
@@ -64,8 +64,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   type Option = { value: number; label: string };
 
-  const { data: outOfOfficeReasonList, isPending: isPendingReasonList } =
-    trpc.viewer.outOfOfficeReasonList.useQuery();
+  const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
 
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
