@@ -85,7 +85,7 @@ test.describe("Availablity", () => {
     await page.locator('[form="availability-form"][type="submit"]').click();
 
     await expect(dateOverrideList).toHaveCount(3);
-    await expect(await page.getByTitle(deleteButtonTitle).isVisible()).toBe(false);
+    await expect(page.getByTitle(deleteButtonTitle)).toBeHidden();
   });
 
   test("Can create date override on current day in a negative timezone", async ({ page }) => {

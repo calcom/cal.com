@@ -57,8 +57,10 @@ test.describe("hash my url", () => {
     await page.getByTestId("vertical-tab-event_setup_tab_title").click();
     await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
+    const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
     await page.locator("[data-testid=update-eventtype]").click();
-    await page.getByTestId("toast-success").waitFor();
+    const response = await submitPromise;
+    expect(response.status()).toBe(200);
     // await page.waitForLoadState("networkidle");
     await page.locator(".primary-navigation >> text=Advanced").click();
     const $url2 = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();

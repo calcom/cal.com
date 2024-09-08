@@ -38,7 +38,7 @@ test.describe("Teams", () => {
       if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
       await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
     });
 
     await test.step("Can add members", async () => {
