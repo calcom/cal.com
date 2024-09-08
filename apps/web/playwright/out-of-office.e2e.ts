@@ -29,7 +29,9 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("notes_input").click();
     await page.getByTestId("notes_input").fill("Demo notes");
-    await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
+
+    // send request
+    await saveAndWaitForResponse(page);
 
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
