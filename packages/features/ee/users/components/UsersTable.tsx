@@ -150,7 +150,7 @@ function UsersTableBare() {
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   return (
-    <>
+    <div>
       <TextField
         placeholder="username or email"
         label="Search"
@@ -293,7 +293,7 @@ function UsersTableBare() {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 }
 
