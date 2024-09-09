@@ -137,3 +137,17 @@ export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingF
 
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
+
+export type TabMap = {
+  advanced: React.ReactNode;
+  ai?: React.ReactNode;
+  apps?: React.ReactNode;
+  availability: React.ReactNode;
+  instant?: React.ReactNode;
+  limits: React.ReactNode;
+  recurring: React.ReactNode;
+  setup: React.ReactNode;
+  team?: React.ReactNode;
+  webhooks?: React.ReactNode;
+  workflows?: React.ReactNode;
+};

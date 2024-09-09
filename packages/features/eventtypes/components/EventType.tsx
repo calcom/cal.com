@@ -19,9 +19,8 @@ import {
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, TabMap, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,43 +37,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Form, showToast } from "@calcom/ui";
 
 import { EventTypeSingleLayout } from "./EventTypeLayout";
-
-// These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
-const EventSetupTab = dynamic(() => import("./tabs/setup/EventSetupTab").then((mod) => mod.EventSetupTab));
-
-const EventAvailabilityTab = dynamic(() =>
-  import("./tabs/availability/EventAvailabilityTab").then((mod) => mod.EventAvailabilityTab)
-);
-
-const EventTeamAssignmentTab = dynamic(() =>
-  import("./tabs/assignment/EventTeamAssignmentTab").then((mod) => mod.EventTeamAssignmentTab)
-);
-
-const EventLimitsTab = dynamic(() =>
-  import("./tabs/limits/EventLimitsTab").then((mod) => mod.EventLimitsTab)
-);
-
-const EventAdvancedTab = dynamic(() =>
-  import("./tabs/advanced/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
-);
-
-const EventInstantTab = dynamic(() =>
-  import("./tabs/instant/EventInstantTab").then((mod) => mod.EventInstantTab)
-);
-
-const EventRecurringTab = dynamic(() =>
-  import("./tabs/recurring/EventRecurringTab").then((mod) => mod.EventRecurringTab)
-);
-
-const EventAppsTab = dynamic(() => import("./tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab));
-
-const EventWorkflowsTab = dynamic(() => import("./tabs/workflows/EventWorkfowsTab"));
-
-const EventWebhooksTab = dynamic(() =>
-  import("./tabs/webhooks/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
-);
-
-const EventAITab = dynamic(() => import("./tabs/ai/EventAITab").then((mod) => mod.EventAITab));
 
 const ManagedEventTypeDialog = dynamic(() => import("./dialogs/ManagedEventDialog"));
 
@@ -114,7 +76,9 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
 
-export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Workflow[] }) => {
+export const EventType = (
+  props: EventTypeSetupProps & { allActiveWorkflows?: Workflow[]; tabMap: TabMap }
+) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const telemetry = useTelemetry();
@@ -128,7 +92,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
     onlyInstalled: true,
   });
 
-  const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
+  const { eventType, team, currentUserMembership, tabMap } = props;
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const leaveWithoutAssigningHosts = useRef(false);
@@ -350,34 +314,6 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
     ).length;
   }
 
-  const permalink = `${WEBSITE_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
-  const tabMap = {
-    setup: (
-      <EventSetupTab
-        eventType={eventType}
-        locationOptions={locationOptions}
-        team={team}
-        teamMembers={teamMembers}
-        destinationCalendar={destinationCalendar}
-      />
-    ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
-    limits: <EventLimitsTab eventType={eventType} />,
-    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
-    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: props.allActiveWorkflows ? (
-      <EventWorkflowsTab eventType={eventType} workflows={props.allActiveWorkflows} />
-    ) : (
-      <></>
-    ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
-    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
-  } as const;
   const isObject = <T,>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
   };
@@ -584,31 +520,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
   const slug = formMethods.watch("slug") ?? eventType.slug;
 
   // Optional prerender all tabs after 300 ms on mount
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const Components = [
-        EventSetupTab,
-        EventAvailabilityTab,
-        EventTeamAssignmentTab,
-        EventLimitsTab,
-        EventAdvancedTab,
-        EventInstantTab,
-        EventRecurringTab,
-        EventAppsTab,
-        EventWorkflowsTab,
-        EventWebhooksTab,
-      ];
 
-      Components.forEach((C) => {
-        // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
-        C.render.preload();
-      });
-    }, 300);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
   return (
     <>
       <EventTypeSingleLayout
