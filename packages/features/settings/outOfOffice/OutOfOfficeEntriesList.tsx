@@ -140,7 +140,7 @@ export const OutOfOfficeEntriesList = ({ selectedTab }: { selectedTab: OutOfOffi
       return (
         <>
           {row.original ? (
-            <div className="flex flex-row justify-between">
+            <div className="flex flex-row justify-between p-2">
               <div className="flex flex-row items-center">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
                   {item?.reason?.emoji || "🏝️"}
@@ -268,6 +268,7 @@ export const OutOfOfficeEntriesList = ({ selectedTab }: { selectedTab: OutOfOffi
       showToast(`An error ocurred`, "error");
     },
   });
+
   return (
     <>
       <div className="mt-4 flex justify-start">
