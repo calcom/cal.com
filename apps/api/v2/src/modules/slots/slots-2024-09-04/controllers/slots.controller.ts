@@ -55,7 +55,6 @@ export class SlotsController_2024_09_04 {
 
   @Delete("/:uid")
   async deleteSelectedSlot(@Param("uid") uid: string): Promise<ApiResponse> {
-    // todo(Lauris): delete 1 or many by uid?
     await this.slotsService.deleteSelectedSlot(uid);
 
     return {
