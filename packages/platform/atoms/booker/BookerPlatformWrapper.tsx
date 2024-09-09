@@ -72,8 +72,6 @@ export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "ent
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
-  teamId?: number;
-  isOverlayCalendarEnabled?: boolean;
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
