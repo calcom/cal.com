@@ -8,10 +8,9 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
-import { ZGetInputSchema } from "./get.schema";
+import { ZGetSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
-import { ZGetMinimalSchema } from "./getMinimal.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
@@ -34,13 +33,8 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerTeamsRouter = router({
   // Retrieves team by id
-  get: authedProcedure.input(ZGetInputSchema).query(async (opts) => {
+  get: authedProcedure.input(ZGetSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
-    return handler(opts);
-  }),
-  // Returns team
-  getMinimal: authedProcedure.input(ZGetMinimalSchema).query(async (opts) => {
-    const handler = await importHandler(namespaced("getMinimal"), () => import("./getMinimal.handler"));
     return handler(opts);
   }),
   // Returns teams I a member of

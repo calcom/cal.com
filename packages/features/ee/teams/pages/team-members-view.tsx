@@ -32,7 +32,7 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
     data: team,
     isPending: isTeamsLoading,
     error: teamError,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,

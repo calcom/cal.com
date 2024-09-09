@@ -41,7 +41,8 @@ import { EventTypesList } from "./EventTypesList";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
-  team: NonNullable<RouterOutputs["viewer"]["teams"]["getMinimal"]>;
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
+  member: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
   isOrgAdminOrOwner: boolean | undefined;
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
 }
