@@ -23,9 +23,26 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
   const { user: selectedUser } = state.editSheet;
   const orgBranding = useOrgBranding();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
-  const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery({
-    userId: selectedUser?.id,
-  });
+  const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery(
+    {
+      // @ts-expect-error we obly enable the query if the user is selected
+      userId: selectedUser.id,
+    },
+    {
+      enabled: !!selectedUser?.id,
+    }
+  );
+
+  const { data: usersAttributes, isPending: usersAttributesPending } =
+    trpc.viewer.attributes.getByUserId.useQuery(
+      {
+        // @ts-expect-error we obly enable the query if the user is selected
+        userId: selectedUser.id,
+      },
+      {
+        enabled: !!selectedUser?.id,
+      }
+    );
 
   const avatarURL = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}/avatar.png`;
 
@@ -45,7 +62,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
           <>
             {!editMode ? (
               <>
-                <SheetHeader showCloseButton={false}>
+                <SheetHeader showCloseButton={false} className="w-full">
                   <div className="border-sublte bg-default w-full rounded-xl border p-4">
                     <OrganizationBanner />
                     <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
@@ -64,8 +81,8 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     </p>
                   </div>
                 </SheetHeader>
-                <SheetBody className="flex flex-col space-y-8 p-4">
-                  <div className="flex flex-col space-y-4">
+                <SheetBody className="flex flex-col space-y-4 p-4">
+                  <div className="mb-4 flex flex-col space-y-4">
                     <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
                     <DisplayInfo
                       label="Cal"
@@ -89,6 +106,26 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                       icon="calendar"
                     />
                   </div>
+                  {usersAttributes && usersAttributes?.length > 0 && (
+                    <div className="mt-4 flex flex-col">
+                      <h3 className="text-emphasis mb-5 text-base font-semibold">{t("attributes")}</h3>
+                      <div className="flex flex-col space-y-4">
+                        {usersAttributes.map((attribute, index) => (
+                          <>
+                            <DisplayInfo
+                              key={index}
+                              label={attribute.name}
+                              value={
+                                ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
+                                  ? attribute.options[0].value
+                                  : attribute.options.map((option) => option.value)
+                              }
+                            />
+                          </>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </SheetBody>
                 <SheetFooter>
                   <SheetFooterControls />

@@ -6,15 +6,30 @@ import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermis
 import prisma from "@calcom/prisma";
 
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import type { Response, SerializableForm } from "../../types/types";
+import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../../lib/reportingUtils";
+import type { FormResponse, SerializableForm } from "../../types/types";
 
+type Fields = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>;
 function escapeCsvText(str: string) {
   return str.replace(/,/, "%2C");
 }
-async function* getResponses(
-  formId: string,
-  headerFields: NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>
-) {
+
+function getHumanReadableFieldResponseValue({
+  field,
+  value,
+}: {
+  field: Fields[number];
+  value: string | number | string[];
+}) {
+  if (field.options) {
+    const optionIds = ensureStringOrStringArray(value);
+    return getLabelsFromOptionIds({ options: field.options, optionIds });
+  } else {
+    return (value instanceof Array ? value : [value]).map(String);
+  }
+}
+
+async function* getResponses(formId: string, fields: Fields) {
   let responses;
   let skip = 0;
   // Keep it small enough to be in Vercel limits of Serverless Function in terms of memory.
@@ -32,18 +47,14 @@ async function* getResponses(
   ) {
     const csv: string[] = [];
     responses.forEach((response) => {
-      const fieldResponses = response.response as Response;
+      const fieldResponses = response.response as FormResponse;
       const csvCells: string[] = [];
-      headerFields.forEach((headerField) => {
-        const fieldResponse = fieldResponses[headerField.id];
+      fields.forEach((field) => {
+        const fieldResponse = fieldResponses[field.id];
         const value = fieldResponse?.value || "";
-        let serializedValue = "";
-        if (value instanceof Array) {
-          serializedValue = value.map((val) => escapeCsvText(val)).join(" | ");
-        } else {
-          // value can be a number as well for type Number field
-          serializedValue = escapeCsvText(String(value));
-        }
+        const serializedValue = getHumanReadableFieldResponseValue({ field, value })
+          .map((value) => escapeCsvText(value))
+          .join(" | ");
         csvCells.push(serializedValue);
       });
       csvCells.push(response.createdAt.toISOString());

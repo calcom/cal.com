@@ -43,6 +43,15 @@ type Input = Pick<
   | "userId"
   | "parentId"
   | "assignAllTeamMembers"
+  | "bookingLimits"
+  | "durationLimits"
+  | "onlyShowFirstAvailableSlot"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
 >;
 
 @Injectable()

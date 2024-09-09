@@ -531,17 +531,19 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
-          org: profileOrg
-            ? {
-                id: profileOrg.id,
-                name: profileOrg.name,
-                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                logoUrl: profileOrg.logoUrl,
-                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-              }
-            : null,
+          // platform org user don't need profiles nor domains
+          org:
+            profileOrg && !profileOrg.isPlatform
+              ? {
+                  id: profileOrg.id,
+                  name: profileOrg.name,
+                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                  logoUrl: profileOrg.logoUrl,
+                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                  domainSuffix: subdomainSuffix(),
+                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+                }
+              : null,
         } as JWT;
       };
       if (!user) {

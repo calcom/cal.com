@@ -76,7 +76,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else {
-    await sendScheduledEmails({ ...evt });
+    await sendScheduledEmails({ ...evt }, undefined, undefined, undefined, eventType.metadata);
   }
 
   throw new HttpCode({

@@ -13,11 +13,14 @@ import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
+
+import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
 import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
 
-import { type PageProps } from "./videos-single-view.getServerSideProps";
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
@@ -94,7 +97,9 @@ export default function JoinCall(props: PageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <DailyProvider callObject={daily}>
-        <div className="mx-auto" style={{ zIndex: 2, position: "absolute", bottom: 100, width: "100%" }}>
+        <div
+          className="mx-auto hidden sm:block"
+          style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
           <CalAiTranscribe />
         </div>
         <div style={{ zIndex: 2, position: "relative" }}>

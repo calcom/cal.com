@@ -110,6 +110,7 @@
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.59.0",
+    "@next/third-parties": "^14.2.5",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",

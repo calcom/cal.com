@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { TEventType, TEventTypeGroup, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
@@ -9,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/core/location";
+import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -17,7 +17,7 @@ import { Button, Form, Icon, Avatar } from "@calcom/ui";
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
 
-import { locationsResolver } from "~/event-types/views/event-types-single-view";
+import type { TEventType, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";
 
 export type TFormType = {
   id: number;

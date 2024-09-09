@@ -1,21 +1,15 @@
-import LegacyPage, { type PageProps, getServerSideProps } from "@pages/team/[slug]/[type]";
+import LegacyPage, { type PageProps as LegacyPageProps, getServerSideProps } from "@pages/team/[slug]/[type]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Record<string, string | string[]>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const props = await getData(legacyCtx as unknown as GetServerSidePropsContext);
+  const props = await getData(legacyCtx);
   const { eventData, user, slug, booking } = props;
   const entity = eventData.entity;
   const { trpc } = await import("@calcom/trpc");
@@ -38,7 +32,7 @@ export const generateMetadata = async ({
     (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`
   );
 };
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 export default WithLayout({
   Page: LegacyPage,

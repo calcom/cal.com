@@ -121,7 +121,7 @@ test.describe("Insights", async () => {
       .locator('div[class="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1"]')
       .click();
     const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
+      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
     );
 
     await expect(teamSelectFilter).toHaveCount(3);
@@ -142,7 +142,7 @@ test.describe("Insights", async () => {
     await page.getByTestId("dashboard-shell").getByText("All").nth(1).click();
 
     const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
+      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
     );
 
     await expect(teamSelectFilter).toHaveCount(4);
@@ -164,7 +164,7 @@ test.describe("Insights", async () => {
       .locator('div[class="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1"]')
       .click();
     const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
+      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
     );
 
     await expect(teamSelectFilter).toHaveCount(3);
@@ -186,7 +186,7 @@ test.describe("Insights", async () => {
       .locator('div[class="flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1"]')
       .click();
     const teamSelectFilter = await page.locator(
-      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]'
+      'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
     );
 
     await expect(teamSelectFilter).toHaveCount(3);
@@ -218,13 +218,17 @@ test.describe("Insights", async () => {
     await page.locator('div[class="flex select-none truncate font-medium"]').getByText("People").click();
 
     await page
-      .locator('div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]')
+      .locator(
+        'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
+      )
       .nth(0)
       .click();
     await page.waitForLoadState("networkidle");
 
     await page
-      .locator('div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer"]')
+      .locator(
+        'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
+      )
       .nth(1)
       .click();
     await page.waitForLoadState("networkidle");
@@ -234,7 +238,7 @@ test.describe("Insights", async () => {
     await page.getByRole("button", { name: "Clear" }).click();
 
     // expect for "Team: test-insight" text in page
-    expect(await page.locator("text=Team: test-insights").isVisible()).toBeTruthy();
+    await expect(page.locator("text=Team: test-insights")).toBeVisible();
   });
 
   test("should test download button", async ({ page, users }) => {
@@ -251,13 +255,13 @@ test.describe("Insights", async () => {
     const downloadPromise = page.waitForEvent("download");
 
     // Expect download button to be visible
-    expect(await page.locator("text=Download").isVisible()).toBeTruthy();
+    await expect(page.locator("text=Download")).toBeVisible();
 
     // Click on Download button
     await page.getByText("Download").click();
 
     // Expect as csv option to be visible
-    expect(await page.locator("text=as CSV").isVisible()).toBeTruthy();
+    await expect(page.locator("text=as CSV")).toBeVisible();
 
     // Start waiting for download before clicking. Note no await.
     await page.getByText("as CSV").click();

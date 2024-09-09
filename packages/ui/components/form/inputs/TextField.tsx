@@ -1,3 +1,5 @@
+"use client";
+
 import React, { forwardRef, useId, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -83,6 +85,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     type,
     hintErrors,
     labelSrOnly,
+    noLabel,
     containerClassName,
     readOnly,
     showAsteriskIndicator,
@@ -97,7 +100,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
 
   return (
     <div className={classNames(containerClassName)}>
-      {!!name && (
+      {!!name && !noLabel && (
         <Skeleton
           as={Label}
           htmlFor={id}

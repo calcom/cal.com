@@ -1,4 +1,4 @@
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
@@ -179,6 +179,7 @@ export async function getBookings({
         metadata: true,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
+        eventTypeColor: true,
         schedulingType: true,
         team: {
           select: {
@@ -409,6 +410,7 @@ export async function getBookings({
       eventType: {
         ...booking.eventType,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+        eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
         price: booking.eventType?.price || 0,
         currency: booking.eventType?.currency || "usd",
         metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
