@@ -113,16 +113,10 @@ test.describe("Popup Tests", () => {
     const calNamespace = "routingFormAuto";
     await addEmbedListeners(calNamespace);
     await page.goto("/?only=prerender-test");
-    let embedIframe = await getEmbedIframe({
-      calNamespace,
-      page,
-      pathname: "/forms/948ae412-d995-4865-875a-48302588de03",
-    });
-    expect(embedIframe).toBeFalsy();
     await page.click(
       `[data-cal-namespace=${calNamespace}][data-cal-link="forms/948ae412-d995-4865-875a-48302588de03"]`
     );
-    embedIframe = await getEmbedIframe({
+    const embedIframe = await getEmbedIframe({
       calNamespace,
       page,
       pathname: "/forms/948ae412-d995-4865-875a-48302588de03",

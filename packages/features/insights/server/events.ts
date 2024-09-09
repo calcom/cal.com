@@ -1,3 +1,5 @@
+import type { AcceleratePromise } from "@prisma/extension-accelerate";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
@@ -8,12 +10,12 @@ import type { RawDataInput } from "./raw-data.schema";
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
-  static runSeparateQueriesForOrStatements = async (
+  static runSeparateQueriesForOrStatements = async <T, R>(
     where: Prisma.BookingTimeStatusWhereInput,
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    queryReference: Function,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    originalArgs: any
+
+    queryReference: (args: T) => AcceleratePromise<R>,
+
+    originalArgs: T
   ) => {
     if (!where["OR"]) {
       return await queryReference(originalArgs);
@@ -40,10 +42,17 @@ class EventsInsights {
   };
 
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const queryReference = (args: any) => prisma.bookingTimeStatus.groupBy(args);
+    const queryReference = (args: Prisma.BookingTimeStatusGroupByArgs) =>
+      // casting since TS is not able to infer the type of the output of the query properly
+      // Typescript infers this as AcceleratePromise<{}[]> which is not specific enough
+      prisma.bookingTimeStatus.groupBy(args) as unknown as AcceleratePromise<
+        Prisma.BookingTimeStatusGroupByOutputType[]
+      >;
 
-    const data = await EventsInsights.runSeparateQueriesForOrStatements(where, queryReference, {
+    const data = await EventsInsights.runSeparateQueriesForOrStatements<
+      Prisma.BookingTimeStatusGroupByArgs,
+      Prisma.BookingTimeStatusGroupByOutputType[]
+    >(where, queryReference, {
       where,
       by: ["timeStatus"],
       _count: {
@@ -52,11 +61,10 @@ class EventsInsights {
     });
 
     return data.reduce(
-      // @ts-expect-error Element implicitly has any type
       (aggregate: { [x: string]: number }, item) => {
-        if (typeof item.timeStatus === "string") {
-          aggregate[item.timeStatus] += item._count._all;
-          aggregate["_all"] += item._count._all;
+        if (typeof item.timeStatus === "string" && item) {
+          aggregate[item.timeStatus] += item?._count?._all ?? 0;
+          aggregate["_all"] += item?._count?._all ?? 0;
         }
         return aggregate;
       },
@@ -84,26 +92,27 @@ class EventsInsights {
   };
 
   static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const queryReference = (args: any) => prisma.bookingTimeStatus.count(args);
+    const queryReference = (args: Prisma.BookingTimeStatusCountArgs) => prisma.bookingTimeStatus.count(args);
     const originalWhereConditional = {
       ...whereConditional,
       noShowHost: true,
     };
 
-    const results = await EventsInsights.runSeparateQueriesForOrStatements(
-      originalWhereConditional,
-      queryReference,
-      {
-        where: {
-          ...originalWhereConditional,
-        },
-      }
-    );
+    const results = await EventsInsights.runSeparateQueriesForOrStatements<
+      Prisma.BookingTimeStatusCountArgs,
+      number
+    >(originalWhereConditional, queryReference, {
+      where: {
+        ...originalWhereConditional,
+      },
+    });
 
-    return results.length > 1
-      ? results.reduce((total: number, item: number) => total + (item || 0), 0)
-      : results;
+    // we don't know if WHERE clause contains OR, so we need to check if it's an array
+    if (Array.isArray(results)) {
+      return results.reduce((total: number, item: number) => total + (item || 0), 0);
+    }
+
+    return results;
   };
 
   static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
