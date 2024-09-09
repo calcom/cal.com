@@ -238,4 +238,50 @@ export class OrganizationRepository {
       metadata,
     };
   }
+
+  static async adminFindById({ id }: { id: number }) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        isOrganization: true,
+        members: {
+          where: {
+            role: "OWNER",
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        organizationSettings: {
+          select: {
+            isOrganizationConfigured: true,
+            isOrganizationVerified: true,
+            orgAutoAcceptEmail: true,
+          },
+        },
+      },
+    });
+
+    if (!org) {
+      throw new Error("Organization not found");
+    }
+
+    const parsedMetadata = teamMetadataSchema.parse(org.metadata);
+    if (!org?.isOrganization) {
+      throw new Error("Organization not found");
+    }
+    return { ...org, metadata: parsedMetadata };
+  }
 }
