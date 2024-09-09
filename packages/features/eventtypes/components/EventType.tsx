@@ -71,7 +71,6 @@ const querySchema = z.object({
     .default("setup"),
 });
 
-export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
