@@ -74,6 +74,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
+  isOverlayCalendarEnabled?: boolean;
 };
 
 type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
