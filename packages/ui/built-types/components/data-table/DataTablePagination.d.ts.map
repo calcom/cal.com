@@ -1,0 +1,1 @@
+{"version":3,"file":"DataTablePagination.d.ts","sourceRoot":"","sources":["../../../components/data-table/DataTablePagination.tsx"],"names":[],"mappings":";AAAA,OAAO,KAAK,EAAE,KAAK,EAAE,MAAM,uBAAuB,CAAC;AAInD,UAAU,wBAAwB,CAAC,KAAK;IACtC,KAAK,EAAE,KAAK,CAAC,KAAK,CAAC,CAAC;CACrB;AAED,wBAAgB,mBAAmB,CAAC,KAAK,EAAE,EAAE,KAAK,EAAE,EAAE,wBAAwB,CAAC,KAAK,CAAC,eAkDpF"}

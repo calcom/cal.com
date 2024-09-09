@@ -1,0 +1,1 @@
+{"version":3,"file":"InviteMemberModal.d.ts","sourceRoot":"","sources":["../../../../users/components/UserTable/InviteMemberModal.tsx"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,OAAO,CAAC;AAOtC,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,iBAAiB,CAAC;AAE9C,UAAU,KAAK;IACb,QAAQ,EAAE,QAAQ,CAAC,MAAM,CAAC,CAAC;CAC5B;AAED,wBAAgB,iBAAiB,CAAC,KAAK,EAAE,KAAK,sBA2D7C"}

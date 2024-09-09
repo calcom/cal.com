@@ -1,0 +1,1 @@
+{"version":3,"file":"OmniInstallAppButton.d.ts","sourceRoot":"","sources":["../../../_components/OmniInstallAppButton.tsx"],"names":[],"mappings":";AASA;;;GAGG;AACH,MAAM,CAAC,OAAO,UAAU,oBAAoB,CAAC,EAC3C,KAAK,EACL,SAAS,EACT,QAAQ,EACR,MAAM,GACP,EAAE;IACD,KAAK,EAAE,MAAM,CAAC;IACd,SAAS,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,MAAM,CAAC,EAAE,MAAM,CAAC;CACjB,sBA2DA"}

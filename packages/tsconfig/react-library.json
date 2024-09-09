@@ -6,8 +6,9 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "ESNext",
     "target": "ES5",
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "disableSourceOfProjectReferenceRedirect": true
   },
   "include": [".", "../types/next-auth.d.ts"],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build", "node_modules", "built-types"]
 }

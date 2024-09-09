@@ -1,0 +1,1 @@
+{"version":3,"file":"attendee-declined-email.d.ts","sourceRoot":"","sources":["../../templates/attendee-declined-email.ts"],"names":[],"mappings":"AACA,OAAO,sBAAsB,MAAM,4BAA4B,CAAC;AAEhE,MAAM,CAAC,OAAO,OAAO,qBAAsB,SAAQ,sBAAsB;cACvD,oBAAoB,IAAI,OAAO,CAAC,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;CAkBzE"}

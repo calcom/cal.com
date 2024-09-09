@@ -1,0 +1,1 @@
+{"version":3,"file":"OIDCConnection.d.ts","sourceRoot":"","sources":["../../../../ee/sso/components/OIDCConnection.tsx"],"names":[],"mappings":";AAGA,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,yBAAyB,CAAC;AAW7D,MAAM,CAAC,OAAO,UAAU,cAAc,CAAC,EACrC,MAAM,EACN,UAAU,GACX,EAAE;IACD,MAAM,EAAE,MAAM,GAAG,IAAI,CAAC;IACtB,UAAU,EAAE,aAAa,GAAG,IAAI,CAAC;CAClC,eAwBA"}

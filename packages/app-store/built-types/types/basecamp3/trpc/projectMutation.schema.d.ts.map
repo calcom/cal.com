@@ -1,0 +1,1 @@
+{"version":3,"file":"projectMutation.schema.d.ts","sourceRoot":"","sources":["../../../../basecamp3/trpc/projectMutation.schema.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAExB,eAAO,MAAM,2BAA2B;;;;;;EAEtC,CAAC;AAEH,MAAM,MAAM,2BAA2B,GAAG,CAAC,CAAC,KAAK,CAAC,OAAO,2BAA2B,CAAC,CAAC"}

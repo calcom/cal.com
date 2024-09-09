@@ -1,0 +1,1 @@
+{"version":3,"file":"getNormalizedAppMetadata.d.ts","sourceRoot":"","sources":["../../getNormalizedAppMetadata.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,EAAE,gBAAgB,IAAI,mBAAmB,EAAE,MAAM,2BAA2B,CAAC;AAGzF,KAAK,mBAAmB,GAAG,OAAO,mBAAmB,CAAC;AAKtD,eAAO,MAAM,wBAAwB,YAAa,mBAAmB,CAAC,MAAM,mBAAmB,CAAC;aAUlB,MAAM;CAMnF,CAAC"}

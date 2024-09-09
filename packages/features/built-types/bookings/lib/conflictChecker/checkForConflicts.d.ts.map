@@ -1,0 +1,1 @@
+{"version":3,"file":"checkForConflicts.d.ts","sourceRoot":"","sources":["../../../../bookings/lib/conflictChecker/checkForConflicts.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,eAAe,CAAC;AAGlC,OAAO,KAAK,EAAE,gBAAgB,EAAE,MAAM,gCAAgC,CAAC;AAEvE,KAAK,iBAAiB,GAAG,gBAAgB,EAAE,CAAC;AAI5C,wBAAgB,iBAAiB,CAAC,SAAS,EAAE,iBAAiB,EAAE,IAAI,EAAE,KAAK,CAAC,UAAU,EAAE,MAAM,EAAE,MAAM,WAmCrG"}

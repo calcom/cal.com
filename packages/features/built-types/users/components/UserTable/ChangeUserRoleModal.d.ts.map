@@ -1,0 +1,1 @@
+{"version":3,"file":"ChangeUserRoleModal.d.ts","sourceRoot":"","sources":["../../../../users/components/UserTable/ChangeUserRoleModal.tsx"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,OAAO,CAAC;AAItC,OAAO,KAAK,EAAE,MAAM,EAAE,KAAK,EAAE,MAAM,iBAAiB,CAAC;AAErD,wBAAgB,mBAAmB,CAAC,KAAK,EAAE;IAAE,KAAK,EAAE,KAAK,CAAC;IAAC,QAAQ,EAAE,QAAQ,CAAC,MAAM,CAAC,CAAA;CAAE,sBAmBtF"}

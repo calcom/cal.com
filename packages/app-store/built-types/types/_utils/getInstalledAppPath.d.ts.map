@@ -1,0 +1,1 @@
+{"version":3,"file":"getInstalledAppPath.d.ts","sourceRoot":"","sources":["../../../_utils/getInstalledAppPath.ts"],"names":[],"mappings":"AAMA,MAAM,CAAC,OAAO,UAAU,mBAAmB,CACzC,EAAE,OAAO,EAAE,IAAI,EAAE,EAAE;IAAE,OAAO,CAAC,EAAE,MAAM,CAAC;IAAC,IAAI,CAAC,EAAE,MAAM,CAAA;CAAE,EACtD,cAAc,SAAK,GAClB,MAAM,CAUR"}

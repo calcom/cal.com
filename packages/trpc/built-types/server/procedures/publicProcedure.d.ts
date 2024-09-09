@@ -1,0 +1,2 @@
+declare const publicProcedure: import("@trpc/server/unstable-core-do-not-import").ProcedureBuilder<import("../createContext").InnerContext, object, {}, typeof import("@trpc/server/unstable-core-do-not-import").unsetMarker, typeof import("@trpc/server/unstable-core-do-not-import").unsetMarker, typeof import("@trpc/server/unstable-core-do-not-import").unsetMarker, typeof import("@trpc/server/unstable-core-do-not-import").unsetMarker>;
+export default publicProcedure;

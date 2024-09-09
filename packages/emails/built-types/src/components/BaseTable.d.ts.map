@@ -1,0 +1,1 @@
+{"version":3,"file":"BaseTable.d.ts","sourceRoot":"","sources":["../../../src/components/BaseTable.tsx"],"names":[],"mappings":";AAAA,KAAK,cAAc,GAAG,IAAI,CACxB,KAAK,CAAC,iBAAiB,CAAC,KAAK,CAAC,mBAAmB,CAAC,gBAAgB,CAAC,EAAE,gBAAgB,CAAC,EACtF,QAAQ,CACT,GACC,OAAO,CAAC,IAAI,CAAC,gBAAgB,EAAE,OAAO,GAAG,QAAQ,CAAC,CAAC,CAAC;AAEtD,QAAA,MAAM,SAAS,0BAA2B,cAAc,gBAMvD,CAAC;AAEF,eAAe,SAAS,CAAC"}

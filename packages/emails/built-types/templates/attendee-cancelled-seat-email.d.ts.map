@@ -1,0 +1,1 @@
+{"version":3,"file":"attendee-cancelled-seat-email.d.ts","sourceRoot":"","sources":["../../templates/attendee-cancelled-seat-email.ts"],"names":[],"mappings":"AACA,OAAO,sBAAsB,MAAM,4BAA4B,CAAC;AAEhE,MAAM,CAAC,OAAO,OAAO,0BAA2B,SAAQ,sBAAsB;cAC5D,oBAAoB,IAAI,OAAO,CAAC,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;CAgBzE"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"KPICard.d.ts","sourceRoot":"","sources":["../../../insights/components/KPICard.tsx"],"names":[],"mappings":";AAQA,eAAO,MAAM,OAAO;WAKX,MAAM;WACN,MAAM;wBACO;QAClB,KAAK,EAAE,MAAM,CAAC;QACd,aAAa,EAAE,MAAM,CAAC;KACvB;uBACkB;QAAE,SAAS,EAAE,MAAM,CAAC;QAAC,OAAO,EAAE,MAAM,CAAA;KAAE;iBAgC1D,CAAC"}

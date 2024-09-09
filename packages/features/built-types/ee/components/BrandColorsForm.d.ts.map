@@ -1,0 +1,1 @@
+{"version":3,"file":"BrandColorsForm.d.ts","sourceRoot":"","sources":["../../../ee/components/BrandColorsForm.tsx"],"names":[],"mappings":";AAUA,KAAK,qBAAqB,GAAG;IAC3B,UAAU,EAAE,MAAM,CAAC;IACnB,cAAc,EAAE,MAAM,CAAC;CACxB,CAAC;AAEF,QAAA,MAAM,eAAe;uBAKA,qBAAqB,KAAK,IAAI;gBACrC,MAAM,GAAG,SAAS;oBACd,MAAM,GAAG,SAAS;iBAsGnC,CAAC;AAEF,eAAe,eAAe,CAAC"}

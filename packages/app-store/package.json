@@ -10,7 +10,7 @@
   "scripts": {
     "type-check": "tsc --pretty --noEmit",
     "build": "yarn tsc -b",
-    "type-check:ci": "tsc-absolute -b --pretty",
+    "type-check:ci": "tsc-absolute --pretty",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"

@@ -1,0 +1,1 @@
+{"version":3,"file":"createUserAndInviteToOrg.d.ts","sourceRoot":"","sources":["../../../../ee/dsync/lib/createUserAndInviteToOrg.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AAM9C,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,6DAA6D,CAAC;AAGlG,QAAA,MAAM,wBAAwB;eAKjB,MAAM;SACZ,QAAQ,WAAW,qBAAqB,CAAC,CAAC;iBAClC,SAAS;mBAiDvB,CAAC;AAEF,eAAe,wBAAwB,CAAC"}

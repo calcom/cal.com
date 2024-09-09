@@ -1,0 +1,1 @@
+{"version":3,"file":"identityProviderNameMap.d.ts","sourceRoot":"","sources":["../../../auth/lib/identityProviderNameMap.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,gBAAgB,EAAE,MAAM,sBAAsB,CAAC;AAExD,eAAO,MAAM,uBAAuB,EAAE;KAAG,GAAG,IAAI,gBAAgB,GAAG,MAAM;CAIxE,CAAC"}

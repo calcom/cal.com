@@ -1,6 +1,6 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
-  "exclude": ["dist", "build", "node_modules","**/*.test.ts", "**/*.spec.ts"],
+  "exclude": ["dist", "build", "node_modules","**/*.test.ts", "**/*.spec.ts", "built-types"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -14,7 +14,8 @@
     "experimentalDecorators": true,
     "composite": true,
     "declaration": true,
-    "outDir": "built-types",
+    "outDir": "built-types/types",
+    "emitDeclarationOnly": true,
   },
   "include": [
     "next-env.d.ts",

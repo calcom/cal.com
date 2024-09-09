@@ -1,0 +1,1 @@
+{"version":3,"file":"Table.d.ts","sourceRoot":"","sources":["../../../components/table/Table.tsx"],"names":[],"mappings":";AAEA,UAAU,UAAU;IAClB,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;CAC3B;AAED,UAAU,YAAY;IACpB,eAAe,CAAC,EAAE,MAAM,CAAC;CAC1B;AAmCD,eAAO,MAAM,KAAK;mBAAkB,UAAU;2BAjChB,UAAU;iDAMY,UAAU,GAAG,YAAY;yBAWjD,UAAU;wBAIX,UAAU;0CAEQ,UAAU,GAAG,YAAY;CAcrE,CAAC"}

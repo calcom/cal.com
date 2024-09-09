@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../../../calendars/weeklyview/components/grid/index.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAC;AAE1B,KAAK,KAAK,GAAG;IACX,YAAY,EAAE,MAAM,GAAG,SAAS,CAAC;IACjC,eAAe,EAAE,MAAM,CAAC;IACxB,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;IAC1B,MAAM,CAAC,EAAE,MAAM,CAAC;CACjB,CAAC;AAEF,eAAO,MAAM,gBAAgB,gFAa3B,CAAC"}

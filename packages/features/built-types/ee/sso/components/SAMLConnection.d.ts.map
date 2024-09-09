@@ -1,0 +1,1 @@
+{"version":3,"file":"SAMLConnection.d.ts","sourceRoot":"","sources":["../../../../ee/sso/components/SAMLConnection.tsx"],"names":[],"mappings":";AAGA,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,yBAAyB,CAAC;AAS7D,MAAM,CAAC,OAAO,UAAU,cAAc,CAAC,EACrC,MAAM,EACN,UAAU,GACX,EAAE;IACD,MAAM,EAAE,MAAM,GAAG,IAAI,CAAC;IACtB,UAAU,EAAE,aAAa,GAAG,IAAI,CAAC;CAClC,eAwBA"}

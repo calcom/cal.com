@@ -1,0 +1,2 @@
+export * from "@trpc/react-query/shared";
+export declare const ENDPOINTS: readonly ["admin", "apiKeys", "appRoutingForms", "apps", "auth", "availability", "appBasecamp3", "bookings", "deploymentSetup", "dsync", "eventTypes", "features", "insights", "payments", "public", "timezones", "saml", "slots", "teams", "organizations", "users", "viewer", "webhook", "workflows", "appsRouter", "googleWorkspace", "oAuth", "attributes"];

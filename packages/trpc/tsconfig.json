@@ -28,13 +28,15 @@
     "react",
     "server"
   ],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts"],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "built-types"],
   "compilerOptions": {
     "composite": true,
     "declaration": true,
     "outDir": "built-types",
+    "emitDeclarationOnly": true,
     "isolatedModules": false,
     "noEmit": false,
+    // Due to some reason, declarations maps seem to be causing issues with tRPC.
     "declarationMap": false,
   },
   "references": [

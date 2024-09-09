@@ -1,0 +1,1 @@
+{"version":3,"file":"data.d.ts","sourceRoot":"","sources":["../../../../components/data-table/__storybook__/data.tsx"],"names":[],"mappings":"AAAA,MAAM,MAAM,sBAAsB,GAAG;IACnC,EAAE,EAAE,MAAM,CAAC;IACX,QAAQ,EAAE,MAAM,CAAC;IACjB,KAAK,EAAE,MAAM,CAAC;IACd,IAAI,EAAE,OAAO,GAAG,MAAM,CAAC;CACxB,CAAC;AAEF,eAAO,MAAM,yBAAyB;;;;GAerC,CAAC;AAEF,eAAO,MAAM,kBAAkB,EAAE,sBAAsB,EAyEtD,CAAC"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"bookerAppsMetaData.d.ts","sourceRoot":"","sources":["../../bookerAppsMetaData.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,mBAAmB,CAAC;AAIjD,OAAO,EAAE,gBAAgB,IAAI,qBAAqB,EAAE,MAAM,iCAAiC,CAAC;AAG5F,KAAK,mBAAmB,GAAG,OAAO,qBAAqB,CAAC;AACxD,KAAK,gBAAgB,GAAG;KACrB,GAAG,IAAI,MAAM,mBAAmB,GAAG,OAAO;CAC5C,CAAC;AAEF,eAAO,MAAM,gBAAgB,kBAAyB,CAAC"}

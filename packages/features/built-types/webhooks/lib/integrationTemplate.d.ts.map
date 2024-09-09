@@ -1,0 +1,1 @@
+{"version":3,"file":"integrationTemplate.d.ts","sourceRoot":"","sources":["../../../webhooks/lib/integrationTemplate.tsx"],"names":[],"mappings":"AAEA,KAAK,uBAAuB,GAAG;IAC7B,GAAG,EAAE,MAAM,CAAC;CACb,CAAC;AAEF,eAAO,MAAM,sBAAsB,UAAW,uBAAuB,YAKpE,CAAC;AAEF,QAAA,MAAM,cAAc,UAAW,uBAAuB,gmBAKrD,CAAC;AASF,eAAe,cAAc,CAAC"}

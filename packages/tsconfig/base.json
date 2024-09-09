@@ -17,9 +17,10 @@
     "skipLibCheck": true,
     "strict": true,
     "experimentalDecorators": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "disableSourceOfProjectReferenceRedirect": true
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "built-types"],
   "ts-node": {
     "files": true,
     "require": ["tsconfig-paths/register"],

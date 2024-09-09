@@ -1,0 +1,1 @@
+{"version":3,"file":"attendee-awaiting-payment-email.d.ts","sourceRoot":"","sources":["../../templates/attendee-awaiting-payment-email.ts"],"names":[],"mappings":"AACA,OAAO,sBAAsB,MAAM,4BAA4B,CAAC;AAEhE,MAAM,CAAC,OAAO,OAAO,4BAA6B,SAAQ,sBAAsB;cAC9D,oBAAoB,IAAI,OAAO,CAAC,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;CAgBzE"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"confirmDialog.d.ts","sourceRoot":"","sources":["../../../../wipemycalother/components/confirmDialog.tsx"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,QAAQ,EAAE,cAAc,EAAE,MAAM,OAAO,CAAC;AAStD,UAAU,kBAAkB;IAC1B,YAAY,EAAE,OAAO,CAAC;IACtB,eAAe,EAAE,QAAQ,CAAC,cAAc,CAAC,OAAO,CAAC,CAAC,CAAC;CACpD;AA6BD,eAAO,MAAM,aAAa,UAAW,kBAAkB,gBA6EtD,CAAC"}

@@ -1,0 +1,6 @@
+import React from "react";
+import type { InputFieldProps, InputProps } from "./types";
+export declare const Input: React.ForwardRefExoticComponent<Pick<InputProps, "key" | keyof React.InputHTMLAttributes<HTMLInputElement> | "isFullWidth"> & React.RefAttributes<HTMLInputElement>>;
+export declare const InputField: React.ForwardRefExoticComponent<Pick<InputFieldProps, "label" | "error" | "t" | "key" | keyof React.InputHTMLAttributes<HTMLInputElement> | "containerClassName" | "labelProps" | "hintErrors" | "isFullWidth" | "onClickAddon" | "LockedIcon" | "hint" | "addOnLeading" | "addOnSuffix" | "inputIsFullWidth" | "addOnFilled" | "addOnClassname" | "labelSrOnly" | "showAsteriskIndicator" | "dataTestid" | "noLabel" | "labelClassName"> & React.RefAttributes<HTMLInputElement>>;
+export declare const TextField: React.ForwardRefExoticComponent<Pick<InputFieldProps, "label" | "error" | "t" | "key" | keyof React.InputHTMLAttributes<HTMLInputElement> | "containerClassName" | "labelProps" | "hintErrors" | "isFullWidth" | "onClickAddon" | "LockedIcon" | "hint" | "addOnLeading" | "addOnSuffix" | "inputIsFullWidth" | "addOnFilled" | "addOnClassname" | "labelSrOnly" | "showAsteriskIndicator" | "dataTestid" | "noLabel" | "labelClassName"> & React.RefAttributes<HTMLInputElement>>;
+//# sourceMappingURL=TextField.d.ts.map

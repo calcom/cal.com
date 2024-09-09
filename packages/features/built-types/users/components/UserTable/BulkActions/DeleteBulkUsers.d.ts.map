@@ -1,0 +1,1 @@
+{"version":3,"file":"DeleteBulkUsers.d.ts","sourceRoot":"","sources":["../../../../../users/components/UserTable/BulkActions/DeleteBulkUsers.tsx"],"names":[],"mappings":";AAIA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,kBAAkB,CAAC;AAE7C,UAAU,KAAK;IACb,KAAK,EAAE,IAAI,EAAE,CAAC;IACd,QAAQ,EAAE,MAAM,IAAI,CAAC;CACtB;AAED,wBAAgB,eAAe,CAAC,EAAE,KAAK,EAAE,QAAQ,EAAE,EAAE,KAAK,eAqCzD"}

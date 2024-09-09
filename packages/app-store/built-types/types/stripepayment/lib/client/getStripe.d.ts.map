@@ -1,0 +1,1 @@
+{"version":3,"file":"getStripe.d.ts","sourceRoot":"","sources":["../../../../../stripepayment/lib/client/getStripe.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,mBAAmB,CAAC;AAGhD,MAAM,MAAM,KAAK,CAAC,CAAC,IAAI,CAAC,GAAG,SAAS,GAAG,IAAI,CAAC;AAK5C;;GAEG;AACH,QAAA,MAAM,SAAS,mBAAoB,MAAM,2BASxC,CAAC;AAEF,eAAe,SAAS,CAAC"}

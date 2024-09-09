@@ -1,0 +1,95 @@
+import { z } from "zod";
+export declare const ZUpdateInputSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    name: z.ZodString;
+    activeOn: z.ZodArray<z.ZodNumber, "many">;
+    steps: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        stepNumber: z.ZodNumber;
+        action: z.ZodEnum<["EMAIL_HOST", "EMAIL_ATTENDEE", "EMAIL_ADDRESS", "SMS_ATTENDEE", "SMS_NUMBER", "WHATSAPP_ATTENDEE", "WHATSAPP_NUMBER"]>;
+        workflowId: z.ZodNumber;
+        sendTo: z.ZodNullable<z.ZodString>;
+        reminderBody: z.ZodNullable<z.ZodString>;
+        emailSubject: z.ZodNullable<z.ZodString>;
+        template: z.ZodEnum<["CUSTOM", "REMINDER", "RATING", "CANCELLED", "COMPLETED", "RESCHEDULED"]>;
+        numberRequired: z.ZodNullable<z.ZodBoolean>;
+        sender: z.ZodNullable<z.ZodString>;
+        senderName: z.ZodNullable<z.ZodString>;
+        includeCalendarEvent: z.ZodBoolean;
+    }, "strip", z.ZodTypeAny, {
+        id: number;
+        template: "CANCELLED" | "REMINDER" | "CUSTOM" | "RESCHEDULED" | "COMPLETED" | "RATING";
+        stepNumber: number;
+        action: "EMAIL_HOST" | "EMAIL_ATTENDEE" | "SMS_ATTENDEE" | "SMS_NUMBER" | "EMAIL_ADDRESS" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER";
+        workflowId: number;
+        sendTo: string | null;
+        reminderBody: string | null;
+        emailSubject: string | null;
+        numberRequired: boolean | null;
+        sender: string | null;
+        includeCalendarEvent: boolean;
+        senderName: string | null;
+    }, {
+        id: number;
+        template: "CANCELLED" | "REMINDER" | "CUSTOM" | "RESCHEDULED" | "COMPLETED" | "RATING";
+        stepNumber: number;
+        action: "EMAIL_HOST" | "EMAIL_ATTENDEE" | "SMS_ATTENDEE" | "SMS_NUMBER" | "EMAIL_ADDRESS" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER";
+        workflowId: number;
+        sendTo: string | null;
+        reminderBody: string | null;
+        emailSubject: string | null;
+        numberRequired: boolean | null;
+        sender: string | null;
+        includeCalendarEvent: boolean;
+        senderName: string | null;
+    }>, "many">;
+    trigger: z.ZodEnum<["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT", "AFTER_EVENT", "RESCHEDULE_EVENT"]>;
+    time: z.ZodNullable<z.ZodNumber>;
+    timeUnit: z.ZodNullable<z.ZodEnum<["DAY", "HOUR", "MINUTE"]>>;
+    isActiveOnAll: z.ZodOptional<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+    id: number;
+    steps: {
+        id: number;
+        template: "CANCELLED" | "REMINDER" | "CUSTOM" | "RESCHEDULED" | "COMPLETED" | "RATING";
+        stepNumber: number;
+        action: "EMAIL_HOST" | "EMAIL_ATTENDEE" | "SMS_ATTENDEE" | "SMS_NUMBER" | "EMAIL_ADDRESS" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER";
+        workflowId: number;
+        sendTo: string | null;
+        reminderBody: string | null;
+        emailSubject: string | null;
+        numberRequired: boolean | null;
+        sender: string | null;
+        includeCalendarEvent: boolean;
+        senderName: string | null;
+    }[];
+    time: number | null;
+    trigger: "BEFORE_EVENT" | "EVENT_CANCELLED" | "NEW_EVENT" | "AFTER_EVENT" | "RESCHEDULE_EVENT";
+    timeUnit: "DAY" | "HOUR" | "MINUTE" | null;
+    activeOn: number[];
+    isActiveOnAll?: boolean | undefined;
+}, {
+    name: string;
+    id: number;
+    steps: {
+        id: number;
+        template: "CANCELLED" | "REMINDER" | "CUSTOM" | "RESCHEDULED" | "COMPLETED" | "RATING";
+        stepNumber: number;
+        action: "EMAIL_HOST" | "EMAIL_ATTENDEE" | "SMS_ATTENDEE" | "SMS_NUMBER" | "EMAIL_ADDRESS" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER";
+        workflowId: number;
+        sendTo: string | null;
+        reminderBody: string | null;
+        emailSubject: string | null;
+        numberRequired: boolean | null;
+        sender: string | null;
+        includeCalendarEvent: boolean;
+        senderName: string | null;
+    }[];
+    time: number | null;
+    trigger: "BEFORE_EVENT" | "EVENT_CANCELLED" | "NEW_EVENT" | "AFTER_EVENT" | "RESCHEDULE_EVENT";
+    timeUnit: "DAY" | "HOUR" | "MINUTE" | null;
+    activeOn: number[];
+    isActiveOnAll?: boolean | undefined;
+}>;
+export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

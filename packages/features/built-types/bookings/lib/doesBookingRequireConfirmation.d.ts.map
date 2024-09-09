@@ -1,0 +1,1 @@
+{"version":3,"file":"doesBookingRequireConfirmation.d.ts","sourceRoot":"","sources":["../../../bookings/lib/doesBookingRequireConfirmation.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAG7B,OAAO,KAAK,EAAE,uBAAuB,EAAE,MAAM,0BAA0B,CAAC;AAExE;;GAEG;AACH,eAAO,MAAM,8BAA8B;;mBAI5B,IAAI;;;sBAGH,EAAE,KAAK,CAAC,8BAA8B,CAAC;;;yBAoBtD,CAAC"}

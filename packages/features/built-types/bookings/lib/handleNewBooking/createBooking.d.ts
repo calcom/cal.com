@@ -1,0 +1,114 @@
+import { Prisma } from "@prisma/client";
+import type short from "short-uuid";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { TgetBookingDataSchema } from "../getBookingDataSchema";
+import type { EventTypeId, AwaitedBookingData, NewBookingEventType, IsConfirmedByDefault, PaymentAppData, OriginalRescheduledBooking, AwaitedLoadUsers } from "./types";
+type ReqBodyWithEnd = TgetBookingDataSchema & {
+    end: string;
+};
+type CreateBookingParams = {
+    originalRescheduledBooking: OriginalRescheduledBooking;
+    evt: CalendarEvent;
+    eventType: NewBookingEventType;
+    eventTypeId: EventTypeId;
+    eventTypeSlug: AwaitedBookingData["eventTypeSlug"];
+    reqBodyUser: ReqBodyWithEnd["user"];
+    reqBodyMetadata: ReqBodyWithEnd["metadata"];
+    reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
+    uid: short.SUUID;
+    responses: ReqBodyWithEnd["responses"] | null;
+    isConfirmedByDefault: IsConfirmedByDefault;
+    smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
+    organizerUser: AwaitedLoadUsers[number] & {
+        isFixed?: boolean;
+        metadata?: Prisma.JsonValue;
+    };
+    rescheduleReason: AwaitedBookingData["rescheduleReason"];
+    bookerEmail: AwaitedBookingData["email"];
+    paymentAppData: PaymentAppData;
+    changedOrganizer: boolean;
+};
+export declare function createBooking({ originalRescheduledBooking, evt, eventTypeId, eventTypeSlug, reqBodyUser, reqBodyMetadata, reqBodyRecurringEventId, uid, responses, isConfirmedByDefault, smsReminderNumber, organizerUser, rescheduleReason, eventType, bookerEmail, paymentAppData, changedOrganizer, }: CreateBookingParams): Promise<{
+    user: {
+        name: string | null;
+        email: string;
+        timeZone: string;
+        username: string | null;
+    } | null;
+    payment: {
+        data: Prisma.JsonValue;
+        id: number;
+        currency: string;
+        bookingId: number;
+        success: boolean;
+        uid: string;
+        appId: string | null;
+        externalId: string;
+        amount: number;
+        fee: number;
+        refunded: boolean;
+        paymentOption: import(".prisma/client").$Enums.PaymentOption | null;
+    }[];
+    references: {
+        type: string;
+        id: number;
+        credentialId: number | null;
+        bookingId: number | null;
+        uid: string;
+        thirdPartyRecurringEventId: string | null;
+        deleted: boolean | null;
+        meetingId: string | null;
+        meetingPassword: string | null;
+        meetingUrl: string | null;
+        externalCalendarId: string | null;
+    }[];
+    attendees: {
+        id: number;
+        name: string;
+        email: string;
+        timeZone: string;
+        bookingId: number | null;
+        locale: string | null;
+        noShow: boolean | null;
+    }[];
+} & {
+    title: string;
+    metadata: Prisma.JsonValue;
+    id: number;
+    location: string | null;
+    status: import(".prisma/client").$Enums.BookingStatus;
+    description: string | null;
+    userId: number | null;
+    customInputs: Prisma.JsonValue;
+    smsReminderNumber: string | null;
+    eventTypeId: number | null;
+    recurringEventId: string | null;
+    rescheduledBy: string | null;
+    uid: string;
+    cancellationReason: string | null;
+    cancelledBy: string | null;
+    iCalUID: string | null;
+    responses: Prisma.JsonValue;
+    idempotencyKey: string | null;
+    userPrimaryEmail: string | null;
+    startTime: Date;
+    endTime: Date;
+    createdAt: Date;
+    updatedAt: Date | null;
+    paid: boolean;
+    destinationCalendarId: number | null;
+    rejectionReason: string | null;
+    dynamicEventSlugRef: string | null;
+    dynamicGroupSlugRef: string | null;
+    rescheduled: boolean | null;
+    fromReschedule: string | null;
+    scheduledJobs: string[];
+    isRecorded: boolean;
+    iCalSequence: number;
+    rating: number | null;
+    ratingFeedback: string | null;
+    noShowHost: boolean | null;
+}>;
+export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
+export {};
+//# sourceMappingURL=createBooking.d.ts.map

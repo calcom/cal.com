@@ -1,0 +1,1 @@
+{"version":3,"file":"UserFieldsResponses.d.ts","sourceRoot":"","sources":["../../../src/components/UserFieldsResponses.tsx"],"names":[],"mappings":";AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AAG9C,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,wBAAwB,CAAC;AAI5D,wBAAgB,mBAAmB,CAAC,KAAK,EAAE;IAAE,QAAQ,EAAE,aAAa,CAAC;IAAC,CAAC,EAAE,SAAS,CAAC;IAAC,WAAW,CAAC,EAAE,OAAO,CAAA;CAAE,sBA0B1G"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"CalendarService.d.ts","sourceRoot":"","sources":["../../../../caldavcalendar/lib/CalendarService.ts"],"names":[],"mappings":"AAAA,OAAO,eAAe,MAAM,6BAA6B,CAAC;AAC1D,OAAO,KAAK,EAAE,iBAAiB,EAAE,MAAM,0BAA0B,CAAC;AAElE,MAAM,CAAC,OAAO,OAAO,qBAAsB,SAAQ,eAAe;gBACpD,UAAU,EAAE,iBAAiB;CAG1C"}

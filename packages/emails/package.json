@@ -6,7 +6,7 @@
   "scripts": {
     "dx": "docker compose up -d || docker-compose up -d",
     "build": "tsc",
-    "type-check:ci": "tsc-absolute --pretty --noEmit"
+    "type-check:ci": "tsc-absolute --pretty"
   },
   "dependencies": {
     "@calcom/dayjs": "*",

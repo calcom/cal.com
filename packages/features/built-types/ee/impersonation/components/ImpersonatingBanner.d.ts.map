@@ -1,0 +1,1 @@
+{"version":3,"file":"ImpersonatingBanner.d.ts","sourceRoot":"","sources":["../../../../ee/impersonation/components/ImpersonatingBanner.tsx"],"names":[],"mappings":";AAAA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,iBAAiB,CAAC;AAM3D,MAAM,MAAM,wBAAwB,GAAG;IAAE,IAAI,EAAE,mBAAmB,CAAC,MAAM,CAAC,CAAA;CAAE,CAAC;AAE7E,iBAAS,mBAAmB,CAAC,EAAE,IAAI,EAAE,EAAE,wBAAwB,sBAiC9D;AAED,eAAe,mBAAmB,CAAC"}

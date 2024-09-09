@@ -1,0 +1,1 @@
+{"version":3,"file":"EmailScheduledBodyHeaderContent.d.ts","sourceRoot":"","sources":["../../../src/components/EmailScheduledBodyHeaderContent.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,OAAO,CAAC;AAI3C,QAAA,MAAM,+BAA+B,UAAW;IAC9C,KAAK,EAAE,MAAM,CAAC;IACd,QAAQ,CAAC,EAAE,MAAM,SAAS,CAAC;IAC3B,UAAU,CAAC,EAAE,aAAa,CAAC;CAC5B,gBA6CA,CAAC;AAEF,eAAe,+BAA+B,CAAC"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"organizer-request-email.d.ts","sourceRoot":"","sources":["../../templates/organizer-request-email.ts"],"names":[],"mappings":"AAGA,OAAO,uBAAuB,MAAM,6BAA6B,CAAC;AAElE,MAAM,CAAC,OAAO,OAAO,qBAAsB,SAAQ,uBAAuB;cACxD,oBAAoB,IAAI,OAAO,CAAC,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;IAgBxE,SAAS,CAAC,WAAW,CAAC,KAAK,SAA4B,GAAG,MAAM;CAWjE"}

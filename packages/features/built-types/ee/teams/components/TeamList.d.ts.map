@@ -1,0 +1,1 @@
+{"version":3,"file":"TeamList.d.ts","sourceRoot":"","sources":["../../../../ee/teams/components/TeamList.tsx"],"names":[],"mappings":";AAQA,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,oBAAoB,CAAC;AAMxD,UAAU,KAAK;IACb,KAAK,EAAE,aAAa,CAAC,QAAQ,CAAC,CAAC,OAAO,CAAC,CAAC,MAAM,CAAC,CAAC;IAChD;;OAEG;IACH,OAAO,CAAC,EAAE,OAAO,CAAC;CACnB;AAED,MAAM,CAAC,OAAO,UAAU,QAAQ,CAAC,KAAK,EAAE,KAAK,sBAiJ5C"}

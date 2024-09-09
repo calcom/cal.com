@@ -1,0 +1,1 @@
+{"version":3,"file":"callback.d.ts","sourceRoot":"","sources":["../../../../hubspot/api/callback.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,8DAA8D,CAAC;AACpG,OAAO,KAAK,EAAE,cAAc,EAAE,eAAe,EAAE,MAAM,MAAM,CAAC;AAe5D,MAAM,WAAW,YAAa,SAAQ,eAAe;IACnD,UAAU,CAAC,EAAE,MAAM,CAAC;CACrB;AAED,wBAA8B,OAAO,CAAC,GAAG,EAAE,cAAc,EAAE,GAAG,EAAE,eAAe,iBAmC9E"}

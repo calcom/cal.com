@@ -1,0 +1,1 @@
+{"version":3,"file":"useSlots.d.ts","sourceRoot":"","sources":["../../../../../bookings/Booker/components/hooks/useSlots.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,iCAAiC,CAAC;AAInE,MAAM,MAAM,kBAAkB,GAAG,UAAU,CAAC,OAAO,QAAQ,CAAC,CAAC;AAE7D,eAAO,MAAM,QAAQ,UAAW;IAAE,IAAI,CAAC,EAAE,KAAK,WAAW,EAAE,IAAI,GAAG,QAAQ,CAAC,GAAG,IAAI,CAAA;CAAE;;;;;;;CA+DnF,CAAC"}

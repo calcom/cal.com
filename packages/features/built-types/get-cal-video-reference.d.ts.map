@@ -1,0 +1,1 @@
+{"version":3,"file":"get-cal-video-reference.d.ts","sourceRoot":"","sources":["../get-cal-video-reference.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,SAAS,GAAG;IACtB,EAAE,EAAE,MAAM,CAAC;IACX,GAAG,EAAE,MAAM,CAAC;IACZ,IAAI,EAAE,MAAM,CAAC;IACb,UAAU,EAAE,MAAM,GAAG,IAAI,CAAC;IAC1B,eAAe,EAAE,MAAM,GAAG,IAAI,CAAC;CAChC,CAAC;AAEF,eAAO,MAAM,oBAAoB,eAAgB,SAAS,EAAE,cAI3D,CAAC"}

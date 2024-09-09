@@ -23,9 +23,11 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    // We should avoid importing all types and instead import them individually in used files
-    "../../packages/types/*.d.ts",
-    "../../packages/types/next-auth.d.ts",
+    "../../packages/types/business-days-plugin.d.ts",
+    "../../packages/types/window.d.ts",
+    "../../packages/types/next*.d.ts",
+    "../../packages/types/environment.d.ts",
+    // "test.ts"
   ],
   "exclude": ["node_modules", "app", "playwright", "test"],
   "references": [

@@ -1,0 +1,1 @@
+{"version":3,"file":"AxiosLikeResponseToFetchResponse.d.ts","sourceRoot":"","sources":["../../../../_utils/oauth/AxiosLikeResponseToFetchResponse.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,gCAAgC,CAC3C,CAAC,SAAS;IACR,MAAM,EAAE,MAAM,CAAC;IACf,UAAU,EAAE,MAAM,CAAC;IACnB,IAAI,EAAE,OAAO,CAAC;CACf,CACD,SAAQ,QAAQ;IAEhB,IAAI,EAAE,GAAG,CAAC;gBACE,aAAa,EAAE,CAAC;IAMtB,IAAI;CAGX"}

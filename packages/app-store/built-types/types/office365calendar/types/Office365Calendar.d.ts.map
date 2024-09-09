@@ -1,0 +1,1 @@
+{"version":3,"file":"Office365Calendar.d.ts","sourceRoot":"","sources":["../../../../office365calendar/types/Office365Calendar.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,mBAAmB,GAAG;IAChC,YAAY,EAAE,MAAM,CAAC;IACrB,aAAa,EAAE,MAAM,CAAC;IACtB,UAAU,EAAE,MAAM,CAAC;CACpB,CAAC"}

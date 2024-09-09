@@ -1,0 +1,1 @@
+{"version":3,"file":"updateTokenObject.d.ts","sourceRoot":"","sources":["../../../../_utils/oauth/updateTokenObject.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,CAAC,MAAM,KAAK,CAAC;AAIzB,OAAO,KAAK,EAAE,oDAAoD,EAAE,MAAM,mBAAmB,CAAC;AAE9F,eAAO,MAAM,iBAAiB;iBAIf,EAAE,KAAK,CAAC,2DAA2D,CAAC;kBACnE,MAAM;mBAUrB,CAAC"}

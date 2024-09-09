@@ -3,7 +3,8 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
-    "outDir": "built-types"
+    "outDir": "built-types",
+    "emitDeclarationOnly": true
   },
   "include": [
     "../../apps/web/next-env.d.ts",
@@ -12,5 +13,5 @@
     "**/*.ts",
     "**/*.tsx"
   ],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build", "node_modules", "built-types"]
 }
