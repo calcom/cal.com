@@ -5,7 +5,6 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
-import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
@@ -74,6 +73,7 @@ export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "ent
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
   teamId?: number;
+  isOverlayCalendarEnabled?: boolean;
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
@@ -102,6 +102,10 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   setSelectedDuration(props.duration ?? null);
   setOrg(props.entity?.orgSlug ?? null);
+
+  if (props.isOverlayCalendarEnabled) {
+    localStorage?.setItem("overlayCalendarSwitchDefault", "true");
+  }
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -159,7 +163,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     eventId: event.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
-    layout: bookerLayout.defaultLayout,
+    layout: props.isOverlayCalendarEnabled ? BookerLayouts.WEEK_VIEW : bookerLayout.defaultLayout,
     org: props.entity?.orgSlug,
     username,
     bookingData,
@@ -280,12 +284,12 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   });
 
   const slots = useSlots(event);
-  const [calendarSettingsOverlay] = useOverlayCalendarStore(
-    (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
-    shallow
-  );
+  // const [calendarSettingsOverlay] = useOverlayCalendarStore(
+  //   (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
+  //   shallow
+  // );
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
-    enabled: !!calendarSettingsOverlay,
+    enabled: props.isOverlayCalendarEnabled ?? false,
   });
   const calendars = connectedCalendars as ConnectedDestinationCalendars;
 
@@ -401,7 +405,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
         slots={slots}
         calendars={{
           overlayBusyDates: overlayBusyDates?.data,
-          isOverlayCalendarEnabled: false,
+          isOverlayCalendarEnabled: props.isOverlayCalendarEnabled ?? false,
           connectedCalendars: calendars?.connectedCalendars || [],
           loadingConnectedCalendar: fetchingConnectedCalendars,
           onToggleCalendar: () => {
