@@ -1,51 +1,39 @@
-## What does this PR do?
+---
+name: Bug report
+about: Report any issues with the platform
+title: ""
+labels: bug
+assignees: ""
+---
 
-<!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change. -->
+Found a bug? Please fill out the sections below. 👍
 
-Fixes # (issue)
+### Issue Summary
 
-<!-- Please provide a loom video for visual changes to speed up reviews
- Loom Video: https://www.loom.com/
--->
+A summary of the issue. This needs to be a clear detailed-rich summary.
 
-## Requirement/Documentation
+### Steps to Reproduce
 
-<!-- Please provide all documents that are important to understand the reason of that PR. -->
+1. (for example) Went to ...
+2. Clicked on...
+3. ...
 
-- If there is a requirement document, please, share it here.
-- If there is ab UI/UX design document, please, share it here.
+Any other relevant information. For example, why do you consider this a bug and what did you expect to happen instead?
 
-## Type of change
+### Actual Results
 
-<!-- Please delete bullets that are not relevant. -->
+- What's happening right now that is different from what is expected
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] Chore (refactoring code, technical debt, workflow improvements)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+### Expected Results
 
-## How should this be tested?
+- This is an ideal result that the system should get after the tests are performed
 
-<!-- Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration. Write details that help to start the tests -->
+### Technical details
 
-- Are there environment variables that should be set?
-- What are the minimal test data to have?
-- What is expected (happy path) to have (input and output)?
-- Any other important info that could help to test that PR
+- Browser version, screen recording, console logs, network requests: You can make a recording with [Bird Eats Bug](https://birdeatsbug.com/).
+- Node.js version
+- Anything else that you think could be an issue.
 
-## Mandatory Tasks
+### Evidence
 
-- [ ] Make sure you have self-reviewed the code. A decent size PR without self-review might be rejected.
-
-## Checklist
-
-<!-- Please remove all the irrelevant bullets to your PR -->
-
-- I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
-- My code doesn't follow the style guidelines of this project
-- I haven't commented my code, particularly in hard-to-understand areas
-- I haven't checked if my PR needs changes to the documentation
-- I haven't checked if my changes generate no new warnings
-- I haven't added tests that prove my fix is effective or that my feature works
-- I haven't checked if new and existing unit tests pass locally with my changes
+- How was this tested? This is quite mandatory in terms of bugs. Providing evidence of your testing with screenshots or/and videos is an amazing way to prove the bug and a troubleshooting chance to find the solution.
