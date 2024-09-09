@@ -5,7 +5,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
-import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
+import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -84,7 +84,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 
 @Controller({
   path: "/v2/bookings",
-  version: VERSION_2024_04_15_VALUE,
+  version: [VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14],
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")
