@@ -73,7 +73,7 @@ const Page = () => {
           </div>
         }
       />
-      <OutOfOfficeEntriesList selectedTab={selectedTab as OutOfOfficeTab} />
+      <OutOfOfficeEntriesList />
     </>
   );
 };

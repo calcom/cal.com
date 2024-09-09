@@ -37,6 +37,7 @@ const CreateNewOutOfOfficeEntry = () => {
             setOpenModal(false);
           }}
           currentlyEditingOutOfOfficeEntry={null}
+          setOOOEntriesUpdated={null}
         />
       )}
     </>

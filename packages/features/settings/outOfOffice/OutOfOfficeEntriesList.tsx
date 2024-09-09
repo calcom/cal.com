@@ -8,6 +8,7 @@ import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOffice.schema";
@@ -50,7 +51,7 @@ export enum OutOfOfficeTab {
   TEAM = "team",
 }
 
-export const OutOfOfficeEntriesList = ({ selectedTab }: { selectedTab: OutOfOfficeTab }) => {
+export const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [oooEntriesUpdated, setOOOEntriesUpdated] = useState(0);
@@ -68,6 +69,9 @@ export const OutOfOfficeEntriesList = ({ selectedTab }: { selectedTab: OutOfOffi
     setCurrentlyEditingOutOfOfficeEntry(entry);
     setOpenModal(true);
   };
+
+  const searchParams = useCompatSearchParams();
+  const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const { data, isPending, fetchNextPage, isFetching, refetch } =
     trpc.viewer.outOfOfficeEntriesList.useInfiniteQuery(
@@ -341,7 +345,6 @@ export const OutOfOfficeEntriesList = ({ selectedTab }: { selectedTab: OutOfOffi
                 setCurrentlyEditingOutOfOfficeEntry(null);
               }}
               currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
-              oooType={selectedTab}
               setOOOEntriesUpdated={setOOOEntriesUpdated}
             />
           )}

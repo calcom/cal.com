@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -21,6 +22,8 @@ import {
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
+import { OutOfOfficeTab } from "./OutOfOfficeEntriesList";
+
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
   offset: number;
@@ -35,17 +38,17 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
   currentlyEditingOutOfOfficeEntry,
-  oooType,
   setOOOEntriesUpdated,
 }: {
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
-  oooType: string;
-  setOOOEntriesUpdated: Dispatch<SetStateAction<number>>;
+  setOOOEntriesUpdated: Dispatch<SetStateAction<number>> | null;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
+
+  const searchParams = useCompatSearchParams();
+  const oooType = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
@@ -115,7 +118,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           : t("success_entry_created"),
         "success"
       );
-      setOOOEntriesUpdated((previousValue) => previousValue + 1);
+      if (setOOOEntriesUpdated) {
+        setOOOEntriesUpdated((previousValue) => previousValue + 1);
+      }
       closeModal();
     },
     onError: (error) => {
