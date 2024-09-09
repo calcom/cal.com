@@ -26,20 +26,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    let alreadyExistsId = -1;
+    let credentialExistsWithInputPassword = false;
 
-    for (const credential of user.credentials) {
+    const credentialExistsWithUsername = user.credentials.find((credential) => {
       const decryptedCredential = JSON.parse(
         symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
       );
+
       if (decryptedCredential.username === username) {
         if (decryptedCredential.password === password) {
-          return res.status(409).json({ message: "account_already_linked" });
-        } else {
-          alreadyExistsId = credential.id;
+          credentialExistsWithInputPassword = true;
         }
+        return true;
       }
-    }
+    });
+
+    if (credentialExistsWithInputPassword) return res.status(409).json({ message: "account_already_linked" });
 
     const data = {
       type: "apple_calendar",
@@ -62,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await dav?.listCalendars();
       await prisma.credential.upsert({
         where: {
-          id: alreadyExistsId,
+          id: credentialExistsWithUsername?.id ?? -1,
         },
         create: data,
         update: data,
