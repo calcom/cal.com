@@ -296,10 +296,11 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     userId,
     eventTypeId: bookingToReschedule.eventTypeId as number,
     triggerEvent: eventTrigger,
-    teamId,
+    teamId: teamId ? [teamId] : null,
     orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
