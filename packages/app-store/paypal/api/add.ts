@@ -14,7 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ? parseInt(req.query?.teamId as string)
       : undefined;
   const whereClause =
-    teamId !== undefined ? { type: appType, teamId } : { type: appType, userId: req.session.user.id };
+    teamId !== undefined && !Number.isNaN(teamId)
+      ? { type: appType, teamId }
+      : { type: appType, userId: req.session.user.id };
 
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
