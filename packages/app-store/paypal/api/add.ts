@@ -9,12 +9,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   const appType = config.type;
+  const teamId =
+    req.query?.teamId && typeof req.query?.teamId === "string"
+      ? parseInt(req.query?.teamId as string)
+      : undefined;
+  const whereClause =
+    teamId !== undefined ? { type: appType, teamId } : { type: appType, userId: req.session.user.id };
+
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
-      where: {
-        type: appType,
-        userId: req.session.user.id,
-      },
+      where: whereClause,
     });
     if (alreadyInstalled) {
       throw new Error("Already installed");
