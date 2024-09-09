@@ -724,7 +724,7 @@ type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = 
   disabled?: boolean;
 };
 
-const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
+export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
   propertyName,
   defaultLimit,
   step,
