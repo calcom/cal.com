@@ -43,7 +43,6 @@ import {
   handleNewBooking,
   BookingResponse,
   HttpError,
-  handleNewRecurringBooking,
   handleInstantMeeting,
   handleMarkNoShow,
   getAllUserBookings,
@@ -51,7 +50,8 @@ import {
   handleCancelBooking,
   getBookingForReschedule,
   ErrorCode,
-} from "@calcom/platform-libraries-1.2.3";
+} from "@calcom/platform-libraries";
+import { handleNewRecurringBooking } from "@calcom/platform-libraries-1.2.3";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -373,7 +373,12 @@ export class BookingsController_2024_04_15 {
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
+    Object.assign(req, {
+      userId,
+      ...oAuthParams,
+      platformBookingLocation,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+    });
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 

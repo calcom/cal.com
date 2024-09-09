@@ -166,7 +166,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         guests: [],
       };
 
-      const body: CreateBookingInput = {
+      const body: CreateBookingInput_2024_04_15 = {
         start: bookingStart,
         end: bookingEnd,
         eventTypeId: bookingEventTypeId,
