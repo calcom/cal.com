@@ -67,18 +67,39 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
       userId
     );
 
+    let hasMatchingUsernameAndPassword = false;
+
     if (existingAppleCalendarCredentials.length > 0) {
-      const hasCalendarWithGivenCredentials = existingAppleCalendarCredentials.filter(
+      const hasCalendarWithGivenCredentials = existingAppleCalendarCredentials.find(
         (calendarCredential: Credential) => {
           const decryptedKey = JSON.parse(
             symmetricDecrypt(calendarCredential.key as string, process.env.CALENDSO_ENCRYPTION_KEY || "")
           );
 
-          return decryptedKey.username === username && decryptedKey.password === password;
+          if (decryptedKey.username === username) {
+            if (decryptedKey.password === password) {
+              hasMatchingUsernameAndPassword = true;
+            }
+
+            return true;
+          }
         }
       );
 
-      if (!!hasCalendarWithGivenCredentials && hasCalendarWithGivenCredentials.length === 1) {
+      if (!!hasCalendarWithGivenCredentials && hasMatchingUsernameAndPassword) {
+        return {
+          status: SUCCESS_STATUS,
+        };
+      }
+
+      if (!!hasCalendarWithGivenCredentials && !hasMatchingUsernameAndPassword) {
+        await this.credentialRepository.upsertAppCredential(
+          APPLE_CALENDAR_TYPE,
+          symmetricEncrypt(JSON.stringify({ username, password }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+          userId,
+          hasCalendarWithGivenCredentials.id
+        );
+
         return {
           status: SUCCESS_STATUS,
         };
