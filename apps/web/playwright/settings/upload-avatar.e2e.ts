@@ -192,7 +192,7 @@ test.describe("Organization Logo", async () => {
     await test.step("it shows the correct logo on the unpublished public page", async () => {
       await page.goto(`/org/${requestedSlug}`);
 
-      expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
+      await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
 
       await expect(page.locator(`img`)).toHaveAttribute(
         "src",
