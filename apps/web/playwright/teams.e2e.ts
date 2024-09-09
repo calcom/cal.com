@@ -54,21 +54,23 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       // Click [data-testid="invite-new-member-button"]
       await page.locator('[data-testid="invite-new-member-button"]').click();
       await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
+      await expect(page.locator('[data-testid="pending-member-item"]')).toHaveCount(2);
     });
 
     await test.step("Can remove members", async () => {
       const removeMemberButton = page.locator('[data-testid="remove-member-button"]');
       await removeMemberButton.click();
       await removeMemberButton.waitFor({ state: "hidden" });
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
+      await expect(page.locator('[data-testid="pending-member-item"]')).toHaveCount(1);
       // Cleanup here since this user is created without our fixtures.
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
     await test.step("Finishing brings you to team profile page", async () => {
       await page.locator("[data-testid=publish-button]").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+      await page.locator("[data-testid=handle-later-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
@@ -220,7 +222,9 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       // Click text=Continue
       await page.locator("[data-testid=publish-button]").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
+      await page.locator("[data-testid=handle-later-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can access user and team with same slug", async () => {

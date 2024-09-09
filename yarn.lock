@@ -4134,7 +4134,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.30"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.33"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-libraries-1.2.3": "npm:@calcom/platform-libraries@1.2.3"
     "@calcom/platform-types": "*"
@@ -5136,14 +5136,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.30":
-  version: 0.0.30
-  resolution: "@calcom/platform-libraries@npm:0.0.30"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.33":
+  version: 0.0.33
+  resolution: "@calcom/platform-libraries@npm:0.0.33"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 85af636aa21187a28c53c5cd7e5b1ff6b88410d905f53ee3d6cc2e6a3ef4d0b8a80fac77bc290bbe3d093edea53f015d47db5e7e791f462622c0d642bfd09722
+  checksum: 75d78e298b380fbf72568ecd7fe70b8a1decc4c5a644d7e5032a5c493645967baf6645a27149754e0b173a3e36f4f83d9600129d858b4160fba77004daf59997
   languageName: node
   linkType: hard
 
@@ -48973,11 +48973,11 @@ __metadata:
   linkType: hard
 
 "yaml@npm:^2.3.1":
-  version: 2.5.1
-  resolution: "yaml@npm:2.5.1"
+  version: 2.5.0
+  resolution: "yaml@npm:2.5.0"
   bin:
     yaml: bin.mjs
-  checksum: 31275223863fbd0b47ba9d2b248fbdf085db8d899e4ca43fff8a3a009497c5741084da6871d11f40e555d61360951c4c910b98216c1325d2c94753c0036d8172
+  checksum: a116dca5c61641d9bf1f1016c6e71daeb1ed4915f5930ed237d45ab7a605aa5d92c332ff64879a6cd088cabede008c778774e3060ffeb4cd617d28088e4b2d83
   languageName: node
   linkType: hard
 

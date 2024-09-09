@@ -22,7 +22,7 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import { handleNewBooking } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
+import { ApiSuccessResponse, ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
   describe("User Authenticated", () => {
@@ -141,6 +141,49 @@ describe("Bookings Endpoints", () => {
           expect(responseBody.data.metadata).toEqual(bookingMetadata);
 
           createdBooking = responseBody.data;
+        });
+    });
+
+    it("should fail to create a booking with no_available_users_found_error", async () => {
+      const bookingStart = "2040-05-21T09:30:00.000Z";
+      const bookingEnd = "2040-05-21T10:30:00.000Z";
+      const bookingEventTypeId = eventTypeId;
+      const bookingTimeZone = "Europe/London";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+      const bookingMetadata = {
+        timeFormat: "12",
+        meetingType: "organizer-phone",
+      };
+      const bookingResponses = {
+        name: "tester",
+        email: "tester@example.com",
+        location: {
+          value: "link",
+          optionValue: "",
+        },
+        notes: "test",
+        guests: [],
+      };
+
+      const body: CreateBookingInput = {
+        start: bookingStart,
+        end: bookingEnd,
+        eventTypeId: bookingEventTypeId,
+        timeZone: bookingTimeZone,
+        language: bookingLanguage,
+        metadata: bookingMetadata,
+        hashedLink: bookingHashedLink,
+        responses: bookingResponses,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .expect(400)
+        .then(async (response) => {
+          const responseBody: ApiErrorResponse = response.body;
+          expect(responseBody.error.message).toEqual("no_available_users_found_error");
         });
     });
 
