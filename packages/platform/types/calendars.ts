@@ -6,7 +6,7 @@ import { IsNumber, IsString, IsOptional, IsArray, ValidateNested, Validate } fro
 import { IsYearMonthDays } from "./validators/isYearMonthDays";
 
 export class Calendar {
-  @Transform(({ value }: { value: string }) => parseInt(value))
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   credentialId!: number;
 
