@@ -521,6 +521,12 @@ export class EventTypeRepository {
           name: true,
         },
       },
+      instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       hosts: {
         select: {
           isFixed: true,

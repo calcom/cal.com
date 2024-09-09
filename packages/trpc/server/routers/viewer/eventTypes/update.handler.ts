@@ -51,6 +51,7 @@ export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
     schedule,
+    instantMeetingSchedule,
     periodType,
     locations,
     bookingLimits,
@@ -227,6 +228,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // allows unsetting a schedule through { schedule: null, ... }
   else if (null === schedule) {
     data.schedule = {
+      disconnect: true,
+    };
+  }
+
+  if (instantMeetingSchedule) {
+    data.instantMeetingSchedule = {
+      connect: {
+        id: instantMeetingSchedule,
+      },
+    };
+  } else if (schedule === null) {
+    data.instantMeetingSchedule = {
       disconnect: true,
     };
   }

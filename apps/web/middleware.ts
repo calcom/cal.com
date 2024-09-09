@@ -93,7 +93,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   if (url.pathname.startsWith("/future/auth/logout")) {
-    cookies().delete("next-auth.session-token");
+    cookies().set("next-auth.session-token", "", {
+      path: "/",
+      expires: new Date(0),
+    });
   }
 
   requestHeaders.set("x-pathname", url.pathname);
