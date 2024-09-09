@@ -14,20 +14,25 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, Form, Meta, SettingsToggle } from "@calcom/ui";
+import { Button, Form, Meta, SettingsToggle, showToast } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
-
-type BrandColorsFormValues = {
-  brandColor: string;
-  darkBrandColor: string;
-};
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
 
 const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+
+  const mutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess(res) {
+      await utils.viewer.teams.get.invalidate();
+      showToast(t("booking_limits_updated_successfully"), "success");
+    },
+  });
 
   const form = useForm<{ bookingLimits?: IntervalLimit }>({
     defaultValues: {
@@ -55,7 +60,8 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
           <Form
             form={form}
             handleSubmit={(values) => {
-              console.log("update booking limits");
+              console.log("test test");
+              mutation.mutate({ ...values, id: team.id });
             }}>
             <Controller
               name="bookingLimits"
@@ -66,20 +72,18 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                     toggleSwitchAtTheEnd={true}
                     labelClassName="text-sm"
                     title={t("limit_booking_frequency")}
-                    description={t("limit_booking_frequency_description")}
+                    description={t("limit_team_booking_frequency_description")}
                     checked={isChecked}
                     onCheckedChange={(active) => {
                       if (active) {
-                        form.setValue(
-                          "bookingLimits",
-                          {
-                            PER_DAY: 1,
-                          },
-                          { shouldDirty: true }
-                        );
+                        form.setValue("bookingLimits", {
+                          PER_DAY: 1,
+                        });
                       } else {
-                        form.setValue("bookingLimits", {}, { shouldDirty: true });
+                        form.setValue("bookingLimits", {});
                       }
+                      const bookingLimits = form.getValues("bookingLimits");
+                      mutation.mutate({ bookingLimits, id: team.id });
                     }}
                     switchContainerClassName={classNames(
                       "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",

@@ -436,7 +436,9 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
-  bookingLimits          Json?
+
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
 
   @@unique([slug, parentId])
   @@index([parentId])

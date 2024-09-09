@@ -56,6 +56,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
+    bookingLimits: input.bookingLimits,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
