@@ -462,7 +462,7 @@ const BookerComponent = ({
               hasDarkBackground ? "dark" : "",
               layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
             )}>
-            <PoweredBy logoOnly username={username} />
+            <PoweredBy logoOnly />
           </m.span>
         )}
       </div>
