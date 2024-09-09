@@ -1,31 +1,23 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
-import { CreateOrEditOutOfOfficeEntryModal } from "@calcom/features/settings/CreateOrEditOutOfOfficeModal";
-import { OutOfOfficeEntriesList, OutOfOfficeTab } from "@calcom/features/settings/OutOfOfficeEntriesList";
+import { useCompatSearchParams } from "@calcom/embed-core/src/useCompatSearchParams";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import CreateNewOutOfOfficeEntryButton from "@calcom/features/settings/outOfOffice/CreateNewOutOfOfficeEntryButton";
+import {
+  OutOfOfficeEntriesList,
+  OutOfOfficeTab,
+} from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Meta, SkeletonText, ToggleGroup } from "@calcom/ui";
+import { Meta, SkeletonText, ToggleGroup } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-export type BookingRedirectForm = {
-  dateRange: { startDate: Date; endDate: Date };
-  offset: number;
-  toTeamUserId: number | null;
-  reasonId: number;
-  notes?: string;
-  uuid?: string | null;
-  forUserId: number | null;
-};
-
-const OutOfOfficePage = () => {
+const Page = () => {
   const { t } = useLocale();
 
-  const params = useSearchParams();
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -41,24 +33,8 @@ const OutOfOfficePage = () => {
     [searchParams]
   );
 
-  const openModalOnStart = !!params?.get("open");
-  useEffect(() => {
-    if (openModalOnStart) {
-      setOpenModal(true);
-    }
-  }, [openModalOnStart]);
-
-  const [openModal, setOpenModal] = useState(false);
-  const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
-    useState<BookingRedirectForm | null>(null);
-
-  const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
-    setCurrentlyEditingOutOfOfficeEntry(entry);
-    setOpenModal(true);
-  };
-
   const [selectedTab, setSelectedTab] = useState(searchParams?.get("type") ?? OutOfOfficeTab.MINE);
-  const [oooEntriesUpdated, setOOOEntriesUpdated] = useState(0);
+
   const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
 
   const { data } = trpc.viewer.organizations.listCurrent.useQuery();
@@ -93,42 +69,16 @@ const OutOfOfficePage = () => {
               options={toggleGroupOptions}
               disabled={!isOrgAdminOrOwner || isOrgAndPrivate}
             />
-            {isPending ? (
-              <SkeletonText className="h-8 w-20" />
-            ) : (
-              <Button
-                color="primary"
-                className="flex w-20 items-center justify-between px-4"
-                onClick={() => setOpenModal(true)}
-                data-testid="add_entry_ooo">
-                <Icon name="plus" size={16} /> {t("add")}
-              </Button>
-            )}
+            {isPending ? <SkeletonText className="h-8 w-20" /> : <CreateNewOutOfOfficeEntryButton />}
           </div>
         }
       />
-      {openModal && (
-        <CreateOrEditOutOfOfficeEntryModal
-          openModal={openModal}
-          closeModal={() => {
-            setOpenModal(false);
-            setCurrentlyEditingOutOfOfficeEntry(null);
-          }}
-          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
-          oooType={selectedTab}
-          setOOOEntriesUpdated={setOOOEntriesUpdated}
-        />
-      )}
-      <OutOfOfficeEntriesList
-        editOutOfOfficeEntry={editOutOfOfficeEntry}
-        oooEntriesUpdated={oooEntriesUpdated}
-        selectedTab={selectedTab as OutOfOfficeTab}
-      />
+      <OutOfOfficeEntriesList selectedTab={selectedTab as OutOfOfficeTab} />
     </>
   );
 };
 
-OutOfOfficePage.getLayout = getLayout;
-OutOfOfficePage.PageWrapper = PageWrapper;
+Page.getLayout = getLayout;
+Page.PageWrapper = PageWrapper;
 
-export default OutOfOfficePage;
+export default Page;
