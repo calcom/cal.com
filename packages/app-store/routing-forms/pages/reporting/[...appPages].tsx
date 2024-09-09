@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import type {
   BuilderProps,
   Config,
@@ -166,7 +166,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
     []
   );
   return (
-    <div className="cal-query-builder bg-default fixed inset-0 w-full overflow-scroll pt-12 ltr:mr-2 rtl:ml-2 sm:pt-0">
+    <div className="cal-query-builder">
       <Query
         {...config}
         value={query.state.tree}
@@ -184,13 +184,22 @@ export default function ReporterWrapper({
   form,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // It isn't possible to render Reporter without hydration errors if it is rendered on the server.
+    // This is because the RAQB generates some dynamic ids on elements which change b/w client and server.
+    // This is a workaround to render the Reporter on the client only.
+    setIsClient(true);
+  }, []);
+
   return (
     <SingleForm
       form={form}
       appUrl={appUrl}
       Page={({ form }) => (
-        <div className="route-config">
-          <Reporter form={form} />
+        <div className="route-config bg-default fixed inset-0 w-full overflow-scroll pt-12 ltr:mr-2 rtl:ml-2 sm:pt-0">
+          {isClient && <Reporter form={form} />}
         </div>
       )}
     />
