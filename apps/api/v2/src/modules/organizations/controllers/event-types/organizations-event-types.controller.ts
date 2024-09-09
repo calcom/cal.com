@@ -14,12 +14,10 @@ import { DeleteTeamEventTypeOutput } from "@/modules/organizations/controllers/e
 import { GetTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-type.output";
 import { GetTeamEventTypesOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-types.output";
 import { UpdateTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/update-team-event-type.output";
+import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
-import {
-  DatabaseTeamEventType,
-  OutputOrganizationsEventTypesService,
-} from "@/modules/organizations/services/event-types/output.service";
+import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -37,7 +35,6 @@ import {
   Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -63,16 +60,8 @@ export class OrganizationsEventTypesController {
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
     private readonly inputService: InputOrganizationsEventTypesService,
     private readonly inputUserEventTypesService: InputEventTypesService_2024_06_14,
-    private readonly outputOrganizationsEventTypesService: OutputOrganizationsEventTypesService
+    private readonly outputTeamEventTypesResponsePipe: OutputTeamEventTypesResponsePipe
   ) {}
-
-  private async transformEventType(item: DatabaseTeamEventType): Promise<TeamEventTypeOutput_2024_06_14> {
-    return plainToClass(
-      TeamEventTypeOutput_2024_06_14,
-      await this.outputOrganizationsEventTypesService.getResponseTeamEventType(item),
-      { strategy: "exposeAll" }
-    );
-  }
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -101,13 +90,9 @@ export class OrganizationsEventTypesController {
       transformedBody
     );
 
-    const transformedData = Array.isArray(eventType)
-      ? await Promise.all(eventType.map((item) => this.transformEventType(item)))
-      : await this.transformEventType(eventType);
-
     return {
       status: SUCCESS_STATUS,
-      data: transformedData,
+      data: await this.outputTeamEventTypesResponsePipe.transform(eventType),
     };
   }
 
@@ -125,11 +110,11 @@ export class OrganizationsEventTypesController {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    const transformedData = await this.transformEventType(eventType);
-
     return {
       status: SUCCESS_STATUS,
-      data: transformedData,
+      data: (await this.outputTeamEventTypesResponsePipe.transform(
+        eventType
+      )) as TeamEventTypeOutput_2024_06_14,
     };
   }
 
@@ -143,22 +128,18 @@ export class OrganizationsEventTypesController {
 
     if (eventSlug) {
       const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
-      const data = eventType ? [eventType] : [];
-
-      const transformedData = await Promise.all(data.map((item) => this.transformEventType(item)));
 
       return {
         status: SUCCESS_STATUS,
-        data: transformedData,
+        data: await this.outputTeamEventTypesResponsePipe.transform(eventType ? [eventType] : []),
       };
     }
 
     const eventTypes = await this.organizationsEventTypesService.getTeamEventTypes(teamId);
-    const transformedData = await Promise.all(eventTypes.map((item) => this.transformEventType(item)));
 
     return {
       status: SUCCESS_STATUS,
-      data: transformedData,
+      data: await this.outputTeamEventTypesResponsePipe.transform(eventTypes),
     };
   }
 
@@ -172,11 +153,10 @@ export class OrganizationsEventTypesController {
   ): Promise<GetTeamEventTypesOutput> {
     const { skip, take } = queryParams;
     const eventTypes = await this.organizationsEventTypesService.getTeamsEventTypes(orgId, skip, take);
-    const transformedData = await Promise.all(eventTypes.map((item) => this.transformEventType(item)));
 
     return {
       status: SUCCESS_STATUS,
-      data: transformedData,
+      data: await this.outputTeamEventTypesResponsePipe.transform(eventTypes),
     };
   }
 
@@ -211,13 +191,9 @@ export class OrganizationsEventTypesController {
       user
     );
 
-    const transformedData = Array.isArray(eventType)
-      ? await Promise.all(eventType.map((item) => this.transformEventType(item)))
-      : await this.transformEventType(eventType);
-
     return {
       status: SUCCESS_STATUS,
-      data: transformedData,
+      data: await this.outputTeamEventTypesResponsePipe.transform(eventType),
     };
   }
 
