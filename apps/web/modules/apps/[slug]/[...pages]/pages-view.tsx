@@ -4,9 +4,9 @@ import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
+import type { AppProps } from "@calcom/types/AppProviderAppProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import type { AppProps } from "@lib/app-providers";
 import type { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 
 type AppPageType = {

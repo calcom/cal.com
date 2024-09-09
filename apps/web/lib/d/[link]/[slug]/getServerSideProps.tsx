@@ -9,9 +9,9 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;

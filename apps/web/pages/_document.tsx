@@ -6,8 +6,7 @@ import Document, { Head, Html, Main, NextScript } from "next/document";
 import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-
-import { csp } from "@lib/csp";
+import { csp } from "@calcom/lib/csp";
 
 type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 function setHeader(ctx: NextPageContext, name: string, value: string) {

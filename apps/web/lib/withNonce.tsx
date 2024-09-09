@@ -1,10 +1,7 @@
 import type { GetServerSideProps } from "next";
 
-import { csp } from "@lib/csp";
-
-export type WithNonceProps<T extends Record<string, unknown>> = T & {
-  nonce?: string;
-};
+import { csp } from "@calcom/lib/csp";
+import type { WithNonceProps } from "@calcom/types/withNonce";
 
 /**
  * Make any getServerSideProps fn return the nonce so that it can be used by Components in the page to add any script tag.

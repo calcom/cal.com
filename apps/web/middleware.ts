@@ -5,9 +5,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { csp } from "@calcom/lib/csp";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
-
-import { csp } from "@lib/csp";
 
 import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
 

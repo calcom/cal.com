@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 

@@ -3,8 +3,9 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
+import { type inferSSRProps } from "@calcom/types/inferSSRProps";
+
 import { getServerSideProps } from "@lib/insights/getServerSideProps";
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

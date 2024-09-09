@@ -19,11 +19,11 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import type { WithNonceProps } from "@calcom/types/withNonce";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithLocaleProps } from "@lib/withLocale";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";

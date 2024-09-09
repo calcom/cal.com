@@ -12,6 +12,7 @@
     "dx": "yarn dev",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
+    "build:tsc": "tsc -b",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "build": "next build",
     "start": "next start",

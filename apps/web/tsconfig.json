@@ -30,7 +30,16 @@
   "exclude": ["node_modules", "app", "playwright", "test"],
   "references": [
     {
+      "path": "../../packages/ui/tsconfig.json"
+    },
+    {
       "path": "../../packages/trpc/tsconfig.json"
-    }
+    },
+    {
+      "path": "../../packages/app-store/tsconfig.json"
+    },
+    {
+      "path": "../../packages/emails/tsconfig.json"
+    },
   ]
 }

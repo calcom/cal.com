@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   BooleanToggleGroupField,
   Button,
@@ -20,8 +21,6 @@ import {
   Skeleton,
   TextField,
 } from "@calcom/ui";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {

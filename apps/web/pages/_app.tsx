@@ -3,8 +3,7 @@ import type { AppContextType } from "next/dist/shared/lib/utils";
 import React, { useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
-
-import type { AppProps } from "@lib/app-providers";
+import type { AppProps } from "@calcom/types/AppProviderAppProps";
 
 import "../styles/globals.css";
 

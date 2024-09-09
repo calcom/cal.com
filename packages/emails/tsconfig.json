@@ -6,5 +6,19 @@
     "../types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx"
-  ]
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "outDir": "build/types"
+  },
+  "references": [
+    {
+      "path": "../features/tsconfig.json",
+    },
+    {
+      "path": "../app-store/tsconfig.json"
+    }
+  ],
+  "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/*.spec.*"]
 }

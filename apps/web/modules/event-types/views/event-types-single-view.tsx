@@ -6,8 +6,7 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 /* eslint-disable @typescript-eslint/no-empty-function */
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { trpc } from "@calcom/trpc/react";
-
-import type { AppProps } from "@lib/app-providers";
+import type { AppProps } from "@calcom/types/AppProviderAppProps";
 
 import { type PageProps } from "~/event-types/views/event-types-single-view.getServerSideProps";
 

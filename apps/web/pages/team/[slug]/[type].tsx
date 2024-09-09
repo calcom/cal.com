@@ -5,9 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";

@@ -7,8 +7,7 @@ import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
-
-import type { AppProps } from "@lib/app-providers";
+import type { AppProps } from "@calcom/types/AppProviderAppProps";
 
 import { ssrInit } from "@server/lib/ssr";
 

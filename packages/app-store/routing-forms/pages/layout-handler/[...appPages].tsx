@@ -6,8 +6,7 @@ import { FormProvider, useForm } from "react-hook-form";
 
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppPrisma, AppSsrInit, AppUser } from "@calcom/types/AppGetServerSideProps";
-
-import type { AppProps } from "@lib/app-providers";
+import type { AppProps } from "@calcom/types/AppProviderAppProps";
 
 import RoutingFormsRoutingConfig from "../app-routing.config";
 

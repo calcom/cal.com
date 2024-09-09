@@ -9,8 +9,8 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";

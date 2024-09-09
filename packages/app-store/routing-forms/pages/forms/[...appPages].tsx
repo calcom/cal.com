@@ -31,7 +31,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import {
   FormAction,

@@ -28,15 +28,27 @@
     "react",
     "server"
   ],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts"],
   "compilerOptions": {
     "composite": true,
+    "declaration": true,
+    "outDir": "build/types",
     "isolatedModules": false,
     "noEmit": false,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "experimentalDecorators": true,
     "declarationMap": false,
-    "resolveJsonModule": true,
-    "outDir": "types"
-  }
+  },
+  "references": [
+    {
+      "path": "../features/tsconfig.json"
+    },
+    {
+      "path": "../app-store/tsconfig.json"
+    },
+    {
+      "path": "../emails/tsconfig.json"
+    },
+    {
+      "path": "../ui/tsconfig.json"
+    }
+  ]
 }

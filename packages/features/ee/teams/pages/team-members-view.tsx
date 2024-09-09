@@ -15,7 +15,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Meta, TextField } from "@calcom/ui";
 
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";

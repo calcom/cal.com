@@ -11,8 +11,7 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
 

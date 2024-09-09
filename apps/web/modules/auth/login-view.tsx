@@ -18,10 +18,9 @@ import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { WithNonceProps } from "@calcom/types/withNonce";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";

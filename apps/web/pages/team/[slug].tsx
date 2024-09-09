@@ -20,11 +20,11 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";

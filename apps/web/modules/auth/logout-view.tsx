@@ -6,10 +6,9 @@ import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AuthContainer from "@components/ui/AuthContainer";
 

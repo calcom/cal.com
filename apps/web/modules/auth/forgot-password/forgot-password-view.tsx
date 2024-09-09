@@ -7,9 +7,8 @@ import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { type inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, EmailField } from "@calcom/ui";
-
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AuthContainer from "@components/ui/AuthContainer";
 

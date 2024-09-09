@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dx": "docker compose up -d || docker-compose up -d"
+    "dx": "docker compose up -d || docker-compose up -d",
+    "build": "tsc",
+    "type-check:ci": "tsc-absolute --pretty --noEmit"
   },
   "dependencies": {
     "@calcom/dayjs": "*",
@@ -16,6 +18,7 @@
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
-    "@calcom/types": "*"
+    "@calcom/types": "*",
+    "typescript": "^4.9.4"
   }
 }

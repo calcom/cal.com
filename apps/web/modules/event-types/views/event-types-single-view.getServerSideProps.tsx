@@ -3,9 +3,9 @@ import type { GetServerSidePropsContext } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
 

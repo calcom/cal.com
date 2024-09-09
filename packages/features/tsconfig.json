@@ -1,13 +1,26 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "outDir": "build/types",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["/*"]
+      "~/*": ["/*"],
+      "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"],
+      "@lib/*": ["lib/*"],
+      "@server/*": ["server/*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"]
     },
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
   },
+  "references": [
+    {
+      "path": "../app-store/tsconfig.json"
+    }
+  ],
   "include": [".", "../types/next-auth.d.ts"],
   "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
 }

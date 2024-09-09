@@ -1,8 +1,9 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "experimentalDecorators": true
+    "composite": true,
+    "declaration": true,
+    "outDir": "build/types"
   },
   "include": [
     "../../apps/web/next-env.d.ts",

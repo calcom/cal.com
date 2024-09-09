@@ -1,12 +1,11 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
-import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
-import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import type { AppProps as NextJsAppProps } from "next/app";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
@@ -17,11 +16,9 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import useIsBookingPage from "@calcom/lib/hooks/useIsBookingPage";
+import type { AppProps } from "@calcom/types/AppProviderAppProps";
 import { MetaProvider } from "@calcom/ui";
-
-import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import type { WithLocaleProps } from "@lib/withLocale";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 
@@ -30,31 +27,6 @@ const I18nextAdapter = appWithTranslation<
     children: React.ReactNode;
   }
 >(({ children }) => <>{children}</>);
-
-// Workaround for https://github.com/vercel/next.js/issues/8592
-export type AppProps = Omit<
-  NextAppProps<
-    WithLocaleProps<
-      WithNonceProps<{
-        themeBasis?: string;
-        session: Session;
-        i18n?: SSRConfig;
-      }>
-    >
-  >,
-  "Component"
-> & {
-  Component: NextAppProps["Component"] & {
-    requiresLicense?: boolean;
-    isThemeSupported?: boolean;
-    isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
-    getLayout?: (page: React.ReactElement) => ReactNode;
-    PageWrapper?: (props: AppProps) => JSX.Element;
-  };
-
-  /** Will be defined only is there was an error */
-  err?: Error;
-};
 
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;

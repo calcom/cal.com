@@ -3,10 +3,10 @@
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { CreateANewOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { WizardLayout, Meta } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 

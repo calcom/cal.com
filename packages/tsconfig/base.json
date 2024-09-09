@@ -15,7 +15,9 @@
     "noUnusedParameters": false,
     "preserveWatchOutput": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true
   },
   "exclude": ["node_modules"],
   "ts-node": {

@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "type-check": "tsc --pretty --noEmit",
+    "build": "yarn tsc",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
@@ -29,6 +30,7 @@
     "stripe": "^9.16.0"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "*",
+    "typescript": "^4.9.4"
   }
 }
