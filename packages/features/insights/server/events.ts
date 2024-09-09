@@ -363,12 +363,13 @@ class EventsInsights {
             userId: {
               in: userIdsFromOrg,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
           {
             teamId: {
               in: [organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
+            isTeamBooking: true,
           },
         ],
       };
@@ -390,12 +391,13 @@ class EventsInsights {
         OR: [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeam,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ],
       };

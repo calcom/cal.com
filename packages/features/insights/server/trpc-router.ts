@@ -213,12 +213,13 @@ export const insightsRouter = router({
               userId: {
                 in: userIdsFromOrg,
               },
-              teamId: null,
+              isTeamBooking: false,
             },
             {
               teamId: {
                 in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
+              isTeamBooking: true,
             },
           ],
         };
@@ -240,12 +241,13 @@ export const insightsRouter = router({
           OR: [
             {
               teamId,
+              isTeamBooking: true,
             },
             {
               userId: {
                 in: userIdsFromTeam,
               },
-              teamId: null,
+              isTeamBooking: false,
             },
           ],
         };
@@ -438,12 +440,13 @@ export const insightsRouter = router({
               userId: {
                 in: userIdsFromOrg,
               },
-              teamId: null,
+              isTeamBooking: false,
             },
             {
               teamId: {
                 in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
+              isTeamBooking: true,
             },
           ],
         };
@@ -465,12 +468,13 @@ export const insightsRouter = router({
           OR: [
             {
               teamId,
+              isTeamBooking: true,
             },
             {
               userId: {
                 in: userIdsFromTeams,
               },
-              teamId: null,
+              isTeamBooking: false,
             },
           ],
         };
@@ -614,12 +618,13 @@ export const insightsRouter = router({
               userId: {
                 in: userIdsFromOrg,
               },
-              teamId: null,
+              isTeamBooking: false,
             },
             {
               teamId: {
                 in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
+              isTeamBooking: true,
             },
           ],
         };
@@ -642,12 +647,13 @@ export const insightsRouter = router({
           OR: [
             {
               teamId,
+              isTeamBooking: true,
             },
             {
               userId: {
                 in: userIdsFromTeams,
               },
-              teamId: null,
+              isTeamBooking: false,
             },
           ],
         };
@@ -815,10 +821,11 @@ export const insightsRouter = router({
               teamId: {
                 in: [ctx.user?.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
+              isTeamBooking: true,
             },
             {
               userId: ctx.user?.id,
-              teamId: null,
+              isTeamBooking: false,
             },
           ],
         };
@@ -841,12 +848,13 @@ export const insightsRouter = router({
           OR: [
             {
               teamId,
+              isTeamBooking: true,
             },
             {
               userId: {
                 in: userIdsFromTeams,
               },
-              teamId: null,
+              isTeamBooking: false,
             },
           ],
         };
@@ -968,12 +976,13 @@ export const insightsRouter = router({
             teamId: {
               in: [user?.organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
+            isTeamBooking: true,
           },
           {
             userId: {
               in: usersFromTeam.map((u) => u.userId),
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -994,12 +1003,13 @@ export const insightsRouter = router({
         bookingWhere["OR"] = [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1106,12 +1116,13 @@ export const insightsRouter = router({
             teamId: {
               in: teamsFromOrg.map((t) => t.id),
             },
+            isTeamBooking: true,
           },
           {
             userId: {
               in: usersFromTeam.map((u) => u.userId),
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1130,12 +1141,13 @@ export const insightsRouter = router({
         bookingWhere["OR"] = [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1523,12 +1535,13 @@ export const insightsRouter = router({
             teamId: {
               in: teamsFromOrg.map((t) => t.id),
             },
+            isTeamBooking: true,
           },
           {
             userId: {
               in: usersFromTeam.map((u) => u.userId),
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1547,12 +1560,13 @@ export const insightsRouter = router({
         bookingWhere["OR"] = [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1656,12 +1670,13 @@ export const insightsRouter = router({
             teamId: {
               in: teamsFromOrg.map((t) => t.id),
             },
+            isTeamBooking: true,
           },
           {
             userId: {
               in: usersFromTeam.map((u) => u.userId),
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1680,12 +1695,13 @@ export const insightsRouter = router({
         bookingWhere["OR"] = [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1789,12 +1805,13 @@ export const insightsRouter = router({
             teamId: {
               in: teamsFromOrg.map((t) => t.id),
             },
+            isTeamBooking: true,
           },
           {
             userId: {
               in: usersFromTeam.map((u) => u.userId),
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1813,12 +1830,13 @@ export const insightsRouter = router({
         bookingWhere["OR"] = [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1922,12 +1940,13 @@ export const insightsRouter = router({
             teamId: {
               in: teamsFromOrg.map((t) => t.id),
             },
+            isTeamBooking: true,
           },
           {
             userId: {
               in: usersFromTeam.map((u) => u.userId),
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
@@ -1946,12 +1965,13 @@ export const insightsRouter = router({
         bookingWhere["OR"] = [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ];
       }
