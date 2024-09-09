@@ -91,9 +91,11 @@ export const EventMeta = ({
   }, [event, setTimezone]);
 
   useEffect(() => {
-    const hasRecurrenInPath = pathname.includes("recurrence");
+    const hasRecurrenceInPath = pathname.includes("recurrence");
     const handleResize = () => {
-      setShowMessage(window.innerWidth < MOBILE_WIDTH && hasRecurrenInPath);
+      console.log({ pathname });
+      console.log({ width: window.innerWidth });
+      setShowMessage(window.innerWidth < MOBILE_WIDTH && hasRecurrenceInPath);
     };
 
     window.addEventListener("resize", handleResize);
