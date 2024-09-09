@@ -1,3 +1,4 @@
+import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output copy";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
@@ -20,7 +21,6 @@ import {
   Get,
   Param,
   Query,
-  BadRequestException,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
@@ -70,11 +70,8 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid")
+  @UseGuards(BookingUidGuard)
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
-    if (!bookingUid) {
-      throw new BadRequestException("Booking UID is required in request path /:bookingUid");
-    }
-
     const booking = await this.bookingsService.getBooking(bookingUid);
 
     return {
@@ -99,15 +96,12 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/reschedule")
+  @UseGuards(BookingUidGuard)
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
     @Body() body: RescheduleBookingInput_2024_08_13,
     @Req() request: Request
   ): Promise<RescheduleBookingOutput_2024_08_13> {
-    if (!bookingUid) {
-      throw new BadRequestException("Booking UID is required in request path /:bookingUid/reschedule");
-    }
-
     const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
     await this.bookingsService.billRescheduledBooking(newBooking, bookingUid);
 
@@ -118,16 +112,13 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/cancel")
+  @UseGuards(BookingUidGuard)
   @HttpCode(HttpStatus.OK)
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
     @Body() body: CancelBookingInput_2024_08_13
   ): Promise<CancelBookingOutput_2024_08_13> {
-    if (!bookingUid) {
-      throw new BadRequestException("Booking UID is required in request path /:bookingUid/cancel");
-    }
-
     const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
 
     return {
@@ -139,16 +130,12 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/mark-absent")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
-  @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
     @Body() body: MarkAbsentBookingInput_2024_08_13,
     @GetUser("id") ownerId: number
   ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-    if (!bookingUid) {
-      throw new BadRequestException("Booking UID is required in request path /:bookingUid/cancel");
-    }
-
     const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
 
     return {
