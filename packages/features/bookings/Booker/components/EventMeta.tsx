@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/monorepo";
@@ -11,9 +11,12 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
+
+const MOBILE_WIDTH = 854;
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -71,6 +74,8 @@ export const EventMeta = ({
   const { i18n, t } = useLocale();
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
+  const pathname = usePathname();
+  const [showMessage, setShowMessage] = useState(false);
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
   const [TimezoneSelect] = useMemo(
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
@@ -83,6 +88,19 @@ export const EventMeta = ({
       setTimezone(event.schedule?.timeZone);
     }
   }, [event, setTimezone]);
+
+  useEffect(() => {
+    const hasRecurrenInPath = pathname.includes("recurrence");
+    const handleResize = () => {
+      setShowMessage(window.innerWidth < MOBILE_WIDTH && hasRecurrenInPath);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [pathname]);
 
   if (hideEventTypeDetails) {
     return null;
@@ -180,10 +198,12 @@ export const EventMeta = ({
                   />
                 </EventMetaBlock>
               )} */}
-              {/* <span className="text-bas -mb-4 flex items-center gap-2">
-                <Icon name="calendar" data-testid="calendar-icon" className="h-3 w-3 stroke-[3px]" />A partir
-                de {date}, {time}
-              </span> */}
+              {showMessage && (
+                <span className="text-bas -mb-4 flex items-center gap-2">
+                  <Icon name="calendar" data-testid="calendar-icon" className="h-3 w-3 stroke-[3px]" />A
+                  partir de {date}, {time}
+                </span>
+              )}
               <EventDetails event={event} isOcurrence={isOcurrence} />
               {/* <EventMetaBlock
                 className=".event-meta-block-fix cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
@@ -228,10 +248,12 @@ export const EventMeta = ({
                 </EventMetaBlock>
               ) : null}
             </div>
-            {/* <span className="text-base">
-              O dia da semana e horário escolhidos serão reservados para você nas próximas semanas conforme o
-              plano escolhido.
-            </span> */}
+            {showMessage && (
+              <span className="text-base">
+                O dia da semana e horário escolhidos serão reservados para você nas próximas semanas conforme
+                o plano escolhido.
+              </span>
+            )}
           </div>
         </m.div>
       )}
