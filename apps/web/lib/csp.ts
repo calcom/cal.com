@@ -10,6 +10,7 @@ import { buildNonce } from "./buildNonce";
 function getCspPolicy(nonce: string) {
   //TODO: Do we need to explicitly define it in turbo.json
   const CSP_POLICY = process.env.CSP_POLICY;
+  console.log("CSP_POLICY", CSP_POLICY);
 
   // Note: "non-strict" policy only allows inline styles otherwise it's the same as "strict"
   // We can remove 'unsafe-inline' from style-src when we add nonces to all style tags

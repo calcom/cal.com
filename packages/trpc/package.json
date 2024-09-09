@@ -11,7 +11,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "build": "yarn trpc:generate || true",
     "trpc:generate": "yarn tsc",
-    "type-check:ci": "tsc-absolute --pretty --noEmit"
+    "type-check:ci": "tsc-absolute -b --pretty"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.15",

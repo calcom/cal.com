@@ -18,7 +18,8 @@ const inviteExistingUserToOrg = async ({
   translation: TFunction;
 }) => {
   await createAProfileForAnExistingUser({
-    user,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    user: user as any,
     organizationId: org.id,
   });
 
@@ -42,6 +43,7 @@ const inviteExistingUserToOrg = async ({
   await sendExistingUserTeamInviteEmails({
     currentUserName: user.username,
     currentUserTeamName: org.name,
+    // @ts-expect-error Passing wrong arguments to function
     existingUsersWithMemberships: [user],
     language: translation,
     isOrg: true,

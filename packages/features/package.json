@@ -8,6 +8,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "yarn tsc",
+    "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit"
   },
   "dependencies": {

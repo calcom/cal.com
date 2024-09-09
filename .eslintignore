@@ -7,3 +7,4 @@ packages/platform/**/dist/*
 packages/prisma/zod
 apps/web/public/embed
 packages/ui/components/icon/dynamicIconImports.tsx
+build/**/*

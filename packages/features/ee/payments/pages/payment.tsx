@@ -6,8 +6,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-
-import { ssrInit } from "../../../../../apps/web/server/lib/ssr";
+import { ssrInit } from "@calcom/web/server/lib/ssr";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 

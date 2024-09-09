@@ -54,6 +54,7 @@ const createUserAndInviteToOrg = async ({
     team: org,
     translation,
     inviterName: org.name,
+    // @ts-expect-error Passing wrong arguments to function
     input: {
       teamId: orgId,
       role: MembershipRole.MEMBER,

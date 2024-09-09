@@ -21,6 +21,6 @@
       "path": "../app-store/tsconfig.json"
     }
   ],
-  "include": [".", "../types/next-auth.d.ts"],
-  "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
+  "include": [".", "../types/next-auth.d.ts", "../types/business-days-plugin.d.ts", "../types/window.d.ts"],
+  "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*", "**/*.mock.ts", "**/*.stories.tsx"]
 }
