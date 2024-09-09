@@ -6,7 +6,7 @@ import { Controller, FormProvider, useForm, useFormState } from "react-hook-form
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
-import { CONSOLE_URL } from "@calcom/lib/constants";
+import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -21,14 +21,12 @@ const makeSchemaLicenseKey = (args: { callback: (valid: boolean) => void; onSucc
   z.object({
     licenseKey: z
       .string()
-      .uuid({
-        message: "License key must follow UUID format: 8-4-4-4-12",
-      })
+
       .superRefine(async (data, ctx) => {
-        const parse = z.string().uuid().safeParse(data);
+        const parse = z.string().safeParse(data);
         if (parse.success) {
           args.callback(true);
-          const response = await fetch(`${CONSOLE_URL}/api/license?key=${data}`);
+          const response = await fetch(`${CALCOM_PRIVATE_API_ROUTE}/v1/license/${data}`);
           args.callback(false);
           const json = await response.json();
           if (!json.valid) {
@@ -112,7 +110,7 @@ const EnterpriseLicense = (
                   "group-hover:border-emphasis mb-0",
                   (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
                 )}
-                placeholder="xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx"
+                placeholder="cal_live_XXXXXXXXXXXXXXXXX"
                 labelSrOnly={true}
                 value={value}
                 addOnFilled={false}
