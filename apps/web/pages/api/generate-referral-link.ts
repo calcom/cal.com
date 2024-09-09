@@ -15,6 +15,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  // Check if user already has a referral link
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      referralLinkId: true,
+    },
+  });
+
+  if (user?.referralLinkId) {
+    const link = await dub.links.get({
+      linkId: user.referralLinkId,
+    });
+
+    if (!link) {
+      console.error(`User ${session.user.id} has a referral link ID, but failed to get the link`);
+      return res.status(500).json({ message: "Failed to get referral link" });
+    }
+
+    return res.status(200).json({ shortLink: link.shortLink });
+  }
+
   const { id: referralLinkId, shortLink } = await dub.links.create({
     domain: "refer.cal.com",
     key: session?.user?.username,

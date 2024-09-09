@@ -9,6 +9,11 @@ export function useCopy() {
         .writeText(text)
         .then(() => setIsCopied(true))
         .catch((error) => console.error("Copy to clipboard failed:", error));
+    } else {
+      console.warn(
+        "You need to use a secure context to use clipboard \n Please use the following link: ",
+        text
+      );
     }
   };
 

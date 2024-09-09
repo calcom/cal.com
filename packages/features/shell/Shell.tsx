@@ -53,6 +53,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
@@ -927,6 +928,7 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
+  const { isCopied, copyToClipboard, resetCopyStatus } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
@@ -966,10 +968,15 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           href: "",
           onClick: async (e: { preventDefault: () => void }) => {
             e.preventDefault();
-            const res = await fetch("/api/generate-referral-link");
+            const res = await fetch("/api/generate-referral-link", {
+              method: "POST",
+            });
             const { shortLink } = await res.json();
-            navigator.clipboard.writeText(shortLink);
-            showToast(t("link_copied"), "success");
+            copyToClipboard(shortLink);
+
+            if (isCopied) {
+              showToast(t("link_copied"), "success");
+            }
           },
           icon: "copy",
         }
