@@ -76,7 +76,7 @@ export class SlotsService_2024_09_04 {
     return dateTime.toISO();
   }
 
-  async reserveSlot(input: ReserveSlotInput_2024_09_04) {
+  async reserveSlot(input: ReserveSlotInput_2024_09_04, existingUid?: string) {
     const eventType = await this.eventTypeRepo.getEventTypeWithHosts(input.eventTypeId);
     if (!eventType) {
       throw new NotFoundException(`Event Type with ID=${input.eventTypeId} not found`);
@@ -112,9 +112,9 @@ export class SlotsService_2024_09_04 {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
-    const uid = uuid();
+    const uid = existingUid || uuid();
     if (eventType.userId) {
-      await this.slotsRepo.createSlot(
+      await this.slotsRepo.upsertSlot(
         eventType.userId,
         eventType.id,
         startDate.toISO(),
@@ -125,7 +125,7 @@ export class SlotsService_2024_09_04 {
       );
     } else {
       const host = eventType.hosts[0];
-      await this.slotsRepo.createSlot(
+      await this.slotsRepo.upsertSlot(
         host.userId,
         eventType.id,
         startDate.toISO(),

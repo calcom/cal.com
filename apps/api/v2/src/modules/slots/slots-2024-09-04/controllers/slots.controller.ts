@@ -1,9 +1,11 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
+import { GetCookies } from "@/lib/decorators/get-cookies.decorator";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
 import { ReserveSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import { Query, Body, Controller, Get, Delete, Post, Param } from "@nestjs/common";
+import { Query, Body, Controller, Get, Delete, Post, Param, Res } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { Response as ExpressResponse } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -22,8 +24,14 @@ export class SlotsController_2024_09_04 {
   constructor(private readonly slotsService: SlotsService_2024_09_04) {}
 
   @Post("/")
-  async reserveSlot(@Body() body: ReserveSlotInput_2024_09_04): Promise<ReserveSlotOutput_2024_09_04> {
-    const uid = await this.slotsService.reserveSlot(body);
+  async reserveSlot(
+    @Body() body: ReserveSlotInput_2024_09_04,
+    @GetCookies("uid") cookieUid: string | undefined,
+    @Res({ passthrough: true }) response: ExpressResponse
+  ): Promise<ReserveSlotOutput_2024_09_04> {
+    const uid = await this.slotsService.reserveSlot(body, cookieUid);
+
+    response.cookie("uid", uid);
 
     return {
       status: SUCCESS_STATUS,

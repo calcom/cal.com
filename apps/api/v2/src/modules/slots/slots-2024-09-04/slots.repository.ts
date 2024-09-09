@@ -14,7 +14,7 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
-  async createSlot(
+  async upsertSlot(
     userId: number,
     eventTypeId: number,
     slotUtcStartDate: string,
@@ -25,8 +25,17 @@ export class SlotsRepository_2024_09_04 {
   ) {
     const releaseAt = DateTime.utc().plus({ minutes: reservationLength }).toISO();
 
-    return this.dbWrite.prisma.selectedSlots.create({
-      data: {
+    return this.dbWrite.prisma.selectedSlots.upsert({
+      where: {
+        selectedSlotUnique: { userId, slotUtcStartDate, slotUtcEndDate, uid },
+      },
+      update: {
+        slotUtcEndDate,
+        slotUtcStartDate,
+        releaseAt,
+        eventTypeId,
+      },
+      create: {
         userId,
         eventTypeId,
         slotUtcStartDate,
