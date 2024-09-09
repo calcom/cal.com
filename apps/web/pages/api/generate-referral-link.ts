@@ -15,37 +15,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // Check if user already has a referral link
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      referralLinkId: true,
-    },
-  });
-
-  if (user?.referralLinkId) {
-    const link = await dub.links.get({
-      linkId: user.referralLinkId,
+  try {
+    return await dub.links.get({
+      externalId: `ext_${session.user.id.toString()}`,
     });
-
-    if (!link) {
-      console.error(`User ${session.user.id} has a referral link ID, but failed to get the link`);
-      return res.status(500).json({ message: "Failed to get referral link" });
-    }
-
-    return res.status(200).json({ shortLink: link.shortLink });
+  } catch (error) {
+    console.log("Referral link not found, creating...");
   }
 
   const { id: referralLinkId, shortLink } = await dub.links.create({
     domain: "refer.cal.com",
-    key: session?.user?.username,
+    key: session.user.username,
     url: "https://cal.com",
     externalId: session.user.id.toString(), // @see https://d.to/externalId
     trackConversion: true, // enable conversion tracking @see https://d.to/conversions
   });
 
+  /*
+    Even though we are relying in externalId for retrieving the referral link,
+    we still save the referralLinkId in the database for future reference.
+    E.g. we can use this to tell how many users created a referral link.
+  */
   await prisma.user.update({
     where: {
       id: session.user.id,
