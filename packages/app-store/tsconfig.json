@@ -14,7 +14,7 @@
     "experimentalDecorators": true,
     "composite": true,
     "declaration": true,
-    "outDir": "build/types",
+    "outDir": "built-types",
   },
   "include": [
     "next-env.d.ts",

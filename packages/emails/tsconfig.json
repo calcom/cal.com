@@ -10,7 +10,7 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
-    "outDir": "build/types"
+    "outDir": "built-types"
   },
   "references": [
     {
