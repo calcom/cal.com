@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 
