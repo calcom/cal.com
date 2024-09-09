@@ -37,4 +37,9 @@ export class ByUsernames_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   @ArrayMinSize(2, { message: "The array must contain at least 2 elements." })
   @IsString({ each: true })
   usernames!: string[];
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  duration?: number;
 }

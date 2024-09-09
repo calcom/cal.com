@@ -31,7 +31,7 @@ export class SlotsService_2024_09_04 {
     const duration = eventType.length;
     const eventTypeId = eventType.id;
     const eventTypeSlug = eventType.slug;
-    const usernameList = "users" in query ? query.users : [];
+    const usernameList = "usernames" in query ? query.usernames : [];
     const timeZone = query.timeZone;
 
     const availableSlots: { slots: { [key: string]: { time: string }[] } } = await getAvailableSlots({
@@ -108,6 +108,7 @@ export class SlotsService_2024_09_04 {
         }
       }
     }
+
     if (!eventType.seatsPerTimeSlot && booking) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
@@ -151,6 +152,6 @@ export class SlotsService_2024_09_04 {
       return this.eventTypeRepo.getEventTypeBySlug(input.eventTypeSlug);
     }
 
-    return dynamicEvent;
+    return input.duration ? { ...dynamicEvent, length: input.duration } : dynamicEvent;
   }
 }
