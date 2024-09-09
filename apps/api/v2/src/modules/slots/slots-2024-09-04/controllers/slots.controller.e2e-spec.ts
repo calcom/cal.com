@@ -262,6 +262,86 @@ describe("Slots Endpoints", () => {
       });
   });
 
+  it("should get slots by event type id and with start hours specified", async () => {
+    return request(app.getHttpServer())
+      .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09`)
+      .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        const days = Object.keys(slots);
+        expect(days.length).toEqual(5);
+
+        const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].slice(2);
+        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      });
+  });
+
+  it("should get slots by event type id and with end hours specified", async () => {
+    return request(app.getHttpServer())
+      .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z`)
+      .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        const days = Object.keys(slots);
+        expect(days.length).toEqual(5);
+
+        const expectedSlotsUTC2050_09_09 = expectedSlotsUTC["2050-09-09"].slice(0, 5);
+        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-09": expectedSlotsUTC2050_09_09 });
+      });
+  });
+
+  it("should get slots in specified time zone by event type id and with start hours specified", async () => {
+    return request(app.getHttpServer())
+      .get(
+        `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09&timeZone=Europe/Rome`
+      )
+      .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        const days = Object.keys(slots);
+        expect(days.length).toEqual(5);
+
+        const expectedSlotsRome2050_09_05 = expectedSlotsRome["2050-09-05"].slice(2);
+        expect(slots).toEqual({ ...expectedSlotsRome, "2050-09-05": expectedSlotsRome2050_09_05 });
+      });
+  });
+
+  it("should get slots in specified time zone by event type id and with end hours specified", async () => {
+    return request(app.getHttpServer())
+      .get(
+        `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z&timeZone=Europe/Rome`
+      )
+      .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        const days = Object.keys(slots);
+        expect(days.length).toEqual(5);
+
+        const expectedSlotsRome2050_09_09 = expectedSlotsRome["2050-09-09"].slice(0, 5);
+        expect(slots).toEqual({ ...expectedSlotsRome, "2050-09-09": expectedSlotsRome2050_09_09 });
+      });
+  });
+
   afterAll(async () => {
     await userRepositoryFixture.deleteByEmail(user.email);
 
