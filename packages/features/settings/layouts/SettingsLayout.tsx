@@ -369,6 +369,12 @@ const TeamListCollapsible = () => {
                           />
                         </>
                       ) : null}
+                      <VerticalTabItem
+                        name={t("booking_limits")}
+                        href={`/settings/teams/${team.id}/bookingLimits`}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        disableChevron
+                      />
                     </>
                   )}
                 </CollapsibleContent>
