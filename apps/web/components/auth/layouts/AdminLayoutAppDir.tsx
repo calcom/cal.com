@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect } from "react";
 
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
+import SettingsLayout from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
 import type Shell from "@calcom/features/shell/Shell";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { ErrorBoundary } from "@calcom/ui";
