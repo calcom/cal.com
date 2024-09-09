@@ -81,7 +81,7 @@ export const handleNewRecurringBooking = async (
       thirdPartyRecurringEventId,
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
-      noEmail: req.body.noEmail !== undefined ? req.body.noEmail : key !== 0,
+      noEmail: req.noEmail !== undefined ? req.noEmail : key !== 0,
       luckyUsers,
     };
 

@@ -148,13 +148,16 @@ export class InputBookingsService_2024_08_13 {
       : DEFAULT_PLATFORM_PARAMS;
 
     const location = request.body.meetingUrl;
-    Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
+    Object.assign(newRequest, {
+      userId,
+      ...oAuthParams,
+      platformBookingLocation: location,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+    });
 
     newRequest.body = bodyTransformed.map((event) => ({
       ...event,
     }));
-
-    newRequest.body.noEmail = !oAuthParams.arePlatformEmailsEnabled;
 
     return newRequest as unknown as BookingRequest;
   }
