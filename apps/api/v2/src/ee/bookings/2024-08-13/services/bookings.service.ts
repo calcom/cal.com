@@ -112,6 +112,7 @@ export class BookingsService_2024_08_13 {
   async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
     const booking = await handleNewBooking(bookingRequest);
+
     if (!booking.id) {
       throw new Error("Booking was not created");
     }
