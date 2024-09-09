@@ -2,29 +2,49 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, TextField } from "@calcom/ui";
+import { Button, Form, TextField } from "@calcom/ui";
 
-const chooseLicenseSchema = z.object({
-  licenseKey: z.string().optional(),
-  licenseType: z.enum(["FREE", "EE"]),
-});
+const chooseLicenseSchema = z
+  .object({
+    licenseKey: z.string().optional(),
+    licenseType: z.enum(["FREE", "EE"]),
+  })
+  .refine(
+    (data) => {
+      if (data.licenseType === "EE") {
+        return data.licenseKey !== undefined;
+      }
+      return true;
+    },
+    {
+      message: "License key is required for EE license",
+      path: ["licenseKey"],
+    }
+  );
 
 type ChooseLicenseFormValues = z.infer<typeof chooseLicenseSchema>;
 
+const checkLicenseKey = async (licenseKey: string) => {
+  const response = await fetch(`/api/auth/setup/license?licenseKey=${licenseKey}`);
+  const data = await response.json();
+  return data.status;
+};
+
 const ChooseLicense = (props: {
-  onSubmit: ({ value, licenseKey }: { value: string; licenseKey: string }) => void;
+  onSuccess: ({ value, licenseKey }: { value: string; licenseKey?: string }) => void;
   licenseKey?: string;
-  licenseType: "FREE" | "EE";
 }) => {
-  const { licenseType = "FREE" } = props;
+  const [licenseType, setLicenseType] = useState<"FREE" | "EE" | undefined>(props.licenseType);
 
   const formMethods = useForm<ChooseLicenseFormValues>({
     defaultValues: {
       licenseKey: props.licenseKey || "",
+      licenseType: props.licenseType,
     },
     resolver: zodResolver(chooseLicenseSchema),
   });
@@ -37,11 +57,24 @@ const ChooseLicense = (props: {
       <Form
         form={formMethods}
         className="space-y-4"
-        handleSubmit={(values) => {
-          // onSubmit(values);
+        handleSubmit={async (values) => {
+          if (values.licenseType === "EE") {
+            const licenseKey = values.licenseKey;
+            if (licenseKey) {
+              const licenseStatus = await checkLicenseKey(licenseKey);
+              if (!licenseStatus) {
+                formMethods.setError("licenseKey", { message: "Invalid license key" });
+                return;
+              }
+            }
+          }
+          props.onSuccess({
+            value: values.licenseType,
+            licenseKey: values.licenseKey,
+          });
         }}>
         <RadioGroup.Root
-          defaultValue={licenseType}
+          value={watchLicenseType}
           aria-label={t("choose_a_license")}
           className="grid grid-rows-2 gap-4 md:grid-cols-2 md:grid-rows-1"
           onValueChange={(value: "FREE" | "EE") => {
@@ -83,12 +116,29 @@ const ChooseLicense = (props: {
           <span className="text-subtle mx-4 text-sm font-bold">{t("already_have_license_key")}</span>
           <hr className="border-subtle w-full" />
         </div>
-        <TextField
+        <Controller
+          control={formMethods.control}
           name="licenseKey"
-          label={t("license_key")}
-          placeholder="cal_live_XXXXXXXXXXXXXXXXX"
-          {...formMethods.register("licenseKey")}
+          render={({ field }) => {
+            return (
+              <TextField
+                error={formMethods.formState.errors.licenseKey?.message}
+                label={t("license_key")}
+                placeholder="cal_live_XXXXXXXXXXXXXXXXX"
+                {...field}
+                onChange={(e) => {
+                  formMethods.setValue("licenseType", "EE");
+                  field.onChange(e);
+                }}
+              />
+            );
+          }}
         />
+        <div className="flex justify-end">
+          <Button type="submit" loading={formMethods.formState.isSubmitting}>
+            {t("continue")}
+          </Button>
+        </div>
       </Form>
     </>
   );
