@@ -1,5 +1,5 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
-import { GetCookies } from "@/lib/decorators/get-cookies.decorator";
+import { Cookies } from "@/lib/decorators/cookies.decorator";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
 import { ReserveSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
@@ -26,10 +26,10 @@ export class SlotsController_2024_09_04 {
   @Post("/")
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
-    @GetCookies("uid") cookieUid: string | undefined,
+    @Cookies("uid") uidCookie: string | undefined,
     @Res({ passthrough: true }) response: ExpressResponse
   ): Promise<ReserveSlotOutput_2024_09_04> {
-    const uid = await this.slotsService.reserveSlot(body, cookieUid);
+    const uid = await this.slotsService.reserveSlot(body, uidCookie);
 
     response.cookie("uid", uid);
 
