@@ -7,7 +7,6 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
 
-import { DubAnalytics } from "@lib/dub-analytics";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
@@ -110,7 +109,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <DubAnalytics />
         {children}
       </body>
     </html>
