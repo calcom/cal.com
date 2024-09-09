@@ -1,5 +1,5 @@
 import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
-import { IsBoolean, IsNumber, IsOptional } from "class-validator";
+import { IsBoolean, IsString, IsNumber, IsOptional } from "class-validator";
 
 import type { AppsStatus } from "@calcom/platform-libraries";
 
@@ -21,4 +21,8 @@ export class CreateRecurringBookingInput_2024_04_15 extends CreateBookingInput_2
   @IsOptional()
   @IsNumber()
   currentRecurringIndex?: number;
+
+  @IsString()
+  @IsOptional()
+  recurringEventId?: string;
 }

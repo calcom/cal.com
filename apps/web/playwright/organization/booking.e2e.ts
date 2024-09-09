@@ -505,15 +505,15 @@ async function bookTeamEvent({
   await expect(page.getByTestId("success-page")).toBeVisible();
 
   // The title of the booking
-  if (event.schedulingType === SchedulingType.ROUND_ROBIN) {
+  if (event.schedulingType === SchedulingType.ROUND_ROBIN && teamMatesObj) {
     const bookingTitle = await page.getByTestId("booking-title").textContent();
 
-    expect(
-      teamMatesObj?.some((teamMate) => {
-        const BookingTitle = `${event.title} between ${teamMate.name} and ${testName}`;
-        return BookingTitle === bookingTitle;
-      })
-    ).toBe(true);
+    const isMatch = teamMatesObj?.some((teamMate) => {
+      const expectedTitle = `${event.title} between ${teamMate.name} and ${testName}`;
+      return expectedTitle.trim() === bookingTitle?.trim();
+    });
+
+    expect(isMatch).toBe(true);
   } else {
     const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
     await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);

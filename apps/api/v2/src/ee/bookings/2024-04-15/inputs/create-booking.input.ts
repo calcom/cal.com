@@ -59,10 +59,6 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   rescheduleUid?: string;
 
-  @IsString()
-  @IsOptional()
-  recurringEventId?: string;
-
   @IsTimeZone()
   timeZone!: string;
 

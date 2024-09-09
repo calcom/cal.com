@@ -1,7 +1,7 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { React } from "react";
+import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
 
@@ -13,6 +13,7 @@ import {
   setMockMatchMedia,
   pageObject,
   expectScenario,
+  getLocationBookingField,
 } from "./testUtils";
 
 vi.mock("@formkit/auto-animate/react", () => ({
@@ -115,43 +116,23 @@ describe("FormBuilder", () => {
               },
             },
           },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          shouldConsiderRequired: ({ field: any }) => {
-            field.name === "location" ? true : false;
+          // @typescript-eslint/no-explicit-any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          shouldConsiderRequired: (field: any) => {
+            return field.name === "location" ? true : false;
           },
         },
-        // TODO: May be we should get this from getBookingFields directly which tests more practical cases
         formDefaultValues: {
-          fields: [
-            {
-              defaultLabel: "location",
-              type: field.type,
-              name: field.identifier,
-              editable: "system",
-              hideWhenJustOneOption: true,
-              required: false,
-              getOptionsAt: "locations",
-              optionsInputs: {
-                attendeeInPerson: {
-                  type: "address",
-                  required: true,
-                  placeholder: "",
-                },
-                phone: {
-                  type: "phone",
-                  required: true,
-                  placeholder: "",
-                },
-              },
-            },
-          ],
+          fields: [getLocationBookingField()],
         },
       });
 
       // editable:'system' field can't be deleted
-      expect(pageObject.queryDeleteButton({ identifier: field.identifier })).toBeNull();
+      expectScenario.toNotHaveDeleteButton({ identifier: field.identifier });
       // editable:'system' field can't be toggled
-      expect(pageObject.queryToggleButton({ identifier: field.identifier })).toBeNull();
+      expectScenario.toNotHaveToggleButton({ identifier: field.identifier });
+      expectScenario.toHaveSourceBadge({ identifier: field.identifier, sourceLabel: "1 Location" });
+      expectScenario.toHaveRequiredBadge({ identifier: field.identifier });
 
       const newFieldDialog = pageObject.openAddFieldDialog();
 
