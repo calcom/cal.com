@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import prisma from "@calcom/prisma";
 
 import config from "../config.json";
@@ -8,19 +9,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
-  const appType = config.type;
-  const teamId =
-    req.query?.teamId && typeof req.query?.teamId === "string"
-      ? parseInt(req.query?.teamId as string)
-      : undefined;
-  const whereClause =
-    teamId !== undefined && !Number.isNaN(teamId)
-      ? { type: appType, teamId }
-      : { type: appType, userId: req.session.user.id };
 
+  const { teamId } = req.query;
+
+  await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
+  const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
+
+  const appType = config.type;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
-      where: whereClause,
+      where: {
+        type: appType,
+        ...installForObject,
+      },
     });
     if (alreadyInstalled) {
       throw new Error("Already installed");
