@@ -306,10 +306,7 @@ export const BookerPlatformWrapper = (
   });
 
   const slots = useSlots(event);
-  // const [calendarSettingsOverlay] = useOverlayCalendarStore(
-  //   (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
-  //   shallow
-  // );
+
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
     enabled: props.isOverlayCalendarEnabled ?? false,
   });
