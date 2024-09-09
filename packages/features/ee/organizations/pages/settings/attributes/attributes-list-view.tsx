@@ -188,14 +188,17 @@ function OrganizationAttributesPage() {
 
 function ListAttributeHeader() {
   const { meta } = useMeta();
+  const { t } = useLocale();
 
   return (
     <>
       <div className="min-h-6 mb-6 mt-6 flex flex-grow items-center justify-between lg:mt-12">
         <div className="flex items-center gap-4 ">
           <div className="flex flex-col space-y-1 ">
-            <h1 className="text-emphasis font-cal text-xl font-semibold leading-none">{meta.title}</h1>
-            <p className="text-subtle text-sm">{meta.description}</p>
+            <h1 className="text-emphasis font-cal text-xl font-semibold leading-none">
+              {meta.title || t("attributes")}
+            </h1>
+            <p className="text-subtle text-sm">{meta.description || t("attribute_meta_description")}</p>
           </div>
         </div>
       </div>
