@@ -28,6 +28,7 @@ export type BookingRedirectForm = {
   reasonId: number;
   notes?: string;
   uuid?: string | null;
+  forUserId: number | null;
 };
 
 export const CreateOrEditOutOfOfficeEntryModal = ({
