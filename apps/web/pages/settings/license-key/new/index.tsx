@@ -1,12 +1,13 @@
 "use client";
 
-import { CreateANewLicenseKeyForm } from "@calcom/features/ee/deployment/licensekey/CreateLicenseKeyForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout, Meta } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
-import { getServerSideProps } from "@lib/settings/license-keys/new/getServerSideProps";
+import { getServerSideProps } from "@lib/settings/license-key/new/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
+
+import CreateANewLicenseKeyForm, { LayoutWrapper } from "~/settings/license-key/new/new-view";
 
 const CreateNewLicenseKeyPage = () => {
   const { t } = useLocale();
@@ -15,13 +16,6 @@ const CreateNewLicenseKeyPage = () => {
       <Meta title={t("set_up_your_organization")} description={t("organizations_description")} />
       <CreateANewLicenseKeyForm />
     </>
-  );
-};
-const LayoutWrapper = (page: React.ReactElement) => {
-  return (
-    <WizardLayout currentStep={1} maxSteps={2}>
-      {page}
-    </WizardLayout>
   );
 };
 
