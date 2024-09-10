@@ -2,8 +2,10 @@ import { withAppDirSsg } from "app/WithAppDirSsg";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import { getServerSession } from "next-auth";
 import { headers, cookies } from "next/headers";
 
+import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
 import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 
@@ -24,7 +26,30 @@ const getData = withAppDirSsg(getStaticProps);
 
 export const generateStaticParams = () => [];
 
-export default WithLayout({ getLayout: null, getData, Page: LegacyPage })<"P">;
+const Page = async ({ params, searchParams }: PageProps) => {
+  const session = await getServerSession(AUTH_OPTIONS);
+  const user = session?.user;
+  const { workflow: id } = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const workflow = await WorkflowRepository.getById({ id: +id });
+  let verifiedEmails, verifiedNumbers;
+  try {
+    verifiedEmails = await WorkflowRepository.getVerifiedEmails({
+      userEmail: user?.email ?? null,
+      userId: user?.id ?? null,
+      teamId: workflow?.team?.id,
+    });
+  } catch (err) {}
+  try {
+    verifiedNumbers = await WorkflowRepository.getVerifiedNumbers({
+      userId: user?.id ?? null,
+      teamId: workflow?.team?.id,
+    });
+  } catch (err) {}
+
+  return <LegacyPage workflow={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers} />;
+};
+
+export default WithLayout({ getLayout: null, getData, ServerPage: Page })<"P">;
 export const dynamic = "force-static";
 // generate segments on demand
 export const dynamicParams = true;

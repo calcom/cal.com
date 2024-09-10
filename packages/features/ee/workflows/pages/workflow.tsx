@@ -12,6 +12,7 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
+import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -37,7 +38,17 @@ export type FormValues = {
   selectAll: boolean;
 };
 
-function WorkflowPage() {
+type PageProps = {
+  workflow?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
+  verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
+  verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
+};
+
+function WorkflowPage({
+  workflow: workflowProp,
+  verifiedNumbers: verifiedNumbersProp,
+  verifiedEmails: verifiedEmailsProp,
+}: PageProps) {
   const { t, i18n } = useLocale();
   const session = useSession();
   const params = useParamsWithFallback();
@@ -58,27 +69,33 @@ function WorkflowPage() {
   const user = userQuery.data;
 
   const {
-    data: workflow,
+    data: workflowData,
     isError,
     error,
     isPending: isPendingWorkflow,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
-      enabled: !!workflowId,
+      enabled: !!workflowId && !workflowProp,
     }
   );
+  const workflow = workflowProp ?? workflowData;
 
-  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
-      enabled: !!workflow?.id,
+      enabled: !!workflow?.id && !verifiedNumbersProp,
     }
   );
+  const verifiedNumbers = verifiedNumbersProp ?? verifiedNumbersData;
 
-  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
-    teamId: workflow?.team?.id,
-  });
+  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
+    {
+      teamId: workflow?.team?.id,
+    },
+    { enabled: !verifiedEmailsProp }
+  );
+  const verifiedEmails = verifiedEmailsProp ?? verifiedEmailsData;
 
   const isOrg = workflow?.team?.isOrganization ?? false;
 
