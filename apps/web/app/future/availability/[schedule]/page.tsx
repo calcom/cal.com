@@ -29,6 +29,11 @@ export const generateMetadata = async ({ params }: PageProps) => {
 };
 
 const Page = async ({ params }: PageProps) => {
+  if (params?.schedule) {
+    notFound();
+  }
+  const scheduleId = Number(params.schedule);
+
   const session = await getServerSession(AUTH_OPTIONS);
   const userId = session?.user?.id;
   if (!userId) {
@@ -45,22 +50,20 @@ const Page = async ({ params }: PageProps) => {
         defaultScheduleId: true,
       },
     });
+    if (!userData?.timeZone || !userData?.defaultScheduleId) {
+      throw new Error("timeZone and defaultScheduleId not found");
+    }
   } catch (e) {
     notFound();
   }
 
-  if (params?.schedule) {
-    notFound();
-  }
-
-  const scheduleId = Number(params.schedule);
   try {
     schedule = await ScheduleRepository.findDetailedScheduleById({
       scheduleId,
       isManagedEventType: false,
       userId,
-      timeZone: userData?.timeZone ?? "Europe/London",
-      defaultScheduleId: userData?.defaultScheduleId ?? -1,
+      timeZone: userData.timeZone,
+      defaultScheduleId: userData.defaultScheduleId,
     });
   } catch (e) {}
 
