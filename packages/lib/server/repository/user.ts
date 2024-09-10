@@ -567,4 +567,12 @@ export class UserRepository {
     }
     return teamIds;
   }
+
+  static async adminFindById(userId: number) {
+    return await prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+    });
+  }
 }
