@@ -151,6 +151,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.getByViewer.invalidate();
     },
     onError: (err) => {
       let message = "";
@@ -210,6 +211,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       instantMeetingExpiryTimeOffsetInSeconds: eventType.instantMeetingExpiryTimeOffsetInSeconds,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
+      instantMeetingSchedule: eventType.instantMeetingSchedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
       onlyShowFirstAvailableSlot: eventType.onlyShowFirstAvailableSlot || undefined,
       durationLimits: eventType.durationLimits || undefined,

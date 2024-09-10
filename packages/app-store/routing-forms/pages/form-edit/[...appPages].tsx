@@ -27,6 +27,7 @@ import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
+import { FieldTypes } from "../../lib/FieldTypes";
 
 export { getServerSideProps };
 type SelectOption = { label: string; id: string | null };
@@ -49,37 +50,6 @@ const appendArray = <T,>({
 };
 
 const PASTE_OPTIONS_SEPARATOR_REGEX = /\n+/;
-
-export const FieldTypes = [
-  {
-    label: "Short Text",
-    value: "text",
-  },
-  {
-    label: "Number",
-    value: "number",
-  },
-  {
-    label: "Long Text",
-    value: "textarea",
-  },
-  {
-    label: "Single Selection",
-    value: "select",
-  },
-  {
-    label: "Multiple Selection",
-    value: "multiselect",
-  },
-  {
-    label: "Phone",
-    value: "phone",
-  },
-  {
-    label: "Email",
-    value: "email",
-  },
-];
 
 function Field({
   hookForm,
@@ -298,7 +268,8 @@ function Field({
               <ul ref={animationRef}>
                 {watchedOptions.map((option, index) => (
                   <li
-                    key={`select-option-${option.id}`}
+                    // We can't use option.id here as it is undefined and would make keys non-unique causing duplicate items
+                    key={`select-option-${index}`}
                     className="group mt-2 flex items-center gap-2"
                     onPaste={(event: ClipboardEvent) =>
                       handlePasteInOptionAtIndex({ event, optionIndex: index })
