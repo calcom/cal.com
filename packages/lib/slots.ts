@@ -18,7 +18,7 @@ export type GetSlots = {
   offsetStart?: number;
   organizerTimeZone: string;
   datesOutOfOffice?: IOutOfOfficeData;
-  showOptimizedSlots?: boolean;
+  showOptimizedSlots?: boolean | null;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -161,7 +161,7 @@ function buildSlotsWithDateRanges({
   organizerTimeZone: string;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
-  showOptimizedSlots?: boolean;
+  showOptimizedSlots?: boolean | null;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
