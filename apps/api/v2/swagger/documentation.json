@@ -5326,7 +5326,7 @@
           },
           "enabled": {
             "type": "object",
-            "default": false,
+            "default": true,
             "description": "Enabled status"
           },
           "templateType": {

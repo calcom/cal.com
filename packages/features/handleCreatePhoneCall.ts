@@ -24,9 +24,6 @@ export const handleCreatePhoneCall = async ({
     identifier: `createPhoneCall:${user.id}`,
   });
 
-  // TODO: Remove this
-  return { callId: "test", agentId: "Test" };
-
   await validatePhoneNumber(input.yourPhoneNumber);
 
   const {
