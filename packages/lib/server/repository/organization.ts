@@ -239,6 +239,21 @@ export class OrganizationRepository {
     };
   }
 
+  static async findTeamsInOrgIamNotPartOf({ userId, parentId }: { userId: number; parentId: number | null }) {
+    const teamsInOrgIamNotPartOf = await prisma.team.findMany({
+      where: {
+        parentId,
+        members: {
+          none: {
+            userId,
+          },
+        },
+      },
+    });
+
+    return teamsInOrgIamNotPartOf;
+  }
+
   static async adminFindById({ id }: { id: number }) {
     const org = await prisma.team.findUnique({
       where: {
@@ -273,7 +288,6 @@ export class OrganizationRepository {
         },
       },
     });
-
     if (!org) {
       throw new Error("Organization not found");
     }

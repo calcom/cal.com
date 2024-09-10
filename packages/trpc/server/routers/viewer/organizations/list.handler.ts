@@ -1,5 +1,4 @@
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -7,7 +6,6 @@ import { TRPCError } from "@trpc/server";
 type ListHandlerInput = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaClient;
   };
 };
 
