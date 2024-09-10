@@ -462,6 +462,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       },
     });
 
+    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
+
     for (const workflowReminder of workflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
@@ -470,6 +472,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         await scheduleEmailReminder({
           evt: {
             ...evt,
+            metadata: workflowEventMetadata,
             eventType,
           },
           action: WorkflowActions.EMAIL_HOST,
@@ -530,8 +533,6 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         },
       },
     });
-
-    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
 
     await scheduleWorkflowReminders({
       workflows: newEventWorkflows,

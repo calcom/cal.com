@@ -20,7 +20,7 @@ export type BookingOptions = {
   bookingUid?: string;
   seatReferenceUid?: string;
   hashedLink?: string | null;
-  teamMemberEmail?: string;
+  teamMemberEmail?: string | null;
   orgSlug?: string;
 };
 

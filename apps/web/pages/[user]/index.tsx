@@ -1,16 +1,11 @@
-import { type AppProps } from "@lib/app-providers";
+import PageWrapper from "@components/PageWrapper";
 
-import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+import User, { type PageProps } from "~/users/views/users-public-view";
 
-import User from "~/users/views/users-public-view";
+export { getServerSideProps } from "~/users/views/users-public-view.getServerSideProps";
 
-export { getServerSideProps, type UserPageProps } from "~/users/views/users-public-view.getServerSideProps";
+const UserPage = (props: PageProps) => <User {...props} />;
 
-const UserPage = User as unknown as CalPageWrapper & {
-  isBookingPage: AppProps["Component"]["isBookingPage"];
-};
-
-UserPage.isBookingPage = true;
 UserPage.PageWrapper = PageWrapper;
 
 export default UserPage;
