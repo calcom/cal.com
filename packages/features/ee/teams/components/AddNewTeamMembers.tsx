@@ -104,7 +104,7 @@ export const AddNewTeamMembersForm = ({
   return (
     <>
       <div>
-        {defaultValues.members.length > 0 && (
+        {defaultValues?.members?.length > 0 && (
           <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
             {defaultValues.members.map((member, index) => (
               <PendingMemberItem
@@ -122,7 +122,7 @@ export const AddNewTeamMembersForm = ({
           data-testid="new-member-button"
           StartIcon="plus"
           onClick={() => setMemberInviteModal(true)}
-          className={classNames("w-full justify-center", defaultValues.members.length > 0 && "mt-6")}>
+          className={classNames("w-full justify-center", defaultValues?.members?.length > 0 && "mt-6")}>
           {isOrg ? t("add_org_members") : t("add_team_member")}
         </Button>
       </div>
