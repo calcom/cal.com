@@ -1,15 +1,14 @@
-"use client";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { CreateANewPlatformForm } from "@calcom/features/ee/platform/components/index";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout, Meta } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-const CreateNewOrganizationPage = () => {
+import CreateNewOrganizationPage, { LayoutWrapper } from "~/settings/platform/new/create-new-view";
+
+const Page = () => {
   const { t } = useLocale();
   return (
     <LicenseRequired>
@@ -17,21 +16,14 @@ const CreateNewOrganizationPage = () => {
         title={t("set_up_your_platform_organization")}
         description={t("platform_organization_description")}
       />
-      <CreateANewPlatformForm />
+      <CreateNewOrganizationPage />
     </LicenseRequired>
   );
 };
-export const LayoutWrapper = (page: React.ReactElement) => {
-  return (
-    <WizardLayout currentStep={1} maxSteps={1}>
-      {page}
-    </WizardLayout>
-  );
-};
 
-CreateNewOrganizationPage.getLayout = LayoutWrapper;
-CreateNewOrganizationPage.PageWrapper = PageWrapper;
+Page.getLayout = LayoutWrapper;
+Page.PageWrapper = PageWrapper;
 
-export default CreateNewOrganizationPage;
+export default Page;
 
 export { getServerSideProps };
