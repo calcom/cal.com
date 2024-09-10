@@ -39,13 +39,13 @@ export type FormValues = {
 };
 
 type PageProps = {
-  workflow?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
+  workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
   verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
   verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
 };
 
 function WorkflowPage({
-  workflow: workflowProp,
+  workflowData: workflowDataProp,
   verifiedNumbers: verifiedNumbersProp,
   verifiedEmails: verifiedEmailsProp,
 }: PageProps) {
@@ -70,25 +70,27 @@ function WorkflowPage({
 
   const {
     data: workflowData,
-    isError,
+    isError: _isError,
     error,
     isPending: _isPendingWorkflow,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
-      enabled: !!workflowId && !workflowProp,
+      enabled: workflowDataProp ? false : !!workflowId,
     }
   );
-  const workflow = workflowProp ?? workflowData;
-  const isPendingWorkflow = _isPendingWorkflow && !workflowProp;
+
+  const workflow = workflowDataProp || workflowData;
+  const isPendingWorkflow = workflowDataProp ? false : _isPendingWorkflow;
+  const isError = workflowDataProp ? false : _isError;
 
   const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
-      enabled: !!workflow?.id && !verifiedNumbersProp,
+      enabled: verifiedNumbersProp ? false : !!workflow?.id,
     }
   );
-  const verifiedNumbers = verifiedNumbersProp ?? verifiedNumbersData;
+  const verifiedNumbers = verifiedNumbersProp || verifiedNumbersData;
 
   const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
     {
@@ -96,7 +98,7 @@ function WorkflowPage({
     },
     { enabled: !verifiedEmailsProp }
   );
-  const verifiedEmails = verifiedEmailsProp ?? verifiedEmailsData;
+  const verifiedEmails = verifiedEmailsProp || verifiedEmailsData;
 
   const isOrg = workflow?.team?.isOrganization ?? false;
 
@@ -153,7 +155,7 @@ function WorkflowPage({
           setSelectedOptions(activeOn || []);
         } else {
           setSelectedOptions(
-            workflowData.activeOn.flatMap((active) => {
+            workflowData.activeOn?.flatMap((active) => {
               if (workflowData.teamId && active.eventType.parentId) return [];
               return {
                 value: String(active.eventType.id),
@@ -170,7 +172,7 @@ function WorkflowPage({
         }
       }
       //translate dynamic variables into local language
-      const steps = workflowData.steps.map((step) => {
+      const steps = workflowData.steps?.map((step) => {
         const updatedStep = {
           ...step,
           senderName: step.sender,
@@ -360,7 +362,7 @@ function WorkflowPage({
                 )}
               </>
             ) : (
-              <Alert severity="error" title="Something went wrong" message={error.message} />
+              <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
             )}
           </ShellMain>
         </Form>

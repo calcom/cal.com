@@ -43,7 +43,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
     }
   );
   const filteredWorkflows = filteredList ?? data;
-  const isPending = _isPending && !filteredList;
+  const isPending = filteredList ? false : _isPending;
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {

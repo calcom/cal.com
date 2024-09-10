@@ -47,7 +47,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
     });
   } catch (err) {}
 
-  return <LegacyPage workflow={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers} />;
+  return (
+    <LegacyPage workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers} />
+  );
 };
 
 export default WithLayout({ getLayout: null, ServerPage: Page });
