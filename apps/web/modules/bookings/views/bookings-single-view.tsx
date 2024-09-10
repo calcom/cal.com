@@ -643,7 +643,7 @@ export default function Success(props: PageProps) {
                           )
                             return null;
 
-                          const label = field.label || t(field.defaultLabel);
+                          const label = field.label || t(field.defaultLabel || "");
 
                           return (
                             <>
