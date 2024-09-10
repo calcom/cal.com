@@ -56,6 +56,7 @@ export class GetBookingsInput_2024_08_13 {
   @IsString()
   @IsOptional()
   @ApiProperty({
+    type: String,
     required: false,
     description: "Filter bookings by the attendee's email address.",
     example: "example@domain.com",
@@ -65,6 +66,7 @@ export class GetBookingsInput_2024_08_13 {
   @IsString()
   @IsOptional()
   @ApiProperty({
+    type: String,
     required: false,
     description: "Filter bookings by the attendee's name.",
     example: "John Doe",
@@ -81,11 +83,24 @@ export class GetBookingsInput_2024_08_13 {
   @IsArray()
   @IsNumber({}, { each: true })
   @ArrayMinSize(1, { message: "eventTypeIds must contain at least 1 event type id" })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description:
+      "Filter bookings by event type ids belonging to the user. Event type ids must be separated by a comma.",
+    example: "?eventTypeIds=100,200",
+  })
   eventTypeIds?: number[];
 
   @IsInt()
   @IsOptional()
   @Type(() => Number)
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings by event type id belonging to the user.",
+    example: "?eventTypeId=100",
+  })
   eventTypeId?: number;
 
   @IsOptional()
@@ -98,19 +113,43 @@ export class GetBookingsInput_2024_08_13 {
   @IsArray()
   @IsNumber({}, { each: true })
   @ArrayMinSize(1, { message: "teamIds must contain at least 1 team id" })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings by team ids that user is part of. Team ids must be separated by a comma.",
+    example: "?teamIds=50,60",
+  })
   teamsIds?: number[];
 
   @IsInt()
   @IsOptional()
   @Type(() => Number)
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings by team id that user is part of",
+    example: "?teamId=50",
+  })
   teamId?: number;
 
   @IsOptional()
   @IsISO8601({ strict: true }, { message: "fromDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings with start after this date string.",
+    example: "?afterStart=2025-03-07T10:00:00.000Z",
+  })
   afterStart?: string;
 
   @IsOptional()
   @IsISO8601({ strict: true }, { message: "toDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings with end before this date string.",
+    example: "?beforeEnd=2025-03-07T11:00:00.000Z",
+  })
   beforeEnd?: string;
 
   // note(Lauris): sort
@@ -118,17 +157,36 @@ export class GetBookingsInput_2024_08_13 {
   @IsEnum(SortOrder, {
     message: 'SortStart must be either "asc" or "desc".',
   })
+  @ApiProperty({
+    required: false,
+    description: "Sort results by their start time in ascending or descending order.",
+    example: "?sortStart=asc OR ?sortStart=desc",
+    enum: SortOrder,
+  })
   sortStart?: SortOrderType;
 
   @IsOptional()
   @IsEnum(SortOrder, {
     message: 'SortEnd must be either "asc" or "desc".',
   })
+  @ApiProperty({
+    required: false,
+    description: "Sort results by their end time in ascending or descending order.",
+    example: "?sortEnd=asc OR ?sortEnd=desc",
+    enum: SortOrder,
+  })
   sortEnd?: SortOrderType;
 
   @IsOptional()
   @IsEnum(SortOrder, {
     message: 'SortCreated must be either "asc" or "desc".',
+  })
+  @ApiProperty({
+    required: false,
+    description:
+      "Sort results by their creation time (when booking was made) in ascending or descending order.",
+    example: "?sortEnd=asc OR ?sortEnd=desc",
+    enum: SortOrder,
   })
   sortCreated?: SortOrderType;
 
