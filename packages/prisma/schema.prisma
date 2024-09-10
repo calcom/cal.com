@@ -1,6 +1,5 @@
 // This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-// CI Cache Busting Number - 1
 
 datasource db {
   provider  = "postgresql"
