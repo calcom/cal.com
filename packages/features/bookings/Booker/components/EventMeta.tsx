@@ -171,13 +171,11 @@ export const EventMeta = ({
               </EventMetaBlock>
             </>
           )}
-          <div className="">
+          <div>
             <div
-              className={
-                showMessage
-                  ? "flex flex-col items-start "
-                  : "" + "mb-4 flex items-center gap-4 space-y-4 font-medium md:ml-28 md:pl-2 "
-              }>
+              className={`${
+                showMessage ? "flex-col items-start " : "items-center "
+              }mb-4 flex gap-4 space-y-4 font-medium md:ml-28 md:pl-2`}>
               {/* {rescheduleUid && bookingData && (
                 <EventMetaBlock icon="calendar">
                   {t("former_time")}
@@ -205,12 +203,12 @@ export const EventMeta = ({
                 </EventMetaBlock>
               )} */}
               {showMessage && (
-                <span className="text-bas -mb-4 flex items-center gap-2">
+                <span className="-mb-4 ml-0.5 flex items-center gap-2 text-base">
                   <Icon
                     name="calendar"
                     data-testid="calendar-icon"
                     className="mr-2 h-3 w-3 stroke-[3px]"
-                    scale={2}
+                    style={{ scale: 2 }}
                   />
                   A partir de {date}, {time}
                 </span>
