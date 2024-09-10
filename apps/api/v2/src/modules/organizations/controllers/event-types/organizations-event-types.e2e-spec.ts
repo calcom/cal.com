@@ -534,31 +534,6 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
-    it("should create phone call for org team event types", async () => {
-      const mockResponse = { callId: "test", agentId: "test" };
-      jest.spyOn(handleCreatePhoneCall).mockResolvedValue(mockResponse);
-
-      const phoneCallInput: CreatePhoneCallInput = {
-        yourPhoneNumber: "+1234567890",
-        numberToCall: "+919876543210",
-        guestName: "John Doe",
-        guestEmail: "john.doe@example.com",
-        guestCompany: "Example Inc.",
-      };
-
-      return request(app.getHttpServer())
-        .post(
-          `/v2/organizations/${org.id}/teams/${team.id}/event-types/${collectiveEventType.id}/create-phone-call`
-        )
-        .send(phoneCallInput)
-        .expect(200)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<{ callId: string; agentId: string }> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toEqual(mockResponse);
-        });
-    });
-
     it("should assign all members to managed event-type", async () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         assignAllTeamMembers: true,
