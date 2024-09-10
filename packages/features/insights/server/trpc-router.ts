@@ -210,16 +210,16 @@ export const insightsRouter = router({
           ...whereConditional,
           OR: [
             {
-              userId: {
-                in: userIdsFromOrg,
-              },
-              isTeamBooking: false,
-            },
-            {
               teamId: {
                 in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
               isTeamBooking: true,
+            },
+            {
+              userId: {
+                in: userIdsFromOrg,
+              },
+              isTeamBooking: false,
             },
           ],
         };
@@ -437,16 +437,16 @@ export const insightsRouter = router({
         whereConditional = {
           OR: [
             {
-              userId: {
-                in: userIdsFromOrg,
-              },
-              isTeamBooking: false,
-            },
-            {
               teamId: {
                 in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
               isTeamBooking: true,
+            },
+            {
+              userId: {
+                in: userIdsFromOrg,
+              },
+              isTeamBooking: false,
             },
           ],
         };
@@ -615,16 +615,16 @@ export const insightsRouter = router({
           ...bookingWhere,
           OR: [
             {
-              userId: {
-                in: userIdsFromOrg,
-              },
-              isTeamBooking: false,
-            },
-            {
               teamId: {
                 in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
               },
               isTeamBooking: true,
+            },
+            {
+              userId: {
+                in: userIdsFromOrg,
+              },
+              isTeamBooking: false,
             },
           ],
         };
