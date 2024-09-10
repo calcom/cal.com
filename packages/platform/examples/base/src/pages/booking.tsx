@@ -25,13 +25,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
       className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
       <Navbar username={props.calUsername} />
       <div>
-        <h1 className="mx-10 my-4 text-2xl font-semibold">{props.calUsername} Public Booking Page</h1>
+        {/* <h1 className="mx-10 my-4 text-2xl font-semibold">{props.calUsername} Public Booking Page</h1> */}
 
         {isLoadingEvents && !eventTypeSlug && <p>Loading...</p>}
 
         {!isLoadingEvents && !eventTypeSlug && Boolean(eventTypes?.length) && !rescheduleUid && (
           <div className="flex flex-col gap-4">
-            <h1>User event types</h1>
+            {/* <h1>User event types</h1> */}
             {eventTypes?.map(
               (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
                 const formatEventSlug = event.slug
@@ -89,8 +89,9 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <>
-            <h1>{eventTypeSlug}</h1>
+            {/* <h1>{eventTypeSlug}</h1> */}
             <Booker
+              isOverlayCalendarEnabled={true}
               eventSlug={eventTypeSlug}
               onCreateBookingSuccess={(data) => {
                 setBookingTitle(data.data.title ?? "");
