@@ -603,7 +603,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should should get bookings by eventTypeIds", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?eventTypeIds[]=${eventTypeId}&eventTypeIds[]=${recurringEventTypeId}`)
+          .get(`/v2/bookings?eventTypeIds=${eventTypeId},${recurringEventTypeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -1395,7 +1395,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should should get bookings by teamIds", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?teamIds[]=${team1.id}&teamIds[]=${team2.id}`)
+          .get(`/v2/bookings?teamIds=${team1.id},${team2.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {

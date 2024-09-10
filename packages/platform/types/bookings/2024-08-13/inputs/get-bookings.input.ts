@@ -43,19 +43,43 @@ export class GetBookingsInput_2024_08_13 {
     each: true,
     message: "Invalid status. Allowed are upcoming, recurring, past, cancelled, unconfirmed",
   })
+  @ApiProperty({
+    required: false,
+    description:
+      "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+    example: "?status=upcoming,past",
+    enum: Status,
+    isArray: true,
+  })
   status?: StatusType[];
 
   @IsString()
   @IsOptional()
+  @ApiProperty({
+    required: false,
+    description: "Filter bookings by the attendee's email address.",
+    example: "example@domain.com",
+  })
   attendeeEmail?: string;
 
   @IsString()
   @IsOptional()
+  @ApiProperty({
+    required: false,
+    description: "Filter bookings by the attendee's name.",
+    example: "John Doe",
+  })
   attendeeName?: string;
 
-  @IsArray()
-  @Type(() => Number)
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((eventTypeId: string) => parseInt(eventTypeId));
+    }
+    return value;
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
   @ArrayMinSize(1, { message: "eventTypeIds must contain at least 1 event type id" })
   eventTypeIds?: number[];
 
@@ -64,9 +88,15 @@ export class GetBookingsInput_2024_08_13 {
   @Type(() => Number)
   eventTypeId?: number;
 
-  @IsArray()
-  @Type(() => Number)
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((teamId: string) => parseInt(teamId));
+    }
+    return value;
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
   @ArrayMinSize(1, { message: "teamIds must contain at least 1 team id" })
   teamsIds?: number[];
 
