@@ -15,8 +15,7 @@ const paramsSchema = z.object({
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
   const { duration: queryDuration } = context.query;
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
+
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const team = await prisma.team.findFirst({
@@ -38,6 +37,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
+  const { ssrInit } = await import("@server/lib/ssr");
+  const ssr = await ssrInit(context);
   const eventData = await ssr.viewer.public.event.fetch({
     username: teamSlug,
     eventSlug: meetingSlug,
