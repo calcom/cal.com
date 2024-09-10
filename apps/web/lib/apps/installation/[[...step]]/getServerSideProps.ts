@@ -78,8 +78,6 @@ const getAppBySlug = async (appSlug: string) => {
 };
 
 const getEventTypes = async (userId: number, teamIds?: number[]) => {
-  console.log("teamIdteamIdsteamIdss: ", teamIds);
-  console.log("userIuserIduserIdd: ", userId);
   const eventTypeSelect: Prisma.EventTypeSelect = {
     id: true,
     description: true,
@@ -157,7 +155,6 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
       },
     });
 
-    console.log("uuuseruserseruseruserser: ", user);
     if (user) {
       eventTypeGroups.push({
         userId: user.id,
