@@ -1,4 +1,6 @@
-import { Fragment, useEffect } from "react";
+"use client";
+
+import { useEffect } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import {
