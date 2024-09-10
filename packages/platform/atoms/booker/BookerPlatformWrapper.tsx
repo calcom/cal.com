@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -114,13 +114,14 @@ export const BookerPlatformWrapper = (
     }
     return "";
   }, [props.username]);
+  const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useBookerStore((state) => [
+    state.isOverlayCalendarEnabled,
+    state.setIsOverlayCalendarEnabled,
+    shallow,
+  ]);
 
   setSelectedDuration(props.duration ?? null);
   setOrg(props.entity?.orgSlug ?? null);
-
-  if (props.isOverlayCalendarEnabled) {
-    localStorage?.setItem("overlayCalendarSwitchDefault", "true");
-  }
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -343,6 +344,18 @@ export const BookerPlatformWrapper = (
     locationUrl: props.locationUrl,
   });
 
+  const onOverlaySwitchStateChange = useCallback((state: boolean) => {
+    // setToggleOverlayCalendar((prevState) => !prevState);
+    setIsOverlayCalendarEnabled(state);
+    if (state) {
+      localStorage.setItem("overlayCalendarSwitchDefault", "true");
+    } else {
+      localStorage.removeItem("overlayCalendarSwitchDefault");
+    }
+  }, []);
+
+  console.log(isOverlayCalendarEnabled, "is overlay calendar enabled or not");
+
   useEffect(() => {
     // reset booker whenever it's unmounted
     return () => {
@@ -398,9 +411,7 @@ export const BookerPlatformWrapper = (
         onClickOverlayContinue={function (): void {
           throw new Error("Function not implemented.");
         }}
-        onOverlaySwitchStateChange={function (): void {
-          throw new Error("Function not implemented.");
-        }}
+        onOverlaySwitchStateChange={onOverlaySwitchStateChange}
         extraOptions={extraOptions ?? {}}
         bookings={{
           handleBookEvent: () => {
@@ -424,7 +435,7 @@ export const BookerPlatformWrapper = (
         slots={slots}
         calendars={{
           overlayBusyDates: overlayBusyDates?.data,
-          isOverlayCalendarEnabled: props.isOverlayCalendarEnabled ?? false,
+          isOverlayCalendarEnabled: isOverlayCalendarEnabled,
           connectedCalendars: calendars?.connectedCalendars || [],
           loadingConnectedCalendar: fetchingConnectedCalendars,
           onToggleCalendar: () => {

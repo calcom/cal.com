@@ -291,35 +291,39 @@ const BookerComponent = ({
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
-                <Header
-                  isMyLink={Boolean(username === sessionUsername)}
-                  eventSlug={eventSlug}
-                  enabledLayouts={bookerLayouts.enabledLayouts}
-                  extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
-                  isMobile={isMobile}
-                  nextSlots={nextSlots}
-                  renderOverlay={() =>
-                    isEmbed ? (
-                      <></>
-                    ) : (
-                      <>
-                        <OverlayCalendar
-                          isOverlayCalendarEnabled={isOverlayCalendarEnabled}
-                          connectedCalendars={connectedCalendars}
-                          loadingConnectedCalendar={loadingConnectedCalendar}
-                          overlayBusyDates={overlayBusyDates}
-                          onToggleCalendar={onToggleCalendar}
-                          hasSession={hasSession}
-                          handleClickContinue={onClickOverlayContinue}
-                          handleSwitchStateChange={onOverlaySwitchStateChange}
-                          handleClickNoCalendar={() => {
-                            onOverlayClickNoCalendar();
-                          }}
-                        />
-                      </>
-                    )
-                  }
-                />
+                {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
+                  <></>
+                ) : (
+                  <Header
+                    isMyLink={Boolean(username === sessionUsername)}
+                    eventSlug={eventSlug}
+                    enabledLayouts={bookerLayouts.enabledLayouts}
+                    extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
+                    isMobile={isMobile}
+                    nextSlots={nextSlots}
+                    renderOverlay={() =>
+                      isEmbed ? (
+                        <></>
+                      ) : (
+                        <>
+                          <OverlayCalendar
+                            isOverlayCalendarEnabled={isOverlayCalendarEnabled}
+                            connectedCalendars={connectedCalendars}
+                            loadingConnectedCalendar={loadingConnectedCalendar}
+                            overlayBusyDates={overlayBusyDates}
+                            onToggleCalendar={onToggleCalendar}
+                            hasSession={hasSession}
+                            handleClickContinue={onClickOverlayContinue}
+                            handleSwitchStateChange={onOverlaySwitchStateChange}
+                            handleClickNoCalendar={() => {
+                              onOverlayClickNoCalendar();
+                            }}
+                          />
+                        </>
+                      )
+                    }
+                  />
+                )}
               </BookerSection>
             )}
             <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
