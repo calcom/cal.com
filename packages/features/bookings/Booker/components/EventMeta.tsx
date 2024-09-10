@@ -17,7 +17,7 @@ import { Icon } from "@calcom/ui";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 
-const MOBILE_WIDTH = 854;
+const MOBILE_WIDTH = 768;
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -91,10 +91,8 @@ export const EventMeta = ({
   }, [event, setTimezone]);
 
   useEffect(() => {
-    const hasRecurrenceInPath = pathname.includes("recurrence");
+    const hasRecurrenceInPath = pathname.includes("semanal") || pathname.includes("quinzenal");
     const handleResize = () => {
-      console.log({ pathname });
-      console.log({ width: window.innerWidth });
       setShowMessage(window.innerWidth < MOBILE_WIDTH && hasRecurrenceInPath);
     };
 
@@ -124,7 +122,7 @@ export const EventMeta = ({
     ? "text-yellow-500"
     : "text-bookinghighlight";
 
-  const startDate = new Date("2022-02-02T00:00:00.000Z");
+  const startDate = selectedTimeslot ? new Date(selectedTimeslot) : new Date();
   const date = new Intl.DateTimeFormat(i18n.language, {
     timeZone,
     dateStyle: "full",
