@@ -8,7 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button, ButtonGroup, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
 
-import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
 
@@ -134,7 +133,7 @@ export function Header({
           )}
         </ButtonGroup>
       </div>
-      <div className="ml-auto flex gap-2">
+      {/* <div className="ml-auto flex gap-2">
         {renderOverlay?.()}
         <TimeFormatToggle />
         <div className="fixed top-4 ltr:right-4 rtl:left-4">
@@ -144,13 +143,11 @@ export function Header({
             onLayoutToggle={onLayoutToggle}
           />
         </div>
-        {/*
           This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
           for the fixed toggle above to fit into. If we wouldn't make it fixed in this view, the transition
           would be really weird, because the element is positioned fixed in the month view, and then
           when switching layouts wouldn't anymore, causing it to animate from the center to the top right,
           while it actually already was on place. That's why we have this element twice.
-        */}
         <div className="pointer-events-none opacity-0" aria-hidden>
           <LayoutToggleWithData
             layout={layout}
@@ -158,7 +155,7 @@ export function Header({
             onLayoutToggle={onLayoutToggle}
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
