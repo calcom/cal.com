@@ -18,6 +18,7 @@ export type GetSlots = {
   offsetStart?: number;
   organizerTimeZone: string;
   datesOutOfOffice?: IOutOfOfficeData;
+  showOptimizedSlots?: boolean;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -150,6 +151,7 @@ function buildSlotsWithDateRanges({
   organizerTimeZone,
   offsetStart,
   datesOutOfOffice,
+  showOptimizedSlots,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -159,6 +161,7 @@ function buildSlotsWithDateRanges({
   organizerTimeZone: string;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
+  showOptimizedSlots?: boolean;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -192,17 +195,21 @@ function buildSlotsWithDateRanges({
       ? range.start
       : startTimeWithMinNotice;
 
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
-
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
       .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
       .isSame(range.end.endOf("day").add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"), "minute")
       ? range.end.add(1, "minute")
       : range.end;
+
+    slotStartTime =
+      slotStartTime.minute() % interval !== 0
+        ? showOptimizedSlots
+          ? slotStartTime.add(rangeEnd.diff(slotStartTime, "minutes") % interval, "minute")
+          : slotStartTime
+              .startOf("hour")
+              .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+        : slotStartTime;
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
@@ -258,6 +265,7 @@ const getSlots = ({
   offsetStart = 0,
   organizerTimeZone,
   datesOutOfOffice,
+  showOptimizedSlots,
 }: GetSlots) => {
   if (dateRanges) {
     const slots = buildSlotsWithDateRanges({
@@ -269,6 +277,7 @@ const getSlots = ({
       organizerTimeZone,
       offsetStart,
       datesOutOfOffice,
+      showOptimizedSlots,
     });
     return slots;
   }

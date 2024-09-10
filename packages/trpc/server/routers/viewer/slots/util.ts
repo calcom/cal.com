@@ -171,6 +171,7 @@ export async function getEventType(
       periodStartDate: true,
       periodEndDate: true,
       onlyShowFirstAvailableSlot: true,
+      showOptimizedSlots: true,
       periodCountCalendarDays: true,
       rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
@@ -614,6 +615,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+    showOptimizedSlots: eventType.showOptimizedSlots,
   });
 
   let availableTimeSlots: typeof timeSlots = [];

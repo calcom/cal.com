@@ -118,6 +118,7 @@ export type FormValues = {
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
+  showOptimizedSlots: boolean;
   children: ChildrenEventType[];
   hosts: Host[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
