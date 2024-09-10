@@ -238,26 +238,12 @@ export class UserRepository {
     };
   }
 
-  static async findById({ id }: { id: number }) {
+  static async findById({ id, select }: { id: number; select?: Prisma.UserSelect }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
       },
-      select: userSelect,
-    });
-
-    if (!user) {
-      return null;
-    }
-    return user;
-  }
-
-  static async findByIdWithOptionalSelect({ id, select }: { id: number; select?: Prisma.UserSelect }) {
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-      select: { ...select },
+      select: { ...userSelect, ...select },
     });
 
     if (!user) {

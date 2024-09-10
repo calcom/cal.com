@@ -20,7 +20,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   await ssr.viewer.me.prefetch();
 
-  const user = await UserRepository.findByIdWithOptionalSelect({
+  const user = await UserRepository.findById({
     id: session.user.id,
     select: {
       completedOnboarding: true,
