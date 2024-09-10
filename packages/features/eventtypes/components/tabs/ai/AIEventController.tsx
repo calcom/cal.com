@@ -150,7 +150,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
-      if (!!data?.call_id) {
+      if (!!data?.callId) {
         showToast("Phone Call Created successfully", "success");
       }
     },

@@ -29,7 +29,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { handleCreatePhoneCall } from "@calcom/platform-libraries";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries-0.0.0";
 import {
   CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -87,7 +87,14 @@ export class EventTypesController_2024_06_14 {
     @Body() body: CreatePhoneCallInput,
     @GetUser() user: UserWithProfile
   ): Promise<CreatePhoneCallOutput> {
-    const data = await handleCreatePhoneCall({ user, input: { ...body, eventTypeId } });
+    const data = await handleCreatePhoneCall({
+      user: {
+        id: user.id,
+        timeZone: user.timeZone,
+        profile: { organization: { id: user.profiles?.[0]?.organization?.id } },
+      },
+      input: { ...body, eventTypeId },
+    });
 
     return {
       status: SUCCESS_STATUS,

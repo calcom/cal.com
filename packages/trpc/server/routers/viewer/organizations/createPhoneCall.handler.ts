@@ -14,7 +14,14 @@ type CreatePhoneCallProps = {
 };
 
 const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
-  return await handleCreatePhoneCall({ user: ctx.user, input });
+  return await handleCreatePhoneCall({
+    user: {
+      id: ctx.user.id,
+      timeZone: ctx.user.timeZone,
+      profile: { organization: { id: ctx.user.profile.organization?.id } },
+    },
+    input,
+  });
 };
 
 export default createPhoneCallHandler;

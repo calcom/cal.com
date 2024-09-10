@@ -6,9 +6,11 @@ import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export class Data {
   @IsString()
+  @ApiProperty()
   callId!: string;
 
   @IsString()
+  @ApiProperty()
   agentId!: string;
 }
 

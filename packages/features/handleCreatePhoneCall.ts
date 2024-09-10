@@ -5,7 +5,6 @@ import type { TCreatePhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zo
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,10 +12,10 @@ export const handleCreatePhoneCall = async ({
   user,
   input,
 }: {
-  user: NonNullable<TrpcSessionUser>;
+  user: { timeZone: string; id: number; profile?: { organization?: { id?: number } } };
   input: TCreatePhoneCallSchema;
 }) => {
-  if (!!!user.profile.organization) {
+  if (!!!user?.profile?.organization) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
@@ -26,7 +25,7 @@ export const handleCreatePhoneCall = async ({
   });
 
   // TODO: Remove this
-  return { cal_id: "test" };
+  return { callId: "test", agentId: "Test" };
 
   await validatePhoneNumber(input.yourPhoneNumber);
 
@@ -125,5 +124,5 @@ export const handleCreatePhoneCall = async ({
   const createPhoneCallRes = await retellAI.createRetellPhoneCall(numberToCall);
   logger.debug("Create Call Response", createPhoneCallRes);
 
-  return createPhoneCallRes;
+  return { callId: createPhoneCallRes.call_id, agentId: createPhoneCallRes.agent_id };
 };

@@ -3,8 +3,8 @@ import { Transform } from "class-transformer";
 import { IsString, IsBoolean, IsOptional, IsEnum, Matches } from "class-validator";
 
 export enum TemplateType {
-  DEFAULT = "default",
-  CUSTOM = "custom",
+  CHECK_IN_APPOINTMENT = "CHECK_IN_APPOINTMENT",
+  CUSTOM_TEMPLATE = "CUSTOM_TEMPLATE",
 }
 
 export class CreatePhoneCallInput {
@@ -34,7 +34,7 @@ export class CreatePhoneCallInput {
 
   @IsEnum(TemplateType)
   @DocsProperty({ description: "Template type", enum: TemplateType })
-  templateType: TemplateType = TemplateType.CUSTOM;
+  templateType: TemplateType = TemplateType.CUSTOM_TEMPLATE;
 
   @IsOptional()
   @IsString()
