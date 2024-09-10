@@ -363,7 +363,7 @@ describe("Slots Endpoints", () => {
         });
     });
 
-    it("should reserve a slot and it should not appear in available slots and then delete the slot", async () => {
+    it("should reserve a slot and it should not appear in available slots", async () => {
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .post(`/api/v2/slots`)
@@ -400,9 +400,11 @@ describe("Slots Endpoints", () => {
         (slot) => slot !== slotStartTime
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+    });
 
+    it("should delete reserved slot", async () => {
       await request(app.getHttpServer())
-        .delete(`/api/v2/slots/${reservedSlot.uid}`)
+        .delete(`/api/v2/slots/${reservedSlotUid}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
     });
