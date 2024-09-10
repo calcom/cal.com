@@ -27,7 +27,7 @@ const Page = () => {
       router.push("/settings/platform");
       // user has a regular org redirect to organization settings
     } else {
-      router.push("/settings/organizations");
+      router.push("/settings/organizations/profile");
     }
     // display loader while redirection is happening
     return <SkeletonLoader />;
