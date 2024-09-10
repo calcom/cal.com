@@ -22,7 +22,8 @@ module.exports = defineConfig((configEnv) => {
     server: {
       // Helps us to test that embed works with these headers
       headers: {
-        "Cross-Origin-Embedder-Policy": "require-corp",
+        // TODO: https://github.com/calcom/cal.com/issues/16571
+        // "Cross-Origin-Embedder-Policy": "require-corp",
       },
     },
     build: {
