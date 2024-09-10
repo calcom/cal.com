@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -18,6 +19,7 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries-0.0.0";
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
@@ -529,6 +531,31 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate1Event?.title).toEqual(newTitle);
 
           managedEventType = responseBody.data[0];
+        });
+    });
+
+    it("should create phone call for org team event types", async () => {
+      const mockResponse = { callId: "test", agentId: "test" };
+      jest.spyOn(handleCreatePhoneCall).mockResolvedValue(mockResponse);
+
+      const phoneCallInput: CreatePhoneCallInput = {
+        yourPhoneNumber: "+1234567890",
+        numberToCall: "+919876543210",
+        guestName: "John Doe",
+        guestEmail: "john.doe@example.com",
+        guestCompany: "Example Inc.",
+      };
+
+      return request(app.getHttpServer())
+        .post(
+          `/v2/organizations/${org.id}/teams/${team.id}/event-types/${collectiveEventType.id}/create-phone-call`
+        )
+        .send(phoneCallInput)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<{ callId: string; agentId: string }> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toEqual(mockResponse);
         });
     });
 
