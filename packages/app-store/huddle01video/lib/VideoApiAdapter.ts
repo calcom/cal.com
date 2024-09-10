@@ -1,46 +1,93 @@
-import z from "zod";
+import logger from "@calcom/lib/logger";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
+import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";
 
-import { handleErrorsJson } from "@calcom/lib/errors";
-import { randomString } from "@calcom/lib/random";
-import type { PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import { getHuddle01APIKey, getHuddle01Credential } from "../utils/storage";
 
-const huddle01Schema = z.object({ url: z.string().url(), roomId: z.string() });
+const API_END_POINT = "https://platform-api-darshan.huddle01.workers.dev/api/v2/calendar";
 
-const Huddle01VideoApiAdapter = (): VideoApiAdapter => {
+const fetchHuddleAPI = async (userId: number) => {
+  const { identityToken } = await getHuddle01Credential(userId);
+  const { apiKey } = await getHuddle01APIKey();
+
+  const headers = {
+    "x-api-key": apiKey,
+    "x-identity-token": identityToken,
+  };
+  return (endpoint: "subdomains" | "createMeeting", option?: RequestInit) => {
+    return fetch(`${API_END_POINT}/${endpoint}`, {
+      ...option,
+      headers: {
+        ...option?.headers,
+        ...headers,
+      },
+    });
+  };
+};
+
+const log = logger.getSubLogger({ prefix: ["app-store/huddle01video/lib/VideoApiAdapter"] });
+
+const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
+  credential.userId;
   return {
-    getAvailability: () => {
-      return Promise.resolve([]);
-    },
-    createMeeting: async (): Promise<VideoCallData> => {
-      const res = await fetch(
-        "https://wpss2zlpb9.execute-api.us-east-1.amazonaws.com/new-meeting?utmCampaign=cal.com&utmSource=partner&utmMedium=calendar"
-      );
-
-      const json = await handleErrorsJson<{ url: string }>(res);
-      const { url } = huddle01Schema.parse(json);
-      if (url) {
-        return Promise.resolve({
-          type: "huddle01_video",
-          id: randomString(21),
-          password: "",
-          url,
-        });
+    createMeeting: async (e: CalendarEvent) => {
+      if (!credential.userId) {
+        log.error("[Huddle01 Error] -> User is not logged in");
+        throw new Error("User is not logged in");
       }
-      return Promise.reject("Url was not received in response body.");
+
+      try {
+        const fetch = await fetchHuddleAPI(credential.userId);
+
+        const res = await fetch("createMeeting", {
+          method: "POST",
+          body: JSON.stringify({ title: e.title, startTime: e.startTime }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = (await res.json()) as {
+          roomId: string;
+          meetingLink: string;
+        };
+
+        console.log("CALLING CREATE MEETING", e);
+        return {
+          type: "huddle01_video",
+          id: data.roomId,
+          password: "",
+          url: data.meetingLink,
+        };
+      } catch (e) {
+        log.error("[Huddle01 Error] -> Error while creating meeeting", e);
+        throw Error("Error while creating meeting");
+      }
     },
-    deleteMeeting: async (): Promise<void> => {
-      Promise.resolve();
-    },
-    updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
-      return Promise.resolve({
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
+      console.log("UPDATE MEETING", bookingRef, event);
+      return {
         type: "huddle01_video",
-        id: bookingRef.meetingId as string,
-        password: bookingRef.meetingPassword as string,
-        url: bookingRef.meetingUrl as string,
-      });
+        id: "",
+        password: "",
+        url: "",
+      };
+    },
+    deleteMeeting: async (uid: string) => {
+      console.log("DELETE MEETING", uid);
+      return {
+        type: "huddle01_video",
+        id: "",
+        password: "",
+        url: "",
+      };
+    },
+    getAvailability: async () => {
+      console.log("GET AVAILABILITY");
+      return [];
     },
   };
 };
 
-export default Huddle01VideoApiAdapter;
+export default Huddle01ApiAdapter;
