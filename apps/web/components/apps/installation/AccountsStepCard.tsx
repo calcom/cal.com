@@ -1,4 +1,3 @@
-import type { TTeams } from "@pages/apps/installation/[[...step]]";
 import type { FC } from "react";
 import React, { useState } from "react";
 
@@ -8,6 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import { StepCard } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
+
+import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
 
 export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & { alreadyInstalled: boolean };
 
@@ -41,7 +42,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
   return (
     <div
       className={classNames(
-        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1 transition",
+        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1",
         (alreadyInstalled || loading) && "cursor-not-allowed",
         selected && loading && "bg-muted animate-pulse"
       )}
