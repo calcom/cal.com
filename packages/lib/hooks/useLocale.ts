@@ -15,7 +15,7 @@ export const useLocale = (namespace: Parameters<typeof useTranslation>[0] = "com
     };
   }
   return {
-    i18n,
+    i18n: { ...i18n, language: "pt-BR" },
     t,
     isLocaleReady,
   };
