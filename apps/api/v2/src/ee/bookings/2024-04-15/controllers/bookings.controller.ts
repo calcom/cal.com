@@ -31,7 +31,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
+import {
+  ApiQuery,
+  ApiTags as DocsTags,
+  ApiExcludeController as DocsExcludeController,
+} from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
@@ -87,7 +91,7 @@ const DEFAULT_PLATFORM_PARAMS = {
   version: [VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14],
 })
 @UseGuards(PermissionsGuard)
-@DocsTags("Bookings")
+@DocsExcludeController(true)
 export class BookingsController_2024_04_15 {
   private readonly logger = new Logger("BookingsController");
 
