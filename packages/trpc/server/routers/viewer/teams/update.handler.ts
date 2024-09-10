@@ -8,6 +8,7 @@ import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -138,6 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: updatedTeam.theme,
     brandColor: updatedTeam.brandColor,
     darkBrandColor: updatedTeam.darkBrandColor,
+    bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
   };
 };
 

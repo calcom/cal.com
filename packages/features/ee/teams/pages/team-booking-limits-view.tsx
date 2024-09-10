@@ -24,16 +24,6 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const mutation = trpc.viewer.teams.update.useMutation({
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-    async onSuccess(res) {
-      await utils.viewer.teams.get.invalidate();
-      showToast(t("booking_limits_updated_successfully"), "success");
-    },
-  });
-
   const form = useForm<{ bookingLimits?: IntervalLimit }>({
     defaultValues: {
       bookingLimits: team?.bookingLimits || undefined,
@@ -41,9 +31,22 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   });
 
   const {
-    formState: { isSubmitting: isThemeSubmitting, isDirty: isThemeDirty },
-    reset: resetTheme,
+    formState: { isSubmitting, isDirty },
+    reset,
   } = form;
+
+  const mutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess(res) {
+      await utils.viewer.teams.get.invalidate();
+      if (res) {
+        reset({ bookingLimits: res.bookingLimits });
+      }
+      showToast(t("booking_limits_updated_successfully"), "success");
+    },
+  });
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
@@ -94,11 +97,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                       <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
                     </div>
                     <SectionBottomActions className="mb-6" align="end">
-                      <Button
-                        disabled={isThemeSubmitting || !isThemeDirty}
-                        type="submit"
-                        data-testid="update-org-theme-btn"
-                        color="primary">
+                      <Button disabled={isSubmitting || !isDirty} type="submit" color="primary">
                         {t("update")}
                       </Button>
                     </SectionBottomActions>
