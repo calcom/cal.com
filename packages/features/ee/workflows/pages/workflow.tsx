@@ -72,7 +72,7 @@ function WorkflowPage({
     data: workflowData,
     isError,
     error,
-    isPending: isPendingWorkflow,
+    isPending: _isPendingWorkflow,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -80,6 +80,7 @@ function WorkflowPage({
     }
   );
   const workflow = workflowProp ?? workflowData;
+  const isPendingWorkflow = _isPendingWorkflow && !workflowProp;
 
   const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },

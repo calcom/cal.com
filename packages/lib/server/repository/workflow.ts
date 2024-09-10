@@ -1,6 +1,11 @@
 import { z } from "zod";
 
+import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
+import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
+import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
 import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
 
@@ -9,6 +14,48 @@ export const ZGetInputSchema = z.object({
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
+
+const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
+  include: {
+    activeOn: {
+      select: {
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            parentId: true,
+            _count: {
+              select: {
+                children: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    activeOnTeams: {
+      select: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+    steps: true,
+    team: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        members: true,
+        logoUrl: true,
+        isOrganization: true,
+      },
+    },
+  },
+});
 
 export class WorkflowRepository {
   static async getById({ id }: TGetInputSchema) {
@@ -126,5 +173,107 @@ export class WorkflowRepository {
     verifiedEmails = verifiedEmails.concat(emails);
 
     return verifiedEmails;
+  }
+
+  static async getFilteredList({ userId, input }: { userId?: number; input: TFilteredListInputSchema }) {
+    const filters = input?.filters;
+
+    const filtered = filters && hasFilter(filters);
+
+    const allWorkflows = await prisma.workflow.findMany({
+      where: {
+        OR: [
+          {
+            userId,
+          },
+          {
+            team: {
+              members: {
+                some: {
+                  userId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: includedFields,
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+    });
+
+    if (!filtered) {
+      const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
+        const readOnly = !!workflow.team?.members?.find(
+          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+        );
+
+        return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
+      });
+
+      return {
+        filtered: workflowsWithReadOnly,
+        totalCount: allWorkflows.length,
+      };
+    }
+
+    const where = {
+      OR: [] as Prisma.WorkflowWhereInput[],
+    };
+
+    if (filtered) {
+      if (!!filters.teamIds) {
+        where.OR.push({
+          team: {
+            id: {
+              in: filters.teamIds ?? [],
+            },
+            members: {
+              some: {
+                userId,
+                accepted: true,
+              },
+            },
+          },
+        });
+      }
+
+      if (!!filters.userIds) {
+        where.OR.push({
+          userId: {
+            in: filters.userIds,
+          },
+          teamId: null,
+        });
+      }
+
+      const filteredWorkflows = await prisma.workflow.findMany({
+        where,
+        include: includedFields,
+        orderBy: {
+          id: "asc",
+        },
+      });
+
+      const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
+        const readOnly = !!workflow.team?.members?.find(
+          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+        );
+
+        return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
+      });
+
+      return {
+        filtered: workflowsWithReadOnly,
+        totalCount: allWorkflows.length,
+      };
+    }
   }
 }

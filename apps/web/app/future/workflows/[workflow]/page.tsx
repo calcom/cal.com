@@ -2,6 +2,7 @@ import { withAppDirSsg } from "app/WithAppDirSsg";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import type { InferGetStaticPropsType } from "next";
 import { getServerSession } from "next-auth";
 import { headers, cookies } from "next/headers";
 
@@ -22,7 +23,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-const getData = withAppDirSsg(getStaticProps);
+const getData = withAppDirSsg<InferGetStaticPropsType<typeof getStaticProps>>(getStaticProps);
 
 export const generateStaticParams = () => [];
 
@@ -49,7 +50,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   return <LegacyPage workflow={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers} />;
 };
 
-export default WithLayout({ getLayout: null, getData, ServerPage: Page })<"P">;
+export default WithLayout({ getLayout: null, getData, ServerPage: Page });
 export const dynamic = "force-static";
 // generate segments on demand
 export const dynamicParams = true;
