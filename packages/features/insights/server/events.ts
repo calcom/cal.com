@@ -1,5 +1,3 @@
-import type { AcceleratePromise } from "@prisma/extension-accelerate";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
@@ -10,49 +8,8 @@ import type { RawDataInput } from "./raw-data.schema";
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
-  static runSeparateQueriesForOrStatements = async <T, R>(
-    where: Prisma.BookingTimeStatusWhereInput,
-
-    queryReference: (args: T) => AcceleratePromise<R>,
-
-    originalArgs: T
-  ) => {
-    if (!where["OR"]) {
-      return await queryReference(originalArgs);
-    }
-
-    const queries = [];
-    const existingWhereOr = where["OR"];
-    const { OR: _throwAwayOr, ...whereWithoutOr } = where;
-    for (let i = 0; i < existingWhereOr.length; i++) {
-      const newWhere = {
-        ...whereWithoutOr,
-        ...existingWhereOr[i],
-      };
-      queries.push(
-        queryReference({
-          ...originalArgs,
-          where: newWhere,
-        })
-      );
-    }
-
-    const results = await Promise.all(queries);
-    return results.flat();
-  };
-
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const queryReference = (args: Prisma.BookingTimeStatusGroupByArgs) =>
-      // casting since TS is not able to infer the type of the output of the query properly
-      // Typescript infers this as AcceleratePromise<{}[]> which is not specific enough
-      prisma.bookingTimeStatus.groupBy(args) as unknown as AcceleratePromise<
-        Prisma.BookingTimeStatusGroupByOutputType[]
-      >;
-
-    const data = await EventsInsights.runSeparateQueriesForOrStatements<
-      Prisma.BookingTimeStatusGroupByArgs,
-      Prisma.BookingTimeStatusGroupByOutputType[]
-    >(where, queryReference, {
+    const data = await prisma.bookingTimeStatus.groupBy({
       where,
       by: ["timeStatus"],
       _count: {
@@ -92,27 +49,12 @@ class EventsInsights {
   };
 
   static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    const queryReference = (args: Prisma.BookingTimeStatusCountArgs) => prisma.bookingTimeStatus.count(args);
-    const originalWhereConditional = {
-      ...whereConditional,
-      noShowHost: true,
-    };
-
-    const results = await EventsInsights.runSeparateQueriesForOrStatements<
-      Prisma.BookingTimeStatusCountArgs,
-      number
-    >(originalWhereConditional, queryReference, {
+    return await prisma.bookingTimeStatus.count({
       where: {
-        ...originalWhereConditional,
+        ...whereConditional,
+        noShowHost: true,
       },
     });
-
-    // we don't know if WHERE clause contains OR, so we need to check if it's an array
-    if (Array.isArray(results)) {
-      return results.reduce((total: number, item: number) => total + (item || 0), 0);
-    }
-
-    return results;
   };
 
   static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
