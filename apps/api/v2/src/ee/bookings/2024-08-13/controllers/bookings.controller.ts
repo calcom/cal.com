@@ -1,5 +1,5 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
-import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output copy";
+import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
 import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
@@ -24,7 +24,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 
@@ -71,6 +71,11 @@ export class BookingsController_2024_08_13 {
 
   @Get("/:bookingUid")
   @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get booking",
+    description:
+      ":bookingUid can be uid of a normal booking, one of the recurring booking recurrences, or uid of recurring booking which will return an array of all recurring booking recurrences.",
+  })
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.getBooking(bookingUid);
 
