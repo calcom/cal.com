@@ -50,7 +50,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   return <LegacyPage workflow={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers} />;
 };
 
-export default WithLayout({ getLayout: null, getData, ServerPage: Page });
+export default WithLayout({ getLayout: null, ServerPage: Page });
 export const dynamic = "force-static";
 // generate segments on demand
 export const dynamicParams = true;
