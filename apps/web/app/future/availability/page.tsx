@@ -1,6 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { getServerSession } from "next-auth";
+import { notFound } from "next/navigation";
 
 import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -16,18 +17,21 @@ export const generateMetadata = async () => {
 
 const Page = async () => {
   const session = await getServerSession(AUTH_OPTIONS);
-  const userId = session?.user?.id ?? -1;
-  const orgId = session?.user?.org?.id ?? -1;
+  const userId = session?.user?.id;
+  const orgId = session?.user?.org?.id;
+  if (!userId || !orgId) {
+    notFound();
+  }
 
-  let currentOrg = null;
   try {
-    currentOrg = await OrganizationRepository.findCurrentOrg({
+    const currentOrg = await OrganizationRepository.findCurrentOrg({
       orgId,
       userId,
     });
-  } catch {}
-
-  return <AvailabilityPage currentOrg={currentOrg} />;
+    return <AvailabilityPage currentOrg={currentOrg} />;
+  } catch {
+    notFound();
+  }
 };
 
 export default WithLayout({ ServerPage: Page });

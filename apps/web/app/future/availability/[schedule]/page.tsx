@@ -30,7 +30,11 @@ export const generateMetadata = async ({ params }: PageProps) => {
 
 const Page = async ({ params }: PageProps) => {
   const session = await getServerSession(AUTH_OPTIONS);
-  const userId = session?.user?.id ?? -1;
+  const userId = session?.user?.id;
+  if (!userId) {
+    notFound();
+  }
+
   let userData, schedule, travelSchedules;
 
   try {
@@ -45,7 +49,11 @@ const Page = async ({ params }: PageProps) => {
     notFound();
   }
 
-  const scheduleId = params?.schedule ? Number(params.schedule) : -1;
+  if (params?.schedule) {
+    notFound();
+  }
+
+  const scheduleId = Number(params.schedule);
   try {
     schedule = await ScheduleRepository.findDetailedScheduleById({
       scheduleId,
