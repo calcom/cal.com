@@ -708,7 +708,9 @@ export default function Success(props: PageProps) {
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
                                       href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
+                                        currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
                                       }`}
                                       legacyBehavior>
                                       {t("reschedule")}
