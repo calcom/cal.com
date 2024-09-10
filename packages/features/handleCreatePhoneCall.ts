@@ -107,10 +107,10 @@ export const handleCreatePhoneCall = async ({
     // aiPhoneCallConfig.llmId would be set here in the else block
     const retellLLM = await retellAI.getRetellLLM(aiPhoneCallConfig.llmId as string);
 
-    const doWeNeedToUpdateLLM =
+    const shouldUpdateLLM =
       retellLLM.general_prompt !== generalPrompt || retellLLM.begin_message !== beginMessage;
 
-    if (doWeNeedToUpdateLLM) {
+    if (shouldUpdateLLM) {
       const updatedRetellLLM = await retellAI.updatedRetellLLMAndUpdateWebsocketUrl(
         aiPhoneCallConfig.llmId as string
       );

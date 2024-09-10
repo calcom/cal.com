@@ -99,6 +99,7 @@ export class OrganizationsEventTypesController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreatePhoneCallInput,
     @GetUser() user: UserWithProfile
   ): Promise<CreatePhoneCallOutput> {
@@ -106,7 +107,7 @@ export class OrganizationsEventTypesController {
       user: {
         id: user.id,
         timeZone: user.timeZone,
-        profile: { organization: { id: user.profiles?.[0]?.organization?.id } },
+        profile: { organization: { id: orgId } },
       },
       input: { ...body, eventTypeId },
     });
