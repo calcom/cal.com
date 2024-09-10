@@ -5,6 +5,7 @@ import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
+import { ReserveSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -13,12 +14,17 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
-import { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
+import {
+  CreateScheduleInput_2024_06_11,
+  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
+} from "@calcom/platform-types";
 
 const expectedSlotsUTC = {
   "2050-09-05": [
@@ -133,11 +139,14 @@ describe("Slots Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_06_11;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
     const userEmail = "slotss-controller-e2e@api.com";
     let user: User;
     let eventTypeId: number;
     let eventTypeSlug: string;
+    let reservedSlotUid: string;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -162,6 +171,8 @@ describe("Slots Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
+      bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -347,8 +358,96 @@ describe("Slots Endpoints", () => {
         });
     });
 
+    it("should reserve a slot and it should not appear in available slots and then delete the slot", async () => {
+      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const reserveResponse = await request(app.getHttpServer())
+        .post(`/api/v2/slots`)
+        .send({
+          eventTypeId,
+          start: slotStartTime,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(201);
+
+      const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
+      expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+      const reservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+      expect(reservedSlot.uid).toBeDefined();
+      if (!reservedSlot.uid) {
+        throw new Error("Reserved slot uid is undefined");
+      }
+      reservedSlotUid = reservedSlot.uid;
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        (slot) => slot !== slotStartTime
+      );
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+
+      await request(app.getHttpServer())
+        .delete(`/api/v2/slots/${reservedSlot.uid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+    });
+
+    it("should do a booking and slot should not be available at that time", async () => {
+      const startTime = "2050-09-05T11:00:00.000Z";
+      await bookingsRepositoryFixture.create({
+        uid: `booking-uid-${eventTypeId}`,
+        title: "booking title",
+        startTime,
+        endTime: "2050-09-05T12:00:00.000Z",
+        eventType: {
+          connect: {
+            id: eventTypeId,
+          },
+        },
+        metadata: {},
+        responses: {
+          name: "tester",
+          email: "tester@example.com",
+          guests: [],
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter((slot) => slot !== startTime);
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
+      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
+      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
 
       await app.close();
     });
@@ -435,7 +534,7 @@ describe("Slots Endpoints", () => {
         });
     });
 
-    it("should get slots in specified timezone by usernames", async () => {
+    it("should get slots in specified timezone and in specified duration by usernames", async () => {
       return request(app.getHttpServer())
         .get(
           `/api/v2/slots/available?usernames[]=${userOne.username}&usernames[]=${userTwo.username}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
@@ -457,7 +556,6 @@ describe("Slots Endpoints", () => {
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(userOne.email);
       await userRepositoryFixture.deleteByEmail(userTwo.email);
-
       await app.close();
     });
   });
