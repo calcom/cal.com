@@ -9353,6 +9353,25 @@
           "status"
         ]
       },
+      "ProviderVerifyClientData": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientId",
+          "organizationId",
+          "name"
+        ]
+      },
       "ProviderVerifyClientOutput": {
         "type": "object",
         "properties": {
@@ -9363,10 +9382,14 @@
               "success",
               "error"
             ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProviderVerifyClientData"
           }
         },
         "required": [
-          "status"
+          "status",
+          "data"
         ]
       },
       "ProviderVerifyAccessTokenOutput": {
