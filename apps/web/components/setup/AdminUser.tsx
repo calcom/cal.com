@@ -108,13 +108,7 @@ export const AdminUser = (props: { onSuccess: () => void }) => {
                   )}
                 </Label>
                 <TextField
-                  addOnLeading={
-                    !longWebsiteUrl && (
-                      <span className="text-subtle inline-flex items-center rounded-none px-3 text-sm">
-                        {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      </span>
-                    )
-                  }
+                  addOnLeading={!longWebsiteUrl && <span>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</span>}
                   id="username"
                   labelSrOnly={true}
                   value={value || ""}

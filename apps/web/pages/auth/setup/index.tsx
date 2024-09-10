@@ -17,7 +17,6 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const [step, setStep] = useState(1);
   const { t } = useLocale();
   const router = useRouter();
-  const [value, setValue] = useState("FREE");
 
   const steps = [
     {
@@ -38,40 +37,16 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       content: () => {
         return (
           <ChooseLicense
-            onSuccess={(data) => {
-              setValue(data.value);
+            licenseStatus={props.licenseStatus}
+            onSuccess={() => {
+              localStorage.setItem("onBoardingRedirect", "/settings/admin/apps");
+              router.replace("/getting-started");
             }}
           />
         );
       },
     },
   ] as const;
-
-  // steps.push({
-  //   title: t("enable_apps"),
-  //   description: t("enable_apps_description", { appName: APP_NAME }),
-  //   contentClassname: "!pb-0 mb-[-1px]",
-  //   content: (setIsPending) => {
-  //     const currentStep = isFreeLicense ? 3 : 4;
-  //     return (
-  //       <AdminAppsList
-  //         id={`wizard-step-${currentStep}`}
-  //         name={`wizard-step-${currentStep}`}
-  //         classNames={{
-  //           form: "mb-4 rounded-md bg-default px-0 pt-0 md:max-w-full",
-  //           appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
-  //           verticalTabsItem: "!w-48 md:p-4",
-  //         }}
-  //         baseURL={`/auth/setup?step=${currentStep}`}
-  //         useQueryParam={true}
-  //         onSubmit={() => {
-  //           setIsPending(true);
-  //           router.replace("/");
-  //         }}
-  //       />
-  //     );
-  //   },
-  // });
 
   const currentStep = steps[step - 1];
 

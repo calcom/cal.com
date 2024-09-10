@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -29,18 +29,26 @@ const chooseLicenseSchema = z
 
 type ChooseLicenseFormValues = z.infer<typeof chooseLicenseSchema>;
 
-const checkLicenseKey = async (licenseKey: string) => {
-  const response = await fetch(`/api/auth/setup/license?licenseKey=${licenseKey}`);
+const checkAndSaveLicenseKey = async (licenseKey: string) => {
+  const response = await fetch(`/api/auth/setup/license?licenseKey=${licenseKey}`, {
+    method: "POST",
+  });
   const data = await response.json();
   return data.status;
 };
 
+enum LicenseStatus {
+  UNSET = "UNSET",
+  VALID = "VALID",
+  INVALID = "INVALID",
+}
+
 const ChooseLicense = (props: {
+  licenseStatus: LicenseStatus;
   onSuccess: ({ value, licenseKey }: { value: string; licenseKey?: string }) => void;
   licenseKey?: string;
+  licenseType?: "FREE" | "EE";
 }) => {
-  const [licenseType, setLicenseType] = useState<"FREE" | "EE" | undefined>(props.licenseType);
-
   const formMethods = useForm<ChooseLicenseFormValues>({
     defaultValues: {
       licenseKey: props.licenseKey || "",
@@ -52,6 +60,14 @@ const ChooseLicense = (props: {
   const { t } = useLocale();
   const watchLicenseType = formMethods.watch("licenseType");
 
+  useEffect(() => {
+    if (props.licenseStatus === LicenseStatus.INVALID) {
+      formMethods.setError("licenseKey", {
+        message: "Please enter a valid license key. The one present in your deployment is invalid.",
+      });
+    }
+  }, [props.licenseStatus, formMethods]);
+
   return (
     <>
       <Form
@@ -61,7 +77,7 @@ const ChooseLicense = (props: {
           if (values.licenseType === "EE") {
             const licenseKey = values.licenseKey;
             if (licenseKey) {
-              const licenseStatus = await checkLicenseKey(licenseKey);
+              const licenseStatus = await checkAndSaveLicenseKey(licenseKey);
               if (!licenseStatus) {
                 formMethods.setError("licenseKey", { message: "Invalid license key" });
                 return;
@@ -113,7 +129,9 @@ const ChooseLicense = (props: {
         </RadioGroup.Root>
         <div className="my-4 flex items-center justify-center">
           <hr className="border-subtle w-full" />
-          <span className="text-subtle mx-4 text-sm font-bold">{t("already_have_license_key")}</span>
+          <span className="text-subtle mx-4 w-full text-center text-sm font-bold">
+            {t("already_have_license_key")}
+          </span>
           <hr className="border-subtle w-full" />
         </div>
         <Controller
