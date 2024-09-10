@@ -17,7 +17,7 @@ import {
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && !process.env.INTEGRATION_TEST_MODE) {
   // This file imports some costly dependencies, so we want to make sure it's not imported on the client side.
   throw new Error("`getBookingFields` must not be imported on the client side.");
 }
@@ -173,6 +173,11 @@ export const ensureBookingInputsHaveSystemFields = ({
       optionsInputs: {
         attendeeInPerson: {
           type: "address",
+          required: true,
+          placeholder: "",
+        },
+        somewhereElse: {
+          type: "text",
           required: true,
           placeholder: "",
         },

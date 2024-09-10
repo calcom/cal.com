@@ -1,18 +1,21 @@
-import LegacyPage from "@pages/workflows/[workflow]";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 
-import { getStaticProps } from "~/workflows/workflow-single-view.getStaticProps";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getStaticProps } from "@lib/workflows/[workflow]/getStaticProps";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { workflow } = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const { workflow: id } = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const workflow = await WorkflowRepository.getById({ id: +id });
+
   return await _generateMetadata(
-    () => workflow ?? "Untitled",
+    () => (workflow && workflow.name ? workflow.name : "Untitled"),
     () => ""
   );
 };
@@ -21,7 +24,6 @@ const getData = withAppDirSsg(getStaticProps);
 
 export const generateStaticParams = () => [];
 
-// @ts-expect-error TODO: fix this
 export default WithLayout({ getLayout: null, getData, Page: LegacyPage })<"P">;
 export const dynamic = "force-static";
 // generate segments on demand

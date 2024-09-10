@@ -643,11 +643,16 @@ export default function Success(props: PageProps) {
                           )
                             return null;
 
-                          const label = field.label || t(field.defaultLabel || "");
+                          const label = field.label || t(field.defaultLabel);
 
                           return (
                             <>
-                              <div className="text-emphasis mt-4 font-medium">{label}</div>
+                              <div
+                                className="text-emphasis mt-4 font-medium"
+                                dangerouslySetInnerHTML={{
+                                  __html: label,
+                                }}
+                              />
                               <p
                                 className="text-default break-words"
                                 data-testid="field-response"
@@ -703,7 +708,9 @@ export default function Success(props: PageProps) {
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
                                       href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
+                                        currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
                                       }`}
                                       legacyBehavior>
                                       {t("reschedule")}
