@@ -1,3 +1,5 @@
+import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
+import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -33,6 +35,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries-0.0.0";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
@@ -88,6 +91,29 @@ export class OrganizationsEventTypesController {
     return {
       status: SUCCESS_STATUS,
       data: eventType,
+    };
+  }
+
+  @Roles("TEAM_ADMIN")
+  @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
+  async createPhoneCall(
+    @Param("eventTypeId") eventTypeId: number,
+    @Body() body: CreatePhoneCallInput,
+    @GetUser() user: UserWithProfile
+  ): Promise<CreatePhoneCallOutput> {
+    const data = await handleCreatePhoneCall({
+      user: {
+        id: user.id,
+        timeZone: user.timeZone,
+        profile: { organization: { id: user.profiles?.[0]?.organization?.id } },
+      },
+      input: { ...body, eventTypeId },
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data,
     };
   }
 
