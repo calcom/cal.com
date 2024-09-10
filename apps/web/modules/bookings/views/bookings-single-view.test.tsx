@@ -33,6 +33,7 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
       currency: "usd",
       successRedirectUrl: null,
       customInputs: [],
+      teamId: null,
       team: null,
       workflows: [],
       hosts: [],

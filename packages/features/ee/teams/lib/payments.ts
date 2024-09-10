@@ -3,7 +3,13 @@ import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { IS_PRODUCTION, MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  IS_PRODUCTION,
+  MINIMUM_NUMBER_OF_ORG_SEATS,
+  ORGANIZATION_SELF_SERVE_MIN_SEATS,
+  ORGANIZATION_SELF_SERVE_PRICE,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -121,15 +127,23 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    const customPriceObj = await getPriceObject(fixedPrice);
-    priceId = await createPrice({
-      isOrg: !!isOrg,
-      teamId,
-      pricePerSeat,
-      billingPeriod,
-      product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
-      currency: customPriceObj.currency,
-    });
+    if (
+      isOrg &&
+      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE &&
+      seats === ORGANIZATION_SELF_SERVE_MIN_SEATS
+    ) {
+      priceId = fixedPrice as string;
+    } else {
+      const customPriceObj = await getPriceObject(fixedPrice);
+      priceId = await createPrice({
+        isOrg: !!isOrg,
+        teamId,
+        pricePerSeat,
+        billingPeriod,
+        product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
+        currency: customPriceObj.currency,
+      });
+    }
   } else {
     priceId = fixedPrice as string;
   }

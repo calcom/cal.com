@@ -20,7 +20,8 @@ import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
 
 import { type getServerSideProps } from "./users-public-view.getServerSideProps";
 
-export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
+export function UserPage(props: PageProps) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
@@ -159,5 +160,5 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     </>
   );
 }
-
+UserPage.isBookingPage = true;
 export default UserPage;

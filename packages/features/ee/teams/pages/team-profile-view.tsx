@@ -97,7 +97,7 @@ const ProfileView = () => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.get.useQuery(
+  } = trpc.viewer.teams.getMinimal.useQuery(
     { teamId },
     {
       enabled: !!teamId,
@@ -179,7 +179,7 @@ const ProfileView = () => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio ?? null)) }}
                 />
               </>
             )}
@@ -251,7 +251,7 @@ const ProfileView = () => {
   );
 };
 
-export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
+export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
 
 const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
   const utils = trpc.useUtils();

@@ -162,6 +162,13 @@ export const OAuthClientCard = ({
           className="bg-subtle hover:bg-emphasis text-white"
           loading={isLoading}
           disabled={isLoading}
+          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit/webhooks`)}>
+          Webhooks
+        </Button>
+        <Button
+          className="bg-subtle hover:bg-emphasis text-white"
+          loading={isLoading}
+          disabled={isLoading}
           onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}>
           Edit
         </Button>

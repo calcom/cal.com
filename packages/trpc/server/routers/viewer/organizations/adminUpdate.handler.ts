@@ -74,6 +74,9 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
           isAdminReviewed: organizationSettings?.isAdminReviewed,
           orgAutoAcceptEmail:
             organizationSettings?.orgAutoAcceptEmail || existingOrg.organizationSettings?.orgAutoAcceptEmail,
+          isAdminAPIEnabled:
+            !!organizationSettings?.isAdminAPIEnabled ??
+            !!existingOrg.organizationSettings?.isAdminAPIEnabled,
         },
       });
     }

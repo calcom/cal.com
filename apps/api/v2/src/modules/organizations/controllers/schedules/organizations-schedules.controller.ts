@@ -4,6 +4,7 @@ import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.de
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
@@ -40,7 +41,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Organizations Schedules")
 export class OrganizationsSchedulesController {
   constructor(

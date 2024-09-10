@@ -1,6 +1,21 @@
 import { z } from "zod";
 
-import type { CreateEventTypeInput_2024_06_14, Integration_2024_06_14 } from "@calcom/platform-types";
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookingWindowPeriodOutputTypeEnum_2024_06_14,
+  BookingLimitsEnum_2024_06_14,
+  Frequency,
+} from "@calcom/platform-enums/monorepo";
+import {
+  type CreateEventTypeInput_2024_06_14,
+  type Integration_2024_06_14,
+  type BusinessDaysWindow_2024_06_14,
+  type RangeWindow_2024_06_14,
+  type TransformFutureBookingsLimitSchema_2024_06_14,
+  type BookingLimitsKeyOutputType_2024_06_14,
+  type TransformBookingLimitsSchema_2024_06_14,
+  type TransformRecurringEventSchema_2024_06_14,
+} from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
   "cal-video": "integrations:daily",
@@ -70,7 +85,7 @@ function transformApiEventTypeBookingFields(
   }
 
   const customBookingFields = inputBookingFields.map((field) => {
-    const commonFields: CommonField = {
+    const commonFields: UserField = {
       name: field.slug,
       type: field.type,
       label: field.label,
@@ -102,6 +117,62 @@ function transformApiEventTypeBookingFields(
   return customBookingFields;
 }
 
+function transformApiEventTypeIntervalLimits(
+  inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]
+) {
+  const res: TransformBookingLimitsSchema_2024_06_14 = {};
+  inputBookingLimits &&
+    Object.entries(inputBookingLimits).map(([key, value]) => {
+      const outputKey: BookingLimitsKeyOutputType_2024_06_14 = BookingLimitsEnum_2024_06_14[
+        key as keyof typeof BookingLimitsEnum_2024_06_14
+      ] satisfies BookingLimitsKeyOutputType_2024_06_14;
+      res[outputKey] = value;
+    });
+  return res;
+}
+
+function transformApiEventTypeFutureBookingLimits(
+  inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingWindow"]
+): TransformFutureBookingsLimitSchema_2024_06_14 | undefined {
+  switch (inputBookingLimits?.type) {
+    case BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays:
+      return {
+        periodDays: (inputBookingLimits as BusinessDaysWindow_2024_06_14).value,
+        periodType: !!(inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
+          ? BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING_WINDOW
+          : BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING,
+        periodCountCalendarDays: false,
+      };
+    case BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays:
+      return {
+        periodDays: (inputBookingLimits as BusinessDaysWindow_2024_06_14).value,
+        periodType: !!(inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
+          ? BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING_WINDOW
+          : BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING,
+        periodCountCalendarDays: true,
+      };
+    case BookingWindowPeriodInputTypeEnum_2024_06_14.range:
+      return {
+        periodType: BookingWindowPeriodOutputTypeEnum_2024_06_14.RANGE,
+        periodStartDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[0]),
+        periodEndDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[1]),
+      };
+    default:
+      return undefined;
+  }
+}
+
+function transformApiEventTypeRecurrence(
+  recurrence: CreateEventTypeInput_2024_06_14["recurrence"]
+): TransformRecurringEventSchema_2024_06_14 | undefined {
+  if (!recurrence) return undefined;
+  return {
+    interval: recurrence.interval,
+    count: recurrence.occurrences,
+    freq: Frequency[recurrence.frequency as keyof typeof Frequency],
+  } satisfies TransformRecurringEventSchema_2024_06_14;
+}
+
 export function transformSelectOptions(options: string[]) {
   return options.map((option) => ({
     label: option,
@@ -126,7 +197,7 @@ const FieldTypeEnum = z.enum([
   "radioInput",
 ]);
 
-const CommonFieldsSchema = z.object({
+const UserFieldsSchema = z.object({
   name: z.string(),
   type: FieldTypeEnum,
   label: z.string(),
@@ -141,13 +212,21 @@ const CommonFieldsSchema = z.object({
   editable: z.literal("user"),
   required: z.boolean(),
   placeholder: z.string().optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+      })
+    )
+    .optional(),
 });
 
 const SystemFieldsSchema = z.object({
   name: z.string(),
   type: FieldTypeEnum,
   defaultLabel: z.string(),
-  labe: z.string().optional(),
+  label: z.string().optional(),
   editable: z.enum(["system-but-optional", "system"]),
   sources: z.array(
     z.object({
@@ -187,18 +266,14 @@ const SystemFieldsSchema = z.object({
 
 export type SystemField = z.infer<typeof SystemFieldsSchema>;
 
-export type CommonField = z.infer<typeof CommonFieldsSchema>;
+export type UserField = z.infer<typeof UserFieldsSchema>;
 
-const OptionSchema = z.object({
-  label: z.string(),
-  value: z.string(),
-});
+export const BookingFieldsSchema = z.array(z.union([UserFieldsSchema, SystemFieldsSchema]));
 
-const BookingFieldSchema = CommonFieldsSchema.extend({
-  options: z.array(OptionSchema).optional(),
-});
-export type OptionsField = z.infer<typeof BookingFieldSchema>;
-
-export const BookingFieldsSchema = z.array(BookingFieldSchema);
-
-export { transformApiEventTypeLocations, transformApiEventTypeBookingFields };
+export {
+  transformApiEventTypeLocations,
+  transformApiEventTypeBookingFields,
+  transformApiEventTypeIntervalLimits,
+  transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeRecurrence,
+};

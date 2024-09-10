@@ -18,8 +18,9 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -42,8 +43,10 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
+import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -98,6 +101,12 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
+
+  const { resolvedTheme, forcedTheme } = useGetTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const eventTypeColor =
+    booking.eventType.eventTypeColor &&
+    booking.eventType.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
@@ -155,6 +164,53 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
+  const editBookingActions: ActionType[] = [
+    {
+      id: "reschedule",
+      icon: "clock" as const,
+      label: t("reschedule_booking"),
+      href: `${bookerUrl}/reschedule/${booking.uid}${
+        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+      }`,
+    },
+    {
+      id: "reschedule_request",
+      icon: "send" as const,
+      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+      label: t("send_reschedule_request"),
+      onClick: () => {
+        setIsOpenRescheduleDialog(true);
+      },
+    },
+    {
+      id: "change_location",
+      label: t("edit_location"),
+      onClick: () => {
+        setIsOpenLocationDialog(true);
+      },
+      icon: "map-pin" as const,
+    },
+    {
+      id: "add_members",
+      label: t("additional_guests"),
+      onClick: () => {
+        setIsOpenAddGuestsDialog(true);
+      },
+      icon: "user-plus" as const,
+    },
+  ];
+
+  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    editBookingActions.push({
+      id: "reassign ",
+      label: t("reassign"),
+      onClick: () => {
+        setIsOpenReassignDialog(true);
+      },
+      icon: "users" as const,
+    });
+  }
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -170,33 +226,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "edit_booking",
       label: t("edit"),
-      actions: [
-        {
-          id: "reschedule",
-          icon: "clock" as const,
-          label: t("reschedule_booking"),
-          href: `${bookerUrl}/reschedule/${booking.uid}${
-            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-          }`,
-        },
-        {
-          id: "reschedule_request",
-          icon: "send" as const,
-          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-          label: t("send_reschedule_request"),
-          onClick: () => {
-            setIsOpenRescheduleDialog(true);
-          },
-        },
-        {
-          id: "change_location",
-          label: t("edit_location"),
-          onClick: () => {
-            setIsOpenLocationDialog(true);
-          },
-          icon: "map-pin" as const,
-        },
-      ],
+      actions: editBookingActions,
     },
   ];
 
@@ -233,7 +263,9 @@ function BookingListItem(booking: BookingItemProps) {
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
+  const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -309,12 +341,23 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
+      <ReassignDialog
+        isOpenDialog={isOpenReassignDialog}
+        setIsOpenDialog={setIsOpenReassignDialog}
+        bookingId={booking.id}
+        teamId={booking.eventType?.team?.id || 0}
+      />
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
         teamId={booking.eventType?.team?.id}
+      />
+      <AddGuestsDialog
+        isOpenDialog={isOpenAddGuestsDialog}
+        setIsOpenDialog={setIsOpenAddGuestsDialog}
+        bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
@@ -334,79 +377,82 @@ function BookingListItem(booking: BookingItemProps) {
         />
       )}
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
-          <Link href={bookingLink}>
-            <div className="cursor-pointer py-4">
-              <div className="text-emphasis text-sm leading-6">{startTime}</div>
-              <div className="text-subtle text-sm">
-                {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                <MeetingTimeInTimezones
-                  timeFormat={userTimeFormat}
-                  userTimezone={userTimeZone}
-                  startTime={booking.startTime}
-                  endTime={booking.endTime}
-                  attendees={booking.attendees}
-                />
-              </div>
-              {!isPending && (
-                <div>
-                  {(provider?.label || locationToDisplay?.startsWith("https://")) &&
-                    locationToDisplay.startsWith("http") && (
-                      <a
-                        href={locationToDisplay}
-                        onClick={(e) => e.stopPropagation()}
-                        target="_blank"
-                        title={locationToDisplay}
-                        rel="noreferrer"
-                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
-                        <div className="flex items-center gap-2">
-                          {provider?.iconUrl && (
-                            <img
-                              src={provider.iconUrl}
-                              className="h-4 w-4 rounded-sm"
-                              alt={`${provider?.label} logo`}
-                            />
-                          )}
-                          {provider?.label
-                            ? t("join_event_location", { eventLocationType: provider?.label })
-                            : t("join_meeting")}
-                        </div>
-                      </a>
-                    )}
-                </div>
-              )}
-              {isPending && (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                  {t("unconfirmed")}
-                </Badge>
-              )}
-              {booking.eventType?.team && (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                  {booking.eventType.team.name}
-                </Badge>
-              )}
-              {booking.paid && !booking.payment[0] ? (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                  {t("error_collecting_card")}
-                </Badge>
-              ) : booking.paid ? (
-                <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
-                  {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-                </Badge>
-              ) : null}
-              {recurringDates !== undefined && (
-                <div className="text-muted mt-2 text-sm">
-                  <RecurringBookingsTooltip
-                    userTimeFormat={userTimeFormat}
-                    userTimeZone={userTimeZone}
-                    booking={booking}
-                    recurringDates={recurringDates}
+        <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+          <div className="flex h-full items-center">
+            {eventTypeColor && <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />}
+            <Link href={bookingLink} className="ml-3">
+              <div className="cursor-pointer py-4">
+                <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                <div className="text-subtle text-sm">
+                  {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                  {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                  <MeetingTimeInTimezones
+                    timeFormat={userTimeFormat}
+                    userTimezone={userTimeZone}
+                    startTime={booking.startTime}
+                    endTime={booking.endTime}
+                    attendees={booking.attendees}
                   />
                 </div>
-              )}
-            </div>
-          </Link>
+                {!isPending && (
+                  <div>
+                    {(provider?.label || locationToDisplay?.startsWith("https://")) &&
+                      locationToDisplay.startsWith("http") && (
+                        <a
+                          href={locationToDisplay}
+                          onClick={(e) => e.stopPropagation()}
+                          target="_blank"
+                          title={locationToDisplay}
+                          rel="noreferrer"
+                          className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                          <div className="flex items-center gap-2">
+                            {provider?.iconUrl && (
+                              <img
+                                src={provider.iconUrl}
+                                className="h-4 w-4 rounded-sm"
+                                alt={`${provider?.label} logo`}
+                              />
+                            )}
+                            {provider?.label
+                              ? t("join_event_location", { eventLocationType: provider?.label })
+                              : t("join_meeting")}
+                          </div>
+                        </a>
+                      )}
+                  </div>
+                )}
+                {isPending && (
+                  <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                    {t("unconfirmed")}
+                  </Badge>
+                )}
+                {booking.eventType?.team && (
+                  <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                    {booking.eventType.team.name}
+                  </Badge>
+                )}
+                {booking.paid && !booking.payment[0] ? (
+                  <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                    {t("error_collecting_card")}
+                  </Badge>
+                ) : booking.paid ? (
+                  <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+                    {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+                  </Badge>
+                ) : null}
+                {recurringDates !== undefined && (
+                  <div className="text-muted mt-2 text-sm">
+                    <RecurringBookingsTooltip
+                      userTimeFormat={userTimeFormat}
+                      userTimeZone={userTimeZone}
+                      booking={booking}
+                      recurringDates={recurringDates}
+                    />
+                  </div>
+                )}
+              </div>
+            </Link>
+          </div>
         </td>
         <td data-testid="title-and-attendees" className={`w-full px-4${isRejected ? " line-through" : ""}`}>
           <Link href={bookingLink}>
@@ -494,7 +540,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
+        <td className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && (userId === booking.user?.id || booking.isUserTeamAdminOrOwner) && (
@@ -505,6 +551,7 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {isBookingInPast && isConfirmed ? <TableActions actions={bookedActions} /> : null}
           {(showViewRecordingsButton || showCheckRecordingButton) && (
             <TableActions actions={showRecordingActions} />
           )}
@@ -647,12 +694,9 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(
-        t("messageKey" in data && data.messageKey ? data.messageKey : data.message, { x: name || email }),
-        "success"
-      );
+      showToast(data.message, "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -758,9 +802,9 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     };
   });
   const { t } = useLocale();
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t("messageKey" in data && data.messageKey ? data.messageKey : data.message), "success");
+      showToast(t(data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");

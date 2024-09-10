@@ -3,9 +3,9 @@ import { OrganizationsEventTypesRepository } from "@/modules/organizations/repos
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
-import { SchedulingType } from "@calcom/prisma/enums";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null; hosts: Host[] };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -43,6 +43,15 @@ type Input = Pick<
   | "userId"
   | "parentId"
   | "assignAllTeamMembers"
+  | "bookingLimits"
+  | "durationLimits"
+  | "onlyShowFirstAvailableSlot"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
 >;
 
 @Injectable()

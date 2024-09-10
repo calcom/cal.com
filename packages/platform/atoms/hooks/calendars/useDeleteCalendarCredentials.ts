@@ -1,10 +1,11 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { CALENDARS } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
+import { QUERY_KEY } from "../useConnectedCalendars";
 
 interface IUseDeleteCalendarCredentials {
   onSuccess?: (res: ApiResponse) => void;
@@ -21,6 +22,7 @@ export const useDeleteCalendarCredentials = (
     },
   }
 ) => {
+  const queryClient = useQueryClient();
   const deleteCalendarCredentials = useMutation<
     ApiResponse<{
       status: string;
@@ -55,6 +57,9 @@ export const useDeleteCalendarCredentials = (
     },
     onError: (err) => {
       onError?.(err as ApiErrorResponse);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
     },
   });
 

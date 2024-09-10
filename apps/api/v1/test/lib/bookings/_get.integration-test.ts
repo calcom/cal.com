@@ -105,4 +105,87 @@ describe("GET /api/bookings", async () => {
     expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeUndefined();
     expect(groupedUsers.size).toBeGreaterThanOrEqual(2);
   });
+
+  describe("Upcoming bookings feature", () => {
+    it("Returns only upcoming bookings when status=upcoming for regular user", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          status: "upcoming",
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = proUser.id;
+
+      const responseData = await handler(req);
+      responseData.bookings.forEach((booking) => {
+        expect(new Date(booking.startTime).getTime()).toBeGreaterThanOrEqual(new Date().getTime());
+      });
+    });
+
+    it("Returns all bookings when status not specified for regular user", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        pagination: DefaultPagination,
+      });
+
+      req.userId = proUser.id;
+
+      const responseData = await handler(req);
+      expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeDefined();
+
+      const { req: req2 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        pagination: DefaultPagination,
+      });
+
+      req2.userId = proUser.id;
+
+      const responseData2 = await handler(req2);
+      expect(responseData2.bookings.find((b) => b.id === proUserBooking.id)).toBeDefined();
+    });
+
+    it("Returns only upcoming bookings when status=upcoming for system-wide admin", async () => {
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          status: "upcoming",
+        },
+        pagination: {
+          take: 100,
+          skip: 0,
+        },
+      });
+
+      req.isSystemWideAdmin = true;
+      req.userId = adminUser.id;
+
+      const responseData = await handler(req);
+      responseData.bookings.forEach((booking) => {
+        console.log(booking);
+        expect(new Date(booking.startTime).getTime()).toBeGreaterThanOrEqual(new Date().getTime());
+      });
+    });
+
+    it("Returns only upcoming bookings when status=upcoming for org admin", async () => {
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        query: {
+          status: "upcoming",
+        },
+        pagination: DefaultPagination,
+      });
+
+      req.userId = adminUser.id;
+      req.isOrganizationOwnerOrAdmin = true;
+
+      const responseData = await handler(req);
+      responseData.bookings.forEach((booking) => {
+        expect(new Date(booking.startTime).getTime()).toBeGreaterThanOrEqual(new Date().getTime());
+      });
+    });
+  });
 });

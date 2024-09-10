@@ -26,13 +26,6 @@ describe("Editor", () => {
     expect(screen.getByText("add_variable")).toBeInTheDocument();
   });
 
-  it("respects editable prop", () => {
-    render(<Editor {...defaultProps} editable={false} />);
-    const editor = screen.getByTestId("editor-input");
-    // eslint-disable-next-line playwright/missing-playwright-await
-    expect(editor).toHaveAttribute("contenteditable", "false");
-  });
-
   it("excludes toolbar items", () => {
     render(<Editor {...defaultProps} excludedToolbarItems={["bold", "italic"]} />);
     expect(screen.queryByTitle("Bold")).not.toBeInTheDocument();

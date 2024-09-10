@@ -8,7 +8,7 @@ import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -93,17 +93,26 @@ export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils"
 
 export {
   transformApiEventTypeBookingFields,
+  transformApiEventTypeIntervalLimits,
   transformApiEventTypeLocations,
   getResponseEventTypeLocations,
   getResponseEventTypeBookingFields,
   TransformedLocationsSchema,
   BookingFieldsSchema,
+  getResponseEventTypeIntervalLimits,
+  getResponseEventTypeFutureBookingLimits,
+  transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeRecurrence,
+  getResponseEventTypeRecurrence,
 } from "@calcom/lib/event-types/transformers";
+
+export { parseBookingLimit } from "@calcom/lib";
+export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
-export { symmetricEncrypt };
+export { symmetricEncrypt, symmetricDecrypt };
 export { CalendarService };
 
 export { getCalendar };
@@ -111,3 +120,5 @@ export { getCalendar };
 export { getTranslation };
 
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+
+export { ErrorCode } from "@calcom/lib/errorCodes";

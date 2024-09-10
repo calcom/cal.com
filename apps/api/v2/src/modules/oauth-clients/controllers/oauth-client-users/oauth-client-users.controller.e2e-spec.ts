@@ -112,9 +112,16 @@ describe("OAuth Client Users Endpoints", () => {
 
       await profilesRepositoryFixture.create({
         uid: "asd-asd",
-        username: userEmail,
-        user: { connect: { id: platformAdmin.id } },
+        username: platformAdminEmail,
         organization: { connect: { id: organization.id } },
+        movedFromUser: {
+          connect: {
+            id: platformAdmin.id,
+          },
+        },
+        user: {
+          connect: { id: platformAdmin.id },
+        },
       });
 
       await app.init();
