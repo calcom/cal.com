@@ -48,6 +48,7 @@ export const handleCreatePhoneCall = async ({
   const retellAI = new RetellAIService({
     templateType,
     generalPrompt: generalPrompt ?? "",
+    beginMessage: beginMessage ?? null,
     yourPhoneNumber,
     loggedInUserTimeZone: user.timeZone,
     eventTypeId,
