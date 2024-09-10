@@ -16,8 +16,8 @@ export declare const lazyLoadMembersHandler: ({ ctx, input }: LazyLoadMembersHan
         accepted: boolean;
         disableImpersonation: boolean;
         bookerUrl: string;
-        name: string | null;
         id: number;
+        name: string | null;
         email: string;
         bio: string | null;
         avatarUrl: string | null;

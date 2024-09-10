@@ -35,11 +35,11 @@ export declare const variantsConfigSchema: z.ZodObject<{
                 label: z.ZodString;
                 value: z.ZodString;
             }, "strip", z.ZodTypeAny, {
-                label: string;
                 value: string;
+                label: string;
             }, {
-                label: string;
                 value: string;
+                label: string;
             }>, "many">>;
             /**
              * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
@@ -55,11 +55,11 @@ export declare const variantsConfigSchema: z.ZodObject<{
                 required: z.ZodOptional<z.ZodBoolean>;
                 placeholder: z.ZodOptional<z.ZodString>;
             }, "strip", z.ZodTypeAny, {
-                type: "text" | "address" | "phone";
+                type: "text" | "phone" | "address";
                 required?: boolean | undefined;
                 placeholder?: string | undefined;
             }, {
-                type: "text" | "address" | "phone";
+                type: "text" | "phone" | "address";
                 required?: boolean | undefined;
                 placeholder?: string | undefined;
             }>>>;
@@ -77,71 +77,71 @@ export declare const variantsConfigSchema: z.ZodObject<{
              */
             maxLength: z.ZodOptional<z.ZodNumber>;
         }, "options" | "defaultLabel" | "defaultPlaceholder" | "getOptionsAt" | "optionsInputs">, "strip", z.ZodTypeAny, {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }, {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }>, "many">;
     }, "strip", z.ZodTypeAny, {
         fields: {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }[];
     }, {
         fields: {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }[];
     }>>;
 }, "strip", z.ZodTypeAny, {
     variants: Record<string, {
         fields: {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }[];
     }>;
 }, {
     variants: Record<string, {
         fields: {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }[];
     }>;
 }>;
@@ -248,11 +248,11 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
                         label: z.ZodString;
                         value: z.ZodString;
                     }, "strip", z.ZodTypeAny, {
-                        label: string;
                         value: string;
+                        label: string;
                     }, {
-                        label: string;
                         value: string;
+                        label: string;
                     }>, "many">>;
                     /**
                      * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
@@ -268,11 +268,11 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
                         required: z.ZodOptional<z.ZodBoolean>;
                         placeholder: z.ZodOptional<z.ZodString>;
                     }, "strip", z.ZodTypeAny, {
-                        type: "text" | "address" | "phone";
+                        type: "text" | "phone" | "address";
                         required?: boolean | undefined;
                         placeholder?: string | undefined;
                     }, {
-                        type: "text" | "address" | "phone";
+                        type: "text" | "phone" | "address";
                         required?: boolean | undefined;
                         placeholder?: string | undefined;
                     }>>>;
@@ -290,71 +290,71 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
                      */
                     maxLength: z.ZodOptional<z.ZodNumber>;
                 }, "options" | "defaultLabel" | "defaultPlaceholder" | "getOptionsAt" | "optionsInputs">, "strip", z.ZodTypeAny, {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }, {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }>, "many">;
             }, "strip", z.ZodTypeAny, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>>;
         }, "strip", z.ZodTypeAny, {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         }, {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         }>>;
@@ -372,14 +372,14 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
         defaultValue?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
@@ -397,22 +397,22 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
         defaultValue?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
     }>>;
 }, "strip", z.ZodTypeAny, {
+    value: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     label: string;
-    value: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
-    propsType: "boolean" | "text" | "select" | "variants" | "multiselect" | "textList" | "objectiveWithInput";
+    propsType: "boolean" | "text" | "select" | "multiselect" | "variants" | "textList" | "objectiveWithInput";
     isTextType?: boolean | undefined;
     systemOnly?: boolean | undefined;
     needsOptions?: boolean | undefined;
@@ -433,22 +433,22 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
         defaultValue?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
     } | undefined;
 }, {
+    value: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     label: string;
-    value: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
-    propsType: "boolean" | "text" | "select" | "variants" | "multiselect" | "textList" | "objectiveWithInput";
+    propsType: "boolean" | "text" | "select" | "multiselect" | "variants" | "textList" | "objectiveWithInput";
     isTextType?: boolean | undefined;
     systemOnly?: boolean | undefined;
     needsOptions?: boolean | undefined;
@@ -469,22 +469,22 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
         defaultValue?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
     } | undefined;
 }>, {
+    value: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     label: string;
-    value: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
-    propsType: "boolean" | "text" | "select" | "variants" | "multiselect" | "textList" | "objectiveWithInput";
+    propsType: "boolean" | "text" | "select" | "multiselect" | "variants" | "textList" | "objectiveWithInput";
     isTextType?: boolean | undefined;
     systemOnly?: boolean | undefined;
     needsOptions?: boolean | undefined;
@@ -505,22 +505,22 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
         defaultValue?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
     } | undefined;
 }, {
+    value: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     label: string;
-    value: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
-    propsType: "boolean" | "text" | "select" | "variants" | "multiselect" | "textList" | "objectiveWithInput";
+    propsType: "boolean" | "text" | "select" | "multiselect" | "variants" | "textList" | "objectiveWithInput";
     isTextType?: boolean | undefined;
     systemOnly?: boolean | undefined;
     needsOptions?: boolean | undefined;
@@ -541,14 +541,14 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
         defaultValue?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
@@ -558,24 +558,23 @@ export declare const fieldTypeConfigSchema: z.ZodEffects<z.ZodObject<{
  * Main field Schema
  */
 export declare const fieldSchema: z.ZodObject<{
-    label: z.ZodOptional<z.ZodString>;
-    type: z.ZodEnum<["name", "text", "textarea", "number", "email", "phone", "address", "multiemail", "select", "multiselect", "checkbox", "radio", "radioInput", "boolean", "url"]>;
+    name: z.ZodEffects<z.ZodString, string, string>;
     options: z.ZodOptional<z.ZodArray<z.ZodObject<{
         label: z.ZodString;
         value: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        label: string;
         value: string;
+        label: string;
     }, {
-        label: string;
         value: string;
+        label: string;
     }>, "many">>;
-    name: z.ZodEffects<z.ZodString, string, string>;
-    maxLength: z.ZodOptional<z.ZodNumber>;
-    defaultLabel: z.ZodOptional<z.ZodString>;
-    defaultPlaceholder: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<["name", "text", "textarea", "number", "email", "phone", "address", "multiemail", "select", "multiselect", "checkbox", "radio", "radioInput", "boolean", "url"]>;
+    label: z.ZodOptional<z.ZodString>;
     labelAsSafeHtml: z.ZodOptional<z.ZodString>;
+    defaultLabel: z.ZodOptional<z.ZodString>;
     placeholder: z.ZodOptional<z.ZodString>;
+    defaultPlaceholder: z.ZodOptional<z.ZodString>;
     required: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
     getOptionsAt: z.ZodOptional<z.ZodString>;
     optionsInputs: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
@@ -583,15 +582,16 @@ export declare const fieldSchema: z.ZodObject<{
         required: z.ZodOptional<z.ZodBoolean>;
         placeholder: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }>>>;
     minLength: z.ZodOptional<z.ZodNumber>;
+    maxLength: z.ZodOptional<z.ZodNumber>;
     variant: z.ZodOptional<z.ZodString>;
     variantsConfig: z.ZodOptional<z.ZodObject<{
         variants: z.ZodRecord<z.ZodString, z.ZodObject<{
@@ -626,11 +626,11 @@ export declare const fieldSchema: z.ZodObject<{
                     label: z.ZodString;
                     value: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    label: string;
                     value: string;
+                    label: string;
                 }, {
-                    label: string;
                     value: string;
+                    label: string;
                 }>, "many">>;
                 /**
                  * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
@@ -646,11 +646,11 @@ export declare const fieldSchema: z.ZodObject<{
                     required: z.ZodOptional<z.ZodBoolean>;
                     placeholder: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
-                    type: "text" | "address" | "phone";
+                    type: "text" | "phone" | "address";
                     required?: boolean | undefined;
                     placeholder?: string | undefined;
                 }, {
-                    type: "text" | "address" | "phone";
+                    type: "text" | "phone" | "address";
                     required?: boolean | undefined;
                     placeholder?: string | undefined;
                 }>>>;
@@ -668,71 +668,71 @@ export declare const fieldSchema: z.ZodObject<{
                  */
                 maxLength: z.ZodOptional<z.ZodNumber>;
             }, "options" | "defaultLabel" | "defaultPlaceholder" | "getOptionsAt" | "optionsInputs">, "strip", z.ZodTypeAny, {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }, {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }>, "many">;
         }, "strip", z.ZodTypeAny, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>>;
     }, "strip", z.ZodTypeAny, {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     }, {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     }>>;
@@ -759,52 +759,52 @@ export declare const fieldSchema: z.ZodObject<{
         editUrl: z.ZodOptional<z.ZodString>;
         fieldRequired: z.ZodOptional<z.ZodBoolean>;
     }, "strip", z.ZodTypeAny, {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;
     }, {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;
     }>, "many">>;
     disableOnPrefill: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
 }, "strip", z.ZodTypeAny, {
-    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
     name: string;
-    label?: string | undefined;
+    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     options?: {
-        label: string;
         value: string;
+        label: string;
     }[] | undefined;
-    maxLength?: number | undefined;
-    defaultLabel?: string | undefined;
-    defaultPlaceholder?: string | undefined;
+    label?: string | undefined;
     labelAsSafeHtml?: string | undefined;
+    defaultLabel?: string | undefined;
     placeholder?: string | undefined;
+    defaultPlaceholder?: string | undefined;
     required?: boolean | undefined;
     getOptionsAt?: string | undefined;
     optionsInputs?: Record<string, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }> | undefined;
     minLength?: number | undefined;
+    maxLength?: number | undefined;
     variant?: string | undefined;
     variantsConfig?: {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     } | undefined;
@@ -817,46 +817,46 @@ export declare const fieldSchema: z.ZodObject<{
     hidden?: boolean | undefined;
     editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
     sources?: {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;
     }[] | undefined;
     disableOnPrefill?: boolean | undefined;
 }, {
-    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
     name: string;
-    label?: string | undefined;
+    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     options?: {
-        label: string;
         value: string;
+        label: string;
     }[] | undefined;
-    maxLength?: number | undefined;
-    defaultLabel?: string | undefined;
-    defaultPlaceholder?: string | undefined;
+    label?: string | undefined;
     labelAsSafeHtml?: string | undefined;
+    defaultLabel?: string | undefined;
     placeholder?: string | undefined;
+    defaultPlaceholder?: string | undefined;
     required?: boolean | undefined;
     getOptionsAt?: string | undefined;
     optionsInputs?: Record<string, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }> | undefined;
     minLength?: number | undefined;
+    maxLength?: number | undefined;
     variant?: string | undefined;
     variantsConfig?: {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     } | undefined;
@@ -869,8 +869,8 @@ export declare const fieldSchema: z.ZodObject<{
     hidden?: boolean | undefined;
     editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
     sources?: {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;
@@ -878,24 +878,23 @@ export declare const fieldSchema: z.ZodObject<{
     disableOnPrefill?: boolean | undefined;
 }>;
 export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
-    label: z.ZodOptional<z.ZodString>;
-    type: z.ZodEnum<["name", "text", "textarea", "number", "email", "phone", "address", "multiemail", "select", "multiselect", "checkbox", "radio", "radioInput", "boolean", "url"]>;
+    name: z.ZodEffects<z.ZodString, string, string>;
     options: z.ZodOptional<z.ZodArray<z.ZodObject<{
         label: z.ZodString;
         value: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        label: string;
         value: string;
+        label: string;
     }, {
-        label: string;
         value: string;
+        label: string;
     }>, "many">>;
-    name: z.ZodEffects<z.ZodString, string, string>;
-    maxLength: z.ZodOptional<z.ZodNumber>;
-    defaultLabel: z.ZodOptional<z.ZodString>;
-    defaultPlaceholder: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<["name", "text", "textarea", "number", "email", "phone", "address", "multiemail", "select", "multiselect", "checkbox", "radio", "radioInput", "boolean", "url"]>;
+    label: z.ZodOptional<z.ZodString>;
     labelAsSafeHtml: z.ZodOptional<z.ZodString>;
+    defaultLabel: z.ZodOptional<z.ZodString>;
     placeholder: z.ZodOptional<z.ZodString>;
+    defaultPlaceholder: z.ZodOptional<z.ZodString>;
     required: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
     getOptionsAt: z.ZodOptional<z.ZodString>;
     optionsInputs: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
@@ -903,15 +902,16 @@ export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
         required: z.ZodOptional<z.ZodBoolean>;
         placeholder: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }>>>;
     minLength: z.ZodOptional<z.ZodNumber>;
+    maxLength: z.ZodOptional<z.ZodNumber>;
     variant: z.ZodOptional<z.ZodString>;
     variantsConfig: z.ZodOptional<z.ZodObject<{
         variants: z.ZodRecord<z.ZodString, z.ZodObject<{
@@ -946,11 +946,11 @@ export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
                     label: z.ZodString;
                     value: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
-                    label: string;
                     value: string;
+                    label: string;
                 }, {
-                    label: string;
                     value: string;
+                    label: string;
                 }>, "many">>;
                 /**
                  * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
@@ -966,11 +966,11 @@ export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
                     required: z.ZodOptional<z.ZodBoolean>;
                     placeholder: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
-                    type: "text" | "address" | "phone";
+                    type: "text" | "phone" | "address";
                     required?: boolean | undefined;
                     placeholder?: string | undefined;
                 }, {
-                    type: "text" | "address" | "phone";
+                    type: "text" | "phone" | "address";
                     required?: boolean | undefined;
                     placeholder?: string | undefined;
                 }>>>;
@@ -988,71 +988,71 @@ export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
                  */
                 maxLength: z.ZodOptional<z.ZodNumber>;
             }, "options" | "defaultLabel" | "defaultPlaceholder" | "getOptionsAt" | "optionsInputs">, "strip", z.ZodTypeAny, {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }, {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }>, "many">;
         }, "strip", z.ZodTypeAny, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>>;
     }, "strip", z.ZodTypeAny, {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     }, {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     }>>;
@@ -1079,52 +1079,52 @@ export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
         editUrl: z.ZodOptional<z.ZodString>;
         fieldRequired: z.ZodOptional<z.ZodBoolean>;
     }, "strip", z.ZodTypeAny, {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;
     }, {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;
     }>, "many">>;
     disableOnPrefill: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
 }, "strip", z.ZodTypeAny, {
-    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
     name: string;
-    label?: string | undefined;
+    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     options?: {
-        label: string;
         value: string;
+        label: string;
     }[] | undefined;
-    maxLength?: number | undefined;
-    defaultLabel?: string | undefined;
-    defaultPlaceholder?: string | undefined;
+    label?: string | undefined;
     labelAsSafeHtml?: string | undefined;
+    defaultLabel?: string | undefined;
     placeholder?: string | undefined;
+    defaultPlaceholder?: string | undefined;
     required?: boolean | undefined;
     getOptionsAt?: string | undefined;
     optionsInputs?: Record<string, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }> | undefined;
     minLength?: number | undefined;
+    maxLength?: number | undefined;
     variant?: string | undefined;
     variantsConfig?: {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     } | undefined;
@@ -1137,46 +1137,46 @@ export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
     hidden?: boolean | undefined;
     editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
     sources?: {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;
     }[] | undefined;
     disableOnPrefill?: boolean | undefined;
 }, {
-    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
     name: string;
-    label?: string | undefined;
+    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     options?: {
-        label: string;
         value: string;
+        label: string;
     }[] | undefined;
-    maxLength?: number | undefined;
-    defaultLabel?: string | undefined;
-    defaultPlaceholder?: string | undefined;
+    label?: string | undefined;
     labelAsSafeHtml?: string | undefined;
+    defaultLabel?: string | undefined;
     placeholder?: string | undefined;
+    defaultPlaceholder?: string | undefined;
     required?: boolean | undefined;
     getOptionsAt?: string | undefined;
     optionsInputs?: Record<string, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }> | undefined;
     minLength?: number | undefined;
+    maxLength?: number | undefined;
     variant?: string | undefined;
     variantsConfig?: {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     } | undefined;
@@ -1189,8 +1189,8 @@ export declare const fieldsSchema: z.ZodArray<z.ZodObject<{
     hidden?: boolean | undefined;
     editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
     sources?: {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;

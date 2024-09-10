@@ -9,8 +9,8 @@ type FindKeyOfTypeOptions = {
 export declare const findKeyOfTypeHandler: ({ ctx, input }: FindKeyOfTypeOptions) => Promise<{
     id: string;
     userId: number;
-    createdAt: Date;
     teamId: number | null;
+    createdAt: Date;
     appId: string | null;
     note: string | null;
     expiresAt: Date | null;

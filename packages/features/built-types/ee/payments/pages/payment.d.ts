@@ -15,10 +15,10 @@ export declare const getServerSideProps: (context: GetServerSidePropsContext) =>
 } | {
     props: {
         user: {
-            theme: string | null;
             name: string | null;
             username: string | null;
             hideBranding: boolean;
+            theme: string | null;
         } | {
             name: null;
             theme: null;
@@ -229,23 +229,38 @@ export declare const getServerSideProps: (context: GetServerSidePropsContext) =>
                 } | undefined;
                 managedEventConfig?: {
                     unlockedFields?: {
-                        position?: true | undefined;
-                        title?: true | undefined;
-                        metadata?: true | undefined;
-                        hidden?: true | undefined;
                         length?: true | undefined;
-                        parent?: true | undefined;
                         description?: true | undefined;
+                        hidden?: true | undefined;
                         children?: true | undefined;
                         timeZone?: true | undefined;
+                        metadata?: true | undefined;
+                        destinationCalendar?: true | undefined;
+                        profile?: true | undefined;
+                        team?: true | undefined;
+                        schedule?: true | undefined;
+                        availability?: true | undefined;
+                        hashedLink?: true | undefined;
+                        secondaryEmail?: true | undefined;
+                        userId?: true | undefined;
+                        title?: true | undefined;
+                        customInputs?: true | undefined;
+                        bookings?: true | undefined;
+                        webhooks?: true | undefined;
+                        workflows?: true | undefined;
+                        hosts?: true | undefined;
                         slug?: true | undefined;
+                        parentId?: true | undefined;
+                        parent?: true | undefined;
+                        _count?: true | undefined;
+                        teamId?: true | undefined;
+                        profileId?: true | undefined;
+                        scheduleId?: true | undefined;
+                        users?: true | undefined;
+                        position?: true | undefined;
                         locations?: true | undefined;
                         offsetStart?: true | undefined;
-                        userId?: true | undefined;
-                        profileId?: true | undefined;
-                        teamId?: true | undefined;
                         eventName?: true | undefined;
-                        parentId?: true | undefined;
                         bookingFields?: true | undefined;
                         periodType?: true | undefined;
                         periodStartDate?: true | undefined;
@@ -267,7 +282,6 @@ export declare const getServerSideProps: (context: GetServerSidePropsContext) =>
                         seatsShowAttendees?: true | undefined;
                         seatsShowAvailabilityCount?: true | undefined;
                         schedulingType?: true | undefined;
-                        scheduleId?: true | undefined;
                         price?: true | undefined;
                         currency?: true | undefined;
                         slotInterval?: true | undefined;
@@ -284,28 +298,14 @@ export declare const getServerSideProps: (context: GetServerSidePropsContext) =>
                         eventTypeColor?: true | undefined;
                         rescheduleWithSameRoundRobinHost?: true | undefined;
                         secondaryEmailId?: true | undefined;
-                        hosts?: true | undefined;
-                        users?: true | undefined;
                         owner?: true | undefined;
-                        profile?: true | undefined;
-                        team?: true | undefined;
-                        hashedLink?: true | undefined;
-                        bookings?: true | undefined;
-                        availability?: true | undefined;
-                        webhooks?: true | undefined;
-                        destinationCalendar?: true | undefined;
-                        customInputs?: true | undefined;
-                        schedule?: true | undefined;
-                        workflows?: true | undefined;
                         instantMeetingSchedule?: true | undefined;
                         aiPhoneCallConfig?: true | undefined;
-                        secondaryEmail?: true | undefined;
-                        _count?: true | undefined;
                     } | undefined;
                 } | undefined;
                 requiresConfirmationThreshold?: {
                     time: number;
-                    unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
+                    unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
                 } | undefined;
                 config?: {
                     useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -315,52 +315,52 @@ export declare const getServerSideProps: (context: GetServerSidePropsContext) =>
                     defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
                 } | null | undefined;
             } | null;
-            title: string;
             length: number;
             id: number;
             description: string | null;
+            team: {
+                name: string;
+                hideBranding: boolean;
+            } | null;
             userId: number | null;
+            title: string;
+            users: {
+                name: string | null;
+                username: string | null;
+                hideBranding: boolean;
+                theme: string | null;
+            }[];
             eventName: string | null;
             requiresConfirmation: boolean;
             price: number;
             currency: string;
             successRedirectUrl: string | null;
             forwardParamsSuccessRedirect: boolean | null;
-            users: {
-                theme: string | null;
-                name: string | null;
-                username: string | null;
-                hideBranding: boolean;
-            }[];
-            team: {
-                name: string;
-                hideBranding: boolean;
-            } | null;
         };
         booking: {
             startTime: string;
             endTime: string;
-            title: string;
-            id: number;
-            location: string | null;
             status: import(".prisma/client").$Enums.BookingStatus;
+            id: number;
             description: string | null;
-            eventTypeId: number | null;
-            uid: string;
-            cancellationReason: string | null;
             attendees: {
                 name: string;
                 email: string;
             }[];
+            uid: string;
+            eventTypeId: number | null;
+            title: string;
+            location: string | null;
+            cancellationReason: string | null;
             rejectionReason: string | null;
         };
         trpcState: import("@tanstack/query-core/build/legacy/hydration").DehydratedState;
         payment: {
             data: Record<string, unknown>;
+            uid: string;
+            success: boolean;
             currency: string;
             bookingId: number;
-            success: boolean;
-            uid: string;
             appId: string | null;
             amount: number;
             refunded: boolean;

@@ -13,9 +13,9 @@ export declare const getMinimal: ({ ctx, input }: GetMinimalDataOptions) => Prom
     };
     inviteToken: {
         token: string;
-        identifier: string;
         expires: Date;
         expiresInDays: number | null;
+        identifier: string;
     } | undefined;
     metadata: {
         requestedSlug?: string | null | undefined;
@@ -30,31 +30,31 @@ export declare const getMinimal: ({ ctx, input }: GetMinimalDataOptions) => Prom
         billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
     };
     logo?: string | undefined;
-    name: string;
     id: number;
     slug: string | null;
     parentId: number | null;
     parent: {
-        name: string;
         id: number;
-        metadata: import(".prisma/client").Prisma.JsonValue;
         slug: string | null;
+        metadata: import(".prisma/client").Prisma.JsonValue;
+        name: string;
         logoUrl: string | null;
         isPrivate: boolean;
         isOrganization: boolean;
     } | null;
     children: {
-        name: string;
         slug: string | null;
+        name: string;
     }[];
-    logoUrl: string | null;
+    name: string;
     bio: string | null;
     hideBranding: boolean;
-    isPrivate: boolean;
-    hideBookATeamMember: boolean;
     theme: string | null;
     brandColor: string | null;
     darkBrandColor: string | null;
+    logoUrl: string | null;
+    isPrivate: boolean;
+    hideBookATeamMember: boolean;
     isOrganization: boolean;
 }>;
 export default getMinimal;

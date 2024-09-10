@@ -22,19 +22,19 @@ export declare const adminGetHandler: ({ input }: AdminGetOptions) => Promise<{
         } | undefined;
         billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
     } | null;
-    organizationSettings: {
-        isOrganizationConfigured: boolean;
-        isOrganizationVerified: boolean;
-        orgAutoAcceptEmail: string;
-    } | null;
-    name: string;
     id: number;
     slug: string | null;
+    name: string;
+    organizationSettings: {
+        isOrganizationVerified: boolean;
+        isOrganizationConfigured: boolean;
+        orgAutoAcceptEmail: string;
+    } | null;
     isOrganization: boolean;
     members: {
         user: {
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
         };
     }[];

@@ -26,21 +26,20 @@ export declare const createHandler: ({ ctx, input }: CreateOptions) => Promise<{
     eventType: {
         length: number;
         id: number;
-        userId: number | null;
         title: string;
-        description: string | null;
-        metadata: Prisma.JsonValue;
-        timeZone: string | null;
         slug: string;
+        description: string | null;
         position: number;
         locations: Prisma.JsonValue;
         offsetStart: number;
         hidden: boolean;
+        userId: number | null;
         profileId: number | null;
         teamId: number | null;
         eventName: string | null;
         parentId: number | null;
         bookingFields: Prisma.JsonValue;
+        timeZone: string | null;
         periodType: import(".prisma/client").$Enums.PeriodType;
         periodStartDate: Date | null;
         periodEndDate: Date | null;
@@ -65,6 +64,7 @@ export declare const createHandler: ({ ctx, input }: CreateOptions) => Promise<{
         price: number;
         currency: string;
         slotInterval: number | null;
+        metadata: Prisma.JsonValue;
         successRedirectUrl: string | null;
         forwardParamsSuccessRedirect: boolean | null;
         bookingLimits: Prisma.JsonValue;

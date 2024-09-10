@@ -16,7 +16,7 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
     get: import("@trpc/server/unstable-core-do-not-import").QueryProcedure<{
         input: {
             filters: {
-                status: "cancelled" | "upcoming" | "recurring" | "past" | "unconfirmed";
+                status: "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
                 teamIds?: number[] | undefined;
                 userIds?: number[] | undefined;
                 eventTypeIds?: number[] | undefined;
@@ -238,29 +238,20 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
                         managedEventConfig?: {
                             unlockedFields?: {
                                 length?: true | undefined;
-                                destinationCalendar?: true | undefined;
-                                profile?: true | undefined;
-                                team?: true | undefined;
-                                schedule?: true | undefined;
-                                availability?: true | undefined;
-                                hashedLink?: true | undefined;
-                                secondaryEmail?: true | undefined;
-                                userId?: true | undefined;
                                 title?: true | undefined;
-                                description?: true | undefined;
-                                customInputs?: true | undefined;
-                                metadata?: true | undefined;
-                                timeZone?: true | undefined;
                                 slug?: true | undefined;
+                                description?: true | undefined;
                                 position?: true | undefined;
                                 locations?: true | undefined;
                                 offsetStart?: true | undefined;
                                 hidden?: true | undefined;
+                                userId?: true | undefined;
                                 profileId?: true | undefined;
                                 teamId?: true | undefined;
                                 eventName?: true | undefined;
                                 parentId?: true | undefined;
                                 bookingFields?: true | undefined;
+                                timeZone?: true | undefined;
                                 periodType?: true | undefined;
                                 periodStartDate?: true | undefined;
                                 periodEndDate?: true | undefined;
@@ -285,6 +276,7 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
                                 price?: true | undefined;
                                 currency?: true | undefined;
                                 slotInterval?: true | undefined;
+                                metadata?: true | undefined;
                                 successRedirectUrl?: true | undefined;
                                 forwardParamsSuccessRedirect?: true | undefined;
                                 bookingLimits?: true | undefined;
@@ -301,19 +293,27 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
                                 hosts?: true | undefined;
                                 users?: true | undefined;
                                 owner?: true | undefined;
+                                profile?: true | undefined;
+                                team?: true | undefined;
+                                hashedLink?: true | undefined;
                                 bookings?: true | undefined;
+                                availability?: true | undefined;
                                 webhooks?: true | undefined;
+                                destinationCalendar?: true | undefined;
+                                customInputs?: true | undefined;
                                 parent?: true | undefined;
                                 children?: true | undefined;
+                                schedule?: true | undefined;
                                 workflows?: true | undefined;
                                 instantMeetingSchedule?: true | undefined;
                                 aiPhoneCallConfig?: true | undefined;
+                                secondaryEmail?: true | undefined;
                                 _count?: true | undefined;
                             } | undefined;
                         } | undefined;
                         requiresConfirmationThreshold?: {
                             time: number;
-                            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                         } | undefined;
                         config?: {
                             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -323,9 +323,15 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
                             defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
                         } | null | undefined;
                     } | null;
+                    id?: number | undefined;
+                    slug?: string | undefined;
+                    eventName?: string | null | undefined;
+                    seatsShowAttendees?: boolean | null | undefined;
+                    seatsShowAvailabilityCount?: boolean | null | undefined;
+                    schedulingType?: import(".prisma/client").$Enums.SchedulingType | null | undefined;
                     team?: {
-                        name: string;
                         id: number;
+                        name: string;
                         members: {
                             id: number;
                             userId: number;
@@ -335,22 +341,24 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
                             accepted: boolean;
                         }[];
                     } | null | undefined;
-                    id?: number | undefined;
-                    slug?: string | undefined;
-                    eventName?: string | null | undefined;
-                    seatsShowAttendees?: boolean | null | undefined;
-                    seatsShowAvailabilityCount?: boolean | null | undefined;
-                    schedulingType?: import(".prisma/client").$Enums.SchedulingType | null | undefined;
                 };
                 startTime: string;
                 endTime: string;
                 isUserTeamAdminOrOwner: boolean;
                 status: import(".prisma/client").$Enums.BookingStatus;
+                id: number;
+                title: string;
+                description: string | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                customInputs: import(".prisma/client").Prisma.JsonValue;
+                location: string | null;
+                recurringEventId: string | null;
                 user: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
                 } | null;
+                uid: string;
                 payment: {
                     currency: string;
                     success: boolean;
@@ -360,24 +368,24 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
                 references: {
                     type: string;
                     id: number;
-                    uid: string;
-                    bookingId: number | null;
-                    deleted: boolean | null;
                     credentialId: number | null;
+                    bookingId: number | null;
+                    uid: string;
                     thirdPartyRecurringEventId: string | null;
                     meetingId: string | null;
                     meetingPassword: string | null;
                     meetingUrl: string | null;
                     externalCalendarId: string | null;
+                    deleted: boolean | null;
                 }[];
                 attendees: {
-                    name: string;
                     id: number;
-                    email: string;
                     timeZone: string;
+                    name: string;
+                    email: string;
+                    bookingId: number | null;
                     locale: string | null;
                     noShow: boolean | null;
-                    bookingId: number | null;
                 }[];
                 seatsReferences: {
                     attendee: {
@@ -385,17 +393,9 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
                     };
                     referenceUid: string;
                 }[];
-                id: number;
-                uid: string;
                 userPrimaryEmail: string | null;
-                title: string;
-                description: string | null;
-                customInputs: import(".prisma/client").Prisma.JsonValue;
-                location: string | null;
                 paid: boolean;
                 rescheduled: boolean | null;
-                recurringEventId: string | null;
-                metadata: import(".prisma/client").Prisma.JsonValue;
                 isRecorded: boolean;
             }[];
             recurringInfo: {
@@ -430,8 +430,8 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
     }>;
     addGuests: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
         input: {
-            bookingId: number;
             guests: string[];
+            bookingId: number;
         };
         output: {
             message: string;
@@ -463,9 +463,9 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
             booking: {
                 status: import(".prisma/client").$Enums.BookingStatus;
                 id: number;
-                uid: string;
-                eventTypeId: number | null;
                 description: string | null;
+                eventTypeId: number | null;
+                uid: string;
                 startTime: Date;
                 endTime: Date;
                 paid: boolean;
@@ -480,13 +480,13 @@ export declare const bookingsRouter: import("@trpc/server/unstable-core-do-not-i
             booking: {
                 status: import(".prisma/client").$Enums.BookingStatus;
                 id: number;
-                uid: string;
-                eventTypeId: number | null;
                 description: string | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                location: string | null;
+                eventTypeId: number | null;
+                uid: string;
                 startTime: Date;
                 endTime: Date;
-                location: string | null;
-                metadata: import(".prisma/client").Prisma.JsonValue;
             } | null;
         };
     }>;

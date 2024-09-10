@@ -20,11 +20,9 @@ export declare function getBookingData<T extends z.ZodType>({ req, eventType, sc
     calEventUserFieldsResponses: undefined;
     calEventResponses: undefined;
     customInputs: undefined;
-    metadata: Record<string, string>;
     timeZone: string;
+    metadata: Record<string, string>;
     eventTypeId: number;
-    start: string;
-    language: string;
     responses: {
         name: (string | {
             firstName: string;
@@ -43,33 +41,35 @@ export declare function getBookingData<T extends z.ZodType>({ req, eventType, sc
         smsReminderNumber?: string | undefined;
         rescheduleReason?: string | undefined;
     } & Record<string, any>;
+    start: string;
+    language: string;
     user?: string | string[] | undefined;
     hashedLink?: string | null | undefined;
-    end: string;
-    eventTypeSlug?: string | undefined;
-    rescheduleUid?: string | undefined;
     recurringEventId?: string | undefined;
     rescheduledBy?: string | undefined;
+    end: string;
+    rescheduleUid?: string | undefined;
     bookingUid?: string | undefined;
-    hasHashedBookingLink?: boolean | undefined;
-    seatReferenceUid?: string | undefined;
+    eventTypeSlug?: string | undefined;
     orgSlug?: string | undefined;
     teamMemberEmail?: string | null | undefined;
-    noEmail?: boolean | undefined;
-    recurringCount?: number | undefined;
-    allRecurringDates?: {
-        end: string;
-        start: string;
-    }[] | undefined;
-    currentRecurringIndex?: number | undefined;
+    seatReferenceUid?: string | undefined;
     appsStatus?: {
         type: string;
-        appName: string;
         success: number;
-        failures: number;
         errors: string[];
+        appName: string;
+        failures: number;
         warnings?: string[] | undefined;
     }[] | undefined;
+    recurringCount?: number | undefined;
+    hasHashedBookingLink?: boolean | undefined;
+    noEmail?: boolean | undefined;
+    allRecurringDates?: {
+        start: string;
+        end: string;
+    }[] | undefined;
+    currentRecurringIndex?: number | undefined;
     luckyUsers?: number[] | undefined;
 } | {
     name: (string | {
@@ -88,11 +88,9 @@ export declare function getBookingData<T extends z.ZodType>({ req, eventType, sc
     rescheduleReason: string | undefined;
     calEventResponses: import("@calcom/types/Calendar").CalEventResponses;
     customInputs: undefined;
-    metadata: Record<string, string>;
     timeZone: string;
+    metadata: Record<string, string>;
     eventTypeId: number;
-    start: string;
-    language: string;
     responses: {
         name: (string | {
             firstName: string;
@@ -111,33 +109,35 @@ export declare function getBookingData<T extends z.ZodType>({ req, eventType, sc
         smsReminderNumber?: string | undefined;
         rescheduleReason?: string | undefined;
     } & Record<string, any>;
+    start: string;
+    language: string;
     user?: string | string[] | undefined;
     hashedLink?: string | null | undefined;
-    end: string;
-    eventTypeSlug?: string | undefined;
-    rescheduleUid?: string | undefined;
     recurringEventId?: string | undefined;
     rescheduledBy?: string | undefined;
+    end: string;
+    rescheduleUid?: string | undefined;
     bookingUid?: string | undefined;
-    hasHashedBookingLink?: boolean | undefined;
-    seatReferenceUid?: string | undefined;
+    eventTypeSlug?: string | undefined;
     orgSlug?: string | undefined;
     teamMemberEmail?: string | null | undefined;
-    noEmail?: boolean | undefined;
-    recurringCount?: number | undefined;
-    allRecurringDates?: {
-        end: string;
-        start: string;
-    }[] | undefined;
-    currentRecurringIndex?: number | undefined;
+    seatReferenceUid?: string | undefined;
     appsStatus?: {
         type: string;
-        appName: string;
         success: number;
-        failures: number;
         errors: string[];
+        appName: string;
+        failures: number;
         warnings?: string[] | undefined;
     }[] | undefined;
+    recurringCount?: number | undefined;
+    hasHashedBookingLink?: boolean | undefined;
+    noEmail?: boolean | undefined;
+    allRecurringDates?: {
+        start: string;
+        end: string;
+    }[] | undefined;
+    currentRecurringIndex?: number | undefined;
     luckyUsers?: number[] | undefined;
 }>;
 export type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;

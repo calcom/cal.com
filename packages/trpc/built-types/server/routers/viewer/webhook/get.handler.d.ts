@@ -10,11 +10,11 @@ export declare const getHandler: ({ ctx: _ctx, input }: GetOptions) => Promise<{
     id: string;
     userId: number | null;
     teamId: number | null;
-    secret: string | null;
     subscriberUrl: string;
     payloadTemplate: string | null;
     active: boolean;
     eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+    secret: string | null;
     platform: boolean;
 }>;
 export {};

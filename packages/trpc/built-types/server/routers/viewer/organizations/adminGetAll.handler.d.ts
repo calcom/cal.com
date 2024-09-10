@@ -20,24 +20,24 @@ export declare const adminGetUnverifiedHandler: ({}: AdminGetAllOptions) => Prom
         } | undefined;
         billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
     } | null;
-    organizationSettings: {
-        id: number;
-        organizationId: number;
-        isOrganizationConfigured: boolean;
-        isOrganizationVerified: boolean;
-        orgAutoAcceptEmail: string;
-        lockEventTypeCreationForUsers: boolean;
-        adminGetsNoSlotsNotification: boolean;
-        isAdminReviewed: boolean;
-        isAdminAPIEnabled: boolean;
-    } | null;
-    name: string;
     id: number;
     slug: string | null;
+    name: string;
+    organizationSettings: {
+        id: number;
+        isOrganizationVerified: boolean;
+        isOrganizationConfigured: boolean;
+        isAdminReviewed: boolean;
+        orgAutoAcceptEmail: string;
+        isAdminAPIEnabled: boolean;
+        organizationId: number;
+        lockEventTypeCreationForUsers: boolean;
+        adminGetsNoSlotsNotification: boolean;
+    } | null;
     members: {
         user: {
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
         };
     }[];

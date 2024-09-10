@@ -27,8 +27,8 @@ export declare const teamGroupMappingRouter: import("@trpc/server/unstable-core-
     }>;
     create: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
         input: {
-            name: string;
             teamId: number;
+            name: string;
             directoryId: string;
         };
         output: {

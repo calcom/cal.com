@@ -9,38 +9,38 @@ export interface FieldProps {
 type FormBuilderProps = React.ComponentProps<typeof FormBuilder>;
 export declare const mockProps: FormBuilderProps;
 export declare const getLocationBookingField: () => {
-    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
     name: string;
-    label?: string | undefined;
+    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
     options?: {
-        label: string;
         value: string;
+        label: string;
     }[] | undefined;
-    maxLength?: number | undefined;
-    defaultLabel?: string | undefined;
-    defaultPlaceholder?: string | undefined;
+    label?: string | undefined;
     labelAsSafeHtml?: string | undefined;
+    defaultLabel?: string | undefined;
     placeholder?: string | undefined;
+    defaultPlaceholder?: string | undefined;
     required?: boolean | undefined;
     getOptionsAt?: string | undefined;
     optionsInputs?: Record<string, {
-        type: "text" | "address" | "phone";
+        type: "text" | "phone" | "address";
         required?: boolean | undefined;
         placeholder?: string | undefined;
     }> | undefined;
     minLength?: number | undefined;
+    maxLength?: number | undefined;
     variant?: string | undefined;
     variantsConfig?: {
         variants: Record<string, {
             fields: {
-                type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                 name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 label?: string | undefined;
-                maxLength?: number | undefined;
                 labelAsSafeHtml?: string | undefined;
                 placeholder?: string | undefined;
                 required?: boolean | undefined;
                 minLength?: number | undefined;
+                maxLength?: number | undefined;
             }[];
         }>;
     } | undefined;
@@ -53,8 +53,8 @@ export declare const getLocationBookingField: () => {
     hidden?: boolean | undefined;
     editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
     sources?: {
-        label: string;
         type: string;
+        label: string;
         id: string;
         editUrl?: string | undefined;
         fieldRequired?: boolean | undefined;

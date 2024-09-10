@@ -9,8 +9,8 @@ type EditOptions = {
 export declare const editHandler: ({ ctx, input }: EditOptions) => Promise<{
     id: string;
     userId: number;
-    createdAt: Date;
     teamId: number | null;
+    createdAt: Date;
     appId: string | null;
     note: string | null;
     expiresAt: Date | null;

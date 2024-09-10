@@ -28,11 +28,11 @@ export declare function getAppWithMetadata(app: {
     verified?: boolean | undefined;
     dirName?: string | undefined;
     categories: import(".prisma/client").$Enums.AppCategories[];
-    variant: "video" | "other" | "payment" | "calendar" | "automation" | "conferencing" | "crm" | "other_calendar";
+    variant: "video" | "calendar" | "other" | "payment" | "automation" | "conferencing" | "crm" | "other_calendar";
     isTemplate?: boolean | undefined;
     installed?: boolean | undefined;
     category?: string | undefined;
-    extendsFeature?: "EventType" | "User" | undefined;
+    extendsFeature?: "User" | "EventType" | undefined;
     publisher: string;
     docsUrl?: string | undefined;
     trending?: boolean | undefined;

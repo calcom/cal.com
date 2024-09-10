@@ -8,12 +8,12 @@ type DeleteOptions = {
 };
 declare const deleteAttributeHandler: ({ input, ctx }: DeleteOptions) => Promise<{
     type: import(".prisma/client").$Enums.AttributeType;
-    name: string;
     id: string;
-    createdAt: Date;
-    updatedAt: Date;
     slug: string;
     teamId: number;
+    name: string;
+    createdAt: Date;
+    updatedAt: Date;
     enabled: boolean;
     usersCanEditRelation: boolean;
 }>;

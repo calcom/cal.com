@@ -20,8 +20,8 @@ export declare const outOfOfficeEntriesList: ({ ctx }: {
     };
 }) => Promise<{
     id: number;
-    end: Date;
     notes: string | null;
+    end: Date;
     start: Date;
     reason: {
         id: number;

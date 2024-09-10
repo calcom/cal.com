@@ -8,10 +8,10 @@ type DuplicateScheduleOptions = {
 };
 export declare const duplicateHandler: ({ ctx, input }: DuplicateScheduleOptions) => Promise<{
     schedule: {
-        name: string;
         id: number;
         userId: number;
         timeZone: string | null;
+        name: string;
     };
 }>;
 export {};

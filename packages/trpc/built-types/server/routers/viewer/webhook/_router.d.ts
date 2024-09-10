@@ -24,16 +24,16 @@ export declare const webhookRouter: import("@trpc/server/unstable-core-do-not-im
         output: {
             id: string;
             userId: number | null;
+            teamId: number | null;
             eventTypeId: number | null;
             createdAt: Date;
-            teamId: number | null;
-            secret: string | null;
             appId: string | null;
             platformOAuthClientId: string | null;
             subscriberUrl: string;
             payloadTemplate: string | null;
             active: boolean;
             eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+            secret: string | null;
             platform: boolean;
         }[];
     }>;
@@ -48,11 +48,11 @@ export declare const webhookRouter: import("@trpc/server/unstable-core-do-not-im
             id: string;
             userId: number | null;
             teamId: number | null;
-            secret: string | null;
             subscriberUrl: string;
             payloadTemplate: string | null;
             active: boolean;
             eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+            secret: string | null;
             platform: boolean;
         };
     }>;
@@ -100,16 +100,16 @@ export declare const webhookRouter: import("@trpc/server/unstable-core-do-not-im
         output: {
             id: string;
             userId: number | null;
+            teamId: number | null;
             eventTypeId: number | null;
             createdAt: Date;
-            teamId: number | null;
-            secret: string | null;
             appId: string | null;
             platformOAuthClientId: string | null;
             subscriberUrl: string;
             payloadTemplate: string | null;
             active: boolean;
             eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+            secret: string | null;
             platform: boolean;
         } | null;
     }>;

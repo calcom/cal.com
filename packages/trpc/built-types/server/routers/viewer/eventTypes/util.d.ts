@@ -27,11 +27,11 @@ export declare const eventOwnerProcedure: import("@trpc/server/unstable-core-do-
                 billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
             } | null;
             requestedSlug: string | null;
+            slug?: string | null | undefined;
+            name?: string | undefined;
             organizationSettings?: {
                 lockEventTypeCreationForUsers: boolean;
             } | null | undefined;
-            name?: string | undefined;
-            slug?: string | null | undefined;
             logoUrl?: string | null | undefined;
             calVideoLogo?: string | null | undefined;
             isPrivate?: boolean | undefined;
@@ -55,48 +55,48 @@ export declare const eventOwnerProcedure: import("@trpc/server/unstable-core-do-
             enabledLayouts: import("@calcom/prisma/zod-utils").BookerLayouts[];
             defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
         } | null;
+        timeZone: string;
+        metadata: import(".prisma/client").Prisma.JsonValue;
         destinationCalendar: {
             id: number;
             userId: number | null;
-            eventTypeId: number | null;
             credentialId: number | null;
-            integration: string;
+            eventTypeId: number | null;
             externalId: string;
+            integration: string;
             primaryEmail: string | null;
         } | null;
         name: string | null;
+        emailVerified: Date | null;
+        identityProviderId: string | null;
+        allowDynamicBooking: boolean | null;
+        bio: string | null;
+        avatarUrl: string | null;
+        weekStart: string;
         startTime: number;
         endTime: number;
-        metadata: import(".prisma/client").Prisma.JsonValue;
-        timeZone: string;
-        bio: string | null;
+        bufferTime: number;
         hideBranding: boolean;
         theme: string | null;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-        timeFormat: number | null;
-        weekStart: string;
-        selectedCalendars: {
-            integration: string;
-            externalId: string;
-        }[];
-        emailVerified: Date | null;
-        avatarUrl: string | null;
-        bufferTime: number;
         appTheme: string | null;
         createdDate: Date;
         trialEndsAt: Date | null;
         defaultScheduleId: number | null;
         completedOnboarding: boolean;
+        timeFormat: number | null;
         twoFactorEnabled: boolean;
         identityProvider: import(".prisma/client").$Enums.IdentityProvider;
-        identityProviderId: string | null;
-        allowDynamicBooking: boolean | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
         allowSEOIndexing: boolean | null;
         receiveMonthlyDigestEmail: boolean | null;
         role: import(".prisma/client").$Enums.UserPermissionRole;
         disableImpersonation: boolean;
         movedToProfileId: number | null;
+        selectedCalendars: {
+            externalId: string;
+            integration: string;
+        }[];
         profile: import("@calcom/types/UserProfile").UserAsPersonalProfile;
     } | {
         avatar: string;
@@ -119,11 +119,11 @@ export declare const eventOwnerProcedure: import("@trpc/server/unstable-core-do-
                 billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
             } | null;
             requestedSlug: string | null;
+            slug?: string | null | undefined;
+            name?: string | undefined;
             organizationSettings?: {
                 lockEventTypeCreationForUsers: boolean;
             } | null | undefined;
-            name?: string | undefined;
-            slug?: string | null | undefined;
             logoUrl?: string | null | undefined;
             calVideoLogo?: string | null | undefined;
             isPrivate?: boolean | undefined;
@@ -147,48 +147,48 @@ export declare const eventOwnerProcedure: import("@trpc/server/unstable-core-do-
             enabledLayouts: import("@calcom/prisma/zod-utils").BookerLayouts[];
             defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
         } | null;
+        timeZone: string;
+        metadata: import(".prisma/client").Prisma.JsonValue;
         destinationCalendar: {
             id: number;
             userId: number | null;
-            eventTypeId: number | null;
             credentialId: number | null;
-            integration: string;
+            eventTypeId: number | null;
             externalId: string;
+            integration: string;
             primaryEmail: string | null;
         } | null;
         name: string | null;
+        emailVerified: Date | null;
+        identityProviderId: string | null;
+        allowDynamicBooking: boolean | null;
+        bio: string | null;
+        avatarUrl: string | null;
+        weekStart: string;
         startTime: number;
         endTime: number;
-        metadata: import(".prisma/client").Prisma.JsonValue;
-        timeZone: string;
-        bio: string | null;
+        bufferTime: number;
         hideBranding: boolean;
         theme: string | null;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-        timeFormat: number | null;
-        weekStart: string;
-        selectedCalendars: {
-            integration: string;
-            externalId: string;
-        }[];
-        emailVerified: Date | null;
-        avatarUrl: string | null;
-        bufferTime: number;
         appTheme: string | null;
         createdDate: Date;
         trialEndsAt: Date | null;
         defaultScheduleId: number | null;
         completedOnboarding: boolean;
+        timeFormat: number | null;
         twoFactorEnabled: boolean;
         identityProvider: import(".prisma/client").$Enums.IdentityProvider;
-        identityProviderId: string | null;
-        allowDynamicBooking: boolean | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
         allowSEOIndexing: boolean | null;
         receiveMonthlyDigestEmail: boolean | null;
         role: import(".prisma/client").$Enums.UserPermissionRole;
         disableImpersonation: boolean;
         movedToProfileId: number | null;
+        selectedCalendars: {
+            externalId: string;
+            integration: string;
+        }[];
         profile: {
             name: string | null;
             avatarUrl: string | null;
@@ -207,26 +207,26 @@ export declare const eventOwnerProcedure: import("@trpc/server/unstable-core-do-
             endTime: number;
             bufferTime: number;
             user: {
-                name: string | null;
                 id: number;
+                name: string | null;
+                email: string;
+                username: string | null;
+                locale: string | null;
+                avatarUrl: string | null;
                 startTime: number;
                 endTime: number;
-                email: string;
-                locale: string | null;
-                username: string | null;
-                avatarUrl: string | null;
                 bufferTime: number;
                 defaultScheduleId: number | null;
                 isPlatformManaged: boolean;
             };
             organization: {
+                id: number;
+                slug: string | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
                 organizationSettings: {
                     lockEventTypeCreationForUsers: boolean;
                 } | null;
-                name: string;
-                id: number;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                slug: string | null;
                 logoUrl: string | null;
                 calVideoLogo: string | null;
                 isPrivate: boolean;
@@ -268,7 +268,7 @@ export declare const eventOwnerProcedure: import("@trpc/server/unstable-core-do-
                 createdByOAuthClientId: string | null;
                 smsLockState: import(".prisma/client").$Enums.SMSLockState;
                 smsLockReviewedByAdmin: boolean;
-            }, "name" | "id" | "metadata" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
+            }, "id" | "slug" | "metadata" | "name" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
                 requestedSlug: string | null;
                 metadata: {
                     requestedSlug: string | null;
@@ -290,12 +290,12 @@ export declare const eventOwnerProcedure: import("@trpc/server/unstable-core-do-
                 id: number;
             } | null;
             id: number;
-            uid: string;
             userId: number;
+            uid: string;
+            username: string;
+            organizationId: number;
             createdAt: Date & string;
             updatedAt: Date & string;
-            organizationId: number;
-            username: string;
             upId: string;
         };
     };
@@ -370,8 +370,8 @@ export declare function addWeightAdjustmentToNewHosts({ hosts, isWeightsEnabled,
 export declare const mapEventType: (eventType: EventType) => Promise<{
     safeDescription: string | undefined;
     users: ({
-        name: string | null;
         id: number;
+        name: string | null;
         username: string | null;
         avatarUrl: string | null;
     } & {
@@ -582,29 +582,20 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
         managedEventConfig?: {
             unlockedFields?: {
                 length?: true | undefined;
-                destinationCalendar?: true | undefined;
-                profile?: true | undefined;
-                team?: true | undefined;
-                schedule?: true | undefined;
-                availability?: true | undefined;
-                hashedLink?: true | undefined;
-                secondaryEmail?: true | undefined;
-                userId?: true | undefined;
                 title?: true | undefined;
-                description?: true | undefined;
-                customInputs?: true | undefined;
-                metadata?: true | undefined;
-                timeZone?: true | undefined;
                 slug?: true | undefined;
+                description?: true | undefined;
                 position?: true | undefined;
                 locations?: true | undefined;
                 offsetStart?: true | undefined;
                 hidden?: true | undefined;
+                userId?: true | undefined;
                 profileId?: true | undefined;
                 teamId?: true | undefined;
                 eventName?: true | undefined;
                 parentId?: true | undefined;
                 bookingFields?: true | undefined;
+                timeZone?: true | undefined;
                 periodType?: true | undefined;
                 periodStartDate?: true | undefined;
                 periodEndDate?: true | undefined;
@@ -629,6 +620,7 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
                 price?: true | undefined;
                 currency?: true | undefined;
                 slotInterval?: true | undefined;
+                metadata?: true | undefined;
                 successRedirectUrl?: true | undefined;
                 forwardParamsSuccessRedirect?: true | undefined;
                 bookingLimits?: true | undefined;
@@ -645,19 +637,27 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
                 hosts?: true | undefined;
                 users?: true | undefined;
                 owner?: true | undefined;
+                profile?: true | undefined;
+                team?: true | undefined;
+                hashedLink?: true | undefined;
                 bookings?: true | undefined;
+                availability?: true | undefined;
                 webhooks?: true | undefined;
+                destinationCalendar?: true | undefined;
+                customInputs?: true | undefined;
                 parent?: true | undefined;
                 children?: true | undefined;
+                schedule?: true | undefined;
                 workflows?: true | undefined;
                 instantMeetingSchedule?: true | undefined;
                 aiPhoneCallConfig?: true | undefined;
+                secondaryEmail?: true | undefined;
                 _count?: true | undefined;
             } | undefined;
         } | undefined;
         requiresConfirmationThreshold?: {
             time: number;
-            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
         } | undefined;
         config?: {
             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -669,8 +669,8 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
     } | null;
     children: {
         users: ({
-            name: string | null;
             id: number;
+            name: string | null;
             username: string | null;
             avatarUrl: string | null;
         } & {
@@ -679,21 +679,20 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
         })[];
         length: number;
         id: number;
-        userId: number | null;
         title: string;
-        description: string | null;
-        metadata: import(".prisma/client").Prisma.JsonValue;
-        timeZone: string | null;
         slug: string;
+        description: string | null;
         position: number;
         locations: import(".prisma/client").Prisma.JsonValue;
         offsetStart: number;
         hidden: boolean;
+        userId: number | null;
         profileId: number | null;
         teamId: number | null;
         eventName: string | null;
         parentId: number | null;
         bookingFields: import(".prisma/client").Prisma.JsonValue;
+        timeZone: string | null;
         periodType: import(".prisma/client").$Enums.PeriodType;
         periodStartDate: Date | null;
         periodEndDate: Date | null;
@@ -718,6 +717,7 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
         price: number;
         currency: string;
         slotInterval: number | null;
+        metadata: import(".prisma/client").Prisma.JsonValue;
         successRedirectUrl: string | null;
         forwardParamsSuccessRedirect: boolean | null;
         bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -733,26 +733,21 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
         secondaryEmailId: number | null;
     }[];
     length: number;
-    hashedLink: {
-        id: number;
-        eventTypeId: number;
-        link: string;
-    } | null;
     id: number;
-    userId: number | null;
     title: string;
-    description: string | null;
-    timeZone: string | null;
     slug: string;
+    description: string | null;
     position: number;
     locations: import(".prisma/client").Prisma.JsonValue;
     offsetStart: number;
     hidden: boolean;
+    userId: number | null;
     profileId: number | null;
     teamId: number | null;
     eventName: string | null;
     parentId: number | null;
     bookingFields: import(".prisma/client").Prisma.JsonValue;
+    timeZone: string | null;
     periodType: import(".prisma/client").$Enums.PeriodType;
     periodStartDate: Date | null;
     periodEndDate: Date | null;
@@ -791,8 +786,8 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
     secondaryEmailId: number | null;
     hosts: ({
         user: {
-            name: string | null;
             id: number;
+            name: string | null;
             username: string | null;
             avatarUrl: string | null;
         };
@@ -804,6 +799,11 @@ export declare const mapEventType: (eventType: EventType) => Promise<{
         weight: number | null;
         weightAdjustment: number | null;
     })[];
+    hashedLink: {
+        id: number;
+        link: string;
+        eventTypeId: number;
+    } | null;
     aiPhoneCallConfig: {
         id: number;
         eventTypeId: number;

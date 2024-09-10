@@ -28,15 +28,6 @@ export declare function getOriginalRescheduledBooking(uid: string, seatsEventTyp
             appId: string | null;
         }[];
     } | null;
-    destinationCalendar: {
-        id: number;
-        userId: number | null;
-        credentialId: number | null;
-        eventTypeId: number | null;
-        integration: string;
-        externalId: string;
-        primaryEmail: string | null;
-    } | null;
     payment: {
         data: Prisma.JsonValue;
         id: number;
@@ -51,6 +42,15 @@ export declare function getOriginalRescheduledBooking(uid: string, seatsEventTyp
         refunded: boolean;
         paymentOption: import(".prisma/client").$Enums.PaymentOption | null;
     }[];
+    destinationCalendar: {
+        id: number;
+        userId: number | null;
+        credentialId: number | null;
+        eventTypeId: number | null;
+        integration: string;
+        externalId: string;
+        primaryEmail: string | null;
+    } | null;
     references: {
         type: string;
         id: number;

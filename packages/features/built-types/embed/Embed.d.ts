@@ -17,7 +17,7 @@ export declare const EmbedDialog: ({ types, tabs, eventTypeHideOptionDisabled, }
             calLink: string;
             previewState: PreviewState;
             namespace: string;
-        } & import("react").RefAttributes<HTMLIFrameElement | HTMLTextAreaElement | null>>;
+        } & import("react").RefAttributes<HTMLTextAreaElement | HTMLIFrameElement | null>>;
     } | {
         name: string;
         href: string;
@@ -28,7 +28,7 @@ export declare const EmbedDialog: ({ types, tabs, eventTypeHideOptionDisabled, }
             embedType: EmbedType;
             previewState: PreviewState;
             namespace: string;
-        } & import("react").RefAttributes<HTMLIFrameElement | HTMLTextAreaElement | null>>;
+        } & import("react").RefAttributes<HTMLTextAreaElement | HTMLIFrameElement | null>>;
     })[];
     eventTypeHideOptionDisabled: boolean;
 }) => JSX.Element;

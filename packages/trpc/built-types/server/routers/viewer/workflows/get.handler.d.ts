@@ -7,10 +7,13 @@ type GetOptions = {
     input: TGetInputSchema;
 };
 export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
+    id: number;
+    userId: number | null;
+    teamId: number | null;
     team: {
-        name: string;
         id: number;
         slug: string | null;
+        name: string;
         isOrganization: boolean;
         members: {
             id: number;
@@ -21,25 +24,8 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
             accepted: boolean;
         }[];
     } | null;
-    name: string;
-    id: number;
-    userId: number | null;
-    teamId: number | null;
-    steps: {
-        id: number;
-        template: import(".prisma/client").$Enums.WorkflowTemplates;
-        stepNumber: number;
-        action: import(".prisma/client").$Enums.WorkflowActions;
-        workflowId: number;
-        sendTo: string | null;
-        reminderBody: string | null;
-        emailSubject: string | null;
-        numberRequired: boolean | null;
-        sender: string | null;
-        numberVerificationPending: boolean;
-        includeCalendarEvent: boolean;
-    }[];
     time: number | null;
+    name: string;
     isActiveOnAll: boolean;
     trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
     timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
@@ -47,21 +33,20 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
         eventType: {
             length: number;
             id: number;
-            userId: number | null;
             title: string;
-            description: string | null;
-            metadata: import(".prisma/client").Prisma.JsonValue;
-            timeZone: string | null;
             slug: string;
+            description: string | null;
             position: number;
             locations: import(".prisma/client").Prisma.JsonValue;
             offsetStart: number;
             hidden: boolean;
+            userId: number | null;
             profileId: number | null;
             teamId: number | null;
             eventName: string | null;
             parentId: number | null;
             bookingFields: import(".prisma/client").Prisma.JsonValue;
+            timeZone: string | null;
             periodType: import(".prisma/client").$Enums.PeriodType;
             periodStartDate: Date | null;
             periodEndDate: Date | null;
@@ -86,6 +71,7 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
             price: number;
             currency: string;
             slotInterval: number | null;
+            metadata: import(".prisma/client").Prisma.JsonValue;
             successRedirectUrl: string | null;
             forwardParamsSuccessRedirect: boolean | null;
             bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -103,34 +89,48 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
     }[];
     activeOnTeams: {
         team: {
-            name: string;
             id: number;
-            createdAt: Date;
-            metadata: import(".prisma/client").Prisma.JsonValue;
-            timeZone: string;
             slug: string | null;
             parentId: number | null;
+            timeZone: string;
+            metadata: import(".prisma/client").Prisma.JsonValue;
+            name: string;
+            bio: string | null;
+            weekStart: string;
+            hideBranding: boolean;
+            theme: string | null;
+            timeFormat: number | null;
+            brandColor: string | null;
+            darkBrandColor: string | null;
+            smsLockState: import(".prisma/client").$Enums.SMSLockState;
+            smsLockReviewedByAdmin: boolean;
+            createdAt: Date;
             logoUrl: string | null;
             calVideoLogo: string | null;
             appLogo: string | null;
             appIconLogo: string | null;
-            bio: string | null;
-            hideBranding: boolean;
             isPrivate: boolean;
             hideBookATeamMember: boolean;
-            theme: string | null;
-            brandColor: string | null;
-            darkBrandColor: string | null;
             bannerUrl: string | null;
-            timeFormat: number | null;
-            weekStart: string;
             isOrganization: boolean;
             pendingPayment: boolean;
             isPlatform: boolean;
             createdByOAuthClientId: string | null;
-            smsLockState: import(".prisma/client").$Enums.SMSLockState;
-            smsLockReviewedByAdmin: boolean;
         };
+    }[];
+    steps: {
+        id: number;
+        workflowId: number;
+        stepNumber: number;
+        action: import(".prisma/client").$Enums.WorkflowActions;
+        sendTo: string | null;
+        reminderBody: string | null;
+        emailSubject: string | null;
+        template: import(".prisma/client").$Enums.WorkflowTemplates;
+        numberRequired: boolean | null;
+        sender: string | null;
+        numberVerificationPending: boolean;
+        includeCalendarEvent: boolean;
     }[];
 } | null>;
 export {};

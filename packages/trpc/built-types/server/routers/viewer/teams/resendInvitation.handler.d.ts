@@ -7,8 +7,8 @@ type InviteMemberOptions = {
     input: TResendInvitationInputSchema;
 };
 export declare const resendInvitationHandler: ({ ctx, input }: InviteMemberOptions) => Promise<{
-    email: string;
     teamId: number;
+    email: string;
     language: string;
     isOrg: boolean;
 }>;

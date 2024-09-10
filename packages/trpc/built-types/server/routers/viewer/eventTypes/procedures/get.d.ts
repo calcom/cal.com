@@ -220,29 +220,20 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                 managedEventConfig?: {
                     unlockedFields?: {
                         length?: true | undefined;
-                        destinationCalendar?: true | undefined;
-                        profile?: true | undefined;
-                        team?: true | undefined;
-                        schedule?: true | undefined;
-                        availability?: true | undefined;
-                        hashedLink?: true | undefined;
-                        secondaryEmail?: true | undefined;
-                        userId?: true | undefined;
                         title?: true | undefined;
-                        description?: true | undefined;
-                        customInputs?: true | undefined;
-                        metadata?: true | undefined;
-                        timeZone?: true | undefined;
                         slug?: true | undefined;
+                        description?: true | undefined;
                         position?: true | undefined;
                         locations?: true | undefined;
                         offsetStart?: true | undefined;
                         hidden?: true | undefined;
+                        userId?: true | undefined;
                         profileId?: true | undefined;
                         teamId?: true | undefined;
                         eventName?: true | undefined;
                         parentId?: true | undefined;
                         bookingFields?: true | undefined;
+                        timeZone?: true | undefined;
                         periodType?: true | undefined;
                         periodStartDate?: true | undefined;
                         periodEndDate?: true | undefined;
@@ -267,6 +258,7 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                         price?: true | undefined;
                         currency?: true | undefined;
                         slotInterval?: true | undefined;
+                        metadata?: true | undefined;
                         successRedirectUrl?: true | undefined;
                         forwardParamsSuccessRedirect?: true | undefined;
                         bookingLimits?: true | undefined;
@@ -283,19 +275,27 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                         hosts?: true | undefined;
                         users?: true | undefined;
                         owner?: true | undefined;
+                        profile?: true | undefined;
+                        team?: true | undefined;
+                        hashedLink?: true | undefined;
                         bookings?: true | undefined;
+                        availability?: true | undefined;
                         webhooks?: true | undefined;
+                        destinationCalendar?: true | undefined;
+                        customInputs?: true | undefined;
                         parent?: true | undefined;
                         children?: true | undefined;
+                        schedule?: true | undefined;
                         workflows?: true | undefined;
                         instantMeetingSchedule?: true | undefined;
                         aiPhoneCallConfig?: true | undefined;
+                        secondaryEmail?: true | undefined;
                         _count?: true | undefined;
                     } | undefined;
                 } | undefined;
                 requiresConfirmationThreshold?: {
                     time: number;
-                    unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                    unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                 } | undefined;
                 config?: {
                     useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -319,11 +319,11 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                 hasToBeCreated?: boolean | undefined;
             }[];
             users: {
-                name: string | null;
                 id: number;
+                name: string | null;
                 email: string;
-                locale: string | null;
                 username: string | null;
+                locale: string | null;
                 avatarUrl: string | null;
                 defaultScheduleId: number | null;
             }[];
@@ -345,59 +345,17 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                 hidden: boolean;
             }[];
             length: number;
-            destinationCalendar: {
-                id: number;
-                userId: number | null;
-                eventTypeId: number | null;
-                credentialId: number | null;
-                integration: string;
-                externalId: string;
-                primaryEmail: string | null;
-            } | null;
-            team: {
-                name: string;
-                id: number;
-                slug: string | null;
-                parentId: number | null;
-                parent: {
-                    organizationSettings: {
-                        lockEventTypeCreationForUsers: boolean;
-                    } | null;
-                    slug: string | null;
-                } | null;
-                members: {
-                    user: {
-                        name: string | null;
-                        id: number;
-                        email: string;
-                        locale: string | null;
-                        eventTypes: {
-                            slug: string;
-                        }[];
-                        username: string | null;
-                        avatarUrl: string | null;
-                        defaultScheduleId: number | null;
-                    };
-                    role: import(".prisma/client").$Enums.MembershipRole;
-                    accepted: boolean;
-                }[];
-            } | null;
-            hashedLink: {
-                id: number;
-                eventTypeId: number;
-                link: string;
-            } | null;
             id: number;
-            userId: number | null;
             title: string;
-            description: string | null;
-            timeZone: string | null;
             slug: string;
+            description: string | null;
             offsetStart: number;
             hidden: boolean;
+            userId: number | null;
             teamId: number | null;
             eventName: string | null;
             bookingFields: import(".prisma/client").Prisma.JsonValue;
+            timeZone: string | null;
             periodType: import(".prisma/client").$Enums.PeriodType;
             periodStartDate: Date | null;
             periodEndDate: Date | null;
@@ -439,25 +397,70 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
             owner: {
                 id: number;
             } | null;
+            team: {
+                id: number;
+                slug: string | null;
+                parentId: number | null;
+                parent: {
+                    slug: string | null;
+                    organizationSettings: {
+                        lockEventTypeCreationForUsers: boolean;
+                    } | null;
+                } | null;
+                name: string;
+                members: {
+                    user: {
+                        id: number;
+                        name: string | null;
+                        email: string;
+                        username: string | null;
+                        locale: string | null;
+                        avatarUrl: string | null;
+                        defaultScheduleId: number | null;
+                        eventTypes: {
+                            slug: string;
+                        }[];
+                    };
+                    role: import(".prisma/client").$Enums.MembershipRole;
+                    accepted: boolean;
+                }[];
+            } | null;
+            hashedLink: {
+                id: number;
+                link: string;
+                eventTypeId: number;
+            } | null;
             webhooks: {
                 id: string;
                 eventTypeId: number | null;
-                secret: string | null;
                 subscriberUrl: string;
                 payloadTemplate: string | null;
                 active: boolean;
                 eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+                secret: string | null;
             }[];
+            destinationCalendar: {
+                id: number;
+                userId: number | null;
+                credentialId: number | null;
+                eventTypeId: number | null;
+                externalId: string;
+                integration: string;
+                primaryEmail: string | null;
+            } | null;
             parent: {
                 id: number;
                 teamId: number | null;
             } | null;
             workflows: ({
                 workflow: {
+                    id: number;
+                    userId: number | null;
+                    teamId: number | null;
                     team: {
-                        name: string;
                         id: number;
                         slug: string | null;
+                        name: string;
                         members: {
                             id: number;
                             userId: number;
@@ -467,25 +470,8 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                             accepted: boolean;
                         }[];
                     } | null;
-                    name: string;
-                    id: number;
-                    userId: number | null;
-                    teamId: number | null;
-                    steps: {
-                        id: number;
-                        template: import(".prisma/client").$Enums.WorkflowTemplates;
-                        stepNumber: number;
-                        action: import(".prisma/client").$Enums.WorkflowActions;
-                        workflowId: number;
-                        sendTo: string | null;
-                        reminderBody: string | null;
-                        emailSubject: string | null;
-                        numberRequired: boolean | null;
-                        sender: string | null;
-                        numberVerificationPending: boolean;
-                        includeCalendarEvent: boolean;
-                    }[];
                     time: number | null;
+                    name: string;
                     trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
                     timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
                     activeOn: {
@@ -497,6 +483,20 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                                 children: number;
                             };
                         };
+                    }[];
+                    steps: {
+                        id: number;
+                        workflowId: number;
+                        stepNumber: number;
+                        action: import(".prisma/client").$Enums.WorkflowActions;
+                        sendTo: string | null;
+                        reminderBody: string | null;
+                        emailSubject: string | null;
+                        template: import(".prisma/client").$Enums.WorkflowTemplates;
+                        numberRequired: boolean | null;
+                        sender: string | null;
+                        numberVerificationPending: boolean;
+                        includeCalendarEvent: boolean;
                     }[];
                 };
             } & {
@@ -521,11 +521,11 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
             } | null;
         } & {
             users: ({
-                name: string | null;
                 id: number;
+                name: string | null;
                 email: string;
-                locale: string | null;
                 username: string | null;
+                locale: string | null;
                 avatarUrl: string | null;
                 defaultScheduleId: number | null;
             } & {
@@ -534,7 +534,7 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
             periodStartDate: string | null;
             periodEndDate: string | null;
             bookingFields: {
-                type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 name: string;
                 label?: string | undefined;
                 options?: {
@@ -558,7 +558,7 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                 variantsConfig?: {
                     variants: Record<string, {
                         fields: {
-                            type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
+                            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                             name: string;
                             label?: string | undefined;
                             maxLength?: number | undefined;
@@ -576,7 +576,7 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
                 }[] | undefined;
                 hideWhenJustOneOption?: boolean | undefined;
                 hidden?: boolean | undefined;
-                editable?: "user" | "system-but-optional" | "system" | "system-but-hidden" | "user-readonly" | undefined;
+                editable?: "user" | "system" | "system-but-optional" | "system-but-hidden" | "user-readonly" | undefined;
                 sources?: {
                     label: string;
                     type: string;
@@ -601,35 +601,35 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
         destinationCalendar: {
             id: number;
             userId: number | null;
-            eventTypeId: number | null;
             credentialId: number | null;
-            integration: string;
+            eventTypeId: number | null;
             externalId: string;
+            integration: string;
             primaryEmail: string | null;
         } | null;
         team: {
-            name: string;
             id: number;
             slug: string | null;
             parentId: number | null;
             parent: {
+                slug: string | null;
                 organizationSettings: {
                     lockEventTypeCreationForUsers: boolean;
                 } | null;
-                slug: string | null;
             } | null;
+            name: string;
             members: {
                 user: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
+                    username: string | null;
                     locale: string | null;
+                    avatarUrl: string | null;
+                    defaultScheduleId: number | null;
                     eventTypes: {
                         slug: string;
                     }[];
-                    username: string | null;
-                    avatarUrl: string | null;
-                    defaultScheduleId: number | null;
                 };
                 role: import(".prisma/client").$Enums.MembershipRole;
                 accepted: boolean;
@@ -639,11 +639,11 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
             profileId: number | null;
             eventTypes: string[];
             membership: import(".prisma/client").$Enums.MembershipRole;
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
-            locale: string | null;
             username: string | null;
+            locale: string | null;
             avatarUrl: string | null;
             defaultScheduleId: number | null;
             nonProfileUsername: string | null;
@@ -652,16 +652,16 @@ export declare const get: import("@trpc/server/unstable-core-do-not-import").Que
         }[];
         currentUserMembership: {
             user: {
-                name: string | null;
                 id: number;
+                name: string | null;
                 email: string;
+                username: string | null;
                 locale: string | null;
+                avatarUrl: string | null;
+                defaultScheduleId: number | null;
                 eventTypes: {
                     slug: string;
                 }[];
-                username: string | null;
-                avatarUrl: string | null;
-                defaultScheduleId: number | null;
             };
             role: import(".prisma/client").$Enums.MembershipRole;
             accepted: boolean;

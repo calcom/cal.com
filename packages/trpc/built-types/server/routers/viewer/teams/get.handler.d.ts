@@ -26,17 +26,17 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
             } | null;
             externalId: string | null;
         }[] | null;
-        name: string | null;
         id: number;
+        name: string | null;
         email: string;
         bio: string | null;
+        avatarUrl: string | null;
         teams: {
             team: {
                 id: number;
                 slug: string | null;
             };
         }[];
-        avatarUrl: string | null;
         nonProfileUsername: string | null;
     }[];
     safeBio: string;
@@ -46,9 +46,9 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
     };
     inviteToken: {
         token: string;
-        identifier: string;
         expires: Date;
         expiresInDays: number | null;
+        identifier: string;
     } | undefined;
     metadata: {
         requestedSlug?: string | null | undefined;
@@ -267,29 +267,20 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
             managedEventConfig?: {
                 unlockedFields?: {
                     length?: true | undefined;
-                    destinationCalendar?: true | undefined;
-                    profile?: true | undefined;
-                    team?: true | undefined;
-                    schedule?: true | undefined;
-                    availability?: true | undefined;
-                    hashedLink?: true | undefined;
-                    secondaryEmail?: true | undefined;
-                    userId?: true | undefined;
                     title?: true | undefined;
-                    description?: true | undefined;
-                    customInputs?: true | undefined;
-                    metadata?: true | undefined;
-                    timeZone?: true | undefined;
                     slug?: true | undefined;
+                    description?: true | undefined;
                     position?: true | undefined;
                     locations?: true | undefined;
                     offsetStart?: true | undefined;
                     hidden?: true | undefined;
+                    userId?: true | undefined;
                     profileId?: true | undefined;
                     teamId?: true | undefined;
                     eventName?: true | undefined;
                     parentId?: true | undefined;
                     bookingFields?: true | undefined;
+                    timeZone?: true | undefined;
                     periodType?: true | undefined;
                     periodStartDate?: true | undefined;
                     periodEndDate?: true | undefined;
@@ -314,6 +305,7 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                     price?: true | undefined;
                     currency?: true | undefined;
                     slotInterval?: true | undefined;
+                    metadata?: true | undefined;
                     successRedirectUrl?: true | undefined;
                     forwardParamsSuccessRedirect?: true | undefined;
                     bookingLimits?: true | undefined;
@@ -330,19 +322,27 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                     hosts?: true | undefined;
                     users?: true | undefined;
                     owner?: true | undefined;
+                    profile?: true | undefined;
+                    team?: true | undefined;
+                    hashedLink?: true | undefined;
                     bookings?: true | undefined;
+                    availability?: true | undefined;
                     webhooks?: true | undefined;
+                    destinationCalendar?: true | undefined;
+                    customInputs?: true | undefined;
                     parent?: true | undefined;
                     children?: true | undefined;
+                    schedule?: true | undefined;
                     workflows?: true | undefined;
                     instantMeetingSchedule?: true | undefined;
                     aiPhoneCallConfig?: true | undefined;
+                    secondaryEmail?: true | undefined;
                     _count?: true | undefined;
                 } | undefined;
             } | undefined;
             requiresConfirmationThreshold?: {
                 time: number;
-                unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
             } | undefined;
             config?: {
                 useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -353,10 +353,12 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
             } | null | undefined;
         } | null;
         users: ({
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
+            username: string | null;
             bio: string | null;
+            avatarUrl: string | null;
             credentials: {
                 app: {
                     slug: string;
@@ -372,8 +374,6 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                     slug: string | null;
                 };
             }[];
-            username: string | null;
-            avatarUrl: string | null;
         } & {
             nonProfileUsername: string | null;
             profile: import("@calcom/types/UserProfile").UserProfile;
@@ -381,8 +381,8 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
         length: number;
         id: number;
         title: string;
-        description: string | null;
         slug: string;
+        description: string | null;
         hidden: boolean;
         lockTimeZoneToggleOnBookingPage: boolean;
         requiresConfirmation: boolean;
@@ -393,10 +393,12 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
         currency: string;
         hosts: {
             user: {
-                name: string | null;
                 id: number;
+                name: string | null;
                 email: string;
+                username: string | null;
                 bio: string | null;
+                avatarUrl: string | null;
                 credentials: {
                     app: {
                         slug: string;
@@ -412,37 +414,35 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                         slug: string | null;
                     };
                 }[];
-                username: string | null;
-                avatarUrl: string | null;
             };
         }[];
     }[] | null;
     logo?: string | undefined;
-    name: string;
     id: number;
     slug: string | null;
     parentId: number | null;
     parent: {
-        name: string;
         id: number;
-        metadata: import(".prisma/client").Prisma.JsonValue;
         slug: string | null;
+        metadata: import(".prisma/client").Prisma.JsonValue;
+        name: string;
         logoUrl: string | null;
         isPrivate: boolean;
         isOrganization: boolean;
     } | null;
     children: {
-        name: string;
         slug: string | null;
+        name: string;
     }[];
-    logoUrl: string | null;
+    name: string;
     bio: string | null;
     hideBranding: boolean;
-    isPrivate: boolean;
-    hideBookATeamMember: boolean;
     theme: string | null;
     brandColor: string | null;
     darkBrandColor: string | null;
+    logoUrl: string | null;
+    isPrivate: boolean;
+    hideBookATeamMember: boolean;
     isOrganization: boolean;
 }>;
 export default getHandler;

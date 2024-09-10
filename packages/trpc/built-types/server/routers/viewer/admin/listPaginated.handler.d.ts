@@ -8,10 +8,10 @@ type GetOptions = {
 };
 declare const listPaginatedHandler: ({ input }: GetOptions) => Promise<{
     rows: {
-        name: string | null;
         id: number;
-        email: string;
         timeZone: string;
+        name: string | null;
+        email: string;
         username: string | null;
         role: import(".prisma/client").$Enums.UserPermissionRole;
         locked: boolean;

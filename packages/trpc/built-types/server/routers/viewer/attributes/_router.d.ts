@@ -24,12 +24,12 @@ export declare const attributesRouter: import("@trpc/server/unstable-core-do-not
             }[];
         } & {
             type: import(".prisma/client").$Enums.AttributeType;
-            name: string;
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             slug: string;
             teamId: number;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
             enabled: boolean;
             usersCanEditRelation: boolean;
         })[];
@@ -45,8 +45,8 @@ export declare const attributesRouter: import("@trpc/server/unstable-core-do-not
                 assignedUsers?: number | undefined;
             }[];
             type: "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT";
-            name: string;
             id: string;
+            name: string;
         };
     }>;
     getByUserId: import("@trpc/server/unstable-core-do-not-import").QueryProcedure<{
@@ -104,12 +104,12 @@ export declare const attributesRouter: import("@trpc/server/unstable-core-do-not
         };
         output: {
             type: import(".prisma/client").$Enums.AttributeType;
-            name: string;
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             slug: string;
             teamId: number;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
             enabled: boolean;
             usersCanEditRelation: boolean;
         };

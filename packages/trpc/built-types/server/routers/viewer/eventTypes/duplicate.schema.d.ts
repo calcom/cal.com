@@ -10,15 +10,15 @@ export declare const ZDuplicateInputSchema: z.ZodObject<{
     length: number;
     id: number;
     title: string;
-    description: string;
     slug: string;
+    description: string;
     teamId?: number | null | undefined;
 }, {
     length: number;
     id: number;
     title: string;
-    description: string;
     slug: string;
+    description: string;
     teamId?: number | null | undefined;
 }>;
 export type TDuplicateInputSchema = z.infer<typeof ZDuplicateInputSchema>;

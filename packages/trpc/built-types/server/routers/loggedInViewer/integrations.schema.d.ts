@@ -28,7 +28,7 @@ export declare const ZIntegrationsInputSchema: z.ZodObject<{
     extendsFeature?: "EventType" | undefined;
     teamId?: number | null | undefined;
     sortByMostPopular?: boolean | undefined;
-    categories?: ("other" | "payment" | "calendar" | "messaging" | "video" | "web3" | "automation" | "analytics" | "conferencing" | "crm")[] | undefined;
+    categories?: ("calendar" | "messaging" | "other" | "payment" | "video" | "web3" | "automation" | "analytics" | "conferencing" | "crm")[] | undefined;
     appId?: string | undefined;
 }, {
     variant?: string | undefined;
@@ -38,7 +38,7 @@ export declare const ZIntegrationsInputSchema: z.ZodObject<{
     extendsFeature?: "EventType" | undefined;
     teamId?: number | null | undefined;
     sortByMostPopular?: boolean | undefined;
-    categories?: ("other" | "payment" | "calendar" | "messaging" | "video" | "web3" | "automation" | "analytics" | "conferencing" | "crm")[] | undefined;
+    categories?: ("calendar" | "messaging" | "other" | "payment" | "video" | "web3" | "automation" | "analytics" | "conferencing" | "crm")[] | undefined;
     appId?: string | undefined;
 }>;
 export type TIntegrationsInputSchema = z.infer<typeof ZIntegrationsInputSchema>;

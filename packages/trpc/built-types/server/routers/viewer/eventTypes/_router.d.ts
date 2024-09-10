@@ -25,8 +25,8 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
         } | null | undefined;
         output: {
             allUsersAcrossAllEventTypes: Map<number, {
-                name: string | null;
                 id: number;
+                name: string | null;
                 username: string | null;
                 avatarUrl: string | null;
             } & {
@@ -241,29 +241,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         managedEventConfig?: {
                             unlockedFields?: {
                                 length?: true | undefined;
-                                destinationCalendar?: true | undefined;
-                                profile?: true | undefined;
-                                team?: true | undefined;
-                                schedule?: true | undefined;
-                                availability?: true | undefined;
-                                hashedLink?: true | undefined;
-                                secondaryEmail?: true | undefined;
-                                userId?: true | undefined;
                                 title?: true | undefined;
-                                description?: true | undefined;
-                                customInputs?: true | undefined;
-                                metadata?: true | undefined;
-                                timeZone?: true | undefined;
                                 slug?: true | undefined;
+                                description?: true | undefined;
                                 position?: true | undefined;
                                 locations?: true | undefined;
                                 offsetStart?: true | undefined;
                                 hidden?: true | undefined;
+                                userId?: true | undefined;
                                 profileId?: true | undefined;
                                 teamId?: true | undefined;
                                 eventName?: true | undefined;
                                 parentId?: true | undefined;
                                 bookingFields?: true | undefined;
+                                timeZone?: true | undefined;
                                 periodType?: true | undefined;
                                 periodStartDate?: true | undefined;
                                 periodEndDate?: true | undefined;
@@ -288,6 +279,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                                 price?: true | undefined;
                                 currency?: true | undefined;
                                 slotInterval?: true | undefined;
+                                metadata?: true | undefined;
                                 successRedirectUrl?: true | undefined;
                                 forwardParamsSuccessRedirect?: true | undefined;
                                 bookingLimits?: true | undefined;
@@ -304,19 +296,27 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                                 hosts?: true | undefined;
                                 users?: true | undefined;
                                 owner?: true | undefined;
+                                profile?: true | undefined;
+                                team?: true | undefined;
+                                hashedLink?: true | undefined;
                                 bookings?: true | undefined;
+                                availability?: true | undefined;
                                 webhooks?: true | undefined;
+                                destinationCalendar?: true | undefined;
+                                customInputs?: true | undefined;
                                 parent?: true | undefined;
                                 children?: true | undefined;
+                                schedule?: true | undefined;
                                 workflows?: true | undefined;
                                 instantMeetingSchedule?: true | undefined;
                                 aiPhoneCallConfig?: true | undefined;
+                                secondaryEmail?: true | undefined;
                                 _count?: true | undefined;
                             } | undefined;
                         } | undefined;
                         requiresConfirmationThreshold?: {
                             time: number;
-                            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                         } | undefined;
                         config?: {
                             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -328,8 +328,8 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     } | null;
                     children: {
                         users: ({
-                            name: string | null;
                             id: number;
+                            name: string | null;
                             username: string | null;
                             avatarUrl: string | null;
                         } & {
@@ -338,21 +338,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         })[];
                         length: number;
                         id: number;
-                        userId: number | null;
                         title: string;
-                        description: string | null;
-                        metadata: import(".prisma/client").Prisma.JsonValue;
-                        timeZone: string | null;
                         slug: string;
+                        description: string | null;
                         position: number;
                         locations: import(".prisma/client").Prisma.JsonValue;
                         offsetStart: number;
                         hidden: boolean;
+                        userId: number | null;
                         profileId: number | null;
                         teamId: number | null;
                         eventName: string | null;
                         parentId: number | null;
                         bookingFields: import(".prisma/client").Prisma.JsonValue;
+                        timeZone: string | null;
                         periodType: import(".prisma/client").$Enums.PeriodType;
                         periodStartDate: Date | null;
                         periodEndDate: Date | null;
@@ -377,6 +376,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         price: number;
                         currency: string;
                         slotInterval: number | null;
+                        metadata: import(".prisma/client").Prisma.JsonValue;
                         successRedirectUrl: string | null;
                         forwardParamsSuccessRedirect: boolean | null;
                         bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -392,26 +392,21 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         secondaryEmailId: number | null;
                     }[];
                     length: number;
-                    hashedLink: {
-                        id: number;
-                        eventTypeId: number;
-                        link: string;
-                    } | null;
                     id: number;
-                    userId: number | null;
                     title: string;
-                    description: string | null;
-                    timeZone: string | null;
                     slug: string;
+                    description: string | null;
                     position: number;
                     locations: import(".prisma/client").Prisma.JsonValue;
                     offsetStart: number;
                     hidden: boolean;
+                    userId: number | null;
                     profileId: number | null;
                     teamId: number | null;
                     eventName: string | null;
                     parentId: number | null;
                     bookingFields: import(".prisma/client").Prisma.JsonValue;
+                    timeZone: string | null;
                     periodType: import(".prisma/client").$Enums.PeriodType;
                     periodStartDate: Date | null;
                     periodEndDate: Date | null;
@@ -450,8 +445,8 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     secondaryEmailId: number | null;
                     hosts: ({
                         user: {
-                            name: string | null;
                             id: number;
+                            name: string | null;
                             username: string | null;
                             avatarUrl: string | null;
                         };
@@ -463,6 +458,11 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         weight: number | null;
                         weightAdjustment: number | null;
                     })[];
+                    hashedLink: {
+                        id: number;
+                        link: string;
+                        eventTypeId: number;
+                    } | null;
                     aiPhoneCallConfig: {
                         id: number;
                         eventTypeId: number;
@@ -563,8 +563,8 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
             eventTypes: {
                 safeDescription: string | undefined;
                 users: ({
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     username: string | null;
                     avatarUrl: string | null;
                 } & {
@@ -775,29 +775,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     managedEventConfig?: {
                         unlockedFields?: {
                             length?: true | undefined;
-                            destinationCalendar?: true | undefined;
-                            profile?: true | undefined;
-                            team?: true | undefined;
-                            schedule?: true | undefined;
-                            availability?: true | undefined;
-                            hashedLink?: true | undefined;
-                            secondaryEmail?: true | undefined;
-                            userId?: true | undefined;
                             title?: true | undefined;
-                            description?: true | undefined;
-                            customInputs?: true | undefined;
-                            metadata?: true | undefined;
-                            timeZone?: true | undefined;
                             slug?: true | undefined;
+                            description?: true | undefined;
                             position?: true | undefined;
                             locations?: true | undefined;
                             offsetStart?: true | undefined;
                             hidden?: true | undefined;
+                            userId?: true | undefined;
                             profileId?: true | undefined;
                             teamId?: true | undefined;
                             eventName?: true | undefined;
                             parentId?: true | undefined;
                             bookingFields?: true | undefined;
+                            timeZone?: true | undefined;
                             periodType?: true | undefined;
                             periodStartDate?: true | undefined;
                             periodEndDate?: true | undefined;
@@ -822,6 +813,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                             price?: true | undefined;
                             currency?: true | undefined;
                             slotInterval?: true | undefined;
+                            metadata?: true | undefined;
                             successRedirectUrl?: true | undefined;
                             forwardParamsSuccessRedirect?: true | undefined;
                             bookingLimits?: true | undefined;
@@ -838,19 +830,27 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                             hosts?: true | undefined;
                             users?: true | undefined;
                             owner?: true | undefined;
+                            profile?: true | undefined;
+                            team?: true | undefined;
+                            hashedLink?: true | undefined;
                             bookings?: true | undefined;
+                            availability?: true | undefined;
                             webhooks?: true | undefined;
+                            destinationCalendar?: true | undefined;
+                            customInputs?: true | undefined;
                             parent?: true | undefined;
                             children?: true | undefined;
+                            schedule?: true | undefined;
                             workflows?: true | undefined;
                             instantMeetingSchedule?: true | undefined;
                             aiPhoneCallConfig?: true | undefined;
+                            secondaryEmail?: true | undefined;
                             _count?: true | undefined;
                         } | undefined;
                     } | undefined;
                     requiresConfirmationThreshold?: {
                         time: number;
-                        unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                        unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                     } | undefined;
                     config?: {
                         useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -862,8 +862,8 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 } | null;
                 children: {
                     users: ({
-                        name: string | null;
                         id: number;
+                        name: string | null;
                         username: string | null;
                         avatarUrl: string | null;
                     } & {
@@ -872,21 +872,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     })[];
                     length: number;
                     id: number;
-                    userId: number | null;
                     title: string;
-                    description: string | null;
-                    metadata: import(".prisma/client").Prisma.JsonValue;
-                    timeZone: string | null;
                     slug: string;
+                    description: string | null;
                     position: number;
                     locations: import(".prisma/client").Prisma.JsonValue;
                     offsetStart: number;
                     hidden: boolean;
+                    userId: number | null;
                     profileId: number | null;
                     teamId: number | null;
                     eventName: string | null;
                     parentId: number | null;
                     bookingFields: import(".prisma/client").Prisma.JsonValue;
+                    timeZone: string | null;
                     periodType: import(".prisma/client").$Enums.PeriodType;
                     periodStartDate: Date | null;
                     periodEndDate: Date | null;
@@ -911,6 +910,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     price: number;
                     currency: string;
                     slotInterval: number | null;
+                    metadata: import(".prisma/client").Prisma.JsonValue;
                     successRedirectUrl: string | null;
                     forwardParamsSuccessRedirect: boolean | null;
                     bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -926,26 +926,21 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     secondaryEmailId: number | null;
                 }[];
                 length: number;
-                hashedLink: {
-                    id: number;
-                    eventTypeId: number;
-                    link: string;
-                } | null;
                 id: number;
-                userId: number | null;
                 title: string;
-                description: string | null;
-                timeZone: string | null;
                 slug: string;
+                description: string | null;
                 position: number;
                 locations: import(".prisma/client").Prisma.JsonValue;
                 offsetStart: number;
                 hidden: boolean;
+                userId: number | null;
                 profileId: number | null;
                 teamId: number | null;
                 eventName: string | null;
                 parentId: number | null;
                 bookingFields: import(".prisma/client").Prisma.JsonValue;
+                timeZone: string | null;
                 periodType: import(".prisma/client").$Enums.PeriodType;
                 periodStartDate: Date | null;
                 periodEndDate: Date | null;
@@ -984,8 +979,8 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 secondaryEmailId: number | null;
                 hosts: ({
                     user: {
-                        name: string | null;
                         id: number;
+                        name: string | null;
                         username: string | null;
                         avatarUrl: string | null;
                     };
@@ -997,6 +992,11 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     weight: number | null;
                     weightAdjustment: number | null;
                 })[];
+                hashedLink: {
+                    id: number;
+                    link: string;
+                    eventTypeId: number;
+                } | null;
                 aiPhoneCallConfig: {
                     id: number;
                     eventTypeId: number;
@@ -1038,23 +1038,23 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
             length: number;
             id: number;
             title: string;
-            description: string | null;
-            metadata: import(".prisma/client").Prisma.JsonValue;
             slug: string;
+            description: string | null;
             hidden: boolean;
             schedulingType: import(".prisma/client").$Enums.SchedulingType | null;
+            metadata: import(".prisma/client").Prisma.JsonValue;
         }[];
     }>;
     listWithTeam: import("@trpc/server/unstable-core-do-not-import").QueryProcedure<{
         input: void;
         output: {
-            team: {
-                name: string;
-                id: number;
-            } | null;
             id: number;
             title: string;
             slug: string;
+            team: {
+                id: number;
+                name: string;
+            } | null;
         }[];
     }>;
     create: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
@@ -1063,6 +1063,24 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
             title: string;
             slug: string;
             description?: string | null | undefined;
+            locations?: {
+                type: string;
+                address?: string | undefined;
+                link?: string | undefined;
+                displayLocationPublicly?: boolean | undefined;
+                hostPhoneNumber?: string | undefined;
+                credentialId?: number | undefined;
+                teamName?: string | undefined;
+            }[] | undefined;
+            hidden?: boolean | undefined;
+            teamId?: number | null | undefined;
+            disableGuests?: boolean | undefined;
+            minimumBookingNotice?: number | undefined;
+            beforeEventBuffer?: number | undefined;
+            afterEventBuffer?: number | undefined;
+            schedulingType?: "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED" | null | undefined;
+            scheduleId?: number | undefined;
+            slotInterval?: number | null | undefined;
             metadata?: {
                 smartContractAddress?: string | undefined;
                 blockchainId?: number | undefined;
@@ -1267,29 +1285,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 managedEventConfig?: {
                     unlockedFields?: {
                         length?: true | undefined;
-                        destinationCalendar?: true | undefined;
-                        profile?: true | undefined;
-                        team?: true | undefined;
-                        schedule?: true | undefined;
-                        availability?: true | undefined;
-                        hashedLink?: true | undefined;
-                        secondaryEmail?: true | undefined;
-                        userId?: true | undefined;
                         title?: true | undefined;
-                        description?: true | undefined;
-                        customInputs?: true | undefined;
-                        metadata?: true | undefined;
-                        timeZone?: true | undefined;
                         slug?: true | undefined;
+                        description?: true | undefined;
                         position?: true | undefined;
                         locations?: true | undefined;
                         offsetStart?: true | undefined;
                         hidden?: true | undefined;
+                        userId?: true | undefined;
                         profileId?: true | undefined;
                         teamId?: true | undefined;
                         eventName?: true | undefined;
                         parentId?: true | undefined;
                         bookingFields?: true | undefined;
+                        timeZone?: true | undefined;
                         periodType?: true | undefined;
                         periodStartDate?: true | undefined;
                         periodEndDate?: true | undefined;
@@ -1314,6 +1323,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         price?: true | undefined;
                         currency?: true | undefined;
                         slotInterval?: true | undefined;
+                        metadata?: true | undefined;
                         successRedirectUrl?: true | undefined;
                         forwardParamsSuccessRedirect?: true | undefined;
                         bookingLimits?: true | undefined;
@@ -1330,19 +1340,27 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         hosts?: true | undefined;
                         users?: true | undefined;
                         owner?: true | undefined;
+                        profile?: true | undefined;
+                        team?: true | undefined;
+                        hashedLink?: true | undefined;
                         bookings?: true | undefined;
+                        availability?: true | undefined;
                         webhooks?: true | undefined;
+                        destinationCalendar?: true | undefined;
+                        customInputs?: true | undefined;
                         parent?: true | undefined;
                         children?: true | undefined;
+                        schedule?: true | undefined;
                         workflows?: true | undefined;
                         instantMeetingSchedule?: true | undefined;
                         aiPhoneCallConfig?: true | undefined;
+                        secondaryEmail?: true | undefined;
                         _count?: true | undefined;
                     } | undefined;
                 } | undefined;
                 requiresConfirmationThreshold?: {
                     time: number;
-                    unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                    unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                 } | undefined;
                 config?: {
                     useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -1352,44 +1370,25 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
                 } | null | undefined;
             } | null | undefined;
-            locations?: {
-                type: string;
-                address?: string | undefined;
-                link?: string | undefined;
-                displayLocationPublicly?: boolean | undefined;
-                hostPhoneNumber?: string | undefined;
-                credentialId?: number | undefined;
-                teamName?: string | undefined;
-            }[] | undefined;
-            hidden?: boolean | undefined;
-            teamId?: number | null | undefined;
-            disableGuests?: boolean | undefined;
-            minimumBookingNotice?: number | undefined;
-            beforeEventBuffer?: number | undefined;
-            afterEventBuffer?: number | undefined;
-            schedulingType?: "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED" | null | undefined;
-            scheduleId?: number | undefined;
-            slotInterval?: number | null | undefined;
         };
         output: {
             eventType: {
                 length: number;
                 id: number;
-                userId: number | null;
                 title: string;
-                description: string | null;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                timeZone: string | null;
                 slug: string;
+                description: string | null;
                 position: number;
                 locations: import(".prisma/client").Prisma.JsonValue;
                 offsetStart: number;
                 hidden: boolean;
+                userId: number | null;
                 profileId: number | null;
                 teamId: number | null;
                 eventName: string | null;
                 parentId: number | null;
                 bookingFields: import(".prisma/client").Prisma.JsonValue;
+                timeZone: string | null;
                 periodType: import(".prisma/client").$Enums.PeriodType;
                 periodStartDate: Date | null;
                 periodEndDate: Date | null;
@@ -1414,6 +1413,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 price: number;
                 currency: string;
                 slotInterval: number | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
                 successRedirectUrl: string | null;
                 forwardParamsSuccessRedirect: boolean | null;
                 bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -1652,29 +1652,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     managedEventConfig?: {
                         unlockedFields?: {
                             length?: true | undefined;
-                            destinationCalendar?: true | undefined;
-                            profile?: true | undefined;
-                            team?: true | undefined;
-                            schedule?: true | undefined;
-                            availability?: true | undefined;
-                            hashedLink?: true | undefined;
-                            secondaryEmail?: true | undefined;
-                            userId?: true | undefined;
                             title?: true | undefined;
-                            description?: true | undefined;
-                            customInputs?: true | undefined;
-                            metadata?: true | undefined;
-                            timeZone?: true | undefined;
                             slug?: true | undefined;
+                            description?: true | undefined;
                             position?: true | undefined;
                             locations?: true | undefined;
                             offsetStart?: true | undefined;
                             hidden?: true | undefined;
+                            userId?: true | undefined;
                             profileId?: true | undefined;
                             teamId?: true | undefined;
                             eventName?: true | undefined;
                             parentId?: true | undefined;
                             bookingFields?: true | undefined;
+                            timeZone?: true | undefined;
                             periodType?: true | undefined;
                             periodStartDate?: true | undefined;
                             periodEndDate?: true | undefined;
@@ -1699,6 +1690,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                             price?: true | undefined;
                             currency?: true | undefined;
                             slotInterval?: true | undefined;
+                            metadata?: true | undefined;
                             successRedirectUrl?: true | undefined;
                             forwardParamsSuccessRedirect?: true | undefined;
                             bookingLimits?: true | undefined;
@@ -1715,19 +1707,27 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                             hosts?: true | undefined;
                             users?: true | undefined;
                             owner?: true | undefined;
+                            profile?: true | undefined;
+                            team?: true | undefined;
+                            hashedLink?: true | undefined;
                             bookings?: true | undefined;
+                            availability?: true | undefined;
                             webhooks?: true | undefined;
+                            destinationCalendar?: true | undefined;
+                            customInputs?: true | undefined;
                             parent?: true | undefined;
                             children?: true | undefined;
+                            schedule?: true | undefined;
                             workflows?: true | undefined;
                             instantMeetingSchedule?: true | undefined;
                             aiPhoneCallConfig?: true | undefined;
+                            secondaryEmail?: true | undefined;
                             _count?: true | undefined;
                         } | undefined;
                     } | undefined;
                     requiresConfirmationThreshold?: {
                         time: number;
-                        unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                        unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                     } | undefined;
                     config?: {
                         useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -1751,11 +1751,11 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     hasToBeCreated?: boolean | undefined;
                 }[];
                 users: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
-                    locale: string | null;
                     username: string | null;
+                    locale: string | null;
                     avatarUrl: string | null;
                     defaultScheduleId: number | null;
                 }[];
@@ -1777,59 +1777,17 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     hidden: boolean;
                 }[];
                 length: number;
-                destinationCalendar: {
-                    id: number;
-                    userId: number | null;
-                    eventTypeId: number | null;
-                    credentialId: number | null;
-                    integration: string;
-                    externalId: string;
-                    primaryEmail: string | null;
-                } | null;
-                team: {
-                    name: string;
-                    id: number;
-                    slug: string | null;
-                    parentId: number | null;
-                    parent: {
-                        organizationSettings: {
-                            lockEventTypeCreationForUsers: boolean;
-                        } | null;
-                        slug: string | null;
-                    } | null;
-                    members: {
-                        user: {
-                            name: string | null;
-                            id: number;
-                            email: string;
-                            locale: string | null;
-                            eventTypes: {
-                                slug: string;
-                            }[];
-                            username: string | null;
-                            avatarUrl: string | null;
-                            defaultScheduleId: number | null;
-                        };
-                        role: import(".prisma/client").$Enums.MembershipRole;
-                        accepted: boolean;
-                    }[];
-                } | null;
-                hashedLink: {
-                    id: number;
-                    eventTypeId: number;
-                    link: string;
-                } | null;
                 id: number;
-                userId: number | null;
                 title: string;
-                description: string | null;
-                timeZone: string | null;
                 slug: string;
+                description: string | null;
                 offsetStart: number;
                 hidden: boolean;
+                userId: number | null;
                 teamId: number | null;
                 eventName: string | null;
                 bookingFields: import(".prisma/client").Prisma.JsonValue;
+                timeZone: string | null;
                 periodType: import(".prisma/client").$Enums.PeriodType;
                 periodStartDate: Date | null;
                 periodEndDate: Date | null;
@@ -1871,25 +1829,70 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 owner: {
                     id: number;
                 } | null;
+                team: {
+                    id: number;
+                    slug: string | null;
+                    parentId: number | null;
+                    parent: {
+                        slug: string | null;
+                        organizationSettings: {
+                            lockEventTypeCreationForUsers: boolean;
+                        } | null;
+                    } | null;
+                    name: string;
+                    members: {
+                        user: {
+                            id: number;
+                            name: string | null;
+                            email: string;
+                            username: string | null;
+                            locale: string | null;
+                            avatarUrl: string | null;
+                            defaultScheduleId: number | null;
+                            eventTypes: {
+                                slug: string;
+                            }[];
+                        };
+                        role: import(".prisma/client").$Enums.MembershipRole;
+                        accepted: boolean;
+                    }[];
+                } | null;
+                hashedLink: {
+                    id: number;
+                    link: string;
+                    eventTypeId: number;
+                } | null;
                 webhooks: {
                     id: string;
                     eventTypeId: number | null;
-                    secret: string | null;
                     subscriberUrl: string;
                     payloadTemplate: string | null;
                     active: boolean;
                     eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+                    secret: string | null;
                 }[];
+                destinationCalendar: {
+                    id: number;
+                    userId: number | null;
+                    credentialId: number | null;
+                    eventTypeId: number | null;
+                    externalId: string;
+                    integration: string;
+                    primaryEmail: string | null;
+                } | null;
                 parent: {
                     id: number;
                     teamId: number | null;
                 } | null;
                 workflows: ({
                     workflow: {
+                        id: number;
+                        userId: number | null;
+                        teamId: number | null;
                         team: {
-                            name: string;
                             id: number;
                             slug: string | null;
+                            name: string;
                             members: {
                                 id: number;
                                 userId: number;
@@ -1899,25 +1902,8 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                                 accepted: boolean;
                             }[];
                         } | null;
-                        name: string;
-                        id: number;
-                        userId: number | null;
-                        teamId: number | null;
-                        steps: {
-                            id: number;
-                            template: import(".prisma/client").$Enums.WorkflowTemplates;
-                            stepNumber: number;
-                            action: import(".prisma/client").$Enums.WorkflowActions;
-                            workflowId: number;
-                            sendTo: string | null;
-                            reminderBody: string | null;
-                            emailSubject: string | null;
-                            numberRequired: boolean | null;
-                            sender: string | null;
-                            numberVerificationPending: boolean;
-                            includeCalendarEvent: boolean;
-                        }[];
                         time: number | null;
+                        name: string;
                         trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
                         timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
                         activeOn: {
@@ -1929,6 +1915,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                                     children: number;
                                 };
                             };
+                        }[];
+                        steps: {
+                            id: number;
+                            workflowId: number;
+                            stepNumber: number;
+                            action: import(".prisma/client").$Enums.WorkflowActions;
+                            sendTo: string | null;
+                            reminderBody: string | null;
+                            emailSubject: string | null;
+                            template: import(".prisma/client").$Enums.WorkflowTemplates;
+                            numberRequired: boolean | null;
+                            sender: string | null;
+                            numberVerificationPending: boolean;
+                            includeCalendarEvent: boolean;
                         }[];
                     };
                 } & {
@@ -1953,11 +1953,11 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 } | null;
             } & {
                 users: ({
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
-                    locale: string | null;
                     username: string | null;
+                    locale: string | null;
                     avatarUrl: string | null;
                     defaultScheduleId: number | null;
                 } & {
@@ -1966,7 +1966,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 periodStartDate: string | null;
                 periodEndDate: string | null;
                 bookingFields: {
-                    type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     name: string;
                     label?: string | undefined;
                     options?: {
@@ -1990,7 +1990,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     variantsConfig?: {
                         variants: Record<string, {
                             fields: {
-                                type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
+                                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                                 name: string;
                                 label?: string | undefined;
                                 maxLength?: number | undefined;
@@ -2008,7 +2008,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     }[] | undefined;
                     hideWhenJustOneOption?: boolean | undefined;
                     hidden?: boolean | undefined;
-                    editable?: "user" | "system-but-optional" | "system" | "system-but-hidden" | "user-readonly" | undefined;
+                    editable?: "user" | "system" | "system-but-optional" | "system-but-hidden" | "user-readonly" | undefined;
                     sources?: {
                         label: string;
                         type: string;
@@ -2033,35 +2033,35 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
             destinationCalendar: {
                 id: number;
                 userId: number | null;
-                eventTypeId: number | null;
                 credentialId: number | null;
-                integration: string;
+                eventTypeId: number | null;
                 externalId: string;
+                integration: string;
                 primaryEmail: string | null;
             } | null;
             team: {
-                name: string;
                 id: number;
                 slug: string | null;
                 parentId: number | null;
                 parent: {
+                    slug: string | null;
                     organizationSettings: {
                         lockEventTypeCreationForUsers: boolean;
                     } | null;
-                    slug: string | null;
                 } | null;
+                name: string;
                 members: {
                     user: {
-                        name: string | null;
                         id: number;
+                        name: string | null;
                         email: string;
+                        username: string | null;
                         locale: string | null;
+                        avatarUrl: string | null;
+                        defaultScheduleId: number | null;
                         eventTypes: {
                             slug: string;
                         }[];
-                        username: string | null;
-                        avatarUrl: string | null;
-                        defaultScheduleId: number | null;
                     };
                     role: import(".prisma/client").$Enums.MembershipRole;
                     accepted: boolean;
@@ -2071,11 +2071,11 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 profileId: number | null;
                 eventTypes: string[];
                 membership: import(".prisma/client").$Enums.MembershipRole;
-                name: string | null;
                 id: number;
+                name: string | null;
                 email: string;
-                locale: string | null;
                 username: string | null;
+                locale: string | null;
                 avatarUrl: string | null;
                 defaultScheduleId: number | null;
                 nonProfileUsername: string | null;
@@ -2084,16 +2084,16 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
             }[];
             currentUserMembership: {
                 user: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
+                    username: string | null;
                     locale: string | null;
+                    avatarUrl: string | null;
+                    defaultScheduleId: number | null;
                     eventTypes: {
                         slug: string;
                     }[];
-                    username: string | null;
-                    avatarUrl: string | null;
-                    defaultScheduleId: number | null;
                 };
                 role: import(".prisma/client").$Enums.MembershipRole;
                 accepted: boolean;
@@ -2106,28 +2106,111 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
             id: number;
             users?: (number[] & (string | number)[]) | undefined;
             length?: number | undefined;
-            destinationCalendar?: {
-                integration: string;
-                externalId: string;
-            } | null | undefined;
-            schedule?: number | null | undefined;
-            hashedLink?: string | undefined;
-            userId?: number | null | undefined;
             title?: string | undefined;
+            slug?: string | undefined;
             description?: string | null | undefined;
-            customInputs?: {
-                type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
-                id: number;
-                eventTypeId: number;
-                label: string;
-                required: boolean;
-                placeholder: string;
+            position?: number | undefined;
+            locations?: {
+                type: string;
+                address?: string | undefined;
+                link?: string | undefined;
+                displayLocationPublicly?: boolean | undefined;
+                hostPhoneNumber?: string | undefined;
+                credentialId?: number | undefined;
+                teamName?: string | undefined;
+            }[] | undefined;
+            offsetStart?: number | undefined;
+            hidden?: boolean | undefined;
+            userId?: number | null | undefined;
+            profileId?: number | null | undefined;
+            teamId?: number | null | undefined;
+            eventName?: string | null | undefined;
+            parentId?: number | null | undefined;
+            bookingFields?: {
+                name: string;
+                type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                 options?: {
+                    value: string;
+                    label: string;
+                }[] | undefined;
+                label?: string | undefined;
+                labelAsSafeHtml?: string | undefined;
+                defaultLabel?: string | undefined;
+                placeholder?: string | undefined;
+                defaultPlaceholder?: string | undefined;
+                required?: boolean | undefined;
+                getOptionsAt?: string | undefined;
+                optionsInputs?: Record<string, {
+                    type: "text" | "phone" | "address";
+                    required?: boolean | undefined;
+                    placeholder?: string | undefined;
+                }> | undefined;
+                minLength?: number | undefined;
+                maxLength?: number | undefined;
+                variant?: string | undefined;
+                variantsConfig?: {
+                    variants: Record<string, {
+                        fields: {
+                            name: string;
+                            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
+                            label?: string | undefined;
+                            labelAsSafeHtml?: string | undefined;
+                            placeholder?: string | undefined;
+                            required?: boolean | undefined;
+                            minLength?: number | undefined;
+                            maxLength?: number | undefined;
+                        }[];
+                    }>;
+                } | undefined;
+                views?: {
+                    label: string;
+                    id: string;
+                    description?: string | undefined;
+                }[] | undefined;
+                hideWhenJustOneOption?: boolean | undefined;
+                hidden?: boolean | undefined;
+                editable?: "user" | "system" | "system-but-optional" | "system-but-hidden" | "user-readonly" | undefined;
+                sources?: {
                     type: string;
                     label: string;
-                }[] | null | undefined;
-                hasToBeCreated?: boolean | undefined;
+                    id: string;
+                    editUrl?: string | undefined;
+                    fieldRequired?: boolean | undefined;
+                }[] | undefined;
+                disableOnPrefill?: boolean | undefined;
             }[] | undefined;
+            timeZone?: string | null | undefined;
+            periodType?: "UNLIMITED" | "ROLLING" | "ROLLING_WINDOW" | "RANGE" | undefined;
+            periodStartDate?: Date | null | undefined;
+            periodEndDate?: Date | null | undefined;
+            periodDays?: number | null | undefined;
+            periodCountCalendarDays?: boolean | null | undefined;
+            lockTimeZoneToggleOnBookingPage?: boolean | undefined;
+            requiresConfirmation?: boolean | undefined;
+            requiresConfirmationWillBlockSlot?: boolean | undefined;
+            requiresBookerEmailVerification?: boolean | undefined;
+            recurringEvent?: {
+                interval: number;
+                count: number;
+                freq: import("@calcom/prisma/zod-utils").Frequency;
+                dtstart?: Date | undefined;
+                until?: Date | undefined;
+                tzid?: string | undefined;
+            } | null | undefined;
+            disableGuests?: boolean | undefined;
+            hideCalendarNotes?: boolean | undefined;
+            minimumBookingNotice?: number | undefined;
+            beforeEventBuffer?: number | undefined;
+            afterEventBuffer?: number | undefined;
+            seatsPerTimeSlot?: number | null | undefined;
+            onlyShowFirstAvailableSlot?: boolean | undefined;
+            seatsShowAttendees?: boolean | null | undefined;
+            seatsShowAvailabilityCount?: boolean | null | undefined;
+            schedulingType?: "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED" | null | undefined;
+            scheduleId?: number | null | undefined;
+            price?: number | undefined;
+            currency?: string | undefined;
+            slotInterval?: number | null | undefined;
             metadata?: {
                 smartContractAddress?: string | undefined;
                 blockchainId?: number | undefined;
@@ -2332,29 +2415,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 managedEventConfig?: {
                     unlockedFields?: {
                         length?: true | undefined;
-                        destinationCalendar?: true | undefined;
-                        profile?: true | undefined;
-                        team?: true | undefined;
-                        schedule?: true | undefined;
-                        availability?: true | undefined;
-                        hashedLink?: true | undefined;
-                        secondaryEmail?: true | undefined;
-                        userId?: true | undefined;
                         title?: true | undefined;
-                        description?: true | undefined;
-                        customInputs?: true | undefined;
-                        metadata?: true | undefined;
-                        timeZone?: true | undefined;
                         slug?: true | undefined;
+                        description?: true | undefined;
                         position?: true | undefined;
                         locations?: true | undefined;
                         offsetStart?: true | undefined;
                         hidden?: true | undefined;
+                        userId?: true | undefined;
                         profileId?: true | undefined;
                         teamId?: true | undefined;
                         eventName?: true | undefined;
                         parentId?: true | undefined;
                         bookingFields?: true | undefined;
+                        timeZone?: true | undefined;
                         periodType?: true | undefined;
                         periodStartDate?: true | undefined;
                         periodEndDate?: true | undefined;
@@ -2379,6 +2453,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         price?: true | undefined;
                         currency?: true | undefined;
                         slotInterval?: true | undefined;
+                        metadata?: true | undefined;
                         successRedirectUrl?: true | undefined;
                         forwardParamsSuccessRedirect?: true | undefined;
                         bookingLimits?: true | undefined;
@@ -2395,19 +2470,27 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         hosts?: true | undefined;
                         users?: true | undefined;
                         owner?: true | undefined;
+                        profile?: true | undefined;
+                        team?: true | undefined;
+                        hashedLink?: true | undefined;
                         bookings?: true | undefined;
+                        availability?: true | undefined;
                         webhooks?: true | undefined;
+                        destinationCalendar?: true | undefined;
+                        customInputs?: true | undefined;
                         parent?: true | undefined;
                         children?: true | undefined;
+                        schedule?: true | undefined;
                         workflows?: true | undefined;
                         instantMeetingSchedule?: true | undefined;
                         aiPhoneCallConfig?: true | undefined;
+                        secondaryEmail?: true | undefined;
                         _count?: true | undefined;
                     } | undefined;
                 } | undefined;
                 requiresConfirmationThreshold?: {
                     time: number;
-                    unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                    unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                 } | undefined;
                 config?: {
                     useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -2417,108 +2500,6 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                     defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
                 } | null | undefined;
             } | null | undefined;
-            timeZone?: string | null | undefined;
-            slug?: string | undefined;
-            position?: number | undefined;
-            locations?: {
-                type: string;
-                address?: string | undefined;
-                link?: string | undefined;
-                displayLocationPublicly?: boolean | undefined;
-                hostPhoneNumber?: string | undefined;
-                credentialId?: number | undefined;
-                teamName?: string | undefined;
-            }[] | undefined;
-            offsetStart?: number | undefined;
-            hidden?: boolean | undefined;
-            profileId?: number | null | undefined;
-            teamId?: number | null | undefined;
-            eventName?: string | null | undefined;
-            parentId?: number | null | undefined;
-            bookingFields?: {
-                type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
-                name: string;
-                label?: string | undefined;
-                options?: {
-                    label: string;
-                    value: string;
-                }[] | undefined;
-                maxLength?: number | undefined;
-                defaultLabel?: string | undefined;
-                defaultPlaceholder?: string | undefined;
-                labelAsSafeHtml?: string | undefined;
-                placeholder?: string | undefined;
-                required?: boolean | undefined;
-                getOptionsAt?: string | undefined;
-                optionsInputs?: Record<string, {
-                    type: "text" | "phone" | "address";
-                    required?: boolean | undefined;
-                    placeholder?: string | undefined;
-                }> | undefined;
-                minLength?: number | undefined;
-                variant?: string | undefined;
-                variantsConfig?: {
-                    variants: Record<string, {
-                        fields: {
-                            type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
-                            name: string;
-                            label?: string | undefined;
-                            maxLength?: number | undefined;
-                            labelAsSafeHtml?: string | undefined;
-                            placeholder?: string | undefined;
-                            required?: boolean | undefined;
-                            minLength?: number | undefined;
-                        }[];
-                    }>;
-                } | undefined;
-                views?: {
-                    label: string;
-                    id: string;
-                    description?: string | undefined;
-                }[] | undefined;
-                hideWhenJustOneOption?: boolean | undefined;
-                hidden?: boolean | undefined;
-                editable?: "user" | "system-but-optional" | "system" | "system-but-hidden" | "user-readonly" | undefined;
-                sources?: {
-                    label: string;
-                    type: string;
-                    id: string;
-                    editUrl?: string | undefined;
-                    fieldRequired?: boolean | undefined;
-                }[] | undefined;
-                disableOnPrefill?: boolean | undefined;
-            }[] | undefined;
-            periodType?: "UNLIMITED" | "ROLLING" | "ROLLING_WINDOW" | "RANGE" | undefined;
-            periodStartDate?: Date | null | undefined;
-            periodEndDate?: Date | null | undefined;
-            periodDays?: number | null | undefined;
-            periodCountCalendarDays?: boolean | null | undefined;
-            lockTimeZoneToggleOnBookingPage?: boolean | undefined;
-            requiresConfirmation?: boolean | undefined;
-            requiresConfirmationWillBlockSlot?: boolean | undefined;
-            requiresBookerEmailVerification?: boolean | undefined;
-            recurringEvent?: {
-                count: number;
-                interval: number;
-                freq: import("@calcom/prisma/zod-utils").Frequency;
-                dtstart?: Date | undefined;
-                until?: Date | undefined;
-                tzid?: string | undefined;
-            } | null | undefined;
-            disableGuests?: boolean | undefined;
-            hideCalendarNotes?: boolean | undefined;
-            minimumBookingNotice?: number | undefined;
-            beforeEventBuffer?: number | undefined;
-            afterEventBuffer?: number | undefined;
-            seatsPerTimeSlot?: number | null | undefined;
-            onlyShowFirstAvailableSlot?: boolean | undefined;
-            seatsShowAttendees?: boolean | null | undefined;
-            seatsShowAvailabilityCount?: boolean | null | undefined;
-            schedulingType?: "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED" | null | undefined;
-            scheduleId?: number | null | undefined;
-            price?: number | undefined;
-            currency?: string | undefined;
-            slotInterval?: number | null | undefined;
             successRedirectUrl?: string | null | undefined;
             forwardParamsSuccessRedirect?: boolean | null | undefined;
             bookingLimits?: {
@@ -2552,15 +2533,34 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 priority?: number | null | undefined;
                 weight?: number | null | undefined;
             }[] | undefined;
+            hashedLink?: string | undefined;
+            destinationCalendar?: {
+                externalId: string;
+                integration: string;
+            } | null | undefined;
+            customInputs?: {
+                type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
+                id: number;
+                eventTypeId: number;
+                label: string;
+                required: boolean;
+                placeholder: string;
+                options?: {
+                    type: string;
+                    label: string;
+                }[] | null | undefined;
+                hasToBeCreated?: boolean | undefined;
+            }[] | undefined;
             children?: {
                 hidden: boolean;
                 owner: {
-                    name: string;
                     id: number;
+                    name: string;
                     email: string;
                     eventTypeSlugs: string[];
                 };
             }[] | undefined;
+            schedule?: number | null | undefined;
             instantMeetingSchedule?: number | null | undefined;
             aiPhoneCallConfig?: {
                 enabled: boolean;
@@ -2577,18 +2577,20 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
         };
         output: {
             eventType: {
+                title: string;
+                isRRWeightsEnabled: boolean;
                 team: {
-                    name: string;
                     id: number;
                     slug: string | null;
                     parentId: number | null;
                     parent: {
                         slug: string | null;
                     } | null;
+                    name: string;
                     members: {
                         user: {
-                            name: string | null;
                             id: number;
+                            name: string | null;
                             email: string;
                             eventTypes: {
                                 slug: string;
@@ -2598,8 +2600,6 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                         accepted: boolean;
                     }[];
                 } | null;
-                title: string;
-                isRRWeightsEnabled: boolean;
                 children: {
                     userId: number | null;
                 }[];
@@ -2630,29 +2630,28 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
             users?: number[] | undefined;
             length: number;
             title: string;
-            description: string;
             slug: string;
+            description: string;
             teamId?: number | null | undefined;
         };
         output: {
             eventType: {
                 length: number;
                 id: number;
-                userId: number | null;
                 title: string;
-                description: string | null;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                timeZone: string | null;
                 slug: string;
+                description: string | null;
                 position: number;
                 locations: import(".prisma/client").Prisma.JsonValue;
                 offsetStart: number;
                 hidden: boolean;
+                userId: number | null;
                 profileId: number | null;
                 teamId: number | null;
                 eventName: string | null;
                 parentId: number | null;
                 bookingFields: import(".prisma/client").Prisma.JsonValue;
+                timeZone: string | null;
                 periodType: import(".prisma/client").$Enums.PeriodType;
                 periodStartDate: Date | null;
                 periodEndDate: Date | null;
@@ -2677,6 +2676,7 @@ export declare const eventTypesRouter: import("@trpc/server/unstable-core-do-not
                 price: number;
                 currency: string;
                 slotInterval: number | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
                 successRedirectUrl: string | null;
                 forwardParamsSuccessRedirect: boolean | null;
                 bookingLimits: import(".prisma/client").Prisma.JsonValue;

@@ -7,36 +7,36 @@ type GetOptions = {
 declare const getSMSLockStateTeamsUsers: ({ ctx }: GetOptions) => Promise<{
     users: {
         locked: {
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
-            smsLockState: import(".prisma/client").$Enums.SMSLockState;
             username: string | null;
             avatarUrl: string | null;
+            smsLockState: import(".prisma/client").$Enums.SMSLockState;
         }[];
         reviewNeeded: {
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
-            smsLockState: import(".prisma/client").$Enums.SMSLockState;
             username: string | null;
             avatarUrl: string | null;
+            smsLockState: import(".prisma/client").$Enums.SMSLockState;
         }[];
     };
     teams: {
         locked: {
-            name: string;
             id: number;
             slug: string | null;
-            logoUrl: string | null;
+            name: string;
             smsLockState: import(".prisma/client").$Enums.SMSLockState;
+            logoUrl: string | null;
         }[];
         reviewNeeded: {
-            name: string;
             id: number;
             slug: string | null;
-            logoUrl: string | null;
+            name: string;
             smsLockState: import(".prisma/client").$Enums.SMSLockState;
+            logoUrl: string | null;
         }[];
     };
 }>;

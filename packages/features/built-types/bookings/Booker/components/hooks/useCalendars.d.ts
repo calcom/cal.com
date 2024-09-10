@@ -27,7 +27,7 @@ export declare const useCalendars: ({ hasSession }: UseCalendarsProps) => {
             title?: string | undefined;
             name: string;
             description: string;
-            variant: "video" | "other" | "payment" | "calendar" | "automation" | "conferencing" | "crm" | "other_calendar";
+            variant: "other" | "payment" | "video" | "calendar" | "automation" | "conferencing" | "crm" | "other_calendar";
             slug: string;
             category?: string | undefined;
             categories: import(".prisma/client").$Enums.AppCategories[];
@@ -102,7 +102,7 @@ export declare const useCalendars: ({ hasSession }: UseCalendarsProps) => {
             title?: string | undefined;
             name: string;
             description: string;
-            variant: "video" | "other" | "payment" | "calendar" | "automation" | "conferencing" | "crm" | "other_calendar";
+            variant: "other" | "payment" | "video" | "calendar" | "automation" | "conferencing" | "crm" | "other_calendar";
             slug: string;
             category?: string | undefined;
             categories: import(".prisma/client").$Enums.AppCategories[];

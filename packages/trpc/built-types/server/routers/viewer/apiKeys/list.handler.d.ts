@@ -7,8 +7,8 @@ type ListOptions = {
 export declare const listHandler: ({ ctx }: ListOptions) => Promise<{
     id: string;
     userId: number;
-    createdAt: Date;
     teamId: number | null;
+    createdAt: Date;
     appId: string | null;
     note: string | null;
     expiresAt: Date | null;

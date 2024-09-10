@@ -24,14 +24,14 @@ export declare const scheduleRouter: import("@trpc/server/unstable-core-do-not-i
             isManaged: boolean;
             workingHours: import("@calcom/types/schedule").WorkingHours[];
             schedule: {
+                date: Date | null;
+                days: number[];
                 id: number;
                 userId: number | null;
+                scheduleId: number | null;
                 eventTypeId: number | null;
                 startTime: Date;
                 endTime: Date;
-                scheduleId: number | null;
-                days: number[];
-                date: Date | null;
             }[];
             availability: {
                 end: Date;
@@ -58,10 +58,10 @@ export declare const scheduleRouter: import("@trpc/server/unstable-core-do-not-i
         };
         output: {
             schedule: {
-                name: string;
                 id: number;
                 userId: number;
                 timeZone: string | null;
+                name: string;
             };
         };
     }>;
@@ -88,9 +88,9 @@ export declare const scheduleRouter: import("@trpc/server/unstable-core-do-not-i
         };
         output: {
             schedule: {
-                name: string;
                 id: number;
                 userId: number;
+                name: string;
             };
             isDefault: boolean;
             availability?: undefined;
@@ -103,20 +103,20 @@ export declare const scheduleRouter: import("@trpc/server/unstable-core-do-not-i
                     id: number;
                     eventName: string | null;
                 }[];
-                availability: {
-                    id: number;
-                    userId: number | null;
-                    eventTypeId: number | null;
-                    startTime: Date;
-                    endTime: Date;
-                    scheduleId: number | null;
-                    days: number[];
-                    date: Date | null;
-                }[];
-                name: string;
                 id: number;
                 userId: number;
                 timeZone: string | null;
+                availability: {
+                    date: Date | null;
+                    days: number[];
+                    id: number;
+                    userId: number | null;
+                    scheduleId: number | null;
+                    eventTypeId: number | null;
+                    startTime: Date;
+                    endTime: Date;
+                }[];
+                name: string;
             };
             availability: import("@calcom/types/schedule").Schedule;
             timeZone: string;
@@ -131,10 +131,10 @@ export declare const scheduleRouter: import("@trpc/server/unstable-core-do-not-i
         };
         output: {
             schedule: {
-                name: string;
                 id: number;
                 userId: number;
                 timeZone: string | null;
+                name: string;
             };
         };
     }>;
@@ -149,14 +149,14 @@ export declare const scheduleRouter: import("@trpc/server/unstable-core-do-not-i
             isManaged: boolean;
             workingHours: import("@calcom/types/schedule").WorkingHours[];
             schedule: {
+                date: Date | null;
+                days: number[];
                 id: number;
                 userId: number | null;
+                scheduleId: number | null;
                 eventTypeId: number | null;
                 startTime: Date;
                 endTime: Date;
-                scheduleId: number | null;
-                days: number[];
-                date: Date | null;
             }[];
             availability: {
                 end: Date;
@@ -191,14 +191,14 @@ export declare const scheduleRouter: import("@trpc/server/unstable-core-do-not-i
             isManaged: boolean;
             workingHours: import("@calcom/types/schedule").WorkingHours[];
             schedule: {
+                date: Date | null;
+                days: number[];
                 id: number;
                 userId: number | null;
+                scheduleId: number | null;
                 eventTypeId: number | null;
                 startTime: Date;
                 endTime: Date;
-                scheduleId: number | null;
-                days: number[];
-                date: Date | null;
             }[];
             availability: {
                 end: Date;

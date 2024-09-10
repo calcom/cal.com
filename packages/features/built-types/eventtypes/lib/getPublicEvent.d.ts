@@ -11,38 +11,38 @@ export declare function isCurrentlyAvailable({ prisma, instantMeetingScheduleId,
 }): Promise<boolean>;
 export declare const getPublicEvent: (username: string, eventSlug: string, isTeamEvent: boolean | undefined, org: string | null, prisma: PrismaClient, fromRedirectOfNonOrgLink: boolean) => Promise<{
     bookingFields: {
-        type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
         name: string;
-        label?: string | undefined;
+        type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
         options?: {
-            label: string;
             value: string;
+            label: string;
         }[] | undefined;
-        maxLength?: number | undefined;
-        defaultLabel?: string | undefined;
-        defaultPlaceholder?: string | undefined;
+        label?: string | undefined;
         labelAsSafeHtml?: string | undefined;
+        defaultLabel?: string | undefined;
         placeholder?: string | undefined;
+        defaultPlaceholder?: string | undefined;
         required?: boolean | undefined;
         getOptionsAt?: string | undefined;
         optionsInputs?: Record<string, {
-            type: "text" | "address" | "phone";
+            type: "text" | "phone" | "address";
             required?: boolean | undefined;
             placeholder?: string | undefined;
         }> | undefined;
         minLength?: number | undefined;
+        maxLength?: number | undefined;
         variant?: string | undefined;
         variantsConfig?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
@@ -55,8 +55,8 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
         hidden?: boolean | undefined;
         editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
         sources?: {
-            label: string;
             type: string;
+            label: string;
             id: string;
             editUrl?: string | undefined;
             fieldRequired?: boolean | undefined;
@@ -67,36 +67,36 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
         metadata: undefined;
         bookerUrl: string;
         profile: import("@calcom/types/UserProfile").UserAsPersonalProfile;
-        theme: string | null;
-        id: number;
         name: string | null;
         email: string;
-        timeZone: string;
-        username: string | null;
+        id: number;
         locale: string | null;
-        startTime: number;
-        endTime: number;
-        bio: string | null;
-        hideBranding: boolean;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-        timeFormat: number | null;
-        weekStart: string;
-        emailVerified: Date | null;
-        avatarUrl: string | null;
-        bufferTime: number;
-        createdDate: Date;
-        trialEndsAt: Date | null;
-        completedOnboarding: boolean;
         twoFactorSecret: string | null;
-        twoFactorEnabled: boolean;
-        backupCodes: string | null;
+        emailVerified: Date | null;
         identityProviderId: string | null;
         invitedTo: number | null;
         allowDynamicBooking: boolean | null;
+        verified: boolean | null;
+        username: string | null;
+        bio: string | null;
+        avatarUrl: string | null;
+        timeZone: string;
+        weekStart: string;
+        startTime: number;
+        endTime: number;
+        bufferTime: number;
+        hideBranding: boolean;
+        theme: string | null;
+        createdDate: Date;
+        trialEndsAt: Date | null;
+        completedOnboarding: boolean;
+        timeFormat: number | null;
+        twoFactorEnabled: boolean;
+        backupCodes: string | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
         allowSEOIndexing: boolean | null;
         receiveMonthlyDigestEmail: boolean | null;
-        verified: boolean | null;
         disableImpersonation: boolean;
         locked: boolean;
         movedToProfileId: number | null;
@@ -106,9 +106,9 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
         bookerUrl: string;
         profile: {
             organization: Omit<{
-                metadata: Prisma.JsonValue;
-                id: number;
                 name: string;
+                id: number;
+                metadata: Prisma.JsonValue;
                 slug: string | null;
                 logoUrl: string | null;
                 calVideoLogo: string | null;
@@ -142,7 +142,7 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
                 createdByOAuthClientId: string | null;
                 smsLockState: import(".prisma/client").$Enums.SMSLockState;
                 smsLockReviewedByAdmin: boolean;
-            }, "metadata" | "id" | "name" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
+            }, "name" | "id" | "metadata" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
                 requestedSlug: string | null;
                 metadata: {
                     requestedSlug: string | null;
@@ -179,43 +179,43 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
             };
             id: number;
             organizationId: number;
-            userId: number;
-            uid: string;
             username: string;
+            uid: string;
+            userId: number;
             createdAt: Date & string;
             updatedAt: Date & string;
             upId: string;
         };
-        theme: string | null;
-        id: number;
         name: string | null;
         email: string;
-        timeZone: string;
-        username: string | null;
+        id: number;
         locale: string | null;
-        startTime: number;
-        endTime: number;
-        bio: string | null;
-        hideBranding: boolean;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-        timeFormat: number | null;
-        weekStart: string;
-        emailVerified: Date | null;
-        avatarUrl: string | null;
-        bufferTime: number;
-        createdDate: Date;
-        trialEndsAt: Date | null;
-        completedOnboarding: boolean;
         twoFactorSecret: string | null;
-        twoFactorEnabled: boolean;
-        backupCodes: string | null;
+        emailVerified: Date | null;
         identityProviderId: string | null;
         invitedTo: number | null;
         allowDynamicBooking: boolean | null;
+        verified: boolean | null;
+        username: string | null;
+        bio: string | null;
+        avatarUrl: string | null;
+        timeZone: string;
+        weekStart: string;
+        startTime: number;
+        endTime: number;
+        bufferTime: number;
+        hideBranding: boolean;
+        theme: string | null;
+        createdDate: Date;
+        trialEndsAt: Date | null;
+        completedOnboarding: boolean;
+        timeFormat: number | null;
+        twoFactorEnabled: boolean;
+        backupCodes: string | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
         allowSEOIndexing: boolean | null;
         receiveMonthlyDigestEmail: boolean | null;
-        verified: boolean | null;
         disableImpersonation: boolean;
         locked: boolean;
         movedToProfileId: number | null;
@@ -448,23 +448,38 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
         } | undefined;
         managedEventConfig?: {
             unlockedFields?: {
-                position?: true | undefined;
-                title?: true | undefined;
-                metadata?: true | undefined;
-                hidden?: true | undefined;
                 length?: true | undefined;
-                parent?: true | undefined;
                 description?: true | undefined;
+                hidden?: true | undefined;
                 children?: true | undefined;
                 timeZone?: true | undefined;
+                metadata?: true | undefined;
+                destinationCalendar?: true | undefined;
+                profile?: true | undefined;
+                team?: true | undefined;
+                schedule?: true | undefined;
+                availability?: true | undefined;
+                hashedLink?: true | undefined;
+                secondaryEmail?: true | undefined;
+                userId?: true | undefined;
+                title?: true | undefined;
+                customInputs?: true | undefined;
+                bookings?: true | undefined;
+                webhooks?: true | undefined;
+                workflows?: true | undefined;
+                hosts?: true | undefined;
                 slug?: true | undefined;
+                parentId?: true | undefined;
+                parent?: true | undefined;
+                _count?: true | undefined;
+                teamId?: true | undefined;
+                profileId?: true | undefined;
+                scheduleId?: true | undefined;
+                users?: true | undefined;
+                position?: true | undefined;
                 locations?: true | undefined;
                 offsetStart?: true | undefined;
-                userId?: true | undefined;
-                profileId?: true | undefined;
-                teamId?: true | undefined;
                 eventName?: true | undefined;
-                parentId?: true | undefined;
                 bookingFields?: true | undefined;
                 periodType?: true | undefined;
                 periodStartDate?: true | undefined;
@@ -486,7 +501,6 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
                 seatsShowAttendees?: true | undefined;
                 seatsShowAvailabilityCount?: true | undefined;
                 schedulingType?: true | undefined;
-                scheduleId?: true | undefined;
                 price?: true | undefined;
                 currency?: true | undefined;
                 slotInterval?: true | undefined;
@@ -503,28 +517,14 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
                 eventTypeColor?: true | undefined;
                 rescheduleWithSameRoundRobinHost?: true | undefined;
                 secondaryEmailId?: true | undefined;
-                hosts?: true | undefined;
-                users?: true | undefined;
                 owner?: true | undefined;
-                profile?: true | undefined;
-                team?: true | undefined;
-                hashedLink?: true | undefined;
-                bookings?: true | undefined;
-                availability?: true | undefined;
-                webhooks?: true | undefined;
-                destinationCalendar?: true | undefined;
-                customInputs?: true | undefined;
-                schedule?: true | undefined;
-                workflows?: true | undefined;
                 instantMeetingSchedule?: true | undefined;
                 aiPhoneCallConfig?: true | undefined;
-                secondaryEmail?: true | undefined;
-                _count?: true | undefined;
             } | undefined;
         } | undefined;
         requiresConfirmationThreshold?: {
             time: number;
-            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
+            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
         } | undefined;
         config?: {
             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -545,15 +545,15 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
     slotInterval: null;
     offsetStart: number;
     customInputs: {
-        label: string;
         type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
-        id: number;
+        label: string;
         placeholder: string;
         required: boolean;
+        id: number;
         eventTypeId: number;
         options?: {
-            label: string;
             type: string;
+            label: string;
         }[] | null | undefined;
         hasToBeCreated?: boolean | undefined;
     }[];
@@ -812,23 +812,38 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
         } | undefined;
         managedEventConfig?: {
             unlockedFields?: {
-                position?: true | undefined;
-                title?: true | undefined;
-                metadata?: true | undefined;
-                hidden?: true | undefined;
                 length?: true | undefined;
-                parent?: true | undefined;
                 description?: true | undefined;
+                hidden?: true | undefined;
                 children?: true | undefined;
                 timeZone?: true | undefined;
+                metadata?: true | undefined;
+                destinationCalendar?: true | undefined;
+                profile?: true | undefined;
+                team?: true | undefined;
+                schedule?: true | undefined;
+                availability?: true | undefined;
+                hashedLink?: true | undefined;
+                secondaryEmail?: true | undefined;
+                userId?: true | undefined;
+                title?: true | undefined;
+                customInputs?: true | undefined;
+                bookings?: true | undefined;
+                webhooks?: true | undefined;
+                workflows?: true | undefined;
+                hosts?: true | undefined;
                 slug?: true | undefined;
+                parentId?: true | undefined;
+                parent?: true | undefined;
+                _count?: true | undefined;
+                teamId?: true | undefined;
+                profileId?: true | undefined;
+                scheduleId?: true | undefined;
+                users?: true | undefined;
+                position?: true | undefined;
                 locations?: true | undefined;
                 offsetStart?: true | undefined;
-                userId?: true | undefined;
-                profileId?: true | undefined;
-                teamId?: true | undefined;
                 eventName?: true | undefined;
-                parentId?: true | undefined;
                 bookingFields?: true | undefined;
                 periodType?: true | undefined;
                 periodStartDate?: true | undefined;
@@ -850,7 +865,6 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
                 seatsShowAttendees?: true | undefined;
                 seatsShowAvailabilityCount?: true | undefined;
                 schedulingType?: true | undefined;
-                scheduleId?: true | undefined;
                 price?: true | undefined;
                 currency?: true | undefined;
                 slotInterval?: true | undefined;
@@ -867,28 +881,14 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
                 eventTypeColor?: true | undefined;
                 rescheduleWithSameRoundRobinHost?: true | undefined;
                 secondaryEmailId?: true | undefined;
-                hosts?: true | undefined;
-                users?: true | undefined;
                 owner?: true | undefined;
-                profile?: true | undefined;
-                team?: true | undefined;
-                hashedLink?: true | undefined;
-                bookings?: true | undefined;
-                availability?: true | undefined;
-                webhooks?: true | undefined;
-                destinationCalendar?: true | undefined;
-                customInputs?: true | undefined;
-                schedule?: true | undefined;
-                workflows?: true | undefined;
                 instantMeetingSchedule?: true | undefined;
                 aiPhoneCallConfig?: true | undefined;
-                secondaryEmail?: true | undefined;
-                _count?: true | undefined;
             } | undefined;
         } | undefined;
         requiresConfirmationThreshold?: {
             time: number;
-            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
+            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
         } | undefined;
         config?: {
             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -899,52 +899,52 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
         } | null | undefined;
     } | null;
     customInputs: {
-        label: string;
         type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
-        id: number;
+        label: string;
         placeholder: string;
         required: boolean;
+        id: number;
         eventTypeId: number;
         options?: {
-            label: string;
             type: string;
+            label: string;
         }[] | null | undefined;
         hasToBeCreated?: boolean | undefined;
     }[];
     locations: (Pick<Partial<LocationObject>, "address" | "link"> & Omit<LocationObject, "address" | "link">)[];
     bookingFields: {
-        type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
         name: string;
-        label?: string | undefined;
+        type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
         options?: {
-            label: string;
             value: string;
+            label: string;
         }[] | undefined;
-        maxLength?: number | undefined;
-        defaultLabel?: string | undefined;
-        defaultPlaceholder?: string | undefined;
+        label?: string | undefined;
         labelAsSafeHtml?: string | undefined;
+        defaultLabel?: string | undefined;
         placeholder?: string | undefined;
+        defaultPlaceholder?: string | undefined;
         required?: boolean | undefined;
         getOptionsAt?: string | undefined;
         optionsInputs?: Record<string, {
-            type: "text" | "address" | "phone";
+            type: "text" | "phone" | "address";
             required?: boolean | undefined;
             placeholder?: string | undefined;
         }> | undefined;
         minLength?: number | undefined;
+        maxLength?: number | undefined;
         variant?: string | undefined;
         variantsConfig?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
@@ -957,8 +957,8 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
         hidden?: boolean | undefined;
         editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
         sources?: {
-            label: string;
             type: string;
+            label: string;
             id: string;
             editUrl?: string | undefined;
             fieldRequired?: boolean | undefined;
@@ -1016,55 +1016,107 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
     } | null;
     assignAllTeamMembers: boolean;
     owner: ({
-        metadata: Prisma.JsonValue;
-        theme: string | null;
-        id: number;
         name: string | null;
+        id: number;
         username: string | null;
+        avatarUrl: string | null;
+        weekStart: string;
+        theme: string | null;
+        defaultScheduleId: number | null;
         brandColor: string | null;
         darkBrandColor: string | null;
-        weekStart: string;
+        metadata: Prisma.JsonValue;
         organization: {
-            id: number;
             name: string;
+            id: number;
             slug: string | null;
             calVideoLogo: string | null;
             bannerUrl: string | null;
         } | null;
-        avatarUrl: string | null;
-        defaultScheduleId: number | null;
     } & {
         nonProfileUsername: string | null;
         profile: UserProfile;
     }) | null;
     hosts: {
         user: {
-            metadata: Prisma.JsonValue;
-            theme: string | null;
-            id: number;
             name: string | null;
+            id: number;
             username: string | null;
+            avatarUrl: string | null;
+            weekStart: string;
+            theme: string | null;
+            defaultScheduleId: number | null;
             brandColor: string | null;
             darkBrandColor: string | null;
-            weekStart: string;
+            metadata: Prisma.JsonValue;
             organization: {
-                id: number;
                 name: string;
+                id: number;
                 slug: string | null;
                 calVideoLogo: string | null;
                 bannerUrl: string | null;
             } | null;
-            avatarUrl: string | null;
-            defaultScheduleId: number | null;
         } & {
             nonProfileUsername: string | null;
             profile: UserProfile;
         };
     }[];
-    title: string;
-    hidden: boolean;
     length: number;
     id: number;
+    hidden: boolean;
+    team: {
+        name: string;
+        theme: string | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
+        metadata: Prisma.JsonValue;
+        slug: string | null;
+        logoUrl: string | null;
+        parentId: number | null;
+        parent: {
+            name: string;
+            slug: string | null;
+            logoUrl: string | null;
+            bannerUrl: string | null;
+        } | null;
+    } | null;
+    schedule: {
+        id: number;
+        timeZone: string | null;
+    } | null;
+    title: string;
+    workflows: ({
+        workflow: {
+            steps: {
+                id: number;
+                template: import(".prisma/client").$Enums.WorkflowTemplates;
+                workflowId: number;
+                stepNumber: number;
+                action: import(".prisma/client").$Enums.WorkflowActions;
+                sendTo: string | null;
+                reminderBody: string | null;
+                emailSubject: string | null;
+                numberRequired: boolean | null;
+                sender: string | null;
+                numberVerificationPending: boolean;
+                includeCalendarEvent: boolean;
+            }[];
+        } & {
+            name: string;
+            id: number;
+            userId: number | null;
+            teamId: number | null;
+            time: number | null;
+            position: number;
+            isActiveOnAll: boolean;
+            trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
+            timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
+        };
+    } & {
+        id: number;
+        eventTypeId: number;
+        workflowId: number;
+    })[];
     slug: string;
     eventName: string | null;
     lockTimeZoneToggleOnBookingPage: boolean;
@@ -1079,58 +1131,6 @@ export declare const getPublicEvent: (username: string, eventSlug: string, isTea
     successRedirectUrl: string | null;
     forwardParamsSuccessRedirect: boolean | null;
     rescheduleWithSameRoundRobinHost: boolean;
-    team: {
-        metadata: Prisma.JsonValue;
-        theme: string | null;
-        name: string;
-        parent: {
-            name: string;
-            slug: string | null;
-            logoUrl: string | null;
-            bannerUrl: string | null;
-        } | null;
-        slug: string | null;
-        parentId: number | null;
-        logoUrl: string | null;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-    } | null;
-    schedule: {
-        id: number;
-        timeZone: string | null;
-    } | null;
-    workflows: ({
-        workflow: {
-            steps: {
-                template: import(".prisma/client").$Enums.WorkflowTemplates;
-                id: number;
-                action: import(".prisma/client").$Enums.WorkflowActions;
-                stepNumber: number;
-                workflowId: number;
-                sendTo: string | null;
-                reminderBody: string | null;
-                emailSubject: string | null;
-                numberRequired: boolean | null;
-                sender: string | null;
-                numberVerificationPending: boolean;
-                includeCalendarEvent: boolean;
-            }[];
-        } & {
-            position: number;
-            time: number | null;
-            id: number;
-            name: string;
-            userId: number | null;
-            teamId: number | null;
-            isActiveOnAll: boolean;
-            trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
-            timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
-        };
-    } & {
-        id: number;
-        eventTypeId: number;
-        workflowId: number;
-    })[];
     instantMeetingSchedule: {
         id: number;
         timeZone: string | null;

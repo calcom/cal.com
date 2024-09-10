@@ -90,11 +90,11 @@ export declare function useMeQuery(): import("@trpc/react-query/shared").UseTRPC
             billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
         } | null;
         requestedSlug: string | null;
+        slug?: string | null | undefined;
+        name?: string | undefined;
         organizationSettings?: {
             lockEventTypeCreationForUsers: boolean;
         } | null | undefined;
-        name?: string | undefined;
-        slug?: string | null | undefined;
         logoUrl?: string | null | undefined;
         calVideoLogo?: string | null | undefined;
         isPrivate?: boolean | undefined;
@@ -117,26 +117,26 @@ export declare function useMeQuery(): import("@trpc/react-query/shared").UseTRPC
         endTime: number;
         bufferTime: number;
         user: {
-            name: string | null;
             id: number;
+            name: string | null;
+            email: string;
+            username: string | null;
+            locale: string | null;
+            avatarUrl: string | null;
             startTime: number;
             endTime: number;
-            email: string;
-            locale: string | null;
-            username: string | null;
-            avatarUrl: string | null;
             bufferTime: number;
             defaultScheduleId: number | null;
             isPlatformManaged: boolean;
         };
         organization: {
+            id: number;
+            slug: string | null;
+            metadata: import(".prisma/client").Prisma.JsonValue;
+            name: string;
             organizationSettings: {
                 lockEventTypeCreationForUsers: boolean;
             } | null;
-            name: string;
-            id: number;
-            metadata: import(".prisma/client").Prisma.JsonValue;
-            slug: string | null;
             logoUrl: string | null;
             calVideoLogo: string | null;
             isPrivate: boolean;
@@ -178,7 +178,7 @@ export declare function useMeQuery(): import("@trpc/react-query/shared").UseTRPC
             createdByOAuthClientId: string | null;
             smsLockState: import(".prisma/client").$Enums.SMSLockState;
             smsLockReviewedByAdmin: boolean;
-        }, "name" | "id" | "metadata" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
+        }, "id" | "slug" | "metadata" | "name" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
             requestedSlug: string | null;
             metadata: {
                 requestedSlug: string | null;
@@ -200,12 +200,12 @@ export declare function useMeQuery(): import("@trpc/react-query/shared").UseTRPC
             id: number;
         } | null;
         id: number;
-        uid: string;
         userId: number;
+        uid: string;
+        username: string;
+        organizationId: number;
         createdAt: Date & string;
         updatedAt: Date & string;
-        organizationId: number;
-        username: string;
         upId: string;
     };
     profiles: import("@calcom/types/UserProfile").UserProfile[];

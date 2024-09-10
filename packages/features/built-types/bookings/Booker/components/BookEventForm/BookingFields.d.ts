@@ -8,16 +8,12 @@ export declare const BookingFields: ({ fields, locations, rescheduleUid, isDynam
     rescheduleUid?: string | undefined;
     bookingData?: (Omit<{
         id: number;
-        location: string | null;
         description: string | null;
         user: {
             id: number;
         } | null;
-        customInputs: import(".prisma/client").Prisma.JsonValue;
-        smsReminderNumber: string | null;
-        eventTypeId: number | null;
-        uid: string;
-        responses: import(".prisma/client").Prisma.JsonValue;
+        startTime: Date;
+        endTime: Date;
         attendees: {
             name: string;
             email: string;
@@ -29,13 +25,17 @@ export declare const BookingFields: ({ fields, locations, rescheduleUid, isDynam
                 attendeeId: number;
             } | null;
         }[];
-        startTime: Date;
-        endTime: Date;
+        uid: string;
+        eventTypeId: number | null;
+        customInputs: import(".prisma/client").Prisma.JsonValue;
+        responses: import(".prisma/client").Prisma.JsonValue;
+        location: string | null;
+        smsReminderNumber: string | null;
     }, "responses"> & {
-        responses: Record<string, string | boolean | string[] | Record<string, string> | {
+        responses: Record<string, string | boolean | string[] | {
             value: string;
             optionValue: string;
-        }>;
+        } | Record<string, string>>;
     }) | null | undefined;
     isDynamicGroupBooking: boolean;
 }) => JSX.Element;

@@ -7,10 +7,10 @@ export declare const createOrUpdateMemberships: ({ user, team, }: {
 }) => Promise<{
     membership: {
         id: number;
-        userId: number;
-        teamId: number;
         role: import(".prisma/client").$Enums.MembershipRole;
         disableImpersonation: boolean;
+        userId: number;
+        teamId: number;
         accepted: boolean;
     };
     orgMembership: null;

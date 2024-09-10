@@ -63,8 +63,8 @@ export declare const dsyncRouter: import("@trpc/server/unstable-core-do-not-impo
         }>;
         create: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
             input: {
-                name: string;
                 teamId: number;
+                name: string;
                 directoryId: string;
             };
             output: {

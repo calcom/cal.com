@@ -7,7 +7,7 @@ type GetTravelSchedulesOptions = {
 export declare const getTravelSchedulesHandler: ({ ctx }: GetTravelSchedulesOptions) => Promise<{
     id: number;
     timeZone: string;
-    startDate: Date;
     endDate: Date | null;
+    startDate: Date;
 }[]>;
 export {};

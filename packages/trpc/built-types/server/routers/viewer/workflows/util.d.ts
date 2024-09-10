@@ -99,25 +99,25 @@ declare function getBookings(activeOn: number[], isOrg: boolean, alreadySchedule
             };
         }[];
     } | null;
+    title: string;
+    metadata: Prisma.JsonValue;
     user: {
+        timeZone: string;
         name: string | null;
         email: string;
-        timeZone: string;
         locale: string | null;
         timeFormat: number | null;
     } | null;
-    attendees: {
-        name: string;
-        email: string;
-        timeZone: string;
-        locale: string | null;
-    }[];
     uid: string;
-    userPrimaryEmail: string | null;
-    title: string;
     startTime: Date;
     endTime: Date;
-    metadata: Prisma.JsonValue;
+    attendees: {
+        timeZone: string;
+        name: string;
+        email: string;
+        locale: string | null;
+    }[];
+    userPrimaryEmail: string | null;
 }[]>;
 type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 type Bookings = UnwrapPromise<ReturnType<typeof getBookings>>;

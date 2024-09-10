@@ -9,20 +9,20 @@ type AdminVerifyOptions = {
 export declare function getUserHandler({ input, ctx }: AdminVerifyOptions): Promise<{
     teams: {
         accepted: boolean;
-        name: string;
         id: number;
+        name: string;
     }[];
     role: import(".prisma/client").$Enums.MembershipRole;
-    name: string | null;
     id: number;
-    email: string;
     timeZone: string;
-    bio: string | null;
-    schedules: {
-        name: string;
-        id: number;
-    }[];
+    name: string | null;
+    email: string;
     username: string | null;
+    bio: string | null;
     avatarUrl: string | null;
+    schedules: {
+        id: number;
+        name: string;
+    }[];
 }>;
 export default getUserHandler;

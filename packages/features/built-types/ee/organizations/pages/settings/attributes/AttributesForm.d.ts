@@ -17,20 +17,20 @@ declare const AttributeSchema: z.ZodObject<{
         assignedUsers?: number | undefined;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
-    type: "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT";
     options: {
         value: string;
         id?: string | undefined;
         assignedUsers?: number | undefined;
     }[];
+    type: "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT";
     attrName: string;
 }, {
-    type: "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT";
     options: {
         value: string;
         id?: string | undefined;
         assignedUsers?: number | undefined;
     }[];
+    type: "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT";
     attrName: string;
 }>;
 type FormValues = z.infer<typeof AttributeSchema>;

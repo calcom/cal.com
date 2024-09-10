@@ -7,17 +7,17 @@ type CreateOptions = {
     input: TGetMembersInputSchema;
 };
 export declare const getMembersHandler: ({ input, ctx }: CreateOptions) => Promise<{
+    id: number;
+    userId: number;
+    teamId: number;
     user: {
-        name: string | null;
         id: number;
+        name: string | null;
         email: string;
         username: string | null;
         avatarUrl: string | null;
         completedOnboarding: boolean;
     };
-    id: number;
-    userId: number;
-    teamId: number;
     role: import(".prisma/client").$Enums.MembershipRole;
     disableImpersonation: boolean;
     accepted: boolean;

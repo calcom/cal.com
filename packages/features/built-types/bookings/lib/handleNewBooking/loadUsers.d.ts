@@ -3,12 +3,32 @@ import type { IncomingMessage } from "http";
 import type { NewBookingEventType } from "./types";
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 export declare const loadUsers: (eventType: EventType, dynamicUserList: string[], req: IncomingMessage) => Promise<({
-    metadata: Prisma.JsonValue;
-    theme: string | null;
-    id: number;
     name: string | null;
     email: string;
+    id: number;
+    locale: string | null;
+    allowDynamicBooking: boolean | null;
+    username: string | null;
     timeZone: string;
+    startTime: number;
+    endTime: number;
+    bufferTime: number;
+    hideBranding: boolean;
+    theme: string | null;
+    defaultScheduleId: number | null;
+    timeFormat: number | null;
+    brandColor: string | null;
+    darkBrandColor: string | null;
+    metadata: Prisma.JsonValue;
+    destinationCalendar: {
+        id: number;
+        integration: string;
+        externalId: string;
+        primaryEmail: string | null;
+        userId: number | null;
+        eventTypeId: number | null;
+        credentialId: number | null;
+    } | null;
     availability: {
         id: number;
         userId: number | null;
@@ -19,23 +39,6 @@ export declare const loadUsers: (eventType: EventType, dynamicUserList: string[]
         date: Date | null;
         scheduleId: number | null;
     }[];
-    destinationCalendar: {
-        id: number;
-        integration: string;
-        externalId: string;
-        primaryEmail: string | null;
-        userId: number | null;
-        eventTypeId: number | null;
-        credentialId: number | null;
-    } | null;
-    username: string | null;
-    locale: string | null;
-    startTime: number;
-    endTime: number;
-    hideBranding: boolean;
-    brandColor: string | null;
-    darkBrandColor: string | null;
-    timeFormat: number | null;
     travelSchedules: {
         id: number;
         userId: number;
@@ -49,9 +52,9 @@ export declare const loadUsers: (eventType: EventType, dynamicUserList: string[]
         timeZone: string | null;
         availability: {
             date: Date | null;
-            days: number[];
             startTime: Date;
             endTime: Date;
+            days: number[];
         }[];
     }[];
     selectedCalendars: {
@@ -60,21 +63,18 @@ export declare const loadUsers: (eventType: EventType, dynamicUserList: string[]
         externalId: string;
         credentialId: number | null;
     }[];
-    bufferTime: number;
-    defaultScheduleId: number | null;
-    allowDynamicBooking: boolean | null;
 } & {
     credentials: {
-        invalid: boolean | null;
         type: string;
         id: number;
-        key: Prisma.JsonValue;
         user: {
             email: string;
         } | null;
         userId: number | null;
         teamId: number | null;
+        key: Prisma.JsonValue;
         appId: string | null;
+        invalid: boolean | null;
     }[];
 })[]>;
 /**
@@ -88,9 +88,9 @@ export declare const findUsersByUsername: ({ usernameList, orgSlug, }: {
     organizationId: number | null;
     profile: {
         organization: Omit<{
-            metadata: Prisma.JsonValue;
-            id: number;
             name: string;
+            id: number;
+            metadata: Prisma.JsonValue;
             slug: string | null;
             logoUrl: string | null;
             calVideoLogo: string | null;
@@ -124,7 +124,7 @@ export declare const findUsersByUsername: ({ usernameList, orgSlug, }: {
             createdByOAuthClientId: string | null;
             smsLockState: import(".prisma/client").$Enums.SMSLockState;
             smsLockReviewedByAdmin: boolean;
-        }, "metadata" | "id" | "name" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
+        }, "name" | "id" | "metadata" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
             requestedSlug: string | null;
             metadata: {
                 requestedSlug: string | null;
@@ -160,99 +160,99 @@ export declare const findUsersByUsername: ({ usernameList, orgSlug, }: {
             };
         };
         user: {
-            id: number;
             name: string | null;
             email: string;
-            username: string | null;
+            id: number;
             locale: string | null;
+            username: string | null;
+            avatarUrl: string | null;
             startTime: number;
             endTime: number;
-            avatarUrl: string | null;
             bufferTime: number;
             defaultScheduleId: number | null;
             isPlatformManaged: boolean;
         };
         id: number;
         organizationId: number;
-        userId: number;
-        uid: string;
         username: string;
+        uid: string;
+        userId: number;
         createdAt: Date & string;
         updatedAt: Date & string;
         upId: string;
     } | null;
-    metadata: Prisma.JsonValue;
-    theme: string | null;
-    id: number;
     name: string | null;
     email: string;
+    id: number;
+    locale: string | null;
+    allowDynamicBooking: boolean | null;
+    username: string | null;
     timeZone: string;
-    availability: {
-        date: Date | null;
-        days: number[];
-        id: number;
-        userId: number | null;
-        scheduleId: number | null;
-        eventTypeId: number | null;
-        startTime: Date;
-        endTime: Date;
-    }[];
+    startTime: number;
+    endTime: number;
+    bufferTime: number;
+    hideBranding: boolean;
+    theme: string | null;
+    defaultScheduleId: number | null;
+    timeFormat: number | null;
+    brandColor: string | null;
+    darkBrandColor: string | null;
+    metadata: Prisma.JsonValue;
     destinationCalendar: {
         id: number;
         userId: number | null;
-        credentialId: number | null;
         eventTypeId: number | null;
-        integration: string;
         externalId: string;
+        integration: string;
+        credentialId: number | null;
         primaryEmail: string | null;
     } | null;
-    username: string | null;
-    locale: string | null;
-    startTime: number;
-    endTime: number;
-    hideBranding: boolean;
-    brandColor: string | null;
-    darkBrandColor: string | null;
-    timeFormat: number | null;
-    credentials: {
-        invalid: boolean | null;
-        type: string;
+    availability: {
+        date: Date | null;
         id: number;
-        key: Prisma.JsonValue;
-        user: {
-            email: string;
-        } | null;
+        startTime: Date;
+        endTime: Date;
         userId: number | null;
-        teamId: number | null;
-        appId: string | null;
+        eventTypeId: number | null;
+        days: number[];
+        scheduleId: number | null;
     }[];
     travelSchedules: {
         id: number;
         timeZone: string;
         userId: number;
-        startDate: Date;
         endDate: Date | null;
+        startDate: Date;
         prevTimeZone: string | null;
+    }[];
+    credentials: {
+        type: string;
+        id: number;
+        user: {
+            email: string;
+        } | null;
+        userId: number | null;
+        teamId: number | null;
+        key: Prisma.JsonValue;
+        appId: string | null;
+        invalid: boolean | null;
     }[];
     schedules: {
         id: number;
         timeZone: string | null;
         availability: {
             date: Date | null;
-            days: number[];
             startTime: Date;
             endTime: Date;
+            days: number[];
         }[];
     }[];
     selectedCalendars: {
         userId: number;
-        credentialId: number | null;
-        integration: string;
         externalId: string;
+        integration: string;
+        credentialId: number | null;
     }[];
-    bufferTime: number;
-    defaultScheduleId: number | null;
-    allowDynamicBooking: boolean | null;
 }[]>;
 export type AwaitedLoadUsers = Awaited<ReturnType<typeof loadUsers>>;
 export {};

@@ -14,10 +14,10 @@ export declare const appCredentialsByTypeHandler: ({ ctx, input }: AppCredential
         userId: number | null;
         teamId: number | null;
         subscriptionId: string | null;
-        billingCycleStart: number | null;
-        key: import(".prisma/client").Prisma.JsonValue;
         appId: string | null;
+        key: import(".prisma/client").Prisma.JsonValue;
         paymentStatus: string | null;
+        billingCycleStart: number | null;
         invalid: boolean | null;
     }[];
     userAdminTeams: number[];

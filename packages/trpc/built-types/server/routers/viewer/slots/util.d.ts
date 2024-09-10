@@ -224,29 +224,20 @@ export declare function getEventType(input: TGetScheduleInputSchema, organizatio
         managedEventConfig?: {
             unlockedFields?: {
                 length?: true | undefined;
-                destinationCalendar?: true | undefined;
-                profile?: true | undefined;
-                team?: true | undefined;
-                schedule?: true | undefined;
-                availability?: true | undefined;
-                hashedLink?: true | undefined;
-                secondaryEmail?: true | undefined;
-                userId?: true | undefined;
                 title?: true | undefined;
-                description?: true | undefined;
-                customInputs?: true | undefined;
-                metadata?: true | undefined;
-                timeZone?: true | undefined;
                 slug?: true | undefined;
+                description?: true | undefined;
                 position?: true | undefined;
                 locations?: true | undefined;
                 offsetStart?: true | undefined;
                 hidden?: true | undefined;
+                userId?: true | undefined;
                 profileId?: true | undefined;
                 teamId?: true | undefined;
                 eventName?: true | undefined;
                 parentId?: true | undefined;
                 bookingFields?: true | undefined;
+                timeZone?: true | undefined;
                 periodType?: true | undefined;
                 periodStartDate?: true | undefined;
                 periodEndDate?: true | undefined;
@@ -271,6 +262,7 @@ export declare function getEventType(input: TGetScheduleInputSchema, organizatio
                 price?: true | undefined;
                 currency?: true | undefined;
                 slotInterval?: true | undefined;
+                metadata?: true | undefined;
                 successRedirectUrl?: true | undefined;
                 forwardParamsSuccessRedirect?: true | undefined;
                 bookingLimits?: true | undefined;
@@ -287,19 +279,27 @@ export declare function getEventType(input: TGetScheduleInputSchema, organizatio
                 hosts?: true | undefined;
                 users?: true | undefined;
                 owner?: true | undefined;
+                profile?: true | undefined;
+                team?: true | undefined;
+                hashedLink?: true | undefined;
                 bookings?: true | undefined;
+                availability?: true | undefined;
                 webhooks?: true | undefined;
+                destinationCalendar?: true | undefined;
+                customInputs?: true | undefined;
                 parent?: true | undefined;
                 children?: true | undefined;
+                schedule?: true | undefined;
                 workflows?: true | undefined;
                 instantMeetingSchedule?: true | undefined;
                 aiPhoneCallConfig?: true | undefined;
+                secondaryEmail?: true | undefined;
                 _count?: true | undefined;
             } | undefined;
         } | undefined;
         requiresConfirmationThreshold?: {
             time: number;
-            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
         } | undefined;
         config?: {
             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -310,26 +310,10 @@ export declare function getEventType(input: TGetScheduleInputSchema, organizatio
         } | null | undefined;
     } | null;
     length: number;
-    schedule: {
-        availability: {
-            startTime: Date;
-            endTime: Date;
-            days: number[];
-            date: Date | null;
-        }[];
-        id: number;
-        timeZone: string | null;
-    } | null;
-    availability: {
-        startTime: Date;
-        endTime: Date;
-        days: number[];
-        date: Date | null;
-    }[];
     id: number;
-    timeZone: string | null;
     slug: string;
     offsetStart: number;
+    timeZone: string | null;
     periodType: import(".prisma/client").$Enums.PeriodType;
     periodStartDate: Date | null;
     periodEndDate: Date | null;
@@ -348,121 +332,137 @@ export declare function getEventType(input: TGetScheduleInputSchema, organizatio
     rescheduleWithSameRoundRobinHost: boolean;
     hosts: {
         user: {
+            id: number;
+            timeZone: string;
             availability: {
+                date: Date | null;
+                days: number[];
                 id: number;
                 userId: number | null;
+                scheduleId: number | null;
                 eventTypeId: number | null;
                 startTime: Date;
                 endTime: Date;
-                scheduleId: number | null;
-                days: number[];
-                date: Date | null;
             }[];
-            id: number;
+            email: string;
+            username: string | null;
             startTime: number;
             endTime: number;
-            email: string;
-            timeZone: string;
+            bufferTime: number;
+            defaultScheduleId: number | null;
             timeFormat: number | null;
-            credentials: {
-                type: string;
-                user: {
-                    email: string;
-                } | null;
-                id: number;
-                userId: number | null;
-                teamId: number | null;
-                key: Prisma.JsonValue;
-                appId: string | null;
-                invalid: boolean | null;
-            }[];
             travelSchedules: {
                 id: number;
                 userId: number;
                 timeZone: string;
-                startDate: Date;
                 endDate: Date | null;
+                startDate: Date;
                 prevTimeZone: string | null;
             }[];
+            credentials: {
+                type: string;
+                id: number;
+                userId: number | null;
+                teamId: number | null;
+                user: {
+                    email: string;
+                } | null;
+                appId: string | null;
+                key: Prisma.JsonValue;
+                invalid: boolean | null;
+            }[];
             schedules: {
-                availability: {
-                    startTime: Date;
-                    endTime: Date;
-                    days: number[];
-                    date: Date | null;
-                }[];
                 id: number;
                 timeZone: string | null;
+                availability: {
+                    date: Date | null;
+                    days: number[];
+                    startTime: Date;
+                    endTime: Date;
+                }[];
             }[];
             selectedCalendars: {
                 userId: number;
                 credentialId: number | null;
-                integration: string;
                 externalId: string;
+                integration: string;
             }[];
-            username: string | null;
-            bufferTime: number;
-            defaultScheduleId: number | null;
         };
         isFixed: boolean;
     }[];
     users: {
+        id: number;
+        timeZone: string;
         availability: {
+            date: Date | null;
+            days: number[];
             id: number;
             userId: number | null;
+            scheduleId: number | null;
             eventTypeId: number | null;
             startTime: Date;
             endTime: Date;
-            scheduleId: number | null;
-            days: number[];
-            date: Date | null;
         }[];
-        id: number;
+        email: string;
+        username: string | null;
         startTime: number;
         endTime: number;
-        email: string;
-        timeZone: string;
+        bufferTime: number;
+        defaultScheduleId: number | null;
         timeFormat: number | null;
-        credentials: {
-            type: string;
-            user: {
-                email: string;
-            } | null;
-            id: number;
-            userId: number | null;
-            teamId: number | null;
-            key: Prisma.JsonValue;
-            appId: string | null;
-            invalid: boolean | null;
-        }[];
         travelSchedules: {
             id: number;
             userId: number;
             timeZone: string;
-            startDate: Date;
             endDate: Date | null;
+            startDate: Date;
             prevTimeZone: string | null;
         }[];
+        credentials: {
+            type: string;
+            id: number;
+            userId: number | null;
+            teamId: number | null;
+            user: {
+                email: string;
+            } | null;
+            appId: string | null;
+            key: Prisma.JsonValue;
+            invalid: boolean | null;
+        }[];
         schedules: {
-            availability: {
-                startTime: Date;
-                endTime: Date;
-                days: number[];
-                date: Date | null;
-            }[];
             id: number;
             timeZone: string | null;
+            availability: {
+                date: Date | null;
+                days: number[];
+                startTime: Date;
+                endTime: Date;
+            }[];
         }[];
         selectedCalendars: {
             userId: number;
             credentialId: number | null;
-            integration: string;
             externalId: string;
+            integration: string;
         }[];
-        username: string | null;
-        bufferTime: number;
-        defaultScheduleId: number | null;
     }[];
+    availability: {
+        date: Date | null;
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+    }[];
+    schedule: {
+        id: number;
+        timeZone: string | null;
+        availability: {
+            date: Date | null;
+            days: number[];
+            startTime: Date;
+            endTime: Date;
+        }[];
+    } | null;
 } | null>;
 export declare function getDynamicEventType(input: TGetScheduleInputSchema, organizationDetails: {
     currentOrgDomain: string | null;
@@ -672,29 +672,20 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
         managedEventConfig?: {
             unlockedFields?: {
                 length?: true | undefined;
-                destinationCalendar?: true | undefined;
-                profile?: true | undefined;
-                team?: true | undefined;
-                schedule?: true | undefined;
-                availability?: true | undefined;
-                hashedLink?: true | undefined;
-                secondaryEmail?: true | undefined;
-                userId?: true | undefined;
                 title?: true | undefined;
-                description?: true | undefined;
-                customInputs?: true | undefined;
-                metadata?: true | undefined;
-                timeZone?: true | undefined;
                 slug?: true | undefined;
+                description?: true | undefined;
                 position?: true | undefined;
                 locations?: true | undefined;
                 offsetStart?: true | undefined;
                 hidden?: true | undefined;
+                userId?: true | undefined;
                 profileId?: true | undefined;
                 teamId?: true | undefined;
                 eventName?: true | undefined;
                 parentId?: true | undefined;
                 bookingFields?: true | undefined;
+                timeZone?: true | undefined;
                 periodType?: true | undefined;
                 periodStartDate?: true | undefined;
                 periodEndDate?: true | undefined;
@@ -719,6 +710,7 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
                 price?: true | undefined;
                 currency?: true | undefined;
                 slotInterval?: true | undefined;
+                metadata?: true | undefined;
                 successRedirectUrl?: true | undefined;
                 forwardParamsSuccessRedirect?: true | undefined;
                 bookingLimits?: true | undefined;
@@ -735,19 +727,27 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
                 hosts?: true | undefined;
                 users?: true | undefined;
                 owner?: true | undefined;
+                profile?: true | undefined;
+                team?: true | undefined;
+                hashedLink?: true | undefined;
                 bookings?: true | undefined;
+                availability?: true | undefined;
                 webhooks?: true | undefined;
+                destinationCalendar?: true | undefined;
+                customInputs?: true | undefined;
                 parent?: true | undefined;
                 children?: true | undefined;
+                schedule?: true | undefined;
                 workflows?: true | undefined;
                 instantMeetingSchedule?: true | undefined;
                 aiPhoneCallConfig?: true | undefined;
+                secondaryEmail?: true | undefined;
                 _count?: true | undefined;
             } | undefined;
         } | undefined;
         requiresConfirmationThreshold?: {
             time: number;
-            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
         } | undefined;
         config?: {
             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -816,15 +816,9 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
     owner: null;
     workflows: never[];
     users: ({
-        destinationCalendar: {
-            id: number;
-            integration: string;
-            externalId: string;
-            primaryEmail: string | null;
-            userId: number | null;
-            eventTypeId: number | null;
-            credentialId: number | null;
-        } | null;
+        id: number;
+        timeZone: string;
+        metadata: Prisma.JsonValue;
         availability: {
             id: number;
             userId: number | null;
@@ -835,19 +829,29 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
             date: Date | null;
             scheduleId: number | null;
         }[];
+        destinationCalendar: {
+            id: number;
+            integration: string;
+            externalId: string;
+            primaryEmail: string | null;
+            userId: number | null;
+            eventTypeId: number | null;
+            credentialId: number | null;
+        } | null;
         name: string | null;
-        id: number;
+        email: string;
+        username: string | null;
+        locale: string | null;
+        allowDynamicBooking: boolean | null;
         startTime: number;
         endTime: number;
-        metadata: Prisma.JsonValue;
-        email: string;
-        timeZone: string;
-        locale: string | null;
+        bufferTime: number;
         hideBranding: boolean;
         theme: string | null;
+        defaultScheduleId: number | null;
+        timeFormat: number | null;
         brandColor: string | null;
         darkBrandColor: string | null;
-        timeFormat: number | null;
         travelSchedules: {
             id: number;
             userId: number;
@@ -857,14 +861,14 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
             prevTimeZone: string | null;
         }[];
         schedules: {
-            availability: {
-                startTime: Date;
-                endTime: Date;
-                days: number[];
-                date: Date | null;
-            }[];
             id: number;
             timeZone: string | null;
+            availability: {
+                date: Date | null;
+                days: number[];
+                startTime: Date;
+                endTime: Date;
+            }[];
         }[];
         selectedCalendars: {
             userId: number;
@@ -872,21 +876,17 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
             externalId: string;
             credentialId: number | null;
         }[];
-        username: string | null;
-        bufferTime: number;
-        defaultScheduleId: number | null;
-        allowDynamicBooking: boolean | null;
     } & {
         credentials: {
             type: string;
-            user: {
-                email: string;
-            } | null;
             id: number;
             userId: number | null;
             teamId: number | null;
-            key: Prisma.JsonValue;
+            user: {
+                email: string;
+            } | null;
             appId: string | null;
+            key: Prisma.JsonValue;
             invalid: boolean | null;
         }[];
     })[];
@@ -907,62 +907,62 @@ export declare function getDynamicEventType(input: TGetScheduleInputSchema, orga
     position: number;
 } & {
     users: {
+        id: number;
+        timeZone: string;
         availability: {
+            date: Date | null;
+            days: number[];
             id: number;
             userId: number | null;
+            scheduleId: number | null;
             eventTypeId: number | null;
             startTime: Date;
             endTime: Date;
-            scheduleId: number | null;
-            days: number[];
-            date: Date | null;
         }[];
-        id: number;
+        email: string;
+        username: string | null;
+        allowDynamicBooking: boolean | null;
         startTime: number;
         endTime: number;
-        email: string;
-        timeZone: string;
+        bufferTime: number;
+        defaultScheduleId: number | null;
         timeFormat: number | null;
-        credentials: {
-            type: string;
-            user: {
-                email: string;
-            } | null;
-            id: number;
-            userId: number | null;
-            teamId: number | null;
-            key: Prisma.JsonValue;
-            appId: string | null;
-            invalid: boolean | null;
-        }[];
         travelSchedules: {
             id: number;
             userId: number;
             timeZone: string;
-            startDate: Date;
             endDate: Date | null;
+            startDate: Date;
             prevTimeZone: string | null;
         }[];
+        credentials: {
+            type: string;
+            id: number;
+            userId: number | null;
+            teamId: number | null;
+            user: {
+                email: string;
+            } | null;
+            appId: string | null;
+            key: Prisma.JsonValue;
+            invalid: boolean | null;
+        }[];
         schedules: {
-            availability: {
-                startTime: Date;
-                endTime: Date;
-                days: number[];
-                date: Date | null;
-            }[];
             id: number;
             timeZone: string | null;
+            availability: {
+                date: Date | null;
+                days: number[];
+                startTime: Date;
+                endTime: Date;
+            }[];
         }[];
         selectedCalendars: {
             userId: number;
             credentialId: number | null;
-            integration: string;
             externalId: string;
+            integration: string;
         }[];
-        username: string | null;
-        bufferTime: number;
-        defaultScheduleId: number | null;
-        allowDynamicBooking: boolean | null;
     }[];
 }>;
 export declare function getRegularOrDynamicEventType(input: TGetScheduleInputSchema, organizationDetails: {
@@ -1173,29 +1173,20 @@ export declare function getRegularOrDynamicEventType(input: TGetScheduleInputSch
         managedEventConfig?: {
             unlockedFields?: {
                 length?: true | undefined;
-                destinationCalendar?: true | undefined;
-                profile?: true | undefined;
-                team?: true | undefined;
-                schedule?: true | undefined;
-                availability?: true | undefined;
-                hashedLink?: true | undefined;
-                secondaryEmail?: true | undefined;
-                userId?: true | undefined;
                 title?: true | undefined;
-                description?: true | undefined;
-                customInputs?: true | undefined;
-                metadata?: true | undefined;
-                timeZone?: true | undefined;
                 slug?: true | undefined;
+                description?: true | undefined;
                 position?: true | undefined;
                 locations?: true | undefined;
                 offsetStart?: true | undefined;
                 hidden?: true | undefined;
+                userId?: true | undefined;
                 profileId?: true | undefined;
                 teamId?: true | undefined;
                 eventName?: true | undefined;
                 parentId?: true | undefined;
                 bookingFields?: true | undefined;
+                timeZone?: true | undefined;
                 periodType?: true | undefined;
                 periodStartDate?: true | undefined;
                 periodEndDate?: true | undefined;
@@ -1220,6 +1211,7 @@ export declare function getRegularOrDynamicEventType(input: TGetScheduleInputSch
                 price?: true | undefined;
                 currency?: true | undefined;
                 slotInterval?: true | undefined;
+                metadata?: true | undefined;
                 successRedirectUrl?: true | undefined;
                 forwardParamsSuccessRedirect?: true | undefined;
                 bookingLimits?: true | undefined;
@@ -1236,19 +1228,27 @@ export declare function getRegularOrDynamicEventType(input: TGetScheduleInputSch
                 hosts?: true | undefined;
                 users?: true | undefined;
                 owner?: true | undefined;
+                profile?: true | undefined;
+                team?: true | undefined;
+                hashedLink?: true | undefined;
                 bookings?: true | undefined;
+                availability?: true | undefined;
                 webhooks?: true | undefined;
+                destinationCalendar?: true | undefined;
+                customInputs?: true | undefined;
                 parent?: true | undefined;
                 children?: true | undefined;
+                schedule?: true | undefined;
                 workflows?: true | undefined;
                 instantMeetingSchedule?: true | undefined;
                 aiPhoneCallConfig?: true | undefined;
+                secondaryEmail?: true | undefined;
                 _count?: true | undefined;
             } | undefined;
         } | undefined;
         requiresConfirmationThreshold?: {
             time: number;
-            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
         } | undefined;
         config?: {
             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -1259,26 +1259,10 @@ export declare function getRegularOrDynamicEventType(input: TGetScheduleInputSch
         } | null | undefined;
     } | null;
     length: number;
-    schedule: {
-        availability: {
-            startTime: Date;
-            endTime: Date;
-            days: number[];
-            date: Date | null;
-        }[];
-        id: number;
-        timeZone: string | null;
-    } | null;
-    availability: {
-        startTime: Date;
-        endTime: Date;
-        days: number[];
-        date: Date | null;
-    }[];
     id: number;
-    timeZone: string | null;
     slug: string;
     offsetStart: number;
+    timeZone: string | null;
     periodType: import(".prisma/client").$Enums.PeriodType;
     periodStartDate: Date | null;
     periodEndDate: Date | null;
@@ -1297,121 +1281,137 @@ export declare function getRegularOrDynamicEventType(input: TGetScheduleInputSch
     rescheduleWithSameRoundRobinHost: boolean;
     hosts: {
         user: {
+            id: number;
+            timeZone: string;
             availability: {
+                date: Date | null;
+                days: number[];
                 id: number;
                 userId: number | null;
+                scheduleId: number | null;
                 eventTypeId: number | null;
                 startTime: Date;
                 endTime: Date;
-                scheduleId: number | null;
-                days: number[];
-                date: Date | null;
             }[];
-            id: number;
+            email: string;
+            username: string | null;
             startTime: number;
             endTime: number;
-            email: string;
-            timeZone: string;
+            bufferTime: number;
+            defaultScheduleId: number | null;
             timeFormat: number | null;
-            credentials: {
-                type: string;
-                user: {
-                    email: string;
-                } | null;
-                id: number;
-                userId: number | null;
-                teamId: number | null;
-                key: Prisma.JsonValue;
-                appId: string | null;
-                invalid: boolean | null;
-            }[];
             travelSchedules: {
                 id: number;
                 userId: number;
                 timeZone: string;
-                startDate: Date;
                 endDate: Date | null;
+                startDate: Date;
                 prevTimeZone: string | null;
             }[];
+            credentials: {
+                type: string;
+                id: number;
+                userId: number | null;
+                teamId: number | null;
+                user: {
+                    email: string;
+                } | null;
+                appId: string | null;
+                key: Prisma.JsonValue;
+                invalid: boolean | null;
+            }[];
             schedules: {
-                availability: {
-                    startTime: Date;
-                    endTime: Date;
-                    days: number[];
-                    date: Date | null;
-                }[];
                 id: number;
                 timeZone: string | null;
+                availability: {
+                    date: Date | null;
+                    days: number[];
+                    startTime: Date;
+                    endTime: Date;
+                }[];
             }[];
             selectedCalendars: {
                 userId: number;
                 credentialId: number | null;
-                integration: string;
                 externalId: string;
+                integration: string;
             }[];
-            username: string | null;
-            bufferTime: number;
-            defaultScheduleId: number | null;
         };
         isFixed: boolean;
     }[];
     users: {
+        id: number;
+        timeZone: string;
         availability: {
+            date: Date | null;
+            days: number[];
             id: number;
             userId: number | null;
+            scheduleId: number | null;
             eventTypeId: number | null;
             startTime: Date;
             endTime: Date;
-            scheduleId: number | null;
-            days: number[];
-            date: Date | null;
         }[];
-        id: number;
+        email: string;
+        username: string | null;
         startTime: number;
         endTime: number;
-        email: string;
-        timeZone: string;
+        bufferTime: number;
+        defaultScheduleId: number | null;
         timeFormat: number | null;
-        credentials: {
-            type: string;
-            user: {
-                email: string;
-            } | null;
-            id: number;
-            userId: number | null;
-            teamId: number | null;
-            key: Prisma.JsonValue;
-            appId: string | null;
-            invalid: boolean | null;
-        }[];
         travelSchedules: {
             id: number;
             userId: number;
             timeZone: string;
-            startDate: Date;
             endDate: Date | null;
+            startDate: Date;
             prevTimeZone: string | null;
         }[];
+        credentials: {
+            type: string;
+            id: number;
+            userId: number | null;
+            teamId: number | null;
+            user: {
+                email: string;
+            } | null;
+            appId: string | null;
+            key: Prisma.JsonValue;
+            invalid: boolean | null;
+        }[];
         schedules: {
-            availability: {
-                startTime: Date;
-                endTime: Date;
-                days: number[];
-                date: Date | null;
-            }[];
             id: number;
             timeZone: string | null;
+            availability: {
+                date: Date | null;
+                days: number[];
+                startTime: Date;
+                endTime: Date;
+            }[];
         }[];
         selectedCalendars: {
             userId: number;
             credentialId: number | null;
-            integration: string;
             externalId: string;
+            integration: string;
         }[];
-        username: string | null;
-        bufferTime: number;
-        defaultScheduleId: number | null;
     }[];
+    availability: {
+        date: Date | null;
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+    }[];
+    schedule: {
+        id: number;
+        timeZone: string | null;
+        availability: {
+            date: Date | null;
+            days: number[];
+            startTime: Date;
+            endTime: Date;
+        }[];
+    } | null;
 } | null>;
 export interface IGetAvailableSlots {
     slots: Record<string, {

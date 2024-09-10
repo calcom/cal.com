@@ -30,8 +30,8 @@ export declare const listOtherTeamMembers: ({ input }: ListOptions) => Promise<{
     rows: {
         bookerUrl: string;
         user: {
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
             username: string | null;
             avatarUrl: string | null;

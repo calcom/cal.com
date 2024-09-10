@@ -9,16 +9,16 @@ type EditOptions = {
 export declare const editHandler: ({ input, ctx }: EditOptions) => Promise<{
     id: string;
     userId: number | null;
+    teamId: number | null;
     eventTypeId: number | null;
     createdAt: Date;
-    teamId: number | null;
-    secret: string | null;
     appId: string | null;
     platformOAuthClientId: string | null;
     subscriberUrl: string;
     payloadTemplate: string | null;
     active: boolean;
     eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+    secret: string | null;
     platform: boolean;
 } | null>;
 export {};

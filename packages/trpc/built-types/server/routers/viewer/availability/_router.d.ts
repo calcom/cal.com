@@ -18,19 +18,19 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
         output: {
             schedules: {
                 isDefault: boolean;
+                id: number;
+                timeZone: string | null;
                 availability: {
+                    date: Date | null;
+                    days: number[];
                     id: number;
                     userId: number | null;
+                    scheduleId: number | null;
                     eventTypeId: number | null;
                     startTime: Date;
                     endTime: Date;
-                    scheduleId: number | null;
-                    days: number[];
-                    date: Date | null;
                 }[];
                 name: string;
-                id: number;
-                timeZone: string | null;
             }[];
         };
     }>;
@@ -61,8 +61,8 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
     }>;
     listTeam: import("@trpc/server/unstable-core-do-not-import").QueryProcedure<{
         input: {
-            startDate: string;
             endDate: string;
+            startDate: string;
             limit: number;
             loggedInUsersTz: string;
             cursor?: number | null | undefined;
@@ -126,14 +126,14 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
                 isManaged: boolean;
                 workingHours: import("@calcom/types/schedule").WorkingHours[];
                 schedule: {
+                    date: Date | null;
+                    days: number[];
                     id: number;
                     userId: number | null;
+                    scheduleId: number | null;
                     eventTypeId: number | null;
                     startTime: Date;
                     endTime: Date;
-                    scheduleId: number | null;
-                    days: number[];
-                    date: Date | null;
                 }[];
                 availability: {
                     end: Date;
@@ -160,10 +160,10 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
             };
             output: {
                 schedule: {
-                    name: string;
                     id: number;
                     userId: number;
                     timeZone: string | null;
+                    name: string;
                 };
             };
         }>;
@@ -190,9 +190,9 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
             };
             output: {
                 schedule: {
-                    name: string;
                     id: number;
                     userId: number;
+                    name: string;
                 };
                 isDefault: boolean;
                 availability?: undefined;
@@ -205,20 +205,20 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
                         id: number;
                         eventName: string | null;
                     }[];
-                    availability: {
-                        id: number;
-                        userId: number | null;
-                        eventTypeId: number | null;
-                        startTime: Date;
-                        endTime: Date;
-                        scheduleId: number | null;
-                        days: number[];
-                        date: Date | null;
-                    }[];
-                    name: string;
                     id: number;
                     userId: number;
                     timeZone: string | null;
+                    availability: {
+                        date: Date | null;
+                        days: number[];
+                        id: number;
+                        userId: number | null;
+                        scheduleId: number | null;
+                        eventTypeId: number | null;
+                        startTime: Date;
+                        endTime: Date;
+                    }[];
+                    name: string;
                 };
                 availability: import("@calcom/types/schedule").Schedule;
                 timeZone: string;
@@ -233,10 +233,10 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
             };
             output: {
                 schedule: {
-                    name: string;
                     id: number;
                     userId: number;
                     timeZone: string | null;
+                    name: string;
                 };
             };
         }>;
@@ -251,14 +251,14 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
                 isManaged: boolean;
                 workingHours: import("@calcom/types/schedule").WorkingHours[];
                 schedule: {
+                    date: Date | null;
+                    days: number[];
                     id: number;
                     userId: number | null;
+                    scheduleId: number | null;
                     eventTypeId: number | null;
                     startTime: Date;
                     endTime: Date;
-                    scheduleId: number | null;
-                    days: number[];
-                    date: Date | null;
                 }[];
                 availability: {
                     end: Date;
@@ -293,14 +293,14 @@ export declare const availabilityRouter: import("@trpc/server/unstable-core-do-n
                 isManaged: boolean;
                 workingHours: import("@calcom/types/schedule").WorkingHours[];
                 schedule: {
+                    date: Date | null;
+                    days: number[];
                     id: number;
                     userId: number | null;
+                    scheduleId: number | null;
                     eventTypeId: number | null;
                     startTime: Date;
                     endTime: Date;
-                    scheduleId: number | null;
-                    days: number[];
-                    date: Date | null;
                 }[];
                 availability: {
                     end: Date;

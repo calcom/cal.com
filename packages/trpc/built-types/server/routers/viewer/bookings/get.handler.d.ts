@@ -223,29 +223,20 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                 managedEventConfig?: {
                     unlockedFields?: {
                         length?: true | undefined;
-                        destinationCalendar?: true | undefined;
-                        profile?: true | undefined;
-                        team?: true | undefined;
-                        schedule?: true | undefined;
-                        availability?: true | undefined;
-                        hashedLink?: true | undefined;
-                        secondaryEmail?: true | undefined;
-                        userId?: true | undefined;
                         title?: true | undefined;
-                        description?: true | undefined;
-                        customInputs?: true | undefined;
-                        metadata?: true | undefined;
-                        timeZone?: true | undefined;
                         slug?: true | undefined;
+                        description?: true | undefined;
                         position?: true | undefined;
                         locations?: true | undefined;
                         offsetStart?: true | undefined;
                         hidden?: true | undefined;
+                        userId?: true | undefined;
                         profileId?: true | undefined;
                         teamId?: true | undefined;
                         eventName?: true | undefined;
                         parentId?: true | undefined;
                         bookingFields?: true | undefined;
+                        timeZone?: true | undefined;
                         periodType?: true | undefined;
                         periodStartDate?: true | undefined;
                         periodEndDate?: true | undefined;
@@ -270,6 +261,7 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                         price?: true | undefined;
                         currency?: true | undefined;
                         slotInterval?: true | undefined;
+                        metadata?: true | undefined;
                         successRedirectUrl?: true | undefined;
                         forwardParamsSuccessRedirect?: true | undefined;
                         bookingLimits?: true | undefined;
@@ -286,19 +278,27 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                         hosts?: true | undefined;
                         users?: true | undefined;
                         owner?: true | undefined;
+                        profile?: true | undefined;
+                        team?: true | undefined;
+                        hashedLink?: true | undefined;
                         bookings?: true | undefined;
+                        availability?: true | undefined;
                         webhooks?: true | undefined;
+                        destinationCalendar?: true | undefined;
+                        customInputs?: true | undefined;
                         parent?: true | undefined;
                         children?: true | undefined;
+                        schedule?: true | undefined;
                         workflows?: true | undefined;
                         instantMeetingSchedule?: true | undefined;
                         aiPhoneCallConfig?: true | undefined;
+                        secondaryEmail?: true | undefined;
                         _count?: true | undefined;
                     } | undefined;
                 } | undefined;
                 requiresConfirmationThreshold?: {
                     time: number;
-                    unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                    unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                 } | undefined;
                 config?: {
                     useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -308,9 +308,15 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                     defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
                 } | null | undefined;
             } | null;
+            id?: number | undefined;
+            slug?: string | undefined;
+            eventName?: string | null | undefined;
+            seatsShowAttendees?: boolean | null | undefined;
+            seatsShowAvailabilityCount?: boolean | null | undefined;
+            schedulingType?: import(".prisma/client").$Enums.SchedulingType | null | undefined;
             team?: {
-                name: string;
                 id: number;
+                name: string;
                 members: {
                     id: number;
                     userId: number;
@@ -320,22 +326,24 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
                     accepted: boolean;
                 }[];
             } | null | undefined;
-            id?: number | undefined;
-            slug?: string | undefined;
-            eventName?: string | null | undefined;
-            seatsShowAttendees?: boolean | null | undefined;
-            seatsShowAvailabilityCount?: boolean | null | undefined;
-            schedulingType?: import(".prisma/client").$Enums.SchedulingType | null | undefined;
         };
         startTime: string;
         endTime: string;
         isUserTeamAdminOrOwner: boolean;
         status: import(".prisma/client").$Enums.BookingStatus;
+        id: number;
+        title: string;
+        description: string | null;
+        metadata: Prisma.JsonValue;
+        customInputs: Prisma.JsonValue;
+        location: string | null;
+        recurringEventId: string | null;
         user: {
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
         } | null;
+        uid: string;
         payment: {
             currency: string;
             success: boolean;
@@ -345,24 +353,24 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
         references: {
             type: string;
             id: number;
-            uid: string;
-            bookingId: number | null;
-            deleted: boolean | null;
             credentialId: number | null;
+            bookingId: number | null;
+            uid: string;
             thirdPartyRecurringEventId: string | null;
             meetingId: string | null;
             meetingPassword: string | null;
             meetingUrl: string | null;
             externalCalendarId: string | null;
+            deleted: boolean | null;
         }[];
         attendees: {
-            name: string;
             id: number;
-            email: string;
             timeZone: string;
+            name: string;
+            email: string;
+            bookingId: number | null;
             locale: string | null;
             noShow: boolean | null;
-            bookingId: number | null;
         }[];
         seatsReferences: {
             attendee: {
@@ -370,17 +378,9 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
             };
             referenceUid: string;
         }[];
-        id: number;
-        uid: string;
         userPrimaryEmail: string | null;
-        title: string;
-        description: string | null;
-        customInputs: Prisma.JsonValue;
-        location: string | null;
         paid: boolean;
         rescheduled: boolean | null;
-        recurringEventId: string | null;
-        metadata: Prisma.JsonValue;
         isRecorded: boolean;
     }[];
     recurringInfo: {
@@ -618,29 +618,20 @@ export declare function getBookings({ user, prisma, passedBookingsStatusFilter, 
                 managedEventConfig?: {
                     unlockedFields?: {
                         length?: true | undefined;
-                        destinationCalendar?: true | undefined;
-                        profile?: true | undefined;
-                        team?: true | undefined;
-                        schedule?: true | undefined;
-                        availability?: true | undefined;
-                        hashedLink?: true | undefined;
-                        secondaryEmail?: true | undefined;
-                        userId?: true | undefined;
                         title?: true | undefined;
-                        description?: true | undefined;
-                        customInputs?: true | undefined;
-                        metadata?: true | undefined;
-                        timeZone?: true | undefined;
                         slug?: true | undefined;
+                        description?: true | undefined;
                         position?: true | undefined;
                         locations?: true | undefined;
                         offsetStart?: true | undefined;
                         hidden?: true | undefined;
+                        userId?: true | undefined;
                         profileId?: true | undefined;
                         teamId?: true | undefined;
                         eventName?: true | undefined;
                         parentId?: true | undefined;
                         bookingFields?: true | undefined;
+                        timeZone?: true | undefined;
                         periodType?: true | undefined;
                         periodStartDate?: true | undefined;
                         periodEndDate?: true | undefined;
@@ -665,6 +656,7 @@ export declare function getBookings({ user, prisma, passedBookingsStatusFilter, 
                         price?: true | undefined;
                         currency?: true | undefined;
                         slotInterval?: true | undefined;
+                        metadata?: true | undefined;
                         successRedirectUrl?: true | undefined;
                         forwardParamsSuccessRedirect?: true | undefined;
                         bookingLimits?: true | undefined;
@@ -681,19 +673,27 @@ export declare function getBookings({ user, prisma, passedBookingsStatusFilter, 
                         hosts?: true | undefined;
                         users?: true | undefined;
                         owner?: true | undefined;
+                        profile?: true | undefined;
+                        team?: true | undefined;
+                        hashedLink?: true | undefined;
                         bookings?: true | undefined;
+                        availability?: true | undefined;
                         webhooks?: true | undefined;
+                        destinationCalendar?: true | undefined;
+                        customInputs?: true | undefined;
                         parent?: true | undefined;
                         children?: true | undefined;
+                        schedule?: true | undefined;
                         workflows?: true | undefined;
                         instantMeetingSchedule?: true | undefined;
                         aiPhoneCallConfig?: true | undefined;
+                        secondaryEmail?: true | undefined;
                         _count?: true | undefined;
                     } | undefined;
                 } | undefined;
                 requiresConfirmationThreshold?: {
                     time: number;
-                    unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                    unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                 } | undefined;
                 config?: {
                     useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -703,9 +703,15 @@ export declare function getBookings({ user, prisma, passedBookingsStatusFilter, 
                     defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
                 } | null | undefined;
             } | null;
+            id?: number | undefined;
+            slug?: string | undefined;
+            eventName?: string | null | undefined;
+            seatsShowAttendees?: boolean | null | undefined;
+            seatsShowAvailabilityCount?: boolean | null | undefined;
+            schedulingType?: import(".prisma/client").$Enums.SchedulingType | null | undefined;
             team?: {
-                name: string;
                 id: number;
+                name: string;
                 members: {
                     id: number;
                     userId: number;
@@ -715,22 +721,24 @@ export declare function getBookings({ user, prisma, passedBookingsStatusFilter, 
                     accepted: boolean;
                 }[];
             } | null | undefined;
-            id?: number | undefined;
-            slug?: string | undefined;
-            eventName?: string | null | undefined;
-            seatsShowAttendees?: boolean | null | undefined;
-            seatsShowAvailabilityCount?: boolean | null | undefined;
-            schedulingType?: import(".prisma/client").$Enums.SchedulingType | null | undefined;
         };
         startTime: string;
         endTime: string;
         isUserTeamAdminOrOwner: boolean;
         status: import(".prisma/client").$Enums.BookingStatus;
+        id: number;
+        title: string;
+        description: string | null;
+        metadata: Prisma.JsonValue;
+        customInputs: Prisma.JsonValue;
+        location: string | null;
+        recurringEventId: string | null;
         user: {
-            name: string | null;
             id: number;
+            name: string | null;
             email: string;
         } | null;
+        uid: string;
         payment: {
             currency: string;
             success: boolean;
@@ -740,24 +748,24 @@ export declare function getBookings({ user, prisma, passedBookingsStatusFilter, 
         references: {
             type: string;
             id: number;
-            uid: string;
-            bookingId: number | null;
-            deleted: boolean | null;
             credentialId: number | null;
+            bookingId: number | null;
+            uid: string;
             thirdPartyRecurringEventId: string | null;
             meetingId: string | null;
             meetingPassword: string | null;
             meetingUrl: string | null;
             externalCalendarId: string | null;
+            deleted: boolean | null;
         }[];
         attendees: {
-            name: string;
             id: number;
-            email: string;
             timeZone: string;
+            name: string;
+            email: string;
+            bookingId: number | null;
             locale: string | null;
             noShow: boolean | null;
-            bookingId: number | null;
         }[];
         seatsReferences: {
             attendee: {
@@ -765,17 +773,9 @@ export declare function getBookings({ user, prisma, passedBookingsStatusFilter, 
             };
             referenceUid: string;
         }[];
-        id: number;
-        uid: string;
         userPrimaryEmail: string | null;
-        title: string;
-        description: string | null;
-        customInputs: Prisma.JsonValue;
-        location: string | null;
         paid: boolean;
         rescheduled: boolean | null;
-        recurringEventId: string | null;
-        metadata: Prisma.JsonValue;
         isRecorded: boolean;
     }[];
     recurringInfo: {

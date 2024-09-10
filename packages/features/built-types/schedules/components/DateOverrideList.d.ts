@@ -14,10 +14,10 @@ declare const DateOverrideList: ({ workingHours, excludedDates, travelSchedules,
     travelSchedules?: {
         id: number;
         timeZone: string;
-        startDate: Date;
         endDate: Date | null;
+        startDate: Date;
     }[] | undefined;
-    weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | undefined;
+    weekStart?: 0 | 2 | 1 | 3 | 4 | 5 | 6 | undefined;
 }) => JSX.Element;
 export default DateOverrideList;
 //# sourceMappingURL=DateOverrideList.d.ts.map

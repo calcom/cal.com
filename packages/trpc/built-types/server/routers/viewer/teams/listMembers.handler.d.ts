@@ -9,8 +9,8 @@ type ListMembersOptions = {
     input: TListMembersInputSchema;
 };
 export declare const listMembersHandler: ({ ctx, input }: ListMembersOptions) => Promise<({
-    name: string | null;
     id: number;
+    name: string | null;
     username: string | null;
     avatarUrl: string | null;
 } & {

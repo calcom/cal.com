@@ -16,16 +16,16 @@ type GetOptions = {
 };
 export declare const getOtherTeamHandler: ({ input }: GetOptions) => Promise<{
     safeBio: string;
-    name: string;
     id: number;
-    metadata: import(".prisma/client").Prisma.JsonValue;
     slug: string | null;
+    metadata: import(".prisma/client").Prisma.JsonValue;
     parent: {
         id: number;
         slug: string | null;
     } | null;
-    logoUrl: string | null;
+    name: string;
     bio: string | null;
+    logoUrl: string | null;
     isPrivate: boolean;
 }>;
 export default getOtherTeamHandler;

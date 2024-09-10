@@ -21,10 +21,10 @@ export declare const adminRouter: import("@trpc/server/unstable-core-do-not-impo
         };
         output: {
             rows: {
-                name: string | null;
                 id: number;
-                email: string;
                 timeZone: string;
+                name: string | null;
+                email: string;
                 username: string | null;
                 role: import(".prisma/client").$Enums.UserPermissionRole;
                 locked: boolean;
@@ -61,10 +61,10 @@ export declare const adminRouter: import("@trpc/server/unstable-core-do-not-impo
         };
         output: {
             type: import(".prisma/client").$Enums.FeatureType | null;
+            slug: string;
             description: string | null;
             createdAt: Date | null;
             updatedAt: Date | null;
-            slug: string;
             enabled: boolean;
             lastUsedAt: Date | null;
             stale: boolean | null;
@@ -85,36 +85,36 @@ export declare const adminRouter: import("@trpc/server/unstable-core-do-not-impo
         output: {
             users: {
                 locked: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
-                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
                     username: string | null;
                     avatarUrl: string | null;
+                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
                 }[];
                 reviewNeeded: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
-                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
                     username: string | null;
                     avatarUrl: string | null;
+                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
                 }[];
             };
             teams: {
                 locked: {
-                    name: string;
                     id: number;
                     slug: string | null;
-                    logoUrl: string | null;
+                    name: string;
                     smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                    logoUrl: string | null;
                 }[];
                 reviewNeeded: {
-                    name: string;
                     id: number;
                     slug: string | null;
-                    logoUrl: string | null;
+                    name: string;
                     smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                    logoUrl: string | null;
                 }[];
             };
         };

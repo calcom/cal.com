@@ -12,14 +12,14 @@ export declare const getHandler: ({ ctx, input }: GetOptions) => Promise<{
     isManaged: boolean;
     workingHours: import("@calcom/types/schedule").WorkingHours[];
     schedule: {
+        date: Date | null;
+        days: number[];
         id: number;
         userId: number | null;
+        scheduleId: number | null;
         eventTypeId: number | null;
         startTime: Date;
         endTime: Date;
-        scheduleId: number | null;
-        days: number[];
-        date: Date | null;
     }[];
     availability: {
         end: Date;

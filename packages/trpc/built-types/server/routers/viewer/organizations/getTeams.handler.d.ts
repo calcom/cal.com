@@ -5,7 +5,7 @@ type GetTeamsHandler = {
     };
 };
 export declare function getTeamsHandler({ ctx }: GetTeamsHandler): Promise<{
-    name: string;
     id: number;
+    name: string;
 }[]>;
 export default getTeamsHandler;

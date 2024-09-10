@@ -85,6 +85,16 @@ declare class EventsInsights {
                 findUniqueOrThrow: () => <T_6, A_6>(this: T_6, args: Prisma.Exact<A_6, Prisma.Args<T_6, "findUniqueOrThrow"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_6, A_6, "findUniqueOrThrow">>;
                 groupBy: () => <T_7, A_7>(this: T_7, args: Prisma.Exact<A_7, Prisma.Args<T_7, "groupBy"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_7, A_7, "groupBy">>;
             };
+            payment: {
+                aggregate: () => <T, A>(this: T, args: Prisma.Exact<A, Prisma.Args<T, "aggregate"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T, A, "aggregate">>;
+                count: () => <T_1, A_1>(this: T_1, args?: Prisma.Exact<A_1, Prisma.Args<T_1, "count"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_1, A_1, "count">>;
+                findFirst: () => <T_2, A_2>(this: T_2, args?: Prisma.Exact<A_2, Prisma.Args<T_2, "findFirst"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_2, A_2, "findFirst"> | null>;
+                findFirstOrThrow: () => <T_3, A_3>(this: T_3, args?: Prisma.Exact<A_3, Prisma.Args<T_3, "findFirstOrThrow"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_3, A_3, "findFirstOrThrow">>;
+                findMany: () => <T_4, A_4>(this: T_4, args?: Prisma.Exact<A_4, Prisma.Args<T_4, "findMany"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_4, A_4, "findMany">>;
+                findUnique: () => <T_5, A_5>(this: T_5, args: Prisma.Exact<A_5, Prisma.Args<T_5, "findUnique"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_5, A_5, "findUnique"> | null>;
+                findUniqueOrThrow: () => <T_6, A_6>(this: T_6, args: Prisma.Exact<A_6, Prisma.Args<T_6, "findUniqueOrThrow"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_6, A_6, "findUniqueOrThrow">>;
+                groupBy: () => <T_7, A_7>(this: T_7, args: Prisma.Exact<A_7, Prisma.Args<T_7, "groupBy"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_7, A_7, "groupBy">>;
+            };
             attendee: {
                 aggregate: () => <T, A>(this: T, args: Prisma.Exact<A, Prisma.Args<T, "aggregate"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T, A, "aggregate">>;
                 count: () => <T_1, A_1>(this: T_1, args?: Prisma.Exact<A_1, Prisma.Args<T_1, "count"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_1, A_1, "count">>;
@@ -296,16 +306,6 @@ declare class EventsInsights {
                 groupBy: () => <T_7, A_7>(this: T_7, args: Prisma.Exact<A_7, Prisma.Args<T_7, "groupBy"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_7, A_7, "groupBy">>;
             };
             reminderMail: {
-                aggregate: () => <T, A>(this: T, args: Prisma.Exact<A, Prisma.Args<T, "aggregate"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T, A, "aggregate">>;
-                count: () => <T_1, A_1>(this: T_1, args?: Prisma.Exact<A_1, Prisma.Args<T_1, "count"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_1, A_1, "count">>;
-                findFirst: () => <T_2, A_2>(this: T_2, args?: Prisma.Exact<A_2, Prisma.Args<T_2, "findFirst"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_2, A_2, "findFirst"> | null>;
-                findFirstOrThrow: () => <T_3, A_3>(this: T_3, args?: Prisma.Exact<A_3, Prisma.Args<T_3, "findFirstOrThrow"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_3, A_3, "findFirstOrThrow">>;
-                findMany: () => <T_4, A_4>(this: T_4, args?: Prisma.Exact<A_4, Prisma.Args<T_4, "findMany"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_4, A_4, "findMany">>;
-                findUnique: () => <T_5, A_5>(this: T_5, args: Prisma.Exact<A_5, Prisma.Args<T_5, "findUnique"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_5, A_5, "findUnique"> | null>;
-                findUniqueOrThrow: () => <T_6, A_6>(this: T_6, args: Prisma.Exact<A_6, Prisma.Args<T_6, "findUniqueOrThrow"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_6, A_6, "findUniqueOrThrow">>;
-                groupBy: () => <T_7, A_7>(this: T_7, args: Prisma.Exact<A_7, Prisma.Args<T_7, "groupBy"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T_7, A_7, "groupBy">>;
-            };
-            payment: {
                 aggregate: () => <T, A>(this: T, args: Prisma.Exact<A, Prisma.Args<T, "aggregate"> & import("@prisma/extension-accelerate").PrismaCacheStrategy>) => AcceleratePromise<Prisma.Result<T, A, "aggregate">>;
                 count: () => <T_1, A_1>(this: T_1, args?: Prisma.Exact<A_1, Prisma.Args<T_1, "count"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_1, A_1, "count">>;
                 findFirst: () => <T_2, A_2>(this: T_2, args?: Prisma.Exact<A_2, Prisma.Args<T_2, "findFirst"> & import("@prisma/extension-accelerate").PrismaCacheStrategy> | undefined) => AcceleratePromise<Prisma.Result<T_2, A_2, "findFirst"> | null>;
@@ -740,6 +740,7 @@ declare class EventsInsights {
             username?: string | Prisma.StringNullableFilter<"BookingTimeStatus"> | null | undefined;
             ratingFeedback?: string | Prisma.StringNullableFilter<"BookingTimeStatus"> | null | undefined;
             noShowHost?: boolean | Prisma.BoolNullableFilter<"BookingTimeStatus"> | null | undefined;
+            isTeamBooking?: boolean | Prisma.BoolFilter<"BookingTimeStatus"> | undefined;
         };
     }>>;
     static getTotalNoShows: (whereConditional: Prisma.BookingTimeStatusWhereInput) => Promise<number>;

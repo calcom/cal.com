@@ -203,23 +203,38 @@ export declare const getEventTypesFromDB: (eventTypeId: number) => Promise<{
         } | undefined;
         managedEventConfig?: {
             unlockedFields?: {
-                position?: true | undefined;
-                title?: true | undefined;
-                metadata?: true | undefined;
-                hidden?: true | undefined;
                 length?: true | undefined;
-                parent?: true | undefined;
                 description?: true | undefined;
+                hidden?: true | undefined;
                 children?: true | undefined;
                 timeZone?: true | undefined;
+                metadata?: true | undefined;
+                destinationCalendar?: true | undefined;
+                profile?: true | undefined;
+                team?: true | undefined;
+                schedule?: true | undefined;
+                availability?: true | undefined;
+                hashedLink?: true | undefined;
+                secondaryEmail?: true | undefined;
+                userId?: true | undefined;
+                title?: true | undefined;
+                customInputs?: true | undefined;
+                bookings?: true | undefined;
+                webhooks?: true | undefined;
+                workflows?: true | undefined;
+                hosts?: true | undefined;
                 slug?: true | undefined;
+                parentId?: true | undefined;
+                parent?: true | undefined;
+                _count?: true | undefined;
+                teamId?: true | undefined;
+                profileId?: true | undefined;
+                scheduleId?: true | undefined;
+                users?: true | undefined;
+                position?: true | undefined;
                 locations?: true | undefined;
                 offsetStart?: true | undefined;
-                userId?: true | undefined;
-                profileId?: true | undefined;
-                teamId?: true | undefined;
                 eventName?: true | undefined;
-                parentId?: true | undefined;
                 bookingFields?: true | undefined;
                 periodType?: true | undefined;
                 periodStartDate?: true | undefined;
@@ -241,7 +256,6 @@ export declare const getEventTypesFromDB: (eventTypeId: number) => Promise<{
                 seatsShowAttendees?: true | undefined;
                 seatsShowAvailabilityCount?: true | undefined;
                 schedulingType?: true | undefined;
-                scheduleId?: true | undefined;
                 price?: true | undefined;
                 currency?: true | undefined;
                 slotInterval?: true | undefined;
@@ -258,28 +272,14 @@ export declare const getEventTypesFromDB: (eventTypeId: number) => Promise<{
                 eventTypeColor?: true | undefined;
                 rescheduleWithSameRoundRobinHost?: true | undefined;
                 secondaryEmailId?: true | undefined;
-                hosts?: true | undefined;
-                users?: true | undefined;
                 owner?: true | undefined;
-                profile?: true | undefined;
-                team?: true | undefined;
-                hashedLink?: true | undefined;
-                bookings?: true | undefined;
-                availability?: true | undefined;
-                webhooks?: true | undefined;
-                destinationCalendar?: true | undefined;
-                customInputs?: true | undefined;
-                schedule?: true | undefined;
-                workflows?: true | undefined;
                 instantMeetingSchedule?: true | undefined;
                 aiPhoneCallConfig?: true | undefined;
-                secondaryEmail?: true | undefined;
-                _count?: true | undefined;
             } | undefined;
         } | undefined;
         requiresConfirmationThreshold?: {
             time: number;
-            unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
+            unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
         } | undefined;
         config?: {
             useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -291,52 +291,52 @@ export declare const getEventTypesFromDB: (eventTypeId: number) => Promise<{
     } | null;
     recurringEvent: import("@calcom/types/Calendar").RecurringEvent | null;
     customInputs: {
-        label: string;
         type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
-        id: number;
+        label: string;
         placeholder: string;
         required: boolean;
+        id: number;
         eventTypeId: number;
         options?: {
-            label: string;
             type: string;
+            label: string;
         }[] | null | undefined;
         hasToBeCreated?: boolean | undefined;
     }[];
     locations: LocationObject[];
     bookingFields: {
-        type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
         name: string;
-        label?: string | undefined;
+        type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
         options?: {
-            label: string;
             value: string;
+            label: string;
         }[] | undefined;
-        maxLength?: number | undefined;
-        defaultLabel?: string | undefined;
-        defaultPlaceholder?: string | undefined;
+        label?: string | undefined;
         labelAsSafeHtml?: string | undefined;
+        defaultLabel?: string | undefined;
         placeholder?: string | undefined;
+        defaultPlaceholder?: string | undefined;
         required?: boolean | undefined;
         getOptionsAt?: string | undefined;
         optionsInputs?: Record<string, {
-            type: "text" | "address" | "phone";
+            type: "text" | "phone" | "address";
             required?: boolean | undefined;
             placeholder?: string | undefined;
         }> | undefined;
         minLength?: number | undefined;
+        maxLength?: number | undefined;
         variant?: string | undefined;
         variantsConfig?: {
             variants: Record<string, {
                 fields: {
-                    type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                     name: string;
+                    type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                     label?: string | undefined;
-                    maxLength?: number | undefined;
                     labelAsSafeHtml?: string | undefined;
                     placeholder?: string | undefined;
                     required?: boolean | undefined;
                     minLength?: number | undefined;
+                    maxLength?: number | undefined;
                 }[];
             }>;
         } | undefined;
@@ -349,8 +349,8 @@ export declare const getEventTypesFromDB: (eventTypeId: number) => Promise<{
         hidden?: boolean | undefined;
         editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
         sources?: {
-            label: string;
             type: string;
+            label: string;
             id: string;
             editUrl?: string | undefined;
             fieldRequired?: boolean | undefined;
@@ -358,19 +358,234 @@ export declare const getEventTypesFromDB: (eventTypeId: number) => Promise<{
         disableOnPrefill?: boolean | undefined;
     }[] & import("zod").BRAND<"HAS_SYSTEM_FIELDS">;
     isDynamic: boolean;
-    title: string;
     length: number;
     id: number;
+    description: string | null;
+    timeZone: string | null;
+    destinationCalendar: {
+        id: number;
+        userId: number | null;
+        eventTypeId: number | null;
+        externalId: string;
+        integration: string;
+        credentialId: number | null;
+        primaryEmail: string | null;
+    } | null;
+    team: {
+        name: string;
+        id: number;
+        parentId: number | null;
+    } | null;
+    schedule: {
+        id: number;
+        timeZone: string | null;
+        availability: {
+            date: Date | null;
+            id: number;
+            startTime: Date;
+            endTime: Date;
+            userId: number | null;
+            eventTypeId: number | null;
+            days: number[];
+            scheduleId: number | null;
+        }[];
+    } | null;
+    availability: {
+        date: Date | null;
+        startTime: Date;
+        endTime: Date;
+        days: number[];
+    }[];
+    secondaryEmail: {
+        email: string;
+        id: number;
+    } | null;
+    userId: number | null;
+    title: string;
+    workflows: {
+        workflow: {
+            name: string;
+            id: number;
+            userId: number | null;
+            teamId: number | null;
+            time: number | null;
+            steps: {
+                id: number;
+                template: import(".prisma/client").$Enums.WorkflowTemplates;
+                action: import(".prisma/client").$Enums.WorkflowActions;
+                sendTo: string | null;
+                reminderBody: string | null;
+                emailSubject: string | null;
+                numberRequired: boolean | null;
+                sender: string | null;
+                numberVerificationPending: boolean;
+                includeCalendarEvent: boolean;
+            }[];
+            trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
+            timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
+        };
+    }[];
+    hosts: {
+        user: {
+            name: string | null;
+            email: string;
+            id: number;
+            locale: string | null;
+            allowDynamicBooking: boolean | null;
+            username: string | null;
+            timeZone: string;
+            startTime: number;
+            endTime: number;
+            bufferTime: number;
+            hideBranding: boolean;
+            theme: string | null;
+            defaultScheduleId: number | null;
+            timeFormat: number | null;
+            brandColor: string | null;
+            darkBrandColor: string | null;
+            metadata: import(".prisma/client").Prisma.JsonValue;
+            destinationCalendar: {
+                id: number;
+                userId: number | null;
+                eventTypeId: number | null;
+                externalId: string;
+                integration: string;
+                credentialId: number | null;
+                primaryEmail: string | null;
+            } | null;
+            availability: {
+                date: Date | null;
+                id: number;
+                startTime: Date;
+                endTime: Date;
+                userId: number | null;
+                eventTypeId: number | null;
+                days: number[];
+                scheduleId: number | null;
+            }[];
+            travelSchedules: {
+                id: number;
+                timeZone: string;
+                userId: number;
+                endDate: Date | null;
+                startDate: Date;
+                prevTimeZone: string | null;
+            }[];
+            credentials: {
+                type: string;
+                id: number;
+                user: {
+                    email: string;
+                } | null;
+                userId: number | null;
+                teamId: number | null;
+                key: import(".prisma/client").Prisma.JsonValue;
+                appId: string | null;
+                invalid: boolean | null;
+            }[];
+            schedules: {
+                id: number;
+                timeZone: string | null;
+                availability: {
+                    date: Date | null;
+                    startTime: Date;
+                    endTime: Date;
+                    days: number[];
+                }[];
+            }[];
+            selectedCalendars: {
+                userId: number;
+                externalId: string;
+                integration: string;
+                credentialId: number | null;
+            }[];
+        };
+        isFixed: boolean;
+        priority: number | null;
+        weight: number | null;
+        weightAdjustment: number | null;
+    }[];
+    slug: string;
+    parentId: number | null;
     parent: {
         teamId: number | null;
     } | null;
-    description: string | null;
-    timeZone: string | null;
-    slug: string;
-    userId: number | null;
     teamId: number | null;
+    users: {
+        name: string | null;
+        email: string;
+        id: number;
+        locale: string | null;
+        allowDynamicBooking: boolean | null;
+        username: string | null;
+        timeZone: string;
+        startTime: number;
+        endTime: number;
+        bufferTime: number;
+        hideBranding: boolean;
+        theme: string | null;
+        defaultScheduleId: number | null;
+        timeFormat: number | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
+        metadata: import(".prisma/client").Prisma.JsonValue;
+        destinationCalendar: {
+            id: number;
+            userId: number | null;
+            eventTypeId: number | null;
+            externalId: string;
+            integration: string;
+            credentialId: number | null;
+            primaryEmail: string | null;
+        } | null;
+        availability: {
+            date: Date | null;
+            id: number;
+            startTime: Date;
+            endTime: Date;
+            userId: number | null;
+            eventTypeId: number | null;
+            days: number[];
+            scheduleId: number | null;
+        }[];
+        travelSchedules: {
+            id: number;
+            timeZone: string;
+            userId: number;
+            endDate: Date | null;
+            startDate: Date;
+            prevTimeZone: string | null;
+        }[];
+        credentials: {
+            type: string;
+            id: number;
+            user: {
+                email: string;
+            } | null;
+            userId: number | null;
+            teamId: number | null;
+            key: import(".prisma/client").Prisma.JsonValue;
+            appId: string | null;
+            invalid: boolean | null;
+        }[];
+        schedules: {
+            id: number;
+            timeZone: string | null;
+            availability: {
+                date: Date | null;
+                startTime: Date;
+                endTime: Date;
+                days: number[];
+            }[];
+        }[];
+        selectedCalendars: {
+            userId: number;
+            externalId: string;
+            integration: string;
+            credentialId: number | null;
+        }[];
+    }[];
     eventName: string | null;
-    parentId: number | null;
     periodType: import(".prisma/client").$Enums.PeriodType;
     periodStartDate: Date | null;
     periodEndDate: Date | null;
@@ -395,223 +610,8 @@ export declare const getEventTypesFromDB: (eventTypeId: number) => Promise<{
     isRRWeightsEnabled: boolean;
     rescheduleWithSameRoundRobinHost: boolean;
     secondaryEmailId: number | null;
-    hosts: {
-        user: {
-            metadata: import(".prisma/client").Prisma.JsonValue;
-            theme: string | null;
-            id: number;
-            name: string | null;
-            email: string;
-            timeZone: string;
-            availability: {
-                date: Date | null;
-                days: number[];
-                id: number;
-                userId: number | null;
-                scheduleId: number | null;
-                eventTypeId: number | null;
-                startTime: Date;
-                endTime: Date;
-            }[];
-            destinationCalendar: {
-                id: number;
-                userId: number | null;
-                credentialId: number | null;
-                eventTypeId: number | null;
-                integration: string;
-                externalId: string;
-                primaryEmail: string | null;
-            } | null;
-            username: string | null;
-            locale: string | null;
-            startTime: number;
-            endTime: number;
-            hideBranding: boolean;
-            brandColor: string | null;
-            darkBrandColor: string | null;
-            timeFormat: number | null;
-            credentials: {
-                invalid: boolean | null;
-                type: string;
-                id: number;
-                key: import(".prisma/client").Prisma.JsonValue;
-                user: {
-                    email: string;
-                } | null;
-                userId: number | null;
-                teamId: number | null;
-                appId: string | null;
-            }[];
-            travelSchedules: {
-                id: number;
-                timeZone: string;
-                userId: number;
-                startDate: Date;
-                endDate: Date | null;
-                prevTimeZone: string | null;
-            }[];
-            schedules: {
-                id: number;
-                timeZone: string | null;
-                availability: {
-                    date: Date | null;
-                    days: number[];
-                    startTime: Date;
-                    endTime: Date;
-                }[];
-            }[];
-            selectedCalendars: {
-                userId: number;
-                credentialId: number | null;
-                integration: string;
-                externalId: string;
-            }[];
-            bufferTime: number;
-            defaultScheduleId: number | null;
-            allowDynamicBooking: boolean | null;
-        };
-        isFixed: boolean;
-        priority: number | null;
-        weight: number | null;
-        weightAdjustment: number | null;
-    }[];
-    users: {
-        metadata: import(".prisma/client").Prisma.JsonValue;
-        theme: string | null;
-        id: number;
-        name: string | null;
-        email: string;
-        timeZone: string;
-        availability: {
-            date: Date | null;
-            days: number[];
-            id: number;
-            userId: number | null;
-            scheduleId: number | null;
-            eventTypeId: number | null;
-            startTime: Date;
-            endTime: Date;
-        }[];
-        destinationCalendar: {
-            id: number;
-            userId: number | null;
-            credentialId: number | null;
-            eventTypeId: number | null;
-            integration: string;
-            externalId: string;
-            primaryEmail: string | null;
-        } | null;
-        username: string | null;
-        locale: string | null;
-        startTime: number;
-        endTime: number;
-        hideBranding: boolean;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-        timeFormat: number | null;
-        credentials: {
-            invalid: boolean | null;
-            type: string;
-            id: number;
-            key: import(".prisma/client").Prisma.JsonValue;
-            user: {
-                email: string;
-            } | null;
-            userId: number | null;
-            teamId: number | null;
-            appId: string | null;
-        }[];
-        travelSchedules: {
-            id: number;
-            timeZone: string;
-            userId: number;
-            startDate: Date;
-            endDate: Date | null;
-            prevTimeZone: string | null;
-        }[];
-        schedules: {
-            id: number;
-            timeZone: string | null;
-            availability: {
-                date: Date | null;
-                days: number[];
-                startTime: Date;
-                endTime: Date;
-            }[];
-        }[];
-        selectedCalendars: {
-            userId: number;
-            credentialId: number | null;
-            integration: string;
-            externalId: string;
-        }[];
-        bufferTime: number;
-        defaultScheduleId: number | null;
-        allowDynamicBooking: boolean | null;
-    }[];
     owner: {
         hideBranding: boolean;
-    } | null;
-    team: {
-        id: number;
-        name: string;
-        parentId: number | null;
-    } | null;
-    availability: {
-        date: Date | null;
-        days: number[];
-        startTime: Date;
-        endTime: Date;
-    }[];
-    destinationCalendar: {
-        id: number;
-        userId: number | null;
-        credentialId: number | null;
-        eventTypeId: number | null;
-        integration: string;
-        externalId: string;
-        primaryEmail: string | null;
-    } | null;
-    schedule: {
-        id: number;
-        timeZone: string | null;
-        availability: {
-            date: Date | null;
-            days: number[];
-            id: number;
-            userId: number | null;
-            scheduleId: number | null;
-            eventTypeId: number | null;
-            startTime: Date;
-            endTime: Date;
-        }[];
-    } | null;
-    workflows: {
-        workflow: {
-            time: number | null;
-            id: number;
-            name: string;
-            userId: number | null;
-            teamId: number | null;
-            steps: {
-                template: import(".prisma/client").$Enums.WorkflowTemplates;
-                id: number;
-                action: import(".prisma/client").$Enums.WorkflowActions;
-                sendTo: string | null;
-                reminderBody: string | null;
-                emailSubject: string | null;
-                numberRequired: boolean | null;
-                sender: string | null;
-                numberVerificationPending: boolean;
-                includeCalendarEvent: boolean;
-            }[];
-            trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
-            timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
-        };
-    }[];
-    secondaryEmail: {
-        id: number;
-        email: string;
     } | null;
 }>;
 export type getEventTypeResponse = Awaited<ReturnType<typeof getEventTypesFromDB>>;

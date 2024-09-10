@@ -7,19 +7,19 @@ type ListOptions = {
 export declare const listHandler: ({ ctx }: ListOptions) => Promise<{
     schedules: {
         isDefault: boolean;
+        id: number;
+        timeZone: string | null;
         availability: {
+            date: Date | null;
+            days: number[];
             id: number;
             userId: number | null;
+            scheduleId: number | null;
             eventTypeId: number | null;
             startTime: Date;
             endTime: Date;
-            scheduleId: number | null;
-            days: number[];
-            date: Date | null;
         }[];
         name: string;
-        id: number;
-        timeZone: string | null;
     }[];
 }>;
 export {};

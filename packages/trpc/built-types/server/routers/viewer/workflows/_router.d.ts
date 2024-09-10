@@ -27,10 +27,13 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
             id: number;
         };
         output: {
+            id: number;
+            userId: number | null;
+            teamId: number | null;
             team: {
-                name: string;
                 id: number;
                 slug: string | null;
+                name: string;
                 isOrganization: boolean;
                 members: {
                     id: number;
@@ -41,25 +44,8 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                     accepted: boolean;
                 }[];
             } | null;
-            name: string;
-            id: number;
-            userId: number | null;
-            teamId: number | null;
-            steps: {
-                id: number;
-                template: import(".prisma/client").$Enums.WorkflowTemplates;
-                stepNumber: number;
-                action: import(".prisma/client").$Enums.WorkflowActions;
-                workflowId: number;
-                sendTo: string | null;
-                reminderBody: string | null;
-                emailSubject: string | null;
-                numberRequired: boolean | null;
-                sender: string | null;
-                numberVerificationPending: boolean;
-                includeCalendarEvent: boolean;
-            }[];
             time: number | null;
+            name: string;
             isActiveOnAll: boolean;
             trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
             timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
@@ -67,21 +53,20 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                 eventType: {
                     length: number;
                     id: number;
-                    userId: number | null;
                     title: string;
-                    description: string | null;
-                    metadata: import(".prisma/client").Prisma.JsonValue;
-                    timeZone: string | null;
                     slug: string;
+                    description: string | null;
                     position: number;
                     locations: import(".prisma/client").Prisma.JsonValue;
                     offsetStart: number;
                     hidden: boolean;
+                    userId: number | null;
                     profileId: number | null;
                     teamId: number | null;
                     eventName: string | null;
                     parentId: number | null;
                     bookingFields: import(".prisma/client").Prisma.JsonValue;
+                    timeZone: string | null;
                     periodType: import(".prisma/client").$Enums.PeriodType;
                     periodStartDate: Date | null;
                     periodEndDate: Date | null;
@@ -106,6 +91,7 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                     price: number;
                     currency: string;
                     slotInterval: number | null;
+                    metadata: import(".prisma/client").Prisma.JsonValue;
                     successRedirectUrl: string | null;
                     forwardParamsSuccessRedirect: boolean | null;
                     bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -123,34 +109,48 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
             }[];
             activeOnTeams: {
                 team: {
-                    name: string;
                     id: number;
-                    createdAt: Date;
-                    metadata: import(".prisma/client").Prisma.JsonValue;
-                    timeZone: string;
                     slug: string | null;
                     parentId: number | null;
+                    timeZone: string;
+                    metadata: import(".prisma/client").Prisma.JsonValue;
+                    name: string;
+                    bio: string | null;
+                    weekStart: string;
+                    hideBranding: boolean;
+                    theme: string | null;
+                    timeFormat: number | null;
+                    brandColor: string | null;
+                    darkBrandColor: string | null;
+                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                    smsLockReviewedByAdmin: boolean;
+                    createdAt: Date;
                     logoUrl: string | null;
                     calVideoLogo: string | null;
                     appLogo: string | null;
                     appIconLogo: string | null;
-                    bio: string | null;
-                    hideBranding: boolean;
                     isPrivate: boolean;
                     hideBookATeamMember: boolean;
-                    theme: string | null;
-                    brandColor: string | null;
-                    darkBrandColor: string | null;
                     bannerUrl: string | null;
-                    timeFormat: number | null;
-                    weekStart: string;
                     isOrganization: boolean;
                     pendingPayment: boolean;
                     isPlatform: boolean;
                     createdByOAuthClientId: string | null;
-                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
-                    smsLockReviewedByAdmin: boolean;
                 };
+            }[];
+            steps: {
+                id: number;
+                workflowId: number;
+                stepNumber: number;
+                action: import(".prisma/client").$Enums.WorkflowActions;
+                sendTo: string | null;
+                reminderBody: string | null;
+                emailSubject: string | null;
+                template: import(".prisma/client").$Enums.WorkflowTemplates;
+                numberRequired: boolean | null;
+                sender: string | null;
+                numberVerificationPending: boolean;
+                includeCalendarEvent: boolean;
             }[];
         } | null;
     }>;
@@ -182,34 +182,34 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
     }>;
     update: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
         input: {
-            name: string;
             id: number;
+            time: number | null;
+            name: string;
+            trigger: "BEFORE_EVENT" | "EVENT_CANCELLED" | "NEW_EVENT" | "AFTER_EVENT" | "RESCHEDULE_EVENT";
+            timeUnit: "DAY" | "HOUR" | "MINUTE" | null;
+            activeOn: number[];
             steps: {
                 id: number;
-                template: "CANCELLED" | "REMINDER" | "CUSTOM" | "RESCHEDULED" | "COMPLETED" | "RATING";
+                workflowId: number;
                 stepNumber: number;
                 action: "EMAIL_HOST" | "EMAIL_ATTENDEE" | "SMS_ATTENDEE" | "SMS_NUMBER" | "EMAIL_ADDRESS" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER";
-                workflowId: number;
                 sendTo: string | null;
                 reminderBody: string | null;
                 emailSubject: string | null;
+                template: "CANCELLED" | "REMINDER" | "CUSTOM" | "RESCHEDULED" | "COMPLETED" | "RATING";
                 numberRequired: boolean | null;
                 sender: string | null;
                 includeCalendarEvent: boolean;
                 senderName: string | null;
             }[];
-            time: number | null;
-            trigger: "BEFORE_EVENT" | "EVENT_CANCELLED" | "NEW_EVENT" | "AFTER_EVENT" | "RESCHEDULE_EVENT";
-            timeUnit: "DAY" | "HOUR" | "MINUTE" | null;
-            activeOn: number[];
             isActiveOnAll?: boolean | undefined;
         };
         output: {
             workflow: ({
                 team: {
-                    name: string;
                     id: number;
                     slug: string | null;
+                    name: string;
                     isOrganization: boolean;
                     members: {
                         id: number;
@@ -220,39 +220,24 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                         accepted: boolean;
                     }[];
                 } | null;
-                steps: {
-                    id: number;
-                    template: import(".prisma/client").$Enums.WorkflowTemplates;
-                    stepNumber: number;
-                    action: import(".prisma/client").$Enums.WorkflowActions;
-                    workflowId: number;
-                    sendTo: string | null;
-                    reminderBody: string | null;
-                    emailSubject: string | null;
-                    numberRequired: boolean | null;
-                    sender: string | null;
-                    numberVerificationPending: boolean;
-                    includeCalendarEvent: boolean;
-                }[];
                 activeOn: {
                     eventType: {
                         length: number;
                         id: number;
-                        userId: number | null;
                         title: string;
-                        description: string | null;
-                        metadata: import(".prisma/client").Prisma.JsonValue;
-                        timeZone: string | null;
                         slug: string;
+                        description: string | null;
                         position: number;
                         locations: import(".prisma/client").Prisma.JsonValue;
                         offsetStart: number;
                         hidden: boolean;
+                        userId: number | null;
                         profileId: number | null;
                         teamId: number | null;
                         eventName: string | null;
                         parentId: number | null;
                         bookingFields: import(".prisma/client").Prisma.JsonValue;
+                        timeZone: string | null;
                         periodType: import(".prisma/client").$Enums.PeriodType;
                         periodStartDate: Date | null;
                         periodEndDate: Date | null;
@@ -277,6 +262,7 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                         price: number;
                         currency: string;
                         slotInterval: number | null;
+                        metadata: import(".prisma/client").Prisma.JsonValue;
                         successRedirectUrl: string | null;
                         forwardParamsSuccessRedirect: boolean | null;
                         bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -294,42 +280,56 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                 }[];
                 activeOnTeams: {
                     team: {
-                        name: string;
                         id: number;
-                        createdAt: Date;
-                        metadata: import(".prisma/client").Prisma.JsonValue;
-                        timeZone: string;
                         slug: string | null;
                         parentId: number | null;
+                        timeZone: string;
+                        metadata: import(".prisma/client").Prisma.JsonValue;
+                        name: string;
+                        bio: string | null;
+                        weekStart: string;
+                        hideBranding: boolean;
+                        theme: string | null;
+                        timeFormat: number | null;
+                        brandColor: string | null;
+                        darkBrandColor: string | null;
+                        smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                        smsLockReviewedByAdmin: boolean;
+                        createdAt: Date;
                         logoUrl: string | null;
                         calVideoLogo: string | null;
                         appLogo: string | null;
                         appIconLogo: string | null;
-                        bio: string | null;
-                        hideBranding: boolean;
                         isPrivate: boolean;
                         hideBookATeamMember: boolean;
-                        theme: string | null;
-                        brandColor: string | null;
-                        darkBrandColor: string | null;
                         bannerUrl: string | null;
-                        timeFormat: number | null;
-                        weekStart: string;
                         isOrganization: boolean;
                         pendingPayment: boolean;
                         isPlatform: boolean;
                         createdByOAuthClientId: string | null;
-                        smsLockState: import(".prisma/client").$Enums.SMSLockState;
-                        smsLockReviewedByAdmin: boolean;
                     };
                 }[];
+                steps: {
+                    id: number;
+                    workflowId: number;
+                    stepNumber: number;
+                    action: import(".prisma/client").$Enums.WorkflowActions;
+                    sendTo: string | null;
+                    reminderBody: string | null;
+                    emailSubject: string | null;
+                    template: import(".prisma/client").$Enums.WorkflowTemplates;
+                    numberRequired: boolean | null;
+                    sender: string | null;
+                    numberVerificationPending: boolean;
+                    includeCalendarEvent: boolean;
+                }[];
             } & {
-                name: string;
                 id: number;
-                userId: number | null;
                 position: number;
+                userId: number | null;
                 teamId: number | null;
                 time: number | null;
+                name: string;
                 isActiveOnAll: boolean;
                 trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
                 timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
@@ -611,29 +611,20 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                     managedEventConfig?: {
                         unlockedFields?: {
                             length?: true | undefined;
-                            destinationCalendar?: true | undefined;
-                            profile?: true | undefined;
-                            team?: true | undefined;
-                            schedule?: true | undefined;
-                            availability?: true | undefined;
-                            hashedLink?: true | undefined;
-                            secondaryEmail?: true | undefined;
-                            userId?: true | undefined;
                             title?: true | undefined;
-                            description?: true | undefined;
-                            customInputs?: true | undefined;
-                            metadata?: true | undefined;
-                            timeZone?: true | undefined;
                             slug?: true | undefined;
+                            description?: true | undefined;
                             position?: true | undefined;
                             locations?: true | undefined;
                             offsetStart?: true | undefined;
                             hidden?: true | undefined;
+                            userId?: true | undefined;
                             profileId?: true | undefined;
                             teamId?: true | undefined;
                             eventName?: true | undefined;
                             parentId?: true | undefined;
                             bookingFields?: true | undefined;
+                            timeZone?: true | undefined;
                             periodType?: true | undefined;
                             periodStartDate?: true | undefined;
                             periodEndDate?: true | undefined;
@@ -658,6 +649,7 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                             price?: true | undefined;
                             currency?: true | undefined;
                             slotInterval?: true | undefined;
+                            metadata?: true | undefined;
                             successRedirectUrl?: true | undefined;
                             forwardParamsSuccessRedirect?: true | undefined;
                             bookingLimits?: true | undefined;
@@ -674,19 +666,27 @@ export declare const workflowsRouter: import("@trpc/server/unstable-core-do-not-
                             hosts?: true | undefined;
                             users?: true | undefined;
                             owner?: true | undefined;
+                            profile?: true | undefined;
+                            team?: true | undefined;
+                            hashedLink?: true | undefined;
                             bookings?: true | undefined;
+                            availability?: true | undefined;
                             webhooks?: true | undefined;
+                            destinationCalendar?: true | undefined;
+                            customInputs?: true | undefined;
                             parent?: true | undefined;
                             children?: true | undefined;
+                            schedule?: true | undefined;
                             workflows?: true | undefined;
                             instantMeetingSchedule?: true | undefined;
                             aiPhoneCallConfig?: true | undefined;
+                            secondaryEmail?: true | undefined;
                             _count?: true | undefined;
                         } | undefined;
                     } | undefined;
                     requiresConfirmationThreshold?: {
                         time: number;
-                        unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                        unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                     } | undefined;
                     config?: {
                         useHostSchedulesForTeamEvent?: boolean | undefined;

@@ -216,23 +216,38 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
             } | undefined;
             managedEventConfig?: {
                 unlockedFields?: {
-                    position?: true | undefined;
-                    title?: true | undefined;
-                    metadata?: true | undefined;
-                    hidden?: true | undefined;
                     length?: true | undefined;
-                    parent?: true | undefined;
                     description?: true | undefined;
+                    hidden?: true | undefined;
                     children?: true | undefined;
                     timeZone?: true | undefined;
+                    metadata?: true | undefined;
+                    destinationCalendar?: true | undefined;
+                    profile?: true | undefined;
+                    team?: true | undefined;
+                    schedule?: true | undefined;
+                    availability?: true | undefined;
+                    hashedLink?: true | undefined;
+                    secondaryEmail?: true | undefined;
+                    userId?: true | undefined;
+                    title?: true | undefined;
+                    customInputs?: true | undefined;
+                    bookings?: true | undefined;
+                    webhooks?: true | undefined;
+                    workflows?: true | undefined;
+                    hosts?: true | undefined;
                     slug?: true | undefined;
+                    parentId?: true | undefined;
+                    parent?: true | undefined;
+                    _count?: true | undefined;
+                    teamId?: true | undefined;
+                    profileId?: true | undefined;
+                    scheduleId?: true | undefined;
+                    users?: true | undefined;
+                    position?: true | undefined;
                     locations?: true | undefined;
                     offsetStart?: true | undefined;
-                    userId?: true | undefined;
-                    profileId?: true | undefined;
-                    teamId?: true | undefined;
                     eventName?: true | undefined;
-                    parentId?: true | undefined;
                     bookingFields?: true | undefined;
                     periodType?: true | undefined;
                     periodStartDate?: true | undefined;
@@ -254,7 +269,6 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
                     seatsShowAttendees?: true | undefined;
                     seatsShowAvailabilityCount?: true | undefined;
                     schedulingType?: true | undefined;
-                    scheduleId?: true | undefined;
                     price?: true | undefined;
                     currency?: true | undefined;
                     slotInterval?: true | undefined;
@@ -271,28 +285,14 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
                     eventTypeColor?: true | undefined;
                     rescheduleWithSameRoundRobinHost?: true | undefined;
                     secondaryEmailId?: true | undefined;
-                    hosts?: true | undefined;
-                    users?: true | undefined;
                     owner?: true | undefined;
-                    profile?: true | undefined;
-                    team?: true | undefined;
-                    hashedLink?: true | undefined;
-                    bookings?: true | undefined;
-                    availability?: true | undefined;
-                    webhooks?: true | undefined;
-                    destinationCalendar?: true | undefined;
-                    customInputs?: true | undefined;
-                    schedule?: true | undefined;
-                    workflows?: true | undefined;
                     instantMeetingSchedule?: true | undefined;
                     aiPhoneCallConfig?: true | undefined;
-                    secondaryEmail?: true | undefined;
-                    _count?: true | undefined;
                 } | undefined;
             } | undefined;
             requiresConfirmationThreshold?: {
                 time: number;
-                unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
+                unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
             } | undefined;
             config?: {
                 useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -303,24 +303,24 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
             } | null | undefined;
         };
         customInputs: {
-            label: string;
             type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
-            id: number;
+            label: string;
             placeholder: string;
             required: boolean;
+            id: number;
             eventTypeId: number;
             options?: {
-                label: string;
                 type: string;
+                label: string;
             }[] | null | undefined;
             hasToBeCreated?: boolean | undefined;
         }[];
         users: {
-            id: number;
             name: string | null;
             email: string;
-            username: string | null;
+            id: number;
             locale: string | null;
+            username: string | null;
             avatarUrl: string | null;
             defaultScheduleId: number | null;
         }[];
@@ -341,20 +341,130 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
             hidden: boolean;
             slug: string;
         }[];
-        title: string;
-        hidden: boolean;
         length: number;
         id: number;
+        description: string | null;
+        hidden: boolean;
+        timeZone: string | null;
+        destinationCalendar: {
+            id: number;
+            userId: number | null;
+            eventTypeId: number | null;
+            externalId: string;
+            integration: string;
+            credentialId: number | null;
+            primaryEmail: string | null;
+        } | null;
+        team: {
+            name: string;
+            id: number;
+            slug: string | null;
+            parentId: number | null;
+            members: {
+                user: {
+                    name: string | null;
+                    email: string;
+                    id: number;
+                    locale: string | null;
+                    username: string | null;
+                    avatarUrl: string | null;
+                    defaultScheduleId: number | null;
+                    eventTypes: {
+                        slug: string;
+                    }[];
+                };
+                role: import(".prisma/client").$Enums.MembershipRole;
+                accepted: boolean;
+            }[];
+            parent: {
+                organizationSettings: {
+                    lockEventTypeCreationForUsers: boolean;
+                } | null;
+                slug: string | null;
+            } | null;
+        } | null;
+        hashedLink: {
+            id: number;
+            link: string;
+            eventTypeId: number;
+        } | null;
+        userId: number | null;
+        title: string;
+        webhooks: {
+            id: string;
+            eventTypeId: number | null;
+            subscriberUrl: string;
+            payloadTemplate: string | null;
+            active: boolean;
+            eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+            secret: string | null;
+        }[];
+        workflows: ({
+            workflow: {
+                name: string;
+                id: number;
+                team: {
+                    name: string;
+                    id: number;
+                    slug: string | null;
+                    members: {
+                        id: number;
+                        role: import(".prisma/client").$Enums.MembershipRole;
+                        disableImpersonation: boolean;
+                        userId: number;
+                        teamId: number;
+                        accepted: boolean;
+                    }[];
+                } | null;
+                userId: number | null;
+                teamId: number | null;
+                time: number | null;
+                steps: {
+                    id: number;
+                    template: import(".prisma/client").$Enums.WorkflowTemplates;
+                    workflowId: number;
+                    stepNumber: number;
+                    action: import(".prisma/client").$Enums.WorkflowActions;
+                    sendTo: string | null;
+                    reminderBody: string | null;
+                    emailSubject: string | null;
+                    numberRequired: boolean | null;
+                    sender: string | null;
+                    numberVerificationPending: boolean;
+                    includeCalendarEvent: boolean;
+                }[];
+                trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
+                timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
+                activeOn: {
+                    eventType: {
+                        id: number;
+                        title: string;
+                        parentId: number | null;
+                        _count: {
+                            children: number;
+                        };
+                    };
+                }[];
+            };
+        } & {
+            id: number;
+            eventTypeId: number;
+            workflowId: number;
+        })[];
+        hosts: {
+            userId: number;
+            isFixed: boolean;
+            priority: number | null;
+            weight: number | null;
+            weightAdjustment: number | null;
+        }[];
+        slug: string;
         parent: {
             id: number;
             teamId: number | null;
         } | null;
-        description: string | null;
-        timeZone: string | null;
-        slug: string;
-        offsetStart: number;
-        userId: number | null;
         teamId: number | null;
+        offsetStart: number;
         eventName: string | null;
         bookingFields: import(".prisma/client").Prisma.JsonValue;
         periodType: import(".prisma/client").$Enums.PeriodType;
@@ -388,119 +498,9 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
         isRRWeightsEnabled: boolean;
         rescheduleWithSameRoundRobinHost: boolean;
         secondaryEmailId: number | null;
-        hosts: {
-            userId: number;
-            isFixed: boolean;
-            priority: number | null;
-            weight: number | null;
-            weightAdjustment: number | null;
-        }[];
         owner: {
             id: number;
         } | null;
-        team: {
-            id: number;
-            name: string;
-            parent: {
-                slug: string | null;
-                organizationSettings: {
-                    lockEventTypeCreationForUsers: boolean;
-                } | null;
-            } | null;
-            slug: string | null;
-            parentId: number | null;
-            members: {
-                user: {
-                    id: number;
-                    name: string | null;
-                    email: string;
-                    username: string | null;
-                    locale: string | null;
-                    eventTypes: {
-                        slug: string;
-                    }[];
-                    avatarUrl: string | null;
-                    defaultScheduleId: number | null;
-                };
-                role: import(".prisma/client").$Enums.MembershipRole;
-                accepted: boolean;
-            }[];
-        } | null;
-        hashedLink: {
-            link: string;
-            id: number;
-            eventTypeId: number;
-        } | null;
-        webhooks: {
-            id: string;
-            eventTypeId: number | null;
-            secret: string | null;
-            subscriberUrl: string;
-            payloadTemplate: string | null;
-            active: boolean;
-            eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
-        }[];
-        destinationCalendar: {
-            id: number;
-            userId: number | null;
-            credentialId: number | null;
-            eventTypeId: number | null;
-            integration: string;
-            externalId: string;
-            primaryEmail: string | null;
-        } | null;
-        workflows: ({
-            workflow: {
-                time: number | null;
-                id: number;
-                name: string;
-                userId: number | null;
-                teamId: number | null;
-                team: {
-                    id: number;
-                    name: string;
-                    slug: string | null;
-                    members: {
-                        id: number;
-                        userId: number;
-                        teamId: number;
-                        role: import(".prisma/client").$Enums.MembershipRole;
-                        disableImpersonation: boolean;
-                        accepted: boolean;
-                    }[];
-                } | null;
-                steps: {
-                    template: import(".prisma/client").$Enums.WorkflowTemplates;
-                    id: number;
-                    action: import(".prisma/client").$Enums.WorkflowActions;
-                    stepNumber: number;
-                    workflowId: number;
-                    sendTo: string | null;
-                    reminderBody: string | null;
-                    emailSubject: string | null;
-                    numberRequired: boolean | null;
-                    sender: string | null;
-                    numberVerificationPending: boolean;
-                    includeCalendarEvent: boolean;
-                }[];
-                trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
-                timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
-                activeOn: {
-                    eventType: {
-                        title: string;
-                        id: number;
-                        parentId: number | null;
-                        _count: {
-                            children: number;
-                        };
-                    };
-                }[];
-            };
-        } & {
-            id: number;
-            eventTypeId: number;
-            workflowId: number;
-        })[];
         aiPhoneCallConfig: {
             id: number;
             eventTypeId: number;
@@ -518,11 +518,11 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
         } | null;
     } & {
         users: ({
-            id: number;
             name: string | null;
             email: string;
-            username: string | null;
+            id: number;
             locale: string | null;
+            username: string | null;
             avatarUrl: string | null;
             defaultScheduleId: number | null;
         } & {
@@ -531,38 +531,38 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
         periodStartDate: string | null;
         periodEndDate: string | null;
         bookingFields: {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
-            label?: string | undefined;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             options?: {
-                label: string;
                 value: string;
+                label: string;
             }[] | undefined;
-            maxLength?: number | undefined;
-            defaultLabel?: string | undefined;
-            defaultPlaceholder?: string | undefined;
+            label?: string | undefined;
             labelAsSafeHtml?: string | undefined;
+            defaultLabel?: string | undefined;
             placeholder?: string | undefined;
+            defaultPlaceholder?: string | undefined;
             required?: boolean | undefined;
             getOptionsAt?: string | undefined;
             optionsInputs?: Record<string, {
-                type: "text" | "address" | "phone";
+                type: "text" | "phone" | "address";
                 required?: boolean | undefined;
                 placeholder?: string | undefined;
             }> | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
             variant?: string | undefined;
             variantsConfig?: {
                 variants: Record<string, {
                     fields: {
-                        type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
                         name: string;
+                        type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                         label?: string | undefined;
-                        maxLength?: number | undefined;
                         labelAsSafeHtml?: string | undefined;
                         placeholder?: string | undefined;
                         required?: boolean | undefined;
                         minLength?: number | undefined;
+                        maxLength?: number | undefined;
                     }[];
                 }>;
             } | undefined;
@@ -575,8 +575,8 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
             hidden?: boolean | undefined;
             editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly" | undefined;
             sources?: {
-                label: string;
                 type: string;
+                label: string;
                 id: string;
                 editUrl?: string | undefined;
                 fieldRequired?: boolean | undefined;
@@ -598,49 +598,49 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
     destinationCalendar: {
         id: number;
         userId: number | null;
-        credentialId: number | null;
         eventTypeId: number | null;
-        integration: string;
         externalId: string;
+        integration: string;
+        credentialId: number | null;
         primaryEmail: string | null;
     } | null;
     team: {
-        id: number;
         name: string;
-        parent: {
-            slug: string | null;
-            organizationSettings: {
-                lockEventTypeCreationForUsers: boolean;
-            } | null;
-        } | null;
+        id: number;
         slug: string | null;
         parentId: number | null;
         members: {
             user: {
-                id: number;
                 name: string | null;
                 email: string;
-                username: string | null;
+                id: number;
                 locale: string | null;
+                username: string | null;
+                avatarUrl: string | null;
+                defaultScheduleId: number | null;
                 eventTypes: {
                     slug: string;
                 }[];
-                avatarUrl: string | null;
-                defaultScheduleId: number | null;
             };
             role: import(".prisma/client").$Enums.MembershipRole;
             accepted: boolean;
         }[];
+        parent: {
+            organizationSettings: {
+                lockEventTypeCreationForUsers: boolean;
+            } | null;
+            slug: string | null;
+        } | null;
     } | null;
     teamMembers: {
         profileId: number | null;
         eventTypes: string[];
         membership: import(".prisma/client").$Enums.MembershipRole;
-        id: number;
         name: string | null;
         email: string;
-        username: string | null;
+        id: number;
         locale: string | null;
+        username: string | null;
         avatarUrl: string | null;
         defaultScheduleId: number | null;
         nonProfileUsername: string | null;
@@ -649,16 +649,16 @@ export declare const EventAITab: ({ eventType, isTeamEvent, }: Pick<{
     }[];
     currentUserMembership: {
         user: {
-            id: number;
             name: string | null;
             email: string;
-            username: string | null;
+            id: number;
             locale: string | null;
+            username: string | null;
+            avatarUrl: string | null;
+            defaultScheduleId: number | null;
             eventTypes: {
                 slug: string;
             }[];
-            avatarUrl: string | null;
-            defaultScheduleId: number | null;
         };
         role: import(".prisma/client").$Enums.MembershipRole;
         accepted: boolean;

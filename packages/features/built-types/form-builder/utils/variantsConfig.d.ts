@@ -9,28 +9,28 @@ type Translate = ReturnType<typeof useLocale>["t"];
 export declare const getConfig: (field: Pick<Field, "variantsConfig" | "type">) => {
     variants: Record<string, {
         fields: {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }[];
     }>;
 } | undefined;
 export declare const getTranslatedConfig: (field: Pick<Field, "variantsConfig" | "type">, translate: Translate) => {
     variants: Record<string, {
         fields: {
-            type: "number" | "boolean" | "text" | "address" | "select" | "textarea" | "name" | "url" | "multiselect" | "email" | "phone" | "multiemail" | "checkbox" | "radio" | "radioInput";
             name: string;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             label?: string | undefined;
-            maxLength?: number | undefined;
             labelAsSafeHtml?: string | undefined;
             placeholder?: string | undefined;
             required?: boolean | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
         }[];
     }>;
 } | undefined;

@@ -8,7 +8,7 @@ declare const DateOverrideInputDialog: ({ Trigger, excludedDates, userTimeFormat
     onChange: (newValue: TimeRange[]) => void;
     value?: TimeRange[] | undefined;
     userTimeFormat: number | null;
-    weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | undefined;
+    weekStart?: 0 | 2 | 1 | 3 | 4 | 5 | 6 | undefined;
     className?: string | undefined;
 }) => JSX.Element;
 export default DateOverrideInputDialog;

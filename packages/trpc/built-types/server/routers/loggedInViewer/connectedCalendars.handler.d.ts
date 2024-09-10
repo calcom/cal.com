@@ -25,7 +25,7 @@ export declare const connectedCalendarsHandler: ({ ctx, input }: ConnectedCalend
     } | {
         integration: {
             installed?: boolean | undefined;
-            type: `${string}_other` | `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
+            type: `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_other` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
             title?: string | undefined;
             name: string;
             description: string;
@@ -100,7 +100,7 @@ export declare const connectedCalendarsHandler: ({ ctx, input }: ConnectedCalend
     } | {
         integration: {
             installed?: boolean | undefined;
-            type: `${string}_other` | `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
+            type: `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_other` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
             title?: string | undefined;
             name: string;
             description: string;

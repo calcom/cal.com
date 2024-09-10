@@ -5,12 +5,12 @@ type ListWithTeamOptions = {
     };
 };
 export declare const listWithTeamHandler: ({ ctx }: ListWithTeamOptions) => Promise<{
-    team: {
-        name: string;
-        id: number;
-    } | null;
     id: number;
     title: string;
     slug: string;
+    team: {
+        id: number;
+        name: string;
+    } | null;
 }[]>;
 export {};

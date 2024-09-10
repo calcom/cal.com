@@ -10,8 +10,8 @@ type GetByViewerOptions = {
 };
 export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) => Promise<{
     allUsersAcrossAllEventTypes: Map<number, {
-        name: string | null;
         id: number;
+        name: string | null;
         username: string | null;
         avatarUrl: string | null;
     } & {
@@ -226,29 +226,20 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
                 managedEventConfig?: {
                     unlockedFields?: {
                         length?: true | undefined;
-                        destinationCalendar?: true | undefined;
-                        profile?: true | undefined;
-                        team?: true | undefined;
-                        schedule?: true | undefined;
-                        availability?: true | undefined;
-                        hashedLink?: true | undefined;
-                        secondaryEmail?: true | undefined;
-                        userId?: true | undefined;
                         title?: true | undefined;
-                        description?: true | undefined;
-                        customInputs?: true | undefined;
-                        metadata?: true | undefined;
-                        timeZone?: true | undefined;
                         slug?: true | undefined;
+                        description?: true | undefined;
                         position?: true | undefined;
                         locations?: true | undefined;
                         offsetStart?: true | undefined;
                         hidden?: true | undefined;
+                        userId?: true | undefined;
                         profileId?: true | undefined;
                         teamId?: true | undefined;
                         eventName?: true | undefined;
                         parentId?: true | undefined;
                         bookingFields?: true | undefined;
+                        timeZone?: true | undefined;
                         periodType?: true | undefined;
                         periodStartDate?: true | undefined;
                         periodEndDate?: true | undefined;
@@ -273,6 +264,7 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
                         price?: true | undefined;
                         currency?: true | undefined;
                         slotInterval?: true | undefined;
+                        metadata?: true | undefined;
                         successRedirectUrl?: true | undefined;
                         forwardParamsSuccessRedirect?: true | undefined;
                         bookingLimits?: true | undefined;
@@ -289,19 +281,27 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
                         hosts?: true | undefined;
                         users?: true | undefined;
                         owner?: true | undefined;
+                        profile?: true | undefined;
+                        team?: true | undefined;
+                        hashedLink?: true | undefined;
                         bookings?: true | undefined;
+                        availability?: true | undefined;
                         webhooks?: true | undefined;
+                        destinationCalendar?: true | undefined;
+                        customInputs?: true | undefined;
                         parent?: true | undefined;
                         children?: true | undefined;
+                        schedule?: true | undefined;
                         workflows?: true | undefined;
                         instantMeetingSchedule?: true | undefined;
                         aiPhoneCallConfig?: true | undefined;
+                        secondaryEmail?: true | undefined;
                         _count?: true | undefined;
                     } | undefined;
                 } | undefined;
                 requiresConfirmationThreshold?: {
                     time: number;
-                    unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                    unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                 } | undefined;
                 config?: {
                     useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -313,8 +313,8 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
             } | null;
             children: {
                 users: ({
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     username: string | null;
                     avatarUrl: string | null;
                 } & {
@@ -323,21 +323,20 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
                 })[];
                 length: number;
                 id: number;
-                userId: number | null;
                 title: string;
-                description: string | null;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                timeZone: string | null;
                 slug: string;
+                description: string | null;
                 position: number;
                 locations: import(".prisma/client").Prisma.JsonValue;
                 offsetStart: number;
                 hidden: boolean;
+                userId: number | null;
                 profileId: number | null;
                 teamId: number | null;
                 eventName: string | null;
                 parentId: number | null;
                 bookingFields: import(".prisma/client").Prisma.JsonValue;
+                timeZone: string | null;
                 periodType: import(".prisma/client").$Enums.PeriodType;
                 periodStartDate: Date | null;
                 periodEndDate: Date | null;
@@ -362,6 +361,7 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
                 price: number;
                 currency: string;
                 slotInterval: number | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
                 successRedirectUrl: string | null;
                 forwardParamsSuccessRedirect: boolean | null;
                 bookingLimits: import(".prisma/client").Prisma.JsonValue;
@@ -377,26 +377,21 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
                 secondaryEmailId: number | null;
             }[];
             length: number;
-            hashedLink: {
-                id: number;
-                eventTypeId: number;
-                link: string;
-            } | null;
             id: number;
-            userId: number | null;
             title: string;
-            description: string | null;
-            timeZone: string | null;
             slug: string;
+            description: string | null;
             position: number;
             locations: import(".prisma/client").Prisma.JsonValue;
             offsetStart: number;
             hidden: boolean;
+            userId: number | null;
             profileId: number | null;
             teamId: number | null;
             eventName: string | null;
             parentId: number | null;
             bookingFields: import(".prisma/client").Prisma.JsonValue;
+            timeZone: string | null;
             periodType: import(".prisma/client").$Enums.PeriodType;
             periodStartDate: Date | null;
             periodEndDate: Date | null;
@@ -435,8 +430,8 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
             secondaryEmailId: number | null;
             hosts: ({
                 user: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     username: string | null;
                     avatarUrl: string | null;
                 };
@@ -448,6 +443,11 @@ export declare const getByViewerHandler: ({ ctx, input }: GetByViewerOptions) =>
                 weight: number | null;
                 weightAdjustment: number | null;
             })[];
+            hashedLink: {
+                id: number;
+                link: string;
+                eventTypeId: number;
+            } | null;
             aiPhoneCallConfig: {
                 id: number;
                 eventTypeId: number;

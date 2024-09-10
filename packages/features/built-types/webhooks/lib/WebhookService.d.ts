@@ -7,10 +7,10 @@ export declare class WebhookService {
     constructor(options: Parameters<typeof getWebhooks>[0]);
     getWebhooks(): {
         id: string;
-        secret: string | null;
         appId: string | null;
         subscriberUrl: string;
         payloadTemplate: string | null;
+        secret: string | null;
     }[];
     sendPayload(payload: Parameters<typeof sendOrSchedulePayload>[4]): Promise<void>;
 }

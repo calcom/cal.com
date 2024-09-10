@@ -14,16 +14,16 @@ export declare function addSubscription({ appApiKey, triggerEvent, subscriberUrl
 }): Promise<{
     id: string;
     userId: number | null;
-    teamId: number | null;
     eventTypeId: number | null;
     createdAt: Date;
-    secret: string | null;
+    teamId: number | null;
     appId: string | null;
     platformOAuthClientId: string | null;
     subscriberUrl: string;
     payloadTemplate: string | null;
     active: boolean;
     eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+    secret: string | null;
     platform: boolean;
 } | undefined>;
 export declare function deleteSubscription({ appApiKey, webhookId, appId, account, }: {
@@ -38,16 +38,16 @@ export declare function deleteSubscription({ appApiKey, webhookId, appId, accoun
 }): Promise<{
     id: string;
     userId: number | null;
-    teamId: number | null;
     eventTypeId: number | null;
     createdAt: Date;
-    secret: string | null;
+    teamId: number | null;
     appId: string | null;
     platformOAuthClientId: string | null;
     subscriberUrl: string;
     payloadTemplate: string | null;
     active: boolean;
     eventTriggers: import(".prisma/client").$Enums.WebhookTriggerEvents[];
+    secret: string | null;
     platform: boolean;
 } | undefined>;
 export declare function listBookings(appApiKey?: ApiKey, account?: {
@@ -58,63 +58,63 @@ export declare function listBookings(appApiKey?: ApiKey, account?: {
     location: string;
     userFieldsResponses: import("@calcom/types/Calendar").CalEventResponses;
     responses: import("@calcom/types/Calendar").CalEventResponses;
-    title: string;
-    eventType: {
-        title: string;
-        length: number;
-        description: string | null;
-        bookingFields: Prisma.JsonValue;
-        requiresConfirmation: boolean;
-        price: number;
-        currency: string;
-        team: {
-            metadata: Prisma.JsonValue;
-            theme: string | null;
-            id: number;
-            name: string;
-            timeZone: string;
-            slug: string | null;
-            parentId: number | null;
-            createdAt: Date;
-            logoUrl: string | null;
-            calVideoLogo: string | null;
-            appLogo: string | null;
-            appIconLogo: string | null;
-            bio: string | null;
-            hideBranding: boolean;
-            isPrivate: boolean;
-            hideBookATeamMember: boolean;
-            brandColor: string | null;
-            darkBrandColor: string | null;
-            bannerUrl: string | null;
-            timeFormat: number | null;
-            weekStart: string;
-            isOrganization: boolean;
-            pendingPayment: boolean;
-            isPlatform: boolean;
-            createdByOAuthClientId: string | null;
-            smsLockState: import(".prisma/client").$Enums.SMSLockState;
-            smsLockReviewedByAdmin: boolean;
-        } | null;
-    } | null;
     status: import(".prisma/client").$Enums.BookingStatus;
     description: string | null;
     user: {
         name: string | null;
         email: string;
-        timeZone: string;
-        username: string | null;
         locale: string | null;
+        username: string | null;
+        timeZone: string;
     } | null;
-    customInputs: Prisma.JsonValue;
-    cancellationReason: string | null;
+    startTime: Date;
+    endTime: Date;
+    eventType: {
+        length: number;
+        description: string | null;
+        team: {
+            name: string;
+            id: number;
+            bio: string | null;
+            timeZone: string;
+            weekStart: string;
+            hideBranding: boolean;
+            theme: string | null;
+            timeFormat: number | null;
+            brandColor: string | null;
+            darkBrandColor: string | null;
+            metadata: Prisma.JsonValue;
+            smsLockState: import(".prisma/client").$Enums.SMSLockState;
+            smsLockReviewedByAdmin: boolean;
+            createdAt: Date;
+            slug: string | null;
+            logoUrl: string | null;
+            calVideoLogo: string | null;
+            appLogo: string | null;
+            appIconLogo: string | null;
+            isPrivate: boolean;
+            hideBookATeamMember: boolean;
+            bannerUrl: string | null;
+            parentId: number | null;
+            isOrganization: boolean;
+            pendingPayment: boolean;
+            isPlatform: boolean;
+            createdByOAuthClientId: string | null;
+        } | null;
+        title: string;
+        bookingFields: Prisma.JsonValue;
+        requiresConfirmation: boolean;
+        price: number;
+        currency: string;
+    } | null;
     attendees: {
         name: string;
         email: string;
         timeZone: string;
     }[];
-    startTime: Date;
-    endTime: Date;
+    title: string;
+    customInputs: Prisma.JsonValue;
+    cancellationReason: string | null;
 }[] | undefined>;
 export declare function scheduleTrigger({ booking, subscriberUrl, subscriber, triggerEvent, }: {
     booking: {
@@ -148,27 +148,27 @@ export declare function listOOOEntries(appApiKey?: ApiKey, account?: {
 } | null): Promise<{
     id: number;
     user: {
-        id: number;
         name: string | null;
         email: string;
+        id: number;
         timeZone: string;
     };
-    notes: string | null;
-    end: Date;
+    createdAt: Date;
+    updatedAt: Date;
     start: Date;
+    end: Date;
+    uuid: string;
+    reasonId: number | null;
+    notes: string | null;
+    toUser: {
+        name: string | null;
+        email: string;
+        id: number;
+        timeZone: string;
+    } | null;
     reason: {
         reason: string;
         emoji: string;
-    } | null;
-    createdAt: Date;
-    updatedAt: Date;
-    uuid: string;
-    reasonId: number | null;
-    toUser: {
-        id: number;
-        name: string | null;
-        email: string;
-        timeZone: string;
     } | null;
 }[] | undefined>;
 //# sourceMappingURL=scheduleTrigger.d.ts.map

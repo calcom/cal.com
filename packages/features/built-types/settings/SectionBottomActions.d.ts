@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 declare const SectionBottomActions: ({ align, children, className, }: {
-    align?: "end" | "start" | undefined;
+    align?: "start" | "end" | undefined;
     children: ReactNode;
     className?: string | undefined;
 }) => JSX.Element;

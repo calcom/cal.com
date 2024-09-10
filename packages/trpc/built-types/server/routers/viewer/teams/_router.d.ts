@@ -38,17 +38,17 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                     } | null;
                     externalId: string | null;
                 }[] | null;
-                name: string | null;
                 id: number;
+                name: string | null;
                 email: string;
                 bio: string | null;
+                avatarUrl: string | null;
                 teams: {
                     team: {
                         id: number;
                         slug: string | null;
                     };
                 }[];
-                avatarUrl: string | null;
                 nonProfileUsername: string | null;
             }[];
             safeBio: string;
@@ -58,9 +58,9 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
             };
             inviteToken: {
                 token: string;
-                identifier: string;
                 expires: Date;
                 expiresInDays: number | null;
+                identifier: string;
             } | undefined;
             metadata: {
                 requestedSlug?: string | null | undefined;
@@ -279,29 +279,20 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                     managedEventConfig?: {
                         unlockedFields?: {
                             length?: true | undefined;
-                            destinationCalendar?: true | undefined;
-                            profile?: true | undefined;
-                            team?: true | undefined;
-                            schedule?: true | undefined;
-                            availability?: true | undefined;
-                            hashedLink?: true | undefined;
-                            secondaryEmail?: true | undefined;
-                            userId?: true | undefined;
                             title?: true | undefined;
-                            description?: true | undefined;
-                            customInputs?: true | undefined;
-                            metadata?: true | undefined;
-                            timeZone?: true | undefined;
                             slug?: true | undefined;
+                            description?: true | undefined;
                             position?: true | undefined;
                             locations?: true | undefined;
                             offsetStart?: true | undefined;
                             hidden?: true | undefined;
+                            userId?: true | undefined;
                             profileId?: true | undefined;
                             teamId?: true | undefined;
                             eventName?: true | undefined;
                             parentId?: true | undefined;
                             bookingFields?: true | undefined;
+                            timeZone?: true | undefined;
                             periodType?: true | undefined;
                             periodStartDate?: true | undefined;
                             periodEndDate?: true | undefined;
@@ -326,6 +317,7 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                             price?: true | undefined;
                             currency?: true | undefined;
                             slotInterval?: true | undefined;
+                            metadata?: true | undefined;
                             successRedirectUrl?: true | undefined;
                             forwardParamsSuccessRedirect?: true | undefined;
                             bookingLimits?: true | undefined;
@@ -342,19 +334,27 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                             hosts?: true | undefined;
                             users?: true | undefined;
                             owner?: true | undefined;
+                            profile?: true | undefined;
+                            team?: true | undefined;
+                            hashedLink?: true | undefined;
                             bookings?: true | undefined;
+                            availability?: true | undefined;
                             webhooks?: true | undefined;
+                            destinationCalendar?: true | undefined;
+                            customInputs?: true | undefined;
                             parent?: true | undefined;
                             children?: true | undefined;
+                            schedule?: true | undefined;
                             workflows?: true | undefined;
                             instantMeetingSchedule?: true | undefined;
                             aiPhoneCallConfig?: true | undefined;
+                            secondaryEmail?: true | undefined;
                             _count?: true | undefined;
                         } | undefined;
                     } | undefined;
                     requiresConfirmationThreshold?: {
                         time: number;
-                        unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                        unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
                     } | undefined;
                     config?: {
                         useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -365,10 +365,12 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                     } | null | undefined;
                 } | null;
                 users: ({
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
+                    username: string | null;
                     bio: string | null;
+                    avatarUrl: string | null;
                     credentials: {
                         app: {
                             slug: string;
@@ -384,8 +386,6 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                             slug: string | null;
                         };
                     }[];
-                    username: string | null;
-                    avatarUrl: string | null;
                 } & {
                     nonProfileUsername: string | null;
                     profile: import("@calcom/types/UserProfile").UserProfile;
@@ -393,8 +393,8 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                 length: number;
                 id: number;
                 title: string;
-                description: string | null;
                 slug: string;
+                description: string | null;
                 hidden: boolean;
                 lockTimeZoneToggleOnBookingPage: boolean;
                 requiresConfirmation: boolean;
@@ -405,10 +405,12 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                 currency: string;
                 hosts: {
                     user: {
-                        name: string | null;
                         id: number;
+                        name: string | null;
                         email: string;
+                        username: string | null;
                         bio: string | null;
+                        avatarUrl: string | null;
                         credentials: {
                             app: {
                                 slug: string;
@@ -424,37 +426,35 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                                 slug: string | null;
                             };
                         }[];
-                        username: string | null;
-                        avatarUrl: string | null;
                     };
                 }[];
             }[] | null;
             logo?: string | undefined;
-            name: string;
             id: number;
             slug: string | null;
             parentId: number | null;
             parent: {
-                name: string;
                 id: number;
-                metadata: import(".prisma/client").Prisma.JsonValue;
                 slug: string | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
                 logoUrl: string | null;
                 isPrivate: boolean;
                 isOrganization: boolean;
             } | null;
             children: {
-                name: string;
                 slug: string | null;
+                name: string;
             }[];
-            logoUrl: string | null;
+            name: string;
             bio: string | null;
             hideBranding: boolean;
-            isPrivate: boolean;
-            hideBookATeamMember: boolean;
             theme: string | null;
             brandColor: string | null;
             darkBrandColor: string | null;
+            logoUrl: string | null;
+            isPrivate: boolean;
+            hideBookATeamMember: boolean;
             isOrganization: boolean;
         };
     }>;
@@ -470,9 +470,9 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
             };
             inviteToken: {
                 token: string;
-                identifier: string;
                 expires: Date;
                 expiresInDays: number | null;
+                identifier: string;
             } | undefined;
             metadata: {
                 requestedSlug?: string | null | undefined;
@@ -487,31 +487,31 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                 billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
             };
             logo?: string | undefined;
-            name: string;
             id: number;
             slug: string | null;
             parentId: number | null;
             parent: {
-                name: string;
                 id: number;
-                metadata: import(".prisma/client").Prisma.JsonValue;
                 slug: string | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
                 logoUrl: string | null;
                 isPrivate: boolean;
                 isOrganization: boolean;
             } | null;
             children: {
-                name: string;
                 slug: string | null;
+                name: string;
             }[];
-            logoUrl: string | null;
+            name: string;
             bio: string | null;
             hideBranding: boolean;
-            isPrivate: boolean;
-            hideBookATeamMember: boolean;
             theme: string | null;
             brandColor: string | null;
             darkBrandColor: string | null;
+            logoUrl: string | null;
+            isPrivate: boolean;
+            hideBookATeamMember: boolean;
             isOrganization: boolean;
         };
     }>;
@@ -537,48 +537,48 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
             } | null;
             inviteToken: {
                 id: number;
-                createdAt: Date;
-                updatedAt: Date;
                 teamId: number | null;
                 secondaryEmailId: number | null;
                 token: string;
-                identifier: string;
+                createdAt: Date;
+                updatedAt: Date;
                 expires: Date;
                 expiresInDays: number | null;
+                identifier: string;
             } | undefined;
-            name: string;
             id: number;
             slug: string | null;
             parentId: number | null;
             parent: {
-                name: string;
                 id: number;
-                createdAt: Date;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                timeZone: string;
                 slug: string | null;
                 parentId: number | null;
+                timeZone: string;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
+                bio: string | null;
+                weekStart: string;
+                hideBranding: boolean;
+                theme: string | null;
+                timeFormat: number | null;
+                brandColor: string | null;
+                darkBrandColor: string | null;
+                smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                smsLockReviewedByAdmin: boolean;
+                createdAt: Date;
                 logoUrl: string | null;
                 calVideoLogo: string | null;
                 appLogo: string | null;
                 appIconLogo: string | null;
-                bio: string | null;
-                hideBranding: boolean;
                 isPrivate: boolean;
                 hideBookATeamMember: boolean;
-                theme: string | null;
-                brandColor: string | null;
-                darkBrandColor: string | null;
                 bannerUrl: string | null;
-                timeFormat: number | null;
-                weekStart: string;
                 isOrganization: boolean;
                 pendingPayment: boolean;
                 isPlatform: boolean;
                 createdByOAuthClientId: string | null;
-                smsLockState: import(".prisma/client").$Enums.SMSLockState;
-                smsLockReviewedByAdmin: boolean;
             } | null;
+            name: string;
             logoUrl: string | null;
             isOrganization: boolean;
             role: import(".prisma/client").$Enums.MembershipRole;
@@ -605,48 +605,48 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
             } | null;
             inviteToken: {
                 id: number;
-                createdAt: Date;
-                updatedAt: Date;
                 teamId: number | null;
                 secondaryEmailId: number | null;
                 token: string;
-                identifier: string;
+                createdAt: Date;
+                updatedAt: Date;
                 expires: Date;
                 expiresInDays: number | null;
+                identifier: string;
             } | undefined;
-            name: string;
             id: number;
             slug: string | null;
             parentId: number | null;
             parent: {
-                name: string;
                 id: number;
-                createdAt: Date;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                timeZone: string;
                 slug: string | null;
                 parentId: number | null;
+                timeZone: string;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
+                bio: string | null;
+                weekStart: string;
+                hideBranding: boolean;
+                theme: string | null;
+                timeFormat: number | null;
+                brandColor: string | null;
+                darkBrandColor: string | null;
+                smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                smsLockReviewedByAdmin: boolean;
+                createdAt: Date;
                 logoUrl: string | null;
                 calVideoLogo: string | null;
                 appLogo: string | null;
                 appIconLogo: string | null;
-                bio: string | null;
-                hideBranding: boolean;
                 isPrivate: boolean;
                 hideBookATeamMember: boolean;
-                theme: string | null;
-                brandColor: string | null;
-                darkBrandColor: string | null;
                 bannerUrl: string | null;
-                timeFormat: number | null;
-                weekStart: string;
                 isOrganization: boolean;
                 pendingPayment: boolean;
                 isPlatform: boolean;
                 createdByOAuthClientId: string | null;
-                smsLockState: import(".prisma/client").$Enums.SMSLockState;
-                smsLockReviewedByAdmin: boolean;
             } | null;
+            name: string;
             logoUrl: string | null;
             isOrganization: boolean;
             role: import(".prisma/client").$Enums.MembershipRole;
@@ -655,8 +655,8 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
     }>;
     create: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
         input: {
-            name: string;
             slug: string;
+            name: string;
             logo?: string | null | undefined;
         };
         output: {
@@ -667,33 +667,33 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
             url: string;
             message: string;
             team: {
-                name: string;
                 id: number;
-                createdAt: Date;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                timeZone: string;
                 slug: string | null;
                 parentId: number | null;
+                timeZone: string;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
+                bio: string | null;
+                weekStart: string;
+                hideBranding: boolean;
+                theme: string | null;
+                timeFormat: number | null;
+                brandColor: string | null;
+                darkBrandColor: string | null;
+                smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                smsLockReviewedByAdmin: boolean;
+                createdAt: Date;
                 logoUrl: string | null;
                 calVideoLogo: string | null;
                 appLogo: string | null;
                 appIconLogo: string | null;
-                bio: string | null;
-                hideBranding: boolean;
                 isPrivate: boolean;
                 hideBookATeamMember: boolean;
-                theme: string | null;
-                brandColor: string | null;
-                darkBrandColor: string | null;
                 bannerUrl: string | null;
-                timeFormat: number | null;
-                weekStart: string;
                 isOrganization: boolean;
                 pendingPayment: boolean;
                 isPlatform: boolean;
                 createdByOAuthClientId: string | null;
-                smsLockState: import(".prisma/client").$Enums.SMSLockState;
-                smsLockReviewedByAdmin: boolean;
             };
         };
     }>;
@@ -837,62 +837,62 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
         output: ({
             team: {
                 children: {
-                    name: string;
                     id: number;
-                    createdAt: Date;
-                    metadata: import(".prisma/client").Prisma.JsonValue;
-                    timeZone: string;
                     slug: string | null;
                     parentId: number | null;
+                    timeZone: string;
+                    metadata: import(".prisma/client").Prisma.JsonValue;
+                    name: string;
+                    bio: string | null;
+                    weekStart: string;
+                    hideBranding: boolean;
+                    theme: string | null;
+                    timeFormat: number | null;
+                    brandColor: string | null;
+                    darkBrandColor: string | null;
+                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                    smsLockReviewedByAdmin: boolean;
+                    createdAt: Date;
                     logoUrl: string | null;
                     calVideoLogo: string | null;
                     appLogo: string | null;
                     appIconLogo: string | null;
-                    bio: string | null;
-                    hideBranding: boolean;
                     isPrivate: boolean;
                     hideBookATeamMember: boolean;
-                    theme: string | null;
-                    brandColor: string | null;
-                    darkBrandColor: string | null;
                     bannerUrl: string | null;
-                    timeFormat: number | null;
-                    weekStart: string;
                     isOrganization: boolean;
                     pendingPayment: boolean;
                     isPlatform: boolean;
                     createdByOAuthClientId: string | null;
-                    smsLockState: import(".prisma/client").$Enums.SMSLockState;
-                    smsLockReviewedByAdmin: boolean;
                 }[];
             } & {
-                name: string;
                 id: number;
-                createdAt: Date;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                timeZone: string;
                 slug: string | null;
                 parentId: number | null;
+                timeZone: string;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
+                bio: string | null;
+                weekStart: string;
+                hideBranding: boolean;
+                theme: string | null;
+                timeFormat: number | null;
+                brandColor: string | null;
+                darkBrandColor: string | null;
+                smsLockState: import(".prisma/client").$Enums.SMSLockState;
+                smsLockReviewedByAdmin: boolean;
+                createdAt: Date;
                 logoUrl: string | null;
                 calVideoLogo: string | null;
                 appLogo: string | null;
                 appIconLogo: string | null;
-                bio: string | null;
-                hideBranding: boolean;
                 isPrivate: boolean;
                 hideBookATeamMember: boolean;
-                theme: string | null;
-                brandColor: string | null;
-                darkBrandColor: string | null;
                 bannerUrl: string | null;
-                timeFormat: number | null;
-                weekStart: string;
                 isOrganization: boolean;
                 pendingPayment: boolean;
                 isPlatform: boolean;
                 createdByOAuthClientId: string | null;
-                smsLockState: import(".prisma/client").$Enums.SMSLockState;
-                smsLockReviewedByAdmin: boolean;
             };
         } & {
             id: number;
@@ -908,8 +908,8 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
             teamIds?: number[] | undefined;
         };
         output: ({
-            name: string | null;
             id: number;
+            name: string | null;
             username: string | null;
             avatarUrl: string | null;
         } & {
@@ -936,8 +936,8 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
                 accepted: boolean;
                 disableImpersonation: boolean;
                 bookerUrl: string;
-                name: string | null;
                 id: number;
+                name: string | null;
                 email: string;
                 bio: string | null;
                 avatarUrl: string | null;
@@ -1015,22 +1015,22 @@ export declare const viewerTeamsRouter: import("@trpc/server/unstable-core-do-no
     }>;
     resendInvitation: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
         input: {
-            email: string;
             teamId: number;
+            email: string;
             language: string;
             isOrg?: boolean | undefined;
         };
         output: {
-            email: string;
             teamId: number;
+            email: string;
             language: string;
             isOrg: boolean;
         };
     }>;
     roundRobinReassign: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
         input: {
-            bookingId: number;
             teamId: number;
+            bookingId: number;
         };
         output: void;
     }>;

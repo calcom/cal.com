@@ -5,19 +5,19 @@ import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 export declare const getCalEventResponses: ({ bookingFields, booking, responses, }: {
     bookingFields: z.infer<typeof eventTypeBookingFields> | EventType["bookingFields"] | null;
     booking?: {
-        location: string | null;
         description: string | null;
-        customInputs: Prisma.JsonValue;
-        responses: Prisma.JsonValue;
         attendees: {
             name: string;
             email: string;
         }[];
+        customInputs: Prisma.JsonValue;
+        responses: Prisma.JsonValue;
+        location: string | null;
     } | undefined;
-    responses?: Record<string, string | boolean | string[] | Record<string, string> | {
+    responses?: Record<string, string | boolean | string[] | {
         value: string;
         optionValue: string;
-    }> | undefined;
+    } | Record<string, string>> | undefined;
 }) => {
     userFieldsResponses: import("@calcom/types/Calendar").CalEventResponses;
     responses: import("@calcom/types/Calendar").CalEventResponses;

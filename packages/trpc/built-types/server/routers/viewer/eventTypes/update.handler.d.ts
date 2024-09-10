@@ -22,18 +22,20 @@ type UpdateOptions = {
 export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 export declare const updateHandler: ({ ctx, input }: UpdateOptions) => Promise<{
     eventType: {
+        title: string;
+        isRRWeightsEnabled: boolean;
         team: {
-            name: string;
             id: number;
             slug: string | null;
             parentId: number | null;
             parent: {
                 slug: string | null;
             } | null;
+            name: string;
             members: {
                 user: {
-                    name: string | null;
                     id: number;
+                    name: string | null;
                     email: string;
                     eventTypes: {
                         slug: string;
@@ -43,8 +45,6 @@ export declare const updateHandler: ({ ctx, input }: UpdateOptions) => Promise<{
                 accepted: boolean;
             }[];
         } | null;
-        title: string;
-        isRRWeightsEnabled: boolean;
         children: {
             userId: number | null;
         }[];

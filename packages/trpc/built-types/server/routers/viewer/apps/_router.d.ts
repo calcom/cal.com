@@ -22,7 +22,7 @@ export declare const appsRouter: import("@trpc/server/unstable-core-do-not-impor
             slug: string;
             logo: string;
             title: string | undefined;
-            type: `${string}_other` | `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
+            type: `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_other` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
             description: string;
             keys: import(".prisma/client").Prisma.JsonObject | null;
             dirName: string;
@@ -32,7 +32,7 @@ export declare const appsRouter: import("@trpc/server/unstable-core-do-not-impor
             name: string;
             slug: string;
             logo: string;
-            type: `${string}_other` | `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
+            type: `${string}_calendar` | `${string}_messaging` | `${string}_payment` | `${string}_video` | `${string}_other` | `${string}_automation` | `${string}_analytics` | `${string}_crm` | `${string}_other_calendar`;
             title: string | undefined;
             description: string;
             enabled: boolean;
@@ -70,10 +70,10 @@ export declare const appsRouter: import("@trpc/server/unstable-core-do-not-impor
     }>;
     updateAppCredentials: import("@trpc/server/unstable-core-do-not-import").MutationProcedure<{
         input: {
+            credentialId: number;
             key: {} & {
                 [k: string]: unknown;
             };
-            credentialId: number;
         };
         output: boolean;
     }>;

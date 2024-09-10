@@ -13,7 +13,7 @@ declare const getAttributeHandler: ({ input, ctx }: GetOptions) => Promise<{
         assignedUsers?: number | undefined;
     }[];
     type: "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT";
-    name: string;
     id: string;
+    name: string;
 }>;
 export default getAttributeHandler;

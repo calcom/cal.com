@@ -13,9 +13,9 @@ type UpdateOptions = {
 };
 export declare const updateHandler: ({ input, ctx }: UpdateOptions) => Promise<{
     schedule: {
-        name: string;
         id: number;
         userId: number;
+        name: string;
     };
     isDefault: boolean;
     availability?: undefined;
@@ -28,20 +28,20 @@ export declare const updateHandler: ({ input, ctx }: UpdateOptions) => Promise<{
             id: number;
             eventName: string | null;
         }[];
-        availability: {
-            id: number;
-            userId: number | null;
-            eventTypeId: number | null;
-            startTime: Date;
-            endTime: Date;
-            scheduleId: number | null;
-            days: number[];
-            date: Date | null;
-        }[];
-        name: string;
         id: number;
         userId: number;
         timeZone: string | null;
+        availability: {
+            date: Date | null;
+            days: number[];
+            id: number;
+            userId: number | null;
+            scheduleId: number | null;
+            eventTypeId: number | null;
+            startTime: Date;
+            endTime: Date;
+        }[];
+        name: string;
     };
     availability: import("@calcom/types/schedule").Schedule;
     timeZone: string;

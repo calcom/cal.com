@@ -18,8 +18,8 @@ export declare const apiKeysRouter: import("@trpc/server/unstable-core-do-not-im
         output: {
             id: string;
             userId: number;
-            createdAt: Date;
             teamId: number | null;
+            createdAt: Date;
             appId: string | null;
             note: string | null;
             expiresAt: Date | null;
@@ -35,8 +35,8 @@ export declare const apiKeysRouter: import("@trpc/server/unstable-core-do-not-im
         output: {
             id: string;
             userId: number;
-            createdAt: Date;
             teamId: number | null;
+            createdAt: Date;
             appId: string | null;
             note: string | null;
             expiresAt: Date | null;
@@ -63,8 +63,8 @@ export declare const apiKeysRouter: import("@trpc/server/unstable-core-do-not-im
         output: {
             id: string;
             userId: number;
-            createdAt: Date;
             teamId: number | null;
+            createdAt: Date;
             appId: string | null;
             note: string | null;
             expiresAt: Date | null;

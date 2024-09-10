@@ -8,10 +8,10 @@ type CreateOptions = {
 };
 export declare const createHandler: ({ input, ctx }: CreateOptions) => Promise<{
     schedule: {
-        name: string;
         id: number;
         userId: number;
         timeZone: string | null;
+        name: string;
     };
 }>;
 export {};

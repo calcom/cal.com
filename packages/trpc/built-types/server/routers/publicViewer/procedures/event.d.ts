@@ -1,25 +1,24 @@
 export declare const event: import("@trpc/server/unstable-core-do-not-import").QueryProcedure<{
     input: {
         username: string;
-        org: string | null;
         eventSlug: string;
+        org: string | null;
         isTeamEvent?: boolean | undefined;
         fromRedirectOfNonOrgLink?: boolean | undefined;
     };
     output: {
         bookingFields: {
-            type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
             name: string;
-            label?: string | undefined;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             options?: {
-                label: string;
                 value: string;
+                label: string;
             }[] | undefined;
-            maxLength?: number | undefined;
-            defaultLabel?: string | undefined;
-            defaultPlaceholder?: string | undefined;
+            label?: string | undefined;
             labelAsSafeHtml?: string | undefined;
+            defaultLabel?: string | undefined;
             placeholder?: string | undefined;
+            defaultPlaceholder?: string | undefined;
             required?: boolean | undefined;
             getOptionsAt?: string | undefined;
             optionsInputs?: Record<string, {
@@ -28,18 +27,19 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                 placeholder?: string | undefined;
             }> | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
             variant?: string | undefined;
             variantsConfig?: {
                 variants: Record<string, {
                     fields: {
-                        type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
                         name: string;
+                        type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                         label?: string | undefined;
-                        maxLength?: number | undefined;
                         labelAsSafeHtml?: string | undefined;
                         placeholder?: string | undefined;
                         required?: boolean | undefined;
                         minLength?: number | undefined;
+                        maxLength?: number | undefined;
                     }[];
                 }>;
             } | undefined;
@@ -50,10 +50,10 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
             }[] | undefined;
             hideWhenJustOneOption?: boolean | undefined;
             hidden?: boolean | undefined;
-            editable?: "user" | "system-but-optional" | "system" | "system-but-hidden" | "user-readonly" | undefined;
+            editable?: "user" | "system" | "system-but-optional" | "system-but-hidden" | "user-readonly" | undefined;
             sources?: {
-                label: string;
                 type: string;
+                label: string;
                 id: string;
                 editUrl?: string | undefined;
                 fieldRequired?: boolean | undefined;
@@ -64,36 +64,36 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
             metadata: undefined;
             bookerUrl: string;
             profile: import("@calcom/types/UserProfile").UserAsPersonalProfile;
-            theme: string | null;
-            id: number;
             name: string | null;
             email: string;
-            timeZone: string;
-            username: string | null;
+            id: number;
             locale: string | null;
-            startTime: number;
-            endTime: number;
-            bio: string | null;
-            hideBranding: boolean;
-            brandColor: string | null;
-            darkBrandColor: string | null;
-            timeFormat: number | null;
-            weekStart: string;
-            emailVerified: Date | null;
-            avatarUrl: string | null;
-            bufferTime: number;
-            createdDate: Date;
-            trialEndsAt: Date | null;
-            completedOnboarding: boolean;
             twoFactorSecret: string | null;
-            twoFactorEnabled: boolean;
-            backupCodes: string | null;
+            emailVerified: Date | null;
             identityProviderId: string | null;
             invitedTo: number | null;
             allowDynamicBooking: boolean | null;
+            verified: boolean | null;
+            username: string | null;
+            bio: string | null;
+            avatarUrl: string | null;
+            timeZone: string;
+            weekStart: string;
+            startTime: number;
+            endTime: number;
+            bufferTime: number;
+            hideBranding: boolean;
+            theme: string | null;
+            createdDate: Date;
+            trialEndsAt: Date | null;
+            completedOnboarding: boolean;
+            timeFormat: number | null;
+            twoFactorEnabled: boolean;
+            backupCodes: string | null;
+            brandColor: string | null;
+            darkBrandColor: string | null;
             allowSEOIndexing: boolean | null;
             receiveMonthlyDigestEmail: boolean | null;
-            verified: boolean | null;
             disableImpersonation: boolean;
             locked: boolean;
             movedToProfileId: number | null;
@@ -103,9 +103,9 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
             bookerUrl: string;
             profile: {
                 organization: Omit<{
-                    metadata: import(".prisma/client").Prisma.JsonValue;
-                    id: number;
                     name: string;
+                    id: number;
+                    metadata: import(".prisma/client").Prisma.JsonValue;
                     slug: string | null;
                     logoUrl: string | null;
                     calVideoLogo: string | null;
@@ -139,7 +139,7 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                     createdByOAuthClientId: string | null;
                     smsLockState: import(".prisma/client").$Enums.SMSLockState;
                     smsLockReviewedByAdmin: boolean;
-                }, "name" | "id" | "metadata" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
+                }, "id" | "slug" | "metadata" | "name" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
                     requestedSlug: string | null;
                     metadata: {
                         requestedSlug: string | null;
@@ -176,49 +176,49 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                 };
                 id: number;
                 organizationId: number;
-                userId: number;
-                uid: string;
                 username: string;
+                uid: string;
+                userId: number;
                 createdAt: Date & string;
                 updatedAt: Date & string;
                 upId: string;
             };
-            theme: string | null;
-            id: number;
             name: string | null;
             email: string;
-            timeZone: string;
-            username: string | null;
+            id: number;
             locale: string | null;
-            startTime: number;
-            endTime: number;
-            bio: string | null;
-            hideBranding: boolean;
-            brandColor: string | null;
-            darkBrandColor: string | null;
-            timeFormat: number | null;
-            weekStart: string;
-            emailVerified: Date | null;
-            avatarUrl: string | null;
-            bufferTime: number;
-            createdDate: Date;
-            trialEndsAt: Date | null;
-            completedOnboarding: boolean;
             twoFactorSecret: string | null;
-            twoFactorEnabled: boolean;
-            backupCodes: string | null;
+            emailVerified: Date | null;
             identityProviderId: string | null;
             invitedTo: number | null;
             allowDynamicBooking: boolean | null;
+            verified: boolean | null;
+            username: string | null;
+            bio: string | null;
+            avatarUrl: string | null;
+            timeZone: string;
+            weekStart: string;
+            startTime: number;
+            endTime: number;
+            bufferTime: number;
+            hideBranding: boolean;
+            theme: string | null;
+            createdDate: Date;
+            trialEndsAt: Date | null;
+            completedOnboarding: boolean;
+            timeFormat: number | null;
+            twoFactorEnabled: boolean;
+            backupCodes: string | null;
+            brandColor: string | null;
+            darkBrandColor: string | null;
             allowSEOIndexing: boolean | null;
             receiveMonthlyDigestEmail: boolean | null;
-            verified: boolean | null;
             disableImpersonation: boolean;
             locked: boolean;
             movedToProfileId: number | null;
             isPlatformManaged: boolean;
         })[];
-        locations: (Pick<Partial<import("@calcom/app-store/locations").LocationObject>, "link" | "address"> & Omit<import("@calcom/app-store/locations").LocationObject, "link" | "address">)[];
+        locations: (Pick<Partial<import("@calcom/app-store/locations").LocationObject>, "address" | "link"> & Omit<import("@calcom/app-store/locations").LocationObject, "address" | "link">)[];
         profile: {
             image?: string | undefined;
             name?: string | undefined;
@@ -445,23 +445,38 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
             } | undefined;
             managedEventConfig?: {
                 unlockedFields?: {
-                    position?: true | undefined;
-                    title?: true | undefined;
-                    metadata?: true | undefined;
-                    hidden?: true | undefined;
                     length?: true | undefined;
-                    parent?: true | undefined;
                     description?: true | undefined;
+                    hidden?: true | undefined;
                     children?: true | undefined;
                     timeZone?: true | undefined;
+                    metadata?: true | undefined;
+                    destinationCalendar?: true | undefined;
+                    profile?: true | undefined;
+                    team?: true | undefined;
+                    schedule?: true | undefined;
+                    availability?: true | undefined;
+                    hashedLink?: true | undefined;
+                    secondaryEmail?: true | undefined;
+                    userId?: true | undefined;
+                    title?: true | undefined;
+                    customInputs?: true | undefined;
+                    bookings?: true | undefined;
+                    webhooks?: true | undefined;
+                    workflows?: true | undefined;
+                    hosts?: true | undefined;
                     slug?: true | undefined;
+                    parentId?: true | undefined;
+                    parent?: true | undefined;
+                    _count?: true | undefined;
+                    teamId?: true | undefined;
+                    profileId?: true | undefined;
+                    scheduleId?: true | undefined;
+                    users?: true | undefined;
+                    position?: true | undefined;
                     locations?: true | undefined;
                     offsetStart?: true | undefined;
-                    userId?: true | undefined;
-                    profileId?: true | undefined;
-                    teamId?: true | undefined;
                     eventName?: true | undefined;
-                    parentId?: true | undefined;
                     bookingFields?: true | undefined;
                     periodType?: true | undefined;
                     periodStartDate?: true | undefined;
@@ -483,7 +498,6 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                     seatsShowAttendees?: true | undefined;
                     seatsShowAvailabilityCount?: true | undefined;
                     schedulingType?: true | undefined;
-                    scheduleId?: true | undefined;
                     price?: true | undefined;
                     currency?: true | undefined;
                     slotInterval?: true | undefined;
@@ -500,28 +514,14 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                     eventTypeColor?: true | undefined;
                     rescheduleWithSameRoundRobinHost?: true | undefined;
                     secondaryEmailId?: true | undefined;
-                    hosts?: true | undefined;
-                    users?: true | undefined;
                     owner?: true | undefined;
-                    profile?: true | undefined;
-                    team?: true | undefined;
-                    hashedLink?: true | undefined;
-                    bookings?: true | undefined;
-                    availability?: true | undefined;
-                    webhooks?: true | undefined;
-                    destinationCalendar?: true | undefined;
-                    customInputs?: true | undefined;
-                    schedule?: true | undefined;
-                    workflows?: true | undefined;
                     instantMeetingSchedule?: true | undefined;
                     aiPhoneCallConfig?: true | undefined;
-                    secondaryEmail?: true | undefined;
-                    _count?: true | undefined;
                 } | undefined;
             } | undefined;
             requiresConfirmationThreshold?: {
                 time: number;
-                unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
             } | undefined;
             config?: {
                 useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -542,15 +542,15 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
         slotInterval: null;
         offsetStart: number;
         customInputs: {
-            label: string;
             type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
-            id: number;
+            label: string;
             placeholder: string;
             required: boolean;
+            id: number;
             eventTypeId: number;
             options?: {
-                label: string;
                 type: string;
+                label: string;
             }[] | null | undefined;
             hasToBeCreated?: boolean | undefined;
         }[];
@@ -809,23 +809,38 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
             } | undefined;
             managedEventConfig?: {
                 unlockedFields?: {
-                    position?: true | undefined;
-                    title?: true | undefined;
-                    metadata?: true | undefined;
-                    hidden?: true | undefined;
                     length?: true | undefined;
-                    parent?: true | undefined;
                     description?: true | undefined;
+                    hidden?: true | undefined;
                     children?: true | undefined;
                     timeZone?: true | undefined;
+                    metadata?: true | undefined;
+                    destinationCalendar?: true | undefined;
+                    profile?: true | undefined;
+                    team?: true | undefined;
+                    schedule?: true | undefined;
+                    availability?: true | undefined;
+                    hashedLink?: true | undefined;
+                    secondaryEmail?: true | undefined;
+                    userId?: true | undefined;
+                    title?: true | undefined;
+                    customInputs?: true | undefined;
+                    bookings?: true | undefined;
+                    webhooks?: true | undefined;
+                    workflows?: true | undefined;
+                    hosts?: true | undefined;
                     slug?: true | undefined;
+                    parentId?: true | undefined;
+                    parent?: true | undefined;
+                    _count?: true | undefined;
+                    teamId?: true | undefined;
+                    profileId?: true | undefined;
+                    scheduleId?: true | undefined;
+                    users?: true | undefined;
+                    position?: true | undefined;
                     locations?: true | undefined;
                     offsetStart?: true | undefined;
-                    userId?: true | undefined;
-                    profileId?: true | undefined;
-                    teamId?: true | undefined;
                     eventName?: true | undefined;
-                    parentId?: true | undefined;
                     bookingFields?: true | undefined;
                     periodType?: true | undefined;
                     periodStartDate?: true | undefined;
@@ -847,7 +862,6 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                     seatsShowAttendees?: true | undefined;
                     seatsShowAvailabilityCount?: true | undefined;
                     schedulingType?: true | undefined;
-                    scheduleId?: true | undefined;
                     price?: true | undefined;
                     currency?: true | undefined;
                     slotInterval?: true | undefined;
@@ -864,28 +878,14 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                     eventTypeColor?: true | undefined;
                     rescheduleWithSameRoundRobinHost?: true | undefined;
                     secondaryEmailId?: true | undefined;
-                    hosts?: true | undefined;
-                    users?: true | undefined;
                     owner?: true | undefined;
-                    profile?: true | undefined;
-                    team?: true | undefined;
-                    hashedLink?: true | undefined;
-                    bookings?: true | undefined;
-                    availability?: true | undefined;
-                    webhooks?: true | undefined;
-                    destinationCalendar?: true | undefined;
-                    customInputs?: true | undefined;
-                    schedule?: true | undefined;
-                    workflows?: true | undefined;
                     instantMeetingSchedule?: true | undefined;
                     aiPhoneCallConfig?: true | undefined;
-                    secondaryEmail?: true | undefined;
-                    _count?: true | undefined;
                 } | undefined;
             } | undefined;
             requiresConfirmationThreshold?: {
                 time: number;
-                unit: "days" | "milliseconds" | "seconds" | "minutes" | "hours" | "months" | "years" | "dates";
+                unit: "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years" | "dates";
             } | undefined;
             config?: {
                 useHostSchedulesForTeamEvent?: boolean | undefined;
@@ -896,32 +896,31 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
             } | null | undefined;
         } | null;
         customInputs: {
-            label: string;
             type: "TEXT" | "TEXTLONG" | "NUMBER" | "BOOL" | "RADIO" | "PHONE";
-            id: number;
+            label: string;
             placeholder: string;
             required: boolean;
+            id: number;
             eventTypeId: number;
             options?: {
-                label: string;
                 type: string;
+                label: string;
             }[] | null | undefined;
             hasToBeCreated?: boolean | undefined;
         }[];
-        locations: (Pick<Partial<import("@calcom/app-store/locations").LocationObject>, "link" | "address"> & Omit<import("@calcom/app-store/locations").LocationObject, "link" | "address">)[];
+        locations: (Pick<Partial<import("@calcom/app-store/locations").LocationObject>, "address" | "link"> & Omit<import("@calcom/app-store/locations").LocationObject, "address" | "link">)[];
         bookingFields: {
-            type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
             name: string;
-            label?: string | undefined;
+            type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
             options?: {
-                label: string;
                 value: string;
+                label: string;
             }[] | undefined;
-            maxLength?: number | undefined;
-            defaultLabel?: string | undefined;
-            defaultPlaceholder?: string | undefined;
+            label?: string | undefined;
             labelAsSafeHtml?: string | undefined;
+            defaultLabel?: string | undefined;
             placeholder?: string | undefined;
+            defaultPlaceholder?: string | undefined;
             required?: boolean | undefined;
             getOptionsAt?: string | undefined;
             optionsInputs?: Record<string, {
@@ -930,18 +929,19 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
                 placeholder?: string | undefined;
             }> | undefined;
             minLength?: number | undefined;
+            maxLength?: number | undefined;
             variant?: string | undefined;
             variantsConfig?: {
                 variants: Record<string, {
                     fields: {
-                        type: "number" | "boolean" | "name" | "email" | "select" | "url" | "text" | "textarea" | "phone" | "address" | "multiemail" | "multiselect" | "checkbox" | "radio" | "radioInput";
                         name: string;
+                        type: "number" | "boolean" | "name" | "text" | "textarea" | "email" | "phone" | "address" | "multiemail" | "select" | "multiselect" | "checkbox" | "radio" | "radioInput" | "url";
                         label?: string | undefined;
-                        maxLength?: number | undefined;
                         labelAsSafeHtml?: string | undefined;
                         placeholder?: string | undefined;
                         required?: boolean | undefined;
                         minLength?: number | undefined;
+                        maxLength?: number | undefined;
                     }[];
                 }>;
             } | undefined;
@@ -952,10 +952,10 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
             }[] | undefined;
             hideWhenJustOneOption?: boolean | undefined;
             hidden?: boolean | undefined;
-            editable?: "user" | "system-but-optional" | "system" | "system-but-hidden" | "user-readonly" | undefined;
+            editable?: "user" | "system" | "system-but-optional" | "system-but-hidden" | "user-readonly" | undefined;
             sources?: {
-                label: string;
                 type: string;
+                label: string;
                 id: string;
                 editUrl?: string | undefined;
                 fieldRequired?: boolean | undefined;
@@ -1013,55 +1013,107 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
         } | null;
         assignAllTeamMembers: boolean;
         owner: ({
-            metadata: import(".prisma/client").Prisma.JsonValue;
-            theme: string | null;
-            id: number;
             name: string | null;
+            id: number;
             username: string | null;
+            avatarUrl: string | null;
+            weekStart: string;
+            theme: string | null;
+            defaultScheduleId: number | null;
             brandColor: string | null;
             darkBrandColor: string | null;
-            weekStart: string;
+            metadata: import(".prisma/client").Prisma.JsonValue;
             organization: {
-                id: number;
                 name: string;
+                id: number;
                 slug: string | null;
                 calVideoLogo: string | null;
                 bannerUrl: string | null;
             } | null;
-            avatarUrl: string | null;
-            defaultScheduleId: number | null;
         } & {
             nonProfileUsername: string | null;
             profile: import("@calcom/types/UserProfile").UserProfile;
         }) | null;
         hosts: {
             user: {
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                theme: string | null;
-                id: number;
                 name: string | null;
+                id: number;
                 username: string | null;
+                avatarUrl: string | null;
+                weekStart: string;
+                theme: string | null;
+                defaultScheduleId: number | null;
                 brandColor: string | null;
                 darkBrandColor: string | null;
-                weekStart: string;
+                metadata: import(".prisma/client").Prisma.JsonValue;
                 organization: {
-                    id: number;
                     name: string;
+                    id: number;
                     slug: string | null;
                     calVideoLogo: string | null;
                     bannerUrl: string | null;
                 } | null;
-                avatarUrl: string | null;
-                defaultScheduleId: number | null;
             } & {
                 nonProfileUsername: string | null;
                 profile: import("@calcom/types/UserProfile").UserProfile;
             };
         }[];
-        title: string;
-        hidden: boolean;
         length: number;
         id: number;
+        hidden: boolean;
+        team: {
+            name: string;
+            theme: string | null;
+            brandColor: string | null;
+            darkBrandColor: string | null;
+            metadata: import(".prisma/client").Prisma.JsonValue;
+            slug: string | null;
+            logoUrl: string | null;
+            parentId: number | null;
+            parent: {
+                name: string;
+                slug: string | null;
+                logoUrl: string | null;
+                bannerUrl: string | null;
+            } | null;
+        } | null;
+        schedule: {
+            id: number;
+            timeZone: string | null;
+        } | null;
+        title: string;
+        workflows: ({
+            workflow: {
+                steps: {
+                    id: number;
+                    template: import(".prisma/client").$Enums.WorkflowTemplates;
+                    workflowId: number;
+                    stepNumber: number;
+                    action: import(".prisma/client").$Enums.WorkflowActions;
+                    sendTo: string | null;
+                    reminderBody: string | null;
+                    emailSubject: string | null;
+                    numberRequired: boolean | null;
+                    sender: string | null;
+                    numberVerificationPending: boolean;
+                    includeCalendarEvent: boolean;
+                }[];
+            } & {
+                name: string;
+                id: number;
+                userId: number | null;
+                teamId: number | null;
+                time: number | null;
+                position: number;
+                isActiveOnAll: boolean;
+                trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
+                timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
+            };
+        } & {
+            id: number;
+            eventTypeId: number;
+            workflowId: number;
+        })[];
         slug: string;
         eventName: string | null;
         lockTimeZoneToggleOnBookingPage: boolean;
@@ -1076,58 +1128,6 @@ export declare const event: import("@trpc/server/unstable-core-do-not-import").Q
         successRedirectUrl: string | null;
         forwardParamsSuccessRedirect: boolean | null;
         rescheduleWithSameRoundRobinHost: boolean;
-        team: {
-            metadata: import(".prisma/client").Prisma.JsonValue;
-            theme: string | null;
-            name: string;
-            parent: {
-                name: string;
-                slug: string | null;
-                logoUrl: string | null;
-                bannerUrl: string | null;
-            } | null;
-            slug: string | null;
-            parentId: number | null;
-            logoUrl: string | null;
-            brandColor: string | null;
-            darkBrandColor: string | null;
-        } | null;
-        schedule: {
-            id: number;
-            timeZone: string | null;
-        } | null;
-        workflows: ({
-            workflow: {
-                steps: {
-                    template: import(".prisma/client").$Enums.WorkflowTemplates;
-                    id: number;
-                    action: import(".prisma/client").$Enums.WorkflowActions;
-                    stepNumber: number;
-                    workflowId: number;
-                    sendTo: string | null;
-                    reminderBody: string | null;
-                    emailSubject: string | null;
-                    numberRequired: boolean | null;
-                    sender: string | null;
-                    numberVerificationPending: boolean;
-                    includeCalendarEvent: boolean;
-                }[];
-            } & {
-                position: number;
-                time: number | null;
-                id: number;
-                name: string;
-                userId: number | null;
-                teamId: number | null;
-                isActiveOnAll: boolean;
-                trigger: import(".prisma/client").$Enums.WorkflowTriggerEvents;
-                timeUnit: import(".prisma/client").$Enums.TimeUnit | null;
-            };
-        } & {
-            id: number;
-            eventTypeId: number;
-            workflowId: number;
-        })[];
         instantMeetingSchedule: {
             id: number;
             timeZone: string | null;

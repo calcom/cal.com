@@ -20,11 +20,11 @@ export declare const webhookProcedure: import("@trpc/server/unstable-core-do-not
                 billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
             } | null;
             requestedSlug: string | null;
+            slug?: string | null | undefined;
+            name?: string | undefined;
             organizationSettings?: {
                 lockEventTypeCreationForUsers: boolean;
             } | null | undefined;
-            name?: string | undefined;
-            slug?: string | null | undefined;
             logoUrl?: string | null | undefined;
             calVideoLogo?: string | null | undefined;
             isPrivate?: boolean | undefined;
@@ -48,48 +48,48 @@ export declare const webhookProcedure: import("@trpc/server/unstable-core-do-not
             enabledLayouts: import("@calcom/prisma/zod-utils").BookerLayouts[];
             defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
         } | null;
+        timeZone: string;
+        metadata: import(".prisma/client").Prisma.JsonValue;
         destinationCalendar: {
             id: number;
             userId: number | null;
-            eventTypeId: number | null;
             credentialId: number | null;
-            integration: string;
+            eventTypeId: number | null;
             externalId: string;
+            integration: string;
             primaryEmail: string | null;
         } | null;
         name: string | null;
+        emailVerified: Date | null;
+        identityProviderId: string | null;
+        allowDynamicBooking: boolean | null;
+        bio: string | null;
+        avatarUrl: string | null;
+        weekStart: string;
         startTime: number;
         endTime: number;
-        metadata: import(".prisma/client").Prisma.JsonValue;
-        timeZone: string;
-        bio: string | null;
+        bufferTime: number;
         hideBranding: boolean;
         theme: string | null;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-        timeFormat: number | null;
-        weekStart: string;
-        selectedCalendars: {
-            integration: string;
-            externalId: string;
-        }[];
-        emailVerified: Date | null;
-        avatarUrl: string | null;
-        bufferTime: number;
         appTheme: string | null;
         createdDate: Date;
         trialEndsAt: Date | null;
         defaultScheduleId: number | null;
         completedOnboarding: boolean;
+        timeFormat: number | null;
         twoFactorEnabled: boolean;
         identityProvider: import(".prisma/client").$Enums.IdentityProvider;
-        identityProviderId: string | null;
-        allowDynamicBooking: boolean | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
         allowSEOIndexing: boolean | null;
         receiveMonthlyDigestEmail: boolean | null;
         role: import(".prisma/client").$Enums.UserPermissionRole;
         disableImpersonation: boolean;
         movedToProfileId: number | null;
+        selectedCalendars: {
+            externalId: string;
+            integration: string;
+        }[];
         profile: import("@calcom/types/UserProfile").UserAsPersonalProfile;
     } | {
         avatar: string;
@@ -112,11 +112,11 @@ export declare const webhookProcedure: import("@trpc/server/unstable-core-do-not
                 billingPeriod?: import("@calcom/prisma/zod-utils").BillingPeriod | undefined;
             } | null;
             requestedSlug: string | null;
+            slug?: string | null | undefined;
+            name?: string | undefined;
             organizationSettings?: {
                 lockEventTypeCreationForUsers: boolean;
             } | null | undefined;
-            name?: string | undefined;
-            slug?: string | null | undefined;
             logoUrl?: string | null | undefined;
             calVideoLogo?: string | null | undefined;
             isPrivate?: boolean | undefined;
@@ -140,48 +140,48 @@ export declare const webhookProcedure: import("@trpc/server/unstable-core-do-not
             enabledLayouts: import("@calcom/prisma/zod-utils").BookerLayouts[];
             defaultLayout: import("@calcom/prisma/zod-utils").BookerLayouts;
         } | null;
+        timeZone: string;
+        metadata: import(".prisma/client").Prisma.JsonValue;
         destinationCalendar: {
             id: number;
             userId: number | null;
-            eventTypeId: number | null;
             credentialId: number | null;
-            integration: string;
+            eventTypeId: number | null;
             externalId: string;
+            integration: string;
             primaryEmail: string | null;
         } | null;
         name: string | null;
+        emailVerified: Date | null;
+        identityProviderId: string | null;
+        allowDynamicBooking: boolean | null;
+        bio: string | null;
+        avatarUrl: string | null;
+        weekStart: string;
         startTime: number;
         endTime: number;
-        metadata: import(".prisma/client").Prisma.JsonValue;
-        timeZone: string;
-        bio: string | null;
+        bufferTime: number;
         hideBranding: boolean;
         theme: string | null;
-        brandColor: string | null;
-        darkBrandColor: string | null;
-        timeFormat: number | null;
-        weekStart: string;
-        selectedCalendars: {
-            integration: string;
-            externalId: string;
-        }[];
-        emailVerified: Date | null;
-        avatarUrl: string | null;
-        bufferTime: number;
         appTheme: string | null;
         createdDate: Date;
         trialEndsAt: Date | null;
         defaultScheduleId: number | null;
         completedOnboarding: boolean;
+        timeFormat: number | null;
         twoFactorEnabled: boolean;
         identityProvider: import(".prisma/client").$Enums.IdentityProvider;
-        identityProviderId: string | null;
-        allowDynamicBooking: boolean | null;
+        brandColor: string | null;
+        darkBrandColor: string | null;
         allowSEOIndexing: boolean | null;
         receiveMonthlyDigestEmail: boolean | null;
         role: import(".prisma/client").$Enums.UserPermissionRole;
         disableImpersonation: boolean;
         movedToProfileId: number | null;
+        selectedCalendars: {
+            externalId: string;
+            integration: string;
+        }[];
         profile: {
             name: string | null;
             avatarUrl: string | null;
@@ -200,26 +200,26 @@ export declare const webhookProcedure: import("@trpc/server/unstable-core-do-not
             endTime: number;
             bufferTime: number;
             user: {
-                name: string | null;
                 id: number;
+                name: string | null;
+                email: string;
+                username: string | null;
+                locale: string | null;
+                avatarUrl: string | null;
                 startTime: number;
                 endTime: number;
-                email: string;
-                locale: string | null;
-                username: string | null;
-                avatarUrl: string | null;
                 bufferTime: number;
                 defaultScheduleId: number | null;
                 isPlatformManaged: boolean;
             };
             organization: {
+                id: number;
+                slug: string | null;
+                metadata: import(".prisma/client").Prisma.JsonValue;
+                name: string;
                 organizationSettings: {
                     lockEventTypeCreationForUsers: boolean;
                 } | null;
-                name: string;
-                id: number;
-                metadata: import(".prisma/client").Prisma.JsonValue;
-                slug: string | null;
                 logoUrl: string | null;
                 calVideoLogo: string | null;
                 isPrivate: boolean;
@@ -261,7 +261,7 @@ export declare const webhookProcedure: import("@trpc/server/unstable-core-do-not
                 createdByOAuthClientId: string | null;
                 smsLockState: import(".prisma/client").$Enums.SMSLockState;
                 smsLockReviewedByAdmin: boolean;
-            }, "name" | "id" | "metadata" | "slug" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
+            }, "id" | "slug" | "metadata" | "name" | "logoUrl" | "calVideoLogo" | "bannerUrl" | "isPlatform">, "metadata"> & {
                 requestedSlug: string | null;
                 metadata: {
                     requestedSlug: string | null;
@@ -283,12 +283,12 @@ export declare const webhookProcedure: import("@trpc/server/unstable-core-do-not
                 id: number;
             } | null;
             id: number;
-            uid: string;
             userId: number;
+            uid: string;
+            username: string;
+            organizationId: number;
             createdAt: Date & string;
             updatedAt: Date & string;
-            organizationId: number;
-            username: string;
             upId: string;
         };
     };
