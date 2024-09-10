@@ -1229,6 +1229,7 @@ view BookingTimeStatus {
   ratingFeedback String?
   rating         Int?
   noShowHost     Boolean?
+  isTeamBooking  Boolean
 }
 
 model CalendarCache {
