@@ -34,8 +34,8 @@ const Page = async ({ params }: PageProps) => {
   const nonce = h.get("x-nonce") ?? undefined;
   const session = await getServerSession(AUTH_OPTIONS);
   const userId = session?.user?.id ?? -1;
-  const userData = await UserRepository.findUserByIdWithOptionalSelect({
-    userId,
+  const userData = await UserRepository.findById({
+    id: userId,
     select: {
       timeZone: true,
       defaultScheduleId: true,
@@ -48,7 +48,7 @@ const Page = async ({ params }: PageProps) => {
       scheduleId,
       isManagedEventType: false,
       userId,
-      timeZone: userData?.timeZone ?? "UTC",
+      timeZone: userData?.timeZone ?? "Europe/London",
       defaultScheduleId: userData?.defaultScheduleId ?? -1,
     }),
     TravelScheduleRepository.findTravelSchedulesByUserId(userId),

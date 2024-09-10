@@ -72,29 +72,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
 });
 
 export class UserRepository {
-  static async findUserByIdWithOptionalSelect({
-    userId,
-    select,
-  }: {
-    userId: UserType["id"];
-    select: Prisma.UserSelect;
-  }) {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        ...select,
-      },
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    return user;
-  }
-
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
       where: {
@@ -261,12 +238,12 @@ export class UserRepository {
     };
   }
 
-  static async findById({ id }: { id: number }) {
+  static async findById({ id, select }: { id: number; select?: Prisma.UserSelect }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
       },
-      select: userSelect,
+      select: { ...userSelect, ...select },
     });
 
     if (!user) {
