@@ -106,7 +106,7 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
         url: data.meetingLink,
       };
     },
-    deleteMeeting: async (uid: string) => {
+    deleteMeeting: async (meeetingId: string) => {
       if (!credential.userId) {
         log.error("[Huddle01 Error] -> User is not logged in");
         throw new Error("User is not logged in");
@@ -117,7 +117,7 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
       const res = await fetch("deleteMeeting", {
         method: "DELETE",
         body: JSON.stringify({
-          meeetingId: uid,
+          meeetingId,
         }),
         headers: {
           "Content-Type": "application/json",
