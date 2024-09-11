@@ -215,7 +215,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   director.setExistingBooking(bookingToReschedule);
   cancellationReason && director.setCancellationReason(cancellationReason);
   if (Object.keys(event).length) {
-    await director.buildForRescheduleEmail();
+    // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
+    await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
   }
@@ -305,10 +306,11 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     userId,
     eventTypeId: bookingToReschedule.eventTypeId as number,
     triggerEvent: eventTrigger,
-    teamId,
+    teamId: teamId ? [teamId] : null,
     orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,

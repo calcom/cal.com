@@ -37,7 +37,7 @@ import type { getMockRequestDataForBooking } from "./getMockRequestDataForBookin
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
-logger.settings.minLevel = 0;
+logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
@@ -119,6 +119,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       name: string;
       slug: string;
       parentId?: number;
+      isPrivate?: boolean;
     };
   }[];
   schedules: {

@@ -143,10 +143,9 @@ expect.extend({
 
     if (!isEmailContentMatched) {
       logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
-
       return {
         pass: false,
-        message: () => `Email content ${isNot ? "is" : "is not"} matching. ${JSON.stringify(emailsToLog)}`,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching.`,
         actual: actualEmailContent,
         expected: expectedEmailContent,
       };
@@ -774,6 +773,33 @@ export function expectSuccessfulBookingRescheduledEmails({
   );
 }
 
+export function expectSuccesfulLocationChangeEmails({
+  emails,
+  organizer,
+  location,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  location: {
+    href: string;
+    linkText: string;
+  };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      titleTag: "location_changed_event_type_subject",
+      links: [
+        {
+          href: location.href,
+          text: location.linkText,
+        },
+      ],
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+}
+
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
@@ -830,8 +856,6 @@ export function expectBookingRequestRescheduledEmails({
   loggedInUser,
   booker,
   booking,
-  bookNewTimePath,
-  organizer,
 }: {
   emails: Fixtures["emails"];
   organizer: ReturnType<typeof getOrganizer>;
@@ -852,7 +876,7 @@ export function expectBookingRequestRescheduledEmails({
       subHeading: "request_reschedule_subtitle",
       links: [
         {
-          href: `${bookingUrlOrigin}${bookNewTimePath}?rescheduleUid=${booking.uid}`,
+          href: `${bookingUrlOrigin}/reschedule/${booking.uid}?allowRescheduleForCancelledBooking=true`,
           text: "Book a new time",
         },
       ],

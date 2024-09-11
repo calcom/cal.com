@@ -24,7 +24,7 @@ type BrandColorsFormValues = {
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
 
 const ProfileView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
@@ -188,7 +188,16 @@ const ProfileViewWrapper = () => {
 
   const { t } = useLocale();
 
-  const { data: team, isPending, error } = trpc.viewer.teams.get.useQuery({ teamId: Number(params.id) });
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.getMinimal.useQuery(
+    { teamId: Number(params.id) },
+    {
+      enabled: !!Number(params.id),
+    }
+  );
 
   useEffect(
     function refactorMeWithoutEffect() {

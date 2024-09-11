@@ -78,6 +78,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -175,11 +176,10 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com",
+          teamMemberEmail: "example@example.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleWithLeadSkip.teamMember).toBe("example@example.com");
 
       // only slots where example@example.com is available
       expect(scheduleWithLeadSkip).toHaveTimeSlots(
@@ -197,11 +197,9 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "testtest@test.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleWithoutLeadSkip.teamMember).toBe(undefined);
 
       // slots where either one of the rr hosts is available
       expect(scheduleWithoutLeadSkip).toHaveTimeSlots(
@@ -325,11 +323,10 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com",
+          teamMemberEmail: "example@example.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleFixedHostLead.teamMember).toBe("example@example.com");
 
       // show normal slots, example@example + one RR host needs to be available
       expect(scheduleFixedHostLead).toHaveTimeSlots(
@@ -355,11 +352,10 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test1@test.com",
+          teamMemberEmail: "example1@example.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleRRHostLead.teamMember).toBe("example1@example.com");
 
       // slots where example@example (fixed host) + example1@example.com are available together
       expect(scheduleRRHostLead).toHaveTimeSlots(
@@ -447,6 +443,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -479,6 +476,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -538,6 +536,7 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const scheduleForEventWith30Length = await getSchedule({
         input: {
+          orgSlug: null,
           eventTypeId: 1,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
@@ -574,6 +573,7 @@ describe("getSchedule", () => {
 
       const scheduleForEventWith30minsLengthAndSlotInterval2hrs = await getSchedule({
         input: {
+          orgSlug: null,
           eventTypeId: 2,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
@@ -639,6 +639,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -662,6 +663,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
@@ -724,6 +726,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -798,6 +801,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -856,6 +860,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -920,6 +925,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -998,6 +1004,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1110,6 +1117,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T23:59:59.999Z`,
           timeZone: Timezones["+6:00"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1121,6 +1129,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T23:59:59.999Z`,
           timeZone: Timezones["+6:00"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1211,6 +1220,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1309,6 +1319,7 @@ describe("getSchedule", () => {
           endTime: `${plus1DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
 
@@ -1339,6 +1350,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
 
@@ -1447,6 +1459,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
       // A user with blocked time in another event, still affects Team Event availability
@@ -1475,6 +1488,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
       // A user with blocked time in another event, still affects Team Event availability

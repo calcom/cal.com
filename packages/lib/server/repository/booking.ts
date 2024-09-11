@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
@@ -113,6 +113,21 @@ export class BookingRepository {
     return allBookings;
   }
 
+  static async findBookingByUidWithOptionalSelect({
+    bookingUid,
+    select,
+  }: {
+    bookingUid: string;
+    select?: Prisma.BookingSelect;
+  }) {
+    return await prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: { ...bookingMinimalSelect, ...select },
+    });
+  }
+
   static async findBookingByUidAndUserId({ bookingUid, userId }: { bookingUid: string; userId: number }) {
     return await prisma.booking.findFirst({
       where: {
@@ -153,6 +168,31 @@ export class BookingRepository {
             },
           },
         ],
+      },
+    });
+  }
+
+  static async updateLocationById({
+    where: { id },
+    data: { location, metadata, referencesToCreate },
+  }: {
+    where: { id: number };
+    data: {
+      location: string;
+      metadata: Record<string, unknown>;
+      referencesToCreate: Prisma.BookingReferenceCreateInput[];
+    };
+  }) {
+    await prisma.booking.update({
+      where: {
+        id,
+      },
+      data: {
+        location,
+        metadata,
+        references: {
+          create: referencesToCreate,
+        },
       },
     });
   }
