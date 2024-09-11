@@ -26,15 +26,16 @@ export const getScheduleSchema = z
     orgSlug: z.string().nullish(),
     teamMemberEmail: z.string().nullish(),
   })
-  .transform((val) => ({
-    ...val,
-    usernameList: val.usernameList
-      ? Array.isArray(val.usernameList)
-        ? val.usernameList
-        : [val.usernameList]
-      : undefined,
-    orgSlug: val.orgSlug ?? null,
-  }))
+  .transform((val) => {
+    // Need this so we can pass a single username in the query string form public API
+    if (val.usernameList) {
+      val.usernameList = Array.isArray(val.usernameList) ? val.usernameList : [val.usernameList];
+    }
+    if (!val.orgSlug) {
+      val.orgSlug = null;
+    }
+    return val;
+  })
   .refine(
     (data) => !!data.eventTypeId || (!!data.usernameList && !!data.eventTypeSlug),
     "You need to either pass an eventTypeId OR an usernameList/eventTypeSlug combination"
