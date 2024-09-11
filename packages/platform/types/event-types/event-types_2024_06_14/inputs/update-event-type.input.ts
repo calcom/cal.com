@@ -19,18 +19,22 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
+  @DocsProperty()
   lengthInMinutes?: number;
 
   @IsOptional()
   @IsString()
+  @DocsProperty()
   title?: string;
 
   @IsString()
   @IsOptional()
+  @DocsProperty()
   slug?: string;
 
   @IsOptional()
   @IsString()
+  @DocsProperty()
   description?: string;
 
   @IsOptional()
@@ -43,27 +47,33 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsBoolean()
   @IsOptional()
+  @DocsProperty()
   disableGuests?: boolean;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   slotInterval?: number;
 
   @IsInt()
   @Min(0)
   @IsOptional()
+  @DocsProperty()
   minimumBookingNotice?: number;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   beforeEventBuffer?: number;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   afterEventBuffer?: number;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   scheduleId?: number;
 
   @IsOptional()
@@ -73,6 +83,7 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @IsBoolean()
+  @DocsProperty()
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
@@ -87,6 +98,7 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
+  @DocsProperty()
   offsetStart?: number;
 
   @IsOptional()

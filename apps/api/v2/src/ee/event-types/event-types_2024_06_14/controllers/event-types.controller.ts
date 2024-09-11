@@ -24,7 +24,7 @@ import {
   Delete,
   Query,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -39,6 +39,11 @@ import {
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")
+@ApiHeader({
+  name: "cal-api-version",
+  description: `Must be set to \`2024-06-14\``,
+  required: true,
+})
 export class EventTypesController_2024_06_14 {
   constructor(private readonly eventTypesService: EventTypesService_2024_06_14) {}
 
