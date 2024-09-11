@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 
+import type { AdminRepository } from "@calcom/lib/server/repository/admin";
 import { trpc } from "@calcom/trpc";
 import { Button, TextField, showToast } from "@calcom/ui";
 
 import UsersTable from "./components/UsersTable";
 
-export default function LockedSMSView() {
+type PageProps = {
+  ssrProps?: {
+    usersAndTeams?: Awaited<ReturnType<typeof AdminRepository.getSMSLockStateTeamsUsers>>;
+  };
+};
+export default function LockedSMSView({ ssrProps }: PageProps) {
   const [username, setUsername] = useState("");
   const [teamSlug, setTeamSlug] = useState("");
 
@@ -76,7 +82,7 @@ export default function LockedSMSView() {
           </Button>
         </div>
       </div>
-      <UsersTable setSMSLockState={setSMSLockState} />
+      <UsersTable setSMSLockState={setSMSLockState} usersAndTeams={ssrProps?.usersAndTeams} />
     </div>
   );
 }

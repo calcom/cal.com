@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
