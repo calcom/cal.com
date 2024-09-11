@@ -328,7 +328,7 @@ export const EventTypeAppDir = (props: EventTypeSetupProps & { allActiveWorkflow
         throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
       }
     };
-    handleRouteChange(pathname);
+    handleRouteChange(pathname || "");
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, eventType.hosts, eventType.children, eventType.assignAllTeamMembers]);
