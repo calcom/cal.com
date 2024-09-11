@@ -1147,6 +1147,7 @@
   "set_location": "Définir le lieu",
   "update_location": "Mettre à jour le lieu",
   "location_updated": "Lieu mis à jour",
+  "location_update_failed": "La mise à jour du lieu a échoué",
   "guests_added": "Invités ajoutés",
   "unable_to_add_guests": "Impossible d'ajouter des invités",
   "email_validation_error": "Ceci ne ressemble pas à une adresse e-mail",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Définir un lien d'application par défaut",
   "default_app_link_description": "Définir un lien d'application par défaut permet à tous les nouveaux types d'événements d'utiliser le lien d'application que vous avez défini.",
   "organizer_default_conferencing_app": "Application par défaut de l'organisateur",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} n'a pas d'application de conférence par défaut",
   "under_maintenance": "En cours de maintenance",
   "under_maintenance_description": "L'équipe {{appName}} effectue une maintenance planifiée. Si vous avez des questions, veuillez contacter l'assistance.",
   "event_type_seats": "{{numberOfSeats}} places",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Reprogrammer avec le même hôte round-robin",
   "reschedule_with_same_round_robin_host_description": "Les événements reprogrammés seront attribués au même hôte que celui initialement prévu",
   "disable_input_if_prefilled": "Désactiver la saisie si l'identifiant URL est prérempli",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Vous n'êtes pas autorisé à apporter cette modification à la réservation",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

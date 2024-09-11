@@ -1396,7 +1396,7 @@ async function handler(
         safeStringify({ error, results })
       );
     } else {
-      const metadata: AdditionalInformation = {};
+      const additionalInformation: AdditionalInformation = {};
 
       if (results.length) {
         // Handle Google Meet results
@@ -1451,12 +1451,14 @@ async function handler(
           }
         }
         // TODO: Handle created event metadata more elegantly
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
+        additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
+        additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
-          metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
+          additionalInformation.hangoutLink ||
+          organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+          videoCallUrl;
 
         if (evt.iCalUID !== booking.iCalUID) {
           // The eventManager could change the iCalUID. At this point we can update the DB record
@@ -1497,7 +1499,7 @@ async function handler(
         await sendScheduledEmails(
           {
             ...evt,
-            additionalInformation: metadata,
+            additionalInformation,
             additionalNotes,
             customInputs,
           },
