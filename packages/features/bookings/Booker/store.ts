@@ -33,7 +33,6 @@ type StoreInitializeType = {
   org?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
-  isOverlayCalendarEnabled: boolean;
 };
 
 type SeatedEventData = {
@@ -152,8 +151,6 @@ export type BookerStore = {
   setOrg: (org: string | null | undefined) => void;
 
   teamMemberEmail?: string | null;
-  isOverlayCalendarEnabled?: boolean;
-  setIsOverlayCalendarEnabled: (value: boolean) => void;
 };
 
 /**
@@ -220,10 +217,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setVerifiedEmail: (email: string | null) => {
     set({ verifiedEmail: email });
   },
-  isOverlayCalendarEnabled: false,
-  setIsOverlayCalendarEnabled: (value: boolean) => {
-    value && set({ isOverlayCalendarEnabled: value });
-  },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     if (!month) {
@@ -264,12 +257,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     org,
     isInstantMeeting,
     teamMemberEmail,
-    isOverlayCalendarEnabled,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
-
-    console.log(get().isOverlayCalendarEnabled, "getting overlay calendar");
-    console.log(isOverlayCalendarEnabled, "actual overlay calenda");
 
     if (
       get().username === username &&
@@ -278,7 +267,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().eventId === eventId &&
       get().rescheduleUid === rescheduleUid &&
       get().bookingUid === bookingUid &&
-      get().isOverlayCalendarEnabled === isOverlayCalendarEnabled &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout &&
       get().rescheduledBy === rescheduledBy &&
@@ -290,7 +278,6 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventSlug,
       eventId,
       org,
-      isOverlayCalendarEnabled,
       rescheduleUid,
       rescheduledBy,
       bookingUid,
@@ -392,7 +379,6 @@ export const useInitializeBookerStore = ({
   org,
   isInstantMeeting,
   teamMemberEmail,
-  isOverlayCalendarEnabled,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -407,7 +393,6 @@ export const useInitializeBookerStore = ({
       layout,
       isTeamEvent,
       org,
-      isOverlayCalendarEnabled,
       verifiedEmail,
       durationConfig,
       isInstantMeeting,
@@ -416,7 +401,6 @@ export const useInitializeBookerStore = ({
   }, [
     initializeStore,
     org,
-    isOverlayCalendarEnabled,
     username,
     eventSlug,
     month,
