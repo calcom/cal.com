@@ -1,3 +1,5 @@
+import type { PageProps } from "@lib/event-types/[type]/getServerSideProps";
+
 import PageWrapper from "@components/PageWrapper";
 
 import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
@@ -10,7 +12,8 @@ export type {
   Host,
 } from "@calcom/features/eventtypes/lib/types";
 
-EventTypePageWrapper.PageWrapper = PageWrapper;
+const Page = (props: PageProps) => <EventTypePageWrapper {...props} />;
+Page.PageWrapper = PageWrapper;
 
 export { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
-export default EventTypePageWrapper;
+export default Page;

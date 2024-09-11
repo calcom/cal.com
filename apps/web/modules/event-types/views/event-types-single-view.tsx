@@ -8,14 +8,9 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { trpc } from "@calcom/trpc/react";
 
-import type { AppProps } from "@lib/app-providers";
 import type { PageProps } from "@lib/event-types/[type]/getServerSideProps";
 
-const EventTypePageWrapper: React.FC<PageProps> & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-  getLayout?: AppProps["Component"]["getLayout"];
-  isAppDir?: boolean;
-} = (props) => {
+const EventTypePageWrapper = (props: PageProps & { isAppDir?: boolean }) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
   if (!data) return null;
