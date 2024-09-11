@@ -48,7 +48,7 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
           body: JSON.stringify({
             title: e.title,
             startTime: e.startTime,
-            participantsEmails: e.attendees.map((a) => a.email),
+            endTime: e.endTime,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -73,40 +73,45 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
       }
     },
     updateMeeting: async (bookingRef: PartialReference, e: CalendarEvent) => {
-      console.log("UPDATE MEETING", bookingRef, event);
+      try {
+        console.log("UPDATE MEETING", bookingRef);
 
-      if (!credential.userId) {
-        log.error("[Huddle01 Error] -> User is not logged in");
-        throw new Error("User is not logged in");
+        if (!credential.userId) {
+          log.error("[Huddle01 Error] -> User is not logged in");
+          throw new Error("User is not logged in");
+        }
+
+        const fetch = await fetchHuddleAPI(credential.userId);
+
+        const res = await fetch("updateMeeting", {
+          method: "PUT",
+          body: JSON.stringify({
+            title: e.title,
+            startTime: e.startTime,
+            endTime: e.endTime,
+            meetingId: bookingRef.uid,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = (await res.json()) as {
+          roomId: string;
+          meetingLink: string;
+        };
+
+        return {
+          type: "huddle01_video",
+          id: data.roomId,
+          password: "",
+          url: data.meetingLink,
+        };
+      } catch (e) {
+        console.log("UPDATE MEETING ERRR", e);
       }
-
-      const fetch = await fetchHuddleAPI(credential.userId);
-
-      const res = await fetch("updateMeeting", {
-        method: "PUT",
-        body: JSON.stringify({
-          title: e.title,
-          startTime: e.startTime,
-          participantsEmails: e.attendees.map((a) => a.email),
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = (await res.json()) as {
-        roomId: string;
-        meetingLink: string;
-      };
-
-      return {
-        type: "huddle01_video",
-        id: data.roomId,
-        password: "",
-        url: data.meetingLink,
-      };
     },
-    deleteMeeting: async (meeetingId: string) => {
+    deleteMeeting: async (meetingId: string) => {
       if (!credential.userId) {
         log.error("[Huddle01 Error] -> User is not logged in");
         throw new Error("User is not logged in");
@@ -117,7 +122,7 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
       const res = await fetch("deleteMeeting", {
         method: "DELETE",
         body: JSON.stringify({
-          meeetingId,
+          meetingId,
         }),
         headers: {
           "Content-Type": "application/json",
