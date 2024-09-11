@@ -324,6 +324,7 @@ export const EventTypeAppDir = (props: EventTypeSetupProps & { allActiveWorkflow
       ) {
         setIsOpenAssignmentWarnDialog(true);
         setPendingRoute(url);
+        // The part where it is different from the original code in `EventType` component STARTS HERE
         throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
       }
     };
@@ -331,6 +332,7 @@ export const EventTypeAppDir = (props: EventTypeSetupProps & { allActiveWorkflow
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, eventType.hosts, eventType.children, eventType.assignAllTeamMembers]);
+  // The part where it is different from the original code in `EventType` component ENDS HERE
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
