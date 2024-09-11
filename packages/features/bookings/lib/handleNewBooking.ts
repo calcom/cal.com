@@ -84,7 +84,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
@@ -996,6 +996,7 @@ async function handler(
       eventTrigger,
       responses,
       workflows,
+      rescheduledBy: reqBody.rescheduledBy,
     });
 
     if (newBooking) {
@@ -1066,6 +1067,7 @@ async function handler(
       data: {
         rescheduled: true,
         status: BookingStatus.CANCELLED,
+        rescheduledBy: reqBody.rescheduledBy,
       },
     });
   }
@@ -1545,7 +1547,7 @@ async function handler(
       }
     : undefined;
 
-  const webhookData = {
+  const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,
@@ -1561,6 +1563,7 @@ async function handler(
     eventTypeId,
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
+    rescheduledBy: reqBody.rescheduledBy,
   };
 
   if (bookingRequiresPayment) {

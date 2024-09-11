@@ -1,4 +1,5 @@
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { AuthMethods } from "@/lib/enums/auth-methods";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
@@ -30,7 +31,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     super();
   }
 
-  async authenticate(request: Request) {
+  async authenticate(request: Request & { authMethod: AuthMethods }) {
     try {
       const { params } = request;
       const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
@@ -38,11 +39,15 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
 
       if (oAuthClientId && oAuthClientSecret) {
+        request.authMethod = AuthMethods["OAUTH_CLIENT"];
         return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret);
       }
 
       if (bearerToken) {
         const requestOrigin = request.get("Origin");
+        request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+          ? AuthMethods["API_KEY"]
+          : AuthMethods["ACCESS_TOKEN"];
         return await this.authenticateBearerToken(bearerToken, requestOrigin);
       }
 
@@ -50,6 +55,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
 
       if (nextAuthToken) {
+        request.authMethod = AuthMethods["NEXT_AUTH"];
         return await this.authenticateNextAuth(nextAuthToken);
       }
 

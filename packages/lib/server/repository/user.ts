@@ -238,12 +238,12 @@ export class UserRepository {
     };
   }
 
-  static async findById({ id }: { id: number }) {
+  static async findById({ id, select }: { id: number; select?: Prisma.UserSelect }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
       },
-      select: userSelect,
+      select: { ...userSelect, ...select },
     });
 
     if (!user) {
@@ -552,5 +552,13 @@ export class UserRepository {
       teamIds.push(team.teamId);
     }
     return teamIds;
+  }
+
+  static async adminFindById(userId: number) {
+    return await prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+    });
   }
 }

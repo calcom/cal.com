@@ -26,14 +26,17 @@ import {
   UserAvatar,
 } from "@calcom/ui";
 
+import type { ConnectedAppsType } from "../pages/team-members-view";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 
 interface Props {
-  team: RouterOutputs["viewer"]["teams"]["get"];
-  member: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["getMinimal"]>;
+  member: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
   isOrgAdminOrOwner: boolean | undefined;
+  searchTerm: string;
+  connectedApps: ConnectedAppsType[];
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -47,6 +50,42 @@ const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
 };
 
+const removeMemberFromCache = ({
+  utils,
+  memberId,
+  teamId,
+  searchTerm,
+}: {
+  utils: ReturnType<typeof trpc.useUtils>;
+  memberId: number;
+  teamId: number;
+  searchTerm: string;
+}) => {
+  utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+    {
+      limit: 10,
+      teamId,
+      searchTerm,
+    },
+    (data) => {
+      if (!data) {
+        return {
+          pages: [],
+          pageParams: [],
+        };
+      }
+
+      return {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          members: page.members.filter((member) => member.id !== memberId),
+        })),
+      };
+    }
+  );
+};
+
 export default function MemberListItem(props: Props) {
   const { t, i18n } = useLocale();
 
@@ -57,11 +96,30 @@ export default function MemberListItem(props: Props) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+    onMutate: async ({ teamIds }) => {
+      await utils.viewer.teams.lazyLoadMembers.cancel();
+      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+        limit: 10,
+        teamId: teamIds[0],
+        searchTerm: props.searchTerm,
+      });
+
+      if (previousValue) {
+        removeMemberFromCache({
+          utils,
+          memberId: props.member.id,
+          teamId: teamIds[0],
+          searchTerm: props.searchTerm,
+        });
+      }
+      return { previousValue };
+    },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
+
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -78,11 +136,11 @@ export default function MemberListItem(props: Props) {
     },
   });
 
-  const ownersInTeam = () => {
-    const { members } = props.team;
-    const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
-    return owners.length;
-  };
+  // const ownersInTeam = () => {
+  //   const { members } = props.team;
+  //   const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
+  //   return owners.length;
+  // };
 
   const currentUserId = useCurrentUserId();
 
@@ -103,7 +161,7 @@ export default function MemberListItem(props: Props) {
   const editMode =
     (props.team.membership?.role === MembershipRole.OWNER &&
       (props.member.role !== MembershipRole.OWNER ||
-        ownersInTeam() > 1 ||
+        // ownersInTeam() > 1 ||
         props.member.id !== currentUserId)) ||
     (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER) ||
     props.isOrgAdminOrOwner;
@@ -118,7 +176,7 @@ export default function MemberListItem(props: Props) {
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
   const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
-  const appList = props.member.connectedApps?.map(({ logo, name, externalId }) => {
+  const appList = props.connectedApps?.map(({ logo, name, externalId }) => {
     return logo ? (
       externalId ? (
         <div className="ltr:mr-2 rtl:ml-2 ">
@@ -359,6 +417,7 @@ export default function MemberListItem(props: Props) {
           currentMember={props.team.membership.role}
           teamId={props.team?.id}
           memberId={props.member.id}
+          searchTerm={props.searchTerm}
           initialRole={props.member.role as MembershipRole}
           onExit={() => setShowChangeMemberRoleModal(false)}
         />

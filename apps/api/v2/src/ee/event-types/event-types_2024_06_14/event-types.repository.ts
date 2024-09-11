@@ -26,6 +26,7 @@ type InputEventTransformed = Omit<
   | "periodCountCalendarDays"
   | "periodStartDate"
   | "periodEndDate"
+  | "recurrence"
 > & {
   length: number;
   slug: string;
