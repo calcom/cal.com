@@ -3560,7 +3560,40 @@
     "/v2/bookings": {
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
-        "parameters": [],
+        "summary": "Create booking",
+        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n      \n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Accepts different types of booking input: CreateBookingInput_2024_08_13, CreateInstantBookingInput_2024_08_13, or CreateRecurringBookingInput_2024_08_13",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateBookingInput_2024_08_13"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CreateInstantBookingInput_2024_08_13"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CreateRecurringBookingInput_2024_08_13"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -3580,6 +3613,15 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookings",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "status",
             "required": false,
@@ -3764,8 +3806,17 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBooking",
         "summary": "Get booking",
-        "description": ":bookingUid can be uid of a normal booking, one of the recurring booking recurrences, or uid of recurring booking which will return an array of all recurring booking recurrences.",
+        "description": "`:bookingUid` can be\n      \n      1. uid of a normal booking\n      \n      2. uid of one of the recurring booking recurrences\n      \n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "bookingUid",
             "required": true,
@@ -3795,7 +3846,18 @@
     "/v2/bookings/{bookingUid}/reschedule": {
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
+        "summary": "Reschedule booking",
+        "description": "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "bookingUid",
             "required": true,
@@ -3837,6 +3899,15 @@
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "parameters": [
           {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "bookingUid",
             "required": true,
             "in": "path",
@@ -3876,6 +3947,15 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-08-13`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "bookingUid",
             "required": true,
@@ -9902,37 +9982,22 @@
           "data"
         ]
       },
-      "Host": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "example": "Jane Doe"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "America/Los_Angeles"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "timeZone"
-        ]
-      },
       "Attendee": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
+            "description": "The name of the attendee.",
             "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the attendee.",
+            "example": "john.doe@example.com"
           },
           "timeZone": {
             "type": "string",
+            "description": "The time zone of the attendee.",
             "example": "America/New_York"
           },
           "language": {
@@ -9981,17 +10046,196 @@
               "uk",
               "zh-TW"
             ],
-            "example": "en"
-          },
-          "absent": {
-            "type": "boolean",
-            "example": false
+            "description": "The preferred language of the attendee. Used for booking confirmation.",
+            "example": "it",
+            "default": "en"
           }
         },
         "required": [
           "name",
-          "timeZone",
-          "absent"
+          "email",
+          "timeZone"
+        ]
+      },
+      "CreateBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
+            "example": "2024-08-13T09:00:00Z"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "The ID of the event type that is booked.",
+            "example": 123
+          },
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "guests": {
+            "description": "An optional list of guest emails attending the event.",
+            "example": [
+              "guest1@example.com",
+              "guest2@example.com"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting"
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses.",
+            "example": {
+              "customField": "customValue"
+            }
+          }
+        },
+        "required": [
+          "start",
+          "eventTypeId",
+          "attendee"
+        ]
+      },
+      "CreateInstantBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
+            "example": "2024-08-13T09:00:00Z"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "The ID of the event type that is booked.",
+            "example": 123
+          },
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "guests": {
+            "description": "An optional list of guest emails attending the event.",
+            "example": [
+              "guest1@example.com",
+              "guest2@example.com"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting"
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses.",
+            "example": {
+              "customField": "customValue"
+            }
+          },
+          "instant": {
+            "type": "boolean",
+            "description": "Flag indicating if the booking is an instant booking. Only available for team events.",
+            "example": true
+          }
+        },
+        "required": [
+          "start",
+          "eventTypeId",
+          "attendee",
+          "instant"
+        ]
+      },
+      "CreateRecurringBookingInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
+            "example": "2024-08-13T09:00:00Z"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "The ID of the event type that is booked.",
+            "example": 123
+          },
+          "attendee": {
+            "description": "The attendee's details.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Attendee"
+              }
+            ]
+          },
+          "guests": {
+            "description": "An optional list of guest emails attending the event.",
+            "example": [
+              "guest1@example.com",
+              "guest2@example.com"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting"
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses.",
+            "example": {
+              "customField": "customValue"
+            }
+          }
+        },
+        "required": [
+          "start",
+          "eventTypeId",
+          "attendee"
+        ]
+      },
+      "Host": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/Los_Angeles"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "timeZone"
         ]
       },
       "BookingOutput_2024_08_13": {
@@ -10284,7 +10528,21 @@
       },
       "RescheduleBookingInput_2024_08_13": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time in ISO 8601 format for the new booking",
+            "example": "2024-08-13T10:00:00Z"
+          },
+          "reschedulingReason": {
+            "type": "string",
+            "example": "User requested reschedule",
+            "description": "Reason for rescheduling the booking"
+          }
+        },
+        "required": [
+          "start"
+        ]
       },
       "RescheduleBookingOutput_2024_08_13": {
         "type": "object",
@@ -10318,7 +10576,8 @@
         "type": "object",
         "properties": {
           "cancellationReason": {
-            "type": "string"
+            "type": "string",
+            "example": "User requested cancellation"
           }
         },
         "required": [
@@ -10363,9 +10622,18 @@
         "type": "object",
         "properties": {
           "host": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": false,
+            "description": "Whether the host was absent"
           },
           "attendees": {
+            "description": "Toggle whether an attendee was absent or not.",
+            "example": [
+              {
+                "absent": true,
+                "email": "someone@gmail.com"
+              }
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -10373,7 +10641,6 @@
           }
         },
         "required": [
-          "host",
           "attendees"
         ]
       },

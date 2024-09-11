@@ -24,7 +24,14 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import {
+  ApiOperation,
+  ApiTags as DocsTags,
+  ApiHeader,
+  getSchemaPath,
+  ApiBody,
+  ApiExtraModels,
+} from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 
@@ -36,6 +43,9 @@ import {
   RescheduleBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -44,12 +54,48 @@ import {
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")
+@ApiHeader({
+  name: "cal-api-version",
+  description: `Must be set to \`2024-08-13\``,
+  required: true,
+})
 export class BookingsController_2024_08_13 {
   private readonly logger = new Logger("BookingsController");
 
   constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
 
   @Post("/")
+  @ApiOperation({
+    summary: "Create booking",
+    description: `
+      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:
+      If eventTypeId in the request body is id of a regular event, then regular booking is created.
+
+      If it is an id of a recurring event type, then recurring booking is created.
+
+      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.
+
+      For team event types it is possible to create instant meeting. To do that just pass \`"instant": true\` to the request body.
+      
+      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
+      `,
+  })
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(CreateBookingInput_2024_08_13) },
+        { $ref: getSchemaPath(CreateInstantBookingInput_2024_08_13) },
+        { $ref: getSchemaPath(CreateRecurringBookingInput_2024_08_13) },
+      ],
+    },
+    description:
+      "Accepts different types of booking input: CreateBookingInput_2024_08_13, CreateInstantBookingInput_2024_08_13, or CreateRecurringBookingInput_2024_08_13",
+  })
+  @ApiExtraModels(
+    CreateBookingInput_2024_08_13,
+    CreateInstantBookingInput_2024_08_13,
+    CreateRecurringBookingInput_2024_08_13
+  )
   async createBooking(
     @Body(new CreateBookingInputPipe())
     body: CreateBookingInput,
@@ -73,8 +119,13 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard)
   @ApiOperation({
     summary: "Get booking",
-    description:
-      ":bookingUid can be uid of a normal booking, one of the recurring booking recurrences, or uid of recurring booking which will return an array of all recurring booking recurrences.",
+    description: `\`:bookingUid\` can be
+      
+      1. uid of a normal booking
+      
+      2. uid of one of the recurring booking recurrences
+      
+      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).`,
   })
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.getBooking(bookingUid);
@@ -102,6 +153,11 @@ export class BookingsController_2024_08_13 {
 
   @Post("/:bookingUid/reschedule")
   @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Reschedule booking",
+    description:
+      "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
+  })
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
     @Body() body: RescheduleBookingInput_2024_08_13,
