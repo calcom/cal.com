@@ -334,6 +334,11 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
+    const data = trpc.viewer.supabase.get.useQuery("EventType");
+    console.log(data);
+  }, []);
+
+  useEffect(() => {
     if (pathname) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 

@@ -7,6 +7,9 @@ export interface paths {
   "/health": {
     get: operations["AppController_getHealth"];
   };
+  "/supabase": {
+    get: operations["AppController_getHandler"];
+  };
   "/v2/events/public": {
     get: operations["EventsController_getPublicEvent"];
   };
@@ -299,6 +302,21 @@ export interface operations {
       200: {
         content: {
           "application/json": string;
+        };
+      };
+    };
+  };
+  AppController_getHandler: {
+    parameters: {
+      query: {
+        scope: string;
+        params: string;
+      };
+    };
+    responses: {
+      200: {
+        content: {
+          "application/json": Record<string, never>;
         };
       };
     };
