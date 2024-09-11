@@ -8,7 +8,7 @@ export enum ButtonState {
   NONE = "none",
   ALLOW = "allow",
   DISABLE = "disable",
-  DENIED = "denied",
+  DENY = "deny",
 }
 
 export const useNotifications = () => {
@@ -53,8 +53,8 @@ export const useNotifications = () => {
 
       const permission = Notification.permission;
 
-      if (permission === ButtonState.DENIED) {
-        setButtonToShow(ButtonState.DENIED);
+      if (permission === ButtonState.DENY) {
+        setButtonToShow(ButtonState.DENY);
         return;
       }
 
@@ -78,8 +78,8 @@ export const useNotifications = () => {
     setIsLoading(true);
     const permissionResponse = await Notification.requestPermission();
 
-    if (permissionResponse === ButtonState.DENIED) {
-      setButtonToShow(ButtonState.DENIED);
+    if (permissionResponse === ButtonState.DENY) {
+      setButtonToShow(ButtonState.DENY);
       setIsLoading(false);
       showToast(t("browser_notifications_denied"), "warning");
       return;

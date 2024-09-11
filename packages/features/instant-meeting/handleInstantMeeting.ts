@@ -92,9 +92,14 @@ const handleInstantMeetingWebhookTrigger = async (args: {
 const triggerBrowserNotifications = async (args: {
   title: string;
   connectAndJoinUrl: string;
-  teamId: number;
+  teamId?: number | null;
 }) => {
   const { title, connectAndJoinUrl, teamId } = args;
+
+  if (!teamId) {
+    logger.warn("No teamId provided, skipping browser notification trigger");
+    return;
+  }
 
   const subscribers = await prisma.membership.findMany({
     where: {

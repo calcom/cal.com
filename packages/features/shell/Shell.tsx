@@ -1152,10 +1152,10 @@ export function ShellMain(props: LayoutProps) {
                   color="primary"
                   onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
                   loading={isLoading}
-                  disabled={buttonToShow === ButtonState.DENIED}
+                  disabled={buttonToShow === ButtonState.DENY}
                   tooltipSide="bottom"
                   tooltip={
-                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
+                    buttonToShow === ButtonState.DENY ? t("you_have_denied_notifications") : undefined
                   }>
                   {t(
                     buttonToShow === ButtonState.DISABLE
