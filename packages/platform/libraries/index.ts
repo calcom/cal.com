@@ -130,3 +130,4 @@ export { getTranslation };
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
+export { validateCustomEventName } from "@calcom/core/event";

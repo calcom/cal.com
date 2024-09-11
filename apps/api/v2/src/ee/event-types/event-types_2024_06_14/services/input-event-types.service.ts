@@ -13,6 +13,7 @@ import {
   transformApiEventTypeBookerLayouts,
   transformApiEventTypeConfirmationPolicy,
   transformApiEventTypeColors,
+  validateCustomEventName,
   transformApiSeatOptions,
 } from "@calcom/platform-libraries-1.2.3";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
@@ -45,6 +46,7 @@ export class InputEventTypesService_2024_06_14 {
       color,
       recurrence,
       seats,
+      customName,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -70,6 +72,7 @@ export class InputEventTypesService_2024_06_14 {
       eventTypeColor: this.transformInputEventTypeColor(color),
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       ...this.transformInputSeatOptions(seats),
+      eventName: customName,
     };
 
     return eventType;
@@ -88,6 +91,7 @@ export class InputEventTypesService_2024_06_14 {
       color,
       recurrence,
       seats,
+      customName,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -118,6 +122,7 @@ export class InputEventTypesService_2024_06_14 {
         confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(color),
       ...this.transformInputSeatOptions(seats),
+      eventName: customName,
     };
 
     return eventType;
@@ -164,7 +169,8 @@ export class InputEventTypesService_2024_06_14 {
     eventTypeId?: number,
     seatsEnabled?: boolean,
     locations?: ReturnType<typeof this.transformInputLocations>,
-    requiresConfirmation?: boolean
+    requiresConfirmation?: boolean,
+    eventName?: string
   ) {
     // Retrieve event type details from the database if eventTypeId is provided
 
@@ -192,12 +198,14 @@ export class InputEventTypesService_2024_06_14 {
           seatsEnabledDb,
           true
         ));
+      eventName && (await this.validateCustomEventNameInput(eventName));
     } else {
       seatsEnabled &&
         (await this.validateSeatsInput(locations, requiresConfirmation, undefined, undefined, false));
       locations?.length > 1 && (await this.validateLocationsInput(seatsEnabled, locations, undefined, false));
       requiresConfirmation &&
         (await this.validateRequiresConfirmationInput(requiresConfirmation, seatsEnabled, undefined, false));
+      eventName && (await this.validateCustomEventNameInput(eventName));
     }
   }
   async validateSeatsInput(
@@ -328,5 +336,13 @@ export class InputEventTypesService_2024_06_14 {
       // If no failing conditions were met, pass validation.
       return;
     }
+  }
+
+  async validateCustomEventNameInput(value: string) {
+    const validationResult = validateCustomEventName(value);
+    if (validationResult !== true) {
+      throw new BadRequestException(`Invalid event name variables: ${validationResult}`);
+    }
+    return;
   }
 }

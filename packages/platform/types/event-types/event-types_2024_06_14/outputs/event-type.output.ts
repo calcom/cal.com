@@ -176,6 +176,10 @@ export class EventTypeOutput_2024_06_14 {
   @IsInt()
   @Min(1)
   offsetStart?: number;
+
+  @IsOptional()
+  @IsString()
+  customName?: string;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -321,4 +325,8 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsBoolean()
   @IsOptional()
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  @IsString()
+  customName?: string;
 }

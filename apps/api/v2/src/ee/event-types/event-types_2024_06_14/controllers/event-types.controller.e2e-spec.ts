@@ -265,6 +265,7 @@ describe("Event types Endpoints", () => {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
         },
+        customName: `{Event type title} between {Organiser} and {Scheduler}`,
       };
 
       return request(app.getHttpServer())
@@ -291,6 +292,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookerLayouts).toEqual(body.bookerLayouts);
           expect(createdEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(createdEventType.recurrence).toEqual(body.recurrence);
+          expect(createdEventType.customName).toEqual(body.customName);
           expect(createdEventType.requiresBookerEmailVerification).toEqual(
             body.requiresBookerEmailVerification
           );
@@ -335,6 +337,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.customName).toEqual(eventType.customName);
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
       );
@@ -660,6 +663,7 @@ describe("Event types Endpoints", () => {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
         },
+        customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
       };
 
       return request(app.getHttpServer())
@@ -688,6 +692,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.bookerLayouts).toEqual(body.bookerLayouts);
           expect(updatedEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
           expect(updatedEventType.recurrence).toEqual(body.recurrence);
+          expect(updatedEventType.customName).toEqual(body.customName);
           expect(updatedEventType.requiresBookerEmailVerification).toEqual(
             body.requiresBookerEmailVerification
           );
@@ -707,6 +712,7 @@ describe("Event types Endpoints", () => {
           eventType.bookerLayouts = updatedEventType.bookerLayouts;
           eventType.confirmationPolicy = updatedEventType.confirmationPolicy;
           eventType.recurrence = updatedEventType.recurrence;
+          eventType.customName = updatedEventType.customName;
           eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
@@ -754,6 +760,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.customName).toEqual(eventType.customName);
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
       );
@@ -790,6 +797,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
       expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
       expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType.customName).toEqual(eventType.customName);
       expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
       );
