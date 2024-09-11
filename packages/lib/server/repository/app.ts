@@ -1,11 +1,11 @@
+import type { Prisma } from "@prisma/client";
+
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { TListLocalInputSchema } from "@calcom/trpc/server/routers/viewer/apps/listLocal.schema";
-
-import type { Prisma } from ".prisma/client";
 
 export class AppRepository {
   static async seedApp(dirName: string, keys?: any) {
