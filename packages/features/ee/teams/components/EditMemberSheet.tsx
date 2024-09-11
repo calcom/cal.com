@@ -104,7 +104,7 @@ export function EditMemberSheet({
     teamId,
   });
 
-  const connectedApps = getUserConnectedApps ? getUserConnectedApps[selectedUser.id] : [];
+  const connectedApps = getUserConnectedApps?.[selectedUser.id];
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
@@ -145,7 +145,7 @@ export function EditMemberSheet({
     });
   }
 
-  const appList = connectedApps.map(({ logo, name, externalId }) => {
+  const appList = (connectedApps || []).map(({ logo, name, externalId }) => {
     return logo ? (
       externalId ? (
         <div className="ltr:mr-2 rtl:ml-2 ">
@@ -227,7 +227,7 @@ export function EditMemberSheet({
                     <label className="text-subtle text-sm font-medium">{t("apps")}</label>
                   </div>
                   <div className="flex flex-1">
-                    {connectedApps.length === 0 ? (
+                    {!connectedApps ? (
                       <div>{t("user_has_no_app_installed")}</div>
                     ) : (
                       <div className="flex">{appList}</div>
