@@ -102,8 +102,8 @@ export class PaymentService implements IAbstractPaymentService {
   async collectCard(
     _payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     _bookingId: number,
-    _paymentOption: PaymentOption,
-    _bookerEmail: string
+    _bookerEmail: string,
+    _paymentOption: PaymentOption
   ): Promise<Payment> {
     throw new Error("Method not implemented");
   }
