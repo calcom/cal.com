@@ -15,7 +15,6 @@ import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -70,7 +69,6 @@ type BookingItemProps = BookingItem & {
 };
 
 function BookingListItem(booking: BookingItemProps) {
-  const bookerUrl = useBookerUrl();
   const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
 
   const {
@@ -183,7 +181,7 @@ function BookingListItem(booking: BookingItemProps) {
       id: "reschedule",
       icon: "clock" as const,
       label: t("reschedule_booking"),
-      href: `${bookerUrl}/reschedule/${booking.uid}${
+      href: `/reschedule/${booking.uid}${
         booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
       }`,
     },
