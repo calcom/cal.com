@@ -143,7 +143,7 @@ const AdminAppsList = ({
   useQueryParam = false,
   classNames,
   onSubmit = noop,
-  appsList,
+  ssrProps,
   ...rest
 }: {
   baseURL: string;
@@ -156,7 +156,9 @@ const AdminAppsList = ({
   className?: string;
   useQueryParam?: boolean;
   onSubmit?: () => void;
-  appsList?: Awaited<ReturnType<typeof AppRepository.getAppsList>>;
+  ssrProps?: {
+    appsList?: Awaited<ReturnType<typeof AppRepository.getAppsList>>;
+  };
 } & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
   return (
     <form
@@ -176,7 +178,7 @@ const AdminAppsList = ({
           verticalTabsItem: classNames?.verticalTabsItem,
           container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
         }}>
-        <AdminAppsListContainer appsList={appsList} />
+        <AdminAppsListContainer appsList={ssrProps?.appsList} />
       </AppCategoryNavigation>
     </form>
   );

@@ -27,7 +27,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   const { category } = querySchema.parse({ ...params, ...searchParams });
 
   try {
-    await AppRepository.getAppsList({ input: { category } });
+    const appsList = await AppRepository.getAppsList({ input: { category } });
 
     return (
       <SettingsHeader title={t("apps")} description={t("admin_apps_description")}>
@@ -36,6 +36,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
             baseURL="/settings/admin/apps"
             classNames={{
               appCategoryNavigationRoot: "overflow-x-scroll",
+            }}
+            ssrProps={{
+              appsList,
             }}
           />
         </div>

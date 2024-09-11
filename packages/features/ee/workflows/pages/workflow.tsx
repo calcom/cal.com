@@ -39,16 +39,14 @@ export type FormValues = {
 };
 
 type PageProps = {
-  workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
-  verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
-  verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
+  ssrProps?: {
+    workflow?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
+    verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
+    verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
+  };
 };
 
-function WorkflowPage({
-  workflowData: workflowDataProp,
-  verifiedNumbers: verifiedNumbersProp,
-  verifiedEmails: verifiedEmailsProp,
-}: PageProps) {
+function WorkflowPage({ ssrProps }: PageProps) {
   const { t, i18n } = useLocale();
   const session = useSession();
   const params = useParamsWithFallback();
@@ -76,29 +74,29 @@ function WorkflowPage({
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
-      enabled: workflowDataProp ? false : !!workflowId,
+      enabled: ssrProps?.workflow ? false : !!workflowId,
     }
   );
 
-  const workflow = workflowDataProp || workflowData;
-  const isPendingWorkflow = workflowDataProp ? false : _isPendingWorkflow;
-  const isError = workflowDataProp ? false : _isError;
+  const workflow = ssrProps?.workflow || workflowData;
+  const isPendingWorkflow = ssrProps?.workflow ? false : _isPendingWorkflow;
+  const isError = ssrProps?.workflow ? false : _isError;
 
   const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
-      enabled: verifiedNumbersProp ? false : !!workflow?.id,
+      enabled: ssrProps?.verifiedNumbers ? false : !!workflow?.id,
     }
   );
-  const verifiedNumbers = verifiedNumbersProp || verifiedNumbersData;
+  const verifiedNumbers = ssrProps?.verifiedNumbers || verifiedNumbersData;
 
   const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
     {
       teamId: workflow?.team?.id,
     },
-    { enabled: !verifiedEmailsProp }
+    { enabled: !ssrProps?.verifiedEmails }
   );
-  const verifiedEmails = verifiedEmailsProp || verifiedEmailsData;
+  const verifiedEmails = ssrProps?.verifiedEmails || verifiedEmailsData;
 
   const isOrg = workflow?.team?.isOrganization ?? false;
 

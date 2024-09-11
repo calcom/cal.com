@@ -30,7 +30,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     });
   } catch (err) {}
 
-  return <LegacyPage filteredList={filteredList} />;
+  return <LegacyPage ssrProps={{ filteredList }} />;
 };
 
 export default WithLayout({ getLayout: null, ServerPage: Page })<"P">;

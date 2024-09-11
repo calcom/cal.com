@@ -24,10 +24,12 @@ import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
 type PageProps = {
-  filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;
+  ssrProps?: {
+    filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;
+  };
 };
 
-function WorkflowsPage({ filteredList }: PageProps) {
+function WorkflowsPage({ ssrProps }: PageProps) {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
@@ -39,11 +41,11 @@ function WorkflowsPage({ filteredList }: PageProps) {
       filters,
     },
     {
-      enabled: !filteredList,
+      enabled: !ssrProps?.filteredList,
     }
   );
-  const filteredWorkflows = filteredList ?? data;
-  const isPending = filteredList ? false : _isPending;
+  const filteredWorkflows = ssrProps?.filteredList ?? data;
+  const isPending = ssrProps?.filteredList ? false : _isPending;
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
