@@ -1,3 +1,10 @@
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookingWindowPeriodOutputTypeEnum_2024_06_14,
+  BookingLimitsEnum_2024_06_14,
+  Frequency,
+  FrequencyInput,
+} from "@calcom/platform-enums/monorepo";
 import type {
   AddressLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
@@ -12,12 +19,9 @@ import type {
   CalendarDaysWindow_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   BookingField_2024_06_14,
+  Recurrence_2024_06_14,
+  TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookingWindowPeriodOutputTypeEnum_2024_06_14,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
 
@@ -255,9 +259,21 @@ function getResponseEventTypeFutureBookingLimits(
       return undefined;
   }
 }
+
+function getResponseEventTypeRecurrence(
+  transformRecurringEvent: TransformRecurringEventSchema_2024_06_14
+): Recurrence_2024_06_14 {
+  return {
+    interval: transformRecurringEvent.interval,
+    occurrences: transformRecurringEvent.count,
+    frequency: FrequencyInput[Frequency[transformRecurringEvent.freq] as keyof typeof FrequencyInput],
+  } satisfies Recurrence_2024_06_14;
+}
+
 export {
   getResponseEventTypeLocations,
   getResponseEventTypeBookingFields,
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
+  getResponseEventTypeRecurrence,
 };

@@ -214,7 +214,8 @@ const useBanners = () => {
 
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
-
+  const pathname = usePathname();
+  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
@@ -253,7 +254,7 @@ const Layout = (props: LayoutProps) => {
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && !props.isPlatformUser && (
+        {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {

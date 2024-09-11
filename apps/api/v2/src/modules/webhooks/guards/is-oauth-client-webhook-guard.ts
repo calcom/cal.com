@@ -1,5 +1,6 @@
 import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { UsersService } from "@/modules/users/services/users.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   CanActivate,
@@ -17,7 +18,8 @@ import { PlatformOAuthClient, Webhook } from "@calcom/prisma/client";
 export class IsOAuthClientWebhookGuard implements CanActivate {
   constructor(
     private readonly webhooksService: WebhooksService,
-    private readonly oAuthClientRepository: OAuthClientRepository
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private usersService: UsersService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -27,7 +29,7 @@ export class IsOAuthClientWebhookGuard implements CanActivate {
     const user = request.user as GetUserReturnType;
     const webhookId = request.params.webhookId;
     const oAuthClientId = request.params.clientId;
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
 
     if (!user) {
       throw new ForbiddenException("User not authenticated");

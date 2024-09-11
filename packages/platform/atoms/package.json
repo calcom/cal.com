@@ -31,7 +31,8 @@
     "typescript": "^4.9.4",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.3",
-    "vite-plugin-inspect": "^0.8.4"
+    "vite-plugin-inspect": "^0.8.4",
+    "vite-plugin-node-polyfills": "^0.22.0"
   },
   "files": [
     "dist",
