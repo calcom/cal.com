@@ -165,7 +165,7 @@ export class OrganizationsEventTypesController {
   @Patch("/teams/:teamId/event-types/:eventTypeId")
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("eventTypeId") eventTypeId: number,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @GetUser() user: UserWithProfile,
     @Body() bodyEventType: UpdateTeamEventTypeInput_2024_06_14
   ): Promise<UpdateTeamEventTypeOutput> {

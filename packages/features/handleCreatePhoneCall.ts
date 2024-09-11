@@ -15,8 +15,8 @@ export const handleCreatePhoneCall = async ({
   user: { timeZone: string; id: number; profile?: { organization?: { id?: number } } };
   input: TCreatePhoneCallSchema;
 }) => {
-  if (!!!user?.profile?.organization) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!user?.profile?.organization) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not part of an organization" });
   }
 
   await checkRateLimitAndThrowError({

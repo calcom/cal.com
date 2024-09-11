@@ -4,7 +4,7 @@ import { IsEnum, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-export class Data {
+class Data {
   @IsString()
   @ApiProperty()
   callId!: string;
