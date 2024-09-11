@@ -24,6 +24,10 @@ import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
   Dropdown,
   DropdownItem,
   DropdownMenuCheckboxItem,
@@ -36,6 +40,7 @@ import {
   MeetingTimeInTimezones,
   showToast,
   TableActions,
+  TextAreaField,
   Tooltip,
 } from "@calcom/ui";
 
@@ -69,12 +74,19 @@ function BookingListItem(booking: BookingItemProps) {
     i18n: { language },
   } = useLocale();
   const utils = trpc.useUtils();
+  const [rejectionReason, setRejectionReason] = useState<string>("");
+  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: () => {
-      showToast(t("booking_confirmation_success"), "success");
+    onSuccess: (data) => {
+      if (data?.status === BookingStatus.REJECTED) {
+        setRejectionDialogIsOpen(false);
+        showToast(t("booking_rejection_success"), "success");
+      } else {
+        showToast(t("booking_confirmation_success"), "success");
+      }
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
@@ -115,7 +127,7 @@ function BookingListItem(booking: BookingItemProps) {
     let body = {
       bookingId: booking.id,
       confirmed: confirm,
-      reason: "",
+      reason: rejectionReason,
     };
     /**
      * Only pass down the recurring event id when we need to confirm the entire series, which happens in
@@ -138,7 +150,9 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "reject",
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      href: `/booking/${booking.uid}?reject=true`,
+      onClick: () => {
+        setRejectionDialogIsOpen(true);
+      },
       icon: "ban",
       disabled: mutation.isPending,
     },
@@ -388,6 +402,35 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
+      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
+        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
+          <div>
+            <TextAreaField
+              name="rejectionReason"
+              label={
+                <>
+                  {t("rejection_reason")}
+                  <span className="text-subtle font-normal"> (Optional)</span>
+                </>
+              }
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+          </div>
+
+          <DialogFooter>
+            <DialogClose />
+            <Button
+              disabled={mutation.isPending}
+              data-testid="rejection-confirm"
+              onClick={() => {
+                bookingConfirm(false);
+              }}>
+              {t("rejection_confirmation")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
         <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
           <div className="flex h-full items-center">

@@ -303,7 +303,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                               if (val) {
                                 locationFormMethods.setValue("locationType", val.value);
                                 locationFormMethods.setValue("credentialId", val.credentialId);
-
                                 locationFormMethods.unregister([
                                   "locationLink",
                                   "locationAddress",
