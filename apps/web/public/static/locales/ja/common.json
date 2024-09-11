@@ -1147,6 +1147,7 @@
   "set_location": "場所を設定",
   "update_location": "場所を更新",
   "location_updated": "場所を更新しました",
+  "location_update_failed": "位置情報の更新に失敗しました",
   "guests_added": "ゲストが追加されました",
   "unable_to_add_guests": "ゲストを追加できません",
   "email_validation_error": "メールアドレスのようには見えません",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "デフォルトのアプリリンクを設定",
   "default_app_link_description": "デフォルトのアプリリンクを設定することで、新たに作成するすべてのイベントの種類が設定したアプリリンクを使用できるようになります。",
   "organizer_default_conferencing_app": "主催者のデフォルトのアプリ",
+  "organizer_default_conferencing_app_not_found": "{{organizer}}にはデフォルトの会議アプリがありません",
   "under_maintenance": "メンテナンスのため停止中",
   "under_maintenance_description": "{{appName}} チームが定期メンテナンスを行っています。質問がある場合には、サポートへとお問い合わせください。",
   "event_type_seats": "{{numberOfSeats}} 席",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "同じRound-Robinホストで再スケジュール",
   "reschedule_with_same_round_robin_host_description": "再スケジュールされたイベントは、最初にスケジュールされたのと同じホストに割り当てられます",
   "disable_input_if_prefilled": "URL識別子が事前入力されている場合は入力を無効にする",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "この予約の変更を行う権限がありません",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

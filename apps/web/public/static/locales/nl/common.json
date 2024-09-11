@@ -1147,6 +1147,7 @@
   "set_location": "Locatie instellen",
   "update_location": "Locatie bijwerken",
   "location_updated": "Locatie bijgewerkt",
+  "location_update_failed": "Locatie-update mislukt",
   "guests_added": "Gasten toegevoegd",
   "unable_to_add_guests": "Kan geen gasten toevoegen",
   "email_validation_error": "Dat lijkt niet op een e-mailadres",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Stel een standaard app-link in",
   "default_app_link_description": "Door een standaard app-link in te stellen kunnen alle nieuw gemaakte gebeurtenistypes de door u ingestelde app-link gebruiken.",
   "organizer_default_conferencing_app": "Standaardapp organisator",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} heeft geen standaard vergaderapp",
   "under_maintenance": "Onbereikbaar wegens onderhoud",
   "under_maintenance_description": "Het {{appName}}-team voert gepland onderhoud uit. Neem contact op met de ondersteuning als u vragen heeft.",
   "event_type_seats": "{{numberOfSeats}} plaatsen",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Opnieuw plannen met dezelfde Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Opnieuw geplande evenementen worden toegewezen aan dezelfde host als oorspronkelijk gepland",
   "disable_input_if_prefilled": "Invoer uitschakelen als de URL-identificatie vooraf is ingevuld",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "U bent niet gemachtigd om deze wijziging in de boeking aan te brengen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
