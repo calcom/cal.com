@@ -15,12 +15,12 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 type PageProps = {
-  schedule?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+  scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
   travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
 };
 
 export const AvailabilitySettingsWebWrapper = ({
-  schedule: scheduleProp,
+  scheduleFetched: scheduleProp,
   travelSchedules: travelSchedulesProp,
 }: PageProps) => {
   const searchParams = useCompatSearchParams();
