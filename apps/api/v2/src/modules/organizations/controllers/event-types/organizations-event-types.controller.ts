@@ -35,7 +35,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { handleCreatePhoneCall } from "@calcom/platform-libraries-0.0.0";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
