@@ -5,6 +5,7 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
+import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
@@ -101,6 +102,9 @@ export const BookerPlatformWrapper = (
   const bookingData = useBookerStore((state) => state.bookingData);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSelectedMonth = useBookerStore((state) => state.setMonth);
+  const isOverlayCalendarEnabled = useOverlayCalendarStore((state) => state.isOverlayCalendarEnabled);
+  const setIsOverlayCalendarEnabled = useOverlayCalendarStore((state) => state.setIsOverlayCalendarEnabled);
+
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
@@ -114,11 +118,6 @@ export const BookerPlatformWrapper = (
     }
     return "";
   }, [props.username]);
-  const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useBookerStore((state) => [
-    state.isOverlayCalendarEnabled,
-    state.setIsOverlayCalendarEnabled,
-    shallow,
-  ]);
 
   setSelectedDuration(props.duration ?? null);
   setOrg(props.entity?.orgSlug ?? null);
@@ -344,17 +343,17 @@ export const BookerPlatformWrapper = (
     locationUrl: props.locationUrl,
   });
 
-  const onOverlaySwitchStateChange = useCallback((state: boolean) => {
-    // setToggleOverlayCalendar((prevState) => !prevState);
-    setIsOverlayCalendarEnabled(state);
-    if (state) {
-      localStorage.setItem("overlayCalendarSwitchDefault", "true");
-    } else {
-      localStorage.removeItem("overlayCalendarSwitchDefault");
-    }
-  }, []);
-
-  console.log(isOverlayCalendarEnabled, "is overlay calendar enabled or not");
+  const onOverlaySwitchStateChange = useCallback(
+    (state: boolean) => {
+      setIsOverlayCalendarEnabled(state);
+      if (state) {
+        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+      } else {
+        localStorage.removeItem("overlayCalendarSwitchDefault");
+      }
+    },
+    [setIsOverlayCalendarEnabled]
+  );
 
   useEffect(() => {
     // reset booker whenever it's unmounted
@@ -375,6 +374,8 @@ export const BookerPlatformWrapper = (
         });
         setBookingData(null);
       }
+
+      localStorage.setItem("overlayCalendarSwitchDefault", "true");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
