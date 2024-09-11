@@ -25,15 +25,18 @@
       "pt-BR",
       "pt",
       "ro",
-      "ru",
-      "zh-CN"
+      "sr",
+      "sv",
+      "tr",
+      "uk",
+      "vi",
+      "zh-CN",
+      "zh-TW"
     ]
   },
   "buckets": {
     "json": {
-      "include": [
-        "apps/web/public/static/locales/[locale]/common.json"
-      ]
+      "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
   }
 }

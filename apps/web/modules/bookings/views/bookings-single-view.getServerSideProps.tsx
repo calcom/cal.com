@@ -124,8 +124,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     bookingFields: eventTypeRaw.bookingFields.map((field) => {
       return {
         ...field,
-        label: markdownToSafeHTML(field.label || ""),
-        defaultLabel: markdownToSafeHTML(field.defaultLabel || ""),
+        label: field.type === "boolean" ? markdownToSafeHTML(field.label || "") : field.label || "",
+        defaultLabel:
+          field.type === "boolean" ? markdownToSafeHTML(field.defaultLabel || "") : field.defaultLabel || "",
       };
     }),
   };
