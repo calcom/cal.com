@@ -43,7 +43,7 @@ export const _generateMetadata = async (
 
   const metadataBase = new URL(IS_CALCOM ? "https://cal.com" : WEBAPP_URL);
 
-  const images =
+  const image =
     SEO_IMG_OGIMG +
     constructGenericImage({
       title,
@@ -66,7 +66,7 @@ export const _generateMetadata = async (
       type: "website",
       siteName: APP_NAME,
       title,
-      images,
+      images: [image],
     },
     metadataBase,
   };
