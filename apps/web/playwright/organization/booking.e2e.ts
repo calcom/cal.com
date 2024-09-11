@@ -659,9 +659,10 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
   await emailRequiredFiled.locator("> :nth-child(2)").click();
   await page.getByTestId("field-add-save").click();
 
+  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
   await page.locator("[data-testid=update-eventtype]").click();
-  const toast = await page.waitForSelector('[data-testid="toast-success"]');
-  expect(toast).toBeTruthy();
+  const response = await submitPromise;
+  expect(response.status()).toBe(200);
 };
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
@@ -673,7 +674,8 @@ const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   await phoneRequiredFiled.locator("> :nth-child(1)").click();
   await page.getByTestId("field-add-save").click();
 
+  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
   await page.locator("[data-testid=update-eventtype]").click();
-  const toast = await page.waitForSelector('[data-testid="toast-success"]');
-  expect(toast).toBeTruthy();
+  const response = await submitPromise;
+  expect(response.status()).toBe(200);
 };
