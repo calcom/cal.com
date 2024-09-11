@@ -152,7 +152,6 @@ export const config = {
     "/apps/categories/:category/",
     "/future/apps/categories/:category/",
     "/workflows/:path*",
-    "/future/workflows/:path*",
     "/settings/teams/:path*",
     "/future/settings/teams/:path*",
     "/getting-started/:step/",
