@@ -1,11 +1,12 @@
-import type {
-  Attendee,
-  Booking,
-  BookingReference,
-  Credential,
-  DestinationCalendar,
-  EventType,
-  User,
+import {
+  MembershipRole,
+  type Attendee,
+  type Booking,
+  type BookingReference,
+  type Credential,
+  type DestinationCalendar,
+  type EventType,
+  type User,
 } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
@@ -21,8 +22,44 @@ export const bookingsProcedure = authedProcedure
   .use(async ({ ctx, input, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     const { bookingId } = input;
+    const loggedInUser = ctx.user;
+    const bookingInclude = {
+      attendees: true,
+      eventType: true,
+      destinationCalendar: true,
+      references: true,
+      user: {
+        include: {
+          destinationCalendar: true,
+          credentials: true,
+        },
+      },
+    };
 
-    const booking = await prisma.booking.findFirst({
+    const bookingByBeingAdmin = await prisma.booking.findFirst({
+      where: {
+        id: bookingId,
+        eventType: {
+          team: {
+            members: {
+              some: {
+                userId: loggedInUser.id,
+                role: {
+                  in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+                },
+              },
+            },
+          },
+        },
+      },
+      include: bookingInclude,
+    });
+
+    if (!!bookingByBeingAdmin) {
+      return next({ ctx: { booking: bookingByBeingAdmin } });
+    }
+
+    const bookingByBeingOrganizerOrCollectiveEventMember = await prisma.booking.findFirst({
       where: {
         id: bookingId,
         AND: [
@@ -45,23 +82,12 @@ export const bookingsProcedure = authedProcedure
           },
         ],
       },
-      include: {
-        attendees: true,
-        eventType: true,
-        destinationCalendar: true,
-        references: true,
-        user: {
-          include: {
-            destinationCalendar: true,
-            credentials: true,
-          },
-        },
-      },
+      include: bookingInclude,
     });
 
-    if (!booking) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!bookingByBeingOrganizerOrCollectiveEventMember) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-    return next({ ctx: { booking } });
+    return next({ ctx: { booking: bookingByBeingOrganizerOrCollectiveEventMember } });
   });
 
 export type BookingsProcedureContext = {
