@@ -2,12 +2,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
-import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
-import {
-  getEventLocationType,
-  getSuccessPageLocationMessage,
-  guessEventLocationType,
-} from "@calcom/app-store/locations";
+import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
@@ -15,7 +11,6 @@ import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -70,7 +65,6 @@ type BookingItemProps = BookingItem & {
 };
 
 function BookingListItem(booking: BookingItemProps) {
-  const bookerUrl = useBookerUrl();
   const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
 
   const {
@@ -183,7 +177,7 @@ function BookingListItem(booking: BookingItemProps) {
       id: "reschedule",
       icon: "clock" as const,
       label: t("reschedule_booking"),
-      href: `${bookerUrl}/reschedule/${booking.uid}${
+      href: `/reschedule/${booking.uid}${
         booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
       }`,
     },
@@ -286,20 +280,36 @@ function BookingListItem(booking: BookingItemProps) {
       setIsOpenLocationDialog(false);
       utils.viewer.bookings.invalidate();
     },
+    onError: (e) => {
+      const errorMessages: Record<string, string> = {
+        UNAUTHORIZED: t("you_are_unauthorized_to_make_this_change_to_the_booking"),
+        BAD_REQUEST: e.message,
+      };
+
+      const message = errorMessages[e.data?.code as string] || t("location_update_failed");
+      showToast(message, "error");
+    },
   });
 
-  const saveLocation = (
-    newLocationType: EventLocationType["type"],
-    details: {
-      [key: string]: string;
+  const saveLocation = async ({
+    newLocation,
+    credentialId,
+  }: {
+    newLocation: string;
+    /**
+     * It could be set for conferencing locations that support team level installations.
+     */
+    credentialId: number | null;
+  }) => {
+    try {
+      await setLocationMutation.mutateAsync({
+        bookingId: booking.id,
+        newLocation,
+        credentialId,
+      });
+    } catch {
+      // Errors are shown through the mutation onError handler
     }
-  ) => {
-    let newLocation = newLocationType as string;
-    const eventLocationType = getEventLocationType(newLocationType);
-    if (eventLocationType?.organizerInputType) {
-      newLocation = details[Object.keys(details)[0]];
-    }
-    setLocationMutation.mutate({ bookingId: booking.id, newLocation, details });
   };
 
   // Getting accepted recurring dates to show

@@ -1149,6 +1149,7 @@ checksums:
     set_location: 84a52cdae2ca02490055aaa40583fc1d
     update_location: 741758fb7a9c090a9ab9e87a6c62fedc
     location_updated: 639cd11ff17c5fea84384a06e686b782
+    location_update_failed: a57b1dbaf515c1ab934522e6d837291a
     guests_added: a04cef448ca54083e9e741d1233ead0b
     unable_to_add_guests: 10d1eebffb88f731d40144bdf8e9929b
     email_validation_error: 0a26bc82b13d45d06d40a3e841877504
@@ -1889,6 +1890,7 @@ checksums:
     default_app_link_title: 449f7f5ed6e56536994089aa8f49e407
     default_app_link_description: c5e6ef98d08cb425c3b2759b13b9a9c2
     organizer_default_conferencing_app: 8cc159b92c6eb2bbcb90f0ddb70e7ee5
+    organizer_default_conferencing_app_not_found: 783160f2c53f5d7fc92f8ae7430ff9cf
     under_maintenance: c07caeb218bfc9a104a00265857cd507
     under_maintenance_description: b6da95c38efa2247c7bb8834523bf67d
     event_type_seats: a2dcd6b544ca1b20a2f1bf4166919e86
@@ -2595,4 +2597,5 @@ checksums:
     reschedule_with_same_round_robin_host_title: 0b315779fdae608827ceab1b1640423b
     reschedule_with_same_round_robin_host_description: d581417695b5275d6706a08b8d7dd39a
     disable_input_if_prefilled: 19415e3062d8ef1031beb38ce4a0b3c9
+    you_are_unauthorized_to_make_this_change_to_the_booking: c770486d5b4b98a407ff485cbe60e563
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
