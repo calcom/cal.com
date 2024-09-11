@@ -63,7 +63,6 @@ import {
 } from "@calcom/ui";
 import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
-import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -79,7 +78,6 @@ const querySchema = z.object({
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
-  reject: stringToBoolean,
   allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
@@ -116,7 +114,6 @@ export default function Success(props: PageProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
-    reject: isRejectionMode,
     formerTime,
     email,
     seatReferenceUid,
@@ -209,16 +206,6 @@ export default function Success(props: PageProps) {
       if (_searchParams.get("cancel")) {
         _searchParams.delete("cancel");
       }
-    }
-
-    router.replace(`${pathname}?${_searchParams.toString()}`);
-  }
-
-  function setIsRejectionMode() {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
-
-    if (_searchParams.get("reject")) {
-      _searchParams.delete("reject");
     }
 
     router.replace(`${pathname}?${_searchParams.toString()}`);
@@ -693,7 +680,6 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
-                      !isRejectionMode &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -708,7 +694,9 @@ export default function Success(props: PageProps) {
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
                                       href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail ? `?rescheduledBy=${currentUserEmail}` : ""
+                                        currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
                                       }`}
                                       legacyBehavior>
                                       {t("reschedule")}
@@ -751,19 +739,6 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
-                    {!isCancelled && isRejectionMode && (
-                      <>
-                        <hr className="border-subtle" />
-                        <RejectBooking
-                          booking={{
-                            id: bookingInfo.id,
-                            uid: bookingInfo?.uid,
-                            recurringEventId: bookingInfo.recurringEventId,
-                          }}
-                          setIsRejectionMode={setIsRejectionMode}
-                        />
-                      </>
-                    )}
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&
