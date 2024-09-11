@@ -27,12 +27,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       isColdStart = false;
     }
 
-    const { usernameList, ...rest } = req.query;
+    const { usernameList, orgSlug, ...rest } = req.query;
     let slugs = usernameList;
     if (!Array.isArray(usernameList)) {
       slugs = usernameList ? [usernameList] : undefined;
     }
-    const input = getScheduleSchema.parse({ usernameList: slugs, ...rest });
+    const organizationSlug = orgSlug || null;
+    const input = getScheduleSchema.parse({ usernameList: slugs, orgSlug: organizationSlug, ...rest });
     const timeZoneSupported = input.timeZone ? isSupportedTimeZone(input.timeZone) : false;
     const availableSlots = await getAvailableSlots({ ctx: await createContext({ req, res }), input });
     const slotsInProvidedTimeZone = timeZoneSupported
