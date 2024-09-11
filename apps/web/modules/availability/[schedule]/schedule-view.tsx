@@ -8,11 +8,21 @@ import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import type { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
-export const AvailabilitySettingsWebWrapper = () => {
+type PageProps = {
+  schedule?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
+};
+
+export const AvailabilitySettingsWebWrapper = ({
+  schedule: scheduleProp,
+  travelSchedules: travelSchedulesProp,
+}: PageProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -21,14 +31,19 @@ export const AvailabilitySettingsWebWrapper = () => {
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data: schedule, isPending } = trpc.viewer.availability.schedule.get.useQuery(
+  const { data: scheduleData, isPending: isFetchingPending } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
-      enabled: !!scheduleId,
+      enabled: !!scheduleId && !scheduleProp,
     }
   );
+  const isPending = isFetchingPending && !scheduleProp;
+  const schedule = scheduleProp ?? scheduleData;
 
-  const { data: travelSchedules } = trpc.viewer.getTravelSchedules.useQuery();
+  const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
+    enabled: !travelSchedulesProp,
+  });
+  const travelSchedules = travelSchedulesProp ?? travelSchedulesData;
 
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
