@@ -1,6 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -19,7 +18,6 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
-import { handleCreatePhoneCall } from "@calcom/platform-libraries-0.0.0";
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
