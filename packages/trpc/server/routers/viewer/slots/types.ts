@@ -20,11 +20,11 @@ export const getScheduleSchema = z
       .string()
       .optional()
       .transform((val) => val && parseInt(val)),
-    rescheduleUid: z.string().optional().nullable(),
+    rescheduleUid: z.string().nullish(),
     // whether to do team event or user event
     isTeamEvent: z.boolean().optional().default(false),
     orgSlug: z.string().nullish(),
-    teamMemberEmail: z.string().nullable().optional(),
+    teamMemberEmail: z.string().nullish(),
   })
   .transform((val) => ({
     ...val,
