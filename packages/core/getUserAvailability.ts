@@ -60,6 +60,22 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      team: {
+        select: {
+          id: true,
+          bookingLimits: true,
+        },
+      },
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+            },
+          },
+        },
+      },
       hosts: {
         select: {
           user: {
@@ -281,6 +297,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           initialData?.busyTimesFromLimitsBookings ?? []
         )
       : [];
+  const teamOfEventType = eventType?.team ?? eventType?.parent?.team;
+  const teamBookingLimits = parseBookingLimit(teamOfEventType?.bookingLimits);
+
+  const busyTimesFromTeamLimits =
+    teamBookingLimits && teamOfEventType
+      ? await getBusyTimesFromTeamLimits(user, teamBookingLimits, dateFrom, dateTo, teamOfEventType.id)
+      : [];
 
   // TODO: only query what we need after applying limits (shrink date range)
   const getBusyTimesStart = dateFrom.toISOString();
@@ -312,6 +335,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       source: query.withSource ? a.source : undefined,
     })),
     ...busyTimesFromLimits,
+    ...busyTimesFromTeamLimits,
   ];
 
   const userSchedule = user.schedules.filter(
@@ -510,6 +534,138 @@ class LimitManager {
     return Array.from(this.busyMap.values());
   }
 }
+
+const getBusyTimesFromTeamLimits = async (
+  ...args: Parameters<typeof _getBusyTimesFromTeamLimits>
+): Promise<ReturnType<typeof _getBusyTimesFromTeamLimits>> => {
+  return monitorCallbackAsync(_getBusyTimesFromTeamLimits, ...args);
+};
+
+const _getBusyTimesFromTeamLimits = async (
+  user: { id: number; email: string },
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  teamId: number,
+  rescheduleUid?: string
+) => {
+  performance.mark("teamLimitsStart");
+
+  const startDate = dayjs(dateFrom).startOf("week").toDate();
+  const endDate = dayjs(dateTo).endOf("week").toDate();
+  // maybe I already have them and can filter ?
+  const collectiveRoundRobinBookings = await prisma.booking.findMany({
+    where: {
+      OR: [
+        //use union instead
+        {
+          userId: user.id,
+        },
+        {
+          attendees: {
+            some: {
+              email: user.email,
+            },
+          },
+        },
+      ],
+      status: BookingStatus.ACCEPTED,
+      eventType: {
+        teamId,
+      },
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+    },
+  });
+
+  const managedBookings = await prisma.booking.findMany({
+    where: {
+      userId: user.id,
+      status: BookingStatus.ACCEPTED,
+      eventType: {
+        parent: {
+          teamId,
+        },
+      },
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+    },
+  });
+
+  const teamBookings = [...collectiveRoundRobinBookings, ...managedBookings];
+
+  const limitManager = new LimitManager();
+
+  for (const key of descendingLimitKeys) {
+    const limit = bookingLimits?.[key];
+    if (!limit) continue;
+
+    const unit = intervalLimitKeyToUnit(key);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+
+    for (const periodStart of periodStartDates) {
+      if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
+      // check if an entry already exists with th
+      const periodEnd = periodStart.endOf(unit);
+
+      if (unit === "year") {
+        const bookingsInPeriod = await prisma.booking.count({
+          where: {
+            userId: user.id,
+            status: BookingStatus.ACCEPTED,
+            eventType: {
+              OR: [
+                { teamId },
+                {
+                  parent: {
+                    teamId,
+                  },
+                },
+              ],
+            },
+            startTime: {
+              gte: periodStart.toDate(),
+            },
+            endTime: {
+              lte: periodEnd.toDate(),
+            },
+            uid: {
+              not: rescheduleUid,
+            },
+          },
+        });
+        if (bookingsInPeriod >= limit) {
+          limitManager.addBusyTime(periodStart, unit);
+        }
+      } else {
+        let totalBookings = 0;
+        for (const booking of teamBookings) {
+          // consider booking part of period independent of end date
+          if (!dayjs(booking.startTime).isBetween(periodStart, periodEnd)) {
+            continue;
+          }
+          totalBookings++;
+          if (totalBookings >= limit) {
+            limitManager.addBusyTime(periodStart, unit);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  performance.mark("teamLimitsEnd");
+  performance.measure(`checking all team limits took $1'`, "teamLimitsStart", "teamLimitsEnd");
+  return limitManager.getBusyTimes();
+};
 
 const getBusyTimesFromLimits = async (
   ...args: Parameters<typeof _getBusyTimesFromLimits>
