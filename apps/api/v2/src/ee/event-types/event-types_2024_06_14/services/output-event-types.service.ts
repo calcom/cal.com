@@ -75,6 +75,7 @@ type Input = Pick<
   | "eventTypeColor"
   | "seatsShowAttendees"
   | "requiresConfirmationWillBlockSlot"
+  | "eventName"
 >;
 
 @Injectable()
@@ -109,6 +110,7 @@ export class OutputEventTypesService_2024_06_14 {
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
+    const customName = databaseEventType?.eventName ?? undefined;
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(BookingFieldsSchema.parse(databaseEventType.bookingFields))
       : [];
@@ -173,6 +175,7 @@ export class OutputEventTypesService_2024_06_14 {
       hideCalendarNotes,
       color,
       seats,
+      customName,
     };
   }
 

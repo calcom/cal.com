@@ -19,6 +19,7 @@ import {
   CREATE_EVENT_TITLE_EXAMPLE,
   Host,
 } from "./create-event-type.input";
+import { IsValidCustomEventName } from "./customName.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
@@ -152,6 +153,18 @@ export class UpdateEventTypeInput_2024_06_14 {
   })
   @ValidateNested()
   seats?: Seats_2024_06_14 | Disabled_2024_06_14;
+
+  @IsOptional()
+  @IsString()
+  @IsValidCustomEventName()
+  @DocsProperty({
+    description: `Customizable event name with valid variables: 
+      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, 
+      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, 
+      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}`,
+    example: "{Event type title} between {Organiser} and {Scheduler}",
+  })
+  customName?: string;
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {

@@ -45,6 +45,7 @@ export class InputEventTypesService_2024_06_14 {
       color,
       recurrence,
       seats,
+      customName,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -70,6 +71,7 @@ export class InputEventTypesService_2024_06_14 {
       eventTypeColor: this.transformInputEventTypeColor(color),
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       ...this.transformInputSeatOptions(seats),
+      eventName: customName,
     };
 
     return eventType;
@@ -88,6 +90,7 @@ export class InputEventTypesService_2024_06_14 {
       color,
       recurrence,
       seats,
+      customName,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -118,6 +121,7 @@ export class InputEventTypesService_2024_06_14 {
         confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(color),
       ...this.transformInputSeatOptions(seats),
+      eventName: customName,
     };
 
     return eventType;
