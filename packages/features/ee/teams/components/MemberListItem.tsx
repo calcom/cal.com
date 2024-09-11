@@ -679,7 +679,6 @@ export default function MemberListItem(props: Props) {
           state={state}
           currentMember={props.team.membership.role}
           teamId={props.team.id}
-          data={data}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch } from "react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
@@ -11,7 +11,6 @@ import { useEditMode } from "@calcom/features/users/components/UserTable/EditShe
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -50,13 +49,11 @@ export function EditMemberSheet({
   dispatch,
   currentMember,
   teamId,
-  data,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
   currentMember: MembershipRole;
   teamId: number;
-  data: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"];
 }) {
   const { t } = useLocale();
   const { user } = state.editSheet;
@@ -65,8 +62,6 @@ export function EditMemberSheet({
     (state) => [state.editMode, state.setEditMode, state.setMutationLoading],
     shallow
   );
-  const [userIds, setUserIds] = useState<number[]>([]);
-  const [connectedApps, setConnectedApps] = useState<Record<number, ConnectedAppsType[]>>({});
   const [role, setRole] = useState(selectedUser.role);
   const name =
     selectedUser.name ||
@@ -104,24 +99,12 @@ export function EditMemberSheet({
     },
   });
 
-  const { data: getUserConnectedApps, isPending } = trpc.viewer.teams.getUserConnectedApps.useQuery(
-    { userIds, teamId },
-    { enabled: !!userIds.length }
-  );
+  const { data: getUserConnectedApps, isPending } = trpc.viewer.teams.getUserConnectedApps.useQuery({
+    userIds: [selectedUser.id],
+    teamId,
+  });
 
-  // To defer fetching Connected Apps
-  useEffect(() => {
-    if (data?.pages) {
-      const userIds = data.pages[data.pages.length - 1].members.map((member) => member.id);
-      setUserIds(userIds);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    if (getUserConnectedApps) {
-      setConnectedApps((prev) => ({ ...prev, ...getUserConnectedApps }));
-    }
-  }, [getUserConnectedApps]);
+  const connectedApps = getUserConnectedApps ? getUserConnectedApps[selectedUser.id] : [];
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
@@ -162,23 +145,21 @@ export function EditMemberSheet({
     });
   }
 
-  const appList =
-    connectedApps[selectedUser.id] ??
-    [].map(({ logo, name, externalId }) => {
-      return logo ? (
-        externalId ? (
-          <div className="ltr:mr-2 rtl:ml-2 ">
-            <Tooltip content={externalId}>
-              <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
-            </Tooltip>
-          </div>
-        ) : (
-          <div className="ltr:mr-2 rtl:ml-2">
+  const appList = connectedApps.map(({ logo, name, externalId }) => {
+    return logo ? (
+      externalId ? (
+        <div className="ltr:mr-2 rtl:ml-2 ">
+          <Tooltip content={externalId}>
             <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
-          </div>
-        )
-      ) : null;
-    });
+          </Tooltip>
+        </div>
+      ) : (
+        <div className="ltr:mr-2 rtl:ml-2">
+          <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
+        </div>
+      )
+    ) : null;
+  });
 
   return (
     <Sheet
@@ -246,7 +227,7 @@ export function EditMemberSheet({
                     <label className="text-subtle text-sm font-medium">{t("apps")}</label>
                   </div>
                   <div className="flex flex-1">
-                    {connectedApps?.length === 0 ? (
+                    {connectedApps.length === 0 ? (
                       <div>{t("user_has_no_app_installed")}</div>
                     ) : (
                       <div className="flex">{appList}</div>
