@@ -2287,11 +2287,7 @@
     },
     "/v2/organizations/{orgId}/attributes": {
       "get": {
-<<<<<<< HEAD
-        "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
-=======
         "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
->>>>>>> main
         "parameters": [
           {
             "name": "orgId",
@@ -2328,8 +2324,6 @@
             "content": {
               "application/json": {
                 "schema": {
-<<<<<<< HEAD
-=======
                   "$ref": "#/components/schemas/GetOrganizationAttributesOutput"
                 }
               }
@@ -2816,7 +2810,6 @@
             "content": {
               "application/json": {
                 "schema": {
->>>>>>> main
                   "$ref": "#/components/schemas/TeamWebhooksOutputResponseDto"
                 }
               }
@@ -3331,7 +3324,31 @@
     "/v2/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "loggedInUsersTz",
+            "required": true,
+            "in": "query",
+            "description": "The timezone of the logged in user represented as a string",
+            "example": "America/New_York",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarsToLoad",
+            "required": true,
+            "in": "query",
+            "description": "An array of Calendar objects representing the calendars to be loaded",
+            "example": "[{ credentialId: \"1\", externalId: \"AQgtJE7RnHEeyisVq2ENs2gAAAgEGAAAACgtJE7RnHEeyisVq2ENs2gAAAhSDAAAA\" }, { credentialId: \"2\", externalId: \"AQM7RnHEeyisVq2ENs2gAAAhFDBBBBB\" }]",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -3862,48 +3879,53 @@
         ]
       }
     },
-    "/v2/slots/reserve": {
+    "/v2/slots": {
       "post": {
-        "operationId": "SlotsController_2024_04_15_reserveSlot",
-        "parameters": [],
+        "operationId": "SlotsController_2024_09_04_reserveSlot",
+        "summary": "Reserve a slot",
+        "description": "Prevent double booking by reserving a slot.",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cookie",
+            "in": "header",
+            "description": "Contains the `uid` cookie representing the user's existing slot reservation. This cookie is optional and may not be present if the user hasn't reserved a slot yet.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReserveSlotInput_2024_04_15"
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "",
+            "description": "Slot reservation was successful. A new `uid` cookie representing the reservation will be included in the response in addition to response body containing the uid.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Slots"
-        ]
-      }
-    },
-    "/v2/slots/selected-slot": {
-      "delete": {
-        "operationId": "SlotsController_2024_04_15_deleteSelectedSlot",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
+                  "example": {
+                    "status": "success",
+                    "data": {
+                      "uid": "98765-zyxwv-43210-qwerty"
+                    }
+                  }
                 }
               }
             }
@@ -3917,45 +3939,103 @@
     "/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
-        "parameters": [],
+        "summary": "Get available slots",
+        "description": "\n      There are 3 ways to get available slots:\n      \n      1. By event type id: schema ById_2024_09_04. Example '/api/v2/slots/available?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug: schema BySlug_2024_09_04. Example '/api/v2/slots/available?eventTypeSlug=intro&start=2050-09-05&end=2050-09-06'\n\n      3. By usernames: schema ByUsernames_2024_09_04. Example '/api/v2/slots/available?usernames=alice,bob&start=2050-09-05&end=2050-09-06&duration=60'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked,\n      and \"eventTypeId\", \"eventTypeSlug\" or \"usernames\" query parameters to specify the event type or users for which available slots should be checked.\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
+            "example": "2050-09-05",
+            "schema": {}
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "\n    Time until which available slots should be checked.\n    \n    Must be in UTC timezone as ISO 8601 datestring.\n    \n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
+            "example": "2050-09-06",
+            "schema": {}
+          },
+          {
+            "name": "eventTypeSlug",
+            "required": false,
+            "in": "query",
+            "description": "The slug of the event type for which available slots should be checked.",
+            "example": "event-type-slug",
+            "schema": {}
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "The ID of the event type for which available slots should be checked.",
+            "example": "100",
+            "schema": {}
+          },
+          {
+            "name": "usernames",
+            "required": false,
+            "in": "query",
+            "description": "The usernames for which available slots should be checked separated by a comma.\n    \n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n    \n    Must contain at least 2 usernames.",
+            "example": "alice,bob",
+            "schema": {}
+          },
+          {
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "description": "Duration of the intended meeting in minutes. Defaults to 30, meaning that returned slots will be each 30 minutes long. Only available when checking slots by usernames.",
+            "example": "60",
+            "schema": {}
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
+            "example": "Europe/Rome",
+            "schema": {}
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetSlotsOutput_2024_09_04"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Slots"
-        ]
-      }
-    },
-    "/v2/slots": {
-      "post": {
-        "operationId": "SlotsController_2024_09_04_reserveSlot",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "data": {
+                      "2050-09-05": [
+                        "2050-09-05T09:00:00.000+02:00",
+                        "2050-09-05T10:00:00.000+02:00",
+                        "2050-09-05T11:00:00.000+02:00"
+                      ],
+                      "2050-09-06": [
+                        "2050-09-06T09:00:00.000+02:00",
+                        "2050-09-06T10:00:00.000+02:00",
+                        "2050-09-06T11:00:00.000+02:00"
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -3971,6 +4051,15 @@
         "operationId": "SlotsController_2024_09_04_deleteSelectedSlot",
         "parameters": [
           {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "uid",
             "required": true,
             "in": "path",
@@ -3985,7 +4074,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "example": {
+                    "status": "success"
+                  }
                 }
               }
             }
@@ -8132,8 +8224,6 @@
           "userId"
         ]
       },
-<<<<<<< HEAD
-=======
       "Attribute": {
         "type": "object",
         "properties": {
@@ -8610,7 +8700,6 @@
           "data"
         ]
       },
->>>>>>> main
       "TeamWebhookOutputDto": {
         "type": "object",
         "properties": {
@@ -8707,7 +8796,8 @@
               "MEETING_STARTED",
               "RECORDING_READY",
               "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
+              "RECORDING_TRANSCRIPTION_GENERATED",
+              "OOO_CREATED"
             ]
           },
           "active": {
@@ -8780,7 +8870,8 @@
               "MEETING_STARTED",
               "RECORDING_READY",
               "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
+              "RECORDING_TRANSCRIPTION_GENERATED",
+              "OOO_CREATED"
             ]
           },
           "active": {
@@ -10375,9 +10466,6 @@
           "rescheduleUid": {
             "type": "string"
           },
-          "recurringEventId": {
-            "type": "string"
-          },
           "timeZone": {
             "type": "string"
           },
@@ -10507,61 +10595,30 @@
           "data"
         ]
       },
-      "ReserveSlotInput_2024_04_15": {
-        "type": "object",
-        "properties": {}
-      },
-<<<<<<< HEAD
       "ReserveSlotInput_2024_09_04": {
         "type": "object",
-        "properties": {}
-      },
-      "ReserveSlotOutput_2024_09_04": {
-        "type": "object",
         "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
+          "eventTypeId": {
+            "type": "number",
+            "example": 1,
+            "description": "The ID of the event type for which booking should be reserved."
           },
-          "data": {
-            "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+          "start": {
+            "type": "string",
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
+          },
+          "reservationLength": {
+            "type": "object",
+            "example": 5,
+            "description": "The length of the reservation in minutes - for this long time noone else can book this event type at `start` time."
           }
         },
         "required": [
-          "status",
-          "data"
+          "eventTypeId",
+          "start"
         ]
       },
-      "SlotsOutput_2024_09_04": {
-        "type": "object",
-        "properties": {}
-      },
-      "GetSlotsOutput_2024_09_04": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/SlotsOutput_2024_09_04"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-=======
->>>>>>> main
       "UserWebhookOutputDto": {
         "type": "object",
         "properties": {
