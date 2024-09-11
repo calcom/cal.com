@@ -1,12 +1,38 @@
+import type { FeatureFlagRepository } from "@calcom/lib/server/repository/featureFlag";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch, showToast } from "@calcom/ui";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui";
 
-export const FlagAdminList = () => {
-  const [data] = trpc.viewer.features.list.useSuspenseQuery();
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="divide-subtle mb-8 mt-6 space-y-6">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
+
+export type FlagAdminListProps = {
+  featureFlags: Awaited<ReturnType<typeof FeatureFlagRepository.getFeatureFlags>>;
+};
+
+export const FlagAdminList = ({ featureFlags: featureFlagsProp }: FlagAdminListProps) => {
+  const { data, isPending: isPendingFeatureFlags } = trpc.viewer.features.list.useQuery(undefined, {
+    enabled: !featureFlagsProp,
+  });
+  const featureFlags = featureFlagsProp ?? data;
+  const isPending = featureFlagsProp ? false : isPendingFeatureFlags;
+
+  if (isPending) {
+    return <SkeletonLoader />;
+  }
+
   return (
     <List roundContainer noBorderTreatment>
-      {data.map((flag) => (
+      {featureFlags.map((flag) => (
         <ListItem key={flag.slug} rounded={false}>
           <div className="flex flex-1 flex-col">
             <ListItemTitle component="h3">

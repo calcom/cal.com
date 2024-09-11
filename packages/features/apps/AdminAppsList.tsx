@@ -13,6 +13,7 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { classNames as cs } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppRepository } from "@calcom/lib/server/repository/app";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -142,6 +143,7 @@ const AdminAppsList = ({
   useQueryParam = false,
   classNames,
   onSubmit = noop,
+  appsList,
   ...rest
 }: {
   baseURL: string;
@@ -154,6 +156,7 @@ const AdminAppsList = ({
   className?: string;
   useQueryParam?: boolean;
   onSubmit?: () => void;
+  appsList?: Awaited<ReturnType<typeof AppRepository.getAppsList>>;
 } & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
   return (
     <form
@@ -173,7 +176,7 @@ const AdminAppsList = ({
           verticalTabsItem: classNames?.verticalTabsItem,
           container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
         }}>
-        <AdminAppsListContainer />
+        <AdminAppsListContainer appsList={appsList} />
       </AppCategoryNavigation>
     </form>
   );
@@ -267,15 +270,21 @@ interface EditModalState extends Pick<App, "keys"> {
   appName?: string;
 }
 
-const AdminAppsListContainer = () => {
+const AdminAppsListContainer = ({
+  appsList,
+}: {
+  appsList?: Awaited<ReturnType<typeof AppRepository.getAppsList>>;
+}) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
 
-  const { data: apps, isPending } = trpc.viewer.appsRouter.listLocal.useQuery(
+  const { data: appsData, isPending: isPendingAppsData } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
-    { enabled: searchParams !== null }
+    { enabled: appsList ? false : searchParams !== null }
   );
+  const apps = appsList ?? appsData;
+  const isPending = appsList ? false : isPendingAppsData;
 
   const [modalState, setModalState] = useReducer(
     (data: EditModalState, partialData: Partial<EditModalState>) => ({ ...data, ...partialData }),
