@@ -23,16 +23,18 @@ export const getScheduleSchema = z
     rescheduleUid: z.string().optional().nullable(),
     // whether to do team event or user event
     isTeamEvent: z.boolean().optional().default(false),
-    orgSlug: z.string().optional(),
+    orgSlug: z.string().nullish(),
     teamMemberEmail: z.string().nullable().optional(),
   })
-  .transform((val) => {
-    // Need this so we can pass a single username in the query string form public API
-    if (val.usernameList) {
-      val.usernameList = Array.isArray(val.usernameList) ? val.usernameList : [val.usernameList];
-    }
-    return val;
-  })
+  .transform((val) => ({
+    ...val,
+    usernameList: val.usernameList
+      ? Array.isArray(val.usernameList)
+        ? val.usernameList
+        : [val.usernameList]
+      : undefined,
+    orgSlug: val.orgSlug ?? null,
+  }))
   .refine(
     (data) => !!data.eventTypeId || (!!data.usernameList && !!data.eventTypeSlug),
     "You need to either pass an eventTypeId OR an usernameList/eventTypeSlug combination"
