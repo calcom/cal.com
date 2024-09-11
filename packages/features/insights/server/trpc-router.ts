@@ -278,20 +278,16 @@ export const insightsRouter = router({
       const [
         countGroupedByStatus,
         totalRatingsAggregate,
-        totalNoShow,
         totalCSAT,
         lastPeriodCountGroupedByStatus,
         lastPeriodTotalRatingsAggregate,
-        lastPeriodTotalNoShow,
         lastPeriodTotalCSAT,
       ] = await Promise.all([
         EventsInsights.countGroupedByStatus(baseWhereCondition),
         EventsInsights.getAverageRating(baseWhereCondition),
-        EventsInsights.getTotalNoShows(baseWhereCondition),
         EventsInsights.getTotalCSAT(baseWhereCondition),
         EventsInsights.countGroupedByStatus(lastPeriodBaseCondition),
         EventsInsights.getAverageRating(lastPeriodBaseCondition),
-        EventsInsights.getTotalNoShows(lastPeriodBaseCondition),
         EventsInsights.getTotalCSAT(lastPeriodBaseCondition),
       ]);
 
@@ -299,6 +295,7 @@ export const insightsRouter = router({
       const totalCompleted = countGroupedByStatus["completed"];
       const totalRescheduled = countGroupedByStatus["rescheduled"];
       const totalCancelled = countGroupedByStatus["cancelled"];
+      const totalNoShow = countGroupedByStatus["noShowHost"];
 
       const averageRating = totalRatingsAggregate._avg.rating
         ? parseFloat(totalRatingsAggregate._avg.rating.toFixed(1))
@@ -307,6 +304,7 @@ export const insightsRouter = router({
       const lastPeriodBaseBookingsCount = lastPeriodCountGroupedByStatus["_all"];
       const lastPeriodTotalRescheduled = lastPeriodCountGroupedByStatus["rescheduled"];
       const lastPeriodTotalCancelled = lastPeriodCountGroupedByStatus["cancelled"];
+      const lastPeriodTotalNoShow = lastPeriodCountGroupedByStatus["noShowHost"];
 
       const lastPeriodAverageRating = lastPeriodTotalRatingsAggregate._avg.rating
         ? parseFloat(lastPeriodTotalRatingsAggregate._avg.rating.toFixed(1))
@@ -542,16 +540,13 @@ export const insightsRouter = router({
           },
         };
 
-        const promisesResult = await Promise.all([
-          EventsInsights.countGroupedByStatus(whereConditional),
-          EventsInsights.getTotalNoShows(whereConditional),
-        ]);
+        const promisesResult = await Promise.all([EventsInsights.countGroupedByStatus(whereConditional)]);
 
         EventData["Created"] = promisesResult[0]["_all"];
         EventData["Completed"] = promisesResult[0]["completed"];
         EventData["Rescheduled"] = promisesResult[0]["rescheduled"];
         EventData["Cancelled"] = promisesResult[0]["cancelled"];
-        EventData["No-Show (Host)"] = promisesResult[1];
+        EventData["No-Show (Host)"] = promisesResult[0]["noShowHost"];
         result.push(EventData);
       }
 
