@@ -14,10 +14,10 @@ export const platformPlans: IndividualPlatformPlan[] = [
     pricing: 99,
     includes: [
       "Up to 100 bookings a month",
+      "$0.99 overage beyond",
       "Community Support",
       "Cal Atoms (React Library)",
       "Platform APIs",
-      "Admin APIs",
     ],
   },
   {
@@ -26,9 +26,9 @@ export const platformPlans: IndividualPlatformPlan[] = [
       "Your essential package with sophisticated support, hosted platform APIs, Cal.com Atoms (React components) and more.",
     pricing: 299,
     includes: [
-      "Up to 500 bookings a month. $0,60 overage beyond",
       "Everything in Starter",
-      "Cal Atoms (React Library)",
+      "Up to 500 bookings a month",
+      "$0.60 overage beyond",
       "User Management and Analytics",
       "Technical Account Manager and Onboarding Support",
     ],
@@ -39,8 +39,9 @@ export const platformPlans: IndividualPlatformPlan[] = [
       "The best all-in-one plan to scale your company. Everything you need to provide scheduling for the masses, without breaking things.",
     pricing: 2499,
     includes: [
-      "Up to 5000 bookings a month. $0.50 overage beyond",
       "Everything in Essentials",
+      "Up to 5000 bookings a month",
+      "$0.50 overage beyond",
       "Credential import from other platforms",
       "Compliance Check SOC2, HIPAA",
       "One-on-one developer calls",
@@ -51,7 +52,18 @@ export const platformPlans: IndividualPlatformPlan[] = [
   },
   {
     plan: "Enterprise",
-    description: "Everything in Scale with generous volume discounts beyond 50,000 bookings a month.",
-    includes: ["Beyond 50,000 bookings a month", "Everything in Scale", "Up to 50% discount on overages"],
+    description:
+      "Enterprise is perfect for institutions that focus on control, security and everything beyond.",
+    includes: [
+      "Everything in Scale",
+      "No overages",
+      "Credential import from other platforms",
+      "Compliance Check SOC2, HIPAA",
+      "One-on-one developer calls",
+      "Help with Credentials Verification (Zoom, Google App Store)",
+      "Expedited features and integrations",
+      "SLA (99.999% uptime)",
+      "Volume Discount",
+    ],
   },
 ];

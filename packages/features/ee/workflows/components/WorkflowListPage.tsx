@@ -116,7 +116,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                   {!(lastItem && lastItem.id === workflow.id) && (
                     <ArrowButton onClick={() => moveWorkflow(index, 1)} arrowDirection="down" />
                   )}
-                  <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 sm:px-6">
+                  <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 transition sm:px-6">
                     <Link href={`/workflows/${workflow.id}`} className="flex-grow cursor-pointer">
                       <div className="rtl:space-x-reverse">
                         <div className="flex">

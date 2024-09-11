@@ -8,6 +8,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
+import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
@@ -16,6 +17,7 @@ type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
   getUserEventGroups?: typeof import("./getUserEventGroups.handler").getUserEventGroups;
   getEventTypesFromGroup?: typeof import("./getEventTypesFromGroup.handler").getEventTypesFromGroup;
+  getTeamAndEventTypeOptions?: typeof import("./getTeamAndEventTypeOptions.handler").getTeamAndEventTypeOptions;
   list?: typeof import("./list.handler").listHandler;
   listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
   create?: typeof import("./create.handler").createHandler;
@@ -95,6 +97,32 @@ export const eventTypesRouter = router({
       const timer = logP(`getEventTypesFromGroup(${ctx.user.id})`);
 
       const result = await UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup({
+        ctx,
+        input,
+      });
+
+      timer();
+
+      return result;
+    }),
+
+  getTeamAndEventTypeOptions: authedProcedure
+    .input(ZGetTeamAndEventTypeOptionsSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions) {
+        UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions = await import(
+          "./getTeamAndEventTypeOptions.handler"
+        ).then((mod) => mod.getTeamAndEventTypeOptions);
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions) {
+        throw new Error("Failed to load handler");
+      }
+
+      const timer = logP(`getTeamAndEventTypeOptions(${ctx.user.id})`);
+
+      const result = await UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions({
         ctx,
         input,
       });

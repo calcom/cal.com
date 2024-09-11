@@ -8,7 +8,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.23";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {

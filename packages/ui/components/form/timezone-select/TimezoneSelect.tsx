@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";

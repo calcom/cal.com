@@ -1,3 +1,5 @@
+"use client";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, type ReactNode } from "react";
 
@@ -69,6 +71,7 @@ export type CalProviderProps = {
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
   version?: API_VERSIONS_ENUM;
+  organizationId?: number;
 } & i18nProps;
 
 /**
@@ -95,6 +98,7 @@ export function CalProvider({
   language = "en",
   onTimezoneChange,
   version = VERSION_2024_06_14,
+  organizationId,
 }: CalProviderProps) {
   useEffect(() => {
     http.setVersionHeader(version);
@@ -116,7 +120,8 @@ export function CalProvider({
         options={options}
         version={version}
         labels={labels as Record<translationKeys, string>}
-        language={language}>
+        language={language}
+        organizationId={organizationId}>
         {children}
       </BaseCalProvider>
     </QueryClientProvider>

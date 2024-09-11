@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -6,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, showToast, Switch } from "@calcom/ui";
 
-interface ICalendarSwitchProps {
+export type ICalendarSwitchProps = {
   title: string;
   externalId: string;
   type: string;
@@ -15,7 +17,7 @@ interface ICalendarSwitchProps {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
-}
+};
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);

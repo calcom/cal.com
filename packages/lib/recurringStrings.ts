@@ -10,7 +10,7 @@ export const getRecurringFreq = ({
   t: TFunction;
   recurringEvent: RecurringEvent;
 }): string => {
-  if (recurringEvent.interval && recurringEvent.freq) {
+  if (recurringEvent.interval && recurringEvent.freq >= 0) {
     return t("every_for_freq", {
       freq: `${recurringEvent.interval > 1 ? recurringEvent.interval : ""} ${t(
         Frequency[recurringEvent.freq].toString().toLowerCase(),
