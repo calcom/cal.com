@@ -16,7 +16,7 @@ const Page = async () => {
     const featureFlags = await FeatureFlagRepository.getFeatureFlags();
     return (
       <SettingsHeader title="Feature Flags" description="Here you can toggle your Cal.com instance features.">
-        <FlagListingView featureFlags={featureFlags} />
+        <FlagListingView ssrProps={{ featureFlags }} />
       </SettingsHeader>
     );
   } catch (error) {

@@ -16,15 +16,17 @@ const SkeletonLoader = () => {
 };
 
 export type FlagAdminListProps = {
-  featureFlags: Awaited<ReturnType<typeof FeatureFlagRepository.getFeatureFlags>>;
+  ssrProps?: {
+    featureFlags?: Awaited<ReturnType<typeof FeatureFlagRepository.getFeatureFlags>>;
+  };
 };
 
-export const FlagAdminList = ({ featureFlags: featureFlagsProp }: FlagAdminListProps) => {
+export const FlagAdminList = ({ ssrProps }: FlagAdminListProps) => {
   const { data, isPending: isPendingFeatureFlags } = trpc.viewer.features.list.useQuery(undefined, {
-    enabled: !featureFlagsProp,
+    enabled: !ssrProps?.featureFlags,
   });
-  const featureFlags = featureFlagsProp ?? data;
-  const isPending = featureFlagsProp ? false : isPendingFeatureFlags;
+  const featureFlags = ssrProps?.featureFlags ?? data;
+  const isPending = ssrProps?.featureFlags ? false : isPendingFeatureFlags;
 
   if (isPending) {
     return <SkeletonLoader />;
@@ -32,7 +34,7 @@ export const FlagAdminList = ({ featureFlags: featureFlagsProp }: FlagAdminListP
 
   return (
     <List roundContainer noBorderTreatment>
-      {featureFlags.map((flag) => (
+      {featureFlags?.map((flag) => (
         <ListItem key={flag.slug} rounded={false}>
           <div className="flex flex-1 flex-col">
             <ListItemTitle component="h3">

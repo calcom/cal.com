@@ -5,6 +5,8 @@ import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { TListLocalInputSchema } from "@calcom/trpc/server/routers/viewer/apps/listLocal.schema";
 
+import type { Prisma } from ".prisma/client";
+
 export class AppRepository {
   static async seedApp(dirName: string, keys?: any) {
     const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
