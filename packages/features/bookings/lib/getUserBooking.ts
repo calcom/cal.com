@@ -32,11 +32,6 @@ const getUserBooking = async (uid: string) => {
           username: true,
           timeZone: true,
           avatarUrl: true,
-          movedToProfile: {
-            select: {
-              organizationId: true,
-            },
-          },
         },
       },
       attendees: {
