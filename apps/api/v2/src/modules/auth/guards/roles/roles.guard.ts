@@ -101,23 +101,23 @@ export class RolesGuard implements CanActivate {
         // if the user is admin or owner of org, allow request because org > team
         if (`ORG_${orgMembership.role}` === "ORG_ADMIN" || `ORG_${orgMembership.role}` === "ORG_OWNER") {
           canAccess = true;
-        }
+        } else {
+          if (!teamMembership) {
+            this.logger.log(
+              `User (${user.id}) is not part of the team (${teamId}) and/or, is not an admin nor an owner of the organization (${orgId}).`
+            );
+            throw new ForbiddenException(
+              "User is not part of the team and/or, is not an admin nor an owner of the organization."
+            );
+          }
 
-        if (!teamMembership) {
-          this.logger.log(
-            `User (${user.id}) is not part of the team (${teamId}) and/or, is not an admin nor an owner of the organization (${orgId}).`
-          );
-          throw new ForbiddenException(
-            "User is not part of the team and/or, is not an admin nor an owner of the organization."
-          );
+          // if user is not admin nor an owner of org, and is part of the team, then check user team membership role
+          canAccess = hasMinimumRole({
+            checkRole: `TEAM_${teamMembership.role}`,
+            minimumRole: allowedRole,
+            roles: TEAM_ROLES,
+          });
         }
-
-        // if user is not admin nor an owner of org, and is part of the team, then check user team membership role
-        canAccess = hasMinimumRole({
-          checkRole: `TEAM_${teamMembership.role}`,
-          minimumRole: allowedRole,
-          roles: TEAM_ROLES,
-        });
       }
 
       // if allowed role is a ORG ROLE, check org membersip role
@@ -129,7 +129,7 @@ export class RolesGuard implements CanActivate {
         });
       }
     }
-    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 3600);
+    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
     return canAccess;
   }
 }

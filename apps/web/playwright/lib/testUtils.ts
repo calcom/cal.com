@@ -1,11 +1,10 @@
-import type { Frame, Page } from "@playwright/test";
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
@@ -15,12 +14,7 @@ import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
-import { test } from "./fixtures";
-
-export function todo(title: string) {
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(title, noop);
-}
+import { loadJSON } from "./loadJSON";
 
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
@@ -31,6 +25,14 @@ export const testName = "Test Testson";
 
 export const teamEventTitle = "Team Event - 30min";
 export const teamEventSlug = "team-event-30min";
+
+export const IS_STRIPE_ENABLED = !!(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.STRIPE_PRIVATE_KEY &&
+  process.env.PAYMENT_FEE_FIXED &&
+  process.env.PAYMENT_FEE_PERCENTAGE
+);
 
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
@@ -96,7 +98,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
   // Let current month dates fully render.
-  await page.click('[data-testid="incrementMonth"]');
+  await page.getByTestId("incrementMonth").click();
 
   // Waiting for full month increment
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
@@ -106,7 +108,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) 
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  await page.click('[data-testid="incrementMonth"]');
+  await page.getByTestId("incrementMonth").click();
 
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
@@ -148,7 +150,7 @@ export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: s
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
-  const localeMap = await import(localeModule);
+  const localeMap = loadJSON(localeModule);
   return (message: string) => {
     if (message in localeMap) return localeMap[message];
     throw "No locale found for the given entry message";
@@ -210,7 +212,8 @@ export async function installAppleCalendar(page: Page) {
 }
 
 export async function getInviteLink(page: Page) {
-  const response = await page.waitForResponse("**/api/trpc/teams/createInvite?batch=1");
+  const response = await page.waitForResponse("/api/trpc/teams/createInvite?batch=1");
+  expect(response.status()).toBe(200);
   const json = await response.json();
   return json[0].result.data.json.inviteLink as string;
 }
@@ -352,20 +355,51 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.click(".SubmitButton--complete-Shimmer");
 }
 
+export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: string }) {
+  return new Promise<{ success: boolean; url: string }>(async (resolve) => {
+    const onRequestFailed = (request: PlaywrightRequest) => {
+      const failedToLoadUrl = request.url();
+      console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+      resolve({ success: false, url: failedToLoadUrl });
+    };
+    page.on("requestfailed", onRequestFailed);
+    try {
+      await page.goto(url);
+    } catch (e) {}
+    page.off("requestfailed", onRequestFailed);
+    resolve({ success: true, url: page.url() });
+  });
+}
+
+/**
+ * Within this function's callback if a non-org domain is opened, it is considered an org domain identfied from `orgSlug`
+ */
 export async function doOnOrgDomain(
   { orgSlug, page }: { orgSlug: string | null; page: Page },
-  callback: ({ page }: { page: Page }) => Promise<void>
+  callback: ({
+    page,
+  }: {
+    page: Page;
+    goToUrlWithErrorHandling: (url: string) => ReturnType<typeof goToUrlWithErrorHandling>;
+  }) => Promise<any>
 ) {
   if (!orgSlug) {
     throw new Error("orgSlug is not available");
   }
+
   page.setExtraHTTPHeaders({
     "x-cal-force-slug": orgSlug,
   });
-  await callback({ page });
+  const callbackResult = await callback({
+    page,
+    goToUrlWithErrorHandling: (url: string) => {
+      return goToUrlWithErrorHandling({ page, url });
+    },
+  });
   await page.setExtraHTTPHeaders({
     "x-cal-force-slug": "",
   });
+  return callbackResult;
 }
 
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.

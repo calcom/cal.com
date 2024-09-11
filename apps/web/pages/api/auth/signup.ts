@@ -3,6 +3,7 @@ import type { NextApiResponse } from "next";
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
 import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
@@ -10,17 +11,20 @@ import logger from "@calcom/lib/logger";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
-function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
+async function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
   const { token } = signupSchema
     .pick({
       token: true,
     })
     .parse(req.body);
 
-  // Stil allow signups if there is a team invite
+  // Still allow signups if there is a team invite
   if (token) return;
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
+
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || signupDisabled) {
     throw new HttpError({
       statusCode: 403,
       message: "Signup is disabled",
@@ -47,7 +51,7 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
     });
 
     ensureReqIsPost(req);
-    ensureSignupIsEnabled(req);
+    await ensureSignupIsEnabled(req);
 
     /**
      * Im not sure its worth merging these two handlers. They are different enough to be separate.

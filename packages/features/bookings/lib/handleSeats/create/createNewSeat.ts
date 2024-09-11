@@ -138,11 +138,12 @@ const createNewSeat = async (
       newSeat,
       !!eventType.seatsShowAttendees,
       isHostConfirmationEmailsDisabled,
-      isAttendeeConfirmationEmailDisabled
+      isAttendeeConfirmationEmailDisabled,
+      eventType.metadata
     );
   }
   const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials });
+  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps);
   await eventManager.updateCalendarAttendees(evt, seatedBooking);
 
   const foundBooking = await findBookingQuery(seatedBooking.id);

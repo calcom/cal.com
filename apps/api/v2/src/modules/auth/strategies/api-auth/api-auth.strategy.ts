@@ -1,16 +1,20 @@
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { AuthMethods } from "@/lib/enums/auth-methods";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
+import { getToken } from "next-auth/jwt";
 
-import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
+import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
@@ -20,19 +24,91 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
     private readonly userRepository: UsersRepository,
-    private readonly apiKeyRepository: ApiKeyRepository
+    private readonly apiKeyRepository: ApiKeyRepository,
+    private readonly oauthRepository: OAuthClientRepository,
+    private readonly profilesRepository: ProfilesRepository
   ) {
     super();
   }
 
-  async authenticate(request: Request) {
-    const authString = request.get("Authorization")?.replace("Bearer ", "");
-    if (!authString) {
-      return this.error(new UnauthorizedException("No Authorization header provided"));
+  async authenticate(request: Request & { authMethod: AuthMethods }) {
+    try {
+      const { params } = request;
+      const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
+      const oAuthClientId = params.clientId || request.get(X_CAL_CLIENT_ID);
+      const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
+
+      if (oAuthClientId && oAuthClientSecret) {
+        request.authMethod = AuthMethods["OAUTH_CLIENT"];
+        return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret);
+      }
+
+      if (bearerToken) {
+        const requestOrigin = request.get("Origin");
+        request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+          ? AuthMethods["API_KEY"]
+          : AuthMethods["ACCESS_TOKEN"];
+        return await this.authenticateBearerToken(bearerToken, requestOrigin);
+      }
+
+      const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
+      const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
+
+      if (nextAuthToken) {
+        request.authMethod = AuthMethods["NEXT_AUTH"];
+        return await this.authenticateNextAuth(nextAuthToken);
+      }
+
+      throw new UnauthorizedException(
+        "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers"
+      );
+    } catch (err) {
+      if (err instanceof Error) {
+        return this.error(err);
+      }
+      return this.error(
+        new InternalServerErrorException("An error occurred while authenticating the request")
+      );
+    }
+  }
+
+  async authenticateNextAuth(token: { email?: string | null }) {
+    const user = await this.nextAuthStrategy(token);
+    return this.success(user);
+  }
+
+  async authenticateOAuthClient(oAuthClientId: string, oAuthClientSecret: string) {
+    const user = await this.oAuthClientStrategy(oAuthClientId, oAuthClientSecret);
+    return this.success(user);
+  }
+
+  async oAuthClientStrategy(oAuthClientId: string, oAuthClientSecret: string) {
+    const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
+
+    if (!client) {
+      throw new UnauthorizedException(`Client with ID ${oAuthClientId} not found`);
     }
 
-    const requestOrigin = request.get("Origin");
+    if (client.secret !== oAuthClientSecret) {
+      throw new UnauthorizedException("Invalid client secret");
+    }
 
+    const platformCreatorId = await this.profilesRepository.getPlatformOwnerUserId(client.organizationId);
+
+    if (!platformCreatorId) {
+      throw new UnauthorizedException("No owner ID found for this OAuth client");
+    }
+
+    const user = await this.userRepository.findByIdWithProfile(platformCreatorId);
+
+    if (!user) {
+      throw new UnauthorizedException("No user associated with the provided OAuth client");
+    }
+
+    return user;
+  }
+
+  async authenticateBearerToken(authString: string, requestOrigin: string | undefined) {
     try {
       const user = isApiKey(authString, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
         ? await this.apiKeyStrategy(authString)
@@ -104,6 +180,19 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     }
 
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(ownerId);
+    return user;
+  }
+
+  async nextAuthStrategy(token: { email?: string | null }) {
+    if (!token.email) {
+      throw new UnauthorizedException("Email not found in the authentication token.");
+    }
+
+    const user = await this.userRepository.findByEmailWithProfile(token.email);
+    if (!user) {
+      throw new UnauthorizedException("User associated with the authentication token email not found.");
+    }
+
     return user;
   }
 }

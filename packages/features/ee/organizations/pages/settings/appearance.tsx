@@ -80,7 +80,7 @@ const OrgAppearanceView = ({
         form={themeForm}
         handleSubmit={(value) => {
           mutation.mutate({
-            theme: value.theme ?? null,
+            theme: value.theme === "" ? null : value.theme,
           });
         }}>
         <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">

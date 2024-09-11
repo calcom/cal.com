@@ -15,6 +15,12 @@ export class GetEventTypesQuery_2024_06_14 {
   usernames?: string[];
 }
 
+export class GetTeamEventTypesQuery_2024_06_14 {
+  @IsString()
+  @IsOptional()
+  eventSlug?: string;
+}
+
 function TransformUsernames() {
   return Transform(({ value }) => {
     if (typeof value === "string") {

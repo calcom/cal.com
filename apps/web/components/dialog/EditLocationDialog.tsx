@@ -15,16 +15,15 @@ import {
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
+import CheckboxField from "@calcom/features/form/components/CheckboxField";
+import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
+import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-
-import CheckboxField from "@components/ui/form/CheckboxField";
-import type { LocationOption } from "@components/ui/form/LocationSelect";
-import LocationSelect from "@components/ui/form/LocationSelect";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -244,9 +243,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               </h3>
               {!booking && (
                 <p className="text-default text-sm">
-                  <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
-                    Can&apos;t find the right video app? Visit our
-                    <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+                  <Trans i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
+                    Can&apos;t find the right conferencing app? Visit our
+                    <Link
+                      className="cursor-pointer text-blue-500 underline"
+                      href="/apps/categories/conferencing">
                       App Store
                     </Link>
                     .
@@ -336,7 +337,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   });
                   if (booking) {
                     locationOptions.map((location) =>
-                      location.options.filter((l) => !["phone", "attendeeInPerson"].includes(l.value))
+                      location.options.filter(
+                        (l) => !["phone", "attendeeInPerson", "somewhereElse"].includes(l.value)
+                      )
                     );
                   }
                   return (
@@ -354,9 +357,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             onChange={(val) => {
                               if (val) {
                                 locationFormMethods.setValue("locationType", val.value);
-                                if (!!val.credentialId) {
+                                if (typeof val.credentialId === "number" && val.credentialId >= 0) {
                                   locationFormMethods.setValue("credentialId", val.credentialId);
-                                  locationFormMethods.setValue("teamName", val.teamName);
+                                  locationFormMethods.setValue("teamName", val.teamName ?? "");
                                 }
 
                                 locationFormMethods.unregister([

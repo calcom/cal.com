@@ -140,7 +140,7 @@ vi.mock("@calcom/trpc/react", () => ({
         submitRating: {
           useMutation: vi.fn(),
         },
-        noShow: {
+        markHostAsNoShow: {
           useMutation: vi.fn(),
         },
       },

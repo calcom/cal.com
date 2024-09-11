@@ -1,4 +1,5 @@
 import type { Workflow } from "@prisma/client";
+import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
@@ -25,10 +26,12 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import {
   BookingStatus,
   MembershipRole,
@@ -40,6 +43,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
+import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
+
 const log = logger.getSubLogger({ prefix: ["workflow"] });
 
 export const bookingSelect = {
@@ -48,6 +53,7 @@ export const bookingSelect = {
   endTime: true,
   title: true,
   uid: true,
+  metadata: true,
   attendees: {
     select: {
       name: true,
@@ -60,6 +66,21 @@ export const bookingSelect = {
     select: {
       slug: true,
       id: true,
+      schedulingType: true,
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+              destinationCalendar: {
+                select: {
+                  primaryEmail: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
   user: {
@@ -81,21 +102,80 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     },
   });
 
-  if (!verifiedEmail) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
+  if (verifiedEmail) {
+    if (teamId) {
+      if (!verifiedEmail.teamId) {
+        await prisma.verifiedEmail.update({
+          where: {
+            id: verifiedEmail.id,
+          },
+          data: {
+            teamId,
+          },
+        });
+      } else if (verifiedEmail.teamId !== teamId) {
+        await prisma.verifiedEmail.create({
+          data: {
+            email,
+            userId,
+            teamId,
+          },
+        });
+      }
+    }
+    return;
+  }
+
+  const userEmail = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      email,
+    },
+  });
+
+  if (userEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
   }
 
   if (teamId) {
-    if (!verifiedEmail.teamId) {
-      await prisma.verifiedEmail.update({
-        where: {
-          id: verifiedEmail.id,
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      select: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
         },
-        data: {
-          teamId,
-        },
-      });
-    } else if (verifiedEmail.teamId !== teamId) {
+      },
+    });
+
+    if (!team) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    }
+
+    const isTeamMember = team.members.some((member) => member.userId === userId);
+
+    if (!isTeamMember) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
+    }
+
+    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+
+    if (teamMemberEmail) {
       await prisma.verifiedEmail.create({
         data: {
           email,
@@ -103,8 +183,11 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
           teamId,
         },
       });
+      return;
     }
   }
+
+  throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
 };
 
 export function getSender(
@@ -666,7 +749,10 @@ export async function scheduleBookingReminders(
         language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
           slug: booking.eventType?.slug,
+          schedulingType: booking.eventType?.schedulingType,
+          hosts: booking.eventType?.hosts,
         },
+        metadata: booking.metadata,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
@@ -678,6 +764,16 @@ export async function scheduleBookingReminders(
         switch (step.action) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = [bookingInfo.organizer?.email];
+            const schedulingType = bookingInfo.eventType.schedulingType;
+            const hosts = bookingInfo.eventType.hosts
+              ?.filter((host) => bookingInfo.attendees.some((attendee) => attendee.email === host.user.email))
+              .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+            if (
+              hosts &&
+              (schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE)
+            ) {
+              sendTo = sendTo.concat(hosts);
+            }
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
@@ -685,6 +781,7 @@ export async function scheduleBookingReminders(
           case WorkflowActions.EMAIL_ADDRESS:
             await verifyEmailSender(step.sendTo || "", userId, teamId);
             sendTo = [step.sendTo || ""];
+            break;
         }
         await scheduleEmailReminder({
           evt: bookingInfo,
@@ -804,3 +901,11 @@ export async function getAllWorkflowsFromEventType(
 
   return allWorkflows;
 }
+
+export const getEventTypeWorkflows = async (
+  userId: number,
+  eventTypeId: number
+): Promise<z.infer<typeof ZWorkflows>> => {
+  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
+  return rawEventType?.workflows;
+};

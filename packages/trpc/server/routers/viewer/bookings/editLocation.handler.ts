@@ -7,6 +7,7 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -131,7 +132,10 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         metadata.entryPoints = results[0].updatedEvent?.entryPoints;
       }
       try {
-        await sendLocationChangeEmails({ ...evt, additionalInformation: metadata });
+        await sendLocationChangeEmails(
+          { ...evt, additionalInformation: metadata },
+          booking?.eventType?.metadata as EventTypeMetadata
+        );
       } catch (error) {
         console.log("Error sending LocationChangeEmails");
       }

@@ -4,11 +4,10 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import getOrganizationIdOfBooking from "@calcom/lib/getOrganizationIdOfBooking";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 
@@ -17,17 +16,35 @@ export default function Type() {
   return null;
 }
 
+const querySchema = z.object({
+  uid: z.string(),
+  seatReferenceUid: z.string().optional(),
+  rescheduledBy: z.string().optional(),
+  allowRescheduleForCancelledBooking: z
+    .string()
+    .transform((value) => value === "true")
+    .optional(),
+});
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
 
-  const { uid: bookingUid, seatReferenceUid } = z
-    .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
-    .parse(context.query);
+  const {
+    uid: bookingUid,
+    seatReferenceUid,
+    rescheduledBy,
+    /**
+     * This is for the case of request-reschedule where the booking is cancelled
+     */
+    allowRescheduleForCancelledBooking,
+  } = querySchema.parse(context.query);
 
+  const coepFlag = context.query["flag.coep"];
   const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
     prisma,
     bookingUid
   );
+
   const booking = await prisma.booking.findUnique({
     where: {
       uid,
@@ -44,8 +61,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           team: {
             select: {
-              slug: true,
               parentId: true,
+              slug: true,
             },
           },
           seatsPerTimeSlot: true,
@@ -68,16 +85,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       dynamicEventSlugRef: true,
       dynamicGroupSlugRef: true,
-      user: {
-        include: {
-          movedToProfile: {
-            select: {
-              username: true,
-              organizationId: true,
-            },
-          },
-        },
-      },
+      user: true,
       status: true,
     },
   });
@@ -91,7 +99,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+  if (
+    !allowRescheduleForCancelledBooking &&
+    (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED)
+  ) {
     return {
       redirect: {
         destination: `/booking/${uid}`,
@@ -138,35 +149,36 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
-  const eventPage = `${
-    eventType.team
-      ? `team/${eventType.team.slug}`
-      : dynamicEventSlugRef
-      ? booking.dynamicGroupSlugRef
-      : booking.user?.movedToProfile?.username || booking.user?.username || "rick" /* This shouldn't happen */
-  }/${eventType?.slug}`;
-  const destinationUrl = new URLSearchParams();
+  const enrichedBookingUser = booking.user
+    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    : null;
 
-  destinationUrl.set("rescheduleUid", seatReferenceUid || bookingUid);
+  const eventUrl = await buildEventUrlFromBooking({
+    eventType,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
+    profileEnrichedBookingUser: enrichedBookingUser,
+  });
 
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req);
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
+  const destinationUrlSearchParams = new URLSearchParams();
 
-  let redirectDestinationUrl = `/${eventPage}?${destinationUrl.toString()}${
-    eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
-  }`;
+  destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
 
-  // redirecting to org domain if  the req is of non org domain but the booking is associated with team or user profile that belongs to org
-  if ((eventType.team?.parentId || booking.user?.movedToProfile?.organizationId) && !isOrgContext) {
-    const redirectBaseUrl = await getBookerBaseUrl(getOrganizationIdOfBooking(booking));
-    redirectDestinationUrl = `${redirectBaseUrl}/${eventPage}?${destinationUrl.toString()}${
-      eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
-    }`;
+  // TODO: I think we should just forward all the query params here including coep flag
+  if (coepFlag) {
+    destinationUrlSearchParams.set("flag.coep", coepFlag as string);
+  }
+
+  const currentUserEmail = rescheduledBy ?? session?.user?.email;
+
+  if (currentUserEmail) {
+    destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
   }
 
   return {
     redirect: {
-      destination: redirectDestinationUrl,
+      destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${
+        eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
+      }`,
       permanent: false,
     },
   };

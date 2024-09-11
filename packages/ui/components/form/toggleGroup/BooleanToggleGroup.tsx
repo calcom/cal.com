@@ -1,3 +1,5 @@
+"use client";
+
 import { useId } from "@radix-ui/react-id";
 import { Root as ToggleGroupPrimitive, Item as ToggleGroupItemPrimitive } from "@radix-ui/react-toggle-group";
 import { useState } from "react";
@@ -54,7 +56,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   }
   const commonClass = classNames(
     getVariantStyles(variant).commonClass,
-    "inline-flex items-center justify-center rounded text-sm font-medium  leading-4",
+    "inline-flex items-center justify-center rounded text-sm font-medium leading-4 transition",
     disabled && "cursor-not-allowed"
   );
 

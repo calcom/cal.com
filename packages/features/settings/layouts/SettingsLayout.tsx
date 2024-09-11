@@ -1,3 +1,5 @@
+"use client";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -58,7 +60,6 @@ const tabs: VerticalTabItemProps[] = [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
       { name: "api_keys", href: "/settings/developer/api-keys" },
-      // TODO: hide this if they have an organisation
       { name: "admin_api", href: "/settings/organizations/admin-api" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
@@ -157,9 +158,6 @@ const useTabs = () => {
   const processTabsMemod = useMemo(() => {
     const processedTabs = tabs.map((tab) => {
       if (tab.href === "/settings/my-account") {
-        if (!!session.data?.user?.org?.id) {
-          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
-        }
         return {
           ...tab,
           name: user?.name || "my_account",
@@ -170,6 +168,16 @@ const useTabs = () => {
         const newArray = (tab?.children ?? []).filter(
           (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
         );
+
+        // TODO: figure out feature flag as it doesnt cause a re-render of the component when loaded.
+        // You have to refresh the page to see the changes.
+        if (true) {
+          newArray.splice(4, 0, {
+            name: "attributes",
+            href: "/settings/organizations/attributes",
+          });
+        }
+
         return {
           ...tab,
           children: newArray,
@@ -184,6 +192,11 @@ const useTabs = () => {
       ) {
         const filtered = tab?.children?.filter(
           (childTab) => childTab.href !== "/settings/security/two-factor-auth"
+        );
+        return { ...tab, children: filtered };
+      } else if (tab.href === "/settings/developer") {
+        const filtered = tab?.children?.filter(
+          (childTab) => isOrgAdminOrOwner || childTab.name !== "admin_api"
         );
         return { ...tab, children: filtered };
       }
@@ -207,7 +220,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
+      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
@@ -273,7 +286,7 @@ const TeamListCollapsible = () => {
                 }>
                 <CollapsibleTrigger asChild>
                   <div
-                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
+                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                     onClick={() =>
                       setTeamMenuState([
                         ...teamMenuState,
@@ -474,7 +487,7 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
@@ -508,7 +521,7 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
@@ -547,7 +560,7 @@ const SettingsSidebarContainer = ({
                               }>
                               <CollapsibleTrigger asChild>
                                 <div
-                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                                   onClick={() =>
                                     setOtherTeamMenuState([
                                       ...otherTeamMenuState,
@@ -635,10 +648,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export default function SettingsLayout({
-  children,
-  ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+export type SettingsLayoutProps = {
+  children: React.ReactNode;
+  hideHeader?: boolean;
+} & ComponentProps<typeof Shell>;
+
+export default function SettingsLayout({ children, hideHeader, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
@@ -682,7 +697,7 @@ export default function SettingsLayout({
       }>
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
-          <ShellHeader />
+          {!hideHeader && <ShellHeader />}
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
           </ErrorBoundary>

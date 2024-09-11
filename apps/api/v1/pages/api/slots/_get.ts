@@ -3,6 +3,7 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -17,8 +18,15 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+let isColdStart = true;
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    if (isColdStart && IS_PRODUCTION) {
+      console.log("Cold start of /v1/slots detected");
+      isColdStart = false;
+    }
+
     const { usernameList, ...rest } = req.query;
     let slugs = usernameList;
     if (!Array.isArray(usernameList)) {

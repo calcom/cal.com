@@ -279,7 +279,7 @@ const BookerComponent = ({
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle`,
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
             `${customClassNames?.bookerContainer}`
           )}>
           <AnimatePresence>
@@ -439,7 +439,7 @@ const BookerComponent = ({
           }}
         />
 
-        {bookerState !== "booking" && event.data?.isInstantEvent && (
+        {bookerState !== "booking" && event.data?.showInstantEventConnectNowModal && (
           <div
             className={classNames(
               "animate-fade-in-up  z-40 my-2 opacity-0",

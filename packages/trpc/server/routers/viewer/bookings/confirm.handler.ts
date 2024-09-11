@@ -8,7 +8,7 @@ import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -18,6 +18,7 @@ import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -25,12 +26,11 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TConfirmInputSchema } from "./confirm.schema";
-import type { BookingsProcedureContext } from "./util";
 
 type ConfirmOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-  } & BookingsProcedureContext;
+  };
   input: TConfirmInputSchema;
 };
 
@@ -75,6 +75,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           team: {
             select: {
               parentId: true,
+              members: true,
             },
           },
           workflows: {
@@ -122,7 +123,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
-    if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
+    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
+    const isTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
+    if (eventType && !eventType.users.find((user) => booking.userId === user.id) && !isTeamAdminOrOwner) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
     }
   }
@@ -366,7 +371,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    await sendDeclinedEmails(evt);
+    await sendDeclinedEmails(evt, booking.eventType?.metadata as EventTypeMetadata);
 
     const teamId = await getTeamIdFromEventType({
       eventType: {
@@ -394,7 +399,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       currency: booking.eventType?.currency,
       length: booking.eventType?.length,
     };
-    const webhookData = {
+    const webhookData: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
       bookingId,

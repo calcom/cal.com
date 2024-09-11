@@ -25,7 +25,7 @@ interface Option {
   subtitle: string;
 }
 
-const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
+export const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
   const { label, subtitle } = props.data;
   return (
     <components.SingleValue {...props} className="flex space-x-1">
@@ -34,7 +34,7 @@ const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
   );
 };
 
-const OptionComponent = ({ ...props }: OptionProps<Option>) => {
+export const OptionComponent = ({ ...props }: OptionProps<Option>) => {
   const { label } = props.data;
   return (
     <components.Option {...props}>

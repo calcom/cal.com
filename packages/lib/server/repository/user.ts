@@ -30,6 +30,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   logoUrl: true,
   organizationSettings: true,
   isOrganization: true,
+  isPlatform: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -67,6 +68,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   locked: true,
   movedToProfileId: true,
   metadata: true,
+  isPlatformManaged: true,
 });
 
 export class UserRepository {
@@ -236,12 +238,12 @@ export class UserRepository {
     };
   }
 
-  static async findById({ id }: { id: number }) {
+  static async findById({ id, select }: { id: number; select?: Prisma.UserSelect }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
       },
-      select: userSelect,
+      select: { ...userSelect, ...select },
     });
 
     if (!user) {
@@ -311,10 +313,11 @@ export class UserRepository {
   }
 
   /**
-   * Use this method if you don't directly has the profileId.
-   * It can happen in two cases:
+   * Use this method instead of `enrichUserWithTheProfile` if you don't directly have the profileId.
+   * It can happen in following cases:
    * 1. While dealing with a User that hasn't been added to any organization yet and thus have no Profile entries.
    * 2. While dealing with a User that has been moved to a Profile i.e. he was invited to an organization when he was an existing user.
+   * 3. We haven't added profileId to all the entities, so they aren't aware of which profile they belong to. So, we still mostly use this function to enrich the user with its profile.
    */
   static async enrichUserWithItsProfile<T extends { id: number; username: string | null }>({
     user,
@@ -329,6 +332,15 @@ export class UserRepository {
     const profiles = await ProfileRepository.findManyForUser({ id: user.id });
     if (profiles.length) {
       const profile = profiles[0];
+      // platform org user doesn't need org profile
+      if (profile?.organization?.isPlatform) {
+        return {
+          ...user,
+          nonProfileUsername: user.username,
+          profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+        };
+      }
+
       return {
         ...user,
         username: profile.username,
@@ -493,6 +505,32 @@ export class UserRepository {
     });
   }
 
+  static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
+    const membershipQuery = {
+      members: {
+        some: {
+          userId,
+          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      },
+    };
+    const teams = await prisma.team.findMany({
+      where: {
+        id: teamId,
+        OR: [
+          membershipQuery,
+          {
+            parent: { ...membershipQuery },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!teams.length;
+  }
+
   static async getUserAdminTeams(userId: number): Promise<number[]> {
     const user = await prisma.user.findFirst({
       where: {
@@ -514,5 +552,13 @@ export class UserRepository {
       teamIds.push(team.teamId);
     }
     return teamIds;
+  }
+
+  static async adminFindById(userId: number) {
+    return await prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+    });
   }
 }

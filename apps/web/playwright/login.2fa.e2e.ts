@@ -15,7 +15,7 @@ test.describe.configure({ mode: "parallel" });
 // a test to logout requires both a succesfull login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
 test.describe("2FA Tests", async () => {
-  test.afterAll(async ({ users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
   test("should allow a user to enable 2FA and login using 2FA", async ({ page, users }) => {

@@ -280,7 +280,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
                 <div className="flex-1 px-2">
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p className="text-emphasis mt-1" data-testid="current-username">
+                  <p className="text-emphasis mt-1 break-all" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
@@ -288,7 +288,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis">{inputUsernameValue}</p>
+                  <p className="text-emphasis break-all">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>

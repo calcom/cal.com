@@ -15,6 +15,7 @@ import type { TCreateInputSchema } from "./create.schema";
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
   id: SessionUser["id"];
+  role: SessionUser["role"];
   organizationId: SessionUser["organizationId"];
   organization: {
     isOrgAdmin: SessionUser["organization"]["isOrgAdmin"];
@@ -34,7 +35,7 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, locations: inputLocations, ...rest } = input;
+  const { schedulingType, teamId, metadata, locations: inputLocations, scheduleId, ...rest } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
@@ -50,6 +51,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     // Only connecting the current user for non-managed event types and non team event types
     users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,
+    schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
   };
 
   if (teamId && schedulingType) {
@@ -61,7 +63,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
+    const isSystemAdmin = ctx.user.role === "ADMIN";
+
+    if (
+      !isSystemAdmin &&
+      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin))
+    ) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }

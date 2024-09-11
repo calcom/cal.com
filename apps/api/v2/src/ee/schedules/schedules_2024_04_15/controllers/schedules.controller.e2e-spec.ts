@@ -66,6 +66,37 @@ describe("Schedules Endpoints", () => {
       expect(user).toBeDefined();
     });
 
+    it("should not create an invalid schedule", async () => {
+      const scheduleName = "schedule-name";
+      const scheduleTimeZone = "Europe/Rome";
+      const isDefault = true;
+
+      const body = {
+        name: scheduleName,
+        timeZone: scheduleTimeZone,
+        isDefault,
+        availabilities: [
+          {
+            days: ["Monday"],
+            endTime: "11:15",
+            startTime: "10:00",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/schedules")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+        .send(body)
+        .expect(400)
+        .then(async (response) => {
+          expect(response.body.status).toEqual("error");
+          expect(response.body.error.message).toEqual(
+            "Invalid datestring format. Expected format(ISO8061): 2025-04-12T13:17:56.324Z. Received: 11:15"
+          );
+        });
+    });
+
     it("should create a default schedule", async () => {
       const scheduleName = "schedule-name";
       const scheduleTimeZone = "Europe/Rome";

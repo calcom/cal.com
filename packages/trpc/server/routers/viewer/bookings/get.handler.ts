@@ -1,11 +1,9 @@
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import getOrganizationIdOfBooking from "@calcom/lib/getOrganizationIdOfBooking";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { BookingStatus } from "@calcom/prisma/enums";
+import { MembershipRole, type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -181,17 +179,20 @@ export async function getBookings({
         metadata: true,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
+        eventTypeColor: true,
+        schedulingType: true,
         team: {
           select: {
             id: true,
             name: true,
-            parentId: true,
+            members: true,
           },
         },
       },
     },
     status: true,
     paid: true,
+
     payment: {
       select: {
         paymentOption: true,
@@ -205,11 +206,6 @@ export async function getBookings({
         id: true,
         name: true,
         email: true,
-        movedToProfile: {
-          select: {
-            organizationId: true,
-          },
-        },
       },
     },
     rescheduled: true,
@@ -388,7 +384,7 @@ export async function getBookings({
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
-  const bookingsPromise = (
+  const bookings = (
     await prisma.booking.findMany({
       where: {
         id: {
@@ -399,26 +395,30 @@ export async function getBookings({
       // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
       orderBy,
     })
-  ).map(async (booking) => {
+  ).map((booking) => {
     // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
     if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
       booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
     }
-    const bookerBaseUrl = await getBookerBaseUrl(getOrganizationIdOfBooking(booking));
+
+    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
+    const isUserTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
     return {
       ...booking,
       eventType: {
         ...booking.eventType,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+        eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
         price: booking.eventType?.price || 0,
         currency: booking.eventType?.currency || "usd",
         metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
       },
-      bookerBaseUrl,
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
+      isUserTeamAdminOrOwner,
     };
   });
-  const bookings = await Promise.all(bookingsPromise);
   return { bookings, recurringInfo };
 }

@@ -1,6 +1,8 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 
+import { MembershipRole } from "@calcom/prisma/client";
+
 @Injectable()
 export class MembershipsRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
@@ -46,5 +48,18 @@ export class MembershipsRepository {
     });
 
     return !!adminMembership;
+  }
+
+  async createMembership(teamId: number, userId: number, role: MembershipRole, accepted: boolean) {
+    const membership = await this.dbRead.prisma.membership.create({
+      data: {
+        role,
+        teamId,
+        userId,
+        accepted,
+      },
+    });
+
+    return membership;
   }
 }
