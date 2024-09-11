@@ -763,6 +763,33 @@ export function expectSuccessfulBookingRescheduledEmails({
   );
 }
 
+export function expectSuccesfulLocationChangeEmails({
+  emails,
+  organizer,
+  location,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  location: {
+    href: string;
+    linkText: string;
+  };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      titleTag: "location_changed_event_type_subject",
+      links: [
+        {
+          href: location.href,
+          text: location.linkText,
+        },
+      ],
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+}
+
 export function expectAwaitingPaymentEmails({
   emails,
   booker,

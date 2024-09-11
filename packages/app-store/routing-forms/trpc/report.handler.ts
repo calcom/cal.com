@@ -7,8 +7,9 @@ import { TRPCError } from "@calcom/trpc/server";
 
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
 import { getSerializableForm } from "../lib/getSerializableForm";
+import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../lib/reportingUtils";
 import type { FormResponse } from "../types/types";
-import type { zodNonRouterField, zodFieldView } from "../zod";
+import type { zodFieldView } from "../zod";
 import type { TReportInputSchema } from "./report.schema";
 
 interface ReportHandlerOptions {
@@ -16,44 +17,6 @@ interface ReportHandlerOptions {
     prisma: PrismaClient;
   };
   input: TReportInputSchema;
-}
-
-type Field = z.infer<typeof zodNonRouterField>;
-
-function ensureStringOrStringArray(value: string | number | (string | number)[]): string | string[] {
-  if (typeof value === "string") {
-    return value;
-  } else if (value instanceof Array) {
-    return value.map((v) => v.toString());
-  }
-  return [value.toString()];
-}
-
-function getLabelsFromOptionIds({
-  options,
-  optionIds,
-}: {
-  options: NonNullable<Field["options"]>;
-  optionIds: string | string[];
-}) {
-  if (optionIds instanceof Array) {
-    const labels = optionIds.map((optionId) => {
-      const foundOption = options.find((option) => option.id === optionId);
-      // It would mean that the optionId is actually a label which is why it isn't matching any option id.
-      // Fallback to optionId(i.e. label) which was the case with legacy options
-      if (!foundOption) {
-        return optionId;
-      }
-      return foundOption.label;
-    });
-    return labels;
-  } else {
-    const foundOption = options.find((option) => option.id === optionIds);
-    if (!foundOption) {
-      return [optionIds];
-    }
-    return [foundOption.label];
-  }
 }
 
 export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {

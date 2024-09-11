@@ -1,9 +1,16 @@
 import UsersAddView from "@calcom/features/ee/users/pages/users-add-view";
+import { Meta } from "@calcom/ui";
 
-import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";
+import { getLayout } from "@components/auth/layouts/AdminLayout";
 
-const Page = UsersAddView as CalPageWrapper;
+const Page = () => (
+  <>
+    <Meta title="Add new user" description="Here you can add a new user." />
+    <UsersAddView />
+  </>
+);
 Page.PageWrapper = PageWrapper;
+Page.getLayout = getLayout;
 
 export default Page;

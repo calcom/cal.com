@@ -5,53 +5,27 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import type { RawDataInput } from "./raw-data.schema";
 
-interface ITimeRange {
-  start: Dayjs;
-  end: Dayjs;
-}
-
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    let data;
-    if (!!where["OR"]) {
-      const queries = [];
-      const existingWhereOr = where["OR"];
-      const { OR: throwAwayOr, ...whereWithoutOr } = where;
-      for (let i = 0; i < existingWhereOr.length; i++) {
-        const newWhere = {
-          ...whereWithoutOr,
-          ...existingWhereOr[i],
-        };
-        queries.push(
-          prisma.bookingTimeStatus.groupBy({
-            where: newWhere,
-            by: ["timeStatus"],
-            _count: {
-              _all: true,
-            },
-          })
-        );
-      }
-
-      const results = await Promise.all(queries);
-      data = results.flat();
-    } else {
-      data = await prisma.bookingTimeStatus.groupBy({
-        where,
-        by: ["timeStatus"],
-        _count: {
-          _all: true,
-        },
-      });
-    }
+    const data = await prisma.bookingTimeStatus.groupBy({
+      where,
+      by: ["timeStatus", "noShowHost"],
+      _count: {
+        _all: true,
+      },
+    });
 
     return data.reduce(
       (aggregate: { [x: string]: number }, item) => {
-        if (typeof item.timeStatus === "string") {
-          aggregate[item.timeStatus] += item._count._all;
-          aggregate["_all"] += item._count._all;
+        if (typeof item.timeStatus === "string" && item) {
+          aggregate[item.timeStatus] += item?._count?._all ?? 0;
+          aggregate["_all"] += item?._count?._all ?? 0;
+
+          if (item.noShowHost) {
+            aggregate["noShowHost"] += item?._count?._all ?? 0;
+          }
         }
         return aggregate;
       },
@@ -59,6 +33,7 @@ class EventsInsights {
         completed: 0,
         rescheduled: 0,
         cancelled: 0,
+        noShowHost: 0,
         _all: 0,
       }
     );
@@ -74,15 +49,6 @@ class EventsInsights {
         rating: {
           not: null, // Exclude null ratings
         },
-      },
-    });
-  };
-
-  static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        noShowHost: true,
       },
     });
   };
@@ -203,9 +169,11 @@ class EventsInsights {
       return 0;
     }
     const result = (differenceActualVsPrevious * 100) / previousMetric;
+
     if (isNaN(result) || !isFinite(result)) {
       return 0;
     }
+
     return result;
   };
 
@@ -335,12 +303,13 @@ class EventsInsights {
             userId: {
               in: userIdsFromOrg,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
           {
             teamId: {
               in: [organizationId, ...teamsFromOrg.map((t) => t.id)],
             },
+            isTeamBooking: true,
           },
         ],
       };
@@ -362,12 +331,13 @@ class EventsInsights {
         OR: [
           {
             teamId,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeam,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ],
       };

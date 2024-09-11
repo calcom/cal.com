@@ -19,6 +19,7 @@ export class GetAvailableSlotsInput {
 
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
   usernameList?: string[];
 
   @IsBoolean()

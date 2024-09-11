@@ -1982,6 +1982,54 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/create-phone-call": {
+      "post": {
+        "operationId": "OrganizationsEventTypesController_createPhoneCall",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePhoneCallInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePhoneCallOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Event Types"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/event-types": {
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamsEventTypes",
@@ -3324,7 +3372,31 @@
     "/v2/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "loggedInUsersTz",
+            "required": true,
+            "in": "query",
+            "description": "The timezone of the logged in user represented as a string",
+            "example": "America/New_York",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarsToLoad",
+            "required": true,
+            "in": "query",
+            "description": "An array of Calendar objects representing the calendars to be loaded",
+            "example": "[{ credentialId: \"1\", externalId: \"AQgtJE7RnHEeyisVq2ENs2gAAAgEGAAAACgtJE7RnHEeyisVq2ENs2gAAAhSDAAAA\" }, { credentialId: \"2\", externalId: \"AQM7RnHEeyisVq2ENs2gAAAhFDBBBBB\" }]",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -7794,6 +7866,90 @@
           "data"
         ]
       },
+      "CreatePhoneCallInput": {
+        "type": "object",
+        "properties": {
+          "yourPhoneNumber": {
+            "type": "string",
+            "pattern": "/^\\+[1-9]\\d{1,14}$/",
+            "description": "Your phone number"
+          },
+          "numberToCall": {
+            "type": "string",
+            "pattern": "/^\\+[1-9]\\d{1,14}$/",
+            "description": "Number to call"
+          },
+          "calApiKey": {
+            "type": "string",
+            "description": "CAL API Key"
+          },
+          "enabled": {
+            "type": "object",
+            "default": true,
+            "description": "Enabled status"
+          },
+          "templateType": {
+            "default": "CUSTOM_TEMPLATE",
+            "enum": [
+              "CHECK_IN_APPOINTMENT",
+              "CUSTOM_TEMPLATE"
+            ],
+            "type": "string",
+            "description": "Template type"
+          },
+          "schedulerName": {
+            "type": "string",
+            "description": "Scheduler name"
+          },
+          "guestName": {
+            "type": "string",
+            "description": "Guest name"
+          },
+          "guestEmail": {
+            "type": "string",
+            "description": "Guest email"
+          },
+          "guestCompany": {
+            "type": "string",
+            "description": "Guest company"
+          },
+          "beginMessage": {
+            "type": "string",
+            "description": "Begin message"
+          },
+          "generalPrompt": {
+            "type": "string",
+            "description": "General prompt"
+          }
+        },
+        "required": [
+          "yourPhoneNumber",
+          "numberToCall",
+          "calApiKey",
+          "enabled",
+          "templateType"
+        ]
+      },
+      "CreatePhoneCallOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Data"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "GetTeamEventTypesOutput": {
         "type": "object",
         "properties": {
@@ -8636,7 +8792,8 @@
               "MEETING_STARTED",
               "RECORDING_READY",
               "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
+              "RECORDING_TRANSCRIPTION_GENERATED",
+              "OOO_CREATED"
             ]
           },
           "active": {
@@ -8709,7 +8866,8 @@
               "MEETING_STARTED",
               "RECORDING_READY",
               "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
+              "RECORDING_TRANSCRIPTION_GENERATED",
+              "OOO_CREATED"
             ]
           },
           "active": {
@@ -9313,6 +9471,25 @@
           "status"
         ]
       },
+      "ProviderVerifyClientData": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientId",
+          "organizationId",
+          "name"
+        ]
+      },
       "ProviderVerifyClientOutput": {
         "type": "object",
         "properties": {
@@ -9323,10 +9500,14 @@
               "success",
               "error"
             ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProviderVerifyClientData"
           }
         },
         "required": [
-          "status"
+          "status",
+          "data"
         ]
       },
       "ProviderVerifyAccessTokenOutput": {
@@ -10279,9 +10460,6 @@
             "type": "string"
           },
           "rescheduleUid": {
-            "type": "string"
-          },
-          "recurringEventId": {
             "type": "string"
           },
           "timeZone": {
