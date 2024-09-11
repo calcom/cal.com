@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
@@ -9,7 +9,9 @@ import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditShe
 import { SheetFooterControls } from "@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/features/users/components/UserTable/EditSheet/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppCategories } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -24,10 +26,11 @@ import {
   ToggleGroup,
   Form,
   showToast,
+  Loader,
 } from "@calcom/ui";
 
 import { updateRoleInCache } from "./MemberChangeRoleModal";
-import type { Action, ConnectedAppsType, State, User } from "./MemberListItem";
+import type { Action, State, User } from "./MemberListItem";
 
 const formSchema = z.object({
   role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),
@@ -35,18 +38,25 @@ const formSchema = z.object({
 
 type FormSchema = z.infer<typeof formSchema>;
 
+type ConnectedAppsType = {
+  name: string | null;
+  logo: string | null;
+  externalId: string | null;
+  app: { slug: string; categories: AppCategories[] } | null;
+};
+
 export function EditMemberSheet({
   state,
   dispatch,
-  connectedApps,
   currentMember,
   teamId,
+  data,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
-  connectedApps: ConnectedAppsType[];
   currentMember: MembershipRole;
   teamId: number;
+  data: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"];
 }) {
   const { t } = useLocale();
   const { user } = state.editSheet;
@@ -55,6 +65,8 @@ export function EditMemberSheet({
     (state) => [state.editMode, state.setEditMode, state.setMutationLoading],
     shallow
   );
+  const [userIds, setUserIds] = useState<number[]>([]);
+  const [connectedApps, setConnectedApps] = useState<Record<number, ConnectedAppsType[]>>({});
   const [role, setRole] = useState(selectedUser.role);
   const name =
     selectedUser.name ||
@@ -92,6 +104,25 @@ export function EditMemberSheet({
     },
   });
 
+  const { data: getUserConnectedApps, isPending } = trpc.viewer.teams.getUserConnectedApps.useQuery(
+    { userIds, teamId },
+    { enabled: !!userIds.length }
+  );
+
+  // To defer fetching Connected Apps
+  useEffect(() => {
+    if (data?.pages) {
+      const userIds = data.pages[data.pages.length - 1].members.map((member) => member.id);
+      setUserIds(userIds);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (getUserConnectedApps) {
+      setConnectedApps((prev) => ({ ...prev, ...getUserConnectedApps }));
+    }
+  }, [getUserConnectedApps]);
+
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
       await utils.viewer.teams.lazyLoadMembers.cancel();
@@ -118,6 +149,7 @@ export function EditMemberSheet({
     },
     async onError(err) {
       showToast(err.message, "error");
+      setMutationLoading(false);
     },
   });
 
@@ -130,21 +162,23 @@ export function EditMemberSheet({
     });
   }
 
-  const appList = connectedApps?.map(({ logo, name, externalId }) => {
-    return logo ? (
-      externalId ? (
-        <div className="ltr:mr-2 rtl:ml-2 ">
-          <Tooltip content={externalId}>
+  const appList =
+    connectedApps[selectedUser.id] ??
+    [].map(({ logo, name, externalId }) => {
+      return logo ? (
+        externalId ? (
+          <div className="ltr:mr-2 rtl:ml-2 ">
+            <Tooltip content={externalId}>
+              <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
+            </Tooltip>
+          </div>
+        ) : (
+          <div className="ltr:mr-2 rtl:ml-2">
             <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
-          </Tooltip>
-        </div>
-      ) : (
-        <div className="ltr:mr-2 rtl:ml-2">
-          <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
-        </div>
-      )
-    ) : null;
-  });
+          </div>
+        )
+      ) : null;
+    });
 
   return (
     <Sheet
@@ -154,74 +188,80 @@ export function EditMemberSheet({
         dispatch({ type: "CLOSE_MODAL" });
       }}>
       <SheetContent className="bg-muted">
-        <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
-          <SheetHeader showCloseButton={false} className="w-full">
-            <div className="border-sublte bg-default w-full rounded-xl border p-4">
-              <div
-                className="block w-full rounded-lg ring-1 ring-[#0000000F]"
-                style={{
-                  background: "linear-gradient(to top right, var(--cal-bg-emphasis), var(--cal-bg))",
-                  height: "110px",
-                }}
-              />
-              <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
-                <Avatar asChild size="lg" alt={`${name} avatar`} imageSrc={selectedUser.avatarUrl} />
+        {!isPending ? (
+          <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
+            <SheetHeader showCloseButton={false} className="w-full">
+              <div className="border-sublte bg-default w-full rounded-xl border p-4">
+                <div
+                  className="block w-full rounded-lg ring-1 ring-[#0000000F]"
+                  style={{
+                    background: "linear-gradient(to top right, var(--cal-bg-emphasis), var(--cal-bg))",
+                    height: "110px",
+                  }}
+                />
+                <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
+                  <Avatar asChild size="lg" alt={`${name} avatar`} imageSrc={selectedUser.avatarUrl} />
+                </div>
+                <Skeleton as="p" waitForTranslation={false}>
+                  <h2 className="text-emphasis font-sans text-2xl font-semibold">
+                    {name || "Nameless User"}
+                  </h2>
+                </Skeleton>
+                <Skeleton as="p" waitForTranslation={false}>
+                  <p className="text-subtle max-h-[3em] overflow-hidden text-ellipsis text-sm font-normal">
+                    {selectedUser.bio ? selectedUser?.bio : t("user_has_no_bio")}
+                  </p>
+                </Skeleton>
               </div>
-              <Skeleton as="p" waitForTranslation={false}>
-                <h2 className="text-emphasis font-sans text-2xl font-semibold">{name || "Nameless User"}</h2>
-              </Skeleton>
-              <Skeleton as="p" waitForTranslation={false}>
-                <p className="text-subtle max-h-[3em] overflow-hidden text-ellipsis text-sm font-normal">
-                  {selectedUser.bio ? selectedUser?.bio : t("user_has_no_bio")}
-                </p>
-              </Skeleton>
-            </div>
-          </SheetHeader>
-          <SheetBody className="flex flex-col space-y-4 p-4">
-            <div className="mb-4 flex flex-col space-y-4">
-              <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
-              <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
-              <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
-              {!editMode ? (
-                <DisplayInfo label={t("role")} value={[role]} icon="fingerprint" />
-              ) : (
+            </SheetHeader>
+            <SheetBody className="flex flex-col space-y-4 p-4">
+              <div className="mb-4 flex flex-col space-y-4">
+                <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
+                <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
+                <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
+                {!editMode ? (
+                  <DisplayInfo label={t("role")} value={[role]} icon="fingerprint" />
+                ) : (
+                  <div className="flex items-center gap-6">
+                    <div className="flex w-[110px] items-center gap-2">
+                      <Icon className="h-4 w-4" name="fingerprint" />
+                      <label className="text-sm font-medium">{t("role")}</label>
+                    </div>
+                    <div className="flex flex-1">
+                      <ToggleGroup
+                        isFullWidth
+                        defaultValue={role}
+                        value={form.watch("role")}
+                        options={options}
+                        onValueChange={(value: FormSchema["role"]) => {
+                          form.setValue("role", value);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-6">
                   <div className="flex w-[110px] items-center gap-2">
-                    <Icon className="h-4 w-4" name="fingerprint" />
-                    <label className="text-sm font-medium">{t("role")}</label>
+                    <Icon className="text-subtle h-4 w-4" name="grid-3x3" />
+                    <label className="text-subtle text-sm font-medium">{t("apps")}</label>
                   </div>
                   <div className="flex flex-1">
-                    <ToggleGroup
-                      isFullWidth
-                      defaultValue={role}
-                      value={form.watch("role")}
-                      options={options}
-                      onValueChange={(value: FormSchema["role"]) => {
-                        form.setValue("role", value);
-                      }}
-                    />
+                    {connectedApps?.length === 0 ? (
+                      <div>{t("user_has_no_app_installed")}</div>
+                    ) : (
+                      <div className="flex">{appList}</div>
+                    )}
                   </div>
                 </div>
-              )}
-              <div className="flex items-center gap-6">
-                <div className="flex w-[110px] items-center gap-2">
-                  <Icon className="text-subtle h-4 w-4" name="grid-3x3" />
-                  <label className="text-subtle text-sm font-medium">{t("apps")}</label>
-                </div>
-                <div className="flex flex-1">
-                  {connectedApps?.length === 0 ? (
-                    <div>{t("user_has_no_app_installed")}</div>
-                  ) : (
-                    <div className="flex">{appList}</div>
-                  )}
-                </div>
               </div>
-            </div>
-          </SheetBody>
-          <SheetFooter className="mt-auto">
-            <SheetFooterControls />
-          </SheetFooter>
-        </Form>
+            </SheetBody>
+            <SheetFooter className="mt-auto">
+              <SheetFooterControls />
+            </SheetFooter>
+          </Form>
+        ) : (
+          <Loader />
+        )}
       </SheetContent>
     </Sheet>
   );

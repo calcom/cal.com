@@ -4,11 +4,11 @@ import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useReducer, useState, useEffect, useCallback } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { AppCategories } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -31,25 +31,17 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
-import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitationModal";
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
-import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["getMinimal"]>;
   isOrgAdminOrOwner: boolean | undefined;
+  setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
 }
 
 export type User = RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
-
-export type ConnectedAppsType = {
-  name: string | null;
-  logo: string | null;
-  externalId: string | null;
-  app: { slug: string; categories: AppCategories[] } | null;
-};
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
@@ -63,21 +55,13 @@ type Payload = {
 export type State = {
   deleteMember: Payload;
   impersonateMember: Payload;
-  inviteMember: Payload;
   editSheet: Payload;
   teamAvailability: Payload;
-  inviteLinkSetting: Payload;
 };
 
 export type Action =
   | {
-      type:
-        | "SET_DELETE_ID"
-        | "SET_IMPERSONATE_ID"
-        | "INVITE_MEMBER"
-        | "EDIT_USER_SHEET"
-        | "TEAM_AVAILABILITY"
-        | "INVITE_LINK_SETTING";
+      type: "SET_DELETE_ID" | "SET_IMPERSONATE_ID" | "EDIT_USER_SHEET" | "TEAM_AVAILABILITY";
       payload: Payload;
     }
   | {
@@ -91,16 +75,10 @@ const initialState: State = {
   impersonateMember: {
     showModal: false,
   },
-  inviteMember: {
-    showModal: false,
-  },
   editSheet: {
     showModal: false,
   },
   teamAvailability: {
-    showModal: false,
-  },
-  inviteLinkSetting: {
     showModal: false,
   },
 };
@@ -111,12 +89,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, deleteMember: action.payload };
     case "SET_IMPERSONATE_ID":
       return { ...state, impersonateMember: action.payload };
-    case "INVITE_MEMBER":
-      return { ...state, inviteMember: action.payload };
     case "EDIT_USER_SHEET":
       return { ...state, editSheet: action.payload };
-    case "INVITE_LINK_SETTING":
-      return { ...state, inviteLinkSetting: action.payload };
     case "TEAM_AVAILABILITY":
       return { ...state, teamAvailability: action.payload };
     case "CLOSE_MODAL":
@@ -124,10 +98,8 @@ function reducer(state: State, action: Action): State {
         ...state,
         deleteMember: { showModal: false },
         impersonateMember: { showModal: false },
-        inviteMember: { showModal: false },
         editSheet: { showModal: false },
         teamAvailability: { showModal: false },
-        inviteLinkSetting: { showModal: false },
       };
     default:
       return state;
@@ -142,13 +114,6 @@ export default function MemberListItem(props: Props) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const [connectedApps, setConnectedApps] = useState<Record<number, ConnectedAppsType[]>>({});
-  const [userIds, setUserIds] = useState<number[]>([]);
-
-  const { data: getUserConnectedApps } = trpc.viewer.teams.getUserConnectedApps.useQuery(
-    { userIds, teamId: props.team.id },
-    { enabled: !!userIds.length }
-  );
 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
     {
@@ -165,20 +130,6 @@ export default function MemberListItem(props: Props) {
       staleTime: 0,
     }
   );
-
-  // To defer fetching Connected Apps
-  useEffect(() => {
-    if (data?.pages) {
-      const userIds = data.pages[data.pages.length - 1].members.map((member) => member.id);
-      setUserIds(userIds);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    if (getUserConnectedApps) {
-      setConnectedApps((prev) => ({ ...prev, ...getUserConnectedApps }));
-    }
-  }, [getUserConnectedApps]);
 
   const removeMemberFromCache = ({
     utils,
@@ -635,14 +586,7 @@ export default function MemberListItem(props: Props) {
               StartIcon="plus"
               size="sm"
               className="rounded-md"
-              onClick={() =>
-                dispatch({
-                  type: "INVITE_MEMBER",
-                  payload: {
-                    showModal: true,
-                  },
-                })
-              }
+              onClick={() => props.setShowMemberInvitationModal(true)}
               data-testid="new-member-button">
               {t("add")}
             </Button>
@@ -716,54 +660,6 @@ export default function MemberListItem(props: Props) {
           </DialogContent>
         </Dialog>
       )}
-      {state.inviteMember.showModal && (
-        <MemberInvitationModalWithoutMembers
-          teamId={props.team.id}
-          token={props.team.inviteToken?.token}
-          hideInvitationModal={() => {
-            dispatch({
-              type: "CLOSE_MODAL",
-            });
-          }}
-          showMemberInvitationModal={true}
-          onSettingsOpen={() => {
-            dispatch({
-              type: "INVITE_MEMBER",
-              payload: {
-                showModal: false,
-              },
-            });
-            dispatch({
-              type: "INVITE_LINK_SETTING",
-              payload: {
-                showModal: true,
-              },
-            });
-          }}
-        />
-      )}
-      {state.inviteLinkSetting.showModal && props.team.inviteToken && (
-        <InviteLinkSettingsModal
-          isOpen={true}
-          teamId={props.team.id}
-          token={props.team.inviteToken.token}
-          expiresInDays={props.team.inviteToken.expiresInDays || undefined}
-          onExit={() => {
-            dispatch({
-              type: "INVITE_MEMBER",
-              payload: {
-                showModal: true,
-              },
-            });
-            dispatch({
-              type: "INVITE_LINK_SETTING",
-              payload: {
-                showModal: false,
-              },
-            });
-          }}
-        />
-      )}
       {state.teamAvailability.showModal && (
         <Dialog
           open={true}
@@ -781,9 +677,9 @@ export default function MemberListItem(props: Props) {
         <EditMemberSheet
           dispatch={dispatch}
           state={state}
-          connectedApps={connectedApps[state.editSheet?.user?.id || 0] ?? []}
           currentMember={props.team.membership.role}
           teamId={props.team.id}
+          data={data}
         />
       )}
     </div>

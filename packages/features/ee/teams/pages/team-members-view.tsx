@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -12,13 +12,16 @@ import { Meta } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
+import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
+import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
 
 const MembersView = () => {
   const { t } = useLocale();
-
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
   const router = useRouter();
   const session = useSession();
   const org = session?.data?.user.org;
@@ -54,6 +57,10 @@ const MembersView = () => {
 
   const isOrgAdminOrOwner = org?.role === MembershipRole.OWNER || org?.role === MembershipRole.ADMIN;
 
+  const hideInvitationModal = () => {
+    setShowMemberInvitationModal(false);
+  };
+
   return (
     <>
       <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
@@ -80,8 +87,34 @@ const MembersView = () => {
 
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && team && (
               <>
-                <MemberListItem team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
+                <MemberListItem
+                  team={team}
+                  isOrgAdminOrOwner={isOrgAdminOrOwner}
+                  setShowMemberInvitationModal={setShowMemberInvitationModal}
+                />
               </>
+            )}
+            {showMemberInvitationModal && team && team.id && (
+              <MemberInvitationModalWithoutMembers
+                hideInvitationModal={hideInvitationModal}
+                showMemberInvitationModal={showMemberInvitationModal}
+                teamId={team.id}
+                token={team.inviteToken?.token}
+                onSettingsOpen={() => setInviteLinkSettingsModal(true)}
+              />
+            )}
+
+            {showInviteLinkSettingsModal && team?.inviteToken && team.id && (
+              <InviteLinkSettingsModal
+                isOpen={showInviteLinkSettingsModal}
+                teamId={team.id}
+                token={team.inviteToken.token}
+                expiresInDays={team.inviteToken.expiresInDays || undefined}
+                onExit={() => {
+                  setInviteLinkSettingsModal(false);
+                  setShowMemberInvitationModal(true);
+                }}
+              />
             )}
 
             {team && session.data && (
