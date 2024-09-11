@@ -67,8 +67,8 @@ export class PaymentService implements IAbstractPaymentService {
   async collectCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: number,
-    paymentOption: PaymentOption,
-    _bookerEmail: string
+    _bookerEmail: string,
+    paymentOption: PaymentOption
   ): Promise<Payment> {
     try {
       const booking = await prisma.booking.findFirst({
