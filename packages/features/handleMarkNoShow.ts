@@ -95,7 +95,6 @@ const handleMarkNoShow = async ({
       await webhooks.sendPayload({
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
-        // @ts-expect-error payload is too booking specific, we need to refactor this
         bookingUid,
         bookingId,
       });
