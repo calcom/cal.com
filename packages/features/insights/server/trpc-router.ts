@@ -540,13 +540,13 @@ export const insightsRouter = router({
           },
         };
 
-        const promisesResult = await Promise.all([EventsInsights.countGroupedByStatus(whereConditional)]);
+        const countsByStatus = await EventsInsights.countGroupedByStatus(whereConditional);
 
-        EventData["Created"] = promisesResult[0]["_all"];
-        EventData["Completed"] = promisesResult[0]["completed"];
-        EventData["Rescheduled"] = promisesResult[0]["rescheduled"];
-        EventData["Cancelled"] = promisesResult[0]["cancelled"];
-        EventData["No-Show (Host)"] = promisesResult[0]["noShowHost"];
+        EventData["Created"] = countsByStatus["_all"];
+        EventData["Completed"] = countsByStatus["completed"];
+        EventData["Rescheduled"] = countsByStatus["rescheduled"];
+        EventData["Cancelled"] = countsByStatus["cancelled"];
+        EventData["No-Show (Host)"] = countsByStatus["noShowHost"];
         result.push(EventData);
       }
 
