@@ -6,6 +6,7 @@ import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
+import type { PageProps as EventTypePageProps } from "@lib/event-types/[type]/getServerSideProps";
 
 import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
 
@@ -20,5 +21,5 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const getData = withAppDirSsr(getServerSideProps);
-
-export default WithLayout({ getLayout: null, getData, Page: EventTypePageWrapper })<"P">;
+const Page = (props: EventTypePageProps) => <EventTypePageWrapper {...props} isAppDir={true} />;
+export default WithLayout({ getLayout: null, getData, Page })<"P">;

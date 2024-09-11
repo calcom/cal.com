@@ -1,6 +1,7 @@
 "use client";
 
 import { EventType } from "@calcom/features/eventtypes/components/EventType";
+import { EventTypeAppDir } from "@calcom/features/eventtypes/components/EventTypeAppDir";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 
 /* eslint-disable @typescript-eslint/no-empty-function */
@@ -13,6 +14,7 @@ import type { PageProps } from "@lib/event-types/[type]/getServerSideProps";
 const EventTypePageWrapper: React.FC<PageProps> & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
+  isAppDir?: boolean;
 } = (props) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
@@ -35,7 +37,7 @@ const EventTypePageWrapper: React.FC<PageProps> & {
     allActiveWorkflows: workflows,
   };
 
-  return <EventType {...propsData} />;
+  return props.isAppDir ? <EventTypeAppDir {...propsData} /> : <EventType {...propsData} />;
 };
 
 export default EventTypePageWrapper;
