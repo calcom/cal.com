@@ -8,6 +8,7 @@ import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDial
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { ApiKeysRepository } from "@calcom/lib/server/repository/apiKeys";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -31,10 +32,20 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 
-const ApiKeysView = () => {
+type PageProps = {
+  ssrProps?: {
+    apiKeysList?: Awaited<ReturnType<typeof ApiKeysRepository.getApiKeys>>;
+  };
+};
+
+const ApiKeysView = ({ ssrProps }: PageProps) => {
   const { t } = useLocale();
 
-  const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
+  const { data: apiKeysList, isPending: isPendingList } = trpc.viewer.apiKeys.list.useQuery(undefined, {
+    enabled: !ssrProps?.apiKeysList,
+  });
+  const isPending = ssrProps?.apiKeysList ? false : isPendingList;
+  const data = ssrProps?.apiKeysList ?? apiKeysList;
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
