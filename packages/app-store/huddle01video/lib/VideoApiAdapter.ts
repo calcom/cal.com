@@ -1,6 +1,7 @@
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";
 
 import { getHuddle01APIKey, getHuddle01Credential } from "../utils/storage";
@@ -15,7 +16,10 @@ const fetchHuddleAPI = async (userId: number) => {
     "x-api-key": apiKey,
     "x-identity-token": identityToken,
   };
-  return (endpoint: "subdomains" | "createMeeting", option?: RequestInit) => {
+  return (
+    endpoint: "subdomains" | "createMeeting" | "deleteMeeting" | "updateMeeting",
+    option?: RequestInit
+  ) => {
     return fetch(`${API_END_POINT}/${endpoint}`, {
       ...option,
       headers: {
@@ -29,7 +33,6 @@ const fetchHuddleAPI = async (userId: number) => {
 const log = logger.getSubLogger({ prefix: ["app-store/huddle01video/lib/VideoApiAdapter"] });
 
 const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
-  credential.userId;
   return {
     createMeeting: async (e: CalendarEvent) => {
       if (!credential.userId) {
@@ -42,7 +45,11 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
 
         const res = await fetch("createMeeting", {
           method: "POST",
-          body: JSON.stringify({ title: e.title, startTime: e.startTime }),
+          body: JSON.stringify({
+            title: e.title,
+            startTime: e.startTime,
+            participantsEmails: e.attendees.map((a) => a.email),
+          }),
           headers: {
             "Content-Type": "application/json",
           },
@@ -65,26 +72,71 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
         throw Error("Error while creating meeting");
       }
     },
-    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
+    updateMeeting: async (bookingRef: PartialReference, e: CalendarEvent) => {
       console.log("UPDATE MEETING", bookingRef, event);
+
+      if (!credential.userId) {
+        log.error("[Huddle01 Error] -> User is not logged in");
+        throw new Error("User is not logged in");
+      }
+
+      const fetch = await fetchHuddleAPI(credential.userId);
+
+      const res = await fetch("updateMeeting", {
+        method: "PUT",
+        body: JSON.stringify({
+          title: e.title,
+          startTime: e.startTime,
+          participantsEmails: e.attendees.map((a) => a.email),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = (await res.json()) as {
+        roomId: string;
+        meetingLink: string;
+      };
+
       return {
         type: "huddle01_video",
-        id: "",
+        id: data.roomId,
         password: "",
-        url: "",
+        url: data.meetingLink,
       };
     },
     deleteMeeting: async (uid: string) => {
-      console.log("DELETE MEETING", uid);
+      if (!credential.userId) {
+        log.error("[Huddle01 Error] -> User is not logged in");
+        throw new Error("User is not logged in");
+      }
+
+      const fetch = await fetchHuddleAPI(credential.userId);
+
+      const res = await fetch("deleteMeeting", {
+        method: "DELETE",
+        body: JSON.stringify({
+          meeetingId: uid,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = (await res.json()) as {
+        roomId: string;
+        meetingLink: string;
+      };
+
       return {
         type: "huddle01_video",
-        id: "",
+        id: data.roomId,
         password: "",
-        url: "",
+        url: data.meetingLink,
       };
     },
     getAvailability: async () => {
-      console.log("GET AVAILABILITY");
       return [];
     },
   };
