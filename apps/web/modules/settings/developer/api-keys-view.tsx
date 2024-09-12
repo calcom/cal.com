@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
@@ -32,19 +32,22 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 
-type PageProps = {
+interface ApiKeysViewProps {
   ssrProps?: {
     apiKeysList?: Awaited<ReturnType<typeof ApiKeysRepository.getApiKeys>>;
   };
-};
+  revalidateApiKeys?: () => Promise<void>;
+}
 
-const ApiKeysView = ({ ssrProps }: PageProps) => {
+export default function ApiKeysView({ ssrProps, revalidateApiKeys }: ApiKeysViewProps) {
   const { t } = useLocale();
+
+  const [isPending, startTransition] = useTransition();
 
   const { data: apiKeysList, isPending: isPendingList } = trpc.viewer.apiKeys.list.useQuery(undefined, {
     enabled: !ssrProps?.apiKeysList,
   });
-  const isPending = ssrProps?.apiKeysList ? false : isPendingList;
+  const isPendingListOverride = ssrProps?.apiKeysList ? false : isPendingList;
   const data = ssrProps?.apiKeysList ?? apiKeysList;
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
@@ -64,6 +67,12 @@ const ApiKeysView = ({ ssrProps }: PageProps) => {
         {t("add")}
       </Button>
     );
+  };
+
+  const handleRevalidate = () => {
+    startTransition(() => {
+      revalidateApiKeys?.();
+    });
   };
 
   if (isPending || !data) {
@@ -109,11 +118,13 @@ const ApiKeysView = ({ ssrProps }: PageProps) => {
 
       <Dialog open={apiKeyModal} onOpenChange={setApiKeyModal}>
         <DialogContent type="creation">
-          <ApiKeyDialogForm handleClose={() => setApiKeyModal(false)} defaultValues={apiKeyToEdit} />
+          <ApiKeyDialogForm
+            handleClose={() => setApiKeyModal(false)}
+            defaultValues={apiKeyToEdit}
+            onSuccess={handleRevalidate}
+          />
         </DialogContent>
       </Dialog>
     </>
   );
-};
-
-export default ApiKeysView;
+}

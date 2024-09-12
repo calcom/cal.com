@@ -11,9 +11,11 @@ import { Button, DialogFooter, Form, SelectField, showToast, Switch, TextField, 
 export default function ApiKeyDialogForm({
   defaultValues,
   handleClose,
+  onSuccess,
 }: {
   defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires?: boolean };
   handleClose: () => void;
+  onSuccess?: () => void;
 }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -23,6 +25,7 @@ export default function ApiKeyDialogForm({
       utils.viewer.apiKeys.list.invalidate();
       showToast(t("api_key_updated"), "success");
       handleClose();
+      onSuccess?.();
     },
     onError() {
       showToast(t("api_key_update_failed"), "error");
