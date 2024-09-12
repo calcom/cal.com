@@ -393,7 +393,42 @@ describe("Tests the date-range slot logic with custom env variable", () => {
 });
 
 describe("Tests the date-range slot logic with showOptimizedSlots", () => {
-  it("shows 4 60minutes slots for 08:00-12:30 availability and 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
+  it("should respect start of the hour for 60minutes slots for availabilities like 09:30-17:00, when showOptimizedSlots set to true", async () => {
+    const slots = getSlots({
+      showOptimizedSlots: true,
+      inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
+      eventLength: 60,
+      workingHours: [
+        {
+          days: [1, 2, 3, 4, 5],
+          startTime: 540, //09:00
+          endTime: 1020, //17:00
+          userId: 1,
+        },
+      ],
+      dateOverrides: [],
+      offsetStart: 0,
+      // equivalent dateRanges in UTC-7
+      // start:09:30, end:17:00
+      // with 09:00 - 09:30 busy time
+      dateRanges: [{ start: dayjs("2024-09-12T16:30:00.000Z"), end: dayjs("2024-09-13T00:00:00.000Z") }],
+      minimumBookingNotice: 0,
+      frequency: 60,
+      organizerTimeZone: "Europe/London",
+    });
+
+    expect(slots.map((slot) => slot.time.format())).toStrictEqual([
+      "2024-09-12T10:00:00-07:00",
+      "2024-09-12T11:00:00-07:00",
+      "2024-09-12T12:00:00-07:00",
+      "2024-09-12T13:00:00-07:00",
+      "2024-09-12T14:00:00-07:00",
+      "2024-09-12T15:00:00-07:00",
+      "2024-09-12T16:00:00-07:00",
+    ]);
+  });
+
+  it("shows 4 60minutes slots for availability like 08:00-12:30 with 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
     const slots = getSlots({
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -429,7 +464,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("shows 3 60minutes slots for 08:00-12:30 availability and 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
+  it("shows 3 60minutes slots for availability like 08:00-12:30 with 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
     const slots = getSlots({
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -464,7 +499,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("shows 3 60minutes slots for 08:00-12:00 availability and 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
+  it("shows 3 60minutes slots for availability like 08:00-12:00 with 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
     const slots = getSlots({
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -499,7 +534,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("shows 3 60minutes slots for 08:00-12:00 availability and 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
+  it("shows 3 60minutes slots for availability like 08:00-12:00 with 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
     const slots = getSlots({
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -534,7 +569,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("shows 9 30minutes slots for 08:00-12:45 availability and 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
+  it("shows 9 30minutes slots for availability like 08:00-12:45 with 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
     const slots = getSlots({
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -575,7 +610,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("shows 8 30minutes slots for 08:00-12:45 availability and 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
+  it("shows 8 30minutes slots for availability like 08:00-12:45 with 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
     const slots = getSlots({
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -615,7 +650,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("shows 13 20minutes slots for 08:00-12:30 availability and 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
+  it("shows 13 20minutes slots for availability like 08:00-12:30 with 10:00-10:10 busytime, when showOptimizedSlots set to true", async () => {
     const slots = getSlots({
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -661,7 +696,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("shows 12 20minutes slots for 08:00-12:30 availability and 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
+  it("shows 12 20minutes slots for availability like 08:00-12:30 with 10:00-10:10 busytime, when showOptimizedSlots set to false", async () => {
     const slots = getSlots({
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
@@ -703,6 +738,77 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       "2024-09-12T11:20:00-07:00",
       "2024-09-12T11:40:00-07:00",
       "2024-09-12T12:00:00-07:00",
+    ]);
+  });
+
+  it("shows 8 60minutes slots for availability like 09:30-17:30, when showOptimizedSlots set to true", async () => {
+    const slots = getSlots({
+      showOptimizedSlots: true,
+      inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
+      eventLength: 60,
+      workingHours: [
+        {
+          days: [1, 2, 3, 4, 5],
+          startTime: 570, //09:30
+          endTime: 1050, //17:30
+          userId: 1,
+        },
+      ],
+      dateOverrides: [],
+      offsetStart: 0,
+      // equivalent dateRanges in UTC-7
+      // start:09:30, end:17:30
+      dateRanges: [{ start: dayjs("2024-09-12T16:30:00.000Z"), end: dayjs("2024-09-13T00:30:00.000Z") }],
+      minimumBookingNotice: 0,
+      frequency: 60,
+      organizerTimeZone: "Europe/London",
+    });
+
+    expect(slots.length).toStrictEqual(8);
+    expect(slots.map((slot) => slot.time.format())).toStrictEqual([
+      "2024-09-12T09:30:00-07:00",
+      "2024-09-12T10:30:00-07:00",
+      "2024-09-12T11:30:00-07:00",
+      "2024-09-12T12:30:00-07:00",
+      "2024-09-12T13:30:00-07:00",
+      "2024-09-12T14:30:00-07:00",
+      "2024-09-12T15:30:00-07:00",
+      "2024-09-12T16:30:00-07:00",
+    ]);
+  });
+
+  it("shows 7 60minutes slots for availability like 09:30-17:30, when showOptimizedSlots set to false", async () => {
+    const slots = getSlots({
+      showOptimizedSlots: false,
+      inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
+      eventLength: 60,
+      workingHours: [
+        {
+          days: [1, 2, 3, 4, 5],
+          startTime: 570, //09:30
+          endTime: 1050, //17:30
+          userId: 1,
+        },
+      ],
+      dateOverrides: [],
+      offsetStart: 0,
+      // equivalent dateRanges in UTC-7
+      // start:09:30, end:17:30
+      dateRanges: [{ start: dayjs("2024-09-12T16:30:00.000Z"), end: dayjs("2024-09-13T00:30:00.000Z") }],
+      minimumBookingNotice: 0,
+      frequency: 60,
+      organizerTimeZone: "Europe/London",
+    });
+
+    expect(slots.length).toStrictEqual(7);
+    expect(slots.map((slot) => slot.time.format())).toStrictEqual([
+      "2024-09-12T10:00:00-07:00",
+      "2024-09-12T11:00:00-07:00",
+      "2024-09-12T12:00:00-07:00",
+      "2024-09-12T13:00:00-07:00",
+      "2024-09-12T14:00:00-07:00",
+      "2024-09-12T15:00:00-07:00",
+      "2024-09-12T16:00:00-07:00",
     ]);
   });
 });
