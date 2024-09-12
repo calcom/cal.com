@@ -1281,7 +1281,7 @@ export function getScenarioData(
         team: {
           id: eventType.teamId ?? eventType.team.id,
           parentId: org ? org.id : null,
-          bookingLimits: eventType.team.bookingLimits,
+          bookingLimits: eventType?.team?.bookingLimits,
         },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,

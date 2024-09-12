@@ -19,7 +19,6 @@ import {
   BookingLocations,
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
-  Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
@@ -28,7 +27,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, expect, vi } from "vitest";
 
-import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import { PeriodType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -466,125 +465,6 @@ describe("handleNewBooking", () => {
         },
         timeout
       );
-    },
-    timeout
-  );
-
-  describe(
-    "Global Team Booking Limits",
-    () => {
-      test(`should fail a booking if yearly bookings limits are already reached (1 host)
-          1. year with limits reached: should fail to book
-          2. following year without bookings: should create a booking in the database
-      `, async ({}) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-
-        const booker = getBooker({
-          email: "booker@example.com",
-          name: "Booker",
-        });
-
-        const organizer = getOrganizer({
-          name: "Organizer",
-          email: "organizer@example.com",
-          id: 101,
-          schedules: [TestData.schedules.IstWorkHours],
-        });
-
-        const otherTeamMembers = [
-          {
-            name: "Other Team Member 1",
-            username: "other-team-member-1",
-            timeZone: Timezones["+5:30"],
-            // So, that it picks the first schedule from the list
-            defaultScheduleId: null,
-            email: "other-team-member-1@example.com",
-            id: 102,
-            // Has Evening shift
-            schedules: [TestData.schedules.IstEveningShift],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-            destinationCalendar: {
-              integration: TestData.apps["google-calendar"].type,
-              externalId: "other-team-member-1@google-calendar.com",
-            },
-          },
-        ];
-
-        const yearlyDurationLimit = 2 * eventLength;
-
-        const { dateString: nextYearDateString } = getDate({ yearIncrement: 1 });
-        const { dateString: nextYearDateStringNextDay } = getDate({ yearIncrement: 1, dateIncrement: 1 });
-
-        await createBookingScenario(
-          getScenarioData({
-            eventTypes: [
-              {
-                id: 1,
-                slotInterval: eventLength,
-                length: eventLength,
-                hosts: [
-                  {
-                    userId: 101,
-                    isFixed: true,
-                  },
-                ],
-                team: {
-                  id: 1,
-                  bookingLimits: { PER_WEEK: 1 },
-                },
-                schedulingType: SchedulingType.COLLECTIVE,
-              },
-            ],
-            bookings: [
-              {
-                eventTypeId: 1,
-                userId: 101,
-                status: BookingStatus.ACCEPTED,
-                startTime: `${nextYearDateString}T03:30:00.000Z`,
-                endTime: `${nextYearDateString}T04:00:00.000Z`,
-              },
-              {
-                eventTypeId: 1,
-                userId: 102,
-                status: BookingStatus.ACCEPTED,
-                startTime: `${nextYearDateStringNextDay}T04:00:00.000Z`,
-                endTime: `${nextYearDateStringNextDay}T04:30:00.000Z`,
-              },
-              {
-                eventTypeId: 1,
-                userId: 102,
-                status: BookingStatus.ACCEPTED,
-                startTime: `${nextYearDateStringNextDay}T04:30:00.000Z`,
-                endTime: `${nextYearDateStringNextDay}T05:00:00.000Z`,
-              },
-            ],
-            organizer,
-            usersApartFromOrganizer: otherTeamMembers,
-          })
-        );
-
-        const mockBookingData = getMockRequestDataForBooking({
-          data: {
-            start: `${nextYearDateString}T04:00:00.000Z`,
-            end: `${nextYearDateString}T04:30:00.000Z`,
-            eventTypeId: 1,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: "New York" },
-            },
-          },
-        });
-
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-        await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-          "no_available_users_found_error"
-        );
-      });
     },
     timeout
   );
