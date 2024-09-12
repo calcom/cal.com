@@ -1147,6 +1147,7 @@
   "set_location": "Đặt địa điểm",
   "update_location": "Cập nhật địa điểm",
   "location_updated": "Địa điểm đã cập nhật",
+  "location_update_failed": "Cập nhật vị trí thất bại",
   "guests_added": "Khách đã thêm",
   "unable_to_add_guests": "Không thể thêm khách",
   "email_validation_error": "Đó không giống địa chỉ email",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Đặt một liên kết ứng dụng mặc định",
   "default_app_link_description": "Thao tác đặt liên kết ứng dụng mặc định sẽ giúp cho phép tất cả các loại sự kiện mới tạo có thể dùng liên kết ứng dụng mà bạn đã đặt.",
   "organizer_default_conferencing_app": "Ứng dụng mặc định của nhà tổ chức",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} không có ứng dụng hội nghị mặc định",
   "under_maintenance": "Tạm ngừng để bảo trì",
   "under_maintenance_description": "Nhóm {{appName}} đang thực hiện việc bảo trì theo lịch. Nếu bạn có thắc mắc gì, vui lòng liên hệ bộ phận hỗ trợ.",
   "event_type_seats": "{{numberOfSeats}} chỗ ngồi",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Đặt lại lịch với cùng một host Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Các sự kiện được đặt lại sẽ được giao cho cùng một host như ban đầu",
   "disable_input_if_prefilled": "Vô hiệu hóa đầu vào nếu URL đã được điền trước",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Bạn không có quyền thực hiện thay đổi này đối với đặt chỗ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

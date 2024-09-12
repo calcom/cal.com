@@ -1147,6 +1147,7 @@
   "set_location": "设置位置",
   "update_location": "更新位置",
   "location_updated": "位置已更新",
+  "location_update_failed": "位置更新失败",
   "guests_added": "嘉宾已添加",
   "unable_to_add_guests": "无法添加嘉宾",
   "email_validation_error": "这看起来不像是电子邮件地址",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "设置默认应用链接",
   "default_app_link_description": "设置默认应用链接可以让所有新创建的活动类型使用您设置的应用链接。",
   "organizer_default_conferencing_app": "组织者的默认应用",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} 没有默认的会议应用",
   "under_maintenance": "停机维护",
   "under_maintenance_description": "{{appName}} 团队正在进行计划维护。如果您有任何疑问，请联系支持。",
   "event_type_seats": "{{numberOfSeats}} 个位置",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "与同一轮询主持人重新安排",
   "reschedule_with_same_round_robin_host_description": "重新安排的事件将分配给最初安排的同一主持人",
   "disable_input_if_prefilled": "如果 URL 标识符已预填，则禁用输入",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "您无权对此预订进行更改",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
