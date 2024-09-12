@@ -1,11 +1,11 @@
 import type { NextApiRequest } from "next";
 import { stringify } from "querystring";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
-const WEBAPP_URL = "http://localhost:3000";
 async function handler(req: NextApiRequest) {
   const state = encodeOAuthState(req);
 
@@ -16,6 +16,8 @@ async function handler(req: NextApiRequest) {
     appName: "Calcom",
   };
   const query = stringify(params);
+
+  // TODO: CHANGE THIS
   const url = `https://darshan.huddle01.app/g_auth?${query}`;
 
   return { url };
