@@ -55,7 +55,7 @@ import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications, ButtonState } from "@calcom/lib/hooks/useNotifications";
+import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -929,7 +929,7 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
-  const { isCopied, copyToClipboard, resetCopyStatus } = useCopy();
+  const { copyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
@@ -973,13 +973,12 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               method: "POST",
             });
             const { shortLink } = await res.json();
-            copyToClipboard(shortLink);
-
-            if (isCopied) {
-              showToast(t("link_copied"), "success");
-            }
+            copyToClipboard(shortLink, {
+              onSuccess: () => showToast(t("link_copied"), "success"),
+              onFailure: () => showToast("Copy to clipboard failed", "error"),
+            });
           },
-          icon: "copy",
+          icon: "gift",
         }
       : null,
     {

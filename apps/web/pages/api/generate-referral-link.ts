@@ -16,9 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    return await dub.links.get({
+    const { shortLink } = await dub.links.get({
       externalId: `ext_${session.user.id.toString()}`,
     });
+    return res.status(200).json({ shortLink });
   } catch (error) {
     console.log("Referral link not found, creating...");
   }
