@@ -18,7 +18,7 @@ async function handler(req: NextApiRequest) {
   const query = stringify(params);
 
   // TODO: CHANGE THIS
-  const url = `https://darshan.huddle01.app/g_auth?${query}`;
+  const url = `https://darshan.huddle01.app/thirdparty_auth?${query}`;
 
   return { url };
 }
