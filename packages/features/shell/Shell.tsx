@@ -929,7 +929,7 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
-  const { copyToClipboard } = useCopy();
+  const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
@@ -967,16 +967,19 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       ? {
           name: "copy_referral_link",
           href: "",
-          onClick: async (e: { preventDefault: () => void }) => {
+          onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
-            const res = await fetch("/api/generate-referral-link", {
-              method: "POST",
-            });
-            const { shortLink } = await res.json();
-            copyToClipboard(shortLink, {
-              onSuccess: () => showToast(t("link_copied"), "success"),
-              onFailure: () => showToast("Copy to clipboard failed", "error"),
-            });
+            fetchAndCopyToClipboard(
+              fetch("/api/generate-referral-link", {
+                method: "POST",
+              })
+                .then((res) => res.json())
+                .then((res) => res.shortLink),
+              {
+                onSuccess: () => showToast(t("link_copied"), "success"),
+                onFailure: () => showToast("Copy to clipboard failed", "error"),
+              }
+            );
           },
           icon: "gift",
         }
