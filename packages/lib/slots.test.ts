@@ -811,4 +811,74 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       "2024-09-12T16:00:00-07:00",
     ]);
   });
+
+  it("should respect start of the hour for 60minutes slots for availabilities like 07:45-15:30, even when showOptimizedSlots set to true", async () => {
+    const slots = getSlots({
+      showOptimizedSlots: true,
+      inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
+      eventLength: 60,
+      workingHours: [
+        {
+          days: [1, 2, 3, 4, 5],
+          startTime: 565, //07:45
+          endTime: 930, //15:30
+          userId: 1,
+        },
+      ],
+      dateOverrides: [],
+      offsetStart: 0,
+      // equivalent dateRanges in UTC-7
+      // start:09:30, end:17:30
+      dateRanges: [{ start: dayjs("2024-09-12T14:45:00.000Z"), end: dayjs("2024-09-12T22:30:00.000Z") }],
+      minimumBookingNotice: 0,
+      frequency: 60,
+      organizerTimeZone: "Europe/London",
+    });
+
+    expect(slots.length).toStrictEqual(7);
+    expect(slots.map((slot) => slot.time.format())).toStrictEqual([
+      "2024-09-12T08:00:00-07:00",
+      "2024-09-12T09:00:00-07:00",
+      "2024-09-12T10:00:00-07:00",
+      "2024-09-12T11:00:00-07:00",
+      "2024-09-12T12:00:00-07:00",
+      "2024-09-12T13:00:00-07:00",
+      "2024-09-12T14:00:00-07:00",
+    ]);
+  });
+
+  it("should respect start of the hour for 60minutes slots for availabilities like 07:45-15:30, when showOptimizedSlots set to false", async () => {
+    const slots = getSlots({
+      showOptimizedSlots: false,
+      inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
+      eventLength: 60,
+      workingHours: [
+        {
+          days: [1, 2, 3, 4, 5],
+          startTime: 565, //07:45
+          endTime: 930, //15:30
+          userId: 1,
+        },
+      ],
+      dateOverrides: [],
+      offsetStart: 0,
+      // equivalent dateRanges in UTC-7
+      // start:09:30, end:17:30
+      dateRanges: [{ start: dayjs("2024-09-12T14:45:00.000Z"), end: dayjs("2024-09-12T22:30:00.000Z") }],
+      minimumBookingNotice: 0,
+      frequency: 60,
+      organizerTimeZone: "Europe/London",
+    });
+
+    expect(slots.length).toStrictEqual(7);
+    expect(slots.map((slot) => slot.time.format())).toStrictEqual([
+      "2024-09-12T08:00:00-07:00",
+      "2024-09-12T09:00:00-07:00",
+      "2024-09-12T10:00:00-07:00",
+      "2024-09-12T11:00:00-07:00",
+      "2024-09-12T12:00:00-07:00",
+      "2024-09-12T13:00:00-07:00",
+      "2024-09-12T14:00:00-07:00",
+    ]);
+  });
 });
