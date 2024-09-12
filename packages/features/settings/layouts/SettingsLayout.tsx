@@ -654,14 +654,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export default function SettingsLayout({
-  children,
-  hideHeader,
-  ...rest
-}: {
+export type SettingsLayoutProps = {
   children: React.ReactNode;
   hideHeader?: boolean;
-} & ComponentProps<typeof Shell>) {
+} & ComponentProps<typeof Shell>;
+
+export default function SettingsLayout({ children, hideHeader, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();

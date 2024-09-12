@@ -1147,6 +1147,7 @@
   "set_location": "Указати розташування",
   "update_location": "Оновити розташування",
   "location_updated": "Розташування оновлено",
+  "location_update_failed": "Не вдалося оновити місцезнаходження",
   "guests_added": "Гостей додано",
   "unable_to_add_guests": "Не вдалося додати гостей",
   "email_validation_error": "Це не схоже на адресу електронної пошти",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Установити посилання на додаток за замовчуванням",
   "default_app_link_description": "Посилання на додаток за замовчуванням використовуватиметься для всіх новостворених типів подій.",
   "organizer_default_conferencing_app": "Додаток організації за замовчуванням",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} не має додатку для конференцій за замовчуванням",
   "under_maintenance": "На обслуговуванні",
   "under_maintenance_description": "Команда {{appName}} здійснює планове обслуговування. Якщо маєте запитання, зверніться в службу підтримки.",
   "event_type_seats": "Місць: {{numberOfSeats}}",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Перепланувати з тим самим ведучим Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Переплановані події будуть призначені тому ж ведучому, що й спочатку",
   "disable_input_if_prefilled": "Вимкнути введення, якщо ідентифікатор URL попередньо заповнений",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Ви не маєте дозволу на внесення цієї зміни до бронювання",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
