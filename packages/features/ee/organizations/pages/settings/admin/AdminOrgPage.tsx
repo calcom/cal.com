@@ -4,6 +4,7 @@ import { Trans } from "next-i18next";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { TeamRepository } from "@calcom/lib/server/repository/team";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
 
@@ -11,10 +12,21 @@ import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
-export function AdminOrgTable() {
+type PageProps = {
+  ssrProps?: {
+    allOrgs?: Awaited<ReturnType<typeof TeamRepository.getAllOrgs>>;
+  };
+};
+export function AdminOrgTable({ ssrProps }: PageProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const [data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
+
+  let data = ssrProps?.allOrgs;
+  if (!data) {
+    const [_data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
+    data = _data;
+  }
+
   const updateMutation = trpc.viewer.organizations.adminUpdate.useMutation({
     onSuccess: async (_data, variables) => {
       showToast(t("org_has_been_processed"), "success");
