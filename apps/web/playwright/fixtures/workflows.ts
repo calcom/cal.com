@@ -58,7 +58,6 @@ export function createWorkflowPageFixture(page: Page) {
 
   const hasWorkflowInList = async (name: string, negate?: true) => {
     const selectedWorkflow = page.getByTestId("workflow-list").getByTestId(nameToTestId(name));
-    await selectedWorkflow.waitFor();
 
     if (negate) {
       await expect(selectedWorkflow).toBeHidden();
