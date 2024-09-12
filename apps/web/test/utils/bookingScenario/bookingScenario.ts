@@ -245,6 +245,7 @@ export async function addEventTypesToDb(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
+    team?: { id: number; bookingLimits: IntervalLimit };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -289,7 +290,11 @@ export async function addEventTypesToDb(
 
     if (eventType.team) {
       const createdTeam = await prismock.team.create({
-        data: { id: eventType.team?.id, bookingLimits: eventType.team?.bookingLimits },
+        data: {
+          id: eventType.team?.id,
+          bookingLimits: eventType.team?.bookingLimits,
+          name: "",
+        },
       });
 
       await prismock.eventType.update({
