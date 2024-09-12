@@ -332,24 +332,23 @@ export class BookingRepository {
         collectiveRoundRobinBookingsOwner + collectiveRoundRobinBookingsAttendee + managedBookings;
 
       return totalNrOfBooking;
-    } else {
-      const collectiveRoundRobinBookingsOwner = await prisma.booking.findMany({
-        where: whereCollectiveRoundRobinOwner,
-      });
-
-      const collectiveRoundRobinBookingsAttendee = await prisma.booking.findMany({
-        where: whereCollectiveRoundRobinBookingsAttendee,
-      });
-
-      const managedBookings = await prisma.booking.findMany({
-        where: whereManagedBookings,
-      });
-
-      return [
-        ...collectiveRoundRobinBookingsOwner,
-        ...collectiveRoundRobinBookingsAttendee,
-        ...managedBookings,
-      ];
     }
+    const collectiveRoundRobinBookingsOwner = await prisma.booking.findMany({
+      where: whereCollectiveRoundRobinOwner,
+    });
+
+    const collectiveRoundRobinBookingsAttendee = await prisma.booking.findMany({
+      where: whereCollectiveRoundRobinBookingsAttendee,
+    });
+
+    const managedBookings = await prisma.booking.findMany({
+      where: whereManagedBookings,
+    });
+
+    return [
+      ...collectiveRoundRobinBookingsOwner,
+      ...collectiveRoundRobinBookingsAttendee,
+      ...managedBookings,
+    ];
   }
 }
