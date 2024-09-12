@@ -1147,6 +1147,7 @@
   "set_location": "تعيين الموقع",
   "update_location": "تحديث الموقع",
   "location_updated": "تم تحديث الموقع",
+  "location_update_failed": "فشل تحديث الموقع",
   "guests_added": "تمت إضافة الضيوف",
   "unable_to_add_guests": "غير قادر على إضافة الضيوف",
   "email_validation_error": "لا يبدو هذا كعنوان بريد إلكتروني",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "تعيين رابط تطبيق افتراضي",
   "default_app_link_description": "يسمح تعيين رابط التطبيق الافتراضي لجميع أنواع الأحداث التي تم إنشاؤها حديثًا باستخدام رابط التطبيق الذي عينته.",
   "organizer_default_conferencing_app": "تطبيق المنظمة الافتراضي",
+  "organizer_default_conferencing_app_not_found": "لا يوجد تطبيق مؤتمرات افتراضي لـ {{organizer}}",
   "under_maintenance": "معطل للصيانة",
   "under_maintenance_description": "يجري فريق {{appName}} صيانة مجدولة. إذا كان لديك أي أسئلة، يرجى الاتصال بالدعم.",
   "event_type_seats": "{{numberOfSeats}} من المقاعد",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "إعادة الجدولة مع نفس مضيف round-robin",
   "reschedule_with_same_round_robin_host_description": "سيتم تعيين الأحداث المعاد جدولتها لنفس المضيف كما تم جدولتها في البداية",
   "disable_input_if_prefilled": "تعطيل الإدخال إذا كان معرف URL مملوء مسبقًا",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "أنت غير مخول لإجراء هذا التغيير على الحجز",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

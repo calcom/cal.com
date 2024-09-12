@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
-import { sendScheduledEmails } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -108,7 +108,7 @@ export async function handleConfirmation(args: {
         }
       }
 
-      await sendScheduledEmails(
+      await sendScheduledEmailsAndSMS(
         { ...evt, additionalInformation: metadata },
         undefined,
         isHostConfirmationEmailsDisabled,
@@ -126,6 +126,7 @@ export async function handleConfirmation(args: {
     attendees: {
       name: string;
       email: string;
+      phoneNumber?: string | null;
     }[];
     startTime: Date;
     endTime: Date;

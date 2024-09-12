@@ -1147,6 +1147,7 @@
   "set_location": "Ort festlegen",
   "update_location": "Ort aktualisieren",
   "location_updated": "Ort aktualisiert",
+  "location_update_failed": "Aktualisierung des Standorts fehlgeschlagen",
   "guests_added": "Gäste hinzugefügt",
   "unable_to_add_guests": "Gäste konnten nicht hinzugefügt werden",
   "email_validation_error": "Das sieht nicht wie eine E-Mail-Adresse aus",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Standard-App-Link festlegen",
   "default_app_link_description": "Mit dem Festlegen eines Standard-App-Links können alle neu erstellten Ereignistypen den App-Link verwenden, den Sie gesetzt haben.",
   "organizer_default_conferencing_app": "Standard-App des Organisators",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} hat keine Standard-Konferenz-App",
   "under_maintenance": "Wartungsarbeiten",
   "under_maintenance_description": "Das {{appName}} Team führt geplante Wartungsarbeiten durch. Wenn Sie Fragen haben, wenden Sie sich bitte an den Support.",
   "event_type_seats": "{{numberOfSeats}} Sitze",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Mit demselben Round-Robin-Gastgeber neu planen",
   "reschedule_with_same_round_robin_host_description": "Neu geplante Ereignisse werden demselben Gastgeber zugewiesen wie ursprünglich geplant",
   "disable_input_if_prefilled": "Eingabe deaktivieren, wenn die URL-Kennung vorausgefüllt ist",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Sie sind nicht berechtigt, diese Änderung an der Buchung vorzunehmen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

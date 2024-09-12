@@ -53,6 +53,7 @@ import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useNotifications, ButtonState } from "@calcom/lib/hooks/useNotifications";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -1084,7 +1085,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady } = useLocale();
+  const { isLocaleReady, t } = useLocale();
+
+  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
   return (
     <>
@@ -1144,6 +1147,23 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" && buttonToShow && (
+                <Button
+                  color="primary"
+                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
+                  loading={isLoading}
+                  disabled={buttonToShow === ButtonState.DENIED}
+                  tooltipSide="bottom"
+                  tooltip={
+                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
+                  }>
+                  {t(
+                    buttonToShow === ButtonState.DISABLE
+                      ? "disable_browser_notifications"
+                      : "allow_browser_notifications"
+                  )}
+                </Button>
+              )}
             </header>
           )}
         </div>
