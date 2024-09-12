@@ -93,7 +93,7 @@ export function useInitialFormValues({
         defaults.responses = {
           ...responses,
           name: defaultUserValues.name,
-          email: defaultUserValues.email,
+          email: defaultUserValues.email ?? "",
         };
 
         setDefaultValues(defaults);
@@ -119,7 +119,7 @@ export function useInitialFormValues({
       defaults.responses = {
         ...responses,
         name: defaultUserValues.name,
-        email: defaultUserValues.email,
+        email: defaultUserValues.email ?? "",
       };
       setDefaultValues(defaults);
     })();

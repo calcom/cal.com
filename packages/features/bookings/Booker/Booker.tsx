@@ -176,7 +176,7 @@ const BookerComponent = ({
         isVerificationCodeSending={isVerificationCodeSending}
         isPlatform={isPlatform}>
         <>
-          {verifyCode ? (
+          {verifyCode && formEmail ? (
             <VerifyCodeDialog
               isOpenDialog={isEmailVerificationModalVisible}
               setIsOpenDialog={setEmailVerificationModalVisible}
@@ -439,7 +439,7 @@ const BookerComponent = ({
           }}
         />
 
-        {bookerState !== "booking" && event.data?.isInstantEvent && (
+        {bookerState !== "booking" && event.data?.showInstantEventConnectNowModal && (
           <div
             className={classNames(
               "animate-fade-in-up  z-40 my-2 opacity-0",

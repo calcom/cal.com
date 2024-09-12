@@ -18,6 +18,7 @@ export type NewSeatedBookingObject = {
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
   bookerEmail: string;
+  bookerPhoneNumber?: string | null;
   tAttendees: TFunction;
   bookingSeat: BookingSeat;
   reqUserId: number | undefined;
@@ -38,6 +39,7 @@ export type NewSeatedBookingObject = {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
+  rescheduledBy?: string;
   workflows: Workflow[];
 };
 
