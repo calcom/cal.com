@@ -33,6 +33,7 @@ export function useLocalSet<T extends HasExternalId>(key: string, initialValue: 
   };
 
   const toggleValue = (value: T) => {
+    let newSet;
     setSet((prevSet) => {
       const updatedSet = new Set(prevSet);
       let itemFound = false;
@@ -48,8 +49,12 @@ export function useLocalSet<T extends HasExternalId>(key: string, initialValue: 
         updatedSet.add(value);
       }
 
+      newSet = updatedSet;
+
       return updatedSet;
     });
+
+    return newSet;
   };
 
   const hasItem = (value: T) => {
