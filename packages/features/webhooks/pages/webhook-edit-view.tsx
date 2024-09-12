@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppRepository } from "@calcom/lib/server/repository/app";
+import type { WebhookRepository } from "@calcom/lib/server/repository/webhook";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, SkeletonContainer } from "@calcom/ui";
@@ -23,22 +25,34 @@ type WebhookProps = {
   platform: boolean;
 };
 
-export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
+type PageProps = {
+  webhook?: WebhookProps;
+  ssrProps?: {
+    webhooks?: Awaited<ReturnType<typeof WebhookRepository.getWebhooks>>;
+    installedApps?: Awaited<ReturnType<typeof AppRepository.getInstalledApps>>;
+  };
+};
+
+export function EditWebhookView({ ssrProps, webhook }: PageProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
-  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
+  const { data: _installedApps, isPending: isPendingInstalledApps } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
-      enabled: !!webhook,
+      enabled: ssrProps?.installedApps ? false : !!webhook,
     }
   );
+  const installedApps = ssrProps?.installedApps ?? _installedApps;
+  const isPending = ssrProps?.installedApps ? false : isPendingInstalledApps;
 
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
+  const { data: _webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
-    enabled: !!webhook,
+    enabled: ssrProps?.webhooks ? false : !!webhook,
   });
+  const webhooks = ssrProps?.webhooks ?? _webhooks;
+
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();

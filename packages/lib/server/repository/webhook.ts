@@ -1,9 +1,10 @@
 import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
-import type { Webhook } from "@calcom/prisma/client";
+import type { Prisma, Webhook } from "@calcom/prisma/client";
 import type { UserPermissionRole } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { TListInputSchema } from "@calcom/trpc/server/routers/viewer/webhook/list.schema";
 
 type WebhookGroup = {
   teamId?: number | null;
@@ -175,6 +176,40 @@ export class WebhookRepository {
         userId: true,
         platform: true,
       },
+    });
+  }
+
+  static async getWebhooks({ userId, input }: { userId: number; input: TListInputSchema }) {
+    const where: Prisma.WebhookWhereInput = {
+      /* Don't mixup zapier webhooks with normal ones */
+      AND: [{ appId: !input?.appId ? null : input.appId }],
+    };
+
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        teams: true,
+      },
+    });
+
+    if (Array.isArray(where.AND)) {
+      if (input?.eventTypeId) {
+        where.AND?.push({ eventTypeId: input.eventTypeId });
+      } else {
+        where.AND?.push({
+          OR: [{ userId }, { teamId: { in: user?.teams.map((membership) => membership.teamId) } }],
+        });
+      }
+
+      if (input?.eventTriggers) {
+        where.AND?.push({ eventTriggers: { hasEvery: input.eventTriggers } });
+      }
+    }
+
+    return await prisma.webhook.findMany({
+      where,
     });
   }
 }
