@@ -31,7 +31,7 @@ type initProps = {
   eventTypeId: number;
   calApiKey: string;
   loggedInUserTimeZone: string;
-  beginMessage?: string;
+  beginMessage?: string | null;
   dynamicVariables: DynamicVariables;
   generalPrompt: string;
 };
