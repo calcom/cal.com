@@ -5,6 +5,10 @@ import { TRPCError } from "@calcom/trpc/server";
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";
 
+export async function checkRateLimit({ rateLimitingType = "core", identifier, opts }: RateLimitHelper) {
+  return rateLimiter()({ rateLimitingType, identifier, opts });
+}
+
 export async function checkRateLimitAndThrowError({
   rateLimitingType = "core",
   identifier,
