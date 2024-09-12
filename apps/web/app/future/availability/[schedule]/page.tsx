@@ -43,12 +43,8 @@ const Page = async ({ params }: PageProps) => {
   let userData, schedule, travelSchedules;
 
   try {
-    userData = await UserRepository.findById({
-      id: userId,
-      select: {
-        timeZone: true,
-        defaultScheduleId: true,
-      },
+    userData = await UserRepository.getTimeZoneAndDefaultScheduleId({
+      userId,
     });
     if (!userData?.timeZone || !userData?.defaultScheduleId) {
       throw new Error("timeZone and defaultScheduleId not found");

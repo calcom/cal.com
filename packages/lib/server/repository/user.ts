@@ -239,12 +239,12 @@ export class UserRepository {
     };
   }
 
-  static async findById({ id, select }: { id: number; select?: Prisma.UserSelect }) {
+  static async findById({ id }: { id: number }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
       },
-      select: { ...userSelect, ...select },
+      select: userSelect,
     });
 
     if (!user) {
@@ -564,6 +564,18 @@ export class UserRepository {
       teamIds.push(team.teamId);
     }
     return teamIds;
+  }
+
+  static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        timeZone: true,
+        defaultScheduleId: true,
+      },
+    });
   }
 
   static async adminFindById(userId: number) {
