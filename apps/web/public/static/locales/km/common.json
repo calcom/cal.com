@@ -1147,6 +1147,7 @@
   "set_location": "កំណត់ទីតាំង",
   "update_location": "ធ្វើបច្ចុប្បន្នភាពទីតាំង",
   "location_updated": "ទីតាំងត្រូវបានធ្វើបច្ចុប្បន្នភាព",
+  "location_update_failed": "ការធ្វើបច្ចុប្បន្នភាពទីតាំងបានបរាជ័យ",
   "guests_added": "ភ្ញៀវត្រូវបានបន្ថែម",
   "unable_to_add_guests": "មិនអាចបន្ថែមភ្ញៀវបានទេ",
   "email_validation_error": "វាមិនមើលទៅដូចអាសយដ្ឋានអ៊ីមែលទេ",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "កំណត់តំណភ្ជាប់កម្មវិធីលំនាំដើម",
   "default_app_link_description": "ការកំណត់តំណភ្ជាប់កម្មវិធីលំនាំដើមអនុញ្ញាតឱ្យប្រភេទព្រឹត្តិការណ៍ថ្មីទាំងអស់ប្រើតំណភ្ជាប់កម្មវិធីដែលអ្នកកំណត់។",
   "organizer_default_conferencing_app": "កម្មវិធីលំនាំដើមរបស់អ្នករៀបចំ",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} មិនមានកម្មវិធីសន្និសីទលំនាំដើមទេ",
   "under_maintenance": "កំពុងថែទាំ",
   "under_maintenance_description": "ក្រុម {{appName}} កំពុងធ្វើការថែទាំតាមកាលវិភាគ។ ប្រសិនបើអ្នកមានសំណួរ សូមទាក់ទងផ្នែកគាំទ្រ។",
   "event_type_seats": "{{numberOfSeats}} កៅអី",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "កំណត់ពេលថ្មីជាមួយម្ចាស់ Round-Robin ដដែល",
   "reschedule_with_same_round_robin_host_description": "ព្រឹត្តិការណ៍ដែលបានកំណត់ពេលថ្មីនឹងត្រូវចាត់ចែងទៅម្ចាស់ដដែលដូចពេលដំបូង",
   "disable_input_if_prefilled": "បិទការបញ្ចូលប្រសិនបើ URL identifier ត្រូវបានបំពេញរួចហើយ",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "អ្នកមិនមានសិទ្ធិធ្វើការផ្លាស់ប្តូរនេះលើការកក់ទេ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

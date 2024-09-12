@@ -1147,6 +1147,7 @@
   "set_location": "Velg Sted",
   "update_location": "Oppdater Sted",
   "location_updated": "Sted oppdatert",
+  "location_update_failed": "Oppdatering av plassering mislyktes",
   "guests_added": "Gjester lagt til",
   "unable_to_add_guests": "Kan ikke legge til gjester",
   "email_validation_error": "Det ser ikke ut som en e-postadresse",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Sett en standard applink",
   "default_app_link_description": "Å sette en standard applink gjør at alle nyopprettede arrangementstyper bruker applinken du har satt.",
   "organizer_default_conferencing_app": "Organisatorens standardapp",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} har ingen standard konferanseapp",
   "under_maintenance": "Nede for vedlikehold",
   "under_maintenance_description": "{{appName}}-teamet utfører planlagt vedlikehold. Hvis du har spørsmål, vennligst kontakt support.",
   "event_type_seats": "{{numberOfSeats}} seter",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Omplanlegg med samme Round-Robin-vert",
   "reschedule_with_same_round_robin_host_description": "Omplanlagte hendelser vil bli tildelt samme vert som opprinnelig planlagt",
   "disable_input_if_prefilled": "Deaktiver inndata hvis URL-identifikatoren er forhåndsutfylt",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tillatelse til å gjøre denne endringen i bestillingen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

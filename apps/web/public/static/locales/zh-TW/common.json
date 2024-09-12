@@ -1147,6 +1147,7 @@
   "set_location": "設定地點",
   "update_location": "更新地點",
   "location_updated": "地點已更新",
+  "location_update_failed": "位置更新失敗",
   "guests_added": "賓客已新增",
   "unable_to_add_guests": "無法新增賓客",
   "email_validation_error": "這似乎不是電子郵件地址",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "設定預設應用程式連結",
   "default_app_link_description": "設定預設應用程式連結，即可讓所有全新建立的活動類型使用您設定的應用程式連結。",
   "organizer_default_conferencing_app": "主辦者的預設應用程式",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} 沒有預設的會議應用程式",
   "under_maintenance": "維修停機中",
   "under_maintenance_description": "{{appName}} 團隊正在執行預定維修。如有任何疑問，請聯絡支援團隊。",
   "event_type_seats": "{{numberOfSeats}} 個座位",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "重新安排與相同的 Round-Robin 主機",
   "reschedule_with_same_round_robin_host_description": "重新安排的事件將分配給最初安排的相同主機",
   "disable_input_if_prefilled": "如果 URL 識別碼已填寫，則禁用輸入",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "您無權更改此預訂",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
