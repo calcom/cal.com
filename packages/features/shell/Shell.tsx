@@ -975,7 +975,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
             const { shortLink } = await res.json();
             copyToClipboard(shortLink, {
               onSuccess: () => showToast(t("link_copied"), "success"),
-              onFailure: () => showToast("Copy to clipboard failed:", "error"),
+              onFailure: () => showToast("Copy to clipboard failed", "error"),
             });
           },
           icon: "gift",
