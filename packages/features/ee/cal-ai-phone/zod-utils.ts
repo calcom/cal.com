@@ -130,7 +130,7 @@ export type TCreateRetellLLMSchema = z.infer<typeof ZCreateRetellLLMSchema>;
 export const ZGetRetellLLMSchema = z
   .object({
     general_prompt: z.string(),
-    begin_message: z.string().nullable(),
+    begin_message: z.string().nullable().optional(),
     llm_id: z.string(),
     llm_websocket_url: z.string(),
     general_tools: z.array(
