@@ -316,7 +316,6 @@ test.describe("Update Profile", () => {
 
   test("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
     const { secondaryEmail } = await createSecondaryEmail({ page, users });
-    await page.waitForLoadState("networkidle");
 
     await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
     await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
@@ -335,10 +334,9 @@ test.describe("Update Profile", () => {
     const verifyUrl = `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`;
 
     await page.goto(verifyUrl);
-    await page.waitForLoadState("networkidle");
 
     await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
-    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
+    await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeHidden();
   });
 
   test("Can delete the newly added secondary email", async ({ page, users }) => {
