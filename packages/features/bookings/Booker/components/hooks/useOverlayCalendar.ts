@@ -6,6 +6,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import type { UseCalendarsReturnType } from "./useCalendars";
+import type { ToggledConnectedCalendars } from "./useCalendars";
 import { useLocalSet } from "./useLocalSet";
 
 export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
@@ -66,12 +67,12 @@ export const useOverlayCalendar = ({
   }, [hasItem, set, initalised]);
 
   const handleToggleConnectedCalendar = (externalCalendarId: string, credentialId: number) => {
-    toggleValue({
+    const calendarsToLoad = toggleValue({
       credentialId: credentialId,
       externalId: externalCalendarId,
     });
     setOverlayBusyDates([]);
-    onToggleCalendar();
+    onToggleCalendar(calendarsToLoad as unknown as ToggledConnectedCalendars);
   };
 
   return {
