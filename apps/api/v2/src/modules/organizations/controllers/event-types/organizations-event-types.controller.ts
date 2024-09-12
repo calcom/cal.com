@@ -73,14 +73,10 @@ export class OrganizationsEventTypesController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() bodyEventType: CreateTeamEventTypeInput_2024_06_14
   ): Promise<CreateTeamEventTypeOutput> {
-    await this.inputService.validateHosts(teamId, bodyEventType.hosts);
-    const transformedBody = await this.inputService.transformInputCreateTeamEventType(teamId, bodyEventType);
-
-    await this.inputUserEventTypesService.validateEventTypeInputs(
-      undefined,
-      transformedBody.seatsPerTimeSlot > 0,
-      transformedBody.locations,
-      transformedBody.requiresConfirmation
+    const transformedBody = await this.inputService.transformAndValidateCreateTeamEventTypeInput(
+      user.id,
+      teamId,
+      bodyEventType
     );
 
     const eventType = await this.organizationsEventTypesService.createTeamEventType(
@@ -170,18 +166,11 @@ export class OrganizationsEventTypesController {
     @GetUser() user: UserWithProfile,
     @Body() bodyEventType: UpdateTeamEventTypeInput_2024_06_14
   ): Promise<UpdateTeamEventTypeOutput> {
-    await this.inputService.validateHosts(teamId, bodyEventType.hosts);
-    const transformedBody = await this.inputService.transformInputUpdateTeamEventType(
+    const transformedBody = await this.inputService.transformAndValidateUpdateTeamEventTypeInput(
+      user.id,
       eventTypeId,
       teamId,
       bodyEventType
-    );
-
-    await this.inputUserEventTypesService.validateEventTypeInputs(
-      eventTypeId,
-      transformedBody.seatsPerTimeSlot > 0,
-      transformedBody.locations,
-      transformedBody.requiresConfirmation
     );
 
     const eventType = await this.organizationsEventTypesService.updateTeamEventType(

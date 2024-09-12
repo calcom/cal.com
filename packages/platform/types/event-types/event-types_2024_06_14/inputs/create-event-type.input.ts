@@ -24,6 +24,7 @@ import type { BookingWindow_2024_06_14 } from "./booking-window.input";
 import { ValidateBookingWindow } from "./booking-window.input";
 import type { ConfirmationPolicy_2024_06_14 } from "./confirmation-policy.input";
 import { ValidateConfirmationPolicy } from "./confirmation-policy.input";
+import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
@@ -171,6 +172,10 @@ export class CreateEventTypeInput_2024_06_14 {
     example: "{Event type title} between {Organiser} and {Scheduler}",
   })
   customName?: string;
+
+  @IsOptional()
+  @Type(() => DestinationCalendar_2024_06_14)
+  destinationCalendar?: DestinationCalendar_2024_06_14;
 }
 
 export enum HostPriority {

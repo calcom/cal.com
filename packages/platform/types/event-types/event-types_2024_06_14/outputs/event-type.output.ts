@@ -23,6 +23,7 @@ import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
+import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
 
 enum SchedulingTypeEnum {
@@ -180,6 +181,10 @@ export class EventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsString()
   customName?: string;
+
+  @IsOptional()
+  @Type(() => DestinationCalendar_2024_06_14)
+  destinationCalendar?: DestinationCalendar_2024_06_14;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -329,4 +334,8 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsString()
   customName?: string;
+
+  @IsOptional()
+  @Type(() => DestinationCalendar_2024_06_14)
+  destinationCalendar?: DestinationCalendar_2024_06_14;
 }

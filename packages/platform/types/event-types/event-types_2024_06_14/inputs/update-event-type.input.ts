@@ -19,6 +19,7 @@ import {
   CREATE_EVENT_TITLE_EXAMPLE,
   Host,
 } from "./create-event-type.input";
+import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
@@ -163,6 +164,10 @@ export class UpdateEventTypeInput_2024_06_14 {
     example: "{Event type title} between {Organiser} and {Scheduler}",
   })
   customName?: string;
+
+  @IsOptional()
+  @Type(() => DestinationCalendar_2024_06_14)
+  destinationCalendar?: DestinationCalendar_2024_06_14;
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {

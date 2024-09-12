@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { EventType, User, Schedule } from "@prisma/client";
+import type { EventType, User, Schedule, DestinationCalendar } from "@prisma/client";
 
 import {
   EventTypeMetaDataSchema,
@@ -30,7 +30,11 @@ import {
   EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
 
-type EventTypeRelations = { users: User[]; schedule: Schedule | null };
+type EventTypeRelations = {
+  users: User[];
+  schedule: Schedule | null;
+  destinationCalendar?: DestinationCalendar;
+};
 export type DatabaseEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
@@ -76,6 +80,7 @@ type Input = Pick<
   | "seatsShowAttendees"
   | "requiresConfirmationWillBlockSlot"
   | "eventName"
+  | "destinationCalendar"
 >;
 
 @Injectable()
@@ -107,6 +112,7 @@ export class OutputEventTypesService_2024_06_14 {
       requiresBookerEmailVerification,
       hideCalendarNotes,
       seatsShowAttendees,
+      destinationCalendar,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -176,12 +182,17 @@ export class OutputEventTypesService_2024_06_14 {
       color,
       seats,
       customName,
+      destinationCalendar,
     };
   }
 
   transformLocations(locations: any) {
     if (!locations) return [];
     return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
+  }
+
+  destinationCalendar(destinationCalendar: DestinationCalendar) {
+    return destinationCalendar?.externalId ?? undefined;
   }
 
   transformBookingFields(inputBookingFields: (SystemField | UserField)[] | null) {

@@ -3324,7 +3324,31 @@
     "/v2/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "loggedInUsersTz",
+            "required": true,
+            "in": "query",
+            "description": "The timezone of the logged in user represented as a string",
+            "example": "America/New_York",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarsToLoad",
+            "required": true,
+            "in": "query",
+            "description": "An array of Calendar objects representing the calendars to be loaded",
+            "example": "[{ credentialId: \"1\", externalId: \"AQgtJE7RnHEeyisVq2ENs2gAAAgEGAAAACgtJE7RnHEeyisVq2ENs2gAAAhSDAAAA\" }, { credentialId: \"2\", externalId: \"AQM7RnHEeyisVq2ENs2gAAAhFDBBBBB\" }]",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -5258,12 +5282,18 @@
           "description": {
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
           }
         },
         "required": [
           "lengthInMinutes",
           "title",
-          "description"
+          "description",
+          "customName"
         ]
       },
       "UpdateEventTypeOutput_2024_06_14": {
@@ -7447,6 +7477,11 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
+          },
           "schedulingType": {
             "type": "object"
           },
@@ -7464,6 +7499,7 @@
           "lengthInMinutes",
           "title",
           "description",
+          "customName",
           "schedulingType",
           "hosts",
           "assignAllTeamMembers"
@@ -7823,6 +7859,9 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean"
+          },
+          "customName": {
+            "type": "string"
           }
         },
         "required": [
@@ -7906,6 +7945,11 @@
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
+          },
           "hosts": {
             "type": "array",
             "items": {
@@ -7920,6 +7964,7 @@
           "lengthInMinutes",
           "title",
           "description",
+          "customName",
           "hosts",
           "assignAllTeamMembers"
         ]
@@ -8675,7 +8720,8 @@
               "MEETING_STARTED",
               "RECORDING_READY",
               "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
+              "RECORDING_TRANSCRIPTION_GENERATED",
+              "OOO_CREATED"
             ]
           },
           "active": {
@@ -8748,7 +8794,8 @@
               "MEETING_STARTED",
               "RECORDING_READY",
               "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED"
+              "RECORDING_TRANSCRIPTION_GENERATED",
+              "OOO_CREATED"
             ]
           },
           "active": {

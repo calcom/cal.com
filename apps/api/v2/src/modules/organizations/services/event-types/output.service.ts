@@ -2,12 +2,17 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
-import type { EventType, User, Schedule, Host } from "@prisma/client";
+import type { EventType, User, Schedule, Host, DestinationCalendar } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
-type EventTypeRelations = { users: User[]; schedule: Schedule | null; hosts: Host[] };
+type EventTypeRelations = {
+  users: User[];
+  schedule: Schedule | null;
+  hosts: Host[];
+  destinationCalendar?: DestinationCalendar;
+};
 export type DatabaseTeamEventType = EventType & EventTypeRelations;
 
 type Input = Pick<

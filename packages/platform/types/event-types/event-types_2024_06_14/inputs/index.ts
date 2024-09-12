@@ -11,3 +11,4 @@ export * from "./booker-layouts.input";
 export * from "./confirmation-policy.input";
 export * from "./event-type-color.input";
 export * from "./seats.input";
+export * from "./destination-calendar.input";
