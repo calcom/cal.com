@@ -8,7 +8,7 @@ on:
       - gh-actions-test-branch
   workflow_dispatch:
   workflow_run:
-    workflows: ["PR Reviewed"]
+    workflows: ["PR Reviewed"] # Adding a comment here for testing
     types:
       - completed
 
