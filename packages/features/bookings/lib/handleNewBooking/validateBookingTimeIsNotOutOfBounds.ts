@@ -14,6 +14,8 @@ type ValidateBookingTimeEventType = Pick<
   | "periodCountCalendarDays"
   | "minimumBookingNotice"
   | "eventName"
+  | "users"
+  | "id"
 >;
 
 export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTimeEventType>(
@@ -36,7 +38,7 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
-        bookerUtcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        bookerUtcOffset: getUTCOffsetByTimezone(reqBodyTimeZone) ?? 0,
         eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
       },
       eventType.minimumBookingNotice
@@ -46,7 +48,7 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
       message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
     });
     if (error instanceof BookingDateInPastError) {
-      logger.info(`Booking eventType ${eventTypeId} failed`, JSON.stringify({ error }));
+      logger.info(`Booking eventType ${eventType.id} failed`, JSON.stringify({ error }));
       throw new HttpError({ statusCode: 400, message: error.message });
     }
   }

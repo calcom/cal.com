@@ -193,7 +193,7 @@ function buildNewBookingData(params: CreateBookingParams): Prisma.BookingCreateI
   if (originalRescheduledBooking) {
     newBookingData.metadata = {
       ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
-      ...reqBodyMetadata,
+      ...reqBody.metadata,
     };
     newBookingData.paid = originalRescheduledBooking.paid;
     newBookingData.fromReschedule = originalRescheduledBooking.uid;

@@ -5,9 +5,9 @@ import type { Logger } from "tslog";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma, { userSelect } from "@calcom/prisma";
+import { UserRepository } from "@calcom/lib/server/repository/user";
+import { userSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { loadUsers } from "./loadUsers";
 import type { NewBookingEventType } from "./types";
@@ -49,7 +49,10 @@ export async function loadAndValidateUsers({
   // If this event was pre-relationship migration
   // TODO: Establish whether this is dead code.
   if (!users.length && eventType.userId) {
-    const eventTypeUser = await getUserById(eventType.userId, logger);
+    const eventTypeUser = await UserRepository.findUserWithCredentialsById({
+      userId: eventType.userId,
+      select: userSelect.select,
+    });
     if (!eventTypeUser) {
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
       throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
@@ -75,24 +78,4 @@ export async function loadAndValidateUsers({
   );
 
   return users;
-}
-
-// TODO: use repository
-async function getUserById(userId: number, logger: Logger<unknown>) {
-  const eventTypeUser = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      credentials: {
-        select: credentialForCalendarServiceSelect,
-      }, // Don't leak to client
-      ...userSelect.select,
-    },
-  });
-  if (!eventTypeUser) {
-    logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
-    throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
-  }
-  return eventTypeUser;
 }
