@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
@@ -255,67 +256,100 @@ export class BookingRepository {
     teamId: number;
     startDate: Date;
     endDate: Date;
+    returnCount: true;
+  }): Promise<number>;
+
+  static async getAllAcceptedTeamBookingsOfUser(params: {
+    user: { id: number; email: string };
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<Array<Booking>>;
+
+  static async getAllAcceptedTeamBookingsOfUser(params: {
+    user: { id: number; email: string };
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+    returnCount?: boolean;
   }) {
-    const { user, teamId, startDate, endDate } = params;
+    const { user, teamId, startDate, endDate, returnCount } = params;
 
-    const collectiveRoundRobinBookingsOwner = await prisma.booking.findMany({
-      where: {
-        userId: user.id,
-        status: BookingStatus.ACCEPTED,
-        eventType: {
+    const baseWhere: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+    };
+
+    const whereCollectiveRoundRobinOwner: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      userId: user.id,
+      eventType: {
+        teamId,
+      },
+    };
+
+    const whereCollectiveRoundRobinBookingsAttendee: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      attendees: {
+        some: {
+          email: user.email,
+        },
+      },
+      eventType: {
+        teamId,
+      },
+    };
+
+    const whereManagedBookings: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      userId: user.id,
+      eventType: {
+        parent: {
           teamId,
         },
-        startTime: {
-          gte: startDate,
-        },
-        endTime: {
-          lte: endDate,
-        },
       },
-    });
+    };
 
-    const collectiveRoundRobinBookingsAttendee = await prisma.booking.findMany({
-      where: {
-        attendees: {
-          some: {
-            email: user.email,
-          },
-        },
-        status: BookingStatus.ACCEPTED,
-        eventType: {
-          teamId,
-        },
-        startTime: {
-          gte: startDate,
-        },
-        endTime: {
-          lte: endDate,
-        },
-      },
-    });
+    if (returnCount) {
+      const collectiveRoundRobinBookingsOwner = await prisma.booking.count({
+        where: whereCollectiveRoundRobinOwner,
+      });
 
-    const managedBookings = await prisma.booking.findMany({
-      where: {
-        userId: user.id,
-        status: BookingStatus.ACCEPTED,
-        eventType: {
-          parent: {
-            teamId,
-          },
-        },
-        startTime: {
-          gte: startDate,
-        },
-        endTime: {
-          lte: endDate,
-        },
-      },
-    });
+      const collectiveRoundRobinBookingsAttendee = await prisma.booking.count({
+        where: whereCollectiveRoundRobinBookingsAttendee,
+      });
 
-    return [
-      ...collectiveRoundRobinBookingsOwner,
-      ...collectiveRoundRobinBookingsAttendee,
-      ...managedBookings,
-    ];
+      const managedBookings = await prisma.booking.count({
+        where: whereManagedBookings,
+      });
+
+      const totalNrOfBooking =
+        collectiveRoundRobinBookingsOwner + collectiveRoundRobinBookingsAttendee + managedBookings;
+
+      return totalNrOfBooking;
+    } else {
+      const collectiveRoundRobinBookingsOwner = await prisma.booking.findMany({
+        where: whereCollectiveRoundRobinOwner,
+      });
+
+      const collectiveRoundRobinBookingsAttendee = await prisma.booking.findMany({
+        where: whereCollectiveRoundRobinBookingsAttendee,
+      });
+
+      const managedBookings = await prisma.booking.findMany({
+        where: whereManagedBookings,
+      });
+
+      return [
+        ...collectiveRoundRobinBookingsOwner,
+        ...collectiveRoundRobinBookingsAttendee,
+        ...managedBookings,
+      ];
+    }
   }
 }

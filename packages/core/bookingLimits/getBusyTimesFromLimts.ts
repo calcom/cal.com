@@ -5,8 +5,6 @@ import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
 import type { EventType } from "../getUserAvailability";
@@ -239,31 +237,14 @@ const _getBusyTimesFromTeamLimits = async (
       const periodEnd = periodStart.endOf(unit);
 
       if (unit === "year") {
-        const bookingsInPeriod = await prisma.booking.count({
-          where: {
-            userId: user.id,
-            status: BookingStatus.ACCEPTED,
-            eventType: {
-              OR: [
-                { teamId },
-                {
-                  parent: {
-                    teamId,
-                  },
-                },
-              ],
-            },
-            startTime: {
-              gte: periodStart.toDate(),
-            },
-            endTime: {
-              lte: periodEnd.toDate(),
-            },
-            uid: {
-              not: rescheduleUid,
-            },
-          },
+        const bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+          user: { id: user.id, email: user.email },
+          teamId,
+          startDate: periodStart.toDate(),
+          endDate: periodEnd.toDate(),
+          returnCount: true,
         });
+
         if (bookingsInPeriod >= limit) {
           limitManager.addBusyTime(periodStart, unit);
         }
