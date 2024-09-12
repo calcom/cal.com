@@ -1147,6 +1147,7 @@
   "set_location": "Nastavit místo",
   "update_location": "Aktualizovat místo",
   "location_updated": "Místo aktualizováno",
+  "location_update_failed": "Aktualizace polohy se nezdařila",
   "guests_added": "Hosté přidáni",
   "unable_to_add_guests": "Nelze přidat hosty",
   "email_validation_error": "Tohle nevypadá jako e-mailová adresa",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Nastavte výchozí odkaz na aplikaci",
   "default_app_link_description": "Nastavení výchozího odkazu na aplikaci umožní, aby všechny nově vytvořené typy událostí používaly vámi nastavený odkaz na aplikaci.",
   "organizer_default_conferencing_app": "Výchozí aplikace organizátora",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} nemá výchozí aplikaci pro konferenční hovory",
   "under_maintenance": "Odstávka z důvodu údržby",
   "under_maintenance_description": "Tým {{appName}} provádí plánovanou údržbu. V případě dotazů se obraťte na podporu.",
   "event_type_seats": "Počet míst: {{numberOfSeats}}",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Přeplánovat se stejným hostitelem Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Přeplánované události budou přiřazeny stejnému hostiteli jako původně",
   "disable_input_if_prefilled": "Zakázat vstup, pokud je identifikátor URL předvyplněn",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemáte oprávnění provést tuto změnu v rezervaci",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
