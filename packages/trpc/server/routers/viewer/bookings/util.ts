@@ -1,16 +1,15 @@
-import {
-  MembershipRole,
-  type Attendee,
-  type Booking,
-  type BookingReference,
-  type Credential,
-  type DestinationCalendar,
-  type EventType,
-  type User,
+import type {
+  Booking,
+  EventType,
+  BookingReference,
+  Attendee,
+  Credential,
+  DestinationCalendar,
+  User,
 } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -25,7 +24,17 @@ export const bookingsProcedure = authedProcedure
     const loggedInUser = ctx.user;
     const bookingInclude = {
       attendees: true,
-      eventType: true,
+      eventType: {
+        include: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+              parentId: true,
+            },
+          },
+        },
+      },
       destinationCalendar: true,
       references: true,
       user: {
@@ -92,7 +101,11 @@ export const bookingsProcedure = authedProcedure
 
 export type BookingsProcedureContext = {
   booking: Booking & {
-    eventType: EventType | null;
+    eventType:
+      | (EventType & {
+          team?: { id: number; name: string; parentId?: number | null } | null;
+        })
+      | null;
     destinationCalendar: DestinationCalendar | null;
     user:
       | (User & {

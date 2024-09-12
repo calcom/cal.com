@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
-import { sendLocationChangeEmails } from "@calcom/emails";
+import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
@@ -277,7 +277,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   await updateBookingLocationInDb({ booking, evt, referencesToCreate: updatedResult.referencesToCreate });
 
   try {
-    await sendLocationChangeEmails(
+    await sendLocationChangeEmailsAndSMS(
       { ...evt, additionalInformation: extractAdditionalInformation(updatedResult.results[0]) },
       booking?.eventType?.metadata as EventTypeMetadata
     );
