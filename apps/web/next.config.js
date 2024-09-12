@@ -175,7 +175,7 @@ const nextConfig = {
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    serverComponentsExternalPackages: ["next-i18next"],
+    serverComponentsExternalPackages: ["next-i18next", "typeorm", "@boxyhq/saml-jackson", "handlebars"],
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
   },
