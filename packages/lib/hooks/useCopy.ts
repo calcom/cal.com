@@ -50,7 +50,10 @@ export function useCopy() {
       const text = new ClipboardItem({
         "text/plain": promise
           .then((text) => new Blob([text], { type: "text/plain" }))
-          .catch(() => onFailure()),
+          .catch(() => {
+            onFailure();
+            return "";
+          }),
       });
       navigator.clipboard.write([text]);
       onSuccess();
