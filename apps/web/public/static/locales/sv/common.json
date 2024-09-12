@@ -1147,6 +1147,7 @@
   "set_location": "Ställ in plats",
   "update_location": "Uppdatera plats",
   "location_updated": "Plats uppdaterad",
+  "location_update_failed": "Uppdatering av plats misslyckades",
   "guests_added": "Gäster tillagda",
   "unable_to_add_guests": "Kan inte lägga till gäster",
   "email_validation_error": "Det ser inte ut som en e-postadress",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Skapa en standardapplänk",
   "default_app_link_description": "Om du skapar en standardapplänk kan alla händelsetyper som nyligen skapats använda den applänk som du har angett.",
   "organizer_default_conferencing_app": "Arrangörens standardapp",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} har ingen standardkonferensapp",
   "under_maintenance": "Nere för underhåll",
   "under_maintenance_description": "{{appName}}-teamet genomför planerat underhåll. Om du har några frågor kan du kontakta supporten.",
   "event_type_seats": "{{numberOfSeats}} platser",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Boka om med samma Round-Robin värd",
   "reschedule_with_same_round_robin_host_description": "Ombokade händelser kommer att tilldelas samma värd som ursprungligen bokades",
   "disable_input_if_prefilled": "Inaktivera inmatning om URL-identifieraren är förifylld",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har inte behörighet att göra denna ändring i bokningen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

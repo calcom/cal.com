@@ -1147,6 +1147,7 @@
   "set_location": "Määra asukoht",
   "update_location": "Uuenda asukohta",
   "location_updated": "Asukoht värskendatud",
+  "location_update_failed": "Asukoha uuendamine ebaõnnestus",
   "guests_added": "Külalised lisatud",
   "unable_to_add_guests": "Külalisi ei saa lisada",
   "email_validation_error": "See ei näe välja nagu meiliaadress",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Rakenduse vaikelingi määramine",
   "default_app_link_description": "Rakenduse vaikelingi määramine võimaldab kõigil äsja loodud sündmuste tüüpidel kasutada teie määratud rakenduse linki.",
   "organizer_default_conferencing_app": "Korraldaja vaikerakendus",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} ei ole määranud vaikimisi videokonverentsi rakendust",
   "under_maintenance": "Hoolduseks maha",
   "under_maintenance_description": "Tiim {{appName}} teeb plaanipärast hooldust. Kui teil on küsimusi, võtke ühendust toega.",
   "event_type_seats": "{{numberOfSeats}} kohta",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Planeeri ümber sama Round-Robin hostiga",
   "reschedule_with_same_round_robin_host_description": "Ümberplaneeritud sündmused määratakse samale hostile, kellele need algselt määrati",
   "disable_input_if_prefilled": "Keela sisend, kui URL-i identifikaator on eeltäidetud",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Teil puuduvad õigused selle broneeringu muutmiseks",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
