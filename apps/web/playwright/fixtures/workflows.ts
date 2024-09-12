@@ -34,7 +34,10 @@ export function createWorkflowPageFixture(page: Page) {
   };
 
   const saveWorkflow = async () => {
+    const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
     await page.getByTestId("save-workflow").click();
+    const response = await submitPromise;
+    expect(response.status()).toBe(200);
   };
 
   const assertListCount = async (count: number) => {
@@ -55,6 +58,7 @@ export function createWorkflowPageFixture(page: Page) {
 
   const hasWorkflowInList = async (name: string, negate?: true) => {
     const selectedWorkflow = page.getByTestId("workflow-list").getByTestId(nameToTestId(name));
+    await selectedWorkflow.waitFor();
 
     if (negate) {
       await expect(selectedWorkflow).toBeHidden();
