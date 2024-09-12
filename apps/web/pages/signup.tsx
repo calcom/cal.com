@@ -8,5 +8,5 @@ import Signup from "~/signup-view";
 const Page = (props: SignupProps) => <Signup {...props} />;
 
 export { getServerSideProps };
-
 Page.PageWrapper = PageWrapper;
+export default Page;

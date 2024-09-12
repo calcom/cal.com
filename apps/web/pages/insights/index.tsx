@@ -9,5 +9,5 @@ import InsightsPage from "~/insights/insights-view";
 
 const Page = (props: PageProps) => <InsightsPage {...props} />;
 Page.PageWrapper = PageWrapper;
-
+export default Page;
 export { getServerSideProps };
