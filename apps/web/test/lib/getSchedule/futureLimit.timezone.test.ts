@@ -121,6 +121,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -208,6 +209,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -291,6 +293,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -385,6 +388,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -488,6 +492,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -577,6 +582,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -660,6 +666,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["-11:00"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -782,6 +789,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -879,6 +887,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -979,6 +988,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1086,6 +1096,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1205,6 +1216,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -1301,6 +1313,7 @@ describe("getSchedule", () => {
               endTime: `${plus5DateString}T18:29:59.999Z`,
               timeZone: Timezones["+5:30"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
@@ -1409,6 +1422,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1510,6 +1524,7 @@ describe("getSchedule", () => {
             endTime: `${plus5DateString}T18:29:59.999Z`,
             timeZone: Timezones["+5:30"],
             isTeamEvent: false,
+            orgSlug: null,
           },
         });
 
@@ -1594,6 +1609,7 @@ describe("getSchedule", () => {
               endTime: `2024-07-31T18:29:59.999Z`,
               timeZone: Timezones["-11:00"],
               isTeamEvent: false,
+              orgSlug: null,
             },
           });
 
