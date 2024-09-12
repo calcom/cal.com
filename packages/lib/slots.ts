@@ -205,7 +205,9 @@ function buildSlotsWithDateRanges({
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? showOptimizedSlots
-          ? slotStartTime.add(rangeEnd.diff(slotStartTime, "minutes") % interval, "minute")
+          ? rangeEnd.diff(slotStartTime, "minutes") % interval > 60 - slotStartTime.minute()
+            ? slotStartTime.add(60 - slotStartTime.minute(), "minute")
+            : slotStartTime.add(rangeEnd.diff(slotStartTime, "minutes") % interval, "minute")
           : slotStartTime
               .startOf("hour")
               .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
