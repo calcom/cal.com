@@ -71,7 +71,7 @@ const Page = async ({ params }: PageProps) => {
     travelSchedules = await TravelScheduleRepository.findTravelSchedulesByUserId(userId);
   } catch (e) {}
 
-  return <AvailabilitySettingsWebWrapper schedule={schedule} travelSchedules={travelSchedules} />;
+  return <AvailabilitySettingsWebWrapper scheduleFetched={schedule} travelSchedules={travelSchedules} />;
 };
 
 export default WithLayout({ ServerPage: Page });
