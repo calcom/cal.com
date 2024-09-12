@@ -66,10 +66,6 @@ export class OutputBookingsService_2024_08_13 {
     const transformed = [];
 
     for (const booking of databaseBookings) {
-      if (!booking.id) {
-        throw new Error("Booking was not created");
-      }
-
       const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUser(booking.id);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${booking.id} was not found in the database`);
