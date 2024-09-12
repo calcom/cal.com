@@ -212,7 +212,6 @@ export async function getBookings({
     uid: true,
     recurringEventId: true,
     location: true,
-    responses: true,
     eventType: {
       select: {
         slug: true,
@@ -237,7 +236,6 @@ export async function getBookings({
     },
     status: true,
     paid: true,
-
     payment: {
       select: {
         paymentOption: true,

@@ -31,11 +31,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  ApiQuery,
-  ApiTags as DocsTags,
-  ApiExcludeController as DocsExcludeController,
-} from "@nestjs/swagger";
+import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
@@ -44,6 +40,7 @@ import { v4 as uuidv4 } from "uuid";
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
+  handleNewRecurringBooking,
   handleNewBooking,
   BookingResponse,
   HttpError,
@@ -55,7 +52,6 @@ import {
   getBookingForReschedule,
   ErrorCode,
 } from "@calcom/platform-libraries";
-import { handleNewRecurringBooking } from "@calcom/platform-libraries-1.2.3";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,

@@ -15,7 +15,7 @@ import {
   handleInstantMeeting,
   handleCancelBooking,
   handleMarkNoShow,
-} from "@calcom/platform-libraries-1.2.3";
+} from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
@@ -25,21 +25,10 @@ import {
   CreateInstantBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  BookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
-import { Booking } from "@calcom/prisma/client";
-
-type BookingWithAttendeesAndEventType = Booking & {
-  attendees: {
-    name: string;
-    email: string;
-    timeZone: string;
-    locale: string | null;
-    noShow: boolean | null;
-  }[];
-  eventType: { id: number };
-  user: { id: number; name: string | null; email: string } | null;
-};
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -145,7 +134,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
-    const fetchedBookings: { bookings: BookingWithAttendeesAndEventType[] } = await getAllUserBookings({
+    const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
       // note(Lauris): we substract -1 because getAllUSerBookings child function adds +1 for some reason
@@ -157,11 +146,23 @@ export class BookingsService_2024_08_13 {
       },
       sort: this.inputService.transformGetBookingsSort(queryParams),
     });
+    // note(Lauris): fetchedBookings don't have attendees information and responses and i don't want to add them to the handler query,
+    // because its used elsewhere in code that does not need that information, so i get ids, fetch bookings and then return them formatted in same order as ids.
+    const ids = fetchedBookings.bookings.map((booking) => booking.id);
+    const bookings = await this.bookingsRepository.getByIdsWithAttendeesAndUser(ids);
 
-    return fetchedBookings.bookings.map((booking) => {
+    const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
+    const orderedBookings = ids.map((id) => bookingMap.get(id));
+
+    const formattedBookings: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = [];
+    for (const booking of orderedBookings) {
+      if (!booking) {
+        continue;
+      }
+
       const formatted = {
         ...booking,
-        eventTypeId: booking.eventType.id,
+        eventTypeId: booking.eventTypeId,
         startTime: new Date(booking.startTime),
         endTime: new Date(booking.endTime),
         absentHost: !!booking.noShowHost,
@@ -169,10 +170,13 @@ export class BookingsService_2024_08_13 {
 
       const isRecurring = !!formatted.recurringEventId;
       if (isRecurring) {
-        return this.outputService.getOutputRecurringBooking(formatted);
+        formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
+      } else {
+        formattedBookings.push(this.outputService.getOutputBooking(formatted));
       }
-      return this.outputService.getOutputBooking(formatted);
-    });
+    }
+
+    return formattedBookings;
   }
 
   async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput_2024_08_13) {

@@ -1,3 +1,6 @@
+## 0.0.35 
+Released to support v2 bookings refactor https://github.com/calcom/cal.com/pull/16200/ (released from this branch)
+
 ## 0.0.31 
 PR https://github.com/calcom/cal.com/pull/16414 fixed issue of deleting and rescheduling recurring events.
 

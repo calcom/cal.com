@@ -14,6 +14,20 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getByIdsWithAttendeesAndUser(ids: number[]) {
+    return this.dbRead.prisma.booking.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      include: {
+        attendees: true,
+        user: true,
+      },
+    });
+  }
+
   async getByUid(bookingUid: string) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
