@@ -289,7 +289,7 @@ export async function addEventTypesToDb(
 
     if (eventType.team) {
       const createdTeam = await prismock.team.create({
-        data: { id: eventType.team.id, bookingLimits: eventType.team.bookingLimits },
+        data: { id: eventType.team?.id, bookingLimits: eventType.team?.bookingLimits },
       });
 
       await prismock.eventType.update({
@@ -1279,7 +1279,7 @@ export function getScenarioData(
         ...eventType,
         teamId: eventType.teamId || null,
         team: {
-          id: eventType.teamId ?? eventType.team.id,
+          id: eventType.teamId ?? eventType.team?.id,
           parentId: org ? org.id : null,
           bookingLimits: eventType?.team?.bookingLimits,
         },
