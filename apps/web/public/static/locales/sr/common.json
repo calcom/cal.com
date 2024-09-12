@@ -1147,6 +1147,7 @@
   "set_location": "Podesite lokaciju",
   "update_location": "Ažurirajte lokaciju",
   "location_updated": "Lokacija je ažurirana",
+  "location_update_failed": "Ažuriranje lokacije nije uspelo",
   "guests_added": "Gosti dodati",
   "unable_to_add_guests": "Nije moguće dodati goste",
   "email_validation_error": "To ne liči na imejl adresu",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Podesite podrazumevani link aplikacije",
   "default_app_link_description": "Podešavanje podrazumevanog linka aplikacije omogućava novokreiranim tipovima događaja da koriste link aplikacije koji ste postavili.",
   "organizer_default_conferencing_app": "Podrazumevana aplikacija organizatora",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} nema podrazumevanu aplikaciju za konferencije",
   "under_maintenance": "Ne radi zbog održavanja",
   "under_maintenance_description": "Tim {{appName}} izvodi zakazano održavanje. Ako imate pitanja, obratite se korisničkoj podršci.",
   "event_type_seats": "{{numberOfSeats}} mesta",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Ponovo zakaži sa istim Round-Robin domaćinom",
   "reschedule_with_same_round_robin_host_description": "Ponovo zakazani događaji će biti dodeljeni istom domaćinu kao i prvobitno zakazani",
   "disable_input_if_prefilled": "Onemogući unos ako je URL identifikator unapred popunjen",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemate ovlašćenje da izvršite ovu promenu u rezervaciji",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

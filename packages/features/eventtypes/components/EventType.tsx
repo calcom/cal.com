@@ -151,6 +151,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.getByViewer.invalidate();
     },
     onError: (err) => {
       let message = "";

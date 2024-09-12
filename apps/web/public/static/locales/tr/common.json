@@ -1147,6 +1147,7 @@
   "set_location": "Konumu Ayarla",
   "update_location": "Konumu Güncelle",
   "location_updated": "Konum güncellendi",
+  "location_update_failed": "Konum güncellemesi başarısız oldu",
   "guests_added": "Misafirler eklendi",
   "unable_to_add_guests": "Konuklar eklenemiyor",
   "email_validation_error": "Bu bir e-posta adresi gibi görünmüyor",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Varsayılan uygulama bağlantısını ayarlayın",
   "default_app_link_description": "Varsayılan uygulama bağlantısını ayarlamak, yeni oluşturulan tüm etkinlik türlerinin ayarladığınız uygulama bağlantısını kullanmasına olanak tanır.",
   "organizer_default_conferencing_app": "Organizatörün varsayılan uygulaması",
+  "organizer_default_conferencing_app_not_found": "{{organizer}}'ın varsayılan konferans uygulaması bulunamadı",
   "under_maintenance": "Bakımda",
   "under_maintenance_description": "{{appName}} ekibi planlı bir bakım çalışması gerçekleştiriyor. Herhangi bir sorunuz varsa lütfen destek ekibiyle iletişime geçin.",
   "event_type_seats": "{{numberOfSeats}} yer",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Aynı Round-Robin ev sahibi ile yeniden planla",
   "reschedule_with_same_round_robin_host_description": "Yeniden planlanan etkinlikler, başlangıçta planlandığı gibi aynı ev sahibine atanacaktır",
   "disable_input_if_prefilled": "URL tanımlayıcısı önceden doldurulmuşsa girişi devre dışı bırak",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Bu rezervasyonda değişiklik yapma yetkiniz yok",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
