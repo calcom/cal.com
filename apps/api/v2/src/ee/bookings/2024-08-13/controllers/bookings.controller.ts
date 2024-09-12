@@ -138,6 +138,12 @@ export class BookingsController_2024_08_13 {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
   @Permissions([BOOKING_READ])
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
@@ -192,6 +198,12 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader({
+    name: "Authorization",
+    description:
+      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+    required: true,
+  })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
     @Body() body: MarkAbsentBookingInput_2024_08_13,

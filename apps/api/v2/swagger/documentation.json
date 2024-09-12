@@ -3783,6 +3783,15 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3960,6 +3969,15 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
             "schema": {
               "type": "string"
             }
