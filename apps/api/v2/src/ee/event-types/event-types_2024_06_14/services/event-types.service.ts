@@ -38,17 +38,8 @@ export class EventTypesService_2024_06_14 {
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const {
-      bookingLimits,
-      durationLimits,
-      periodType = undefined,
-      periodDays = undefined,
-      periodCountCalendarDays = undefined,
-      periodStartDate = undefined,
-      periodEndDate = undefined,
-      recurrence = undefined,
-      ...bodyTransformed
-    } = this.inputEventTypesService.transformInputCreateEventType(body);
+    const { bookingLimits, durationLimits, ...bodyTransformed } =
+      this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
       input: bodyTransformed,
       ctx: {
@@ -64,12 +55,6 @@ export class EventTypesService_2024_06_14 {
         id: eventTypeCreated.id,
         bookingLimits,
         durationLimits,
-        periodType,
-        periodDays,
-        periodCountCalendarDays,
-        periodStartDate,
-        periodEndDate,
-        recurrence,
         ...bodyTransformed,
       },
       ctx: {
