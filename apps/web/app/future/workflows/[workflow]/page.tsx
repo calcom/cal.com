@@ -4,7 +4,7 @@ import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 

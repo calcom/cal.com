@@ -1,6 +1,6 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import DirectorySyncTeamView from "@calcom/features/ee/dsync/page/team-dsync-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 

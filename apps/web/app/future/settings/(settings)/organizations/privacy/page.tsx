@@ -1,6 +1,6 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import PrivacyView from "@calcom/features/ee/organizations/pages/settings/privacy";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
