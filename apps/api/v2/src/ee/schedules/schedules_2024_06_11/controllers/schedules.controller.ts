@@ -43,6 +43,12 @@ import {
   description: `Must be set to \`2024-06-11\``,
   required: true,
 })
+@ApiHeader({
+  name: "Authorization",
+  description:
+    "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+  required: true,
+})
 export class SchedulesController_2024_06_11 {
   constructor(private readonly schedulesService: SchedulesService_2024_06_11) {}
 

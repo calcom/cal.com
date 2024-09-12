@@ -607,6 +607,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -643,6 +652,33 @@
             "in": "header",
             "description": "Must be set to `2024-06-14`",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "username",
+            "required": true,
+            "in": "query",
+            "description": "The username of the user to get event types for. If only username provided will get all event types.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of event type to return. Notably, if eventSlug is provided then username must be provided too, because multiple users can have event with same slug.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "usernames",
+            "required": true,
+            "in": "query",
+            "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
               "type": "string"
             }
@@ -685,6 +721,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -721,6 +766,15 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -768,6 +822,15 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -1804,6 +1867,15 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of team event type to return.",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -2924,6 +2996,15 @@
         "description": "\n      The point of creating schedules is for event types to be available at specific times.\n\n      First goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. Managed user can then change the default schedule via `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want that user has specific schedule right away. You should create default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule that user can't be booked or manage his / her schedule via the AvailabilitySettings atom.\n\n      Second goal is to create other schedules that event types can point to, so that when that event is booked availability is not checked against the default schedule but against that specific schedule.\n      After creating a non default schedule you can update event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use 24 hour format e.g. 08:00, 15:00 etc.\n      ",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "cal-api-version",
             "in": "header",
             "description": "Must be set to `2024-06-11`",
@@ -2965,6 +3046,15 @@
         "description": "Returns all schedules of the authenticated user",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "cal-api-version",
             "in": "header",
             "description": "Must be set to `2024-06-11`",
@@ -2996,6 +3086,15 @@
         "operationId": "SchedulesController_2024_06_11_getDefaultSchedule",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "cal-api-version",
             "in": "header",
             "description": "Must be set to `2024-06-11`",
@@ -3026,6 +3125,15 @@
       "get": {
         "operationId": "SchedulesController_2024_06_11_getSchedule",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -3063,6 +3171,15 @@
       "patch": {
         "operationId": "SchedulesController_2024_06_11_updateSchedule",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -3110,6 +3227,15 @@
       "delete": {
         "operationId": "SchedulesController_2024_06_11_deleteSchedule",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "cal-api-version",
             "in": "header",
