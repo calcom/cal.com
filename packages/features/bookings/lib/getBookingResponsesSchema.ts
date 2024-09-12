@@ -117,6 +117,18 @@ function preprocess<T extends z.ZodType>({
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
+
+      const attendeePhoneNumberField = bookingFields.find((field) => field.name === "attendeePhoneNumber");
+      const isAttendeePhoneNumberFieldHidden = attendeePhoneNumberField?.hidden;
+
+      const emailField = bookingFields.find((field) => field.name === "email");
+      const isEmailFieldHidden = !!emailField?.hidden;
+
+      // To prevent using user's session email as attendee's email, we set email to empty string
+      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+        responses["email"] = "";
+      }
+
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
@@ -151,7 +163,7 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
-          if (!emailSchema.safeParse(value).success) {
+          if (!bookingField.hidden && !emailSchema.safeParse(value).success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("email_validation_error"),
