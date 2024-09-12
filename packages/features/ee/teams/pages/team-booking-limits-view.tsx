@@ -63,7 +63,6 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
           <Form
             form={form}
             handleSubmit={(values) => {
-              console.log("test test");
               mutation.mutate({ ...values, id: team.id });
             }}>
             <Controller

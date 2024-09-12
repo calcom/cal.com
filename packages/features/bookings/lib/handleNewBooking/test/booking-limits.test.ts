@@ -511,14 +511,6 @@ describe("handleNewBooking", () => {
               startTime: `${nextDayDateString}T05:00:00.000Z`,
               endTime: `${nextDayDateString}T05:15:00.000Z`,
             },
-            {
-              eventTypeId: 1,
-              userId: 102,
-              attendees: [{ email: "organizer@example.com" }],
-              status: BookingStatus.ACCEPTED,
-              startTime: `${nextDayDateString}T05:00:00.000Z`,
-              endTime: `${nextDayDateString}T05:15:00.000Z`,
-            },
           ],
           organizer,
         })
