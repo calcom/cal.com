@@ -249,4 +249,73 @@ export class BookingRepository {
       },
     });
   }
+
+  static async getAllAcceptedTeamBookingsOfUser(params: {
+    user: { id: number; email: string };
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    const { user, teamId, startDate, endDate } = params;
+
+    const collectiveRoundRobinBookingsOwner = await prisma.booking.findMany({
+      where: {
+        userId: user.id,
+        status: BookingStatus.ACCEPTED,
+        eventType: {
+          teamId,
+        },
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
+        },
+      },
+    });
+
+    const collectiveRoundRobinBookingsAttendee = await prisma.booking.findMany({
+      where: {
+        attendees: {
+          some: {
+            email: user.email,
+          },
+        },
+        status: BookingStatus.ACCEPTED,
+        eventType: {
+          teamId,
+        },
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
+        },
+      },
+    });
+
+    const managedBookings = await prisma.booking.findMany({
+      where: {
+        userId: user.id,
+        status: BookingStatus.ACCEPTED,
+        eventType: {
+          parent: {
+            teamId,
+          },
+        },
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
+        },
+      },
+    });
+
+    return [
+      ...collectiveRoundRobinBookingsOwner,
+      ...collectiveRoundRobinBookingsAttendee,
+      ...managedBookings,
+    ];
+  }
 }
