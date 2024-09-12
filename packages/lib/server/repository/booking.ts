@@ -113,18 +113,71 @@ export class BookingRepository {
     return allBookings;
   }
 
-  static async findBookingByUidWithOptionalSelect({
-    bookingUid,
-    select,
-  }: {
-    bookingUid: string;
-    select?: Prisma.BookingSelect;
-  }) {
+  static async findBookingByUid({ bookingUid }: { bookingUid: string }) {
     return await prisma.booking.findUnique({
       where: {
         uid: bookingUid,
       },
-      select: { ...bookingMinimalSelect, ...select },
+      select: bookingMinimalSelect,
+    });
+  }
+
+  static async findBookingForMeetingPage({ bookingUid }: { bookingUid: string }) {
+    return await prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        ...bookingMinimalSelect,
+        uid: true,
+        description: true,
+        isRecorded: true,
+        user: {
+          select: {
+            id: true,
+            timeZone: true,
+            name: true,
+            email: true,
+            username: true,
+          },
+        },
+        references: {
+          select: {
+            id: true,
+            uid: true,
+            type: true,
+            meetingUrl: true,
+            meetingPassword: true,
+          },
+          where: {
+            type: "daily_video",
+          },
+        },
+      },
+    });
+  }
+
+  static async findBookingForMeetingEndedPage({ bookingUid }: { bookingUid: string }) {
+    return await prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        ...bookingMinimalSelect,
+        uid: true,
+        user: {
+          select: {
+            credentials: true,
+          },
+        },
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            meetingUrl: true,
+          },
+        },
+      },
     });
   }
 
