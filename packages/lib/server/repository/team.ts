@@ -178,4 +178,35 @@ export class TeamRepository {
     }
     return getParsedTeam(team);
   }
+
+  static async getAllOrgs() {
+    const allOrgs = await prisma.team.findMany({
+      where: {
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        organizationSettings: true,
+        members: {
+          where: {
+            role: "OWNER",
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return allOrgs.map((org) => ({ ...org, metadata: teamMetadataSchema.parse(org.metadata) }));
+  }
 }

@@ -1,5 +1,4 @@
-import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -10,34 +9,7 @@ type AdminGetAllOptions = {
 };
 
 export const adminGetUnverifiedHandler = async ({}: AdminGetAllOptions) => {
-  const allOrgs = await prisma.team.findMany({
-    where: {
-      isOrganization: true,
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      metadata: true,
-      organizationSettings: true,
-      members: {
-        where: {
-          role: "OWNER",
-        },
-        select: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return allOrgs.map((org) => ({ ...org, metadata: teamMetadataSchema.parse(org.metadata) }));
+  return await TeamRepository.getAllOrgs();
 };
 
 export default adminGetUnverifiedHandler;
