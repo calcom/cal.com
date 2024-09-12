@@ -1147,6 +1147,7 @@
   "set_location": "Yeri Təyin Et",
   "update_location": "Yeri Yenilə",
   "location_updated": "Yer yeniləndi",
+  "location_update_failed": "Məkan yeniləməsi uğursuz oldu",
   "guests_added": "Qonaqlar əlavə edildi",
   "unable_to_add_guests": "Qonaqları əlavə etmək mümkün deyil",
   "email_validation_error": "Bu, e-poçt ünvanına bənzəmir",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Varsayılan tətbiq bağlantısını təyin et",
   "default_app_link_description": "Varsayılan tətbiq bağlantısını təyin etmək, yeni yaradılan bütün tədbir növlərinin təyin etdiyiniz tətbiq bağlantısını istifadə etməsinə imkan verir.",
   "organizer_default_conferencing_app": "Təşkilatçının varsayılan tətbiqi",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} üçün standart konfrans tətbiqi tapılmadı",
   "under_maintenance": "Baxım üçün bağlıdır",
   "under_maintenance_description": "{{appName}} komandası planlı baxım işləri aparır. Hər hansı bir sualınız varsa, dəstək ilə əlaqə saxlayın.",
   "event_type_seats": "{{numberOfSeats}} oturacaq",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Eyni Round-Robin ev sahibi ilə yenidən planlaşdır",
   "reschedule_with_same_round_robin_host_description": "Yenidən planlaşdırılan tədbirlər əvvəlcə təyin olunan ev sahibinə təyin ediləcək",
   "disable_input_if_prefilled": "URL identifikatoru əvvəlcədən doldurulubsa girişi deaktiv et",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Bu dəyişikliyi etmək üçün səlahiyyətiniz yoxdur",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

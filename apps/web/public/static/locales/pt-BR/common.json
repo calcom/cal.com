@@ -1147,6 +1147,7 @@
   "set_location": "Definir local",
   "update_location": "Atualizar local",
   "location_updated": "Local atualizado",
+  "location_update_failed": "Falha na atualização da localização",
   "guests_added": "Convidados adicionados",
   "unable_to_add_guests": "Não foi possível adicionar convidados",
   "email_validation_error": "Isso não parece um endereço de e-mail",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Defina um link padrão para o app",
   "default_app_link_description": "Definir um link padrão para o app permite que todos os tipos de evento recém-criados usem o link definido para o app.",
   "organizer_default_conferencing_app": "Aplicativo padrão do organizador",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} não possui um aplicativo de conferência padrão",
   "under_maintenance": "Serviço interrompido para manutenção",
   "under_maintenance_description": "A equipe do {{appName}} está realizando uma manutenção programada. Se tiver alguma dúvida, fale com o suporte.",
   "event_type_seats": "{{numberOfSeats}} assentos",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Reagendar com o mesmo anfitrião Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Eventos reagendados serão atribuídos ao mesmo anfitrião inicialmente agendado",
   "disable_input_if_prefilled": "Desativar entrada se o identificador da URL estiver preenchido",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Você não tem autorização para fazer essa alteração na reserva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
