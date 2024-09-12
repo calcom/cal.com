@@ -1,3 +1,5 @@
+import { CalendarsModule } from "@/ee/calendars/calendars.module";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesController_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/controllers/event-types.controller";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
@@ -14,7 +16,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule],
+  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule, CalendarsModule],
   providers: [
     EventTypesRepository_2024_06_14,
     EventTypesService_2024_06_14,
@@ -24,6 +26,7 @@ import { Module } from "@nestjs/common";
     UsersService,
     SchedulesRepository_2024_06_11,
     EventTypeResponseTransformPipe,
+    CalendarsService,
   ],
   controllers: [EventTypesController_2024_06_14],
   exports: [

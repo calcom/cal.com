@@ -4,7 +4,6 @@ import {
   CredentialsRepository,
   CredentialsWithUserEmail,
 } from "@/modules/credentials/credentials.repository";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
@@ -13,7 +12,6 @@ import {
   UnauthorizedException,
   NotFoundException,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
@@ -31,9 +29,7 @@ export class CalendarsService {
     private readonly credentialsRepository: CredentialsRepository,
     private readonly appsRepository: AppsRepository,
     private readonly calendarsRepository: CalendarsRepository,
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService,
-    private readonly config: ConfigService
+    private readonly dbWrite: PrismaWriteService
   ) {}
 
   async getCalendars(userId: number) {

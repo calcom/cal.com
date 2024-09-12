@@ -24,7 +24,10 @@ export class EventTypesRepository_2024_06_14 {
     private usersService: UsersService
   ) {}
 
-  async createUserEventType(userId: number, body: InputEventTransformed_2024_06_14) {
+  async createUserEventType(
+    userId: number,
+    body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar">
+  ) {
     return this.dbWrite.prisma.eventType.create({
       data: {
         ...body,

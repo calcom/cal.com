@@ -1,4 +1,7 @@
+import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import {
@@ -16,7 +19,11 @@ import {
   validateCustomEventName,
   transformApiSeatOptions,
 } from "@calcom/platform-libraries-1.2.3";
-import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import {
+  CreateEventTypeInput_2024_06_14,
+  DestinationCalendar_2024_06_14,
+  UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
 
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
@@ -24,8 +31,51 @@ import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service
 export class InputEventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14
+    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
+    private readonly calendarsService: CalendarsService
   ) {}
+
+  async transformAndValidateCreateEventTypeInput(
+    userId: UserWithProfile["id"],
+    inputEventType: CreateEventTypeInput_2024_06_14
+  ) {
+    const transformedBody = this.transformInputCreateEventType(inputEventType);
+
+    await this.validateEventTypeInputs(
+      undefined,
+      !!(transformedBody.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
+      transformedBody.locations,
+      transformedBody.requiresConfirmation,
+      transformedBody.eventName
+    );
+
+    transformedBody.destinationCalendar &&
+      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+
+    return transformedBody;
+  }
+
+  async transformAndValidateUpdateEventTypeInput(
+    inputEventType: UpdateEventTypeInput_2024_06_14,
+    userId: UserWithProfile["id"],
+    eventTypeId: number
+  ) {
+    const transformedBody = await this.transformInputUpdateEventType(inputEventType, eventTypeId);
+
+    await this.validateEventTypeInputs(
+      eventTypeId,
+      !!(transformedBody?.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
+      transformedBody.locations,
+      transformedBody.requiresConfirmation,
+      transformedBody.eventName
+    );
+
+    transformedBody.destinationCalendar &&
+      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+
+    return transformedBody;
+  }
+
   transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_06_14) {
     const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
       {
@@ -343,6 +393,31 @@ export class InputEventTypesService_2024_06_14 {
     if (validationResult !== true) {
       throw new BadRequestException(`Invalid event name variables: ${validationResult}`);
     }
+    return;
+  }
+
+  async validateInputDestinationCalendar(
+    userId: number,
+    destinationCalendar: DestinationCalendar_2024_06_14
+  ) {
+    const calendars: ConnectedCalendarsData = await this.calendarsService.getCalendars(userId);
+
+    const allCals = calendars.connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+
+    const matchedCalendar = allCals.find(
+      (cal) =>
+        cal.externalId === destinationCalendar.externalId &&
+        cal.integration === destinationCalendar.integration
+    );
+
+    if (!matchedCalendar) {
+      throw new BadRequestException("Invalid destinationCalendarId: Calendar does not exist");
+    }
+
+    if (matchedCalendar.readOnly) {
+      throw new BadRequestException("Invalid destinationCalendarId: Calendar does not have write permission");
+    }
+
     return;
   }
 }

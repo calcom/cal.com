@@ -19,6 +19,59 @@ export class InputOrganizationsEventTypesService {
     private readonly usersRepository: UsersRepository,
     private readonly orgEventTypesRepository: OrganizationsEventTypesRepository
   ) {}
+  async transformAndValidateCreateTeamEventTypeInput(
+    userId: number,
+    teamId: number,
+    inputEventType: CreateTeamEventTypeInput_2024_06_14
+  ) {
+    await this.validateHosts(teamId, inputEventType.hosts);
+
+    const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
+
+    await this.inputEventTypesService.validateEventTypeInputs(
+      undefined,
+      !!(transformedBody.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
+      transformedBody.locations,
+      transformedBody.requiresConfirmation,
+      transformedBody.eventName
+    );
+
+    transformedBody.destinationCalendar &&
+      (await this.inputEventTypesService.validateInputDestinationCalendar(
+        userId,
+        transformedBody.destinationCalendar
+      ));
+
+    return transformedBody;
+  }
+
+  async transformAndValidateUpdateTeamEventTypeInput(
+    userId: number,
+    eventTypeId: number,
+    teamId: number,
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14
+  ) {
+    await this.validateHosts(teamId, inputEventType.hosts);
+
+    const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
+
+    await this.inputEventTypesService.validateEventTypeInputs(
+      eventTypeId,
+      !!(transformedBody?.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
+      transformedBody.locations,
+      transformedBody.requiresConfirmation,
+      transformedBody.eventName
+    );
+
+    transformedBody.destinationCalendar &&
+      (await this.inputEventTypesService.validateInputDestinationCalendar(
+        userId,
+        transformedBody.destinationCalendar
+      ));
+
+    return transformedBody;
+  }
+
   async transformInputCreateTeamEventType(
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14

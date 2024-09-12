@@ -3,7 +3,6 @@ import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
 import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
 import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/update-event-type.output";
-import { CreateEventTypeRequestTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-request.transformer";
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
@@ -26,19 +25,16 @@ import {
   HttpStatus,
   Delete,
   Query,
-  UsePipes,
   ParseIntPipe,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
-  InputEventTransformed_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
   GetEventTypesQuery_2024_06_14,
+  CreateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-
-// export type EventTypeResponse = GetEventTypeById & { ownerId: number };
 
 @Controller({
   path: "/v2/event-types",
@@ -56,19 +52,16 @@ export class EventTypesController_2024_06_14 {
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @UsePipes(CreateEventTypeRequestTransformPipe)
   async createEventType(
-    @Body() body: InputEventTransformed_2024_06_14,
+    @Body() body: CreateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput_2024_06_14> {
-    await this.inputEventTypesService.validateEventTypeInputs(
-      undefined,
-      !!(body.seatsPerTimeSlot && body?.seatsPerTimeSlot > 0),
-      body.locations,
-      body.requiresConfirmation
+    const transformedBody = await this.inputEventTypesService.transformAndValidateCreateEventTypeInput(
+      user.id,
+      body
     );
 
-    const eventType = await this.eventTypesService.createUserEventType(user, body);
+    const eventType = await this.eventTypesService.createUserEventType(user, transformedBody);
 
     return {
       status: SUCCESS_STATUS,
@@ -116,18 +109,10 @@ export class EventTypesController_2024_06_14 {
     @Body() body: UpdateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<UpdateEventTypeOutput_2024_06_14> {
-    // TODO: determine how to pass eventTypeId to the pipe and utilize the pipe in the controller
-    const transformedBody = await this.inputEventTypesService.transformInputUpdateEventType(
+    const transformedBody = await this.inputEventTypesService.transformAndValidateUpdateEventTypeInput(
       body,
+      user.id,
       eventTypeId
-    );
-
-    // TODO: determine how to pass these values to the pipe to make the controller cleaner
-    await this.inputEventTypesService.validateEventTypeInputs(
-      eventTypeId,
-      !!(transformedBody?.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
-      transformedBody.locations,
-      transformedBody.requiresConfirmation
     );
 
     const eventType = await this.eventTypesService.updateEventType(eventTypeId, transformedBody, user);
