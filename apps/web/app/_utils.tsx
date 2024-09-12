@@ -22,7 +22,7 @@ const create = async (locale: string, ns: string) => {
   return _i18n;
 };
 
-const getFixedT = async (locale: string, ns: string) => {
+export const getFixedT = async (locale: string, ns = "common") => {
   const i18n = await create(locale, ns);
 
   return i18n.getFixedT(locale, ns);

@@ -53,6 +53,7 @@ export const bookingSelect = {
   endTime: true,
   title: true,
   uid: true,
+  metadata: true,
   attendees: {
     select: {
       name: true,
@@ -751,6 +752,7 @@ export async function scheduleBookingReminders(
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },
+        metadata: booking.metadata,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
