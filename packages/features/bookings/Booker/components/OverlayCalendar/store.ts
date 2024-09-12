@@ -9,8 +9,6 @@ interface IOverlayCalendarStore {
   setContinueWithProviderModal: (value: boolean) => void;
   calendarSettingsOverlayModal: boolean;
   setCalendarSettingsOverlayModal: (value: boolean) => void;
-  isOverlayCalendarEnabled: boolean;
-  setIsOverlayCalendarEnabled: (value: boolean) => void;
 }
 
 export const useOverlayCalendarStore = create<IOverlayCalendarStore>((set) => ({
@@ -25,9 +23,5 @@ export const useOverlayCalendarStore = create<IOverlayCalendarStore>((set) => ({
   continueWithProviderModal: false,
   setContinueWithProviderModal: (value: boolean) => {
     set({ continueWithProviderModal: value });
-  },
-  isOverlayCalendarEnabled: true,
-  setIsOverlayCalendarEnabled: (value: boolean) => {
-    set({ isOverlayCalendarEnabled: value });
   },
 }));
