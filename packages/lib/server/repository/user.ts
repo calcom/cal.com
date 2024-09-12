@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
@@ -238,16 +239,27 @@ export class UserRepository {
     };
   }
 
-  static async findById({ id, select }: { id: number; select?: Prisma.UserSelect }) {
+  static async findById({ id }: { id: number }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
       },
-      select: { ...userSelect, ...select },
+      select: userSelect,
     });
 
     if (!user) {
       return null;
+    }
+    return {
+      ...user,
+      metadata: userMetadata.parse(user.metadata),
+    };
+  }
+
+  static async findByIdOrThrow({ id }: { id: number }) {
+    const user = await UserRepository.findById({ id });
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
     }
     return user;
   }
@@ -552,6 +564,18 @@ export class UserRepository {
       teamIds.push(team.teamId);
     }
     return teamIds;
+  }
+
+  static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        timeZone: true,
+        defaultScheduleId: true,
+      },
+    });
   }
 
   static async adminFindById(userId: number) {

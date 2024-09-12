@@ -1,6 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { updateMeeting } from "@calcom/core/videoClient";
-import { sendCancelledSeatEmails } from "@calcom/emails";
+import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { HttpError } from "@calcom/lib/http-error";
@@ -107,7 +107,7 @@ async function cancelAttendeeSeat(
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
-    await sendCancelledSeatEmails(
+    await sendCancelledSeatEmailsAndSMS(
       evt,
       {
         ...attendee,
