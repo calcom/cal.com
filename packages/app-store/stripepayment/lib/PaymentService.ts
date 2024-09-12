@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmail } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -62,8 +62,9 @@ export class PaymentService implements IAbstractPaymentService {
     userId: Booking["userId"],
     username: string | null,
     bookerName: string,
-    bookerEmail: string,
     paymentOption: PaymentOption,
+    bookerEmail: string,
+    bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string
   ) {
@@ -78,8 +79,9 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
+        this.credentials.stripe_user_id,
         bookerEmail,
-        this.credentials.stripe_user_id
+        bookerPhoneNumber
       );
 
       const params: Stripe.PaymentIntentCreateParams = {
@@ -93,7 +95,8 @@ export class PaymentService implements IAbstractPaymentService {
           calAccountId: userId,
           calUsername: username,
           bookerName,
-          bookerEmail,
+          bookerEmail: bookerEmail,
+          bookerPhoneNumber: bookerPhoneNumber ?? null,
           eventTitle: eventTitle || "",
           bookingTitle: bookingTitle || "",
         },
@@ -142,8 +145,9 @@ export class PaymentService implements IAbstractPaymentService {
   async collectCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    paymentOption: PaymentOption,
     bookerEmail: string,
-    paymentOption: PaymentOption
+    bookerPhoneNumber?: string | null
   ): Promise<Payment> {
     try {
       if (!this.credentials) {
@@ -156,8 +160,9 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
+        this.credentials.stripe_user_id,
         bookerEmail,
-        this.credentials.stripe_user_id
+        bookerPhoneNumber
       );
 
       const params = {
@@ -165,6 +170,7 @@ export class PaymentService implements IAbstractPaymentService {
         payment_method_types: ["card"],
         metadata: {
           bookingId,
+          bookerPhoneNumber: bookerPhoneNumber ?? null,
         },
       };
 
@@ -340,7 +346,7 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    await sendAwaitingPaymentEmail(
+    await sendAwaitingPaymentEmailAndSMS(
       {
         ...event,
         paymentInfo: {

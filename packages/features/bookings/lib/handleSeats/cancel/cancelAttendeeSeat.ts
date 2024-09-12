@@ -1,8 +1,8 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { updateMeeting } from "@calcom/core/videoClient";
-import { sendCancelledSeatEmails } from "@calcom/emails";
+import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -107,7 +107,7 @@ async function cancelAttendeeSeat(
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
-    await sendCancelledSeatEmails(
+    await sendCancelledSeatEmailsAndSMS(
       evt,
       {
         ...attendee,
@@ -129,13 +129,21 @@ async function cancelAttendeeSeat(
       ]
     : [];
 
+  const payload: EventPayloadType = {
+    ...evt,
+    ...eventTypeInfo,
+    status: "CANCELLED",
+    smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+  };
+
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, WebhookTriggerEvents.BOOKING_CANCELLED, new Date().toISOString(), webhook, {
-      ...evt,
-      ...eventTypeInfo,
-      status: "CANCELLED",
-      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-    }).catch((e) => {
+    sendPayload(
+      webhook.secret,
+      WebhookTriggerEvents.BOOKING_CANCELLED,
+      new Date().toISOString(),
+      webhook,
+      payload
+    ).catch((e) => {
       logger.error(
         `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)
