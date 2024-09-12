@@ -270,7 +270,6 @@ export const insightsRouter = router({
           gte: lastPeriodStartDate.toDate(),
           lte: lastPeriodEndDate.toDate(),
         },
-        teamId: teamId,
       };
 
       const [
