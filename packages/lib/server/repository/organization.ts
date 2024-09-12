@@ -194,6 +194,66 @@ export class OrganizationRepository {
     return getParsedTeam(org);
   }
 
+  static async findCurrentOrg({ userId, orgId }: { userId: number; orgId: number }) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        team: {
+          id: orgId,
+        },
+      },
+      include: {
+        team: true,
+      },
+    });
+
+    const organizationSettings = await prisma.organizationSettings.findUnique({
+      where: {
+        organizationId: orgId,
+      },
+      select: {
+        lockEventTypeCreationForUsers: true,
+        adminGetsNoSlotsNotification: true,
+        isAdminReviewed: true,
+      },
+    });
+
+    if (!membership) {
+      throw new Error("You do not have a membership to your organization");
+    }
+
+    const metadata = teamMetadataSchema.parse(membership?.team.metadata);
+
+    return {
+      canAdminImpersonate: !!organizationSettings?.isAdminReviewed,
+      organizationSettings: {
+        lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
+        adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
+      },
+      user: {
+        role: membership?.role,
+        accepted: membership?.accepted,
+      },
+      ...membership?.team,
+      metadata,
+    };
+  }
+
+  static async findTeamsInOrgIamNotPartOf({ userId, parentId }: { userId: number; parentId: number | null }) {
+    const teamsInOrgIamNotPartOf = await prisma.team.findMany({
+      where: {
+        parentId,
+        members: {
+          none: {
+            userId,
+          },
+        },
+      },
+    });
+
+    return teamsInOrgIamNotPartOf;
+  }
+
   static async adminFindById({ id }: { id: number }) {
     const org = await prisma.team.findUnique({
       where: {
@@ -228,7 +288,6 @@ export class OrganizationRepository {
         },
       },
     });
-
     if (!org) {
       throw new Error("Organization not found");
     }

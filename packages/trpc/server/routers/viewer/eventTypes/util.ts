@@ -18,15 +18,22 @@ type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[n
 
 export const eventOwnerProcedure = authedProcedure
   .input(
-    z.object({
-      id: z.number(),
-      users: z.array(z.number()).optional().default([]),
-    })
+    z
+      .object({
+        id: z.number().optional(),
+        eventTypeId: z.number().optional(),
+        users: z.array(z.number()).optional().default([]),
+      })
+      .refine((data) => data.id !== undefined || data.eventTypeId !== undefined, {
+        message: "At least one of 'id' or 'eventTypeId' must be present",
+        path: ["id", "eventTypeId"],
+      })
   )
   .use(async ({ ctx, input, next }) => {
+    const id = input.eventTypeId ?? input.id;
     // Prevent non-owners to update/delete a team event
     const event = await ctx.prisma.eventType.findUnique({
-      where: { id: input.id },
+      where: { id },
       include: {
         users: {
           select: {
@@ -154,6 +161,31 @@ export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdate
   }, {} as Record<string, true>);
 }
 
+export function ensureEmailOrPhoneNumberIsPresent(
+  fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]
+) {
+  if (!fields || fields.length === 0) {
+    return;
+  }
+
+  const attendeePhoneNumberField = fields.find((field) => field.name === "attendeePhoneNumber");
+
+  const emailField = fields.find((field) => field.name === "email");
+
+  if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Both Email and Attendee Phone Number cannot be hidden`,
+    });
+  }
+  if (!emailField?.required && !attendeePhoneNumberField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `At least Email or Attendee Phone Number need to be required field.`,
+    });
+  }
+}
+
 type Host = {
   userId: number;
   isFixed?: boolean | undefined;
@@ -277,6 +309,7 @@ export async function addWeightAdjustmentToNewHosts({
 
   return hostsWithWeightAdjustments;
 }
+
 export const mapEventType = async (eventType: EventType) => ({
   ...eventType,
   safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,

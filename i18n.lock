@@ -46,6 +46,7 @@ checksums:
     event_request_cancelled: 130fd0087bd535dc755eec339732dcaf
     organizer: cff6864d56049b2de93285c6fb7648ca
     need_to_reschedule_or_cancel: 8e4fcedd363b7f923dceb26c8143ba54
+    you_can_view_booking_details_with_this_url: 64f9ae32d2162ea4afab41fb8ac07fb1
     no_options_available: 1578bfcdda54521607e7695776832765
     cancellation_reason: 8e73160be8cdaed6e71565a4ec49e0e0
     cancellation_reason_placeholder: f4eac23857afdc8b674ba077e25e8799
@@ -183,7 +184,7 @@ checksums:
     org_upgrade_banner_description: 5a1acb34eb2a3682f4dceb478b425d15
     org_upgraded_successfully: b803e2b8a503792206beaf1f4f2c861e
     use_link_to_reset_password: 75eea563335b8773fa581c61307b4b22
-    hey_there: ab526f798b3a2000aee04d9455a05dbe
+    hey_there: abc179eec007507d2e54e5ef922c04d7
     forgot_your_password_calcom: e25822f11d138676f1151900a12be61f
     delete_webhook_confirmation_message: e6c1794d4d697286d2b55eb24c08990f
     confirm_delete_webhook: ef3672fcdca099306496ef20d846724d
@@ -1149,6 +1150,7 @@ checksums:
     set_location: 84a52cdae2ca02490055aaa40583fc1d
     update_location: 741758fb7a9c090a9ab9e87a6c62fedc
     location_updated: 639cd11ff17c5fea84384a06e686b782
+    location_update_failed: a57b1dbaf515c1ab934522e6d837291a
     guests_added: a04cef448ca54083e9e741d1233ead0b
     unable_to_add_guests: 10d1eebffb88f731d40144bdf8e9929b
     email_validation_error: 0a26bc82b13d45d06d40a3e841877504
@@ -1889,6 +1891,7 @@ checksums:
     default_app_link_title: 449f7f5ed6e56536994089aa8f49e407
     default_app_link_description: c5e6ef98d08cb425c3b2759b13b9a9c2
     organizer_default_conferencing_app: 8cc159b92c6eb2bbcb90f0ddb70e7ee5
+    organizer_default_conferencing_app_not_found: 783160f2c53f5d7fc92f8ae7430ff9cf
     under_maintenance: c07caeb218bfc9a104a00265857cd507
     under_maintenance_description: b6da95c38efa2247c7bb8834523bf67d
     event_type_seats: a2dcd6b544ca1b20a2f1bf4166919e86
@@ -1904,6 +1907,7 @@ checksums:
     not_enough_seats: f2c120d55643caa712a0ef44350e56af
     form_builder_field_already_exists: 623a2903bef6bc840794893083969567
     show_on_booking_page: 515d42a965a615916eb9299f9a8ba698
+    visit_cancelled_booking: 42c1a6ee7e33ca49661c4e4763feb9e3
     get_started_zapier_templates: 0adfac5a026b181a55ff131b9572b5ab
     team_is_unpublished: 57d5a8b888c52b11062c208a1c4f5146
     org_is_unpublished_description: 61c9364cb8fba87d1e442db181155c1e
@@ -2455,6 +2459,7 @@ checksums:
     add_emails: da0df34b3a50ebabcb79e394a13cd221
     add_email_description: 86620e8688fe3212c3d0341867f329ac
     confirm_email: b3a52c3b2ac05c7db469c519736560ca
+    confirming_your_booking_sms: ea4cab8c018b8d8a31f0d15925c2447b
     scheduler_first_name: 07e7edb32b4ca2f49575acf01b72cc84
     scheduler_last_name: 118b5c449032449d395b2d08455ab592
     scheduler_name: dc5b678d5a3ce40b72a8169e033de452
@@ -2545,6 +2550,7 @@ checksums:
     team_select_info: 67576cede7244533acb9c4e3b31a6c52
     no_show_updated: ab2125e3ec6df87572ef5e0b76d26970
     email_copied: f8145a83c29485da2cf7bb36ff920470
+    phone_number_copied: b91f492fa4f5be4edda64b9e48a11690
     USER_PENDING_MEMBER_OF_THE_ORG: 22c8f28829f0542dc5afb0b47a7d7b98
     USER_ALREADY_INVITED_OR_MEMBER: 2ed415bc3a7bd57f234310680cc2cd6e
     USER_MEMBER_OF_OTHER_ORGANIZATION: 1126e7a981f56f7b5fdcae4e8f4399d4
@@ -2595,4 +2601,5 @@ checksums:
     reschedule_with_same_round_robin_host_title: 0b315779fdae608827ceab1b1640423b
     reschedule_with_same_round_robin_host_description: d581417695b5275d6706a08b8d7dd39a
     disable_input_if_prefilled: 19415e3062d8ef1031beb38ce4a0b3c9
+    you_are_unauthorized_to_make_this_change_to_the_booking: c770486d5b4b98a407ff485cbe60e563
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
