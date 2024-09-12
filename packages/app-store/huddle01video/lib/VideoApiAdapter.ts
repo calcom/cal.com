@@ -60,7 +60,6 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
           meetingLink: string;
         };
 
-        console.log("CALLING CREATE MEETING", e);
         return {
           type: "huddle01_video",
           id: data.roomId,
@@ -73,43 +72,37 @@ const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
       }
     },
     updateMeeting: async (bookingRef: PartialReference, e: CalendarEvent) => {
-      try {
-        console.log("UPDATE MEETING", bookingRef);
-
-        if (!credential.userId) {
-          log.error("[Huddle01 Error] -> User is not logged in");
-          throw new Error("User is not logged in");
-        }
-
-        const fetch = await fetchHuddleAPI(credential.userId);
-
-        const res = await fetch("updateMeeting", {
-          method: "PUT",
-          body: JSON.stringify({
-            title: e.title,
-            startTime: e.startTime,
-            endTime: e.endTime,
-            meetingId: bookingRef.uid,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = (await res.json()) as {
-          roomId: string;
-          meetingLink: string;
-        };
-
-        return {
-          type: "huddle01_video",
-          id: data.roomId,
-          password: "",
-          url: data.meetingLink,
-        };
-      } catch (e) {
-        console.log("UPDATE MEETING ERRR", e);
+      if (!credential.userId) {
+        log.error("[Huddle01 Error] -> User is not logged in");
+        throw new Error("User is not logged in");
       }
+
+      const fetch = await fetchHuddleAPI(credential.userId);
+
+      const res = await fetch("updateMeeting", {
+        method: "PUT",
+        body: JSON.stringify({
+          title: e.title,
+          startTime: e.startTime,
+          endTime: e.endTime,
+          meetingId: bookingRef.uid,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = (await res.json()) as {
+        roomId: string;
+        meetingLink: string;
+      };
+
+      return {
+        type: "huddle01_video",
+        id: data.roomId,
+        password: "",
+        url: data.meetingLink,
+      };
     },
     deleteMeeting: async (meetingId: string) => {
       if (!credential.userId) {
