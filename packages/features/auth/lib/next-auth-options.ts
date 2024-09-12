@@ -1,6 +1,5 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import type { NextApiRequest } from "next";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -408,7 +407,7 @@ const mapIdentityProvider = (providerName: string) => {
   }
 };
 
-export const getOptions = (req: NextApiRequest): AuthOptions => ({
+export const getOptions = ({ getDclid }: { getDclid: () => string | undefined }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
@@ -944,7 +943,7 @@ export const getOptions = (req: NextApiRequest): AuthOptions => ({
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 10 * 60 * 1000);
       if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
-        const { dclid } = req.cookies;
+        const dclid = getDclid();
         // check if there's a dclid cookie set by @dub/analytics
         if (dclid) {
           // here we use waitUntil – meaning this code will run async to not block the main thread

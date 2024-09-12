@@ -1,8 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { getFixedT } from "app/_utils";
-import { getServerSession } from "next-auth";
 
-import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import SAMLSSO from "@calcom/features/ee/sso/page/user-sso-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -13,7 +12,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
 
   const t = await getFixedT(session?.user.locale || "en");
 

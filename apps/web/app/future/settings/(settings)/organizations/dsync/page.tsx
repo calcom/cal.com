@@ -1,7 +1,6 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
-import { getServerSession } from "next-auth";
 
-import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import DirectorySyncTeamView from "@calcom/features/ee/dsync/page/team-dsync-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -12,7 +11,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
   const t = await getFixedT(session?.user.locale || "en");
 
   return (
