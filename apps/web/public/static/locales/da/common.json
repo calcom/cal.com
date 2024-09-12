@@ -1147,6 +1147,7 @@
   "set_location": "Angiv Placering",
   "update_location": "Opdatér Placering",
   "location_updated": "Placering opdateret",
+  "location_update_failed": "Opdatering af placering mislykkedes",
   "guests_added": "Gæster tilføjet",
   "unable_to_add_guests": "Kan ikke tilføje gæster",
   "email_validation_error": "Det ligner ikke en e-mailadresse",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Angiv et standard app-link",
   "default_app_link_description": "Indstilling af et standard app-link gør det muligt for alle nyoprettede begivenhedstyper at bruge det app-link, du har angivet.",
   "organizer_default_conferencing_app": "Organisatorens standardapp",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} har ingen standardkonferenceapp",
   "under_maintenance": "Nede for vedligeholdelse",
   "under_maintenance_description": "{{appName}} teamet udfører planlagt vedligeholdelse. Hvis du har spørgsmål, bedes du kontakte support.",
   "event_type_seats": "{{numberOfSeats}} pladser",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Omlæg med samme Round-Robin vært",
   "reschedule_with_same_round_robin_host_description": "Omlagte begivenheder vil blive tildelt den samme vært som oprindeligt planlagt",
   "disable_input_if_prefilled": "Deaktiver input, hvis URL-identifikatoren er udfyldt på forhånd",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tilladelse til at foretage denne ændring i bookingen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

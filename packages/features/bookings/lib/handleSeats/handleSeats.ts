@@ -77,7 +77,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // See if attendee is already signed up for timeslot
   if (
-    seatedBooking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
+    seatedBooking.attendees.find((attendee) => {
+      return attendee.email === invitee[0].email;
+    }) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
   ) {
     throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
@@ -119,6 +121,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
+        isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
       });

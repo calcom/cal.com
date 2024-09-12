@@ -23,6 +23,7 @@ import type { TUpdateInputSchema } from "./update.schema";
 import {
   addWeightAdjustmentToNewHosts,
   ensureUniqueBookingFields,
+  ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
@@ -141,6 +142,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const teamId = input.teamId || eventType.team?.id;
 
   ensureUniqueBookingFields(bookingFields);
+  ensureEmailOrPhoneNumberIsPresent(bookingFields);
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
