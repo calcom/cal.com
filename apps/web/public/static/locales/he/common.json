@@ -1147,6 +1147,7 @@
   "set_location": "הגדרת מיקום",
   "update_location": "עדכון מיקום",
   "location_updated": "המיקום עודכן",
+  "location_update_failed": "עדכון המיקום נכשל",
   "guests_added": "אורחים נוספו",
   "unable_to_add_guests": "לא ניתן להוסיף אורחים",
   "email_validation_error": "המידע שהזנת לא נראה כמו כתובת דוא\"ל",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "צור קישור אפליקציה ברירת מחדל",
   "default_app_link_description": "הגדרת קישור אפליקציה ברירת מחדל מאפשר לכל הארועים החדשים להשתמש בקישור שהגדרת.",
   "organizer_default_conferencing_app": "אפליקציית ברירת המחדל של המארגן/ת",
+  "organizer_default_conferencing_app_not_found": "ל{{organizer}} אין אפליקציית ועידה ברירת מחדל",
   "under_maintenance": "אינו זמין עקב תחזוקה",
   "under_maintenance_description": "צוות {{appName}} מבצע עבודות תחזוקה שתוכננו מראש. אם יש לך שאלות, נא צור קשר עם התמיכה.",
   "event_type_seats": "{{numberOfSeats}} מושבים",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "תזמן מחדש עם אותו מארח Round-Robin",
   "reschedule_with_same_round_robin_host_description": "אירועים שתוזמנו מחדש יוקצו לאותו מארח כפי שתוזמנו במקור",
   "disable_input_if_prefilled": "השבת קלט אם מזהה ה-URL מולא מראש",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "אין לך הרשאה לבצע שינוי זה בהזמנה",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
