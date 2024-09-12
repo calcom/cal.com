@@ -1147,6 +1147,7 @@
   "set_location": "Hely beállítása",
   "update_location": "Hely frissítése",
   "location_updated": "Hely frissítve",
+  "location_update_failed": "A hely frissítése nem sikerült",
   "guests_added": "Vendégek hozzáadva",
   "unable_to_add_guests": "Nem sikerült vendégeket hozzáadni",
   "email_validation_error": "Ez nem úgy néz ki, mint egy e-mail cím",
@@ -1887,6 +1888,7 @@
   "default_app_link_title": "Állítson be alapértelmezett alkalmazáshivatkozást",
   "default_app_link_description": "Az alapértelmezett alkalmazáshivatkozás beállítása lehetővé teszi, hogy minden újonnan létrehozott eseménytípus használja a beállított alkalmazáshivatkozást.",
   "organizer_default_conferencing_app": "A szervező alapértelmezett alkalmazása",
+  "organizer_default_conferencing_app_not_found": "{{organizer}} nem rendelkezik alapértelmezett konferenciaalkalmazással",
   "under_maintenance": "Karbantartás miatt nem elérhető",
   "under_maintenance_description": "A {{appName}} csapata ütemezett karbantartást végez. Ha bármilyen kérdése van, forduljon az ügyfélszolgálathoz.",
   "event_type_seats": "{{numberOfSeats}} ülőhely",
@@ -2593,5 +2595,6 @@
   "reschedule_with_same_round_robin_host_title": "Újraütemezés ugyanazzal a Round-Robin házigazdával",
   "reschedule_with_same_round_robin_host_description": "Az újraütemezett események ugyanahhoz a házigazdához lesznek rendelve, mint eredetileg",
   "disable_input_if_prefilled": "Bemenet letiltása, ha az URL azonosító előre kitöltött",
+  "you_are_unauthorized_to_make_this_change_to_the_booking": "Nincs jogosultsága a foglalás módosításához",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
