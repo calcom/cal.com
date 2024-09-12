@@ -298,7 +298,7 @@ function BookingListItem(booking: BookingItemProps) {
     const urlSearchParams = new URLSearchParams({
       allRemainingBookings: isTabRecurring.toString(),
     });
-    if (userEmail) urlSearchParams.set("email", userEmail);
+    if (booking.attendees[0]) urlSearchParams.set("email", booking.attendees[0].email);
     return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
   };
 
