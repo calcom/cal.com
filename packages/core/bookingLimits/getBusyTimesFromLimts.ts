@@ -207,7 +207,7 @@ const _getBusyTimesFromTeamLimits = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   teamId: number,
-  rescheduleUid?: string
+  rescheduleUid?: string | null
 ) => {
   performance.mark("teamLimitsStart");
 
@@ -220,6 +220,7 @@ const _getBusyTimesFromTeamLimits = async (
     teamId,
     startDate,
     endDate,
+    excludedUid: rescheduleUid,
   });
 
   const limitManager = new LimitManager();

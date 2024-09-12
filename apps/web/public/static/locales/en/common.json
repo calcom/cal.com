@@ -2605,7 +2605,7 @@
   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
   "booking_limits": "Booking Limits",
   "booking_limits_team_description": "Booking limits for team members across all team event types",
-  "limit_team_booking_frequency_description": "Limit how many time members can be booked across all team event types",
+  "limit_team_booking_frequency_description": "Limit how many times members can be booked across all team event types",
   "booking_limits_updated_successfully": "Booking limits updated successfully",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

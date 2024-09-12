@@ -295,7 +295,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const busyTimesFromTeamLimits =
     teamBookingLimits && teamOfEventType
-      ? await getBusyTimesFromTeamLimits(user, teamBookingLimits, dateFrom, dateTo, teamOfEventType.id)
+      ? await getBusyTimesFromTeamLimits(
+          user,
+          teamBookingLimits,
+          dateFrom,
+          dateTo,
+          teamOfEventType.id,
+          initialData?.rescheduleUid
+        )
       : [];
 
   // TODO: only query what we need after applying limits (shrink date range)

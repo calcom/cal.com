@@ -256,6 +256,7 @@ export class BookingRepository {
     teamId: number;
     startDate: Date;
     endDate: Date;
+    excludedUid?: string | null;
     returnCount: true;
   }): Promise<number>;
 
@@ -264,6 +265,7 @@ export class BookingRepository {
     teamId: number;
     startDate: Date;
     endDate: Date;
+    excludedUid?: string | null;
   }): Promise<Array<Booking>>;
 
   static async getAllAcceptedTeamBookingsOfUser(params: {
@@ -271,9 +273,10 @@ export class BookingRepository {
     teamId: number;
     startDate: Date;
     endDate: Date;
+    excludedUid?: string | null;
     returnCount?: boolean;
   }) {
-    const { user, teamId, startDate, endDate, returnCount } = params;
+    const { user, teamId, startDate, endDate, returnCount, excludedUid } = params;
 
     const baseWhere: Prisma.BookingWhereInput = {
       status: BookingStatus.ACCEPTED,
@@ -283,6 +286,11 @@ export class BookingRepository {
       endTime: {
         lte: endDate,
       },
+      ...(excludedUid && {
+        uid: {
+          not: excludedUid,
+        },
+      }),
     };
 
     const whereCollectiveRoundRobinOwner: Prisma.BookingWhereInput = {
