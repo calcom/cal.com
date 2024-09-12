@@ -929,7 +929,7 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
-  const { isCopied, copyToClipboard, resetCopyStatus } = useCopy();
+  const { copyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
@@ -974,12 +974,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
             });
             const { shortLink } = await res.json();
             copyToClipboard(shortLink);
-
-            if (isCopied) {
-              showToast(t("link_copied"), "success");
-            }
+            showToast(t("link_copied"), "success");
           },
-          icon: "copy",
+          icon: "gift",
         }
       : null,
     {
