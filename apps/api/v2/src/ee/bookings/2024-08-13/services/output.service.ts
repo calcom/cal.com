@@ -34,11 +34,6 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
 
     const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
-    const attendee = databaseBooking.attendees.find((attendee) => attendee.email === bookingResponses.email);
-
-    if (!attendee) {
-      throw new Error("Attendee not found");
-    }
 
     const booking = {
       id: databaseBooking.id,
