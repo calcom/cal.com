@@ -5,12 +5,14 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - main
-      - gh-actions-test-branch
+      - gh-actions-test-branch # Do not delete. Used for testing new workflows.
   workflow_dispatch:
   workflow_run:
     workflows: ["PR Reviewed"] # Adding a comment here for testing
     types:
       - completed
+    branches:
+      - "*"
 
 permissions:
   actions: write
