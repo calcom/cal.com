@@ -407,7 +407,12 @@ const mapIdentityProvider = (providerName: string) => {
   }
 };
 
-export const getOptions = ({ getDclid }: { getDclid: () => string | undefined }): AuthOptions => ({
+export const getOptions = ({
+  getDclid,
+}: {
+  /** so we can extract the Dub cookie in both pages and app routers */
+  getDclid: () => string | undefined;
+}): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
