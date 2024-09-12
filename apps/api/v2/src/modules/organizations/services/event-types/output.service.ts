@@ -58,6 +58,7 @@ type Input = Pick<
   | "eventTypeColor"
   | "seatsShowAttendees"
   | "requiresConfirmationWillBlockSlot"
+  | "eventName"
 >;
 
 @Injectable()

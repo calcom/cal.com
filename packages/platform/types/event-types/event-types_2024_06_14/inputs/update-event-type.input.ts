@@ -19,7 +19,6 @@ import {
   CREATE_EVENT_TITLE_EXAMPLE,
   Host,
 } from "./create-event-type.input";
-import { IsValidCustomEventName } from "./customName.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
@@ -156,7 +155,6 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @IsString()
-  @IsValidCustomEventName()
   @DocsProperty({
     description: `Customizable event name with valid variables: 
       {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, 

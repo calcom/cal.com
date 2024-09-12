@@ -27,7 +27,7 @@ export type InputEventTransformed_2024_06_14 = Omit<
 > & {
   length: number;
   slug: string;
-  eventName: string;
+  eventName?: string;
   locations?: ReturnType<typeof transformApiEventTypeLocations>;
   bookingLimits?: ReturnType<typeof transformApiEventTypeIntervalLimits>;
   bookingFields?: ReturnType<typeof transformApiEventTypeBookingFields>;
