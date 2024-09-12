@@ -156,6 +156,7 @@ export class OutputEventTypesService_2024_06_14 {
   transformRecurringEvent(recurringEvent: any) {
     if (!recurringEvent) return null;
     const recurringEventParsed = parseRecurringEvent(recurringEvent);
+    if (!recurringEventParsed) return null;
     return getResponseEventTypeRecurrence(recurringEventParsed);
   }
 
