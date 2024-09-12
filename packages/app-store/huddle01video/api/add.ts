@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest) {
     response_type: "code",
     redirect_uri: `${WEBAPP_URL}/api/integrations/huddle01video/callback`,
     state,
-    appName: "calcom",
+    appName: "Calcom",
   };
   const query = stringify(params);
   const url = `https://darshan.huddle01.app/g_auth?${query}`;
