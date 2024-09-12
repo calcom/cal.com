@@ -173,11 +173,11 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
 
-    const occurrance = recurringEventSchema.parse(eventType.recurringEvent);
-    const repeatsEvery = occurrance.interval;
-    const repeatsTimes = occurrance.count;
+    const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
+    const repeatsEvery = occurrence.interval;
+    const repeatsTimes = occurrence.count;
     // note(Lauris): timeBetween 0=yearly, 1=monthly and 2=weekly
-    const timeBetween = occurrance.freq;
+    const timeBetween = occurrence.freq;
 
     if (!repeatsTimes) {
       throw new Error("Repeats times is required");
