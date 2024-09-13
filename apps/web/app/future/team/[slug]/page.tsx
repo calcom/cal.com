@@ -1,22 +1,17 @@
-import LegacyPage, { getServerSideProps, type PageProps } from "@pages/team/[slug]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Record<string, string | string[]>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
-  const props = await getData(
-    buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
-  );
+import type { PageProps } from "~/team/team-view";
+import LegacyPage from "~/team/team-view";
+
+export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
   const teamName = props.team.name || "Nameless Team";
 
   return await _generateMetadata(
@@ -31,5 +26,4 @@ export default WithLayout({
   Page: LegacyPage,
   getData,
   getLayout: null,
-  isBookingPage: true,
 })<"P">;

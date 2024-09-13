@@ -7,6 +7,7 @@ import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
+import { UsersModule } from "@/modules/users/users.module";
 import { BullModule } from "@nestjs/bull";
 import { Module } from "@nestjs/common";
 
@@ -23,6 +24,7 @@ import { Module } from "@nestjs/common";
         duration: 1000,
       },
     }),
+    UsersModule,
   ],
   providers: [BillingConfigService, BillingService, BillingRepository, BillingProcessor],
   exports: [BillingService, BillingRepository],

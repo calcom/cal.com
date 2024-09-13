@@ -37,6 +37,7 @@ export type Invitee = {
   firstName: string;
   lastName: string;
   timeZone: string;
+  phoneNumber?: string;
   language: {
     translate: TFunction;
     locale: string;
@@ -55,8 +56,10 @@ export interface IEventTypePaymentCredentialType {
 export type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
-  organization: { slug: string };
+  organization?: { slug: string };
   priority?: number;
+  weight?: number;
+  weightAdjustment?: number;
 };
 
 export type NewBookingEventType = AwaitedGetDefaultEvent | getEventTypeResponse;

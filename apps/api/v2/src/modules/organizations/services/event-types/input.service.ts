@@ -8,8 +8,8 @@ import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
   HostPriority,
-  SchedulingType,
 } from "@calcom/platform-types";
+import { SchedulingType } from "@calcom/prisma/client";
 
 @Injectable()
 export class InputOrganizationsEventTypesService {
@@ -23,7 +23,16 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
+    const {
+      hosts,
+      assignAllTeamMembers,
+      bookingLimitsCount,
+      bookingLimitsDuration,
+      bookingWindow,
+      bookingFields,
+      recurrence,
+      ...rest
+    } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
 
@@ -35,6 +44,11 @@ export class InputOrganizationsEventTypesService {
         ? await this.getAllTeamMembers(teamId, inputEventType.schedulingType)
         : this.transformInputHosts(hosts, inputEventType.schedulingType),
       assignAllTeamMembers,
+      bookingLimitsCount,
+      bookingLimitsDuration,
+      bookingWindow,
+      bookingFields,
+      recurrence,
       metadata,
     };
 

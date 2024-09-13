@@ -145,7 +145,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       length: eventData.length,
       metadata: {
         ...eventData.metadata,
-        multipleDuration: [15, 30, 60],
+        multipleDuration: [15, 30, 45, 60, 90],
       },
     },
     user: usernames.join("+"),

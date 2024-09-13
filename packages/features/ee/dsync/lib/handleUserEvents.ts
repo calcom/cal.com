@@ -2,6 +2,7 @@ import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -25,7 +26,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   });
 
   // User is already a part of that org
-  if (user?.organizationId && eventData.active) {
+  if (user && UserRepository.isAMemberOfOrganization({ user, organizationId }) && eventData.active) {
     return;
   }
 

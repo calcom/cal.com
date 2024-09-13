@@ -1,3 +1,4 @@
+import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -17,7 +18,7 @@ export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOption
     translate: translation,
   };
 
-  const data = {
+  const data: EventPayloadType = {
     type: "Test",
     title: "Test trigger event",
     description: "",

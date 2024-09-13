@@ -1,4 +1,3 @@
-import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React from "react";
@@ -7,6 +6,8 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { ScrollableArea, Badge, Button } from "@calcom/ui";
+
+import type { TEventType, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";
 
 type EventTypesCardProps = {
   userName: string;
@@ -94,7 +95,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   return (
     <div
       data-testid={`select-event-type-${id}`}
-      className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
+      className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3 transition"
       onClick={() => handleSelect()}>
       <input
         id={`${id}`}

@@ -16,12 +16,29 @@ export default function Type() {
   return null;
 }
 
+const querySchema = z.object({
+  uid: z.string(),
+  seatReferenceUid: z.string().optional(),
+  rescheduledBy: z.string().optional(),
+  allowRescheduleForCancelledBooking: z
+    .string()
+    .transform((value) => value === "true")
+    .optional(),
+});
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
 
-  const { uid: bookingUid, seatReferenceUid } = z
-    .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
-    .parse(context.query);
+  const {
+    uid: bookingUid,
+    seatReferenceUid,
+    rescheduledBy,
+    /**
+     * This is for the case of request-reschedule where the booking is cancelled
+     */
+    allowRescheduleForCancelledBooking,
+  } = querySchema.parse(context.query);
+
   const coepFlag = context.query["flag.coep"];
   const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
     prisma,
@@ -82,7 +99,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+  if (
+    !allowRescheduleForCancelledBooking &&
+    (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED)
+  ) {
     return {
       redirect: {
         destination: `/booking/${uid}`,
@@ -147,6 +167,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (coepFlag) {
     destinationUrlSearchParams.set("flag.coep", coepFlag as string);
   }
+
+  const currentUserEmail = rescheduledBy ?? session?.user?.email;
+
+  if (currentUserEmail) {
+    destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
+  }
+
   return {
     redirect: {
       destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${

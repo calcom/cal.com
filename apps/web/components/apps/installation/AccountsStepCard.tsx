@@ -29,7 +29,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
   return (
     <div
       className={classNames(
-        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1",
+        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1 transition",
         (alreadyInstalled || loading) && "cursor-not-allowed",
         selected && loading && "bg-muted animate-pulse"
       )}

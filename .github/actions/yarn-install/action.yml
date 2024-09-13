@@ -37,8 +37,6 @@ runs:
       with:
         path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
         key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
-        restore-keys: |
-          yarn-download-cache-
 
     # Invalidated on yarn.lock changes
     - name: Restore node_modules

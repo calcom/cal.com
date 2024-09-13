@@ -1,5 +1,6 @@
 import { PlatformEndpointsModule } from "@/ee/platform-endpoints-module";
 import { BillingModule } from "@/modules/billing/billing.module";
+import { DestinationCalendarsModule } from "@/modules/destination-calendars/destination-calendars.module";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { TimezoneModule } from "@/modules/timezones/timezones.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
@@ -16,6 +17,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     TimezoneModule,
     UsersModule,
     WebhooksModule,
+    DestinationCalendarsModule,
   ],
 })
 export class EndpointsModule implements NestModule {

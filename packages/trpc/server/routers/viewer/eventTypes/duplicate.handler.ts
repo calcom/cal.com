@@ -75,6 +75,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       recurringEvent,
       bookingLimits,
       durationLimits,
+      eventTypeColor,
       metadata,
       workflows,
       hashedLink,
@@ -89,6 +90,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
       secondaryEmailId,
+      instantMeetingScheduleId: _instantMeetingScheduleId,
       ...rest
     } = eventType;
 
@@ -112,6 +114,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
+      eventTypeColor: eventTypeColor ?? undefined,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
     };

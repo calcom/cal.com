@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
@@ -30,6 +31,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   logoUrl: true,
   organizationSettings: true,
   isOrganization: true,
+  isPlatform: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -67,6 +69,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   locked: true,
   movedToProfileId: true,
   metadata: true,
+  isPlatformManaged: true,
 });
 
 export class UserRepository {
@@ -222,6 +225,7 @@ export class UserRepository {
             },
           },
         },
+        createdDate: true,
       },
     });
 
@@ -246,6 +250,17 @@ export class UserRepository {
 
     if (!user) {
       return null;
+    }
+    return {
+      ...user,
+      metadata: userMetadata.parse(user.metadata),
+    };
+  }
+
+  static async findByIdOrThrow({ id }: { id: number }) {
+    const user = await UserRepository.findById({ id });
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
     }
     return user;
   }
@@ -330,6 +345,15 @@ export class UserRepository {
     const profiles = await ProfileRepository.findManyForUser({ id: user.id });
     if (profiles.length) {
       const profile = profiles[0];
+      // platform org user doesn't need org profile
+      if (profile?.organization?.isPlatform) {
+        return {
+          ...user,
+          nonProfileUsername: user.username,
+          profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+        };
+      }
+
       return {
         ...user,
         username: profile.username,
@@ -494,6 +518,32 @@ export class UserRepository {
     });
   }
 
+  static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
+    const membershipQuery = {
+      members: {
+        some: {
+          userId,
+          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      },
+    };
+    const teams = await prisma.team.findMany({
+      where: {
+        id: teamId,
+        OR: [
+          membershipQuery,
+          {
+            parent: { ...membershipQuery },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!teams.length;
+  }
+
   static async getUserAdminTeams(userId: number): Promise<number[]> {
     const user = await prisma.user.findFirst({
       where: {
@@ -515,5 +565,25 @@ export class UserRepository {
       teamIds.push(team.teamId);
     }
     return teamIds;
+  }
+
+  static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        timeZone: true,
+        defaultScheduleId: true,
+      },
+    });
+  }
+
+  static async adminFindById(userId: number) {
+    return await prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+    });
   }
 }

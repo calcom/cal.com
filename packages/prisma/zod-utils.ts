@@ -80,6 +80,12 @@ export const EventTypeMetaDataSchema = z
     disableSuccessPage: z.boolean().optional(),
     disableStandardEmails: z
       .object({
+        all: z
+          .object({
+            host: z.boolean().optional(),
+            attendee: z.boolean().optional(),
+          })
+          .optional(),
         confirmation: z
           .object({
             host: z.boolean().optional(),
@@ -108,6 +114,8 @@ export const EventTypeMetaDataSchema = z
   })
   .nullable();
 
+export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
+
 export const eventTypeBookingFields = formBuilderFieldsSchema;
 export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
 export type BookingFieldType = FormBuilderFieldType;
@@ -118,6 +126,7 @@ export type BookingFieldType = FormBuilderFieldType;
 export const bookingResponses = z
   .object({
     email: z.string(),
+    attendeePhoneNumber: z.string().optional(),
     //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
     name: z.union([
       z.string(),
@@ -179,6 +188,13 @@ export const iso8601 = z.string().transform((val, ctx) => {
   return d;
 });
 
+export const eventTypeColor = z
+  .object({
+    lightEventTypeColor: z.string(),
+    darkEventTypeColor: z.string(),
+  })
+  .nullable();
+
 export const intervalLimitsType = z
   .object({
     PER_DAY: z.number().optional(),
@@ -220,6 +236,7 @@ export const bookingCreateBodySchema = z.object({
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
+  rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
   start: z.string(),
   timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
   user: z.union([z.string(), z.array(z.string())]).optional(),
@@ -230,7 +247,7 @@ export const bookingCreateBodySchema = z.object({
   hashedLink: z.string().nullish(),
   seatReferenceUid: z.string().optional(),
   orgSlug: z.string().optional(),
-  teamMemberEmail: z.string().optional(),
+  teamMemberEmail: z.string().nullish(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -277,7 +294,6 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
-    teamMemberEmail: z.string().optional(),
   })
 );
 
@@ -304,6 +320,7 @@ export const schemaBookingCancelParams = z.object({
   allRemainingBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
+  cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
 });
 
 export const vitalSettingsUpdateSchema = z.object({
@@ -626,6 +643,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   customInputs: true,
   disableGuests: true,
   requiresConfirmation: true,
+  requiresConfirmationWillBlockSlot: true,
   eventName: true,
   metadata: true,
   children: true,
@@ -655,6 +673,9 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  eventTypeColor: true,
+  rescheduleWithSameRoundRobinHost: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
