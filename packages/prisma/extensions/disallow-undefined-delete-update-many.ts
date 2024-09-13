@@ -7,7 +7,7 @@ export const checkUndefinedInValue = (where: any) => {
       // where type
       const whereInput = where[key as any] as any;
       let message;
-      if (!whereInput) {
+      if (whereInput === undefined) {
         message = `The value for the field "${key}" cannot be undefined.`;
         console.log(message);
         throw new Error(message);
