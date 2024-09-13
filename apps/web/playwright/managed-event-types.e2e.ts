@@ -129,7 +129,9 @@ test.describe("Managed Event Types", () => {
   test("Provides discrete field lock/unlock state for admin", async ({ page, users }) => {
     const { adminUser, teamEventTitle } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
-    await page.goto("/event-types");
+    const teamMembership = await adminUser.getFirstTeamMembership();
+
+    await page.goto(`/event-types?teamId=${teamMembership.team.id}`);
 
     await page.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await page.waitForURL("event-types/**");
