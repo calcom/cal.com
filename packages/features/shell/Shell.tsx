@@ -544,7 +544,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownMenuItem>
                 )}
 
-                {!isPlatformPages && (
+                {!isPlatformPages && isPlatformUser && (
                   <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="blocks"
