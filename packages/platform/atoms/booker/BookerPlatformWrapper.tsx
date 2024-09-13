@@ -107,7 +107,9 @@ export const BookerPlatformWrapper = (
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSelectedMonth = useBookerStore((state) => state.setMonth);
 
-  const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(false);
+  const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(
+    Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
+  );
 
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -334,9 +336,7 @@ export const BookerPlatformWrapper = (
     onError: () => {
       clearSet();
     },
-    enabled: Boolean(
-      hasSession && set.size > 0 && isOverlayCalendarEnabled && latestCalendarsToLoad?.length > 0
-    ),
+    enabled: Boolean(hasSession && isOverlayCalendarEnabled && latestCalendarsToLoad?.length > 0),
   });
 
   const handleBookEvent = useHandleBookEvent({
@@ -452,7 +452,6 @@ export const BookerPlatformWrapper = (
           onToggleCalendar: (data) => {
             const calendarsToLoad = Array.from(data ?? []);
             setLatestCalendarsToLoad(calendarsToLoad);
-
             return;
           },
         }}

@@ -40,6 +40,12 @@ export const OverlayCalendar = ({
     handleToggleConnectedCalendar,
     checkIsCalendarToggled,
   } = useOverlayCalendar({ connectedCalendars, overlayBusyDates, onToggleCalendar });
+
+  // on platform we don't handle connecting to third party calendar via booker yet
+  if (isPlatform && connectedCalendars?.length === 0) {
+    return <></>;
+  }
+
   return (
     <>
       <OverlayCalendarSwitch

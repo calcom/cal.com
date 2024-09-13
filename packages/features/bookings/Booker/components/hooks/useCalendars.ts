@@ -14,10 +14,10 @@ export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
 type UseCalendarsProps = {
   hasSession: boolean;
 };
-export type ToggledConnectedCalendars = {
+export type ToggledConnectedCalendars = Set<{
   credentialId: number;
   externalId: string;
-}[];
+}>;
 
 export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const searchParams = useSearchParams();

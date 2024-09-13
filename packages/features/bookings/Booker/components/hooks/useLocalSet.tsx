@@ -32,10 +32,10 @@ export function useLocalSet<T extends HasExternalId>(key: string, initialValue: 
     });
   };
 
-  const toggleValue = (value: T) => {
-    let newSet;
+  const toggleValue = (value: T): Set<T> => {
+    let newSet = new Set<T>();
     setSet((prevSet) => {
-      const updatedSet = new Set(prevSet);
+      const updatedSet = new Set<T>(prevSet);
       let itemFound = false;
 
       updatedSet.forEach((item) => {
