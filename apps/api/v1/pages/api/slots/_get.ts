@@ -33,7 +33,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!Array.isArray(usernameList)) {
       slugs = usernameList ? [usernameList] : undefined;
     }
-    const input = getScheduleSchema.parse({ usernameList: slugs, ...rest });
+    const input = getScheduleSchema.parse({ usernameList: slugs, isTeamEvent: parsedIsTeamEvent, ...rest });
     const timeZoneSupported = input.timeZone ? isSupportedTimeZone(input.timeZone) : false;
     const availableSlots = await getAvailableSlots({ ctx: await createContext({ req, res }), input });
     const slotsInProvidedTimeZone = timeZoneSupported
