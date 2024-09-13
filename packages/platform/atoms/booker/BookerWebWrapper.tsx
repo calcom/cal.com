@@ -168,6 +168,15 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     },
     [searchParams, pathname, router]
   );
+
+  useEffect(() => {
+    if (calendars.connectedCalendars.length > 0) {
+      onOverlaySwitchStateChange(true);
+    } else {
+      onOverlaySwitchStateChange(false);
+    }
+  }, []);
+
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     darkBrandColor: event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,

@@ -147,16 +147,6 @@ const BookerComponent = ({
     }
   };
   useEffect(() => {
-    if (connectedCalendars.length > 0 && hasSession) {
-      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
-      current.set("overlayCalendar", "true");
-      localStorage.setItem("overlayCalendarSwitchDefault", "true");
-      const value = current.toString();
-      const query = value ? `?${value}` : "";
-      router.push(`${pathname}${query}`);
-    }
-  }, []);
-  useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
