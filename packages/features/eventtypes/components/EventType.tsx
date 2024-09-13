@@ -504,7 +504,7 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       length,
       ...input
     } = dirtyValues;
-    if (!Number(length)) throw new Error(t("event_setup_length_error"));
+    if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
     if (bookingLimits) {
       const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -633,6 +633,11 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
           id="event-type-form"
           handleSubmit={async (values) => {
             const { children } = values;
+            const conflicts = children.filter((child) => child.owner.eventTypeSlugs.includes(values.slug));
+            if (conflicts.length > 0) {
+              setSlugExistsChildrenDialogOpen(conflicts);
+              return;
+            }
             const dirtyValues = getDirtyFields(values);
             const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
             const {
