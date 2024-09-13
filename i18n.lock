@@ -215,6 +215,7 @@ checksums:
     view_notifications: cc622a9c6901ad67253f47ba0a6ad6a0
     view_public_page: ec22552c40f2e67e2ec4c873cae82d48
     copy_public_page_link: c0588480464a911cd42c908df3795cd4
+    copy_referral_link: a8e0454ac3f7dd14e4153970cbd6de71
     sign_out: 6d842546a84e919c519bf8cbffdf25a0
     add_another: 26ee6c7439e99431bd4e8d6181e23ac0
     install_another: f8e5dab6ee03046bcf4e3446312766c5
@@ -2178,8 +2179,11 @@ checksums:
     add_to_team: 81ea05d21e72679f58a5bc77f6077ba1
     remove_users_from_org: 5b8a337674562e28e6edc4b85567b677
     remove_users_from_org_confirm: 0eaa017c65c82f4bebdd5bb3e130ed08
+    remove_users_from_team: dabc98f7ca9cbf9092adaac4e897fdca
+    remove_users_from_team_confirm: 3dcd3dc561e867d61d12114250c248d7
     user_has_no_schedules: e5d0b6aa04e67c8acf48ff92602a6da4
     user_isnt_in_any_teams: 937aeb3d084201cd70fb205c062d4eee
+    user_has_no_app_installed: 59246b2d2eaa1d2a70b853643f05fcc2
     requires_booker_email_verification: aca667f422e911b6f3851dcf60d64500
     description_requires_booker_email_verification: 82ccb213337629af22e379f7b5a7eaac
     requires_confirmation_mandatory: ff747a41552070f0291edbaa710d0946
