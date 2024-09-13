@@ -270,8 +270,18 @@ export async function getBusyTimesForLimitChecks(params: {
   rescheduleUid?: string | null;
   bookingLimits?: IntervalLimit | null;
   durationLimits?: IntervalLimit | null;
+  globalBookingLimits?: IntervalLimit | null;
 }) {
-  const { userIds, eventTypeId, startDate, endDate, rescheduleUid, bookingLimits, durationLimits } = params;
+  const {
+    userIds,
+    eventTypeId,
+    startDate,
+    endDate,
+    rescheduleUid,
+    bookingLimits,
+    durationLimits,
+    globalBookingLimits,
+  } = params;
   const startTimeAsDayJs = stringToDayjs(startDate);
   const endTimeAsDayJs = stringToDayjs(endDate);
 
@@ -279,7 +289,7 @@ export async function getBusyTimesForLimitChecks(params: {
 
   let busyTimes: EventBusyDetails[] = [];
 
-  if (!bookingLimits && !durationLimits) {
+  if (!bookingLimits && !durationLimits && !globalBookingLimits) {
     return busyTimes;
   }
 
@@ -289,7 +299,7 @@ export async function getBusyTimesForLimitChecks(params: {
   // expand date ranges by absolute minimum required to apply limits
   // (yearly limits are handled separately for performance)
   for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
-    if (bookingLimits?.[key] || durationLimits?.[key]) {
+    if (bookingLimits?.[key] || durationLimits?.[key] || globalBookingLimits?.[key]) {
       const unit = intervalLimitKeyToUnit(key);
       limitDateFrom = dayjs.min(limitDateFrom, startTimeAsDayJs.startOf(unit));
       limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
@@ -306,7 +316,7 @@ export async function getBusyTimesForLimitChecks(params: {
     userId: {
       in: userIds,
     },
-    eventTypeId,
+    ...(!globalBookingLimits ? { eventTypeId } : {}),
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
     startTime: {
@@ -315,6 +325,7 @@ export async function getBusyTimesForLimitChecks(params: {
     endTime: {
       lte: limitDateTo.toDate(),
     },
+    ...(globalBookingLimits ? { eventTypeId: { not: eventTypeId } } : { eventTypeId: eventTypeId }),
   };
 
   if (rescheduleUid) {

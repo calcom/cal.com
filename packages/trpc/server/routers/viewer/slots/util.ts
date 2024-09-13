@@ -196,6 +196,7 @@ export async function getEventType(
             select: {
               credentials: { select: credentialForCalendarServiceSelect },
               ...availabilityUserSelect,
+              bookingLimits: true,
             },
           },
         },
@@ -204,6 +205,7 @@ export async function getEventType(
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
           ...availabilityUserSelect,
+          bookingLimits: true,
         },
       },
     },
@@ -248,6 +250,7 @@ export async function getDynamicEventType(
       credentials: {
         select: credentialForCalendarServiceSelect,
       },
+      bookingLimits: true,
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -456,6 +459,29 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     });
   }
 
+  const usersWithGlobalBookingLimits = usersWithCredentials.filter((user) => user.bookingLimits);
+  if (usersWithGlobalBookingLimits.length > 0) {
+    const busyTimesFromGlobalBookingLimits = await Promise.all(
+      usersWithGlobalBookingLimits.map(
+        async (user) =>
+          await getBusyTimesForLimitChecks({
+            userIds: [user.id],
+            eventTypeId: eventType.id,
+            startDate: startTime.format(),
+            endDate: endTime.format(),
+            rescheduleUid: input.rescheduleUid,
+            bookingLimits: null,
+            durationLimits: null,
+            globalBookingLimits: parseBookingLimit(user.bookingLimits),
+          })
+      )
+    );
+    const flattenedBusyTimesFromGlobalBookingLimits = busyTimesFromGlobalBookingLimits.flat();
+    busyTimesFromLimitsBookingsAllUsers = busyTimesFromLimitsBookingsAllUsers.concat(
+      flattenedBusyTimesFromGlobalBookingLimits
+    );
+  }
+
   /* We get all users working hours and busy slots */
   const allUsersAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
@@ -492,6 +518,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
               return bookingWithoutAttendees;
             }),
           busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+          globalBookingLimits: parseBookingLimit(currentUser.bookingLimits),
         }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;

@@ -111,6 +111,7 @@ const _getUser = async (where: Prisma.UserWhereInput) => {
       credentials: {
         select: credentialForCalendarServiceSelect,
       },
+      bookingLimits: true,
     },
   });
 };
@@ -182,6 +183,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       };
     })[];
     busyTimesFromLimitsBookings: EventBusyDetails[];
+    globalBookingLimits?: IntervalLimit | null;
   }
 ) {
   const {
@@ -226,7 +228,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
   const busyTimesFromLimits =
-    eventType && (bookingLimits || durationLimits)
+    eventType && (bookingLimits || durationLimits || initialData?.globalBookingLimits)
       ? await getBusyTimesFromLimits(
           bookingLimits,
           durationLimits,
@@ -234,7 +236,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo,
           duration,
           eventType,
-          initialData?.busyTimesFromLimitsBookings ?? []
+          initialData?.busyTimesFromLimitsBookings ?? [],
+          initialData?.globalBookingLimits ?? null
         )
       : [];
 
@@ -482,7 +485,8 @@ const _getBusyTimesFromLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  bookings: EventBusyDetails[]
+  bookings: EventBusyDetails[],
+  globalBookingLimits?: IntervalLimit | null
 ) => {
   performance.mark("limitsStart");
 
@@ -520,6 +524,25 @@ const _getBusyTimesFromLimits = async (
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
   }
 
+  if (globalBookingLimits) {
+    performance.mark("globalBookingLimitsStart");
+    await getBusyTimesFromBookingLimits(
+      bookings,
+      globalBookingLimits,
+      dateFrom,
+      dateTo,
+      eventType.id,
+      limitManager,
+      true
+    );
+    performance.mark("globalBookingLimitsEnd");
+    performance.measure(
+      `checking global booking limits took $1'`,
+      "globalBookingLimitsStart",
+      "globalBookingLimitsEnd"
+    );
+  }
+
   performance.mark("limitsEnd");
   performance.measure(`checking all limits took $1'`, "limitsStart", "limitsEnd");
 
@@ -538,7 +561,8 @@ const _getBusyTimesFromBookingLimits = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   eventTypeId: number,
-  limitManager: LimitManager
+  limitManager: LimitManager,
+  isGlobalBookingLimits?: boolean
 ) => {
   for (const key of descendingLimitKeys) {
     const limit = bookingLimits?.[key];
@@ -556,7 +580,7 @@ const _getBusyTimesFromBookingLimits = async (
           await checkBookingLimit({
             eventStartDate: periodStart.toDate(),
             limitingNumber: limit,
-            eventId: eventTypeId,
+            eventId: isGlobalBookingLimits ? undefined : eventTypeId,
             key,
           });
         } catch (_) {
