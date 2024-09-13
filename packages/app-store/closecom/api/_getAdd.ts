@@ -5,7 +5,7 @@ import { checkInstalled } from "../../_utils/installation";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
-  await checkInstalled("closecom", session.user?.id);
+  await assertInstalled("closecom", session.user?.id);
 
   const returnTo = req.query.returnTo;
 

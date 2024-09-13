@@ -7,7 +7,7 @@ import { checkInstalled } from "../../_utils/installation";
 
 export async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);
-  await checkInstalled("sendgrid", session.user?.id);
+  await assertInstalled("sendgrid", session.user?.id);
   return { url: "/apps/sendgrid/setup" };
 }
 

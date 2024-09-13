@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma } from "@prisma/client";
+import { JWT } from "google-auth-library";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
@@ -18,6 +19,7 @@ import {
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -181,7 +183,60 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
+  private getAuthedCalendarFromDomainWideDelegation = async () => {
+    //TODO: Compute it once and save it
+    const domainWideDelegation = await DomainWideDelegationRepository.findByCredential({
+      credential: this.credential,
+      workspacePlatform: "GOOGLE",
+    });
+
+    if (domainWideDelegation && domainWideDelegation.enabled && domainWideDelegation.serviceAccountKey) {
+      const emailToImpersonate = this.credential.user?.email;
+      if (!emailToImpersonate) {
+        this.log.error("No email to impersonate found for domain wide delegation");
+        return null;
+      }
+      this.log.debug(
+        "Using domain wide delegation with service account email",
+        safeStringify({
+          serviceAccountEmail: domainWideDelegation.serviceAccountKey.client_email,
+          emailToImpersonate,
+        })
+      );
+      const authClient = new JWT({
+        email: domainWideDelegation.serviceAccountKey.client_email,
+        key: domainWideDelegation.serviceAccountKey.private_key,
+        scopes: ["https://www.googleapis.com/auth/calendar"],
+        subject: emailToImpersonate,
+      });
+      await authClient.authorize();
+      return google.calendar({
+        version: "v3",
+        auth: authClient,
+      });
+    }
+    this.log.debug(
+      "Not using domain wide delegation, using default OAuth2 client for Google Calendar",
+      safeStringify({
+        domainWideDelegation: {
+          enabled: domainWideDelegation?.enabled,
+        },
+        serviceAccountKeyIsSet: !!domainWideDelegation?.serviceAccountKey,
+        credential: {
+          userId: this.credential.userId,
+          teamId: this.credential.teamId,
+        },
+      })
+    );
+    return null;
+  };
+
   public authedCalendar = async () => {
+    const authedCalendarFromDomainWideDelegation = await this.getAuthedCalendarFromDomainWideDelegation();
+    if (authedCalendarFromDomainWideDelegation) {
+      return authedCalendarFromDomainWideDelegation;
+    }
+
     const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
     const calendar = google.calendar({
       version: "v3",

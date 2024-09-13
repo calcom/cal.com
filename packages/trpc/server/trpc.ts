@@ -34,22 +34,25 @@ return handler({ ctx, input });
 export const importHandler = async <
   T extends {
     // eslint-disable-next-line @typescript-eslint/ban-types
-    default: Function;
+    [key: string]: Function;
   }
 >(
   /**
    * The name of the handler in cache. It has to be unique across all routes
    */
   name: string,
-  importer: () => Promise<T>
+  importer: () => Promise<T>,
+  exportName = "default"
 ) => {
   const nameInCache = name as keyof typeof UNSTABLE_HANDLER_CACHE;
 
   if (!UNSTABLE_HANDLER_CACHE[nameInCache]) {
     const importedModule = await importer();
-    UNSTABLE_HANDLER_CACHE[nameInCache] = importedModule.default;
-    return importedModule.default as T["default"];
+    UNSTABLE_HANDLER_CACHE[nameInCache] = importedModule[exportName];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return importedModule[exportName] as unknown as (...args: any[]) => any;
   }
 
-  return UNSTABLE_HANDLER_CACHE[nameInCache] as unknown as T["default"];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return UNSTABLE_HANDLER_CACHE[nameInCache] as unknown as (...args: any[]) => any;
 };

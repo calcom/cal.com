@@ -26,19 +26,9 @@ A service account is needed to act on behalf of users
     - Give your service account a name and description
     - Click Create and Continue
 
-Step 3: Connecting Deployment Environment To Google Cloud Project using Workload Identity Federation
-  Vercel: Follow this guide: https://vercel.com/docs/security/secure-backend-access/oidc/gcp
-  First setup Google Cloud using the above guide and then paste the environment variables to your Vercel project.
- GCP_PROJECT_ID=domain-wide-delegation-testing
- GCP_PROJECT_NUMBER=777450754675
- GCP_SERVICE_ACCOUNT_EMAIL=vercel-cal-staging@domain-wide-delegation-testing.iam.gserviceaccount.com
- GCP_WORKLOAD_IDENTITY_POOL_ID=vercel
- GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID=vercel
-
 Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API Permissions via OAuth Scopes:
     - Go to your Google Admin Console (admin-google-com)
     - Navigate to Security → API Controls → Manage Domain-Wide Delegation
     - Here, you'll authorize the service account's client ID(Unique ID) to access the Google Calendar API
     - Add the necessary API scopes for Google Calendar(Full access to Google Calendar)
         https://www.googleapis.com/auth/calendar
-

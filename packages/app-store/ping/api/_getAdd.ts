@@ -13,7 +13,7 @@ export async function getHandler(req: NextApiRequest) {
   const appType = appConfig.type;
   const returnTo = req.query?.returnTo;
 
-  await checkInstalled(slug, session.user.id);
+  await assertInstalled(slug, session.user.id);
   await createDefaultInstallation({
     appType,
     user: session.user,

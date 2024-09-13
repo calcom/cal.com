@@ -258,7 +258,8 @@ export const createEvent = async (
           }
           log.error(
             "createEvent failed",
-            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            safeStringify(error),
+            safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
           );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949

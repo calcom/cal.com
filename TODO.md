@@ -1,0 +1,3 @@
+- TODO
+  - Google Meet App to handle Domain wide delegation
+  - Disable multiple installations of Google Calendar app if Domain wide delegation is enabled(If Domain wide delegation is enabled, should we disable multiple installations of Google Calendar app?)

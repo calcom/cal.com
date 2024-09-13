@@ -183,6 +183,9 @@ model Credential {
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
+  
+  delegatedTo          DomainWideDelegation? @relation(fields: [delegatedToId], references: [id], onDelete: Cascade)
+  delegatedToId        String?
 
   @@index([userId])
   @@index([appId])
@@ -436,6 +439,7 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
+  domainWideDelegations  DomainWideDelegation[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1507,4 +1511,21 @@ model AttributeToUser {
   attributeOptionId String
 
   @@unique([memberId, attributeOptionId])
+}
+
+enum WorkspacePlatform {
+  GOOGLE    @map("google")
+  MICROSOFT @map("microsoft")
+}
+
+model DomainWideDelegation {
+  id                String            @id @default(uuid())
+  workspacePlatform WorkspacePlatform
+  serviceAccountKey Json
+  enabled           Boolean           @default(false)
+  organizationId    Int
+  organization      Team              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Credential        Credential[]
+
+  @@unique([organizationId, workspacePlatform])
 }

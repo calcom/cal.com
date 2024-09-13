@@ -72,4 +72,56 @@ export const adminRouter = router({
       );
       return handler(opts);
     }),
+  domainWideDelegation: router({
+    update: authedAdminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          workspacePlatform: z.enum(["GOOGLE", "MICROSOFT"]),
+          enabled: z.boolean(),
+          organizationId: z.number(),
+        })
+      )
+      .mutation(async (opts) => {
+        const handler = await importHandler(
+          namespaced("updateDomainWideDelegationHandler"),
+          () => import("./domainWideDelegation.handler"),
+          "updateDomainWideDelegationHandler"
+        );
+        return handler(opts);
+      }),
+    list: authedAdminProcedure.query(async (opts) => {
+      const handler = await importHandler(
+        namespaced("listDomainWideDelegationsHandler"),
+        () => import("./domainWideDelegation.handler"),
+        "listDomainWideDelegationsHandler"
+      );
+      return handler(opts);
+    }),
+    add: authedAdminProcedure
+      .input(
+        z.object({
+          workspacePlatform: z.enum(["GOOGLE", "MICROSOFT"]),
+          serviceAccountKey: z.string(),
+          enabled: z.boolean(),
+          organizationId: z.number(),
+        })
+      )
+      .mutation(async (opts) => {
+        const handler = await importHandler(
+          namespaced("addDomainWideDelegationHandler"),
+          () => import("./domainWideDelegation.handler"),
+          "addDomainWideDelegationHandler"
+        );
+        return handler(opts);
+      }),
+    delete: authedAdminProcedure.input(z.object({ id: z.string() })).mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("deleteDomainWideDelegationHandler"),
+        () => import("./domainWideDelegation.handler"),
+        "deleteDomainWideDelegationHandler"
+      );
+      return handler(opts);
+    }),
+  }),
 });

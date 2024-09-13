@@ -298,4 +298,56 @@ export class OrganizationRepository {
     }
     return { ...org, metadata: parsedMetadata };
   }
+
+  static async findByMemberEmail({ email }: { email: string }) {
+    const organization = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        members: {
+          some: {
+            user: { email },
+          },
+        },
+      },
+    });
+    return organization ?? null;
+  }
+
+  static async findByCredentialOfMember({
+    userId,
+    teamId,
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+  }) {
+    const log = logger.getSubLogger({ prefix: "findByCredentialOfMember" });
+    if (userId) {
+      const organization = await prisma.team.findFirst({
+        where: {
+          isOrganization: true,
+          members: {
+            some: {
+              userId,
+            },
+          },
+        },
+      });
+      return organization;
+    }
+
+    if (teamId) {
+      const organization = await prisma.team.findUnique({
+        where: {
+          id: teamId,
+        },
+        select: {
+          parent: true,
+        },
+      });
+      return organization?.parent ?? null;
+    }
+
+    log.error("No userId or teamId in credential");
+    return null;
+  }
 }
