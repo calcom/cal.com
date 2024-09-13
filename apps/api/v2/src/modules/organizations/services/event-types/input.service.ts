@@ -42,6 +42,9 @@ export class InputOrganizationsEventTypesService {
         transformedBody.destinationCalendar
       ));
 
+    transformedBody.useEventTypeDestinationCalendarEmail &&
+      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
+
     return transformedBody;
   }
 
@@ -68,6 +71,9 @@ export class InputOrganizationsEventTypesService {
         userId,
         transformedBody.destinationCalendar
       ));
+
+    transformedBody.useEventTypeDestinationCalendarEmail &&
+      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
 
     return transformedBody;
   }

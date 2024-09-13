@@ -81,6 +81,7 @@ type Input = Pick<
   | "requiresConfirmationWillBlockSlot"
   | "eventName"
   | "destinationCalendar"
+  | "useEventTypeDestinationCalendarEmail"
 >;
 
 @Injectable()
@@ -112,6 +113,7 @@ export class OutputEventTypesService_2024_06_14 {
       requiresBookerEmailVerification,
       hideCalendarNotes,
       seatsShowAttendees,
+      useEventTypeDestinationCalendarEmail,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -183,6 +185,7 @@ export class OutputEventTypesService_2024_06_14 {
       seats,
       customName,
       destinationCalendar,
+      useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
     };
   }
 
