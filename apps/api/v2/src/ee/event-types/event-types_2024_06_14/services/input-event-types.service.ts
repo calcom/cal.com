@@ -113,34 +113,6 @@ export class InputEventTypesService_2024_06_14 {
           },
         ],
       },
-      {
-        defaultLabel: "location",
-        type: "radioInput",
-        name: "location",
-        editable: "system",
-        hideWhenJustOneOption: true,
-        required: false,
-        getOptionsAt: "locations",
-        optionsInputs: {
-          attendeeInPerson: {
-            type: "address",
-            required: true,
-            placeholder: "",
-          },
-          phone: {
-            type: "phone",
-            required: true,
-            placeholder: "",
-          },
-        },
-        sources: [
-          {
-            label: "Default",
-            id: "default",
-            type: "default",
-          },
-        ],
-      },
     ];
 
     return [...systemBeforeFields, ...transformed];
