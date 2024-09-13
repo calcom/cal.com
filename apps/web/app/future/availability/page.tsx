@@ -1,9 +1,8 @@
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
-import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import AvailabilityPage from "~/availability/availability-view";
@@ -16,7 +15,7 @@ export const generateMetadata = async () => {
 };
 
 const Page = async () => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
   const userId = session?.user?.id;
   const orgId = session?.user?.org?.id;
   if (!userId || !orgId) {

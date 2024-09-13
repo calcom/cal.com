@@ -4134,7 +4134,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.33"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.34"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4766,6 +4766,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     bcryptjs: ^2.4.3
+    dub: ^0.35.0
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
@@ -4787,6 +4788,7 @@ __metadata:
     "@tanstack/react-table": ^8.9.3
     "@testing-library/react-hooks": ^8.0.1
     "@types/web-push": ^3.6.3
+    "@vercel/functions": ^1.4.0
     framer-motion: ^10.12.8
     lexical: ^0.9.0
     react-select: ^5.7.0
@@ -5119,14 +5121,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.33":
-  version: 0.0.33
-  resolution: "@calcom/platform-libraries@npm:0.0.33"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.34":
+  version: 0.0.34
+  resolution: "@calcom/platform-libraries@npm:0.0.34"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 75d78e298b380fbf72568ecd7fe70b8a1decc4c5a644d7e5032a5c493645967baf6645a27149754e0b173a3e36f4f83d9600129d858b4160fba77004daf59997
+  checksum: 149cee44a699d432fbd9dc036be1935b3bccec43941e0862a853d5dff82a2a3d8a1bf3e90d303e3a3873a2d21d4aabd4498367060a5d74783d4102669a99146b
   languageName: node
   linkType: hard
 
@@ -5623,6 +5625,7 @@ __metadata:
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.59.0
     "@daily-co/daily-react": ^0.17.2
+    "@dub/analytics": ^0.0.15
     "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
     "@hookform/error-message": ^2.0.0
@@ -6340,6 +6343,15 @@ __metadata:
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
   checksum: 2176d301cc258ea5c2324402997cf8134ebb212469c0d397591636cea8d3c02f2b3cf9fd58dcb748c7a0dade77ebdc1b10284fa63e608c033a1db52fddc69918
+  languageName: node
+  linkType: hard
+
+"@dub/analytics@npm:^0.0.15":
+  version: 0.0.15
+  resolution: "@dub/analytics@npm:0.0.15"
+  dependencies:
+    server-only: ^0.0.1
+  checksum: afff2252db4a43593efc5c990fd684b5423f47978191078d3b788a7c3e51f912cf21a65d4cfdffe57a20dbe3a89c5f4ac47ff2899e266ae4ac0653a58ff0076f
   languageName: node
   linkType: hard
 
@@ -24873,6 +24885,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dub@npm:^0.35.0":
+  version: 0.35.0
+  resolution: "dub@npm:0.35.0"
+  peerDependencies:
+    zod: ">= 3"
+  checksum: 162bd1ff62b62044e3840d3128f341baa8d07828aaf9ca2e94a562b7196df857c1fcdbf2495edfd8b7055970eb1c64298a2265dca81cb4d7bdc65ddc97980905
+  languageName: node
+  linkType: hard
+
 "duplexer@npm:^0.1.1, duplexer@npm:^0.1.2, duplexer@npm:~0.1.1":
   version: 0.1.2
   resolution: "duplexer@npm:0.1.2"
@@ -43131,6 +43152,13 @@ __metadata:
     parseurl: ~1.3.3
     send: 0.18.0
   checksum: af57fc13be40d90a12562e98c0b7855cf6e8bd4c107fe9a45c212bf023058d54a1871b1c89511c3958f70626fff47faeb795f5d83f8cf88514dbaeb2b724464d
+  languageName: node
+  linkType: hard
+
+"server-only@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "server-only@npm:0.0.1"
+  checksum: c432348956641ea3f460af8dc3765f3a1bdbcf7a1e0205b0756d868e6e6fe8934cdee6bff68401a1dd49ba4a831c75916517a877446d54b334f7de36fa273e53
   languageName: node
   linkType: hard
 
