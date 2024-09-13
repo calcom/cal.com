@@ -1,3 +1,4 @@
+import { getDefaultBookingFields } from "@/lib/get-default-booking-fields";
 import { Injectable } from "@nestjs/common";
 
 import {
@@ -6,7 +7,6 @@ import {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeRecurrence,
-  SystemField,
 } from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
@@ -84,36 +84,7 @@ export class InputEventTypesService_2024_06_14 {
   transformInputBookingFields(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]) {
     const transformed = transformApiEventTypeBookingFields(inputBookingFields);
 
-    const systemBeforeFields: SystemField[] = [
-      {
-        type: "name",
-        name: "name",
-        editable: "system",
-        defaultLabel: "your_name",
-        required: true,
-        sources: [
-          {
-            label: "Default",
-            id: "default",
-            type: "default",
-          },
-        ],
-      },
-      {
-        defaultLabel: "email_address",
-        type: "email",
-        name: "email",
-        required: true,
-        editable: "system",
-        sources: [
-          {
-            label: "Default",
-            id: "default",
-            type: "default",
-          },
-        ],
-      },
-    ];
+    const systemBeforeFields = getDefaultBookingFields();
 
     return [...systemBeforeFields, ...transformed];
   }

@@ -3,6 +3,7 @@ import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_20
 import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
 import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
 import { EventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/event-type.output";
+import { getDefaultBookingFields } from "@/lib/get-default-booking-fields";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -36,7 +37,7 @@ export class EventTypesService_2024_04_15 {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const { eventType } = await createEventType({
-      input: body,
+      input: this.transformInputCreateEventType(body),
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -45,6 +46,15 @@ export class EventTypesService_2024_04_15 {
       },
     });
     return eventType as EventTypeOutput;
+  }
+
+  transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_04_15) {
+    const systemBeforeFields = getDefaultBookingFields();
+
+    return {
+      ...inputEventType,
+      bookingFields: systemBeforeFields,
+    };
   }
 
   async checkCanCreateEventType(userId: number, body: CreateEventTypeInput_2024_04_15) {
