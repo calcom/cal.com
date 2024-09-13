@@ -774,7 +774,6 @@ const NavigationItem: React.FC<{
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
-  console.log(item.name, item.isLoading);
 
   return (
     <Fragment>
