@@ -108,8 +108,8 @@ export function EditMemberSheet({
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
-      await utils.viewer.teams.lazyLoadMembers.cancel();
-      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+      await utils.viewer.teams.listMembers.cancel();
+      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamId,
         searchTerm: undefined,
@@ -125,7 +125,6 @@ export function EditMemberSheet({
       setRole(role);
       setMutationLoading(false);
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.lazyLoadMembers.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
       setEditMode(false);

@@ -15,7 +15,6 @@ import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema"
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
-import { ZLazyLoadMembersInputSchema } from "./lazyLoadMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
@@ -117,13 +116,6 @@ export const viewerTeamsRouter = router({
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
-    return handler(opts);
-  }),
-  lazyLoadMembers: authedProcedure.input(ZLazyLoadMembersInputSchema).query(async (opts) => {
-    const handler = await importHandler(
-      namespaced("lazyLoadMembers"),
-      () => import("./lazyLoadMembers.handler")
-    );
     return handler(opts);
   }),
   getUserConnectedApps: authedProcedure.input(ZGetUserConnectedAppsInputSchema).query(async (opts) => {

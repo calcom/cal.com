@@ -24,7 +24,7 @@ export const updateRoleInCache = ({
   role: MembershipRole;
   memberId: number;
 }) => {
-  utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+  utils.viewer.teams.listMembers.setInfiniteData(
     {
       limit: 10,
       teamId,
@@ -91,8 +91,8 @@ export default function MemberChangeRoleModal(props: {
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
-      await utils.viewer.teams.lazyLoadMembers.cancel();
-      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+      await utils.viewer.teams.listMembers.cancel();
+      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamId,
         searchTerm: props.searchTerm,

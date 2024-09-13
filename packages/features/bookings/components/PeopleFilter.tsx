@@ -21,6 +21,7 @@ export const PeopleFilter = () => {
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
 
+  // TODO: Handle infinite scroll
   const members = trpc.viewer.teams.listMembers.useQuery({});
 
   const filteredMembers = members?.data

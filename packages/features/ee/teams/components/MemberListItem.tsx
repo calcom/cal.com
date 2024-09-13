@@ -125,7 +125,7 @@ export default function MemberListItem(props: Props) {
   const { copyToClipboard, isCopied } = useCopy();
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
     {
       limit: 10,
       searchTerm: debouncedSearchTerm,
@@ -152,7 +152,7 @@ export default function MemberListItem(props: Props) {
     teamId: number;
     searchTerm: string;
   }) => {
-    utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+    utils.viewer.teams.listMembers.setInfiniteData(
       {
         limit: 10,
         teamId,
@@ -179,8 +179,8 @@ export default function MemberListItem(props: Props) {
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onMutate: async ({ teamIds }) => {
-      await utils.viewer.teams.lazyLoadMembers.cancel();
-      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+      await utils.viewer.teams.listMembers.cancel();
+      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
         searchTerm: searchTerm,
