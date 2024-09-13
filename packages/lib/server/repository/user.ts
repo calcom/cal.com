@@ -175,8 +175,6 @@ export class UserRepository {
           organization: getParsedTeam(profile.organization),
         }))
       : null;
-    console.log({ profiles });
-    console.log(profiles.length);
     const where =
       profiles && profiles.length > 0
         ? {
