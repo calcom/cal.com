@@ -104,6 +104,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
           team: {
             select: {
               slug: true,
+              isOrganization: true,
+              isPlatform: true,
             },
           },
         },
@@ -153,21 +155,20 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
-  const hasExistingOrgWithSameOwner = await prisma.team.findFirst({
-    where: {
-      // verifiedEmails: [{ email: loggedInUser.email }],
-      verifiedEmails: [{ email: loggedInUser.email }],
-      isOrganization: true,
-      isPlatform: true,
-    },
-  });
-
   // Allow creating an organization with same requestedSlug as a non-org Team's slug
   // It is needed so that later we can migrate the non-org Team(with the conflicting slug) to the newly created org
   // Publishing the organization would fail if the team with the same slug is not migrated first
 
   if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+
+  const hasExistingPlatformOrOrgTeam = loggedInUser?.teams.find((team) => {
+    return team.team.isPlatform || team.team.isOrganization;
+  });
+
+  if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "User is already part of a team" });
+  }
 
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
