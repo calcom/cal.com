@@ -27,7 +27,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       isColdStart = false;
     }
 
-    const { usernameList, ...rest } = req.query;
+    const { usernameList, isTeamEvent, ...rest } = req.query;
+    const parsedIsTeamEvent = isTeamEvent?.toLowerCase() === "true";
     let slugs = usernameList;
     if (!Array.isArray(usernameList)) {
       slugs = usernameList ? [usernameList] : undefined;
