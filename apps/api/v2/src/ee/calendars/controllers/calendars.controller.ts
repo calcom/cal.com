@@ -1,5 +1,11 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete-calendar-credentials.input";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
+import {
+  DeletedCalendarCredentialsOutputResponseDto,
+  DeletedCalendarCredentialsOutputDto,
+} from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
@@ -27,6 +33,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
+import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
 
@@ -50,7 +57,8 @@ export class CalendarsController {
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
     private readonly googleCalendarService: GoogleCalendarService,
-    private readonly appleCalendarService: AppleCalendarService
+    private readonly appleCalendarService: AppleCalendarService,
+    private readonly calendarsRepository: CalendarsRepository
   ) {}
 
   @UseGuards(ApiAuthGuard)
@@ -182,5 +190,30 @@ export class CalendarsController {
           CALENDARS.join(", ")
         );
     }
+  }
+
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/disconnect")
+  @HttpCode(HttpStatus.OK)
+  async deleteCalendarCredentials(
+    @Param("calendar") calendar: string,
+    @Body() body: DeleteCalendarCredentialsInputBodyDto,
+    @GetUser() user: UserWithProfile
+  ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
+    const { id: credentialId } = body;
+    await this.calendarsService.checkCalendarCredentials(credentialId, user.id);
+
+    const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
+      credentialId
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(
+        DeletedCalendarCredentialsOutputDto,
+        { id, type, userId, teamId, appId, invalid },
+        { strategy: "excludeAll" }
+      ),
+    };
   }
 }

@@ -9,6 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   const appType = "google_video";
+  const returnTo = req.query?.returnTo;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
@@ -36,5 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return res.status(500);
   }
-  return res.status(200).json({ url: getInstalledAppPath({ variant: "conferencing", slug: "google-meet" }) });
+  return res
+    .status(200)
+    .json({ url: returnTo ?? getInstalledAppPath({ variant: "conferencing", slug: "google-meet" }) });
 }

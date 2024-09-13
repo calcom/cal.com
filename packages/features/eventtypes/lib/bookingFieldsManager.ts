@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { prisma } from "@calcom/prisma";
 import type { EventType } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -14,13 +15,15 @@ async function getEventType(eventTypeId: EventType["id"]) {
     },
     include: {
       customInputs: true,
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
       workflows: {
         select: {
           workflow: {
-            select: {
-              id: true,
-              steps: true,
-            },
+            select: workflowSelect,
           },
         },
       },
@@ -31,9 +34,13 @@ async function getEventType(eventTypeId: EventType["id"]) {
     throw new Error(`EventType:${eventTypeId} not found`);
   }
 
+  const { profile, ...restEventType } = rawEventType;
+
+  const isOrgTeamEvent = !!rawEventType?.teamId && !!profile?.organizationId;
+
   const eventType = {
-    ...rawEventType,
-    bookingFields: getBookingFieldsWithSystemFields(rawEventType),
+    ...restEventType,
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
   };
   return eventType;
 }

@@ -6,4 +6,4 @@ import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSi
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
-export default WithLayout({ getLayout: null, getData, isBookingPage: true, Page });
+export default WithLayout({ getLayout: null, getData, Page });

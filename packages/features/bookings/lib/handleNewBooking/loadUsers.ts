@@ -8,7 +8,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import type { NewBookingEventType } from "../handleNewBooking";
+import type { NewBookingEventType } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
@@ -31,10 +31,12 @@ export const loadUsers = async (eventType: EventType, dynamicUserList: string[],
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
   const hosts = eventType.hosts || [];
-  const users = hosts.map(({ user, isFixed, priority }) => ({
+  const users = hosts.map(({ user, isFixed, priority, weight, weightAdjustment }) => ({
     ...user,
     isFixed,
     priority,
+    weight,
+    weightAdjustment,
   }));
   return users.length ? users : eventType.users;
 };
@@ -85,3 +87,5 @@ export const findUsersByUsername = async ({
     };
   });
 };
+
+export type AwaitedLoadUsers = Awaited<ReturnType<typeof loadUsers>>;

@@ -1,6 +1,9 @@
 name: Lint
 on:
   workflow_call:
+permissions:
+  actions: write
+  contents: read
 jobs:
   lint:
     runs-on: buildjet-4vcpu-ubuntu-2204
@@ -15,13 +18,6 @@ jobs:
 
       - name: Merge lint reports
         run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
-
-      - name: Annotate Code Linting Results
-        uses: ataylorme/eslint-annotate-action@v2
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          report-json: "lint-results/eslint_report.json"
-          only-pr-files: false
 
       - name: Upload ESLint report
         if: ${{ always() }}

@@ -7,6 +7,7 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
@@ -23,14 +24,26 @@ import { userSchemaResponse } from "@calcom/platform-types";
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly schedulesRepository: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly usersService: UsersService
   ) {}
 
   @Get("/")
   @Permissions([PROFILE_READ])
   async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
-    const me = userSchemaResponse.parse(user);
-
+    const organization = this.usersService.getUserMainProfile(user)?.organization;
+    const me = userSchemaResponse.parse(
+      organization
+        ? {
+            ...user,
+            organizationId: organization.id,
+            organization: {
+              id: organization.id,
+              isPlatform: organization.isPlatform,
+            },
+          }
+        : user
+    );
     return {
       status: SUCCESS_STATUS,
       data: me,
@@ -45,7 +58,7 @@ export class MeController {
   ): Promise<UpdateMeOutput> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
-      await this.schedulesRepository.updateUserSchedule(user, user.defaultScheduleId, {
+      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
         timeZone: bodySchedule.timeZone,
       });
     }

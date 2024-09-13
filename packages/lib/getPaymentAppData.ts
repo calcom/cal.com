@@ -53,3 +53,5 @@ export default function getPaymentAppData(
     }
   );
 }
+
+export type PaymentAppData = ReturnType<typeof getPaymentAppData>;

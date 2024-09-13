@@ -143,7 +143,6 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
-                  isOrg: !!isOrg,
                 },
                 {
                   onSuccess: async (data) => {
@@ -200,13 +199,13 @@ export const AddNewTeamMembersForm = ({
         className="w-full justify-center"
         disabled={publishTeamMutation.isPending}
         onClick={() => {
-          let uri = `/settings/teams/${teamId}/profile`;
+          let uri = `/settings/teams/${teamId}/event-type`;
           if (isOrg) {
             uri = `/settings/organizations/${teamId}/add-teams`;
           }
           router.push(uri);
         }}>
-        {isOrg ? t("continue") : t("finish")}
+        {t("continue")}
       </Button>
     </>
   );

@@ -168,6 +168,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
     metadata: jsonSchema.nullable(),
     customInputs: customInputSchema.array().optional(),
     link: z.string().optional(),
+    hashedLink: z.object({ link: z.string() }).optional().nullable(),
     bookingFields: eventTypeBookingFields.optional().nullable(),
   })
 );

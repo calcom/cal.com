@@ -106,6 +106,23 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
 
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
+
+  const profileData = user.organization?.isPlatform
+    ? {
+        organizationId: null,
+        organization: { id: -1, isPlatform: true, slug: "", isOrgAdmin: false },
+        username: user.username ?? null,
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+        profiles: [],
+      }
+    : {
+        organizationId: user.profile?.organizationId ?? null,
+        organization: user.organization,
+        username: user.profile?.username ?? user.username ?? null,
+        profile: user.profile ?? null,
+        profiles: allUserEnrichedProfiles,
+      };
+
   return {
     id: user.id,
     name: user.name,
@@ -140,11 +157,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
-    organizationId: user.profile?.organizationId ?? null,
-    organization: user.organization,
-    username: user.profile?.username ?? user.username ?? null,
-    profile: user.profile ?? null,
-    profiles: allUserEnrichedProfiles,
+    ...profileData,
     secondaryEmails,
     sumOfBookings: additionalUserInfo?.bookings.length,
     sumOfCalendars: additionalUserInfo?.selectedCalendars.length,

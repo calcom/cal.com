@@ -654,15 +654,6 @@ describe("handleNewBooking", () => {
             appId: null,
           },
         ],
-        workflows: [
-          {
-            userId: organizer.id,
-            trigger: "NEW_EVENT",
-            action: "EMAIL_HOST",
-            template: "REMINDER",
-            activeEventTypeId: 1,
-          },
-        ],
         eventTypes: [
           {
             id: 1,

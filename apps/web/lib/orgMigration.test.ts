@@ -1574,6 +1574,7 @@ async function createOrg(
       metadata: {
         ...(data.metadata || {}),
       },
+      createdByOAuthClient: undefined,
     },
   });
 }
@@ -1591,6 +1592,7 @@ async function createTeamOutsideOrg(
         ...(data.metadata || {}),
         isOrganization: false,
       },
+      createdByOAuthClient: undefined,
     },
   });
 }

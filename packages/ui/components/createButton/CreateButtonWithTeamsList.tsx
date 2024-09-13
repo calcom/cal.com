@@ -1,3 +1,5 @@
+"use client";
+
 import { trpc } from "@calcom/trpc/react";
 
 import type { CreateBtnProps, Option } from "./CreateButton";
@@ -8,11 +10,10 @@ export function CreateButtonWithTeamsList(
     onlyShowWithTeams?: boolean;
     onlyShowWithNoTeams?: boolean;
     isAdmin?: boolean;
+    includeOrg?: boolean;
   }
 ) {
-  const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery({
-    includeOrg: true,
-  });
+  const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery({ includeOrg: props.includeOrg });
   if (!query.data) return null;
 
   const teamsAndUserProfiles: Option[] = query.data

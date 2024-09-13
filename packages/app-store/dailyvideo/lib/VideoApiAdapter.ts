@@ -74,6 +74,16 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
   });
 }
 
+export const getBatchProcessorJobAccessLink = (id: string) => {
+  return fetcher(`/batch-processor/${id}/access-link`).then(ZGetTranscriptAccessLink.parse);
+};
+
+export const getRoomNameFromRecordingId = (recordingId: string) => {
+  return fetcher(`/recordings/${recordingId}`)
+    .then(recordingItemSchema.parse)
+    .then((res) => res.room_name);
+};
+
 async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   const batchSize = 5; // Batch size
   const batches = []; // Array to hold batches of transcript IDs
@@ -114,6 +124,38 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
   }).then(meetingTokenSchema.parse);
 
   return guestMeetingToken.token;
+};
+
+// Only for backward compatibility
+export const setEnableRecordingUIForOrganizer = async (
+  bookingReferenceId: number,
+  meetingToken: string | null
+) => {
+  if (!meetingToken) return null;
+
+  const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
+  if (token.enable_recording_ui === false) return null;
+
+  const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
+    properties: {
+      room_name: token.room_name,
+      exp: token.exp,
+      enable_recording_ui: false,
+      is_owner: true,
+    },
+  }).then(meetingTokenSchema.parse);
+
+  // Update the meetingPassword in the database
+  await prisma.bookingReference.update({
+    where: {
+      id: bookingReferenceId,
+    },
+    data: {
+      meetingPassword: organizerMeetingToken.token,
+    },
+  });
+
+  return organizerMeetingToken.token;
 };
 
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
@@ -272,6 +314,24 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get transcription access link");
       }
     },
+    getAllTranscriptsAccessLinkFromMeetingId: async (meetingId: string): Promise<Array<string>> => {
+      try {
+        const allTranscripts = await fetcher(`/transcript?mtgSessionId=${meetingId}`).then(
+          getTranscripts.parse
+        );
+
+        if (!allTranscripts.data.length) return [];
+
+        const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
+        const allTranscriptsAccessLink = await processTranscriptsInBatches(allTranscriptsIds);
+        const accessLinks = await Promise.all(allTranscriptsAccessLink);
+
+        return Promise.resolve(accessLinks);
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to get transcription access link");
+      }
+    },
     submitBatchProcessorJob: async (body: batchProcessorBody): Promise<TSubmitBatchProcessorJobRes> => {
       try {
         const batchProcessorJob = await postToDailyAPI("/batch-processor", body).then(
@@ -300,9 +360,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
         if (!transcriptJobId) return [];
 
-        const accessLinkRes = await fetcher(`/batch-processor/${transcriptJobId}/access-link`).then(
-          ZGetTranscriptAccessLink.parse
-        );
+        const accessLinkRes = await getBatchProcessorJobAccessLink(transcriptJobId);
 
         return accessLinkRes.transcription;
       } catch (err) {

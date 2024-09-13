@@ -14,7 +14,7 @@ test.describe("Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
     features.reset(); // This resets to the inital state not an empt yarray
   });
-  test.afterAll(async ({ users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
   test("Username is taken", async ({ page, users }) => {
@@ -210,13 +210,17 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
+    await page.waitForLoadState("domcontentloaded");
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
-    await page.click('button[type="submit"]');
+    const submitButton = page.locator('button[type="submit"]');
+    await submitButton.waitFor({ state: "attached" });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
 
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
     // Find the newly created user and add it to the fixture store

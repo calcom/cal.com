@@ -85,7 +85,7 @@ test.describe("Availablity", () => {
     await page.locator('[form="availability-form"][type="submit"]').click();
 
     await expect(dateOverrideList).toHaveCount(3);
-    await expect(await page.getByTitle(deleteButtonTitle).isVisible()).toBe(false);
+    await expect(page.getByTitle(deleteButtonTitle)).toBeHidden();
   });
 
   test("Can create date override on current day in a negative timezone", async ({ page }) => {
@@ -119,7 +119,7 @@ test.describe("Availablity", () => {
       await expect(page.getByTestId("availablity-title")).toHaveValue("More working hours");
     });
     await test.step("Can delete a schedule", async () => {
-      await page.getByRole("button", { name: /Go Back/i }).click();
+      await page.getByTestId("go-back-button").click();
       await page.locator('[data-testid="schedules"] > li').nth(1).getByTestId("schedule-more").click();
       await page.locator('[data-testid="delete-schedule"]').click();
       const toast = await page.waitForSelector('[data-testid="toast-success"]');

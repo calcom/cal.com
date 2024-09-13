@@ -88,10 +88,9 @@ export const VerifyCodeDialog = ({
   return (
     <Dialog
       open={isOpenDialog}
-      onOpenChange={(open) => {
+      onOpenChange={() => {
         setValue("");
         resetErrors();
-        setIsOpenDialog(open);
       }}>
       <DialogContent className="sm:max-w-md">
         <div className="flex flex-row">
@@ -122,7 +121,7 @@ export const VerifyCodeDialog = ({
               </div>
             )}
             <DialogFooter>
-              <DialogClose />
+              <DialogClose onClick={() => setIsOpenDialog(false)} />
               <Button type="submit" onClick={verifyCode} loading={isPending}>
                 {t("submit")}
               </Button>

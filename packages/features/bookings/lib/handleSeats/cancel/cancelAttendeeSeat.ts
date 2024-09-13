@@ -1,19 +1,18 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { updateMeeting } from "@calcom/core/videoClient";
-import { sendCancelledSeatEmails } from "@calcom/emails";
-import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { CustomRequest } from "../../handleCancelBooking";
@@ -30,7 +29,8 @@ async function cancelAttendeeSeat(
     }[];
     evt: CalendarEvent;
     eventTypeInfo: EventTypeInfo;
-  }
+  },
+  eventTypeMetadata: EventTypeMetadata
 ) {
   const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
@@ -107,10 +107,14 @@ async function cancelAttendeeSeat(
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
-    await sendCancelledSeatEmails(evt, {
-      ...attendee,
-      language: { translate: tAttendees, locale: attendee.locale ?? "en" },
-    });
+    await sendCancelledSeatEmailsAndSMS(
+      evt,
+      {
+        ...attendee,
+        language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+      },
+      eventTypeMetadata
+    );
   }
 
   evt.attendees = attendee
@@ -125,13 +129,21 @@ async function cancelAttendeeSeat(
       ]
     : [];
 
+  const payload: EventPayloadType = {
+    ...evt,
+    ...eventTypeInfo,
+    status: "CANCELLED",
+    smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+  };
+
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, WebhookTriggerEvents.BOOKING_CANCELLED, new Date().toISOString(), webhook, {
-      ...evt,
-      ...eventTypeInfo,
-      status: "CANCELLED",
-      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-    }).catch((e) => {
+    sendPayload(
+      webhook.secret,
+      WebhookTriggerEvents.BOOKING_CANCELLED,
+      new Date().toISOString(),
+      webhook,
+      payload
+    ).catch((e) => {
       logger.error(
         `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)
@@ -140,23 +152,11 @@ async function cancelAttendeeSeat(
   );
   await Promise.all(promises);
 
-  const workflowRemindersForAttendee = bookingToDelete?.workflowReminders.filter(
-    (reminder) => reminder.seatReferenceId === seatReferenceUid
-  );
+  const workflowRemindersForAttendee =
+    bookingToDelete?.workflowReminders.filter((reminder) => reminder.seatReferenceId === seatReferenceUid) ??
+    null;
 
-  if (workflowRemindersForAttendee && workflowRemindersForAttendee.length !== 0) {
-    const deletionPromises = workflowRemindersForAttendee.map((reminder) => {
-      if (reminder.method === WorkflowMethods.EMAIL) {
-        return deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
-      } else if (reminder.method === WorkflowMethods.SMS) {
-        return deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
-      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-        return deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
-      }
-    });
-
-    await Promise.allSettled(deletionPromises);
-  }
+  await deleteAllWorkflowReminders(workflowRemindersForAttendee);
 
   return { success: true };
 }

@@ -1,9 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking";
+import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking/types";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 
@@ -17,6 +18,7 @@ export type NewSeatedBookingObject = {
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
   bookerEmail: string;
+  bookerPhoneNumber?: string | null;
   tAttendees: TFunction;
   bookingSeat: BookingSeat;
   reqUserId: number | undefined;
@@ -37,6 +39,8 @@ export type NewSeatedBookingObject = {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
+  rescheduledBy?: string;
+  workflows: Workflow[];
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };

@@ -2,6 +2,9 @@ name: Production Builds
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}

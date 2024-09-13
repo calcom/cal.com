@@ -7,8 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { prisma } from "@calcom/prisma";
 
-import { test } from "./lib/fixtures";
-import { todo } from "./lib/testUtils";
+import { test, todo } from "./lib/fixtures";
 
 declare let global: {
   E2E_EMAILS?: ({ text: string } | Record<string, unknown>)[];

@@ -30,10 +30,14 @@ export function createWorkflowPageFixture(page: Page) {
       await selectEventType("30 min");
     }
     await saveWorkflow();
+    await page.getByTestId("go-back-button").click();
   };
 
   const saveWorkflow = async () => {
+    const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
     await page.getByTestId("save-workflow").click();
+    const response = await submitPromise;
+    expect(response.status()).toBe(200);
   };
 
   const assertListCount = async (count: number) => {
@@ -71,7 +75,7 @@ export function createWorkflowPageFixture(page: Page) {
   };
 
   const selectEventType = async (name: string) => {
-    await page.getByText("Select...").click();
+    await page.getByTestId("multi-select-check-boxes").click();
     await page.getByText(name, { exact: true }).click();
   };
 

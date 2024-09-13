@@ -6,7 +6,7 @@ import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-import { test } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
@@ -15,7 +15,6 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
-  todo,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
@@ -298,6 +297,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
 
     await pageTwo.waitForSelector('[data-testid="event-type-link"]');
     const eventTypeLink = pageTwo.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLink.waitFor();
     await eventTypeLink.click();
 
     await pageTwo.waitForLoadState("networkidle");
@@ -331,6 +331,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
 
     await pageTwo.waitForSelector('[data-testid="event-type-link"]');
     const eventTypeLinkTwo = pageTwo.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLinkTwo.waitFor();
     await eventTypeLinkTwo.click();
 
     await page.locator('[data-testid="back"]').waitFor();

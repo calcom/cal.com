@@ -2,8 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
-import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
+import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppCategories } from "@calcom/prisma/enums";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -17,7 +17,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let appStore, userAdminTeams: UserAdminTeams;
   if (session?.user?.id) {
-    userAdminTeams = await getUserAdminTeams({ userId: session.user.id, getUserInfo: true });
+    userAdminTeams = await UserRepository.getUserAdminTeams(session.user.id);
     appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeams);
   } else {
     appStore = await getAppRegistry();

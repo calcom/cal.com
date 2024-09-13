@@ -51,7 +51,7 @@ export type BookerEvent = Pick<
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
-> & { users: BookerEventUser[] } & { profile: BookerEventProfile };
+> & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 
@@ -84,4 +84,8 @@ export type BookingResponse = Awaited<
 
 export type InstantBookingResponse = Awaited<
   ReturnType<typeof import("@calcom/features/instant-meeting/handleInstantMeeting").default>
+>;
+
+export type MarkNoShowResponse = Awaited<
+  ReturnType<typeof import("@calcom/features/handleMarkNoShow").default>
 >;

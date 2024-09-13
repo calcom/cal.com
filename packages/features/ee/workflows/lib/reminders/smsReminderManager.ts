@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { SENDER_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
@@ -28,6 +29,7 @@ export type AttendeeInBookingInfo = {
   firstName?: string;
   lastName?: string;
   email: string;
+  phoneNumber?: string | null;
   timeZone: string;
   language: { locale: string };
 };
@@ -68,6 +70,7 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   userId?: number | null;
   teamId?: number | null;
   isVerificationPending?: boolean;
+  prisma?: PrismaClient;
 }
 
 export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {

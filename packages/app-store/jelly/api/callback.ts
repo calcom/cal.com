@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -60,5 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     setDefaultConferencingApp(userId, "jelly");
   }
 
-  res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "jelly" }));
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "conferencing", slug: "jelly" })
+  );
 }

@@ -1,8 +1,8 @@
 import type { Column } from "@tanstack/react-table";
-import type { LucideIcon } from "lucide-react";
 
 import { classNames } from "@calcom/lib";
 
+import type { IconName } from "../..";
 import { Icon } from "../..";
 import { Badge } from "../badge";
 import { Button } from "../button";
@@ -23,7 +23,7 @@ interface DataTableFilter<TData, TValue> {
   options: {
     label: string;
     value: string;
-    icon?: LucideIcon;
+    icon?: IconName;
   }[];
 }
 export function DataTableFilter<TData, TValue>({ column, title, options }: DataTableFilter<TData, TValue>) {
@@ -85,7 +85,7 @@ export function DataTableFilter<TData, TValue>({ column, title, options }: DataT
                       )}>
                       <Icon name="check" className={classNames("h-4 w-4")} />
                     </div>
-                    {option.icon && <option.icon className="text-muted mr-2 h-4 w-4" />}
+                    {option.icon && <Icon name={option.icon} className="text-muted mr-2 h-4 w-4" />}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (
                       <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">

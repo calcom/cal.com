@@ -2,6 +2,7 @@ import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/con
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -11,7 +12,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
-import { dynamicEvent } from "@calcom/platform-libraries-0.0.13";
+import { dynamicEvent } from "@calcom/platform-libraries";
 import {
   CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -30,15 +31,47 @@ export class EventTypesService_2024_06_14 {
     private readonly usersRepository: UsersRepository,
     private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly dbWrite: PrismaWriteService
+    private readonly dbWrite: PrismaWriteService,
+    private readonly schedulesRepository: SchedulesRepository_2024_06_11
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const bodyTransformed = this.inputEventTypesService.transformInputCreateEventType(body);
+    const {
+      bookingLimits,
+      durationLimits,
+      periodType = undefined,
+      periodDays = undefined,
+      periodCountCalendarDays = undefined,
+      periodStartDate = undefined,
+      periodEndDate = undefined,
+      recurrence = undefined,
+      ...bodyTransformed
+    } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
       input: bodyTransformed,
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+
+    await updateEventType({
+      input: {
+        id: eventTypeCreated.id,
+        bookingLimits,
+        durationLimits,
+        periodType,
+        periodDays,
+        periodCountCalendarDays,
+        periodStartDate,
+        periodEndDate,
+        recurrence,
+        ...bodyTransformed,
+      },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -61,6 +94,7 @@ export class EventTypesService_2024_06_14 {
     if (existsWithSlug) {
       throw new BadRequestException("User already has an event type with this slug.");
     }
+    await this.checkUserOwnsSchedule(userId, body.scheduleId);
   }
 
   async getEventTypeByUsernameAndSlug(username: string, eventTypeSlug: string) {
@@ -87,17 +121,21 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserToCreateEvent(user: UserWithProfile) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
+    const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return {
       id: user.id,
+      role: user.role,
+      username: user.username,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
       metadata: user.metadata,
+      selectedCalendars,
     };
   }
 
@@ -123,7 +161,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const organizationId = this.usersService.getUserMainOrgId(user);
 
     const isUserOrganizationAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
@@ -202,7 +240,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_06_14, user: UserWithProfile) {
-    this.checkCanUpdateEventType(user.id, eventTypeId);
+    await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
     const bodyTransformed = this.inputEventTypesService.transformInputUpdateEventType(body);
     await updateEventType({
@@ -224,16 +262,17 @@ export class EventTypesService_2024_06_14 {
     return this.outputEventTypesService.getResponseEventType(user.id, eventType);
   }
 
-  async checkCanUpdateEventType(userId: number, eventTypeId: number) {
+  async checkCanUpdateEventType(userId: number, eventTypeId: number, scheduleId: number | undefined) {
     const existingEventType = await this.getUserEventType(userId, eventTypeId);
     if (!existingEventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
     this.checkUserOwnsEventType(userId, { id: eventTypeId, userId: existingEventType.ownerId });
+    await this.checkUserOwnsSchedule(userId, scheduleId);
   }
 
   async getUserToUpdateEvent(user: UserWithProfile) {
-    const profileId = user.movedToProfile?.id || null;
+    const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return { ...user, profile: { id: profileId }, selectedCalendars };
   }
@@ -252,6 +291,18 @@ export class EventTypesService_2024_06_14 {
   checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {
     if (userId !== eventType.userId) {
       throw new ForbiddenException(`User with ID=${userId} does not own event type with ID=${eventType.id}`);
+    }
+  }
+
+  async checkUserOwnsSchedule(userId: number, scheduleId: number | null | undefined) {
+    if (!scheduleId) {
+      return;
+    }
+
+    const schedule = await this.schedulesRepository.getScheduleByIdAndUserId(scheduleId, userId);
+
+    if (!schedule) {
+      throw new NotFoundException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
     }
   }
 }

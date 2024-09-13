@@ -1,8 +1,9 @@
-import { FieldTypes } from "../pages/form-edit/[...appPages]";
 import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
+import { FieldTypes } from "./FieldTypes";
 import { InitialConfig } from "./InitialConfig";
+import { getUIOptionsForSelect } from "./selectOptions";
 
-export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
+export function getQueryBuilderConfig(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: Record<
     string,
     {
@@ -21,17 +22,12 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
     if ("routerField" in field) {
       field = field.routerField;
     }
-    if (FieldTypes.map((f) => f.value).includes(field.type)) {
-      const optionValues = field.selectText?.trim().split("\n");
-      const options = optionValues?.map((value) => {
-        const title = value;
-        return {
-          value,
-          title,
-        };
-      });
+    // We can assert the type because otherwise we throw 'Unsupported field type' error
+    const fieldType = field.type as (typeof FieldTypes)[number]["value"];
+    if (FieldTypes.map((f) => f.value).includes(fieldType)) {
+      const options = getUIOptionsForSelect(field);
 
-      const widget = InitialConfig.widgets[field.type];
+      const widget = InitialConfig.widgets[fieldType];
       const widgetType = widget.type;
 
       fields[field.id] = {
@@ -39,9 +35,9 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
         type: widgetType,
         valueSources: ["value"],
         fieldSettings: {
-          listValues: options,
+          // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
+          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
         },
-        // preferWidgets: field.type === "textarea" ? ["textarea"] : [],
       };
     } else {
       throw new Error(`Unsupported field type:${field.type}`);

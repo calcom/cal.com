@@ -1,11 +1,16 @@
-"use client";
+import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import { getLayout } from "@components/auth/layouts/AdminLayout";
 
-import OAuthView from "./oAuthView";
+import OAuthView from "~/settings/admin/oauth-view";
 
-const OAuthPage = () => <OAuthView />;
+const OAuthPage = () => (
+  <>
+    <Meta title="OAuth" description="Add new OAuth Clients" />
+    <OAuthView />
+  </>
+);
 
 OAuthPage.getLayout = getLayout;
 OAuthPage.PageWrapper = PageWrapper;

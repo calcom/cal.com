@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions
-    url: https://go.cal.com/discord
-    about: Ask a general question about the project on our discord community
+    url: https://github.com/calcom/cal.com/discussions
+    about: Need help selfhosting or ask a general question about the project? Open a discussion
