@@ -30,8 +30,7 @@ export class OrganizationsEventTypesService {
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hosts, children, ...rest } = body;
-    console.log("hhostshostshostsosts: ", hosts);
+    const { hosts, children, destinationCalendar, ...rest } = body;
 
     const { eventType: eventTypeCreated } = await createEventType({
       input: { teamId: teamId, ...rest },

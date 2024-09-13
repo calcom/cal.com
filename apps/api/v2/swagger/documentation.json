@@ -5188,6 +5188,34 @@
           "refreshToken"
         ]
       },
+      "CreateEventTypeInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
+          }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "description",
+          "customName"
+        ]
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7711,6 +7739,23 @@
           "userId"
         ]
       },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7862,6 +7907,9 @@
           },
           "customName": {
             "type": "string"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
           }
         },
         "required": [

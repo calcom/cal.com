@@ -64,7 +64,7 @@ export class EventTypesRepository_2024_06_14 {
         id: eventTypeId,
         userId,
       },
-      include: { users: true, schedule: true },
+      include: { users: true, schedule: true, destinationCalendar: true },
     });
   }
 
@@ -73,7 +73,7 @@ export class EventTypesRepository_2024_06_14 {
       where: {
         userId,
       },
-      include: { users: true, schedule: true },
+      include: { users: true, schedule: true, destinationCalendar: true },
     });
   }
 
@@ -95,7 +95,7 @@ export class EventTypesRepository_2024_06_14 {
   async getEventTypeById(eventTypeId: number): Promise<DatabaseEventType | null> {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: true, schedule: true },
+      include: { users: true, schedule: true, destinationCalendar: true },
     });
   }
 
@@ -107,7 +107,7 @@ export class EventTypesRepository_2024_06_14 {
           slug: slug,
         },
       },
-      include: { users: true, schedule: true },
+      include: { users: true, schedule: true, destinationCalendar: true },
     });
   }
 

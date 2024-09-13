@@ -11,7 +11,7 @@ type EventTypeRelations = {
   users: User[];
   schedule: Schedule | null;
   hosts: Host[];
-  destinationCalendar?: DestinationCalendar;
+  destinationCalendar?: DestinationCalendar | null;
 };
 export type DatabaseTeamEventType = EventType & EventTypeRelations;
 

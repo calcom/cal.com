@@ -33,7 +33,7 @@ import {
 type EventTypeRelations = {
   users: User[];
   schedule: Schedule | null;
-  destinationCalendar?: DestinationCalendar;
+  destinationCalendar?: DestinationCalendar | null;
 };
 export type DatabaseEventType = EventType & EventTypeRelations;
 
@@ -112,7 +112,6 @@ export class OutputEventTypesService_2024_06_14 {
       requiresBookerEmailVerification,
       hideCalendarNotes,
       seatsShowAttendees,
-      destinationCalendar,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -144,6 +143,7 @@ export class OutputEventTypesService_2024_06_14 {
       periodStartDate: databaseEventType.periodStartDate,
       periodEndDate: databaseEventType.periodEndDate,
     } as TransformFutureBookingsLimitSchema_2024_06_14);
+    const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
 
     return {
       id,
@@ -191,8 +191,12 @@ export class OutputEventTypesService_2024_06_14 {
     return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
   }
 
-  destinationCalendar(destinationCalendar: DestinationCalendar) {
-    return destinationCalendar?.externalId ?? undefined;
+  transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {
+    if (!destinationCalendar) return undefined;
+    return {
+      integration: destinationCalendar.integration,
+      externalId: destinationCalendar.externalId,
+    };
   }
 
   transformBookingFields(inputBookingFields: (SystemField | UserField)[] | null) {
