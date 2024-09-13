@@ -245,7 +245,7 @@ export async function addEventTypesToDb(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
-    team?: { id: number; bookingLimits: IntervalLimit };
+    team?: { id?: number | null; bookingLimits?: IntervalLimit };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
