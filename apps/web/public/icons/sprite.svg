@@ -92,7 +92,7 @@
   <path d="M3 10h18" ></path>
   <path d="m16 20 2 2 4-4" ></path>
 </symbol>
-<symbol class="lucide lucide-calendar-days" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calendar-days">
+<symbol class="lucide lucide-calendar-days" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calendar-days">
   <path d="M8 2v4" ></path>
   <path d="M16 2v4" ></path>
   <rect width="18" height="18" x="3" y="4" rx="2" ></rect>
@@ -104,7 +104,7 @@
   <path d="M12 18h.01" ></path>
   <path d="M16 18h.01" ></path>
 </symbol>
-<symbol class="lucide lucide-calendar-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calendar-heart">
+<symbol class="lucide lucide-calendar-heart" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calendar-heart">
   <path d="M3 10h18V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7" ></path>
   <path d="M8 2v4" ></path>
   <path d="M16 2v4" ></path>
@@ -318,6 +318,12 @@
 </symbol>
 <symbol class="lucide lucide-folder" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="folder">
   <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" ></path>
+</symbol>
+<symbol class="lucide lucide-gift" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="gift">
+  <rect x="3" y="8" width="18" height="4" rx="1" ></rect>
+  <path d="M12 8v13" ></path>
+  <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" ></path>
+  <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" ></path>
 </symbol>
 <symbol class="lucide lucide-git-merge" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="git-merge">
   <circle cx="18" cy="18" r="3" ></circle>
