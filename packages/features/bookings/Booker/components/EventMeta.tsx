@@ -16,6 +16,7 @@ import { Icon } from "@calcom/ui";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
+import "./styles/scale.css";
 
 const MOBILE_WIDTH = 768;
 
@@ -207,8 +208,7 @@ export const EventMeta = ({
                   <Icon
                     name="calendar"
                     data-testid="calendar-icon"
-                    className="mr-2 h-3 w-3 stroke-[3px]"
-                    style={{ scale: 2 }}
+                    className="calendar-scale mr-2 h-3 w-3 stroke-[3px]"
                   />
                   A partir de {date}, {time}
                 </span>
