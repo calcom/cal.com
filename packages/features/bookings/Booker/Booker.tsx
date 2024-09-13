@@ -1,6 +1,5 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
@@ -94,9 +93,6 @@ const BookerComponent = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
 
   const totalWeekDays = 7;
   const addonDays =
@@ -146,6 +142,7 @@ const BookerComponent = ({
       scrolledToTimeslotsOnce.current = true;
     }
   };
+  
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
