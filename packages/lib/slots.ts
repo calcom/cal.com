@@ -202,16 +202,38 @@ function buildSlotsWithDateRanges({
       ? range.end.add(1, "minute")
       : range.end;
 
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? showOptimizedSlots
-          ? rangeEnd.diff(slotStartTime, "minutes") % interval > interval - slotStartTime.minute()
-            ? slotStartTime.add(interval - slotStartTime.minute(), "minute")
-            : slotStartTime.add(rangeEnd.diff(slotStartTime, "minutes") % interval, "minute")
-          : slotStartTime
-              .startOf("hour")
-              .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
+    if (slotStartTime.minute() % interval !== 0) {
+      if (showOptimizedSlots) {
+        // if showOptimizedSlots option is selected, the slotStartTime should not be modified,
+        // so that maximum possible slots are shown.
+        // The below logic in this entire `if branch` only tries to add an increment if sufficient minutes are available (after max possible slots are consumed),
+        // so that slots are shown respecting the 'Start of the Hour'.
+        const startTimeMinutes = slotStartTime.minute() % interval;
+        const minutesRequiredToMoveToNextSlot = interval - startTimeMinutes;
+        const extraMinutesAvailable = rangeEnd.diff(slotStartTime, "minutes") % interval;
+
+        if (extraMinutesAvailable >= minutesRequiredToMoveToNextSlot) {
+          // For cases like, Availability -> 9:05 - 12:00, 60Min EventTypes.
+          // Total available minutes are 175, so only 2 60Min slots can be provided max
+          // And stll 175-120 = 55mins are available, hence 'slotStartTime' is pushed to 10:00 to respect 'Start of the Hour'.
+          // Slots will be shown as '10:00, 11:00' instead of '09:05, 10:05'
+          slotStartTime = slotStartTime.add(minutesRequiredToMoveToNextSlot, "minute");
+        } else if (minutesRequiredToMoveToNextSlot > Math.ceil(interval / 2)) {
+          // For cases like, Availability -> 9:05 - 11:55, 60Min EventTypes.
+          // Total available minutes are 170, so only 2 60Min slots can be provided max
+          // And stll 175-120 = 50mins are available, but it is less 55mins which is required to push to 10:00
+          // so slotStartTime is pushed to 09:30, instead of showing slots like 9:05,10:05 now slots will be 9:30,10:30
+          slotStartTime = slotStartTime.add(
+            minutesRequiredToMoveToNextSlot - Math.ceil(interval / 2),
+            "minute"
+          );
+        }
+      } else {
+        slotStartTime = slotStartTime
+          .startOf("hour")
+          .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
+      }
+    }
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
