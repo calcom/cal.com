@@ -73,9 +73,10 @@ const EventAITab = dynamic(() =>
 
 export type EventTypeWebWrapperProps = {
   id: number;
+  isAppDir?: boolean;
 };
 
-const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir?: boolean }) => {
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
     eventType: {
@@ -100,8 +101,8 @@ const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    //availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    //team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
@@ -149,5 +150,5 @@ export const EventTypeWebWrapper = ({ id }: EventTypeWebWrapperProps) => {
 
   if (!eventTypeQueryData) return null;
 
-  return <EventType {...eventTypeQueryData} id={id} />;
+  return <EventType {...eventTypeQueryData} id={id} isAppDir={isAppDir} />;
 };
