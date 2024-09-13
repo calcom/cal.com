@@ -168,6 +168,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @Type(() => DestinationCalendar_2024_06_14)
   destinationCalendar?: DestinationCalendar_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  useDestinationCalendarEmail?: boolean;
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {

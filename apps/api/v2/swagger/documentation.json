@@ -7910,6 +7910,9 @@
           },
           "destinationCalendar": {
             "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
           }
         },
         "required": [

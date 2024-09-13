@@ -176,6 +176,10 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsOptional()
   @Type(() => DestinationCalendar_2024_06_14)
   destinationCalendar?: DestinationCalendar_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  useDestinationCalendarEmail?: boolean;
 }
 
 export enum HostPriority {

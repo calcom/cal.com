@@ -185,6 +185,10 @@ export class EventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => DestinationCalendar_2024_06_14)
   destinationCalendar?: DestinationCalendar_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  useDestinationCalendarEmail?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -338,4 +342,8 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => DestinationCalendar_2024_06_14)
   destinationCalendar?: DestinationCalendar_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  useDestinationCalendarEmail?: boolean;
 }

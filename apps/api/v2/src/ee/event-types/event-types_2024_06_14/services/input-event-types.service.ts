@@ -52,6 +52,9 @@ export class InputEventTypesService_2024_06_14 {
     transformedBody.destinationCalendar &&
       (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
 
+    transformedBody.useEventTypeDestinationCalendarEmail &&
+      (await this.validateInputUseDestinationCalendarEmail(userId));
+
     return transformedBody;
   }
 
@@ -72,6 +75,9 @@ export class InputEventTypesService_2024_06_14 {
 
     transformedBody.destinationCalendar &&
       (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+
+    transformedBody.useEventTypeDestinationCalendarEmail &&
+      (await this.validateInputUseDestinationCalendarEmail(userId));
 
     return transformedBody;
   }
@@ -97,6 +103,7 @@ export class InputEventTypesService_2024_06_14 {
       recurrence,
       seats,
       customName,
+      useDestinationCalendarEmail,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -123,6 +130,7 @@ export class InputEventTypesService_2024_06_14 {
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       ...this.transformInputSeatOptions(seats),
       eventName: customName,
+      useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
     };
 
     return eventType;
@@ -142,6 +150,7 @@ export class InputEventTypesService_2024_06_14 {
       recurrence,
       seats,
       customName,
+      useDestinationCalendarEmail,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -173,6 +182,7 @@ export class InputEventTypesService_2024_06_14 {
       eventTypeColor: this.transformInputEventTypeColor(color),
       ...this.transformInputSeatOptions(seats),
       eventName: customName,
+      useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
     };
 
     return eventType;
@@ -416,6 +426,22 @@ export class InputEventTypesService_2024_06_14 {
 
     if (matchedCalendar.readOnly) {
       throw new BadRequestException("Invalid destinationCalendarId: Calendar does not have write permission");
+    }
+
+    return;
+  }
+
+  async validateInputUseDestinationCalendarEmail(userId: number) {
+    const calendars: ConnectedCalendarsData = await this.calendarsService.getCalendars(userId);
+
+    const allCals = calendars.connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+
+    const primaryCalendar = allCals.find((cal) => cal.primary);
+
+    if (!primaryCalendar) {
+      throw new BadRequestException(
+        "Validation failed: A primary connected calendar is required to set useDestinationCalendarEmail"
+      );
     }
 
     return;

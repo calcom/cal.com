@@ -64,6 +64,7 @@ type Input = Pick<
   | "seatsShowAttendees"
   | "requiresConfirmationWillBlockSlot"
   | "eventName"
+  | "useEventTypeDestinationCalendarEmail"
 >;
 
 @Injectable()
