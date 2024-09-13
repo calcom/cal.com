@@ -1,10 +1,9 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 
 const RedirectPage = async () => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
