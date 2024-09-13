@@ -172,8 +172,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   useEffect(() => {
     if (calendars.connectedCalendars.length > 0) {
       onOverlaySwitchStateChange(true);
-    } else {
-      onOverlaySwitchStateChange(false);
     }
   }, []);
 
