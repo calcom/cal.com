@@ -14,7 +14,6 @@ type ValidateBookingTimeEventType = Pick<
   | "periodCountCalendarDays"
   | "minimumBookingNotice"
   | "eventName"
-  | "users"
   | "id"
 >;
 
@@ -22,12 +21,9 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
   reqBodyStartTime: string,
   reqBodyTimeZone: string,
   eventType: T,
+  eventTimeZone: string | null | undefined,
   logger: Logger<unknown>
 ) => {
-  const user = eventType.users.find((user) => user.id === eventType.userId);
-  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
-  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
-
   let timeOutOfBounds = false;
   try {
     timeOutOfBounds = isOutOfBounds(

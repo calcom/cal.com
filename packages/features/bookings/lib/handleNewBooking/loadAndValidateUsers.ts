@@ -5,9 +5,10 @@ import type { Logger } from "tslog";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { loadUsers } from "./loadUsers";
 import type { NewBookingEventType } from "./types";
@@ -49,9 +50,16 @@ export async function loadAndValidateUsers({
   // If this event was pre-relationship migration
   // TODO: Establish whether this is dead code.
   if (!users.length && eventType.userId) {
-    const eventTypeUser = await UserRepository.findUserWithCredentialsById({
-      userId: eventType.userId,
-      select: userSelect.select,
+    const eventTypeUser = await prisma.user.findUnique({
+      where: {
+        id: eventType.userId,
+      },
+      select: {
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        }, // Don't leak to client
+        ...userSelect.select,
+      },
     });
     if (!eventTypeUser) {
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
