@@ -93,6 +93,7 @@ const triggerBrowserNotifications = async (args: {
   title: string;
   connectAndJoinUrl: string;
   teamId?: number | null;
+  body: string;
 }) => {
   const { title, connectAndJoinUrl, teamId } = args;
 
@@ -140,8 +141,8 @@ const triggerBrowserNotifications = async (args: {
           p256dh: parsedSubscription.data.keys.p256dh,
         },
       },
-      title: title,
-      body: "User is waiting for you to join. Click to Connect",
+      title,
+      body,
       url: connectAndJoinUrl,
       actions: [
         {
@@ -328,6 +329,7 @@ async function handler(req: NextApiRequest) {
     title: newBooking.title,
     connectAndJoinUrl: webhookData.connectAndJoinUrl,
     teamId: eventType.team?.id,
+    body: `Event Type Title: ${eventType.title}. Click to Connect`,
   });
 
   return {
