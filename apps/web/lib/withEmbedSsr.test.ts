@@ -133,24 +133,6 @@ describe("withEmbedSsr", () => {
           },
         });
       });
-
-      it('should add Cross-Origin-Embedder-Policy header when "flag.coep" query param is true', async () => {
-        const withEmbedGetSsr = withEmbedSsr(
-          getServerSidePropsFnGenerator({
-            redirectUrl: "/reschedule",
-          })
-        );
-
-        const context = getServerSidePropsContextArg({
-          embedRelatedParams: {
-            layout: "week_view",
-            embed: "",
-            "flag.coep": "true",
-          },
-        });
-        await withEmbedGetSsr(context);
-        expect(context.res.getHeader("Cross-Origin-Embedder-Policy")).toBe("require-corp");
-      });
     });
 
     describe("when redirect destination is absolute, should add /embed to end of the path", () => {
@@ -224,23 +206,6 @@ describe("withEmbedSsr", () => {
           },
         });
       });
-      it('should add Cross-Origin-Embedder-Policy header when "flag.coep" query param is true', async () => {
-        const withEmbedGetSsr = withEmbedSsr(
-          getServerSidePropsFnGenerator({
-            redirectUrl: "https://calcom.cal.local/owner",
-          })
-        );
-
-        const context = getServerSidePropsContextArg({
-          embedRelatedParams: {
-            layout: "week_view",
-            embed: "",
-            "flag.coep": "true",
-          },
-        });
-        await withEmbedGetSsr(context);
-        expect(context.res.getHeader("Cross-Origin-Embedder-Policy")).toBe("require-corp");
-      });
     });
   });
 
@@ -268,85 +233,6 @@ describe("withEmbedSsr", () => {
         },
       });
     });
-
-    it('should add Cross-Origin-Embedder-Policy header when "flag.coep" query param is true', async () => {
-      const withEmbedGetSsr = withEmbedSsr(
-        getServerSidePropsFnGenerator({
-          props: {
-            prop1: "value1",
-          },
-        })
-      );
-
-      const context = getServerSidePropsContextArg({
-        embedRelatedParams: {
-          layout: "week_view",
-          embed: "",
-          "flag.coep": "true",
-        },
-      });
-      await withEmbedGetSsr(context);
-      expect(context.res.getHeader("Cross-Origin-Embedder-Policy")).toBe("require-corp");
-    });
-
-    it('should not add Cross-Origin-Embedder-Policy header when "flag.coep" query param is false', async () => {
-      const withEmbedGetSsr = withEmbedSsr(
-        getServerSidePropsFnGenerator({
-          props: {
-            prop1: "value1",
-          },
-        })
-      );
-
-      const context = getServerSidePropsContextArg({
-        embedRelatedParams: {
-          layout: "week_view",
-          embed: "",
-          "flag.coep": "false",
-        },
-      });
-      await withEmbedGetSsr(context);
-      expect(context.res.getHeader("Cross-Origin-Embedder-Policy")).toBeUndefined();
-    });
-
-    it('should not add Cross-Origin-Embedder-Policy header when "flag.coep" query param is not set', async () => {
-      const withEmbedGetSsr = withEmbedSsr(
-        getServerSidePropsFnGenerator({
-          props: {
-            prop1: "value1",
-          },
-        })
-      );
-
-      const context = getServerSidePropsContextArg({
-        embedRelatedParams: {
-          layout: "week_view",
-          embed: "",
-        },
-      });
-      await withEmbedGetSsr(context);
-      expect(context.res.getHeader("Cross-Origin-Embedder-Policy")).toBeUndefined();
-    });
-
-    it('should not add Cross-Origin-Embedder-Policy header when "flag.coep" query param is set to something other than true', async () => {
-      const withEmbedGetSsr = withEmbedSsr(
-        getServerSidePropsFnGenerator({
-          props: {
-            prop1: "value1",
-          },
-        })
-      );
-
-      const context = getServerSidePropsContextArg({
-        embedRelatedParams: {
-          layout: "week_view",
-          embed: "",
-          "flag.coep": "abasdf",
-        },
-      });
-      await withEmbedGetSsr(context);
-      expect(context.res.getHeader("Cross-Origin-Embedder-Policy")).toBeUndefined();
-    });
   });
 
   describe("when gSSP doesn't have props or redirect ", () => {
@@ -367,24 +253,6 @@ describe("withEmbedSsr", () => {
       );
 
       expect(ret).toEqual({ notFound: true });
-    });
-
-    it('should add Cross-Origin-Embedder-Policy header when "flag.coep" query param is true', async () => {
-      const withEmbedGetSsr = withEmbedSsr(
-        getServerSidePropsFnGenerator({
-          notFound: true,
-        })
-      );
-
-      const context = getServerSidePropsContextArg({
-        embedRelatedParams: {
-          layout: "week_view",
-          embed: "",
-          "flag.coep": "true",
-        },
-      });
-      await withEmbedGetSsr(context);
-      expect(context.res.getHeader("Cross-Origin-Embedder-Policy")).toBe("require-corp");
     });
   });
 });
