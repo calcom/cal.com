@@ -42,6 +42,7 @@ import {
   APP_NAME,
   DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
+  IS_CALCOM,
   IS_VISUAL_REGRESSION_TESTING,
   JOIN_COMMUNITY,
   ROADMAP,
@@ -52,7 +53,9 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -926,6 +929,7 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
+  const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
@@ -959,12 +963,34 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       },
       icon: "copy",
     },
+    IS_CALCOM
+      ? {
+          name: "copy_referral_link",
+          href: "",
+          onClick: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            fetchAndCopyToClipboard(
+              fetch("/api/generate-referral-link", {
+                method: "POST",
+              })
+                .then((res) => res.json())
+                .then((res) => res.shortLink),
+              {
+                onSuccess: () => showToast(t("link_copied"), "success"),
+                onFailure: () => showToast("Copy to clipboard failed", "error"),
+              }
+            );
+          },
+          icon: "gift",
+        }
+      : null,
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: "settings",
     },
-  ];
+  ].filter(Boolean) as NavigationItemType[];
+
   return (
     <div className="relative">
       <aside
@@ -1084,7 +1110,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady } = useLocale();
+  const { isLocaleReady, t } = useLocale();
+
+  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
   return (
     <>
@@ -1144,6 +1172,23 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" && buttonToShow && (
+                <Button
+                  color="primary"
+                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
+                  loading={isLoading}
+                  disabled={buttonToShow === ButtonState.DENIED}
+                  tooltipSide="bottom"
+                  tooltip={
+                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
+                  }>
+                  {t(
+                    buttonToShow === ButtonState.DISABLE
+                      ? "disable_browser_notifications"
+                      : "allow_browser_notifications"
+                  )}
+                </Button>
+              )}
             </header>
           )}
         </div>

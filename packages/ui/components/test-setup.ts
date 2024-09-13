@@ -1,6 +1,10 @@
 import matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
+import React from "react";
 import { afterEach, expect, vi } from "vitest";
+
+// For next.js webapp compponent that use "preserve" for jsx in tsconfig.json
+global.React = React;
 
 vi.mock("next-auth/react", () => ({
   useSession() {
