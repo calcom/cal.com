@@ -26,11 +26,11 @@ export function disallowUndefinedDeleteUpdateManyExtension() {
   return Prisma.defineExtension({
     query: {
       $allModels: {
-        async deleteMany({ model, operation, args, query }) {
+        async deleteMany({ args, query }) {
           checkUndefinedInValue(args.where);
           return query(args);
         },
-        async updateMany({ model, operation, args, query }) {
+        async updateMany({ args, query }) {
           checkUndefinedInValue(args.where);
           return query(args);
         },
