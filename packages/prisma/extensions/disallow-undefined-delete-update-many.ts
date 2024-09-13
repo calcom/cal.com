@@ -9,13 +9,11 @@ export const checkUndefinedInValue = (where: any) => {
       let message;
       if (whereInput === undefined) {
         message = `The value for the field "${key}" cannot be undefined.`;
-        console.log(message);
         throw new Error(message);
       }
 
       if (whereInput.hasOwnProperty("in") && typeof whereInput.in === "undefined") {
         message = `The "in" value for the field "${key}" cannot be undefined.`;
-        console.log(message);
         throw new Error(message);
       }
     }
