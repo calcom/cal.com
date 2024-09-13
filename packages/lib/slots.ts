@@ -218,7 +218,7 @@ function buildSlotsWithDateRanges({
           // And stll 175-120 = 55mins are available, hence 'slotStartTime' is pushed to 10:00 to respect 'Start of the Hour'.
           // Slots will be shown as '10:00, 11:00' instead of '09:05, 10:05'
           slotStartTime = slotStartTime.add(minutesRequiredToMoveToNextSlot, "minute");
-        } else if (minutesRequiredToMoveToNextSlot > Math.ceil(interval / 2)) {
+        } else if (extraMinutesAvailable >= minutesRequiredToMoveToNextSlot - Math.ceil(interval / 2)) {
           // For cases like, Availability -> 9:05 - 11:55, 60Min EventTypes.
           // Total available minutes are 170, so only 2 60Min slots can be provided max
           // And stll 175-120 = 50mins are available, but it is less 55mins which is required to push to 10:00
