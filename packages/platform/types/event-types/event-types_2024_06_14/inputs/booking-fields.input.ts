@@ -21,51 +21,6 @@ const bookingFields = [
   "boolean",
 ] as const;
 
-export class NameField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
-  type!: "name";
-
-  @IsString()
-  @DocsProperty()
-  slug!: string;
-
-  @IsString()
-  @DocsProperty()
-  label!: string;
-
-  @IsBoolean()
-  @DocsProperty()
-  required!: boolean;
-
-  @IsString()
-  @IsOptional()
-  @DocsProperty()
-  placeholder?: string;
-}
-export class EmailField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
-  type!: "email";
-
-  @IsString()
-  @DocsProperty()
-  slug!: string;
-
-  @IsString()
-  @DocsProperty()
-  label!: string;
-
-  @IsBoolean()
-  @DocsProperty()
-  required!: boolean;
-
-  @IsString()
-  @IsOptional()
-  @DocsProperty()
-  placeholder?: string;
-}
-
 export class PhoneField_2024_06_14 {
   @IsIn(bookingFields)
   @DocsProperty()
@@ -322,8 +277,6 @@ export class BooleanField_2024_06_14 {
 }
 
 export type BookingField_2024_06_14 =
-  | NameField_2024_06_14
-  | EmailField_2024_06_14
   | PhoneField_2024_06_14
   | AddressField_2024_06_14
   | TextField_2024_06_14
@@ -339,8 +292,6 @@ export type BookingField_2024_06_14 =
 @ValidatorConstraint({ async: true })
 class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
   private classTypeMap: { [key: string]: new () => BookingField_2024_06_14 } = {
-    name: NameField_2024_06_14,
-    email: EmailField_2024_06_14,
     phone: PhoneField_2024_06_14,
     address: AddressField_2024_06_14,
     text: TextField_2024_06_14,

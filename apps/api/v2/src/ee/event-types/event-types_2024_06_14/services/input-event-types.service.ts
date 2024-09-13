@@ -6,6 +6,7 @@ import {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeRecurrence,
+  SystemField,
 } from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
@@ -81,7 +82,68 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputBookingFields(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]) {
-    return transformApiEventTypeBookingFields(inputBookingFields);
+    const transformed = transformApiEventTypeBookingFields(inputBookingFields);
+
+    const systemBeforeFields: SystemField[] = [
+      {
+        type: "name",
+        name: "name",
+        editable: "system",
+        defaultLabel: "your_name",
+        required: true,
+        sources: [
+          {
+            label: "Default",
+            id: "default",
+            type: "default",
+          },
+        ],
+      },
+      {
+        defaultLabel: "email_address",
+        type: "email",
+        name: "email",
+        required: true,
+        editable: "system",
+        sources: [
+          {
+            label: "Default",
+            id: "default",
+            type: "default",
+          },
+        ],
+      },
+      {
+        defaultLabel: "location",
+        type: "radioInput",
+        name: "location",
+        editable: "system",
+        hideWhenJustOneOption: true,
+        required: false,
+        getOptionsAt: "locations",
+        optionsInputs: {
+          attendeeInPerson: {
+            type: "address",
+            required: true,
+            placeholder: "",
+          },
+          phone: {
+            type: "phone",
+            required: true,
+            placeholder: "",
+          },
+        },
+        sources: [
+          {
+            label: "Default",
+            id: "default",
+            type: "default",
+          },
+        ],
+      },
+    ];
+
+    return [...systemBeforeFields, ...transformed];
   }
 
   transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]) {
