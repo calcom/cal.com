@@ -113,6 +113,7 @@ async function getEventTypeId({
       organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
     );
   }
+  if (!userId && !teamId) throw new TRPCError({ code: "NOT_FOUND" });
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventTypeSlug,
