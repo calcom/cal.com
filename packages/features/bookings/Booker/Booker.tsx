@@ -142,7 +142,7 @@ const BookerComponent = ({
       scrolledToTimeslotsOnce.current = true;
     }
   };
-  
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
