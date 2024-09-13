@@ -20,7 +20,7 @@ import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hook
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -186,11 +186,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         router.push("/apps/categories/calendar");
       }}
       onClickOverlayContinue={() => {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.pathname = "/login/";
-        currentUrl.searchParams.set("callbackUrl", window.location.pathname);
-        currentUrl.searchParams.set("overlayCalendar", "true");
-        router.push(currentUrl.toString());
+        const newUrl = new URL(`${WEBAPP_URL}/login`);
+        newUrl.searchParams.set("callbackUrl", window.location.pathname);
+        newUrl.searchParams.set("overlayCalendar", "true");
+        router.push(newUrl.toString());
       }}
       onOverlaySwitchStateChange={onOverlaySwitchStateChange}
       sessionUsername={session?.user.username}
