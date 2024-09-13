@@ -20,34 +20,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const ssr = await ssrInit(context);
 
-  const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
+  const booking = await BookingRepository.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
-    select: {
-      uid: true,
-      description: true,
-      isRecorded: true,
-      user: {
-        select: {
-          id: true,
-          timeZone: true,
-          name: true,
-          email: true,
-          username: true,
-        },
-      },
-      references: {
-        select: {
-          id: true,
-          uid: true,
-          type: true,
-          meetingUrl: true,
-          meetingPassword: true,
-        },
-        where: {
-          type: "daily_video",
-        },
-      },
-    },
   });
 
   if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {

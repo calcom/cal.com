@@ -314,6 +314,24 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get transcription access link");
       }
     },
+    getAllTranscriptsAccessLinkFromMeetingId: async (meetingId: string): Promise<Array<string>> => {
+      try {
+        const allTranscripts = await fetcher(`/transcript?mtgSessionId=${meetingId}`).then(
+          getTranscripts.parse
+        );
+
+        if (!allTranscripts.data.length) return [];
+
+        const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
+        const allTranscriptsAccessLink = await processTranscriptsInBatches(allTranscriptsIds);
+        const accessLinks = await Promise.all(allTranscriptsAccessLink);
+
+        return Promise.resolve(accessLinks);
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to get transcription access link");
+      }
+    },
     submitBatchProcessorJob: async (body: batchProcessorBody): Promise<TSubmitBatchProcessorJobRes> => {
       try {
         const batchProcessorJob = await postToDailyAPI("/batch-processor", body).then(

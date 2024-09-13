@@ -68,7 +68,6 @@ export class UsersRepository {
   }
 
   async findByIdWithProfile(userId: number): Promise<UserWithProfile | null> {
-    console.log("findByIdWithProfile");
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
