@@ -335,6 +335,7 @@ model User {
   smsLockState               SMSLockState                 @default(UNLOCKED)
   smsLockReviewedByAdmin     Boolean                      @default(false)
   NotificationsSubscriptions NotificationsSubscriptions[]
+  referralLinkId             String?
 
   @@unique([email])
   @@unique([email, username])
