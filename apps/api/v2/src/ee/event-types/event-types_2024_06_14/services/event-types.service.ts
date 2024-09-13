@@ -1,7 +1,5 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
@@ -20,8 +18,6 @@ import { EventType } from "@calcom/prisma/client";
 export class EventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
-    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly usersService: UsersService,
@@ -33,9 +29,10 @@ export class EventTypesService_2024_06_14 {
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
+    const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
     const { eventType: eventTypeCreated } = await createEventType({
-      input: body,
+      input: rest,
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
