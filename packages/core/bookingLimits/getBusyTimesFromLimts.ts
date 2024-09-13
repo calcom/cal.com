@@ -211,9 +211,8 @@ const _getBusyTimesFromTeamLimits = async (
 ) => {
   performance.mark("teamLimitsStart");
 
-  const startDate = dayjs(dateFrom).startOf("week").toDate();
-  const endDate = dayjs(dateTo).endOf("week").toDate();
-  // maybe I already have them and can filter ?
+  const startDate = dayjs(dateFrom).startOf("month").startOf("week").toDate();
+  const endDate = dayjs(dateTo).endOf("month").startOf("week").toDate();
 
   const teamBookings = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
     user,

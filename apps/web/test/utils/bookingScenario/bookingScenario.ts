@@ -288,7 +288,7 @@ export async function addEventTypesToDb(
       });
     }
 
-    if (eventType.team) {
+    if (eventType.team?.id) {
       const createdTeam = await prismock.team.create({
         data: {
           id: eventType.team?.id,
