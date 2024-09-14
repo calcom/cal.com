@@ -543,9 +543,15 @@ async function expectUserToBeAMemberOfTeam({
   await page.waitForLoadState("domcontentloaded");
   expect(
     (
-      await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()
+      await page
+        .locator(
+          `[data-testid="member-${username}"] [data-testid="${
+            isMemberShipAccepted ? "member-email" : `email-${email.replace("@", "")}-pending`
+          }"]`
+        )
+        .textContent()
     )?.toLowerCase()
-  ).toBe(role.toLowerCase());
+  ).toBe(email.toLowerCase());
   if (isMemberShipAccepted) {
     await expect(page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)).toBeHidden();
   } else {

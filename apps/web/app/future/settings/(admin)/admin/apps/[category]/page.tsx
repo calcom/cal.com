@@ -1,11 +1,10 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { getFixedT } from "app/_utils";
-import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { AppRepository } from "@calcom/lib/server/repository/app";
@@ -22,7 +21,8 @@ const querySchema = z.object({
 });
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
+
   const t = await getFixedT(session?.user.locale || "en");
   const { category } = querySchema.parse({ ...params, ...searchParams });
 
