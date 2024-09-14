@@ -1,6 +1,9 @@
+"use server";
+
 import { type TFunction } from "i18next";
 import i18next from "i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { constructGenericImage } from "@calcom/lib/OgImages";
@@ -58,4 +61,12 @@ export const _generateMetadata = async (
     siteName: APP_NAME,
     metadataBase,
   });
+};
+
+export function revalidateApiKeys(path: string) {
+  revalidatePath(path);
+}
+
+export const PATHS_MAP = {
+  SETTINGS_DEVELOPER_API_KEYS: "/future/settings/developer/api-keys",
 };

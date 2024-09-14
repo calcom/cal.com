@@ -36,18 +36,19 @@ interface ApiKeysViewProps {
   ssrProps?: {
     apiKeysList?: Awaited<ReturnType<typeof ApiKeysRepository.getApiKeys>>;
   };
-  revalidateApiKeys?: () => Promise<void>;
+  revalidateApiKeys?: () => void;
 }
 
 export default function ApiKeysView({ ssrProps, revalidateApiKeys }: ApiKeysViewProps) {
   const { t } = useLocale();
 
-  const [isPending, startTransition] = useTransition();
+  const [isPendingTransition, startTransition] = useTransition();
 
   const { data: apiKeysList, isPending: isPendingList } = trpc.viewer.apiKeys.list.useQuery(undefined, {
     enabled: !ssrProps?.apiKeysList,
   });
   const isPendingListOverride = ssrProps?.apiKeysList ? false : isPendingList;
+  const isPending = isPendingTransition || isPendingListOverride;
   const data = ssrProps?.apiKeysList ?? apiKeysList;
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
