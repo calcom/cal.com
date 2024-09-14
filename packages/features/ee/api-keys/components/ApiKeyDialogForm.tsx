@@ -127,6 +127,7 @@ export default function ApiKeyDialogForm({
               setApiKey(apiKey);
               setApiKeyDetails({ ...event });
               await utils.viewer.apiKeys.list.invalidate();
+              onSuccess?.();
               setSuccessfulNewApiKeyModal(true);
             }
           }}
