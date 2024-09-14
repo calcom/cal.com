@@ -60,7 +60,6 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
     }
 
     await page.goto(`/event-types?teamId=${team1MemberOfOrg1.id}`);
-    await page.waitForLoadState("networkidle");
 
     const teamEventLinksLocators = await page
       .locator(`[data-testid="event-types"] [data-testid="preview-link-button"]`)
