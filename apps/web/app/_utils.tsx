@@ -63,8 +63,8 @@ export const _generateMetadata = async (
   });
 };
 
-export function revalidateApiKeys(path: string) {
-  revalidatePath(path);
+export async function revalidateApiKeys(key: keyof typeof PATHS_MAP) {
+  revalidatePath(PATHS_MAP[key]);
 }
 
 export const PATHS_MAP = {

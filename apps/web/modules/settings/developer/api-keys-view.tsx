@@ -36,7 +36,7 @@ interface ApiKeysViewProps {
   ssrProps?: {
     apiKeysList?: Awaited<ReturnType<typeof ApiKeysRepository.getApiKeys>>;
   };
-  revalidateApiKeys?: () => void;
+  revalidateApiKeys?: () => Promise<void>;
 }
 
 export default function ApiKeysView({ ssrProps, revalidateApiKeys }: ApiKeysViewProps) {

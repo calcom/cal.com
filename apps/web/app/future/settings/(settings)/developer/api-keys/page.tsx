@@ -1,4 +1,4 @@
-import { getFixedT, _generateMetadata, PATHS_MAP, revalidateApiKeys } from "app/_utils";
+import { getFixedT, _generateMetadata, revalidateApiKeys } from "app/_utils";
 import { notFound } from "next/navigation";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
@@ -36,8 +36,8 @@ const Page = async () => {
         borderInShellHeader={true}>
         <ApiKeysView
           ssrProps={{ apiKeysList }}
-          revalidateApiKeys={() => {
-            revalidateApiKeys(PATHS_MAP["SETTINGS_DEVELOPER_API_KEYS"]);
+          revalidateApiKeys={async () => {
+            revalidateApiKeys("SETTINGS_DEVELOPER_API_KEYS");
           }}
         />
       </SettingsHeader>
