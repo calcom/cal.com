@@ -1,7 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import TurndownService from "turndown";
 import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
@@ -28,6 +30,7 @@ import {
   showToast,
   Editor,
   Switch,
+  Tooltip,
 } from "@calcom/ui";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -423,6 +426,25 @@ function Options({
     </div>
   );
 }
+function customTurndown(html: string | TurndownService.Node): string {
+  const turndownService = new TurndownService();
+  turndownService.addRule("ignoreAnchorTag", {
+    filter: "a",
+    replacement: function (content) {
+      return content;
+    },
+  });
+  turndownService.addRule("ignoreParagraphTag", {
+    filter: "p",
+    replacement: function (content) {
+      return content;
+    },
+  });
+
+  const result = turndownService.turndown(html);
+
+  return result.toLowerCase();
+}
 
 const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) => {
   const { t } = useLocale();
@@ -434,6 +456,9 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
         getText={() => md.render(fieldForm.getValues("label") || "")}
         setText={(value: string) => {
           fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+          fieldForm.setValue("name", getFieldIdentifier(customTurndown(value)), {
+            shouldDirty: true,
+          });
         }}
         excludedToolbarItems={["blockType", "bold", "italic"]}
         disableLists
@@ -481,6 +506,8 @@ function FieldEditDialog({
   const fieldType = getCurrentFieldType(fieldForm);
 
   const variantsConfig = fieldForm.watch("variantsConfig");
+  const fieldIdentifier = fieldForm.watch("name");
+  const [isEditing, setIsEditing] = useState(false);
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
@@ -516,25 +543,6 @@ function FieldEditDialog({
               if (!variantsConfig) {
                 return (
                   <>
-                    <InputField
-                      required
-                      {...fieldForm.register("name")}
-                      containerClassName="mt-6"
-                      onChange={(e) => {
-                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""), {
-                          shouldDirty: true,
-                        });
-                      }}
-                      disabled={
-                        fieldForm.getValues("editable") === "system" ||
-                        fieldForm.getValues("editable") === "system-but-optional"
-                      }
-                      label={t("identifier")}
-                    />
-                    <CheckboxField
-                      description={t("disable_input_if_prefilled")}
-                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-                    />
                     <div>
                       {formFieldType === "boolean" ? (
                         <CheckboxFieldLabel fieldForm={fieldForm} />
@@ -548,6 +556,11 @@ function FieldEditDialog({
                           placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                           containerClassName="mt-6"
                           label={t("label")}
+                          onChange={(e) => {
+                            fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
+                              shouldDirty: true,
+                            });
+                          }}
                         />
                       )}
                     </div>
@@ -593,6 +606,56 @@ function FieldEditDialog({
                         );
                       }}
                     />
+                    {!isEditing ? (
+                      <div className="dark:text-emphasis text-default mt-4 flex items-center gap-3 text-center">
+                        <div className="flex items-center gap-2 text-center">
+                          <span className="text-sm font-medium leading-none">{t("identifier")}</span>
+                          <Tooltip content={t("click_here_to_learn_more")}>
+                            <Link
+                              href="https://cal.com/docs/core-features/event-types/booking-questions#booking-field-identifier"
+                              target="_blank">
+                              <Icon name="info" className="h-4 w-4" />
+                            </Link>
+                          </Tooltip>
+                        </div>
+                        {fieldIdentifier && (
+                          <div className="bg-subtle dark:text-default text-emphasis flex items-center gap-2 rounded-md p-1 text-center">
+                            <span className="break-all text-sm">{fieldIdentifier}</span>
+                            <Tooltip content={t("edit_identifier")}>
+                              <button onClick={() => setIsEditing(true)}>
+                                <Icon name="square-pen" className="h-4 w-4" />
+                              </button>
+                            </Tooltip>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <InputField
+                          required
+                          {...fieldForm.register("name")}
+                          containerClassName="mt-6"
+                          onChange={(e) => {
+                            fieldForm.setValue(
+                              "name",
+                              getFieldIdentifier(e.target.value.toLowerCase() || ""),
+                              {
+                                shouldDirty: true,
+                              }
+                            );
+                          }}
+                          disabled={
+                            fieldForm.getValues("editable") === "system" ||
+                            fieldForm.getValues("editable") === "system-but-optional"
+                          }
+                          label={t("identifier")}
+                        />
+                        <CheckboxField
+                          description={t("disable_input_if_prefilled")}
+                          {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                        />
+                      </>
+                    )}
                   </>
                 );
               }

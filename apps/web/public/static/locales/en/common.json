@@ -2604,6 +2604,8 @@
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
+  "click_here_to_learn_more": "Click here to learn more",
+  "edit_identifier": "Edit identifier",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
