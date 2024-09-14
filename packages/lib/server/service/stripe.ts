@@ -4,7 +4,7 @@ import {
   type TStripeCheckoutSessionInputSchema,
 } from "@calcom/trpc/server/routers/publicViewer/stripeCheckoutSession.schema";
 
-export class StripeRepository {
+export class StripeService {
   static async getCheckoutSession(input: TStripeCheckoutSessionInputSchema) {
     const { checkoutSessionId, stripeCustomerId } = input;
 
