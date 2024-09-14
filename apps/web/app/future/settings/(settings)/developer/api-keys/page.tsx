@@ -1,8 +1,7 @@
 import { getFixedT, _generateMetadata, PATHS_MAP, revalidateApiKeys } from "app/_utils";
-import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
-import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { ApiKeysRepository } from "@calcom/lib/server/repository/apiKeys";
@@ -17,7 +16,9 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  // FIXME: Refactor me once next-auth endpoint is migrated to App Router
+  const session = await getServerSessionForAppDir();
+
   const t = await getFixedT(session?.user.locale || "en");
   const userId = session?.user?.id;
   if (!userId) {
