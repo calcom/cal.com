@@ -20,12 +20,9 @@ type PageProps = {
 export function AdminOrgTable({ ssrProps }: PageProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-
-  let data = ssrProps?.allOrgs;
-  if (!data) {
-    const [_data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
-    data = _data;
-  }
+  // TODO: Remove `const [_data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();` after removing Pages Router
+  const [_data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
+  const data = ssrProps?.allOrgs ?? _data;
 
   const updateMutation = trpc.viewer.organizations.adminUpdate.useMutation({
     onSuccess: async (_data, variables) => {
