@@ -34,7 +34,7 @@ export const generateMetadata = async ({
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
-  const formName = form?.name ?? "Forms";
+  const formName = form?.name ?? "Routing Forms";
   const formDescription = form?.description ?? "";
 
   return await _generateMetadata(
