@@ -1,8 +1,7 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
-import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
-import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { CreateNewWebhookButton } from "@calcom/features/webhooks/components/CreateNewWebhookButton";
 import WebhooksView from "@calcom/features/webhooks/pages/webhooks-view";
@@ -17,7 +16,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
   const user = session?.user;
   if (!user) {
     notFound();
