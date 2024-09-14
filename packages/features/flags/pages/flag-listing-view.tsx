@@ -21,7 +21,7 @@ const SkeletonLoader = () => {
 export const FlagListingView = (props: FlagAdminListProps) => {
   return (
     <Suspense fallback={<SkeletonLoader />}>
-      <FlagAdminList {...props} />;
+      <FlagAdminList {...props} />
     </Suspense>
   );
 };
