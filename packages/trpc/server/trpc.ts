@@ -33,8 +33,8 @@ return handler({ ctx, input });
  */
 export const importHandler = async <
   T extends {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    [key: string]: Function;
+    // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
+    [key: string]: any;
   }
 >(
   /**

@@ -16,6 +16,7 @@ import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
+import { domainWideDelegationRouter } from "./domainWideDelegation/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
@@ -61,5 +62,6 @@ export const viewerRouter = mergeRouters(
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
     attributes: attributesRouter,
+    domainWideDelegation: domainWideDelegationRouter,
   })
 );

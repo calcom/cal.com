@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import {
   Dropdown,
   DropdownMenuTrigger,
@@ -14,11 +15,12 @@ import {
   Form,
   TextField,
   SelectField,
+  showToast,
 } from "@calcom/ui";
 
 interface DelegationItemProps {
   delegation: {
-    id: number;
+    id: string;
     domain: string;
     enabled: boolean;
     workspacePlatform: {
@@ -26,8 +28,9 @@ interface DelegationItemProps {
       slug: string;
     };
     clientId: string;
+    organizationId: number;
   };
-  toggleDelegation: (id: number) => void;
+  toggleDelegation: (id: string) => void;
   onEdit: (delegation: DelegationItemProps["delegation"]) => void;
 }
 
@@ -37,7 +40,7 @@ function DelegationListItemActions({
   onEdit,
 }: {
   delegation: DelegationItemProps["delegation"];
-  toggleDelegation: (id: number) => void;
+  toggleDelegation: (id: string) => void;
   onEdit: (delegation: DelegationItemProps["delegation"]) => void;
 }) {
   const { t } = useLocale();
@@ -103,14 +106,14 @@ function CreateEditDelegationDialog({
   isOpen: boolean;
   onClose: () => void;
   delegation: DelegationItemProps["delegation"] | null;
-  onSubmit: (data: { domain: string; clientId: string; workspacePlatform: string }) => void;
+  onSubmit: (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => void;
 }) {
   const { t } = useLocale();
-  const form = useForm<{ domain: string; clientId: string; workspacePlatform: string }>({
+  const form = useForm<{ domain: string; workspacePlatformSlug: string; enabled: boolean }>({
     defaultValues: {
       domain: delegation?.domain || "",
-      clientId: delegation?.clientId || "",
-      workspacePlatform: delegation?.workspacePlatform.slug || "",
+      workspacePlatformSlug: delegation?.workspacePlatform.slug || "",
+      enabled: delegation?.enabled ?? true,
     },
   });
 
@@ -126,7 +129,7 @@ function CreateEditDelegationDialog({
         <Form form={form} handleSubmit={onSubmit}>
           <TextField label={t("domain")} {...form.register("domain")} />
           <Controller
-            name="workspacePlatform"
+            name="workspacePlatformSlug"
             control={form.control}
             render={({ field: { value, onChange } }) => (
               <SelectField
@@ -151,59 +154,40 @@ function CreateEditDelegationDialog({
 
 export default function DomainWideDelegationList() {
   const { t } = useLocale();
-  // TODO: Use tRPC route
-  const [delegations, setDelegations] = useState([
-    {
-      id: 1,
-      domain: "example.com",
-      enabled: true,
-      workspacePlatform: {
-        name: "Google",
-        slug: "google",
-      },
-      clientId: "123",
+  const utils = trpc.useContext();
+  const { data: delegations, isLoading } = trpc.viewer.domainWideDelegation.list.useQuery();
+
+  const updateMutation = trpc.viewer.domainWideDelegation.update.useMutation({
+    onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
+    onError: (error) => {
+      showToast(error.message, "error");
     },
-  ]);
+  });
 
-  const toggleDelegation = (id: number) => {
-    // TODO: Use tRPC route
-    setDelegations((prevDelegations) =>
-      prevDelegations.map((delegation) =>
-        delegation.id === id ? { ...delegation, enabled: !delegation.enabled } : delegation
-      )
-    );
-  };
+  const createMutation = trpc.viewer.domainWideDelegation.add.useMutation({
+    onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
-  const updateDelegation = (id: number, data: { domain: string; workspacePlatform: string }) => {
-    // TODO: Use tRPC route
-    setDelegations((prevDelegations) =>
-      prevDelegations.map((delegation) =>
-        delegation.id === id
-          ? {
-              ...delegation,
-              domain: data.domain,
-              workspacePlatform: {
-                name: data.workspacePlatform === "google" ? "Google" : "Microsoft",
-                slug: data.workspacePlatform,
-              },
-            }
-          : delegation
-      )
-    );
-  };
+  const deleteMutation = trpc.viewer.domainWideDelegation.delete.useMutation({
+    onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
-  const createDelegation = (data: { domain: string; workspacePlatform: string; clientId: string }) => {
-    const newDelegation = {
-      id: Date.now(), // Use a proper ID generation method in production
-      domain: data.domain,
-      clientId: data.clientId,
-      enabled: true,
-      workspacePlatform: {
-        name: data.workspacePlatform === "google" ? "Google" : "Microsoft",
-        slug: data.workspacePlatform,
-      },
-    };
-    setDelegations((prevDelegations) => [...prevDelegations, newDelegation]);
+  const toggleDelegation = (id: string) => {
+    const delegation = delegations?.find((d) => d.id === id);
+    if (delegation) {
+      updateMutation.mutate({
+        id,
+        workspacePlatformSlug: delegation.workspacePlatform.slug,
+        enabled: !delegation.enabled,
+        organizationId: delegation.organizationId,
+      });
+    }
   };
 
   const [createEditDialog, setCreateEditDialog] = useState<{
@@ -220,19 +204,30 @@ export default function DomainWideDelegationList() {
 
   const onCreateClick = () => setCreateEditDialog({ isOpen: true, delegation: null });
 
-  const handleSubmit = (data: { domain: string; workspacePlatform: string }) => {
+  const handleSubmit = (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => {
     if (createEditDialog.delegation) {
-      updateDelegation(createEditDialog.delegation.id, data);
+      updateMutation.mutate({
+        id: createEditDialog.delegation.id,
+        ...data,
+        organizationId: createEditDialog.delegation.organizationId,
+      });
     } else {
-      createDelegation(data);
+      createMutation.mutate({
+        ...data,
+        organizationId: 0, // You might need to get the correct organizationId here
+      });
     }
     setCreateEditDialog({ isOpen: false, delegation: null });
   };
 
+  if (isLoading) {
+    return <div>{t("loading")}</div>;
+  }
+
   return (
     <div>
       <ul>
-        {delegations.map((delegation) => (
+        {delegations?.map((delegation) => (
           <DelegationListItem
             key={delegation.id}
             delegation={delegation}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
@@ -22,11 +23,14 @@ import {
   APP_NAME,
   URL_PROTOCOL_REGEX,
   IS_CALCOM,
+  IS_EUROPE,
   WEBAPP_URL,
   CLOUDFLARE_SITE_ID,
   WEBSITE_PRIVACY_POLICY_URL,
   WEBSITE_TERMS_URL,
+  WEBSITE_URL,
 } from "@calcom/lib/constants";
+import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -292,21 +296,30 @@ export default function Signup({
 
   return (
     <>
-      {IS_CALCOM && COOKIE_CONSENT && process.env.NEXT_PUBLIC_GTM_ID ? (
+      {IS_CALCOM && (!IS_EUROPE || COOKIE_CONSENT) ? (
         <>
-          <Script
-            id="gtm-init-script"
-            dangerouslySetInnerHTML={{
-              __html: `(function (w, d, s, l, i) {
+          {process.env.NEXT_PUBLIC_GTM_ID && (
+            <>
+              <Script
+                id="gtm-init-script"
+                dangerouslySetInnerHTML={{
+                  __html: `(function (w, d, s, l, i) {
                         w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
                         var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
                         j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
                     })(window, document, 'script', 'dataLayer', '${process.env.NEXT_PUBLIC_GTM_ID}');`,
-            }}
-          />
-          <noscript
-            dangerouslySetInnerHTML={{
-              __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+                }}
+              />
+              <noscript
+                dangerouslySetInnerHTML={{
+                  __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+                }}
+              />
+            </>
+          )}
+          <DubAnalytics
+            cookieOptions={{
+              domain: isENVDev ? undefined : `.${new URL(WEBSITE_URL).hostname}`,
             }}
           />
         </>
