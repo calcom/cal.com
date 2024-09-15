@@ -211,7 +211,11 @@ const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   if (isPending)
     return (
-      <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_team_description")} />
+      <AppearanceSkeletonLoader
+        isAppDir={isAppDir}
+        title={t("appearance")}
+        description={t("appearance_team_description")}
+      />
     );
 
   if (!team) return null;

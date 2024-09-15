@@ -1,13 +1,13 @@
 import { _generateMetadata, getFixedT } from "app/_utils";
 
 import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
-import LegacyPage from "@calcom/features/ee/teams/pages/team-appearance-view";
+import LegacyPage from "@calcom/features/ee/organizations/pages/settings/profile";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("booking_appearance"),
-    (t) => t("appearance_team_description")
+    (t) => t("profile"),
+    (t) => t("profile_org_description")
   );
 
 const Page = async () => {
@@ -16,9 +16,9 @@ const Page = async () => {
 
   return (
     <SettingsHeader
-      title={t("booking_appearance")}
-      description={t("appearance_team_description")}
-      borderInShellHeader={false}>
+      title={t("profile")}
+      description={t("profile_org_description")}
+      borderInShellHeader={true}>
       <LegacyPage isAppDir={true} />
     </SettingsHeader>
   );
