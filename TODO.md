@@ -1,3 +1,11 @@
 - TODO
-  - Google Meet App to handle Domain wide delegation
-  - Disable multiple installations of Google Calendar app if Domain wide delegation is enabled(If Domain wide delegation is enabled, should we disable multiple installations of Google Calendar app?)
+  - [x] Google Meet App to handle Domain wide delegation - Nothing needed here
+  - [x] Disable multiple installations of Google Calendar app if Domain wide delegation is enabled
+    - [x] Disabled it for now. In future we should allow it.
+  - [ ] Where should we show the user the client ID to enable domain wide delegation?
+    - [ ] It must be shown to the organization owner/admin only
+    - [ ] There could be multiple checkboxes per domain to enable domain wide delegation for a domain
+  - [ ] Support multiple domains in DomainWideDelegation schema for an organization
+    - [ ] Use the domain as well to identify if the domain wide delegation is enabled
+  - [ ] Automatically mark a DomainWideDelegation to have status as "error" if there is an error during event creation using it. Note that we might not have a fallback to go to but we could inform the admin about it.
+  
