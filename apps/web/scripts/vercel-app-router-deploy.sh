@@ -30,6 +30,7 @@ checkRoute "$APP_ROUTER_GETTING_STARTED_STEP_ENABLED" app/future/getting-started
 checkRoute "$APP_ROUTER_APPS_ENABLED" app/future/apps
 checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
 checkRoute "$APP_ROUTER_VIDEO_ENABLED" app/future/video
+checkRoute "$APP_ROUTER_USER_ENABLED" app/future/\[user\]
 checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
 checkRoute "$APP_ROUTER_MORE_ENABLED" app/future/more
 checkRoute "$APP_ROUTER_MAINTENANCE_ENABLED" app/future/maintenance
