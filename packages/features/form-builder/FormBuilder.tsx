@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
@@ -30,9 +29,9 @@ import {
   showToast,
   Editor,
   Switch,
-  Tooltip,
 } from "@calcom/ui";
 
+import FormFieldIdentifier from "./FormFieldIdentifier";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
@@ -607,28 +606,7 @@ function FieldEditDialog({
                       }}
                     />
                     {!isEditing ? (
-                      <div className="dark:text-emphasis text-default mt-4 flex items-center gap-3 text-center">
-                        <div className="flex items-center gap-2 text-center">
-                          <span className="text-sm font-medium leading-none">{t("identifier")}</span>
-                          <Tooltip content={t("click_here_to_learn_more")}>
-                            <Link
-                              href="https://cal.com/docs/core-features/event-types/booking-questions#booking-field-identifier"
-                              target="_blank">
-                              <Icon name="info" className="h-4 w-4" />
-                            </Link>
-                          </Tooltip>
-                        </div>
-                        {fieldIdentifier && (
-                          <div className="bg-subtle dark:text-default text-emphasis flex items-center gap-2 rounded-md p-1 text-center">
-                            <span className="break-all text-sm">{fieldIdentifier}</span>
-                            <Tooltip content={t("edit_identifier")}>
-                              <button onClick={() => setIsEditing(true)}>
-                                <Icon name="square-pen" className="h-4 w-4" />
-                              </button>
-                            </Tooltip>
-                          </div>
-                        )}
-                      </div>
+                      <FormFieldIdentifier fieldIdentifier={fieldIdentifier} setIsEditing={setIsEditing} />
                     ) : (
                       <>
                         <InputField

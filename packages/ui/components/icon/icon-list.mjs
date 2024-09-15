@@ -115,7 +115,6 @@ export const lucideIconList = new Set([
   "smartphone",
   "sparkles",
   "square-check",
-  "square-pen",
   "star",
   "sun",
   "sunrise",
