@@ -20,10 +20,18 @@ import {
   SkeletonText,
 } from "@calcom/ui";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = ({
+  title,
+  description,
+  isAppDir,
+}: {
+  title: string;
+  description: string;
+  isAppDir?: boolean;
+}) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
+      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
       <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -37,9 +45,10 @@ interface ApiKeysViewProps {
     apiKeysList?: Awaited<ReturnType<typeof ApiKeysRepository.getApiKeys>>;
   };
   revalidateApiKeys?: () => Promise<void>;
+  isAppDir?: boolean;
 }
 
-export default function ApiKeysView({ ssrProps, revalidateApiKeys }: ApiKeysViewProps) {
+export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: ApiKeysViewProps) {
   const { t } = useLocale();
 
   const [isPendingTransition, startTransition] = useTransition();
@@ -79,6 +88,7 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys }: ApiKeysView
   if (isPending || !data) {
     return (
       <SkeletonLoader
+        isAppDir={isAppDir}
         title={t("api_keys")}
         description={t("create_first_api_key_description", { appName: APP_NAME })}
       />
@@ -87,6 +97,14 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys }: ApiKeysView
 
   return (
     <>
+      {!isAppDir ? (
+        <Meta
+          title={t("api_keys")}
+          description={t("create_first_api_key_description", { appName: APP_NAME })}
+          CTA={<NewApiKeyButton />}
+          borderInShellHeader={true}
+        />
+      ) : null}
       <LicenseRequired>
         <div>
           {data?.length ? (

@@ -38,7 +38,11 @@ const Page = async () => {
         description={t("create_first_api_key_description", { appName: APP_NAME })}
         CTA={<NewApiKeyButton />}
         borderInShellHeader={true}>
-        <ApiKeysView ssrProps={{ apiKeysList }} revalidateApiKeys={revalidateApiKeysHandler} />
+        <ApiKeysView
+          ssrProps={{ apiKeysList }}
+          revalidateApiKeys={revalidateApiKeysHandler}
+          isAppDir={true}
+        />
       </SettingsHeader>
     );
   } catch (error) {

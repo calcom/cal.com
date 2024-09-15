@@ -300,10 +300,10 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await eventTypeLink.waitFor();
     await eventTypeLink.click();
 
-    await pageTwo.waitForLoadState("networkidle");
+    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.waitForLoadState("networkidle");
+    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -337,10 +337,10 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.locator('[data-testid="back"]').waitFor();
     await page.click('[data-testid="back"]');
 
-    await pageTwo.waitForLoadState("networkidle");
+    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.waitForLoadState("networkidle");
+    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -509,7 +509,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     // books 9AM slots for 120 minutes (test-user is not available at this time, availability starts at 10)
     await page.locator('[data-testid="time"]').nth(0).click();
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
@@ -541,7 +541,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     // Again book a 9AM slot for 120 minutes where test-user is not available
     await page.locator('[data-testid="time"]').nth(0).click();
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
