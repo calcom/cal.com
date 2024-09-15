@@ -13,6 +13,8 @@ import config from "@calcom/web/next-i18next.config";
 
 import { preparePageMetadata } from "@lib/metadata";
 
+import { PATHS_MAP } from "./_constants";
+
 const create = async (locale: string, ns: string) => {
   const { _nextI18Next } = await serverSideTranslations(locale, [ns], config);
 
@@ -66,7 +68,3 @@ export const _generateMetadata = async (
 export async function revalidateApiKeys(key: keyof typeof PATHS_MAP) {
   revalidatePath(PATHS_MAP[key]);
 }
-
-export const PATHS_MAP = {
-  SETTINGS_DEVELOPER_API_KEYS: "/future/settings/developer/api-keys",
-};
