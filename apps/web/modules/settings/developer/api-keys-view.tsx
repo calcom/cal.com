@@ -19,7 +19,15 @@ import {
   SkeletonText,
 } from "@calcom/ui";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = ({
+  title,
+  description,
+  isAppDir,
+}: {
+  title: string;
+  description: string;
+  isAppDir?: boolean;
+}) => {
   return (
     <SkeletonContainer>
       {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
