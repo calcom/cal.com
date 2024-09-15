@@ -17,16 +17,15 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 type BrandColorsFormValues = {
   brandColor: string;
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] } & { isAppDir?: boolean };
 
-const ProfileView = ({ team }: ProfileViewProps) => {
+const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -80,11 +79,13 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
   return (
     <>
-      <Meta
-        title={t("booking_appearance")}
-        description={t("appearance_team_description")}
-        borderInShellHeader={false}
-      />
+      {!isAppDir ? (
+        <Meta
+          title={t("booking_appearance")}
+          description={t("appearance_team_description")}
+          borderInShellHeader={false}
+        />
+      ) : null}
       {isAdmin ? (
         <>
           <Form
@@ -182,7 +183,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
   );
 };
 
-const ProfileViewWrapper = () => {
+const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
@@ -215,9 +216,7 @@ const ProfileViewWrapper = () => {
 
   if (!team) return null;
 
-  return <ProfileView team={team} />;
+  return <ProfileView team={team} isAppDir={isAppDir} />;
 };
-
-ProfileViewWrapper.getLayout = getLayout;
 
 export default ProfileViewWrapper;

@@ -4,8 +4,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
-
 const BillingView = () => {
   const pathname = usePathname();
   const { t } = useLocale();
@@ -28,7 +26,5 @@ const BillingView = () => {
     </>
   );
 };
-
-BillingView.getLayout = getLayout;
 
 export default BillingView;
