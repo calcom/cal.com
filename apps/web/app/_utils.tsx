@@ -1,5 +1,3 @@
-"use server";
-
 import { type TFunction } from "i18next";
 import i18next from "i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";

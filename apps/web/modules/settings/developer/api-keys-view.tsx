@@ -101,6 +101,7 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys }: ApiKeysView
                       setApiKeyToEdit(apiKey);
                       setApiKeyModal(true);
                     }}
+                    onSuccess={handleRevalidate}
                   />
                 ))}
               </div>

@@ -20,6 +20,10 @@ const Page = async () => {
   const session = await getServerSessionForAppDir();
 
   const t = await getFixedT(session?.user.locale || "en");
+  const revalidateApiKeysHandler = async () => {
+    "use server";
+    revalidateApiKeys("SETTINGS_DEVELOPER_API_KEYS");
+  };
   const userId = session?.user?.id;
   if (!userId) {
     notFound();
@@ -34,12 +38,7 @@ const Page = async () => {
         description={t("create_first_api_key_description", { appName: APP_NAME })}
         CTA={<NewApiKeyButton />}
         borderInShellHeader={true}>
-        <ApiKeysView
-          ssrProps={{ apiKeysList }}
-          revalidateApiKeys={async () => {
-            revalidateApiKeys("SETTINGS_DEVELOPER_API_KEYS");
-          }}
-        />
+        <ApiKeysView ssrProps={{ apiKeysList }} revalidateApiKeys={revalidateApiKeysHandler} />
       </SettingsHeader>
     );
   } catch (error) {
