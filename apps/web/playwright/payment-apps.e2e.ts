@@ -40,14 +40,14 @@ test.describe("Payment app", () => {
     await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
-    expect(await page.locator("text=200 sats").first()).toBeTruthy();
+    await expect(page.locator("text=200 sats").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
-    expect(await page.locator("text=200 sats").first()).toBeTruthy();
+    await expect(page.locator("text=200 sats").first()).toBeVisible();
 
     // go to /event-types and check if the price is 200 sats
     await page.goto(`event-types/`);
-    expect(await page.locator("text=200 sats").first()).toBeTruthy();
+    await expect(page.locator("text=200 sats").first()).toBeVisible();
   });
 
   test("Should be able to edit stripe price, currency", async ({ page, users }) => {

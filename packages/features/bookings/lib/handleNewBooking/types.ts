@@ -37,6 +37,7 @@ export type Invitee = {
   firstName: string;
   lastName: string;
   timeZone: string;
+  phoneNumber?: string;
   language: {
     translate: TFunction;
     locale: string;

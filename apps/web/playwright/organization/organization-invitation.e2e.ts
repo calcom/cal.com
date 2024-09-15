@@ -301,12 +301,14 @@ test.describe("Organization", () => {
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await page.locator('input[name="username"]').fill(existingUser.username!);
+        const usernameInput = page.locator('input[name="username"]');
+        await usernameInput.waitFor({ state: "attached" });
+        await usernameInput.waitFor({ state: "visible" });
+        await usernameInput.fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
         await page.locator('input[name="password"]').fill("Password99!");
-        await page.waitForLoadState("networkidle");
         await expect(page.locator('button[type="submit"]')).toBeDisabled();
       });
     });
@@ -486,8 +488,11 @@ export async function signupFromEmailInviteLink({
 async function inviteAnEmail(page: Page, invitedUserEmail: string) {
   await page.locator('button:text("Add")').click();
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-  await page.locator('button:text("Send invite")').click();
   await page.waitForLoadState("networkidle");
+  const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+  await page.locator('button:text("Send invite")').click();
+  const response = await submitPromise;
+  expect(response.status()).toBe(200);
 }
 
 async function expectUserToBeAMemberOfOrganization({
@@ -505,8 +510,8 @@ async function expectUserToBeAMemberOfOrganization({
 }) {
   // Check newly invited member is not pending anymore
   await page.goto("/settings/organizations/members");
-  expect(await page.locator(`[data-testid="member-${username}-username"]`).textContent()).toBe(username);
-  expect(await page.locator(`[data-testid="member-${username}-email"]`).textContent()).toBe(email);
+  await expect(page.locator(`[data-testid="member-${username}-username"]`)).toHaveText(username);
+  await expect(page.locator(`[data-testid="member-${username}-email"]`)).toHaveText(email);
   expect((await page.locator(`[data-testid="member-${username}-role"]`).textContent())?.toLowerCase()).toBe(
     role.toLowerCase()
   );
@@ -535,11 +540,18 @@ async function expectUserToBeAMemberOfTeam({
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.reload();
+  await page.waitForLoadState("domcontentloaded");
   expect(
     (
-      await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()
+      await page
+        .locator(
+          `[data-testid="member-${username}"] [data-testid="${
+            isMemberShipAccepted ? "member-email" : `email-${email.replace("@", "")}-pending`
+          }"]`
+        )
+        .textContent()
     )?.toLowerCase()
-  ).toBe(role.toLowerCase());
+  ).toBe(email.toLowerCase());
   if (isMemberShipAccepted) {
     await expect(page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)).toBeHidden();
   } else {
