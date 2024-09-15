@@ -8,6 +8,5 @@ export const generateMetadata = async () =>
     (t) => t("create_manage_teams_collaborative")
   );
 
-  const Page = () => <LegacyPage isAppDir={true} />;
-  export default Page;
-  
+const Page = () => <LegacyPage isAppDir={true} />;
+export default Page;
