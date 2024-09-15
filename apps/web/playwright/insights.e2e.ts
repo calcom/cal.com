@@ -75,11 +75,10 @@ test.describe("Insights", async () => {
 
     // go to insights page
     await page.goto("/insights");
-    // await page.waitForLoadState("networkidle");
+    await page.waitForURL(/.*\/insights\?teamId=[^&]*&isAll=false.*/);
 
     // expect url to have isAll and TeamId in query params
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("teamId=");
+    await expect(page).toHaveURL(/.*\/insights\?teamId=[^&]*&isAll=false.*/);
   });
 
   test("should be able to go to insights as members", async ({ page, users }) => {
@@ -92,12 +91,10 @@ test.describe("Insights", async () => {
     // go to insights page
     await page.goto("/insights");
 
-    // await page.waitForLoadState("networkidle");
+    await page.waitForURL(/.*\/insights\?userId=[^&]*&isAll=false.*/);
 
     // expect url to have isAll and TeamId in query params
-
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).not.toContain("teamId=");
+    await expect(page).toHaveURL(/.*\/insights\?userId=[^&]*&isAll=false.*/);
   });
 
   test("team select filter should have 2 teams and your account option only as member", async ({
