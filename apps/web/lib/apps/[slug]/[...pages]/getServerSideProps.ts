@@ -25,7 +25,7 @@ type AppPageType = {
 type Found = {
   notFound: false;
   Component: AppPageType["default"];
-  getServerSideProps: AppPageType["getServerSideProps"];
+  getServerSideProps?: AppPageType["getServerSideProps"];
 };
 
 type NotFound = {
@@ -100,6 +100,7 @@ export async function getServerSideProps(
         notFound: true,
       };
     }
+
     const routeGetServerSideProps = RoutingFormsServerSidePropsConfig[appName];
 
     const result = await routeGetServerSideProps(
