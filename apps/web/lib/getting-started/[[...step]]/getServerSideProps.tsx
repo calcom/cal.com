@@ -28,9 +28,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User from session not found");
   }
 
-  if (!user.completedOnboarding) {
-    return { redirect: { permanent: false, destination: "/event-types" } };
-  }
   const locale = await getLocale(context.req);
   return {
     props: {
