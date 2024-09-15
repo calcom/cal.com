@@ -20,36 +20,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   await ssr.viewer.me.prefetch();
 
-  const user = await UserRepository.findById({
+  const user = await UserRepository.findUserTeams({
     id: session.user.id,
-    select: {
-      completedOnboarding: true,
-      teams: {
-        select: {
-          accepted: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
-              logoUrl: true,
-            },
-          },
-        },
-      },
-    },
   });
 
   if (!user) {
     throw new Error("User from session not found");
   }
 
-  if (user.completedOnboarding) {
+  if (!user.completedOnboarding) {
     return { redirect: { permanent: false, destination: "/event-types" } };
   }
   const locale = await getLocale(context.req);
   return {
     props: {
-      ...(await serverSideTranslations(locale, ["common"])),
+      ...(await serverSideTranslations(locale || "en", ["common"])),
       trpcState: ssr.dehydrate(),
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
     },
