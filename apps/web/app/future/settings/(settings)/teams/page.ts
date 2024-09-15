@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import Page from "@calcom/features/ee/teams/pages/team-listing-view";
+import LegacyPage from "@calcom/features/ee/teams/pages/team-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -8,4 +8,6 @@ export const generateMetadata = async () =>
     (t) => t("create_manage_teams_collaborative")
   );
 
-export default Page;
+  const Page = () => <LegacyPage isAppDir={true} />;
+  export default Page;
+  

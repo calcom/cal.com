@@ -1,9 +1,11 @@
-import TeamListView from "@calcom/features/ee/teams/pages/team-listing-view";
+import TeamListingView from "@calcom/features/ee/teams/pages/team-listing-view";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 
 import PageWrapper from "@components/PageWrapper";
-import type { CalPageWrapper } from "@components/PageWrapper";
 
-const Page = TeamListView as CalPageWrapper;
+const Page = () => <TeamListingView />;
+
+Page.getLayout = getLayout;
 Page.PageWrapper = PageWrapper;
 
 export default Page;
