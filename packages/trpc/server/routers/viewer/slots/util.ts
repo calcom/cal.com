@@ -135,6 +135,7 @@ export async function getEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  logger.info("getEventType", safeStringify({ usernameList, eventTypeSlug, isTeamEvent, organizationDetails }));
   const eventTypeId =
     input.eventTypeId ||
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -838,7 +839,7 @@ async function getUserIdFromUsername(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-
+  logger.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
   const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
