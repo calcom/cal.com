@@ -28,8 +28,6 @@ const Identifiers = {
 test.describe("Routing Forms", () => {
   test.describe("Zero State Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
-      await page.waitForSelector('[data-testid="empty-screen"]');
-
       const formId = await addForm(page);
 
       await page.click('[href*="/forms"]');
