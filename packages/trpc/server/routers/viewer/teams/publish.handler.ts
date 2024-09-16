@@ -76,9 +76,6 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
   }
 
-  // Sync Services: Close.com
-  // closeComUpdateTeam(prevTeam, updatedTeam);
-
   return {
     url: `${WEBAPP_URL}/settings/teams/${teamId}/profile`,
     message: "Team published successfully",
