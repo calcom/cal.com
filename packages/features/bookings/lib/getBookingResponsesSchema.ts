@@ -217,7 +217,18 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (bookingField.type === "checkbox" || bookingField.type === "multiselect") {
+        if (bookingField.type === "multiselect") {
+          if (isRequired && (!value || value.length === 0)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            continue;
+          }
+          if (!stringSchema.array().safeParse(value).success) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+          }
+          continue;
+        }
+
+        if (bookingField.type === "checkbox") {
           if (!stringSchema.array().safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
           }
