@@ -430,3 +430,15 @@ export async function gotoBookingPage(page: Page) {
 export async function saveEventType(page: Page) {
   await page.locator("[data-testid=update-eventtype]").click();
 }
+
+/** Fastest way so far to test for saving changes and form submissions */
+export async function submitAndWaitForResponse(
+  page: Page,
+  url: string,
+  { action = () => page.locator('[type="submit"]').click(), expectedStatusCode = 200 } = {}
+) {
+  const submitPromise = page.waitForResponse(url);
+  await action();
+  const response = await submitPromise;
+  expect(response.status()).toBe(expectedStatusCode);
+}
