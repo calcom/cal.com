@@ -1,10 +1,11 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/InviteLinkSettingsModal";
-import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
+import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -24,10 +25,6 @@ import {
 } from "@calcom/ui";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
-
-type FormValues = {
-  members: TeamMember[];
-};
 
 const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
@@ -49,30 +46,14 @@ const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
 
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
-  return (
-    // TODO: Get members
-    <AddNewTeamMembersForm
-      defaultValues={{ members: teamQuery.data.members }}
-      teamId={teamId}
-      isOrg={isOrg}
-    />
-  );
+  return <AddNewTeamMembersForm teamId={teamId} isOrg={isOrg} />;
 };
 
-export const AddNewTeamMembersForm = ({
-  defaultValues,
-  teamId,
-  isOrg,
-}: {
-  defaultValues: FormValues;
-  teamId: number;
-  isOrg?: boolean;
-}) => {
+export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
 
   const router = useRouter();
-  const utils = trpc.useUtils();
   const orgBranding = useOrgBranding();
 
   const showDialog = searchParams?.get("inviteModal") === "true";
@@ -90,7 +71,24 @@ export const AddNewTeamMembersForm = ({
     }
   );
 
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
+    trpc.viewer.teams.listMembers.useInfiniteQuery(
+      {
+        limit: 10,
+        teamId,
+      },
+      {
+        enabled: !!teamId,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        staleTime: 0,
+      }
+    );
+
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
+  const totalFetched = flatData.length;
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -104,25 +102,34 @@ export const AddNewTeamMembersForm = ({
   return (
     <>
       <div>
-        {defaultValues?.members?.length > 0 && (
-          <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
-            {defaultValues.members.map((member, index) => (
-              <PendingMemberItem
-                key={member.email}
-                member={member}
-                index={index}
-                teamId={teamId}
-                isOrg={isOrg}
-              />
-            ))}
-          </ul>
+        <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
+          {flatData.map((member, index) => (
+            <PendingMemberItem
+              key={member.email}
+              member={member}
+              index={index}
+              teamId={teamId}
+              isOrg={isOrg}
+            />
+          ))}
+        </ul>
+        {totalFetched && (
+          <div className="text-default text-center">
+            <Button
+              color="minimal"
+              loading={isFetchingNextPage}
+              disabled={!hasNextPage}
+              onClick={() => fetchNextPage()}>
+              {hasNextPage ? t("load_more_results") : t("no_more_results")}
+            </Button>
+          </div>
         )}
         <Button
           color="secondary"
           data-testid="new-member-button"
           StartIcon="plus"
           onClick={() => setMemberInviteModal(true)}
-          className={classNames("w-full justify-center", defaultValues?.members?.length > 0 && "mt-6")}>
+          className={classNames("w-full justify-center", totalFetched > 0 && "mt-6")}>
           {isOrg ? t("add_org_members") : t("add_team_member")}
         </Button>
       </div>
@@ -130,53 +137,16 @@ export const AddNewTeamMembersForm = ({
         <SkeletonButton />
       ) : (
         <>
-          <MemberInvitationModal
-            isPending={inviteMemberMutation.isPending}
-            isOpen={memberInviteModal}
+          <MemberInvitationModalWithoutMembers
+            showMemberInvitationModal={memberInviteModal}
             orgMembers={orgMembersNotInThisTeam}
             teamId={teamId}
             token={team?.inviteToken?.token}
-            onExit={() => setMemberInviteModal(false)}
-            onSubmit={(values, resetFields) => {
-              inviteMemberMutation.mutate(
-                {
-                  teamId,
-                  language: i18n.language,
-                  role: values.role,
-                  usernameOrEmail: values.emailOrUsername,
-                },
-                {
-                  onSuccess: async (data) => {
-                    await utils.viewer.teams.get.invalidate();
-                    setMemberInviteModal(false);
-                    resetFields();
-                    if (Array.isArray(data.usernameOrEmail)) {
-                      showToast(
-                        t("email_invite_team_bulk", {
-                          userCount: data.numUsersInvited,
-                        }),
-                        "success"
-                      );
-                    } else {
-                      showToast(
-                        t("email_invite_team", {
-                          email: data.usernameOrEmail,
-                        }),
-                        "success"
-                      );
-                    }
-                  },
-                  onError: (error) => {
-                    showToast(error.message, "error");
-                  },
-                }
-              );
-            }}
+            hideInvitationModal={() => setMemberInviteModal(false)}
             onSettingsOpen={() => {
               setMemberInviteModal(false);
               setInviteLinkSettingsModal(true);
             }}
-            members={defaultValues.members}
           />
           {team?.inviteToken && (
             <InviteLinkSettingsModal

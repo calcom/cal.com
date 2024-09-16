@@ -469,7 +469,8 @@ export const MemberInvitationModalWithoutMembers = ({
   teamId,
   token,
   onSettingsOpen,
-}: {
+  ...props
+}: Partial<MemberInvitationModalProps> & {
   hideInvitationModal: () => void;
   showMemberInvitationModal: boolean;
   teamId: number;
@@ -495,6 +496,7 @@ export const MemberInvitationModalWithoutMembers = ({
 
   return (
     <MemberInvitationModal
+      {...props}
       isPending={inviteMemberMutation.isPending || isOrgListLoading}
       isOpen={showMemberInvitationModal}
       orgMembers={orgMembersNotInThisTeam}
