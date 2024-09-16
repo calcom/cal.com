@@ -13,10 +13,6 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
   const utils = trpc.useUtils();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
-      const previousValue = utils.viewer.organizations.listMembers.getInfiniteData({
-        limit: 10,
-        searchTerm: "",
-      });
       // Update the infinite data to remove the deleted user
       utils.viewer.organizations.listMembers.setInfiniteData({ limit: 10, searchTerm: "" }, (oldData) => {
         if (!oldData) return oldData;
