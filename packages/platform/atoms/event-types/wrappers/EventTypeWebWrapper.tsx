@@ -72,7 +72,7 @@ const EventAITab = dynamic(() =>
 );
 
 export type EventTypeWebWrapperProps = {
-  id: number;
+  type: number;
   isAppDir?: boolean;
 };
 
@@ -145,10 +145,10 @@ const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir
   return <EventTypeComponent {...rest} allActiveWorkflows={allActiveWorkflows} tabMap={tabMap} />;
 };
 
-export const EventTypeWebWrapper = ({ id }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
+export const EventTypeWebWrapper = ({ type, isAppDir }: EventTypeWebWrapperProps) => {
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id: type });
 
   if (!eventTypeQueryData) return null;
 
-  return <EventType {...eventTypeQueryData} id={id} isAppDir={isAppDir} />;
+  return <EventType {...eventTypeQueryData} id={type} isAppDir={isAppDir} />;
 };
