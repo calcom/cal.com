@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
@@ -51,13 +51,10 @@ interface ApiKeysViewProps {
 export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: ApiKeysViewProps) {
   const { t } = useLocale();
 
-  const [isPendingTransition, startTransition] = useTransition();
-
   const { data: apiKeysList, isPending: isPendingList } = trpc.viewer.apiKeys.list.useQuery(undefined, {
     enabled: !ssrProps?.apiKeysList,
   });
-  const isPendingListOverride = ssrProps?.apiKeysList ? false : isPendingList;
-  const isPending = isPendingTransition || isPendingListOverride;
+  const isPending = ssrProps?.apiKeysList ? false : isPendingList;
   const data = ssrProps?.apiKeysList ?? apiKeysList;
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
@@ -77,12 +74,6 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: A
         {t("add")}
       </Button>
     );
-  };
-
-  const handleRevalidate = () => {
-    startTransition(() => {
-      revalidateApiKeys?.();
-    });
   };
 
   if (isPending || !data) {
@@ -119,7 +110,7 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: A
                       setApiKeyToEdit(apiKey);
                       setApiKeyModal(true);
                     }}
-                    onSuccess={handleRevalidate}
+                    onSuccess={revalidateApiKeys}
                   />
                 ))}
               </div>
@@ -141,7 +132,7 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: A
           <ApiKeyDialogForm
             handleClose={() => setApiKeyModal(false)}
             defaultValues={apiKeyToEdit}
-            onSuccess={handleRevalidate}
+            onSuccess={revalidateApiKeys}
           />
         </DialogContent>
       </Dialog>
