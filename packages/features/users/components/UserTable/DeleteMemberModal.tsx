@@ -13,15 +13,39 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
   const utils = trpc.useUtils();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
-      // We don't need to wait for invalidate to finish
-      Promise.all([
-        utils.viewer.teams.get.invalidate(),
-        utils.viewer.eventTypes.invalidate(),
-        utils.viewer.organizations.listMembers.invalidate(),
-      ]);
+      const previousValue = utils.viewer.organizations.listMembers.getInfiniteData({
+        limit: 10,
+        searchTerm: "",
+      });
+
+      console.log("previousValue", previousValue);
+      // Update the infinite data to remove the deleted user
+      utils.viewer.organizations.listMembers.setInfiniteData({ limit: 10, searchTerm: "" }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            rows: page.rows.filter((member) => member.id !== state.deleteMember.user?.id),
+          })),
+        };
+      });
+
+      // Existing invalidations
+      Promise.all([utils.viewer.teams.get.invalidate(), utils.viewer.eventTypes.invalidate()]);
+
       showToast(t("success"), "success");
+
+      // Close the modal after successful deletion
+      dispatch({ type: "CLOSE_MODAL" });
     },
-    async onError(err) {
+    async onError(err, _, context) {
+      if (context?.previousValue) {
+        utils.viewer.organizations.listMembers.setInfiniteData(
+          { limit: 10, searchTerm: "" },
+          context.previousValue
+        );
+      }
       showToast(err.message, "error");
     },
   });
