@@ -27,7 +27,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     identifier: `removeMember.${ctx.sourceIp}`,
   });
 
-  const { memberIds, teamIds, isOrg } = input;
+  const { memberIds, teamIds, isOrg, redirectToUserId } = input;
 
   const isAdmin = await Promise.all(
     teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
@@ -75,6 +75,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
           teamId,
           memberId,
           isOrg,
+          redirectToUserId,
         })
       );
     }

@@ -202,6 +202,19 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   });
 
   if (!user) {
+    if (isOrgContext) {
+      const redirect = await getTemporaryOrgRedirect({
+        slugs: usernames,
+        redirectType: RedirectType.UserToProfile,
+        currentQuery: context.query,
+        eventTypeSlug: null,
+        orgSlug: currentOrgDomain,
+      });
+
+      if (redirect) {
+        return redirect;
+      }
+    }
     return {
       notFound: true,
     } as const;
