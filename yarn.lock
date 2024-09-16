@@ -4777,6 +4777,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/synthflow@workspace:packages/app-store/synthflow":
+  version: 0.0.0-use.local
+  resolution: "@calcom/synthflow@workspace:packages/app-store/synthflow"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/tandemvideo@workspace:packages/app-store/tandemvideo":
   version: 0.0.0-use.local
   resolution: "@calcom/tandemvideo@workspace:packages/app-store/tandemvideo"
