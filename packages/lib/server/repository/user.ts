@@ -126,8 +126,7 @@ export class UserRepository {
       orgSlug,
       usernameList,
     });
-
-    log.debug("findUsersByUsername", safeStringify({ where, profiles }));
+    log.info("findUsersByUsername", safeStringify({ where, profiles }));
 
     return (
       await prisma.user.findMany({
@@ -135,6 +134,7 @@ export class UserRepository {
         where,
       })
     ).map((user) => {
+      log.info("findUsersByUsername", safeStringify({ user }));
       // User isn't part of any organization
       if (!profiles) {
         return {
