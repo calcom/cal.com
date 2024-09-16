@@ -65,7 +65,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     },
   });
   return (
-    <div className={classNames("my-2 flex flex-row items-center")}>
+    <div className={classNames("my-2 flex flex-col md:flex-row md:items-center")}>
       <div className="flex pl-2">
         <Switch
           id={externalId}
@@ -76,14 +76,15 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
             await mutation.mutate({ isOn });
           }}
         />
+        <label className="ml-3 text-sm font-medium leading-5" htmlFor={externalId}>
+          {name}
+        </label>
       </div>
-      <label className="ml-3 text-sm font-medium leading-5" htmlFor={externalId}>
-        {name}
-      </label>
       {!!props.destination && (
-        <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <Icon name="arrow-left" className="h-4 w-4" />
+        <span className="bg-subtle text-default mt-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4 md:ml-8 md:mt-0">
+          <Icon name="arrow-left" className="hidden h-4 w-4 md:block" />
           {t("adding_events_to")}
+          <Icon name="arrow-up" className="block h-4 w-4 md:hidden" />
         </span>
       )}
       {mutation.isPending && (
