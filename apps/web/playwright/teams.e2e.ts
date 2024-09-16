@@ -4,14 +4,13 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { test } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookTimeSlot,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
-  todo,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -45,6 +44,7 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await user.apiLogin();
 
     page.goto(`/settings/teams/${team.id}/onboard-members`);
+    // await page.waitForLoadState("networkidle");
 
     await test.step("Can add members", async () => {
       // Click [data-testid="new-member-button"]
@@ -54,21 +54,23 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       // Click [data-testid="invite-new-member-button"]
       await page.locator('[data-testid="invite-new-member-button"]').click();
       await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
+      await expect(page.locator('[data-testid="pending-member-item"]')).toHaveCount(2);
     });
 
     await test.step("Can remove members", async () => {
       const removeMemberButton = page.locator('[data-testid="remove-member-button"]');
       await removeMemberButton.click();
       await removeMemberButton.waitFor({ state: "hidden" });
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
+      await expect(page.locator('[data-testid="pending-member-item"]')).toHaveCount(1);
       // Cleanup here since this user is created without our fixtures.
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
     await test.step("Finishing brings you to team profile page", async () => {
       await page.locator("[data-testid=publish-button]").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+      await page.locator("[data-testid=handle-later-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
@@ -220,7 +222,9 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       // Click text=Continue
       await page.locator("[data-testid=publish-button]").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
+      await page.locator("[data-testid=handle-later-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can access user and team with same slug", async () => {
@@ -320,6 +324,31 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
   });
 
   todo("Create a Round Robin with different leastRecentlyBooked hosts");
-  todo("Reschedule a Collective EventType booking");
+  test("Reschedule a Collective EventType booking", async ({ users, page, bookings }) => {
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(
+      { username: "pro-user", name: "pro-user" },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    const { team } = await owner.getFirstTeamMembership();
+    const eventType = await owner.getFirstTeamEvent(team.id);
+
+    const booking = await bookings.create(owner.id, owner.username, eventType.id);
+    await page.goto(`/reschedule/${booking.uid}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.locator("[data-testid=confirm-reschedule-button]").click();
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
   todo("Reschedule a Round Robin EventType booking");
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { truncateOnWord } from "@calcom/lib/text";
 
 type RootMetadataRecipe = Readonly<{
@@ -65,18 +66,24 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
   },
 });
 
-export const preparePageMetadata = (recipe: PageMetadataRecipe): Metadata => ({
-  title: recipe.title,
-  alternates: {
-    canonical: recipe.canonical,
-  },
-  openGraph: {
-    description: truncateOnWord(recipe.description, 158),
-    url: recipe.canonical,
-    type: "website",
-    siteName: recipe.siteName,
-    title: recipe.title,
-    images: [recipe.image],
-  },
-  metadataBase: recipe.metadataBase,
-});
+export const preparePageMetadata = (recipe: PageMetadataRecipe): Metadata => {
+  const { title, description } = recipe;
+  const titleSuffix = `| ${APP_NAME}`;
+
+  return {
+    title: title.length === 0 ? APP_NAME : title.includes(titleSuffix) ? title : `${title} ${titleSuffix}`,
+    description,
+    alternates: {
+      canonical: recipe.canonical,
+    },
+    openGraph: {
+      description: truncateOnWord(description, 158),
+      url: recipe.canonical,
+      type: "website",
+      siteName: recipe.siteName,
+      title,
+      images: [recipe.image],
+    },
+    metadataBase: recipe.metadataBase,
+  };
+};

@@ -83,7 +83,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
-  const verifiedEmails = _verifiedEmails?.map((verified) => verified.email) || [];
+  const verifiedEmails = _verifiedEmails || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");

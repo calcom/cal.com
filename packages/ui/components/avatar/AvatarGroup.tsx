@@ -12,6 +12,7 @@ export type AvatarGroupProps = {
   }[];
   className?: string;
   truncateAfter?: number;
+  hideTruncatedAvatarsCount?: boolean;
 };
 
 export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
@@ -52,7 +53,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
               " text-inverted m-auto flex h-full w-full items-center justify-center text-center",
               props.size === "sm" ? "text-[12px]" : "text-2xl"
             )}>
-            +{numTruncatedAvatars}
+            +{props.hideTruncatedAvatarsCount ? null : numTruncatedAvatars}
           </span>
         </li>
       )}

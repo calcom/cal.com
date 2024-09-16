@@ -1,0 +1,65 @@
+name: Delete
+
+on:
+  delete:
+    branches-ignore: [main, gh-pages]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+# ensures that currently running Playwright workflow of deleted branch gets cancelled
+concurrency:
+  group: ${{ github.event.ref }}
+  cancel-in-progress: true
+
+jobs:
+  delete_reports:
+    name: Delete Reports
+    runs-on: ubuntu-latest
+    env:
+      # Contains all reports for deleted branch
+      BRANCH_REPORTS_DIR: reports/${{ github.event.ref }}
+    steps:
+      - name: Checkout GitHub Pages Branch
+        uses: actions/checkout@v2
+        with:
+          repository: calcom/test-results
+          ref: gh-pages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+      - name: Set Git User
+        # see: https://github.com/actions/checkout/issues/13#issuecomment-724415212
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Check for workflow reports
+        run: |
+          if [ -z "$(ls -A $BRANCH_REPORTS_DIR)" ]; then
+            echo "BRANCH_REPORTS_EXIST="false"" >> $GITHUB_ENV
+          else
+            echo "BRANCH_REPORTS_EXIST="true"" >> $GITHUB_ENV
+          fi
+      - name: Delete reports from repo for branch
+        if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
+        timeout-minutes: 3
+        run: |
+          cd $BRANCH_REPORTS_DIR/..
+
+          rm -rf ${{ github.event.ref }}
+          git add .
+          git commit -m "workflow: remove all reports for branch ${{ github.event.ref }}"
+
+          while true; do
+            git pull --rebase
+            if [ $? -ne 0 ]; then
+              echo "Failed to rebase. Please review manually."
+              exit 1
+            fi
+
+            git push
+            if [ $? -eq 0 ]; then
+              echo "Successfully pushed HTML reports to repo."
+              exit 0
+            fi
+          done

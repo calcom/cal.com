@@ -105,11 +105,21 @@ module.exports = {
         spinning: {
           "100%": { transform: "rotate(360deg)" },
         },
+        drawerSlideLeftAndFade: {
+          from: { opacity: "0", transform: "translateX(100%)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        drawerSlideRightAndFade: {
+          from: { opacity: "1", transform: "translateX(0)" },
+          to: { opacity: "0", transform: "translateX(100%)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
         "fade-in-bottom": "fade-in-bottom cubic-bezier(.21,1.02,.73,1) forwards",
         spinning: "spinning 0.75s linear infinite",
+        drawerSlideLeftAndFade: "drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+        drawerSlideRightAndFade: "drawerSlideRightAndFade 150ms ease-in",
       },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",

@@ -7,14 +7,9 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { moveUserToOrg } from "@lib/orgMigration";
 
 import { test } from "./lib/fixtures";
+import { IS_STRIPE_ENABLED } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
-
-const IS_STRIPE_ENABLED = !!(
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_PRIVATE_KEY
-);
 
 const IS_SELF_HOSTED = !(
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || !!new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
@@ -65,7 +60,7 @@ test.describe("Change username on settings", () => {
       page.click("[data-testid=save-username]"),
       page.getByTestId("toast-success").waitFor(),
     ]);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     const updatedUser = await prisma.user.findUniqueOrThrow({
       where: {
@@ -154,7 +149,7 @@ test.describe("Change username on settings", () => {
       const usernameInput = page.locator("[data-testid=username-input]");
 
       await usernameInput.fill(previousUsername);
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       await expect(page.locator("[data-testid=update-username-btn]").nth(0)).toBeHidden();
       await expect(page.locator("[data-testid=update-username-btn]").nth(1)).toBeHidden();
     });

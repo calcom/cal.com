@@ -1,5 +1,6 @@
 "use client";
 
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
@@ -22,10 +23,14 @@ import {
   APP_NAME,
   URL_PROTOCOL_REGEX,
   IS_CALCOM,
+  IS_EUROPE,
   WEBAPP_URL,
-  WEBSITE_URL,
   CLOUDFLARE_SITE_ID,
+  WEBSITE_PRIVACY_POLICY_URL,
+  WEBSITE_TERMS_URL,
+  WEBSITE_URL,
 } from "@calcom/lib/constants";
+import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -123,15 +128,8 @@ function UsernameField({
       });
     }
     checkUsername();
-  }, [
-    debouncedUsername,
-    setPremium,
-    disabled,
-    orgSlug,
-    setUsernameTaken,
-    formState.isSubmitting,
-    formState.isSubmitSuccessful,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
 
   return (
     <div>
@@ -298,21 +296,30 @@ export default function Signup({
 
   return (
     <>
-      {IS_CALCOM && COOKIE_CONSENT && process.env.NEXT_PUBLIC_GTM_ID ? (
+      {IS_CALCOM && (!IS_EUROPE || COOKIE_CONSENT) ? (
         <>
-          <Script
-            id="gtm-init-script"
-            dangerouslySetInnerHTML={{
-              __html: `(function (w, d, s, l, i) {
+          {process.env.NEXT_PUBLIC_GTM_ID && (
+            <>
+              <Script
+                id="gtm-init-script"
+                dangerouslySetInnerHTML={{
+                  __html: `(function (w, d, s, l, i) {
                         w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
                         var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
                         j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
                     })(window, document, 'script', 'dataLayer', '${process.env.NEXT_PUBLIC_GTM_ID}');`,
-            }}
-          />
-          <noscript
-            dangerouslySetInnerHTML={{
-              __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+                }}
+              />
+              <noscript
+                dangerouslySetInnerHTML={{
+                  __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+                }}
+              />
+            </>
+          )}
+          <DubAnalytics
+            cookieOptions={{
+              domain: isENVDev ? undefined : `.${new URL(WEBSITE_URL).hostname}`,
             }}
           />
         </>
@@ -328,10 +335,6 @@ export default function Signup({
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
-            {/* Header */}
-            {errors.apiError && (
-              <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
-            )}
             <div className="flex flex-col gap-2">
               <h1 className="font-cal text-[28px] leading-none ">
                 {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
@@ -410,6 +413,14 @@ export default function Signup({
                   onChange={() => handleConsentChange(COOKIE_CONSENT)}
                   description={t("cookie_consent_checkbox")}
                 />
+                {errors.apiError && (
+                  <Alert
+                    className="mb-3"
+                    severity="error"
+                    message={errors.apiError?.message}
+                    data-testid="signup-error-message"
+                  />
+                )}
                 <Button
                   type="submit"
                   className="my-2 w-full justify-center"
@@ -430,106 +441,107 @@ export default function Signup({
                     : t("create_account")}
                 </Button>
               </Form>
-              {/* Continue with Social Logins - Only for non-invite links */}
-              {token || (!isGoogleLoginEnabled && !isSAMLLoginEnabled) ? null : (
+              {!isGoogleLoginEnabled && !isSAMLLoginEnabled ? null : (
                 <div className="mt-6">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
+                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
                       {t("or_continue_with")}
                     </span>
                     <div className="border-subtle flex-grow border-t" />
                   </div>
                 </div>
               )}
-              {/* Social Logins - Only for non-invite links*/}
-              {!token && (
-                <div className="mt-6 flex flex-col gap-2 md:flex-row">
-                  {isGoogleLoginEnabled ? (
-                    <Button
-                      color="secondary"
-                      disabled={!!formMethods.formState.errors.username || premiumUsername}
-                      loading={isGoogleLoading}
-                      CustomStartIcon={
-                        <img
-                          className={classNames(
-                            "text-subtle  mr-2 h-4 w-4 dark:invert",
-                            premiumUsername && "opacity-50"
-                          )}
-                          src="/google-icon.svg"
-                          alt=""
-                        />
-                      }
-                      className={classNames(
-                        "w-full justify-center rounded-md text-center",
-                        formMethods.formState.errors.username ? "opacity-50" : ""
-                      )}
-                      onClick={async () => {
-                        setIsGoogleLoading(true);
-                        const username = formMethods.getValues("username");
-                        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                        const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
-                        if (username) {
-                          // If username is present we save it in query params to check for premium
-                          const searchQueryParams = new URLSearchParams();
-                          searchQueryParams.set("username", username);
-                          localStorage.setItem("username", username);
-                          router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
-                          return;
-                        }
-                        router.push(GOOGLE_AUTH_URL);
-                      }}>
-                      Google
-                    </Button>
-                  ) : null}
-                  {isSAMLLoginEnabled ? (
-                    <Button
-                      color="secondary"
-                      disabled={
-                        !!formMethods.formState.errors.username ||
-                        !!formMethods.formState.errors.email ||
-                        premiumUsername ||
-                        isSubmitting ||
-                        isGoogleLoading
-                      }
-                      className={classNames(
-                        "w-full justify-center rounded-md text-center",
-                        formMethods.formState.errors.username && formMethods.formState.errors.email
-                          ? "opacity-50"
-                          : ""
-                      )}
-                      onClick={() => {
-                        if (!formMethods.getValues("username")) {
-                          formMethods.trigger("username");
-                        }
-                        if (!formMethods.getValues("email")) {
-                          formMethods.trigger("email");
-
-                          return;
-                        }
-                        const username = formMethods.getValues("username");
-                        if (!username) {
-                          showToast("error", t("username_required"));
-                          return;
-                        }
+              <div className="mt-6 flex flex-col gap-2 md:flex-row">
+                {isGoogleLoginEnabled ? (
+                  <Button
+                    color="secondary"
+                    disabled={!!formMethods.formState.errors.username || premiumUsername}
+                    loading={isGoogleLoading}
+                    CustomStartIcon={
+                      <img
+                        className={classNames(
+                          "text-subtle  mr-2 h-4 w-4 dark:invert",
+                          premiumUsername && "opacity-50"
+                        )}
+                        src="/google-icon.svg"
+                        alt=""
+                      />
+                    }
+                    className={classNames(
+                      "w-full justify-center rounded-md text-center",
+                      formMethods.formState.errors.username ? "opacity-50" : ""
+                    )}
+                    onClick={async () => {
+                      setIsGoogleLoading(true);
+                      const username = formMethods.getValues("username");
+                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                      const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
+                      const searchQueryParams = new URLSearchParams();
+                      if (username) {
+                        // If username is present we save it in query params to check for premium
+                        searchQueryParams.set("username", username);
                         localStorage.setItem("username", username);
-                        const sp = new URLSearchParams();
-                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                        sp.set("username", username);
-                        sp.set("email", formMethods.getValues("email"));
-                        router.push(
-                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
-                        );
-                      }}>
-                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
-                      {t("saml_sso")}
-                    </Button>
-                  ) : null}
-                </div>
-              )}
+                      }
+                      if (token) {
+                        searchQueryParams.set("email", prepopulateFormValues?.email);
+                      }
+                      const url = searchQueryParams.toString()
+                        ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
+                        : GOOGLE_AUTH_URL;
+
+                      router.push(url);
+                    }}>
+                    Google
+                  </Button>
+                ) : null}
+                {isSAMLLoginEnabled ? (
+                  <Button
+                    color="secondary"
+                    disabled={
+                      !!formMethods.formState.errors.username ||
+                      !!formMethods.formState.errors.email ||
+                      premiumUsername ||
+                      isSubmitting ||
+                      isGoogleLoading
+                    }
+                    className={classNames(
+                      "w-full justify-center rounded-md text-center",
+                      formMethods.formState.errors.username && formMethods.formState.errors.email
+                        ? "opacity-50"
+                        : ""
+                    )}
+                    onClick={() => {
+                      if (!formMethods.getValues("username")) {
+                        formMethods.trigger("username");
+                      }
+                      if (!formMethods.getValues("email")) {
+                        formMethods.trigger("email");
+
+                        return;
+                      }
+                      const username = formMethods.getValues("username");
+                      if (!username) {
+                        showToast("error", t("username_required"));
+                        return;
+                      }
+                      localStorage.setItem("username", username);
+                      const sp = new URLSearchParams();
+                      // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                      sp.set("username", username);
+                      sp.set("email", formMethods.getValues("email"));
+                      router.push(
+                        `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                      );
+                    }}>
+                    <Icon name="shield-check" className="mr-2 h-5 w-5" />
+                    {t("saml_sso")}
+                  </Button>
+                ) : null}
+              </div>
             </div>
             {/* Already have an account & T&C */}
-            <div className="mt-10 flex h-full flex-col justify-end text-xs">
+            <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
               <div className="flex flex-col text-sm">
                 <div className="flex gap-1">
                   <p className="text-subtle">{t("already_have_account")}</p>
@@ -544,14 +556,14 @@ export default function Signup({
                       <Link
                         className="text-emphasis hover:underline"
                         key="terms"
-                        href={`${WEBSITE_URL}/terms`}
+                        href={`${WEBSITE_TERMS_URL}`}
                         target="_blank">
                         Terms
                       </Link>,
                       <Link
                         className="text-emphasis hover:underline"
                         key="privacy"
-                        href={`${WEBSITE_URL}/privacy`}
+                        href={`${WEBSITE_PRIVACY_POLICY_URL}`}
                         target="_blank">
                         Privacy Policy.
                       </Link>,

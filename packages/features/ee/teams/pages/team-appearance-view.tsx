@@ -24,7 +24,7 @@ type BrandColorsFormValues = {
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
 
 const ProfileView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
@@ -92,7 +92,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             handleSubmit={(values) => {
               mutation.mutate({
                 id: team.id,
-                theme: values.theme || null,
+                theme: values.theme === "" ? null : values.theme,
               });
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
@@ -188,7 +188,16 @@ const ProfileViewWrapper = () => {
 
   const { t } = useLocale();
 
-  const { data: team, isPending, error } = trpc.viewer.teams.get.useQuery({ teamId: Number(params.id) });
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.getMinimal.useQuery(
+    { teamId: Number(params.id) },
+    {
+      enabled: !!Number(params.id),
+    }
+  );
 
   useEffect(
     function refactorMeWithoutEffect() {

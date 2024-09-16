@@ -22,6 +22,8 @@ const getUserBooking = async (uid: string) => {
       responses: true,
       rejectionReason: true,
       userPrimaryEmail: true,
+      fromReschedule: true,
+      rescheduled: true,
       user: {
         select: {
           id: true,
@@ -37,6 +39,7 @@ const getUserBooking = async (uid: string) => {
           name: true,
           email: true,
           timeZone: true,
+          phoneNumber: true,
         },
       },
       eventTypeId: true,

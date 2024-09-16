@@ -97,7 +97,7 @@ const ProfileView = () => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.get.useQuery(
+  } = trpc.viewer.teams.getMinimal.useQuery(
     { teamId },
     {
       enabled: !!teamId,
@@ -127,6 +127,7 @@ const ProfileView = () => {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");
@@ -179,7 +180,7 @@ const ProfileView = () => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio ?? null)) }}
                 />
               </>
             )}
@@ -251,7 +252,7 @@ const ProfileView = () => {
   );
 };
 
-export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
+export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
 
 const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
   const utils = trpc.useUtils();
@@ -410,6 +411,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
+            height="80px"
           />
         </div>
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>

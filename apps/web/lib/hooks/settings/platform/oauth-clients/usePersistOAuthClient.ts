@@ -119,7 +119,7 @@ export const useDeleteOAuthClient = (
   return mutation;
 };
 
-export const useCheckTeamBilling = (teamId?: number | null) => {
+export const useCheckTeamBilling = (teamId?: number | null, isPlatformTeam?: boolean | null) => {
   const QUERY_KEY = "check-team-billing";
   const isTeamBilledAlready = useQuery({
     queryKey: [QUERY_KEY, teamId],
@@ -132,7 +132,7 @@ export const useCheckTeamBilling = (teamId?: number | null) => {
 
       return data.data;
     },
-    enabled: !!teamId,
+    enabled: !!teamId && !!isPlatformTeam,
   });
 
   return isTeamBilledAlready;

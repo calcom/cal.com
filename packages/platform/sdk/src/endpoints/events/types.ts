@@ -45,6 +45,7 @@ export type Event = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  instantMeetingExpiryTimeOffsetInSeconds: number;
   aiPhoneCallConfig: {
     eventTypeId: number;
     enabled: boolean;
@@ -52,9 +53,11 @@ export type Event = {
     beginMessage: string | null;
     yourPhoneNumber: string;
     numberToCall: string;
-    guestName: string;
-    guestEmail: string;
-    guestCompany: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestCompany?: string;
+    templateType: string;
+    schedulerName?: string;
   };
   schedulingType: string;
   length: number;

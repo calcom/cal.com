@@ -2,7 +2,7 @@ import { ProviderVerifyAccessTokenOutput } from "@/ee/provider/outputs/verify-ac
 import { ProviderVerifyClientOutput } from "@/ee/provider/outputs/verify-client.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -40,12 +40,17 @@ export class CalProviderController {
 
     return {
       status: SUCCESS_STATUS,
+      data: {
+        clientId: oAuthClient.id,
+        organizationId: oAuthClient.organizationId,
+        name: oAuthClient.name,
+      },
     };
   }
 
   @Get("/:clientId/access-token")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async verifyAccessToken(
     @Param("clientId") clientId: string,
     @GetUser() user: UserWithProfile

@@ -1,3 +1,5 @@
+"use client";
+
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { usePathname, useRouter } from "next/navigation";
 import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
@@ -87,11 +89,15 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   actionDisabled?: boolean;
   Icon?: IconName;
   enableOverflow?: boolean;
+  forceOverlayWhenNoModal?: boolean;
 };
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon: icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
+  (
+    { children, title, Icon: icon, enableOverflow, forceOverlayWhenNoModal, type = "creation", ...props },
+    forwardedRef
+  ) => {
     const isPlatform = useIsPlatform();
     const [Portal, Overlay, Content] = useMemo(
       () =>
@@ -106,7 +112,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     );
     return (
       <Portal>
-        <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        {forceOverlayWhenNoModal ? (
+          <div className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        ) : (
+          <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        )}
         <Content
           {...props}
           className={classNames(
@@ -134,11 +144,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "confirmation" && (
             <div className="flex">
               {icon && (
-                <div className="bg-emphasis mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full">
+                <div className="bg-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
                   <Icon name={icon} className="text-emphasis h-4 w-4" />
                 </div>
               )}
-              <div className="w-full">
+              <div className="ml-4 flex-grow">
                 <DialogHeader title={title} subtitle={props.description} />
                 <div data-testid="dialog-confirmation">{children}</div>
               </div>
@@ -167,7 +177,7 @@ export function DialogHeader(props: DialogHeaderProps) {
         id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <div className="text-subtle text-sm">{props.subtitle}</div>}
+      {props.subtitle && <p className="text-subtle text-sm">{props.subtitle}</p>}
     </div>
   );
 }
@@ -244,7 +254,7 @@ export function DialogClose(
         data-testid={props["data-testid"] || "dialog-rejection"}
         color={props.color || "minimal"}
         {...props}>
-        {props.children ? props.children : t("Close")}
+        {props.children ? props.children : t("close")}
       </Button>
     </Close>
   );

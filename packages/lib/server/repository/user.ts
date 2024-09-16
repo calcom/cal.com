@@ -8,12 +8,16 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
 import slugify from "../../slugify";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
+
+export type UserAdminTeams = number[];
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
@@ -27,6 +31,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   logoUrl: true,
   organizationSettings: true,
   isOrganization: true,
+  isPlatform: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -64,6 +69,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   locked: true,
   movedToProfileId: true,
   metadata: true,
+  isPlatformManaged: true,
 });
 
 export class UserRepository {
@@ -120,8 +126,7 @@ export class UserRepository {
       orgSlug,
       usernameList,
     });
-
-    log.debug("findUsersByUsername", safeStringify({ where, profiles }));
+    log.info("findUsersByUsername", safeStringify({ where, profiles }));
 
     return (
       await prisma.user.findMany({
@@ -129,6 +134,7 @@ export class UserRepository {
         where,
       })
     ).map((user) => {
+      log.info("findUsersByUsername", safeStringify({ user }));
       // User isn't part of any organization
       if (!profiles) {
         return {
@@ -169,27 +175,26 @@ export class UserRepository {
           organization: getParsedTeam(profile.organization),
         }))
       : null;
-
-    const where = profiles
-      ? {
-          // Get UserIds from profiles
-          id: {
-            in: profiles.map((profile) => profile.user.id),
-          },
-        }
-      : {
-          username: {
-            in: usernameList,
-          },
-          ...(orgSlug
-            ? {
-                organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
-              }
-            : {
-                organization: null,
-              }),
-        };
-
+    const where =
+      profiles && profiles.length > 0
+        ? {
+            // Get UserIds from profiles
+            id: {
+              in: profiles.map((profile) => profile.user.id),
+            },
+          }
+        : {
+            username: {
+              in: usernameList,
+            },
+            ...(orgSlug
+              ? {
+                  organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+                }
+              : {
+                  organization: null,
+                }),
+          };
     return { where, profiles };
   }
 
@@ -219,6 +224,7 @@ export class UserRepository {
             },
           },
         },
+        createdDate: true,
       },
     });
 
@@ -243,6 +249,17 @@ export class UserRepository {
 
     if (!user) {
       return null;
+    }
+    return {
+      ...user,
+      metadata: userMetadata.parse(user.metadata),
+    };
+  }
+
+  static async findByIdOrThrow({ id }: { id: number }) {
+    const user = await UserRepository.findById({ id });
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
     }
     return user;
   }
@@ -308,10 +325,11 @@ export class UserRepository {
   }
 
   /**
-   * Use this method if you don't directly has the profileId.
-   * It can happen in two cases:
+   * Use this method instead of `enrichUserWithTheProfile` if you don't directly have the profileId.
+   * It can happen in following cases:
    * 1. While dealing with a User that hasn't been added to any organization yet and thus have no Profile entries.
    * 2. While dealing with a User that has been moved to a Profile i.e. he was invited to an organization when he was an existing user.
+   * 3. We haven't added profileId to all the entities, so they aren't aware of which profile they belong to. So, we still mostly use this function to enrich the user with its profile.
    */
   static async enrichUserWithItsProfile<T extends { id: number; username: string | null }>({
     user,
@@ -326,6 +344,15 @@ export class UserRepository {
     const profiles = await ProfileRepository.findManyForUser({ id: user.id });
     if (profiles.length) {
       const profile = profiles[0];
+      // platform org user doesn't need org profile
+      if (profile?.organization?.isPlatform) {
+        return {
+          ...user,
+          nonProfileUsername: user.username,
+          profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+        };
+      }
+
       return {
         ...user,
         username: profile.username,
@@ -486,6 +513,75 @@ export class UserRepository {
               },
             }
           : undefined,
+      },
+    });
+  }
+
+  static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
+    const membershipQuery = {
+      members: {
+        some: {
+          userId,
+          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      },
+    };
+    const teams = await prisma.team.findMany({
+      where: {
+        id: teamId,
+        OR: [
+          membershipQuery,
+          {
+            parent: { ...membershipQuery },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!teams.length;
+  }
+
+  static async getUserAdminTeams(userId: number): Promise<number[]> {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        teams: {
+          where: {
+            accepted: true,
+            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          },
+          select: { teamId: true },
+        },
+      },
+    });
+
+    const teamIds = [];
+    for (const team of user?.teams || []) {
+      teamIds.push(team.teamId);
+    }
+    return teamIds;
+  }
+
+  static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        timeZone: true,
+        defaultScheduleId: true,
+      },
+    });
+  }
+
+  static async adminFindById(userId: number) {
+    return await prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
       },
     });
   }

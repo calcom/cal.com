@@ -1,11 +1,14 @@
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { User } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Button, UserAvatarGroupWithOrg } from "@calcom/ui";
 
 interface IInstantBookingProps {
   onConnectNow: () => void;
-  event: NonNullable<useEventReturnType["data"]>;
+  event: Pick<BookerEvent, "entity" | "schedulingType"> & {
+    users: (Pick<User, "name" | "username" | "avatarUrl"> & { bookerUrl: string })[];
+  };
 }
 
 export const InstantBooking = ({ onConnectNow, event }: IInstantBookingProps) => {
@@ -22,7 +25,9 @@ export const InstantBooking = ({ onConnectNow, event }: IInstantBookingProps) =>
               slug: event.entity.orgSlug,
               name: event.entity.name || "",
             }}
-            users={event.schedulingType !== SchedulingType.ROUND_ROBIN ? event.users : []}
+            users={
+              event.schedulingType !== SchedulingType.ROUND_ROBIN ? event.users : event.users.slice(0, 3)
+            }
           />
           <div className="border-muted absolute -bottom-0.5 -right-1 h-2 w-2 rounded-full border bg-green-500" />
         </div>

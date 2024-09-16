@@ -87,7 +87,7 @@ export interface ScheduleReminderArgs {
     time: number | null;
     timeUnit: TimeUnit | null;
   };
-  template: WorkflowTemplates;
+  template?: WorkflowTemplates;
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;

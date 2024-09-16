@@ -484,10 +484,7 @@ export default class GoogleCalendarService implements Calendar {
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     const calendar = await this.authedCalendar();
 
-    const selectedCalendar =
-      (externalCalendarId
-        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
-        : undefined) || "primary";
+    const selectedCalendar = externalCalendarId || "primary";
 
     try {
       const event = await calendar.events.delete({
@@ -523,7 +520,6 @@ export default class GoogleCalendarService implements Calendar {
     const calendarCacheEnabled = await getFeatureFlag(prisma, "calendar-cache");
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
     if (!calendarCacheEnabled) {
-      this.log.warn("Calendar Cache is disabled - Skipping");
       const { timeMin, timeMax, items } = args;
       ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
         async () =>

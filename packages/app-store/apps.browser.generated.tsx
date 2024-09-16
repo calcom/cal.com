@@ -11,7 +11,6 @@ export const InstallAppButtonMap = {
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
-  "cal-ai": dynamic(() => import("./cal-ai/components/AppSettingsInterface")),
   "general-app-settings": dynamic(() =>
     import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
@@ -45,6 +44,8 @@ export const EventTypeAddonMap = {
   "event-type-app-card": dynamic(() =>
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
+  twipla: dynamic(() => import("./twipla/components/EventTypeAppCardInterface")),
+  umami: dynamic(() => import("./umami/components/EventTypeAppCardInterface")),
   "zoho-bigin": dynamic(() => import("./zoho-bigin/components/EventTypeAppCardInterface")),
   zohocrm: dynamic(() => import("./zohocrm/components/EventTypeAppCardInterface")),
 };

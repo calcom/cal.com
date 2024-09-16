@@ -1,11 +1,11 @@
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
   mapRecurringBookingToMutationInput,
 } from "@calcom/features/bookings/lib";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
@@ -13,10 +13,14 @@ import type { UseCreateBookingInput } from "./useCreateBooking";
 
 type UseHandleBookingProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
-  event: useEventReturnType;
+  event?: {
+    data?: Pick<
+      BookerEvent,
+      "id" | "isDynamic" | "metadata" | "recurringEvent" | "length" | "slug" | "schedulingType"
+    > | null;
+  };
   metadata: Record<string, string>;
   hashedLink?: string | null;
-  teamMemberEmail?: string;
   handleBooking: (input: UseCreateBookingInput) => void;
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
@@ -28,7 +32,6 @@ export const useHandleBookEvent = ({
   event,
   metadata,
   hashedLink,
-  teamMemberEmail,
   handleBooking,
   handleInstantBooking,
   handleRecBooking,
@@ -39,6 +42,7 @@ export const useHandleBookEvent = ({
   const duration = useBookerStore((state) => state.selectedDuration);
   const { timezone } = useTimePreferences();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const { t, i18n } = useLocale();
   const username = useBookerStore((state) => state.username);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
@@ -46,6 +50,7 @@ export const useHandleBookEvent = ({
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const orgSlug = useBookerStore((state) => state.org);
+  const teamMemberEmail = useBookerStore((state) => state.teamMemberEmail);
 
   const handleBookEvent = () => {
     const values = bookingForm.getValues();
@@ -77,6 +82,7 @@ export const useHandleBookEvent = ({
         timeZone: timezone,
         language: i18n.language,
         rescheduleUid: rescheduleUid || undefined,
+        rescheduledBy: rescheduledBy || undefined,
         bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
         username: username || "",
         metadata: metadata,

@@ -61,7 +61,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           onClick={() => onHelpItemSelect()}
           href="https://cal.com/docs/"
           target="_blank"
-          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
+          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition"
           rel="noreferrer">
           {t("documentation")}
           <Icon

@@ -78,6 +78,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -175,11 +176,10 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com",
+          teamMemberEmail: "example@example.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleWithLeadSkip.teamMember).toBe("example@example.com");
 
       // only slots where example@example.com is available
       expect(scheduleWithLeadSkip).toHaveTimeSlots(
@@ -197,11 +197,9 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "testtest@test.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleWithoutLeadSkip.teamMember).toBe(undefined);
 
       // slots where either one of the rr hosts is available
       expect(scheduleWithoutLeadSkip).toHaveTimeSlots(
@@ -325,11 +323,10 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com",
+          teamMemberEmail: "example@example.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleFixedHostLead.teamMember).toBe("example@example.com");
 
       // show normal slots, example@example + one RR host needs to be available
       expect(scheduleFixedHostLead).toHaveTimeSlots(
@@ -355,11 +352,10 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test1@test.com",
+          teamMemberEmail: "example1@example.com",
+          orgSlug: null,
         },
       });
-
-      expect(scheduleRRHostLead.teamMember).toBe("example1@example.com");
 
       // slots where example@example (fixed host) + example1@example.com are available together
       expect(scheduleRRHostLead).toHaveTimeSlots(
@@ -447,6 +443,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -479,6 +476,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -538,6 +536,7 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const scheduleForEventWith30Length = await getSchedule({
         input: {
+          orgSlug: null,
           eventTypeId: 1,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
@@ -574,6 +573,7 @@ describe("getSchedule", () => {
 
       const scheduleForEventWith30minsLengthAndSlotInterval2hrs = await getSchedule({
         input: {
+          orgSlug: null,
           eventTypeId: 2,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
@@ -639,6 +639,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -662,6 +663,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
@@ -724,6 +726,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -798,6 +801,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -856,6 +860,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -920,6 +925,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -998,6 +1004,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1110,6 +1117,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T23:59:59.999Z`,
           timeZone: Timezones["+6:00"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1121,6 +1129,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T23:59:59.999Z`,
           timeZone: Timezones["+6:00"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1140,6 +1149,100 @@ describe("getSchedule", () => {
         });
       }
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
+    });
+
+    test("a slot counts as being busy when the eventType is requiresConfirmation and requiresConfirmationWillBlockSlot", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      await createBookingScenario({
+        eventTypes: [
+          // A default Event Type which this user owns
+          {
+            id: 2,
+            length: 15,
+            slotInterval: 45,
+            users: [{ id: 101 }],
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
+          },
+          {
+            id: 3,
+            length: 15,
+            slotInterval: 45,
+            users: [{ id: 101 }],
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: false,
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser102@example.com",
+              },
+            ],
+            eventTypeId: 2,
+            status: "PENDING",
+            startTime: `${plus2DateString}T04:00:00.000Z`,
+            endTime: `${plus2DateString}T04:15:00.000Z`,
+          },
+          {
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser103@example.com",
+              },
+            ],
+            eventTypeId: 3,
+            status: "PENDING",
+            startTime: `${plus2DateString}T05:00:00.000Z`,
+            endTime: `${plus2DateString}T05:15:00.000Z`,
+          },
+        ],
+      });
+
+      // Requesting this user's availability for their
+      // individual Event Type
+      const thisUserAvailability = await getSchedule({
+        input: {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          orgSlug: null,
+        },
+      });
+
+      expect(thisUserAvailability).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`, // <- This slot should be occupied by the Pending Requires Confirmation booking blocking this slot
+          `04:15:00.000Z`,
+          `05:00:00.000Z`, // <- This slot should be availble to book as this event type (id: 3) has requires confirmation without blocking the slo
+          `05:45:00.000Z`,
+          `06:30:00.000Z`,
+          `07:15:00.000Z`,
+          `08:00:00.000Z`,
+          `08:45:00.000Z`,
+          `09:30:00.000Z`,
+          `10:15:00.000Z`,
+          `11:00:00.000Z`,
+          `11:45:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
     });
   });
 
@@ -1216,6 +1319,7 @@ describe("getSchedule", () => {
           endTime: `${plus1DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
 
@@ -1246,6 +1350,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
 
@@ -1354,6 +1459,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
       // A user with blocked time in another event, still affects Team Event availability
@@ -1382,6 +1488,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
       // A user with blocked time in another event, still affects Team Event availability
@@ -1426,11 +1533,7 @@ describe("getSchedule", () => {
                 id: 1,
                 slotInterval: 45,
                 length: 45,
-                users: [
-                  {
-                    id: 101,
-                  },
-                ],
+                userId: 101,
               },
             ],
             organizer,
