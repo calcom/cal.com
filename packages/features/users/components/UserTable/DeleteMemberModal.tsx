@@ -17,8 +17,6 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
         limit: 10,
         searchTerm: "",
       });
-
-      console.log("previousValue", previousValue);
       // Update the infinite data to remove the deleted user
       utils.viewer.organizations.listMembers.setInfiniteData({ limit: 10, searchTerm: "" }, (oldData) => {
         if (!oldData) return oldData;
