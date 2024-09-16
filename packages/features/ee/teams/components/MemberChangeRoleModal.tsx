@@ -27,7 +27,7 @@ export const updateRoleInCache = ({
   utils.viewer.teams.listMembers.setInfiniteData(
     {
       limit: 10,
-      teamId,
+      teamIds: [teamId],
       searchTerm,
     },
     (data) => {
@@ -94,7 +94,7 @@ export default function MemberChangeRoleModal(props: {
       await utils.viewer.teams.listMembers.cancel();
       const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
-        teamId: teamId,
+        teamIds: [teamId],
         searchTerm: props.searchTerm,
       });
 

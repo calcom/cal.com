@@ -24,7 +24,7 @@ import {
   UserAvatar,
 } from "@calcom/ui";
 
-type TeamMember = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
 const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
@@ -75,7 +75,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
     trpc.viewer.teams.listMembers.useInfiniteQuery(
       {
         limit: 10,
-        teamId,
+        teamIds: [teamId],
       },
       {
         enabled: !!teamId,
@@ -87,7 +87,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
       }
     );
 
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as TeamMember[];
   const totalFetched = flatData.length;
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({

@@ -111,7 +111,7 @@ export function EditMemberSheet({
       await utils.viewer.teams.listMembers.cancel();
       const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
-        teamId: teamId,
+        teamIds: [teamId],
         searchTerm: undefined,
       });
 

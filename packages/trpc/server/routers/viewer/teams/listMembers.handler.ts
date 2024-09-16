@@ -28,68 +28,50 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
 });
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
-  const { cursor, limit, teamId, searchTerm } = input;
+  const { cursor, limit, teamIds, searchTerm } = input;
 
-  const canAccessMembers = await checkCanAccessMembers(ctx, teamId);
+  const accessibleTeamIds = await getAccessibleTeamIds(ctx, teamIds);
 
-  if (!canAccessMembers) {
+  if (accessibleTeamIds.length === 0) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "You are not authorized to see members of the team",
+      message: "You are not authorized to see members of any teams",
     });
   }
 
-  const getTotalMembers = await prisma.membership.count({
-    where: {
-      teamId: teamId,
-    },
-  });
+  const whereCondition: Prisma.MembershipWhereInput = {
+    teamId: { in: accessibleTeamIds },
+  };
+
+  if (searchTerm) {
+    whereCondition.user = {
+      OR: [
+        { email: { contains: searchTerm, mode: "insensitive" } },
+        { username: { contains: searchTerm, mode: "insensitive" } },
+        { name: { contains: searchTerm, mode: "insensitive" } },
+      ],
+    };
+  }
+
+  const totalMembers = await prisma.membership.count({ where: whereCondition });
 
   const teamMembers = await prisma.membership.findMany({
-    where: {
-      teamId,
-      ...(searchTerm && {
-        user: {
-          OR: [
-            {
-              email: {
-                contains: searchTerm,
-                mode: "insensitive",
-              },
-            },
-            {
-              username: {
-                contains: searchTerm,
-                mode: "insensitive",
-              },
-            },
-            {
-              name: {
-                contains: searchTerm,
-                mode: "insensitive",
-              },
-            },
-          ],
-        },
-      }),
-    },
+    where: whereCondition,
     select: {
       id: true,
       role: true,
       accepted: true,
-      user: {
-        select: userSelect,
-      },
+      teamId: true,
+      user: { select: userSelect },
     },
     cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1, // We take +1 as itll be used for the next cursor
-    orderBy: {
-      id: "asc",
-    },
+    take: limit + 1,
+    orderBy: { id: "asc" },
+    distinct: ["userId"],
   });
 
   let nextCursor: typeof cursor | undefined = undefined;
-  if (teamMembers && teamMembers.length > limit) {
+  if (teamMembers.length > limit) {
     const nextItem = teamMembers.pop();
     nextCursor = nextItem?.id;
   }
@@ -110,6 +92,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
         accepted: member.accepted,
         disableImpersonation: user.disableImpersonation,
         bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
+        teamId: member.teamId,
       };
     })
   );
@@ -118,10 +101,24 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     members: membersWithApps,
     nextCursor,
     meta: {
-      totalRowCount: getTotalMembers || 0,
+      totalRowCount: totalMembers,
     },
   };
 };
+
+async function getAccessibleTeamIds(ctx: ListMembersHandlerOptions["ctx"], teamIds?: number[]) {
+  if (teamIds && teamIds.length > 0) {
+    return Promise.all(
+      teamIds.map(async (teamId) => ((await checkCanAccessMembers(ctx, teamId)) ? teamId : null))
+    ).then((ids) => ids.filter((id): id is number => id !== null));
+  } else {
+    const userTeams = await prisma.membership.findMany({
+      where: { userId: ctx.user.id, accepted: true },
+      select: { teamId: true },
+    });
+    return userTeams.map((team) => team.teamId);
+  }
+}
 
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
   const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;

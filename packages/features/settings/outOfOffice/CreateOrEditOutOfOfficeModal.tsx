@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
@@ -29,6 +31,8 @@ export type BookingRedirectForm = {
   uuid?: string | null;
 };
 
+type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
+
 export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
@@ -42,17 +46,33 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const utils = trpc.useUtils();
 
   // TODO: support infinite scrolling
-  const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
+  const { data, isFetching, status, fetchNextPage, isFetchingNextPage, hasNextPage } =
+    trpc.viewer.teams.listMembers.useInfiniteQuery(
+      {
+        limit: 10,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        staleTime: 0,
+      }
+    );
+
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
+
   const me = useMeQuery();
+
   const memberListOptions: {
     value: number;
     label: string;
   }[] =
-    listMembers
+    flatData
       ?.filter((member) => me?.data?.id !== member.id)
       .map((member) => ({
         value: member.id,
-        label: member.name || "",
+        label: member.name || member.email || "",
       })) || [];
 
   type Option = { value: number; label: string };
