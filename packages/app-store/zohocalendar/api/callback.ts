@@ -24,7 +24,16 @@ function getOAuthBaseUrl(domain: string): string {
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code, location } = req.query;
+  let serverLocation = location
 
+  if (location === "us") {
+    serverLocation = "com"
+  }
+
+  if (location === "au") {
+    serverLocation = "com.au"
+  }
+    
   const state = decodeOAuthState(req);
 
   if (code && typeof code !== "string") {
@@ -51,9 +60,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
     code,
   };
-  const server_location = location === "us" ? "com" :
-                        location === "au" ? "com.au" :
-                        location;
+  const server_location = serverLocation;
 
   const query = stringify(params);
 
