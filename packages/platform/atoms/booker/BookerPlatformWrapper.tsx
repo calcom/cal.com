@@ -388,8 +388,8 @@ export const BookerPlatformWrapper = (
   useEffect(() => {
     if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
       localStorage.removeItem("overlayCalendarSwitchDefault");
-      setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
     }
+     setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
   }, [view, isOverlayCalendarEnabled]);
 
   return (
