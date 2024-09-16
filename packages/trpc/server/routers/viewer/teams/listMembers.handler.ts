@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TListMembersInputSchema } from "./listMembers.schema";
 
-type LazyLoadMembersHandlerOptions = {
+type ListMembersHandlerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
@@ -27,7 +27,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   disableImpersonation: true,
 });
 
-export const listMembersHandler = async ({ ctx, input }: LazyLoadMembersHandlerOptions) => {
+export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
   const { cursor, limit, teamId, searchTerm } = input;
 
   const canAccessMembers = await checkCanAccessMembers(ctx, teamId);
@@ -123,7 +123,7 @@ export const listMembersHandler = async ({ ctx, input }: LazyLoadMembersHandlerO
   };
 };
 
-const checkCanAccessMembers = async (ctx: LazyLoadMembersHandlerOptions["ctx"], teamId: number) => {
+const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
   const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
   const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
   const orgId = ctx.user.organizationId;
