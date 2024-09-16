@@ -1,4 +1,4 @@
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, revalidateCache } from "app/_utils";
 import { notFound } from "next/navigation";
 
 import { FlagListingView } from "@calcom/features/flags/pages/flag-listing-view";
@@ -12,11 +12,18 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
+  const revalidate = async () => {
+    "use server";
+    revalidateCache("SETTINGS_ADMIN_FLAGS");
+  };
   try {
-    const featureFlags = await FeatureFlagRepository.getFeatureFlags();
+    const [featureFlags, _map] = await Promise.all([
+      FeatureFlagRepository.getFeatureFlags(),
+      FeatureFlagRepository.getFeatureFlagMap(), // the returned value of this function isn't used explicitly but the fetch is called here to trigger invalidation
+    ]);
     return (
       <SettingsHeader title="Feature Flags" description="Here you can toggle your Cal.com instance features.">
-        <FlagListingView ssrProps={{ featureFlags }} />
+        <FlagListingView ssrProps={{ featureFlags }} revalidateCache={revalidate} />
       </SettingsHeader>
     );
   } catch (error) {
