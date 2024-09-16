@@ -25,7 +25,6 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      // await page.waitForLoadState("networkidle");
       await expect(page.locator("text=Create your account")).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
@@ -53,7 +52,7 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      // await page.waitForLoadState("networkidle");
+
       await expect(page.locator("text=Create your account")).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
@@ -85,7 +84,6 @@ test.describe("Signup Flow Test", async () => {
 
     // Signup with premium username name
     await page.goto("/signup");
-    // await page.waitForLoadState("networkidle");
     await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
@@ -114,7 +112,6 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
-    // await page.waitForLoadState("networkidle");
     await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
@@ -184,7 +181,6 @@ test.describe("Signup Flow Test", async () => {
 
     const signupUrlWithToken = `/signup?token=${token}`;
     await page.goto(signupUrlWithToken);
-    // await page.waitForLoadState("networkidle");
     await expect(page.locator("text=Create your account")).toBeVisible();
 
     const usernameField = page.locator('input[name="username"]');
@@ -255,7 +251,6 @@ test.describe("Signup Flow Test", async () => {
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
-    // await page.waitForLoadState("networkidle");
 
     await test.step("Invite User to team", async () => {
       // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)
@@ -263,7 +258,7 @@ test.describe("Signup Flow Test", async () => {
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
-      // await page.waitForLoadState("networkidle");
+
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
