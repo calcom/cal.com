@@ -46,11 +46,13 @@ export async function checkBookingLimit({
   timeZone,
 }: {
   eventStartDate: Date;
-  eventId: number;
+  eventId?: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
   rescheduleUid?: string | undefined;
   timeZone?: string | null;
+  teamId?: number;
+  user?: { id: number; email: string };
 }) {
   {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
@@ -62,22 +64,35 @@ export async function checkBookingLimit({
     const startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
     const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
 
-    const bookingsInPeriod = await prisma.booking.count({
-      where: {
-        status: BookingStatus.ACCEPTED,
-        eventTypeId: eventId,
-        // FIXME: bookings that overlap on one side will never be counted
-        startTime: {
-          gte: startDate,
+    let bookingsInPeriod;
+
+    if (teamId && user) {
+      bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+        user: { id: user.id, email: user.email },
+        teamId,
+        startDate: startDate.toDate(),
+        endDate: endDate.toDate(),
+        returnCount: true,
+        excludedUid: rescheduleUid,
+      });
+    } else {
+      bookingsInPeriod = await prisma.booking.count({
+        where: {
+          status: BookingStatus.ACCEPTED,
+          eventTypeId: eventId,
+          // FIXME: bookings that overlap on one side will never be counted
+          startTime: {
+            gte: startDate,
+          },
+          endTime: {
+            lte: endDate,
+          },
+          uid: {
+            not: rescheduleUid,
+          },
         },
-        endTime: {
-          lte: endDate,
-        },
-        uid: {
-          not: rescheduleUid,
-        },
-      },
-    });
+      });
+    }
 
     if (bookingsInPeriod < limitingNumber) return;
 

@@ -7,6 +7,7 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
+import { getStartEndDateforLimitCheck } from "../getBusyTimes";
 import type { EventType } from "../getUserAvailability";
 import { getPeriodStartDatesBetween } from "../getUserAvailability";
 import monitorCallbackAsync from "../sentryWrapper";
@@ -35,14 +36,14 @@ const _getBusyTimesFromLimits = async (
   // run this first, as counting bookings should always run faster..
   if (bookingLimits) {
     performance.mark("bookingLimitsStart");
-    await getBusyTimesFromBookingLimits(
+    await getBusyTimesFromBookingLimits({
       bookings,
       bookingLimits,
       dateFrom,
       dateTo,
-      eventType.id,
-      limitManager
-    );
+      eventTypeId: eventType.id,
+      limitManager,
+    });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
   }
@@ -75,14 +76,18 @@ const getBusyTimesFromBookingLimits = async (
   return monitorCallbackAsync(_getBusyTimesFromBookingLimits, ...args);
 };
 
-const _getBusyTimesFromBookingLimits = async (
-  bookings: EventBusyDetails[],
-  bookingLimits: IntervalLimit,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
-  eventTypeId: number,
-  limitManager: LimitManager
-) => {
+const _getBusyTimesFromBookingLimits = async (params: {
+  bookings: EventBusyDetails[];
+  bookingLimits: IntervalLimit;
+  dateFrom: Dayjs;
+  dateTo: Dayjs;
+  limitManager: LimitManager;
+  eventTypeId?: number;
+  teamId?: number;
+  user?: { id: number; email: string };
+}) => {
+  const { bookings, bookingLimits, dateFrom, dateTo, limitManager, eventTypeId, teamId, user } = params;
+
   for (const key of descendingLimitKeys) {
     const limit = bookingLimits?.[key];
     if (!limit) continue;
@@ -101,6 +106,8 @@ const _getBusyTimesFromBookingLimits = async (
             limitingNumber: limit,
             eventId: eventTypeId,
             key,
+            teamId,
+            user,
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit);
@@ -209,63 +216,39 @@ const _getBusyTimesFromTeamLimits = async (
   teamId: number,
   rescheduleUid?: string | null
 ) => {
-  performance.mark("teamLimitsStart");
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    dateFrom.toISOString(),
+    dateTo.toISOString(),
+    bookingLimits
+  );
 
-  const startDate = dayjs(dateFrom).startOf("month").startOf("week").toDate();
-  const endDate = dayjs(dateTo).endOf("month").startOf("week").toDate();
-
-  const teamBookings = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+  const bookings = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
     user,
     teamId,
-    startDate,
-    endDate,
+    startDate: limitDateFrom.toDate(),
+    endDate: limitDateTo.toDate(),
     excludedUid: rescheduleUid,
   });
 
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventTypeId}-booking-${id}`,
+    userId,
+  }));
+
   const limitManager = new LimitManager();
 
-  for (const key of descendingLimitKeys) {
-    const limit = bookingLimits?.[key];
-    if (!limit) continue;
+  getBusyTimesFromBookingLimits({
+    bookings: busyTimes,
+    bookingLimits,
+    dateFrom,
+    dateTo,
+    limitManager,
+    teamId,
+    user,
+  });
 
-    const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
-
-    for (const periodStart of periodStartDates) {
-      if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
-      // check if an entry already exists with th
-      const periodEnd = periodStart.endOf(unit);
-
-      if (unit === "year") {
-        const bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
-          user: { id: user.id, email: user.email },
-          teamId,
-          startDate: periodStart.toDate(),
-          endDate: periodEnd.toDate(),
-          returnCount: true,
-        });
-
-        if (bookingsInPeriod >= limit) {
-          limitManager.addBusyTime(periodStart, unit);
-        }
-      } else {
-        let totalBookings = 0;
-        for (const booking of teamBookings) {
-          // consider booking part of period independent of end date
-          if (!dayjs(booking.startTime).isBetween(periodStart, periodEnd)) {
-            continue;
-          }
-          totalBookings++;
-          if (totalBookings >= limit) {
-            limitManager.addBusyTime(periodStart, unit);
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  performance.mark("teamLimitsEnd");
-  performance.measure(`checking all team limits took $1'`, "teamLimitsStart", "teamLimitsEnd");
   return limitManager.getBusyTimes();
 };
