@@ -325,6 +325,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       try {
+        // Update the meeting details
         await fetchZoomApi(`meetings/${bookingRef.uid}`, {
           method: "PATCH",
           headers: {
@@ -333,12 +334,16 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           body: JSON.stringify(await translateEvent(event)),
         });
 
-        return Promise.resolve({
+        // Fetch the updated meeting details
+        const updatedMeeting = await fetchZoomApi(`meetings/${bookingRef.uid}`);
+        const result = zoomEventResultSchema.parse(updatedMeeting);
+
+        return {
           type: "zoom_video",
-          id: bookingRef.meetingId as string,
-          password: bookingRef.meetingPassword as string,
-          url: bookingRef.meetingUrl as string,
-        });
+          id: result.id.toString(),
+          password: result.password || "",
+          url: result.join_url,
+        };
       } catch (err) {
         log.error("Failed to update meeting", safeStringify(err));
         return Promise.reject(new Error("Failed to update meeting"));
