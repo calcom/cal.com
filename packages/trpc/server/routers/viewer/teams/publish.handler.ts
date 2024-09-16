@@ -66,7 +66,7 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
   await checkPermissions({ ctx, input });
 
   try {
-    const teamBilling = await TeamBilling.findAndCreate(teamId);
+    const teamBilling = await TeamBilling.findAndInit(teamId);
     await teamBilling.publish();
   } catch (error) {
     /** We return the url for client redirect if needed */

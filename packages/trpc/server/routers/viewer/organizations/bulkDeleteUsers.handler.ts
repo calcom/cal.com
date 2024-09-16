@@ -64,7 +64,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
   await prisma.$transaction([removeProfiles, deleteMany, removeOrgrelation]);
 
-  const teamBilling = await TeamBilling.findAndCreate(currentUser.organizationId);
+  const teamBilling = await TeamBilling.findAndInit(currentUser.organizationId);
   await teamBilling.updateQuantity();
 
   return {

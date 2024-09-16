@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       break;
     }
 
-    const teamsBilling = TeamBilling.createMany(teams);
+    const teamsBilling = TeamBilling.initMany(teams);
     const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
     await Promise.allSettled(teamBillingPromises);
 

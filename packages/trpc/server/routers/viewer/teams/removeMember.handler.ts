@@ -83,7 +83,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
 
   // Sync Services
   memberships.flatMap((m) => closeComDeleteTeamMembership(m.membership.user));
-  const teamsBilling = await TeamBilling.findAndCreateMany(teamIds);
+  const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
   const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
   await Promise.allSettled(teamBillingPromises);
 };

@@ -59,7 +59,7 @@ export const inviteMemberByTokenHandler = async ({ ctx, input }: InviteMemberByT
     } else throw e;
   }
 
-  const teamBilling = await TeamBilling.findAndCreate(verificationToken.teamId);
+  const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
   await teamBilling.updateQuantity();
 
   return verificationToken.team.name;

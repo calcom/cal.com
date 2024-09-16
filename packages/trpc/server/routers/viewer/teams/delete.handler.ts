@@ -20,7 +20,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const teamBilling = await TeamBilling.findAndCreate(input.teamId);
+  const teamBilling = await TeamBilling.findAndInit(input.teamId);
   await teamBilling.cancel();
 
   try {
