@@ -32,7 +32,7 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
 
       // Close the modal after successful deletion
       dispatch({ type: "CLOSE_MODAL" });
-    },
+    }
       showToast(err.message, "error");
     },
   });
