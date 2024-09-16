@@ -176,7 +176,7 @@ const BookerComponent = ({
         isVerificationCodeSending={isVerificationCodeSending}
         isPlatform={isPlatform}>
         <>
-          {verifyCode ? (
+          {verifyCode && formEmail ? (
             <VerifyCodeDialog
               isOpenDialog={isEmailVerificationModalVisible}
               setIsOpenDialog={setEmailVerificationModalVisible}
@@ -291,7 +291,9 @@ const BookerComponent = ({
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
-                {!isPlatform ? (
+                {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
+                  <></>
+                ) : (
                   <Header
                     isMyLink={Boolean(username === sessionUsername)}
                     eventSlug={eventSlug}
@@ -321,8 +323,6 @@ const BookerComponent = ({
                       )
                     }
                   />
-                ) : (
-                  <></>
                 )}
               </BookerSection>
             )}

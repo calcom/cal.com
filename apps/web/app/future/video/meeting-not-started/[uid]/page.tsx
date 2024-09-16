@@ -12,7 +12,7 @@ import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const p = { ...params, ...searchParams };
-  const booking = await BookingRepository.findBookingByUidWithOptionalSelect({
+  const booking = await BookingRepository.findBookingByUid({
     bookingUid: typeof p?.uid === "string" ? p.uid : "",
   });
 

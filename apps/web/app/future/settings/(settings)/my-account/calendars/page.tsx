@@ -1,8 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { getFixedT } from "app/_utils";
-import { getServerSession } from "next-auth";
 
-import { AUTH_OPTIONS } from "@calcom/feature-auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Button } from "@calcom/ui";
 
@@ -15,7 +14,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
   const t = await getFixedT(session?.user.locale || "en");
 
   const AddCalendarButton = () => {
