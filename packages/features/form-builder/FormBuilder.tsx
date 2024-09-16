@@ -606,7 +606,14 @@ function FieldEditDialog({
                       }}
                     />
                     {!isEditing ? (
-                      <FormFieldIdentifier fieldIdentifier={fieldIdentifier} setIsEditing={setIsEditing} />
+                      <FormFieldIdentifier
+                        fieldIdentifier={fieldIdentifier}
+                        setIsEditing={setIsEditing}
+                        disabled={
+                          fieldForm.getValues("editable") === "system" ||
+                          fieldForm.getValues("editable") === "system-but-optional"
+                        }
+                      />
                     ) : (
                       <>
                         <InputField
@@ -777,7 +784,8 @@ function VariantFields({
   const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
 
   const defaultVariant = fieldTypeConfigVariantsConfig.defaultVariant;
-
+  const fieldIdentifier = fieldForm.watch("name");
+  const [isEditing, setIsEditing] = useState(false);
   const variantNames = Object.keys(variantsConfig.variants);
   const otherVariants = variantNames.filter((v) => v !== defaultVariant);
   if (otherVariants.length > 1 && variantToggleLabel) {
@@ -809,22 +817,6 @@ function VariantFields({
         <VariantSelector />
       )}
 
-      <InputField
-        required
-        {...fieldForm.register("name")}
-        containerClassName="mt-6"
-        disabled={
-          fieldForm.getValues("editable") === "system" ||
-          fieldForm.getValues("editable") === "system-but-optional"
-        }
-        label={t("identifier")}
-      />
-
-      <CheckboxField
-        description={t("disable_input_if_prefilled")}
-        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-      />
-
       <ul
         className={classNames(
           !isSimpleVariant ? "border-subtle divide-subtle mt-2 divide-y rounded-md border" : ""
@@ -847,10 +839,14 @@ function VariantFields({
               )}
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.label`)}
-                value={f.label || ""}
                 placeholder={t(appUiFieldConfig?.defaultLabel || "")}
                 containerClassName="mt-6"
                 label={t("label")}
+                onChange={(e) => {
+                  fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
+                    shouldDirty: true,
+                  });
+                }}
               />
               <InputField
                 {...fieldForm.register(`${rhfVariantFieldPrefix}.placeholder`)}
@@ -878,6 +874,33 @@ function VariantFields({
                   );
                 }}
               />
+              {!isEditing ? (
+                <FormFieldIdentifier
+                  fieldIdentifier={fieldIdentifier}
+                  setIsEditing={setIsEditing}
+                  disabled={
+                    fieldForm.getValues("editable") === "system" ||
+                    fieldForm.getValues("editable") === "system-but-optional"
+                  }
+                />
+              ) : (
+                <>
+                  <InputField
+                    required
+                    {...fieldForm.register("name")}
+                    containerClassName="mt-6"
+                    disabled={
+                      fieldForm.getValues("editable") === "system" ||
+                      fieldForm.getValues("editable") === "system-but-optional"
+                    }
+                    label={t("identifier")}
+                  />
+                  <CheckboxField
+                    description={t("disable_input_if_prefilled")}
+                    {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+                  />
+                </>
+              )}
             </li>
           );
         })}

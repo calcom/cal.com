@@ -7,9 +7,11 @@ import { Icon, Tooltip } from "@calcom/ui";
 const FormFieldIdentifier = ({
   fieldIdentifier,
   setIsEditing,
+  disabled,
 }: {
   fieldIdentifier: string | null;
   setIsEditing: Dispatch<SetStateAction<boolean>>;
+  disabled?: boolean;
 }) => {
   const { t } = useLocale();
   return (
@@ -28,7 +30,7 @@ const FormFieldIdentifier = ({
         <div className="bg-subtle dark:text-default text-emphasis flex items-center gap-2 rounded-md p-1 text-center">
           <span className="break-all text-sm">{fieldIdentifier}</span>
           <Tooltip content={t("edit_identifier")}>
-            <button onClick={() => setIsEditing(true)}>
+            <button onClick={() => setIsEditing(true)} disabled={disabled}>
               <Icon name="pencil" className="h-4 w-4" />
             </button>
           </Tooltip>
