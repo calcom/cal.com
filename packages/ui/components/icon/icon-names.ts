@@ -67,6 +67,7 @@ export type IconName =
   | "fingerprint"
   | "flag"
   | "folder"
+  | "gift"
   | "git-merge"
   | "github"
   | "globe"

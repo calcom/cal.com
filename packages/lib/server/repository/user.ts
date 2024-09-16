@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
@@ -174,27 +175,26 @@ export class UserRepository {
           organization: getParsedTeam(profile.organization),
         }))
       : null;
-
-    const where = profiles
-      ? {
-          // Get UserIds from profiles
-          id: {
-            in: profiles.map((profile) => profile.user.id),
-          },
-        }
-      : {
-          username: {
-            in: usernameList,
-          },
-          ...(orgSlug
-            ? {
-                organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
-              }
-            : {
-                organization: null,
-              }),
-        };
-
+    const where =
+      profiles && profiles.length > 0
+        ? {
+            // Get UserIds from profiles
+            id: {
+              in: profiles.map((profile) => profile.user.id),
+            },
+          }
+        : {
+            username: {
+              in: usernameList,
+            },
+            ...(orgSlug
+              ? {
+                  organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+                }
+              : {
+                  organization: null,
+                }),
+          };
     return { where, profiles };
   }
 
@@ -224,6 +224,7 @@ export class UserRepository {
             },
           },
         },
+        createdDate: true,
       },
     });
 
@@ -238,16 +239,27 @@ export class UserRepository {
     };
   }
 
-  static async findById({ id, select }: { id: number; select?: Prisma.UserSelect }) {
+  static async findById({ id }: { id: number }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
       },
-      select: { ...userSelect, ...select },
+      select: userSelect,
     });
 
     if (!user) {
       return null;
+    }
+    return {
+      ...user,
+      metadata: userMetadata.parse(user.metadata),
+    };
+  }
+
+  static async findByIdOrThrow({ id }: { id: number }) {
+    const user = await UserRepository.findById({ id });
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
     }
     return user;
   }
@@ -581,6 +593,19 @@ export class UserRepository {
     });
     return !!teams.length;
   }
+
+  static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        timeZone: true,
+        defaultScheduleId: true,
+      },
+    });
+  }
+
   static async adminFindById(userId: number) {
     return await prisma.user.findUniqueOrThrow({
       where: {

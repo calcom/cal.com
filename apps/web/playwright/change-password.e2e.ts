@@ -13,7 +13,7 @@ test.describe("Change Password Test", () => {
 
     expect(pro.username).toBeTruthy();
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     // Fill form
     await page.locator('[name="oldPassword"]').fill(String(pro.username));
