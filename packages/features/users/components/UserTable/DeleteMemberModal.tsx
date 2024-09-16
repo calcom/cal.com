@@ -33,13 +33,6 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
       // Close the modal after successful deletion
       dispatch({ type: "CLOSE_MODAL" });
     },
-    async onError(err, _, context) {
-      if (context?.previousValue) {
-        utils.viewer.organizations.listMembers.setInfiniteData(
-          { limit: 10, searchTerm: "" },
-          context.previousValue
-        );
-      }
       showToast(err.message, "error");
     },
   });
