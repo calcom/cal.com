@@ -7,6 +7,7 @@ import { getErrorFromUnknown } from "../errors";
 import { HttpError } from "../http-error";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import { parseBookingLimit } from "../isBookingLimits";
+import { BookingRepository } from "./repository/booking";
 
 export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
@@ -44,6 +45,8 @@ export async function checkBookingLimit({
   limitingNumber,
   rescheduleUid,
   timeZone,
+  teamId,
+  user,
 }: {
   eventStartDate: Date;
   eventId?: number;
@@ -70,8 +73,8 @@ export async function checkBookingLimit({
       bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
         user: { id: user.id, email: user.email },
         teamId,
-        startDate: startDate.toDate(),
-        endDate: endDate.toDate(),
+        startDate: startDate,
+        endDate: endDate,
         returnCount: true,
         excludedUid: rescheduleUid,
       });
