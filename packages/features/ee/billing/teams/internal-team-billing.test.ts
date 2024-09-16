@@ -2,6 +2,8 @@ import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { test, beforeEach, describe, expect, vi } from "vitest";
 
+import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import bulkDeleteUsers from "@calcom/trpc/server/routers/viewer/organizations/bulkDeleteUsers.handler";
 
@@ -73,10 +75,36 @@ describe("TeamBilling", async () => {
     const result = await bulkDeleteUsers({ ctx, input: { userIds: [2, 3, 4, 5] } });
     expect(result).toMatchInlineSnapshot();
   });
-});
 
-test.skip("TODO: Internal billing is called when team billing is enabled", async () => {
-  expect(true).toBe(false);
+  test("Subscription is cancelled when team is deleted", async () => {
+    // Mock the TeamRepository and InternalTeamBilling
+    const mockCancel = vi.fn();
+    vi.mock("@calcom/lib/server/repository/team", () => ({
+      TeamRepository: {
+        deleteById: vi.fn(),
+      },
+    }));
+    vi.mock("@calcom/features/ee/billing/teams/internal-team-billing", () => ({
+      InternalTeamBilling: vi.fn().mockImplementation(() => ({
+        cancel: mockCancel,
+      })),
+    }));
+
+    // Set up test data
+    const teamId = 1;
+
+    // Call the deleteById method
+    await TeamRepository.deleteById({ id: teamId });
+
+    // Assert that InternalTeamBilling was instantiated with the correct team ID
+    expect(InternalTeamBilling).toHaveBeenCalledWith(expect.objectContaining({ id: teamId }));
+
+    // Assert that the cancel method was called
+    expect(mockCancel).toHaveBeenCalled();
+
+    // Assert that TeamRepository.deleteById was called with the correct ID
+    expect(TeamRepository.deleteById).toHaveBeenCalledWith({ id: teamId });
+  });
 });
 
 test.skip("TODO: Subscription is cancelled when team is deleted", async () => {

@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { TeamBilling } from "@calcom/features/ee/billing/teams";
+import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -177,5 +179,100 @@ export class TeamRepository {
       return null;
     }
     return getParsedTeam(team);
+  }
+
+  static async deleteById({ id }: { id: number }) {
+    const teamBilling = await TeamBilling.findAndCreate(input.teamId);
+    await teamBilling.cancel();
+
+    try {
+      await this._deleteWorkflowRemindersOfRemovedTeam(input.teamId);
+    } catch (e) {
+      console.error(e);
+    }
+
+    const deletedTeam = await prisma.$transaction(async (tx) => {
+      // delete all memberships
+      await tx.membership.deleteMany({
+        where: {
+          teamId: input.teamId,
+        },
+      });
+
+      const deletedTeam = await tx.team.delete({
+        where: {
+          id: input.teamId,
+        },
+      });
+      return deletedTeam;
+    });
+
+    if (deletedTeam?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
+
+    return deletedTeam;
+  }
+
+  private static async _deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+    });
+
+    if (team?.parentId) {
+      const activeWorkflowsOnTeam = await prisma.workflow.findMany({
+        where: {
+          teamId: team.parentId,
+          OR: [
+            {
+              activeOnTeams: {
+                some: {
+                  teamId: team.id,
+                },
+              },
+            },
+            {
+              isActiveOnAll: true,
+            },
+          ],
+        },
+        select: {
+          steps: true,
+          activeOnTeams: true,
+          isActiveOnAll: true,
+        },
+      });
+
+      for (const workflow of activeWorkflowsOnTeam) {
+        const workflowSteps = workflow.steps;
+        let remainingActiveOnIds = [];
+
+        if (workflow.isActiveOnAll) {
+          const allRemainingOrgTeams = await prisma.team.findMany({
+            where: {
+              parentId: team.parentId,
+              id: {
+                not: team.id,
+              },
+            },
+          });
+          remainingActiveOnIds = allRemainingOrgTeams.map((team) => team.id);
+        } else {
+          remainingActiveOnIds = workflow.activeOnTeams
+            .filter((activeOn) => activeOn.teamId !== team.id)
+            .map((activeOn) => activeOn.teamId);
+        }
+        deleteRemindersOfActiveOnIds({
+          removedActiveOnIds: [team.id],
+          workflowSteps,
+          isOrg: true,
+          activeOnIds: remainingActiveOnIds,
+        });
+      }
+    }
+  }
+
+  private static async _deleteDomain(slug: string) {
+    return await deleteDomain(slug);
   }
 }
