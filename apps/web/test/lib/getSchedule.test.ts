@@ -1681,21 +1681,20 @@ describe("getSchedule", () => {
       });
 
       const scenario = await createBookingScenario(
-        getScenarioData({
-          eventTypes: [
-            {
-              id: 1,
-              slotInterval: 45,
-              length: 45,
-              users: [
-                {
-                  id: 101,
-                },
-              ],
-            },
-          ],
-          organizer,
-        })
+        getScenarioData(
+          {
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                length: 45,
+                userId: 101,
+              },
+            ],
+            organizer,
+          },
+          { id: org.id }
+        )
       );
 
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
