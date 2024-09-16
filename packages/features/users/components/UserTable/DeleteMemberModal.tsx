@@ -13,7 +13,7 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
   const utils = trpc.useUtils();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
-      // Update the infinite data to remove the deleted user
+      // @ts-expect-error rows can't be of type never[] but oldData can be due to the filter
       utils.viewer.organizations.listMembers.setInfiniteData({ limit: 10, searchTerm: "" }, (oldData) => {
         if (!oldData) return oldData;
         return {
@@ -32,7 +32,8 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
 
       // Close the modal after successful deletion
       dispatch({ type: "CLOSE_MODAL" });
-    }
+    },
+    async onError(err) {
       showToast(err.message, "error");
     },
   });
