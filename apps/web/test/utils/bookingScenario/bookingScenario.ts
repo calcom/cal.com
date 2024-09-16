@@ -145,6 +145,7 @@ export type InputEventType = {
   length?: number;
   offsetStart?: number;
   slotInterval?: number;
+  userId?: number;
   minimumBookingNotice?: number;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
@@ -1249,7 +1250,6 @@ export function getScenarioData(
       ];
     });
   }
-
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {

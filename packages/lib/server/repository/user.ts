@@ -126,8 +126,7 @@ export class UserRepository {
       orgSlug,
       usernameList,
     });
-
-    log.debug("findUsersByUsername", safeStringify({ where, profiles }));
+    log.info("findUsersByUsername", safeStringify({ where, profiles }));
 
     return (
       await prisma.user.findMany({
@@ -135,6 +134,7 @@ export class UserRepository {
         where,
       })
     ).map((user) => {
+      log.info("findUsersByUsername", safeStringify({ user }));
       // User isn't part of any organization
       if (!profiles) {
         return {
@@ -175,27 +175,26 @@ export class UserRepository {
           organization: getParsedTeam(profile.organization),
         }))
       : null;
-
-    const where = profiles
-      ? {
-          // Get UserIds from profiles
-          id: {
-            in: profiles.map((profile) => profile.user.id),
-          },
-        }
-      : {
-          username: {
-            in: usernameList,
-          },
-          ...(orgSlug
-            ? {
-                organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
-              }
-            : {
-                organization: null,
-              }),
-        };
-
+    const where =
+      profiles && profiles.length > 0
+        ? {
+            // Get UserIds from profiles
+            id: {
+              in: profiles.map((profile) => profile.user.id),
+            },
+          }
+        : {
+            username: {
+              in: usernameList,
+            },
+            ...(orgSlug
+              ? {
+                  organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+                }
+              : {
+                  organization: null,
+                }),
+          };
     return { where, profiles };
   }
 
