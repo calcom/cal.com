@@ -1,4 +1,4 @@
-import { getFixedT, _generateMetadata, revalidateApiKeys } from "app/_utils";
+import { getFixedT, _generateMetadata, revalidateCache } from "app/_utils";
 import { notFound } from "next/navigation";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
@@ -20,9 +20,9 @@ const Page = async () => {
   const session = await getServerSessionForAppDir();
 
   const t = await getFixedT(session?.user.locale || "en");
-  const revalidateApiKeysHandler = async () => {
+  const revalidate = async () => {
     "use server";
-    revalidateApiKeys("SETTINGS_DEVELOPER_API_KEYS");
+    revalidateCache("SETTINGS_DEVELOPER_API_KEYS");
   };
   const userId = session?.user?.id;
   if (!userId) {
@@ -38,11 +38,7 @@ const Page = async () => {
         description={t("create_first_api_key_description", { appName: APP_NAME })}
         CTA={<NewApiKeyButton />}
         borderInShellHeader={true}>
-        <ApiKeysView
-          ssrProps={{ apiKeysList }}
-          revalidateApiKeys={revalidateApiKeysHandler}
-          isAppDir={true}
-        />
+        <ApiKeysView ssrProps={{ apiKeysList }} revalidateCache={revalidate} isAppDir={true} />
       </SettingsHeader>
     );
   } catch (error) {

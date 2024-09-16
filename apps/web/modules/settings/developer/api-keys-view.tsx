@@ -44,11 +44,11 @@ interface ApiKeysViewProps {
   ssrProps?: {
     apiKeysList?: Awaited<ReturnType<typeof ApiKeysRepository.getApiKeys>>;
   };
-  revalidateApiKeys?: () => Promise<void>;
+  revalidateCache?: () => Promise<void>;
   isAppDir?: boolean;
 }
 
-export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: ApiKeysViewProps) {
+export default function ApiKeysView({ ssrProps, revalidateCache, isAppDir }: ApiKeysViewProps) {
   const { t } = useLocale();
 
   const { data: apiKeysList, isPending: isPendingList } = trpc.viewer.apiKeys.list.useQuery(undefined, {
@@ -110,7 +110,7 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: A
                       setApiKeyToEdit(apiKey);
                       setApiKeyModal(true);
                     }}
-                    onSuccess={revalidateApiKeys}
+                    onSuccess={revalidateCache}
                   />
                 ))}
               </div>
@@ -132,7 +132,7 @@ export default function ApiKeysView({ ssrProps, revalidateApiKeys, isAppDir }: A
           <ApiKeyDialogForm
             handleClose={() => setApiKeyModal(false)}
             defaultValues={apiKeyToEdit}
-            onSuccess={revalidateApiKeys}
+            onSuccess={revalidateCache}
           />
         </DialogContent>
       </Dialog>
