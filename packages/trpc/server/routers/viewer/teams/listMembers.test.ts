@@ -194,7 +194,7 @@ describe("listMembers", () => {
           limit: 10,
         },
       })
-    ).rejects.toThrowError("You are not authorized to see members of the team");
+    ).rejects.toThrowError("You are not authorized to see members of any teams");
   });
 
   it("should throw error if user is not part of the private team", async () => {
@@ -225,7 +225,7 @@ describe("listMembers", () => {
           limit: 10,
         },
       })
-    ).rejects.toThrowError("You are not authorized to see members of the team");
+    ).rejects.toThrowError("You are not authorized to see members of any teams");
   });
 
   it("can search by name or email", async () => {
