@@ -3,7 +3,7 @@ import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, type BookingStatus } from "@calcom/prisma/enums";
+import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -383,7 +383,6 @@ export async function getBookings({
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
-  const teamAdminOrOwnerCache = new Map<number, boolean>();
 
   const bookings = await Promise.all(
     (
@@ -403,27 +402,6 @@ export async function getBookings({
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
-      let isUserTeamAdminOrOwner = false;
-      if (booking.eventType?.team?.id) {
-        const teamId = booking.eventType.team.id;
-        if (teamAdminOrOwnerCache.has(teamId)) {
-          isUserTeamAdminOrOwner = teamAdminOrOwnerCache.get(teamId)!;
-        } else {
-          isUserTeamAdminOrOwner = await prisma.membership
-            .findFirst({
-              where: {
-                userId: user.id,
-                teamId: teamId,
-                role: {
-                  in: [MembershipRole.OWNER, MembershipRole.ADMIN],
-                },
-              },
-            })
-            .then((membership) => !!membership);
-          teamAdminOrOwnerCache.set(teamId, isUserTeamAdminOrOwner);
-        }
-      }
-
       return {
         ...booking,
         eventType: {
@@ -436,7 +414,6 @@ export async function getBookings({
         },
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
-        isUserTeamAdminOrOwner,
       };
     })
   );

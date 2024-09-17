@@ -17,7 +17,7 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
@@ -77,7 +77,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
-              members: true,
             },
           },
           workflows: {
@@ -109,30 +108,26 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     },
   });
 
-  if (booking.userId !== user.id && booking.eventTypeId) {
-    // Only query database when it is explicitly required.
-    const eventType = await prisma.eventType.findFirst({
-      where: {
-        id: booking.eventTypeId,
-        schedulingType: SchedulingType.COLLECTIVE,
-      },
-      select: {
-        users: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
+  // if (booking.userId !== user.id && booking.eventTypeId) {
+  //   // Only query database when it is explicitly required.
+  //   const eventType = await prisma.eventType.findFirst({
+  //     where: {
+  //       id: booking.eventTypeId,
+  //       schedulingType: SchedulingType.COLLECTIVE,
+  //     },
+  //     select: {
+  //       users: {
+  //         select: {
+  //           id: true,
+  //         },
+  //       },
+  //     },
+  //   });
 
-    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
-    const isTeamAdminOrOwner =
-      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-
-    if (eventType && !eventType.users.find((user) => booking.userId === user.id) && !isTeamAdminOrOwner) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
-    }
-  }
+  //   if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
+  //     throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
+  //   }
+  // }
 
   // Do not move this before authorization check.
   // This is done to avoid exposing extra information to the requester.
