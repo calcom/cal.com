@@ -38,6 +38,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Form, showToast } from "@calcom/ui";
 
 import { EventTypeSingleLayout } from "./EventTypeLayout";
+import { WarningDialogType } from "./dialogs/AssignmentWarningDialog";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() => import("./tabs/setup/EventSetupTab").then((mod) => mod.EventSetupTab));
@@ -129,9 +130,12 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
   });
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
-  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
+  const [isOpenWarnDialog, setIsOpenWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
-  const leaveWithoutAssigningHosts = useRef(false);
+  const [warningDialog, setWarningDialog] = useState<WarningDialogType>(
+    !!team ? WarningDialogType.EMPTY_ASSIGNMENTS : WarningDialogType.UNSAVED_CHANGES
+  );
+  const leaveWithoutAction = useRef(false);
   const isTeamEventTypeDeleted = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -299,7 +303,9 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
     ),
   });
   const {
+    getValues,
     formState: { isDirty: isFormDirty, dirtyFields },
+    getFieldState,
   } = formMethods;
 
   const onDelete = () => {
@@ -313,24 +319,37 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       // If the event-type is deleted, we can't show the empty assignment warning
       if (isTeamEventTypeDeleted.current) return;
 
-      if (
-        !!team &&
-        !leaveWithoutAssigningHosts.current &&
-        (url === "/event-types" || paths[1] !== "event-types") &&
-        checkForEmptyAssignment({
-          assignedUsers: eventType.children,
-          hosts: eventType.hosts,
-          assignAllTeamMembers: eventType.assignAllTeamMembers,
-          isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
-        })
-      ) {
-        setIsOpenAssignmentWarnDialog(true);
-        setPendingRoute(url);
-        router.events.emit(
-          "routeChangeError",
-          new Error(`Aborted route change to ${url} because none was assigned to team event`)
-        );
-        throw "Aborted";
+      if (!leaveWithoutAction.current && (url === "/event-types" || paths[1] !== "event-types")) {
+        const hasUnsavedChanges = getFormFieldStates(getValues());
+        if (hasUnsavedChanges) {
+          setWarningDialog(WarningDialogType.UNSAVED_CHANGES);
+          setIsOpenWarnDialog(true);
+          setPendingRoute(url);
+          router.events.emit(
+            "routeChangeError",
+            new Error(`Aborted route change to ${url} because there are unsaved changes`)
+          );
+          throw "Aborted";
+        }
+
+        if (
+          !!team &&
+          checkForEmptyAssignment({
+            assignedUsers: eventType.children,
+            hosts: eventType.hosts,
+            assignAllTeamMembers: eventType.assignAllTeamMembers,
+            isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+          })
+        ) {
+          setWarningDialog(WarningDialogType.EMPTY_ASSIGNMENTS);
+          setIsOpenWarnDialog(true);
+          setPendingRoute(url);
+          router.events.emit(
+            "routeChangeError",
+            new Error(`Aborted route change to ${url} because none was assigned to team event`)
+          );
+          throw "Aborted";
+        }
       }
     };
     router.events.on("routeChangeStart", handleRouteChange);
@@ -469,6 +488,46 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
       }
     });
     return updatedFields;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const getEachFieldState = (parentKey: string, objValue): boolean => {
+    let isDirty = false;
+    isDirty = getFieldState(parentKey as keyof FormValues).isDirty;
+    // if field of type array (or object) itself has dirty state.
+    if (isDirty) {
+      return isDirty;
+    }
+    for (const key in objValue) {
+      const completeKey = `${parentKey}.${key}`;
+      if (isObject(objValue[key]) || isArray(objValue[key])) {
+        // Recursive call for nested objects or arrays within each element
+        isDirty = getEachFieldState(completeKey, objValue[key]);
+      } else {
+        isDirty = getFieldState(completeKey as keyof FormValues).isDirty;
+      }
+      if (isDirty) {
+        return isDirty;
+      }
+    }
+    return isDirty;
+  };
+
+  const getFormFieldStates = (values: FormValues): boolean => {
+    let isDirty = false;
+    for (const key in values) {
+      const typedKey = key as keyof typeof values;
+      if (isObject(values[typedKey]) || isArray(values[typedKey])) {
+        isDirty = getEachFieldState(typedKey, values[typedKey]);
+      } else {
+        isDirty = getFieldState(typedKey).isDirty;
+      }
+      if (isDirty) {
+        return isDirty;
+      }
+    }
+    return isDirty;
   };
 
   const handleSubmit = async (values: FormValues) => {
@@ -755,10 +814,11 @@ export const EventType = (props: EventTypeSetupProps & { allActiveWorkflows?: Wo
         />
       ) : null}
       <AssignmentWarningDialog
-        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
-        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
+        warningDialog={warningDialog}
+        isOpenWarnDialog={isOpenWarnDialog}
+        setIsOpenWarnDialog={setIsOpenWarnDialog}
         pendingRoute={pendingRoute}
-        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+        leaveWithoutAction={leaveWithoutAction}
         id={eventType.id}
       />
     </>

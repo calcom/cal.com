@@ -6,28 +6,37 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, DialogContent, Button, DialogFooter } from "@calcom/ui";
 
 interface AssignmentWarningDialogProps {
-  isOpenAssignmentWarnDialog: boolean;
-  setIsOpenAssignmentWarnDialog: Dispatch<SetStateAction<boolean>>;
+  warningDialog: WarningDialogType;
+  isOpenWarnDialog: boolean;
+  setIsOpenWarnDialog: Dispatch<SetStateAction<boolean>>;
   pendingRoute: string;
-  leaveWithoutAssigningHosts: MutableRefObject<boolean>;
+  leaveWithoutAction: MutableRefObject<boolean>;
   id: number;
+}
+
+export enum WarningDialogType {
+  EMPTY_ASSIGNMENTS = "EMPTY_ASSIGNMENTS",
+  UNSAVED_CHANGES = "UNSAVED_CHANGES",
 }
 
 const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
   const { t } = useLocale();
-  const {
-    isOpenAssignmentWarnDialog,
-    setIsOpenAssignmentWarnDialog,
-    pendingRoute,
-    leaveWithoutAssigningHosts,
-    id,
-  } = props;
+  const { warningDialog, isOpenWarnDialog, setIsOpenWarnDialog, pendingRoute, leaveWithoutAction, id } =
+    props;
   const router = useRouter();
   return (
-    <Dialog open={isOpenAssignmentWarnDialog} onOpenChange={setIsOpenAssignmentWarnDialog}>
+    <Dialog open={isOpenWarnDialog} onOpenChange={setIsOpenWarnDialog}>
       <DialogContent
-        title={t("leave_without_assigning_anyone")}
-        description={`${t("leave_without_adding_attendees")} ${t("no_availability_shown_to_bookers")}`}
+        title={
+          warningDialog === WarningDialogType.EMPTY_ASSIGNMENTS
+            ? t("leave_without_assigning_anyone")
+            : t("leave_without_saving_changes_title")
+        }
+        description={
+          warningDialog === WarningDialogType.EMPTY_ASSIGNMENTS
+            ? `${t("leave_without_adding_attendees")} ${t("no_availability_shown_to_bookers")}`
+            : t("leave_without_saving_changes_description")
+        }
         Icon="circle-alert"
         enableOverflow
         type="confirmation">
@@ -35,20 +44,25 @@ const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
           <Button
             onClick={(e) => {
               e.preventDefault();
-              setIsOpenAssignmentWarnDialog(false);
-              router.replace(`/event-types/${id}?tabName=team`);
+              setIsOpenWarnDialog(false);
+              if (warningDialog === WarningDialogType.EMPTY_ASSIGNMENTS)
+                router.replace(`/event-types/${id}?tabName=team`);
             }}
             color="minimal">
-            {t("go_back_and_assign")}
+            {warningDialog === WarningDialogType.EMPTY_ASSIGNMENTS
+              ? t("go_back_and_assign")
+              : t("go_back_and_save")}
           </Button>
           <Button
             onClick={(e) => {
               e.preventDefault();
-              setIsOpenAssignmentWarnDialog(false);
-              leaveWithoutAssigningHosts.current = true;
+              setIsOpenWarnDialog(false);
+              leaveWithoutAction.current = true;
               router.replace(pendingRoute);
             }}>
-            {t("leave_without_assigning")}
+            {warningDialog === WarningDialogType.EMPTY_ASSIGNMENTS
+              ? t("leave_without_assigning")
+              : t("leave_without_saving")}
           </Button>
         </DialogFooter>
       </DialogContent>
