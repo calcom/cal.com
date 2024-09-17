@@ -32,7 +32,7 @@ const AssignmentWarningDialog = dynamic(
 
 const EventSetupTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/setup/EventSetupTab").then((mod) => mod.EventSetupTab)
+  import("./EventTypeSetupWebWrapper").then((mod) => mod)
 );
 
 const EventAvailabilityTab = dynamic(() =>

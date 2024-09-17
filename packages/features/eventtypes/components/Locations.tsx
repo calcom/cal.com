@@ -334,7 +334,7 @@ const Locations: React.FC<LocationsProps> = ({
         {(validLocations.length === 0 || showEmptyLocationSelect) && (
           <div className="flex">
             <LocationSelect
-              defaultMenuIsOpen={showEmptyLocationSelect}
+              defaultMenuIsOpen={true}
               placeholder={t("select")}
               options={locationOptions}
               value={selectedNewOption}
