@@ -1,5 +1,4 @@
-import type { DestinationCalendar } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
@@ -92,18 +91,18 @@ import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEma
 import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
-import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
+import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadUsers } from "./handleNewBooking/loadUsers";
 import type {
-  Invitee,
-  IEventTypePaymentCredentialType,
-  IsFixedAwareUser,
-  BookingType,
   Booking,
+  BookingType,
+  IEventTypePaymentCredentialType,
+  Invitee,
+  IsFixedAwareUser,
 } from "./handleNewBooking/types";
 import handleSeats from "./handleSeats/handleSeats";
 import type { BookingSeat } from "./handleSeats/types";
@@ -533,7 +532,8 @@ async function handler(
                 timeZone: reqBody.timeZone,
                 originalRescheduledBooking,
               },
-              loggerWithEventDetails
+              loggerWithEventDetails,
+              userId
             );
           }
         } else {
@@ -545,7 +545,8 @@ async function handler(
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
-            loggerWithEventDetails
+            loggerWithEventDetails,
+            userId
           );
         }
       }
@@ -560,7 +561,8 @@ async function handler(
           timeZone: reqBody.timeZone,
           originalRescheduledBooking,
         },
-        loggerWithEventDetails
+        loggerWithEventDetails, 
+        userId
       );
       const luckyUsers: typeof users = [];
       const luckyUserPool: IsFixedAwareUser[] = [];
@@ -631,7 +633,8 @@ async function handler(
                   timeZone: reqBody.timeZone,
                   originalRescheduledBooking,
                 },
-                loggerWithEventDetails
+                loggerWithEventDetails,
+                userId
               );
             }
             // if no error, then lucky user is available for the next slots

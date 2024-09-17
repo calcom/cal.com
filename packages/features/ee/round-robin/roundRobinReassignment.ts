@@ -12,8 +12,8 @@ import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBoo
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import {
-  scheduleEmailReminder,
   deleteScheduledEmailReminder,
+  scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
@@ -25,8 +25,8 @@ import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookin
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const bookingSelect = {
@@ -131,7 +131,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       dateTo: dayjs(booking.endTime).format(),
       timeZone: eventType.timeZone || originalOrganizer.timeZone,
     },
-    roundRobinReassignLogger
+    roundRobinReassignLogger,
+    booking.userId ?? 0
   );
 
   const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {

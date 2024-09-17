@@ -8,9 +8,11 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { userSelect } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { checkForConflicts } from "../conflictChecker/checkForConflicts";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
+import { isUserReschedulingOwner } from "./getRequiresConfirmationFlags";
 import type { BookingType, IsFixedAwareUser } from "./types";
 
 
@@ -54,7 +56,8 @@ export async function ensureAvailableUsers(
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  loggerWithEventDetails: Logger<unknown>
+  loggerWithEventDetails: Logger<unknown>,
+  userId: number | undefined
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
 
@@ -67,28 +70,36 @@ export async function ensureAvailableUsers(
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   let attendeeUsers: IsFixedAwareUser[] = [];
+  let isEventOwnerOrTeamAdmin = false;
   if (input.originalRescheduledBooking?.uid) {
-    const attendeesEmails = input.originalRescheduledBooking?.attendees?.map((a) => a.email);
-    if (attendeesEmails?.length) {
-      let attendees = await prisma.user.findMany({
-        where: {
-          email: {
-            in: attendeesEmails,
+    const isEventOwner = isUserReschedulingOwner(userId, input.originalRescheduledBooking?.user?.id);
+    const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
+    const isUserTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+    isEventOwnerOrTeamAdmin = isEventOwner || isUserTeamAdminOrOwner
+    if (isEventOwnerOrTeamAdmin) {
+      const attendeesEmails = input.originalRescheduledBooking?.attendees?.map((a) => a.email);
+      if (attendeesEmails?.length) {
+        let attendees = await prisma.user.findMany({
+          where: {
+            email: {
+              in: attendeesEmails,
+            },
           },
-        },
-        select: {
-          ...userSelect.select,
-          credentials: {
-            select: credentialForCalendarServiceSelect,
-          },
-        }
-      });
-      attendeeUsers = attendees.map((u) => {
-        return {
-          ...u,
-          isFixed: true,
-        };
-      });
+          select: {
+            ...userSelect.select,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
+          }
+        });
+        attendeeUsers = attendees.map((u) => {
+          return {
+            ...u,
+            isFixed: true,
+          };
+        });
+      }
     }
   }
   const totalUsers = [...eventType.users, ...attendeeUsers].filter(
@@ -168,7 +179,7 @@ export async function ensureAvailableUsers(
     }
   });
 
-  if (input.originalRescheduledBooking?.uid) {
+  if (input.originalRescheduledBooking?.uid && isEventOwnerOrTeamAdmin) {
     const fixedAvailableUsers = availableUsers.filter((u) => u.isFixed);
     const fixedTotalUsers = totalUsers.filter((u) => u.isFixed);
     if(fixedAvailableUsers.length !== fixedTotalUsers.length) {

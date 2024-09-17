@@ -796,6 +796,9 @@ describe("handleNewBooking", () => {
             method: "POST",
             body: mockBookingData,
           });
+
+          req.userId = host1.id;
+
           await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
         },
         timeout
@@ -937,6 +940,9 @@ describe("handleNewBooking", () => {
             method: "POST",
             body: mockBookingData,
           });
+
+          req.userId = host1.id;
+
           await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
         },
         timeout
@@ -2150,7 +2156,7 @@ describe("handleNewBooking", () => {
           });
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP3";
           const uidOfBooking2 = "n5Wv3eHgconAED2j4gcVhQ";
           await createBookingScenario(
             getScenarioData({
@@ -2229,6 +2235,9 @@ describe("handleNewBooking", () => {
             method: "POST",
             body: mockBookingData,
           });
+
+          req.userId = host1.id;
+
           await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
         },
         timeout
