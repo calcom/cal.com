@@ -914,7 +914,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     {form.formState.errors.steps &&
                       form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
                         <p className="mt-1 text-xs text-red-500">
-                          {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}sd
+                          {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
                         </p>
                       )}
                   </div>
@@ -939,7 +939,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
                   editable={!props.readOnly && !isWhatsappAction(step.action)}
-                  action={step.action}
+                  excludedToolbarItems={
+                    step.action !== WorkflowActions.SMS_ATTENDEE && step.action !== WorkflowActions.SMS_NUMBER
+                      ? []
+                      : ["blockType", "bold", "italic", "link"]
+                  }
                 />
 
                 {form.formState.errors.steps &&

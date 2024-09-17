@@ -15,7 +15,6 @@ import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import type { Dispatch, SetStateAction } from "react";
 
 import { classNames } from "@calcom/lib";
-import { WorkflowActions } from "@calcom/prisma/enums";
 
 import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";
@@ -45,7 +44,6 @@ export type TextEditorProps = {
   firstRender?: boolean;
   setFirstRender?: Dispatch<SetStateAction<boolean>>;
   editable?: boolean;
-  action: WorkflowActions;
 };
 
 const editorConfig = {
@@ -79,19 +77,16 @@ export const Editor = (props: TextEditorProps) => {
           <div
             className={classNames("editor-inner scroll-bar overflow-x-hidden", !editable && "!bg-subtle")}
             style={{ height: props.height, maxHeight: props.maxHeight }}>
-            {props.action !== WorkflowActions.SMS_ATTENDEE && props.action !== WorkflowActions.SMS_NUMBER && (
-              <ToolbarPlugin
-                getText={props.getText}
-                setText={props.setText}
-                editable={editable}
-                excludedToolbarItems={props.excludedToolbarItems}
-                variables={props.variables}
-                updateTemplate={props.updateTemplate}
-                firstRender={props.firstRender}
-                setFirstRender={props.setFirstRender}
-                action={props.action}
-              />
-            )}
+            <ToolbarPlugin
+              getText={props.getText}
+              setText={props.setText}
+              editable={editable}
+              excludedToolbarItems={props.excludedToolbarItems}
+              variables={props.variables}
+              updateTemplate={props.updateTemplate}
+              firstRender={props.firstRender}
+              setFirstRender={props.setFirstRender}
+            />
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
