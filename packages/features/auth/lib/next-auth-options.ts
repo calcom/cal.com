@@ -408,10 +408,10 @@ const mapIdentityProvider = (providerName: string) => {
 };
 
 export const getOptions = ({
-  getDclid,
+  getDubId,
 }: {
   /** so we can extract the Dub cookie in both pages and app routers */
-  getDclid: () => string | undefined;
+  getDubId: () => string | undefined;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -948,15 +948,15 @@ export const getOptions = ({
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 10 * 60 * 1000);
       if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
-        const dclid = getDclid();
-        // check if there's a dclid cookie set by @dub/analytics
-        if (dclid) {
+        const clickId = getDubId();
+        // check if there's a clickId (dub_id) cookie set by @dub/analytics
+        if (clickId) {
           // here we use waitUntil – meaning this code will run async to not block the main thread
           waitUntil(
             // if so, send a lead event to Dub
             // @see https://d.to/conversions/next-auth
             dub.track.lead({
-              clickId: dclid,
+              clickId,
               eventName: "Sign Up",
               customerId: user.id.toString(),
               customerName: user.name,

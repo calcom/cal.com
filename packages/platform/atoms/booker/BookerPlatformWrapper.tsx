@@ -381,14 +381,16 @@ export const BookerPlatformWrapper = (
         });
         setBookingData(null);
       }
-      if (isOverlayCalendarEnabled) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
-      } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
+      localStorage.removeItem("overlayCalendarSwitchDefault");
+    }
+     setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
+  }, [view, isOverlayCalendarEnabled]);
 
   return (
     <AtomsWrapper>
