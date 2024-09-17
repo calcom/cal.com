@@ -80,7 +80,6 @@ describe("next.config.js - Org Rewrite", () => {
 
   describe("Rewrite", () => {
     it("booking pages", () => {
-      console.log(orgUserTypeRouteMatch("/user/type").params);
       expect(orgUserTypeRouteMatch("/user/type")?.params).toEqual({
         user: "user",
         type: "type",
