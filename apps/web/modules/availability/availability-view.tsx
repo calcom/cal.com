@@ -13,6 +13,7 @@ import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/compone
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { AvailabilityRepository } from "@calcom/lib/server/repository/availability";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -22,7 +23,10 @@ import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
-export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
+export function AvailabilityList({
+  schedules,
+  revalidateCache,
+}: RouterOutputs["viewer"]["availability"]["list"] & { revalidateCache?: () => Promise<void> }) {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
@@ -54,6 +58,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
     },
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
+      revalidateCache?.();
     },
     onSuccess: () => {
       showToast(t("schedule_deleted_successfully"), "success");
@@ -63,6 +68,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ schedule }) => {
       await utils.viewer.availability.list.invalidate();
+      await revalidateCache?.();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: schedule.name,
@@ -83,6 +89,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
       onSuccess: () => {
         utils.viewer.availability.list.invalidate();
+        revalidateCache?.();
         setBulkUpdateModal(false);
         showToast(t("success"), "success");
       },
@@ -159,30 +166,51 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   );
 }
 
-function AvailabilityListWithQuery() {
-  const query = trpc.viewer.availability.list.useQuery();
+function AvailabilityListWithQuery({
+  availabilityList,
+  revalidateCache,
+}: {
+  availabilityList?: Awaited<ReturnType<typeof AvailabilityRepository.getList>> | null;
+  revalidateCache?: () => Promise<void>;
+}) {
+  const _query = trpc.viewer.availability.list.useQuery(undefined, {
+    enabled: !availabilityList,
+  });
+
+  const query = availabilityList
+    ? {
+        status: "success",
+        data: availabilityList,
+      }
+    : _query;
 
   return (
     <QueryCell
       query={query}
-      success={({ data }) => <AvailabilityList {...data} />}
+      success={({ data }) => <AvailabilityList {...data} revalidateCache={revalidateCache} />}
       customLoader={<SkeletonLoader />}
     />
   );
 }
 
 type PageProps = {
-  currentOrg?: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
+  ssrProps?: {
+    currentOrg?: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
+    availabilityList?: Awaited<ReturnType<typeof AvailabilityRepository.getList>> | null;
+  };
+  revalidateCache?: () => Promise<void>;
 };
 
-export default function AvailabilityPage({ currentOrg }: PageProps) {
+export default function AvailabilityPage({ ssrProps, revalidateCache }: PageProps) {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const me = useMeQuery();
-  const { data: _data } = trpc.viewer.organizations.listCurrent.useQuery(undefined, { enabled: !currentOrg });
-  const data = currentOrg ?? _data;
+  const { data: _data } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !ssrProps?.currentOrg,
+  });
+  const data = ssrProps?.currentOrg ?? _data;
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
@@ -235,7 +263,10 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
         {searchParams?.get("type") === "team" && canViewTeamAvailability ? (
           <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
         ) : (
-          <AvailabilityListWithQuery />
+          <AvailabilityListWithQuery
+            availabilityList={ssrProps?.availabilityList}
+            revalidateCache={revalidateCache}
+          />
         )}
       </Shell>
     </div>
