@@ -9,7 +9,7 @@ export const QUERY_KEY = "user-schedule";
 
 export const useSchedule = (id?: string) => {
   const pathname = id ? `/${V2_ENDPOINTS.availability}/${id}` : `/${V2_ENDPOINTS.availability}/default`;
-
+  const { instance } = http;
   const { isLoading, error, data } = useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: () => {
@@ -20,6 +20,7 @@ export const useSchedule = (id?: string) => {
         throw new Error(res.data.error?.message);
       });
     },
+    enabled: !!instance,
   });
 
   return { isLoading, error, data };
