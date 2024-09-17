@@ -116,7 +116,29 @@ type EventTypePageComponentProp = {
 
 type EventTypeAppPageComponentProp = EventTypeAppComponentProp | EventTypePageComponentProp;
 
-const EventType = ({
+export const EventTypeWebWrapper = ({ id, isAppDir }: EventTypeWebWrapperProps & { isAppDir?: boolean }) => {
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
+
+  if (!eventTypeQueryData) return null;
+
+  return isAppDir ? (
+    <EventTypeAppWrapper {...eventTypeQueryData} id={id} />
+  ) : (
+    <EventTypePageWrapper {...eventTypeQueryData} id={id} />
+  );
+};
+
+const EventTypePageWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+  const router = usePageRouter();
+  return <EventTypeWeb {...rest} id={id} isAppDir={false} pageRouter={router} pathname={null} />;
+};
+
+const EventTypeAppWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+  const pathname = usePathname();
+  return <EventTypeWeb {...rest} id={id} isAppDir={true} pathname={pathname} pageRouter={null} />;
+};
+
+const EventTypeWeb = ({
   id,
   isAppDir,
   pageRouter,
@@ -242,7 +264,7 @@ const EventType = ({
         throw "Aborted";
       }
 
-      throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
+      if (isAppDir) throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
     },
     onStart: (handleRouteChange) => {
       !isAppDir && pageRouter.events.on("routeChangeStart", handleRouteChange);
@@ -323,27 +345,5 @@ const EventType = ({
         />
       </>
     </EventTypeComponent>
-  );
-};
-
-const EventTypePageWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir?: boolean }) => {
-  const router = usePageRouter();
-  return <EventType {...rest} id={id} isAppDir={false} pageRouter={router} pathname={null} />;
-};
-
-const EventTypeAppWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir?: boolean }) => {
-  const pathname = usePathname();
-  return <EventType {...rest} id={id} isAppDir={true} pathname={pathname} pageRouter={null} />;
-};
-
-export const EventTypeWebWrapper = ({ id, isAppDir }: EventTypeWebWrapperProps & { isAppDir?: boolean }) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
-
-  if (!eventTypeQueryData) return null;
-
-  return isAppDir ? (
-    <EventTypeAppWrapper {...eventTypeQueryData} id={id} isAppDir={true} />
-  ) : (
-    <EventTypePageWrapper {...eventTypeQueryData} id={id} isAppDir={false} />
   );
 };
