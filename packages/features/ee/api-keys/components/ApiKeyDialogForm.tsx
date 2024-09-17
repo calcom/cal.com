@@ -8,6 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, DialogFooter, Form, SelectField, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
 
+type Option = { value: Date | null | undefined; label: string };
+
 export default function ApiKeyDialogForm({
   defaultValues,
   handleClose,
@@ -15,7 +17,7 @@ export default function ApiKeyDialogForm({
 }: {
   defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires?: boolean };
   handleClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void>;
 }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -23,15 +25,31 @@ export default function ApiKeyDialogForm({
   const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
     onSuccess() {
       utils.viewer.apiKeys.list.invalidate();
+      onSuccess?.();
       showToast(t("api_key_updated"), "success");
       handleClose();
-      onSuccess?.();
     },
     onError() {
       showToast(t("api_key_update_failed"), "error");
     },
   });
-  type Option = { value: Date | null | undefined; label: string };
+  const createApiKeyMutation = trpc.viewer.apiKeys.create.useMutation({
+    async onSuccess(newApiKey, event) {
+      setApiKey(newApiKey);
+      setApiKeyDetails({
+        ...event,
+        expiresAt: event.expiresAt || null,
+        note: event.note || null,
+        neverExpires: !!event.neverExpires,
+      });
+      await utils.viewer.apiKeys.list.invalidate();
+      await onSuccess?.();
+      setSuccessfulNewApiKeyModal(true);
+    },
+    onError() {
+      showToast("Error creating an API key", "error");
+    },
+  });
   const [apiKey, setApiKey] = useState("");
   const [expiryDate, setExpiryDate] = useState<Date | null | undefined>(
     () => defaultValues?.expiresAt || dayjs().add(30, "day").toDate()
@@ -123,12 +141,7 @@ export default function ApiKeyDialogForm({
               console.log("Name changed");
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
             } else {
-              const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
-              setApiKey(apiKey);
-              setApiKeyDetails({ ...event });
-              await utils.viewer.apiKeys.list.invalidate();
-              onSuccess?.();
-              setSuccessfulNewApiKeyModal(true);
+              await createApiKeyMutation.mutate(event);
             }
           }}
           className="space-y-4">

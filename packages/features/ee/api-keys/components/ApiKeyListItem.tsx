@@ -25,7 +25,7 @@ const ApiKeyListItem = ({
   apiKey: TApiKeys;
   lastItem: boolean;
   onEditClick: () => void;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void>;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -36,7 +36,7 @@ const ApiKeyListItem = ({
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
       await utils.viewer.apiKeys.list.invalidate();
-      props.onSuccess?.();
+      await props.onSuccess?.();
       showToast(t("api_key_deleted"), "success");
     },
     onError(err) {
