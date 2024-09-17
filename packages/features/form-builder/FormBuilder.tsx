@@ -507,6 +507,8 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
   const fieldIdentifier = fieldForm.watch("name");
   const [isEditing, setIsEditing] = useState(false);
+  const isFieldDisabled =
+    fieldForm.getValues("editable") === "system" || fieldForm.getValues("editable") === "system-but-optional";
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
@@ -523,10 +525,7 @@ function FieldEditDialog({
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
               id="test-field-type"
-              isDisabled={
-                fieldForm.getValues("editable") === "system" ||
-                fieldForm.getValues("editable") === "system-but-optional"
-              }
+              isDisabled={isFieldDisabled}
               onChange={(e) => {
                 const value = e?.value;
                 if (!value) {
@@ -556,9 +555,11 @@ function FieldEditDialog({
                           containerClassName="mt-6"
                           label={t("label")}
                           onChange={(e) => {
-                            fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
-                              shouldDirty: true,
-                            });
+                            if (!isFieldDisabled) {
+                              fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
+                                shouldDirty: true,
+                              });
+                            }
                           }}
                         />
                       )}
@@ -609,10 +610,7 @@ function FieldEditDialog({
                       <FormFieldIdentifier
                         fieldIdentifier={fieldIdentifier}
                         setIsEditing={setIsEditing}
-                        disabled={
-                          fieldForm.getValues("editable") === "system" ||
-                          fieldForm.getValues("editable") === "system-but-optional"
-                        }
+                        disabled={isFieldDisabled}
                       />
                     ) : (
                       <>
@@ -629,10 +627,7 @@ function FieldEditDialog({
                               }
                             );
                           }}
-                          disabled={
-                            fieldForm.getValues("editable") === "system" ||
-                            fieldForm.getValues("editable") === "system-but-optional"
-                          }
+                          disabled={isFieldDisabled}
                           label={t("identifier")}
                         />
                         <CheckboxField
@@ -800,6 +795,8 @@ function VariantFields({
   const isSimpleVariant = variantFields.length === 1;
   const isDefaultVariant = variantName === defaultVariant;
   const supportsVariantToggle = variantNames.length === 2;
+  const isFieldDisabled =
+    fieldForm.getValues("editable") === "system" || fieldForm.getValues("editable") === "system-but-optional";
   return (
     <>
       {supportsVariantToggle ? (
@@ -843,9 +840,11 @@ function VariantFields({
                 containerClassName="mt-6"
                 label={t("label")}
                 onChange={(e) => {
-                  fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
-                    shouldDirty: true,
-                  });
+                  if (!isFieldDisabled) {
+                    fieldForm.setValue("name", getFieldIdentifier(e.target.value.toLowerCase()), {
+                      shouldDirty: true,
+                    });
+                  }
                 }}
               />
               <InputField
@@ -878,10 +877,7 @@ function VariantFields({
                 <FormFieldIdentifier
                   fieldIdentifier={fieldIdentifier}
                   setIsEditing={setIsEditing}
-                  disabled={
-                    fieldForm.getValues("editable") === "system" ||
-                    fieldForm.getValues("editable") === "system-but-optional"
-                  }
+                  disabled={isFieldDisabled}
                 />
               ) : (
                 <>
@@ -889,10 +885,7 @@ function VariantFields({
                     required
                     {...fieldForm.register("name")}
                     containerClassName="mt-6"
-                    disabled={
-                      fieldForm.getValues("editable") === "system" ||
-                      fieldForm.getValues("editable") === "system-but-optional"
-                    }
+                    disabled={isFieldDisabled}
                     label={t("identifier")}
                   />
                   <CheckboxField
