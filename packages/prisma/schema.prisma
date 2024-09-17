@@ -104,6 +104,7 @@ model EventType {
   periodCountCalendarDays                 Boolean?
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
+  requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
@@ -137,6 +138,8 @@ model EventType {
   durationLimits                          Json?
   isInstantEvent                          Boolean                   @default(false)
   instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
+  instantMeetingScheduleId                Int?
+  instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
@@ -328,9 +331,11 @@ model User {
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
 
-  OutOfOfficeReasons     OutOfOfficeReason[]
-  smsLockState           SMSLockState        @default(UNLOCKED)
-  smsLockReviewedByAdmin Boolean             @default(false)
+  OutOfOfficeReasons         OutOfOfficeReason[]
+  smsLockState               SMSLockState                 @default(UNLOCKED)
+  smsLockReviewedByAdmin     Boolean                      @default(false)
+  NotificationsSubscriptions NotificationsSubscriptions[]
+  referralLinkId             String?
 
   @@unique([email])
   @@unique([email, username])
@@ -341,6 +346,15 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+model NotificationsSubscriptions {
+  id           Int    @id @default(autoincrement())
+  userId       Int
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription String
+
+  @@index([userId, subscription])
 }
 
 // It holds Organization Profiles as well as User Profiles for users that have been added to an organization
@@ -528,6 +542,7 @@ model Attendee {
   email       String
   name        String
   timeZone    String
+  phoneNumber String?
   locale      String?      @default("en")
   booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int?
@@ -596,6 +611,10 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  /// @zod.email()
+  cancelledBy           String?
+  /// @zod.email()
+  rescheduledBy         String?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -607,13 +626,14 @@ model Booking {
 }
 
 model Schedule {
-  id           Int            @id @default(autoincrement())
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int
-  eventType    EventType[]
-  name         String
-  timeZone     String?
-  availability Availability[]
+  id                   Int            @id @default(autoincrement())
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               Int
+  eventType            EventType[]
+  instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
+  name                 String
+  timeZone             String?
+  availability         Availability[]
 
   @@index([userId])
 }
@@ -736,6 +756,7 @@ enum WebhookTriggerEvents {
   RECORDING_READY
   INSTANT_MEETING
   RECORDING_TRANSCRIPTION_GENERATED
+  OOO_CREATED
 }
 
 model Webhook {
@@ -1210,6 +1231,7 @@ view BookingTimeStatus {
   ratingFeedback String?
   rating         Int?
   noShowHost     Boolean?
+  isTeamBooking  Boolean
 }
 
 model CalendarCache {

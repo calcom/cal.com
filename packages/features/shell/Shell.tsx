@@ -42,6 +42,7 @@ import {
   APP_NAME,
   DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
+  IS_CALCOM,
   IS_VISUAL_REGRESSION_TESTING,
   JOIN_COMMUNITY,
   ROADMAP,
@@ -52,7 +53,9 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -214,7 +217,8 @@ const useBanners = () => {
 
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
-
+  const pathname = usePathname();
+  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
@@ -253,7 +257,7 @@ const Layout = (props: LayoutProps) => {
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && !props.isPlatformUser && (
+        {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
@@ -540,7 +544,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownMenuItem>
                 )}
 
-                {!isPlatformPages && (
+                {!isPlatformPages && isPlatformUser && (
                   <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="blocks"
@@ -574,6 +578,7 @@ function UserDropdown({ small }: UserDropdownProps) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  isLoading?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
@@ -793,8 +798,11 @@ const NavigationItem: React.FC<{
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <Icon
-              name={item.icon}
-              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
+              name={item.isLoading ? "rotate-cw" : item.icon}
+              className={classNames(
+                "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                item.isLoading && "animate-spin"
+              )}
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -925,10 +933,12 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
+  const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
+  const [isReferalLoading, setIsReferalLoading] = useState(false);
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
@@ -958,12 +968,40 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       },
       icon: "copy",
     },
+    IS_CALCOM
+      ? {
+          name: "copy_referral_link",
+          href: "",
+          onClick: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            setIsReferalLoading(true);
+            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
+            setTimeout(() => {
+              fetchAndCopyToClipboard(
+                fetch("/api/generate-referral-link", {
+                  method: "POST",
+                })
+                  .then((res) => res.json())
+                  .then((res) => res.shortLink),
+                {
+                  onSuccess: () => showToast(t("link_copied"), "success"),
+                  onFailure: () => showToast("Copy to clipboard failed", "error"),
+                }
+              );
+              setIsReferalLoading(false);
+            }, 1000);
+          },
+          icon: "gift",
+          isLoading: isReferalLoading,
+        }
+      : null,
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: "settings",
     },
-  ];
+  ].filter(Boolean) as NavigationItemType[];
+
   return (
     <div className="relative">
       <aside
@@ -1055,10 +1093,11 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   onClick={item.onClick}>
                   {!!item.icon && (
                     <Icon
-                      name={item.icon}
+                      name={item.isLoading ? "rotate-cw" : item.icon}
                       className={classNames(
                         "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
+                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                        item.isLoading && "animate-spin"
                       )}
                       aria-hidden="true"
                     />
@@ -1083,7 +1122,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady } = useLocale();
+  const { isLocaleReady, t } = useLocale();
+
+  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
   return (
     <>
@@ -1143,6 +1184,23 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" && buttonToShow && (
+                <Button
+                  color="primary"
+                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
+                  loading={isLoading}
+                  disabled={buttonToShow === ButtonState.DENIED}
+                  tooltipSide="bottom"
+                  tooltip={
+                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
+                  }>
+                  {t(
+                    buttonToShow === ButtonState.DISABLE
+                      ? "disable_browser_notifications"
+                      : "allow_browser_notifications"
+                  )}
+                </Button>
+              )}
             </header>
           )}
         </div>

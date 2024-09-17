@@ -15,6 +15,7 @@ export function BulkEditDefaultForEventsModal(props: {
   setOpen: (open: boolean) => void;
   bulkUpdateFunction: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
   isPending: boolean;
+  description: string;
 }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -36,7 +37,7 @@ export function BulkEditDefaultForEventsModal(props: {
       <DialogContent
         type="creation"
         title={t("default_conferencing_bulk_title")}
-        description={t("default_conferencing_bulk_description")}
+        description={props.description}
         enableOverflow>
         <Form
           form={form}

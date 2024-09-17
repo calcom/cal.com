@@ -26,6 +26,14 @@ export const testName = "Test Testson";
 export const teamEventTitle = "Team Event - 30min";
 export const teamEventSlug = "team-event-30min";
 
+export const IS_STRIPE_ENABLED = !!(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.STRIPE_PRIVATE_KEY &&
+  process.env.PAYMENT_FEE_FIXED &&
+  process.env.PAYMENT_FEE_PERCENTAGE
+);
+
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {
@@ -90,7 +98,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
   // Let current month dates fully render.
-  await page.click('[data-testid="incrementMonth"]');
+  await page.getByTestId("incrementMonth").click();
 
   // Waiting for full month increment
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
@@ -100,7 +108,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) 
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
-  await page.click('[data-testid="incrementMonth"]');
+  await page.getByTestId("incrementMonth").click();
 
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
@@ -129,12 +137,18 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string; title?: string }) => {
+export const bookTimeSlot = async (
+  page: Page,
+  opts?: { name?: string; email?: string; title?: string; attendeePhoneNumber?: string }
+) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
   await page.fill('[name="email"]', opts?.email ?? testEmail);
   if (opts?.title) {
     await page.fill('[name="title"]', opts.title);
+  }
+  if (opts?.attendeePhoneNumber) {
+    await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
   await page.press('[name="email"]', "Enter");
 };
@@ -204,7 +218,8 @@ export async function installAppleCalendar(page: Page) {
 }
 
 export async function getInviteLink(page: Page) {
-  const response = await page.waitForResponse("**/api/trpc/teams/createInvite?batch=1");
+  const response = await page.waitForResponse("/api/trpc/teams/createInvite?batch=1");
+  expect(response.status()).toBe(200);
   const json = await response.json();
   return json[0].result.data.json.inviteLink as string;
 }
@@ -414,4 +429,16 @@ export async function gotoBookingPage(page: Page) {
 
 export async function saveEventType(page: Page) {
   await page.locator("[data-testid=update-eventtype]").click();
+}
+
+/** Fastest way so far to test for saving changes and form submissions */
+export async function submitAndWaitForResponse(
+  page: Page,
+  url: string,
+  { action = () => page.locator('[type="submit"]').click(), expectedStatusCode = 200 } = {}
+) {
+  const submitPromise = page.waitForResponse(url);
+  await action();
+  const response = await submitPromise;
+  expect(response.status()).toBe(expectedStatusCode);
 }

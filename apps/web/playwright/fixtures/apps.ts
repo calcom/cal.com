@@ -62,19 +62,18 @@ export function createAppsFixture(page: Page) {
       }
       await page.locator("[data-testid=display-location]").last().check();
       await saveEventType(page);
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       await gotoBookingPage(page);
       await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
       await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
     },
 
     installConferencingAppNewFlow: async (app: TApp, eventTypeIds: number[]) => {
-      await page.goto("apps/categories/conferencing");
-      await page.getByTestId(`app-store-app-card-${app.slug}`).click();
+      await page.goto(`apps/${app.slug}`);
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
@@ -82,6 +81,7 @@ export function createAppsFixture(page: Page) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
       await page.click(`[data-testid="save-event-types"]`);
+      page.waitForLoadState("networkidle");
 
       for (let eindex = 0; eindex < eventTypeIds.length; eindex++) {
         if (!app.organizerInputPlaceholder) continue;
@@ -94,11 +94,11 @@ export function createAppsFixture(page: Page) {
     verifyConferencingAppNew: async (app: TApp, eventTypeIds: number[]) => {
       for (const id of eventTypeIds) {
         await page.goto(`/event-types/${id}`);
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
         await bookTimeSlot(page, { name: `Test Testson`, email: `test@example.com` });
-        await page.waitForLoadState("networkidle");
+        // await page.waitForLoadState("networkidle");
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
       }

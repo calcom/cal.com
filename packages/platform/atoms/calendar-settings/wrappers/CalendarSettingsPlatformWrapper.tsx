@@ -1,5 +1,5 @@
 import { DestinationCalendarSettingsPlatformWrapper } from "../../destination-calendar/index";
-import { SelectedCalendarSettingsPlatformWrapper } from "../../selected-calendar/index";
+import { SelectedCalendarsSettingsPlatformWrapper } from "../../selected-calendars/index";
 
 type CalendarSettingsPlatformWrapperProps = {
   classNames?: {
@@ -16,7 +16,7 @@ export const CalendarSettingsPlatformWrapper = ({ classNames }: CalendarSettings
         statusLoader={<></>}
         classNames={classNames?.destinationCalendarSettingsCustomClassnames}
       />
-      <SelectedCalendarSettingsPlatformWrapper
+      <SelectedCalendarsSettingsPlatformWrapper
         classNames={classNames?.selectedCalendarSettingsCustomClassnames}
       />
     </div>

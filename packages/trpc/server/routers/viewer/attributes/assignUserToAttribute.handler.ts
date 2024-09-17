@@ -23,15 +23,11 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  // TODO: We need to also empty the users assignemnts for IDs that are not in in this filteredAttributes list
-  // Filter out attributes that don't have a value or options set
-  const filteredAttributes = input.attributes.filter((attribute) => attribute.value || attribute.options);
-
   // Ensure this organization can access these attributes and attribute options
   const attributes = await prisma.attribute.findMany({
     where: {
       id: {
-        in: filteredAttributes.map((attribute) => attribute.id),
+        in: input.attributes.map((attribute) => attribute.id),
       },
       teamId: org.id,
     },
@@ -42,7 +38,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     },
   });
 
-  if (attributes.length !== filteredAttributes.length) {
+  if (attributes.length !== input.attributes.length) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You do not have access to these attributes",
@@ -94,7 +90,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   // const promises: Promise<{ id: string }>[] = [];
 
-  filteredAttributes.map(async (attribute) => {
+  input.attributes.map(async (attribute) => {
     // TEXT, NUMBER
     if (attribute.value && !attribute.options) {
       const valueAsString = String(attribute.value);
@@ -202,6 +198,20 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
             id: true,
           },
         });
+      });
+    }
+
+    // Delete the attribute from the user
+    if (!attribute.value && !attribute.options) {
+      await prisma.attributeToUser.deleteMany({
+        where: {
+          memberId: membership.id,
+          attributeOption: {
+            attribute: {
+              id: attribute.id,
+            },
+          },
+        },
       });
     }
   });

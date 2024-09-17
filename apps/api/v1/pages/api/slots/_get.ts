@@ -3,6 +3,7 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -17,14 +18,22 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+let isColdStart = true;
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { usernameList, ...rest } = req.query;
+    if (isColdStart && IS_PRODUCTION) {
+      console.log("Cold start of /v1/slots detected");
+      isColdStart = false;
+    }
+
+    const { usernameList, isTeamEvent, ...rest } = req.query;
+    const parsedIsTeamEvent = String(isTeamEvent).toLowerCase() === "true";
     let slugs = usernameList;
     if (!Array.isArray(usernameList)) {
       slugs = usernameList ? [usernameList] : undefined;
     }
-    const input = getScheduleSchema.parse({ usernameList: slugs, ...rest });
+    const input = getScheduleSchema.parse({ usernameList: slugs, isTeamEvent: parsedIsTeamEvent, ...rest });
     const timeZoneSupported = input.timeZone ? isSupportedTimeZone(input.timeZone) : false;
     const availableSlots = await getAvailableSlots({ ctx: await createContext({ req, res }), input });
     const slotsInProvidedTimeZone = timeZoneSupported
