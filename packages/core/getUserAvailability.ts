@@ -20,7 +20,7 @@ import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-ut
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
-import { getBusyTimesFromLimits, getBusyTimesFromTeamLimits } from "./bookingLimits/getBusyTimesFromLimts";
+import { getBusyTimesFromLimits, getBusyTimesFromTeamLimits } from "./bookingLimits/getBusyTimesFromLimits";
 import { getBusyTimes } from "./getBusyTimes";
 import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
 
@@ -280,7 +280,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           initialData?.busyTimesFromLimitsBookings ?? []
         )
       : [];
-  const teamOfEventType = eventType?.team;
+
   const teamBookingLimits = parseBookingLimit(eventType?.team);
 
   const busyTimesFromTeamLimits =
@@ -290,7 +290,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           teamBookingLimits,
           dateFrom,
           dateTo,
-          teamOfEventType.id,
+          eventType?.team.id,
           initialData?.rescheduleUid
         )
       : [];
