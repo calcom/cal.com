@@ -613,4 +613,32 @@ export class UserRepository {
       },
     });
   }
+
+  static async findUserTeams({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        completedOnboarding: true,
+        teams: {
+          select: {
+            accepted: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return user;
+  }
 }
