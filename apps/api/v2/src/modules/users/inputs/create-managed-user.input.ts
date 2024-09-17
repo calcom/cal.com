@@ -11,8 +11,8 @@ export class CreateManagedUserInput {
   email!: string;
 
   @IsString()
-  @IsOptional()
-  name?: string;
+  @ApiProperty({ example: "Alice Smith", description: "Managed user's name is used in emails" })
+  name!: string;
 
   @IsOptional()
   @ApiProperty({ example: 12, enum: [12, 24], description: "Must be 12 or 24" })
