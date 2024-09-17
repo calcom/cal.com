@@ -196,12 +196,16 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
     [searchParams]
   );
 
+  const isOrg = Boolean(data);
   const isOrgAdminOrOwner =
-    data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN);
+    (data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN)) ?? false;
   const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
+
+  const canViewTeamAvailability = isOrg && (isOrgAdminOrOwner || !isOrgAndPrivate);
+
   const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
 
-  if (!isOrgAndPrivate || isOrgAdminOrOwner) {
+  if (canViewTeamAvailability) {
     toggleGroupOptions.push({ value: "team", label: t("team_availability") });
   }
 
@@ -228,7 +232,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" && (!isOrgAndPrivate || isOrgAdminOrOwner) ? (
+        {searchParams?.get("type") === "team" && canViewTeamAvailability ? (
           <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
         ) : (
           <AvailabilityListWithQuery />
