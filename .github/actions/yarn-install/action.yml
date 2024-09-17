@@ -8,6 +8,7 @@
 #   - bench: https://gist.github.com/belgattitude/0ecd26155b47e7be1be6163ecfbb0f0b     #
 #   - vs @setup/node: https://github.com/actions/setup-node/issues/325                 #
 ########################################################################################
+# Adding just for testing
 
 name: "Yarn install"
 description: "Run yarn install with node_modules linker and cache enabled"
