@@ -25,7 +25,7 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       const alertMessage = "Username or email is already taken";
 
@@ -52,7 +52,7 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
 
       const alertMessage = "Username or email is already taken";
 
@@ -83,7 +83,7 @@ test.describe("Signup Flow Test", async () => {
 
     // Signup with premium username name
     await page.goto("/signup");
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     // Fill form
     await page.locator('input[name="username"]').fill("rock");
@@ -111,7 +111,7 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
@@ -179,7 +179,7 @@ test.describe("Signup Flow Test", async () => {
 
     const signupUrlWithToken = `/signup?token=${token}`;
     await page.goto(signupUrlWithToken);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     const usernameField = page.locator('input[name="username"]');
     const emailField = page.locator('input[name="email"]');
@@ -210,13 +210,17 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
+    await page.waitForLoadState("domcontentloaded");
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
-    await page.click('button[type="submit"]');
+    const submitButton = page.locator('button[type="submit"]');
+    await submitButton.waitFor({ state: "attached" });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
 
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
     // Find the newly created user and add it to the fixture store
@@ -246,7 +250,7 @@ test.describe("Signup Flow Test", async () => {
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await test.step("Invite User to team", async () => {
       // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)
@@ -254,7 +258,7 @@ test.describe("Signup Flow Test", async () => {
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
