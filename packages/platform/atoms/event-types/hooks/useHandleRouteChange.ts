@@ -52,19 +52,10 @@ export const useHandleRouteChange = ({
         })
       ) {
         onError?.(url);
-        //setIsOpenAssignmentWarnDialog(true);
-        //setPendingRoute(url);
-        /* router.events.emit(
-          "routeChangeError",
-          new Error(`Aborted route change to ${url} because none was assigned to team event`)
-        );
-        throw "Aborted"; */
       }
     };
     onStart?.(handleRouteChange);
-    //router.events.on("routeChangeStart", handleRouteChange);
     return () => {
-      //router.events.off("routeChangeStart", handleRouteChange);
       onEnd?.(handleRouteChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
