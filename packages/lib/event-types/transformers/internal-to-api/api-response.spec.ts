@@ -10,16 +10,16 @@ import type {
   TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { UserField } from "./api-request";
 import {
-  getResponseEventTypeLocations,
-  getResponseEventTypeBookingFields,
-  getResponseEventTypeIntervalLimits,
-  getResponseEventTypeFutureBookingLimits,
-  getResponseEventTypeRecurrence,
-} from "./api-response";
+  transformLocationsInternalToApi,
+  transformBookingFieldsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformRecurrenceInternalToApi,
+} from ".";
+import type { CustomField } from "../api-request";
 
-describe("getResponseEventTypeLocations", () => {
+describe("transformLocationsInternalToApi", () => {
   it("should reverse transform address location", () => {
     const transformedLocation = [
       {
@@ -37,7 +37,7 @@ describe("getResponseEventTypeLocations", () => {
       },
     ];
 
-    const result = getResponseEventTypeLocations(transformedLocation);
+    const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -59,7 +59,7 @@ describe("getResponseEventTypeLocations", () => {
       },
     ];
 
-    const result = getResponseEventTypeLocations(transformedLocation);
+    const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -81,7 +81,7 @@ describe("getResponseEventTypeLocations", () => {
       },
     ];
 
-    const result = getResponseEventTypeLocations(transformedLocation);
+    const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -100,85 +100,15 @@ describe("getResponseEventTypeLocations", () => {
       },
     ];
 
-    const result = getResponseEventTypeLocations(transformedLocation);
+    const result = transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("getResponseEventTypeBookingFields", () => {
-  it("should reverse transform name field", () => {
-    const transformedField: UserField[] = [
-      {
-        name: "your-name",
-        type: "name",
-        label: "Your name",
-        sources: [
-          {
-            id: "user",
-            type: "user",
-            label: "User",
-            fieldRequired: true,
-          },
-        ],
-        editable: "user",
-        required: true,
-        placeholder: "alice",
-      },
-    ];
-
-    const expectedOutput = [
-      {
-        type: "name",
-        slug: "your-name",
-        label: "Your name",
-        required: true,
-        placeholder: "alice",
-      },
-    ];
-
-    const result = getResponseEventTypeBookingFields(transformedField);
-
-    expect(result).toEqual(expectedOutput);
-  });
-
-  it("should reverse transform email field", () => {
-    const transformedField: UserField[] = [
-      {
-        name: "your-email",
-        type: "email",
-        label: "Your email",
-        sources: [
-          {
-            id: "user",
-            type: "user",
-            label: "User",
-            fieldRequired: true,
-          },
-        ],
-        editable: "user",
-        required: true,
-        placeholder: "example@example.com",
-      },
-    ];
-
-    const expectedOutput = [
-      {
-        type: "email",
-        slug: "your-email",
-        label: "Your email",
-        required: true,
-        placeholder: "example@example.com",
-      },
-    ];
-
-    const result = getResponseEventTypeBookingFields(transformedField);
-
-    expect(result).toEqual(expectedOutput);
-  });
-
+describe("transformBookingFieldsInternalToApi", () => {
   it("should reverse transform phone field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-phone",
         type: "phone",
@@ -207,13 +137,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform address field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-address",
         type: "address",
@@ -242,13 +172,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform text field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-text",
         type: "text",
@@ -277,13 +207,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform number field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-number",
         type: "number",
@@ -312,13 +242,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform textarea field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-textarea",
         type: "textarea",
@@ -347,13 +277,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform select field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-select",
         type: "select",
@@ -387,13 +317,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform multiselect field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-multiselect",
         type: "multiselect",
@@ -425,13 +355,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform multiemail field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-multiemail",
         type: "multiemail",
@@ -460,13 +390,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform checkbox field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-checkbox",
         type: "checkbox",
@@ -498,13 +428,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform radio field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "your-radio",
         type: "radio",
@@ -536,13 +466,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should reverse transform boolean field", () => {
-    const transformedField: UserField[] = [
+    const transformedField: CustomField[] = [
       {
         name: "agree-to-terms",
         type: "boolean",
@@ -570,13 +500,13 @@ describe("getResponseEventTypeBookingFields", () => {
       },
     ];
 
-    const result = getResponseEventTypeBookingFields(transformedField);
+    const result = transformBookingFieldsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("getResponseEventTypeIntervalLimits", () => {
+describe("transformIntervalLimitsInternalToApi", () => {
   it("should reverse transform booking limits count or booking limits duration", () => {
     const transformedField: TransformBookingLimitsSchema_2024_06_14 = {
       PER_DAY: 2,
@@ -591,13 +521,13 @@ describe("getResponseEventTypeIntervalLimits", () => {
       month: 22,
       year: 33,
     };
-    const result = getResponseEventTypeIntervalLimits(transformedField);
+    const result = transformIntervalLimitsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("getResponseEventTypeFutureBookingLimits", () => {
+describe("transformFutureBookingLimitsInternalToApi", () => {
   it("should reverse transform range type", () => {
     const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
       periodType: "RANGE",
@@ -609,7 +539,7 @@ describe("getResponseEventTypeFutureBookingLimits", () => {
       value: ["2024-08-06", "2024-08-28"],
     };
 
-    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+    const result = transformFutureBookingLimitsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -625,7 +555,7 @@ describe("getResponseEventTypeFutureBookingLimits", () => {
       rolling: false,
     };
 
-    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+    const result = transformFutureBookingLimitsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -642,7 +572,7 @@ describe("getResponseEventTypeFutureBookingLimits", () => {
       rolling: true,
     };
 
-    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+    const result = transformFutureBookingLimitsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -659,7 +589,7 @@ describe("getResponseEventTypeFutureBookingLimits", () => {
       rolling: false,
     };
 
-    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+    const result = transformFutureBookingLimitsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -676,13 +606,13 @@ describe("getResponseEventTypeFutureBookingLimits", () => {
       rolling: true,
     };
 
-    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+    const result = transformFutureBookingLimitsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("getResponseEventTypeRecurrence", () => {
+describe("transformRecurrenceInternalToApi", () => {
   it("should reverse transform recurringEvent", () => {
     const transformedField: TransformRecurringEventSchema_2024_06_14 = {
       interval: 2,
@@ -695,7 +625,7 @@ describe("getResponseEventTypeRecurrence", () => {
       interval: 2,
       occurrences: 10,
     };
-    const result = getResponseEventTypeRecurrence(transformedField);
+    const result = transformRecurrenceInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });

@@ -74,6 +74,48 @@ class RescheduleReasonDefaultFieldOutput_2024_06_14 {
   required!: false;
 }
 
+class TitleDefaultFieldOutput_2024_06_14 {
+  @IsBoolean()
+  isDefault = true;
+
+  @IsString()
+  slug!: "title";
+
+  @IsString()
+  type!: "text";
+
+  @IsBoolean()
+  required!: true;
+}
+
+class NotesDefaultFieldOutput_2024_06_14 {
+  @IsBoolean()
+  isDefault = true;
+
+  @IsString()
+  slug!: "notes";
+
+  @IsString()
+  type!: "textarea";
+
+  @IsBoolean()
+  required!: false;
+}
+
+class GuestsDefaultFieldOutput_2024_06_14 {
+  @IsBoolean()
+  isDefault = true;
+
+  @IsString()
+  slug!: "guests";
+
+  @IsString()
+  type!: "multiemail";
+
+  @IsBoolean()
+  required!: false;
+}
+
 class PhoneFieldOutput_2024_06_14 extends PhoneFieldInput_2024_06_14 {
   @IsBoolean()
   isDefault = false;
@@ -133,7 +175,10 @@ export type DefaultFieldOutput_2024_06_14 =
   | NameDefaultFieldOutput_2024_06_14
   | EmailDefaultFieldOutput_2024_06_14
   | LocationDefaultFieldOutput_2024_06_14
-  | RescheduleReasonDefaultFieldOutput_2024_06_14;
+  | RescheduleReasonDefaultFieldOutput_2024_06_14
+  | TitleDefaultFieldOutput_2024_06_14
+  | NotesDefaultFieldOutput_2024_06_14
+  | GuestsDefaultFieldOutput_2024_06_14;
 
 export type CustomFieldOutput_2024_06_14 =
   | PhoneFieldOutput_2024_06_14
@@ -157,6 +202,9 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     email: EmailDefaultFieldOutput_2024_06_14,
     location: LocationDefaultFieldOutput_2024_06_14,
     rescheduleReason: RescheduleReasonDefaultFieldOutput_2024_06_14,
+    title: TitleDefaultFieldOutput_2024_06_14,
+    notes: NotesDefaultFieldOutput_2024_06_14,
+    guests: GuestsDefaultFieldOutput_2024_06_14,
   };
 
   private customOutputTypeMap: { [key: string]: new () => CustomFieldOutput_2024_06_14 } = {
