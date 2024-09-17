@@ -6,10 +6,9 @@ import { headers } from "next/headers";
 
 import { constructGenericImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/constants";
+import { truncateOnWord } from "@calcom/lib/text";
 //@ts-expect-error no type definitions
 import config from "@calcom/web/next-i18next.config";
-
-import { preparePageMetadata } from "@lib/metadata";
 
 import { PATHS_MAP } from "./_constants";
 
@@ -33,7 +32,8 @@ export const getFixedT = async (locale: string, ns = "common") => {
 
 export const _generateMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
-  getDescription: (t: TFunction<string, undefined>) => string
+  getDescription: (t: TFunction<string, undefined>) => string,
+  excludeAppNameFromTitle?: boolean
 ) => {
   const h = headers();
   const canonical = h.get("x-pathname") ?? "";
@@ -53,14 +53,26 @@ export const _generateMetadata = async (
       description,
     });
 
-  return preparePageMetadata({
-    title,
-    canonical,
-    image,
+  const titleSuffix = `| ${APP_NAME}`;
+  const displayedTitle =
+    title.includes(titleSuffix) || excludeAppNameFromTitle ? title : `${title} ${titleSuffix}`;
+
+  return {
+    title: title.length === 0 ? APP_NAME : displayedTitle,
     description,
-    siteName: APP_NAME,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      description: truncateOnWord(description, 158),
+      url: canonical,
+      type: "website",
+      siteName: APP_NAME,
+      title,
+      images: [image],
+    },
     metadataBase,
-  });
+  };
 };
 
 export async function revalidateCache(key: keyof typeof PATHS_MAP) {
