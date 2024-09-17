@@ -76,6 +76,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
 
+  const [checkIfMembershipExistsLoading, setCheckIfMembershipExistsLoading] = useState(false);
   // Check current org role and not team role
   const isOrgAdminOrOwner =
     currentOrg &&
@@ -241,7 +242,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     // orgs can only invite members by email
                     if (typeof value === "string" && !isEmail(value)) return t("enter_email");
                     if (typeof value === "string") {
+                      setCheckIfMembershipExistsLoading(true);
                       const doesInviteExists = await checkIfMembershipExists(value);
+                      setCheckIfMembershipExistsLoading(false);
                       return !doesInviteExists || t("member_already_invited");
                     }
                   },
@@ -445,7 +448,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              loading={props.isPending || createInviteMutation.isPending}
+              loading={props.isPending || createInviteMutation.isPending || checkIfMembershipExistsLoading}
               type="submit"
               color="primary"
               className="me-2 ms-2"
