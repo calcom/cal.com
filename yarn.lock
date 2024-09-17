@@ -19446,7 +19446,6 @@ __metadata:
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
     husky: ^8.0.0
-    i: ^0.3.7
     i18n-unused: ^0.13.0
     jest-diff: ^29.5.0
     jest-summarizing-reporter: ^1.1.4
@@ -19462,7 +19461,7 @@ __metadata:
     turbo: ^1.10.1
     typescript: ^4.9.4
     vitest: ^2.1.1
-    vitest-fetch-mock: ^0.2.2
+    vitest-fetch-mock: ^0.3.0
     vitest-mock-extended: ^1.1.3
   languageName: unknown
   linkType: soft
@@ -21140,12 +21139,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-fetch@npm:^3.0.6":
-  version: 3.1.8
-  resolution: "cross-fetch@npm:3.1.8"
+"cross-fetch@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "cross-fetch@npm:4.0.0"
   dependencies:
     node-fetch: ^2.6.12
-  checksum: 78f993fa099eaaa041122ab037fe9503ecbbcb9daef234d1d2e0b9230a983f64d645d088c464e21a247b825a08dc444a6e7064adfa93536d3a9454b4745b3632
+  checksum: ecca4f37ffa0e8283e7a8a590926b66713a7ef7892757aa36c2d20ffa27b0ac5c60dcf453119c809abe5923fc0bae3702a4d896bfb406ef1077b0d0018213e24
   languageName: node
   linkType: hard
 
@@ -27245,13 +27244,6 @@ __metadata:
   dependencies:
     "@babel/runtime": ^7.22.5
   checksum: 74504bfe1f7784f76b08c9d5e589779c4c65b85b4d44f2b89531bc0cb0fbe18b9abede5eb3e0f3c088ba39455d4271cccf1d40aebadaa82a58d517847b7518b2
-  languageName: node
-  linkType: hard
-
-"i@npm:^0.3.7":
-  version: 0.3.7
-  resolution: "i@npm:0.3.7"
-  checksum: 97db09a9377223511bbc416f22e24ee7b90417b0a384710756b2ab74e6cbd95a93ff5856c4bdd8d12d9a74e2460fcbf895f0c2525b6ab2f7898795cb5a5743cf
   languageName: node
   linkType: hard
 
@@ -43000,14 +42992,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest-fetch-mock@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "vitest-fetch-mock@npm:0.2.2"
+"vitest-fetch-mock@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "vitest-fetch-mock@npm:0.3.0"
   dependencies:
-    cross-fetch: ^3.0.6
+    cross-fetch: ^4.0.0
   peerDependencies:
-    vitest: ">=0.16.0"
-  checksum: fa160f301171cd45dbf7d782880b6b6063fc74b9dd1965ef9206545e812ca8696e6be76662afbac822c6bf850fbb66cf8fb066af646e0e159f5a87ab25c97a02
+    vitest: ">=2.0.0"
+  checksum: 066024756f5d7166750a7103514fd58dfa70f05ccc225abd44f65f5bc9e14ac9e9a3898c27169f648871d1842bc5c4edda5844c8f0e5c28fc2e2180da79b5120
   languageName: node
   linkType: hard
 
