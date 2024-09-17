@@ -34,7 +34,6 @@ export const useHandleRouteChange = ({
 }) => {
   useEffect(() => {
     const handleRouteChange = (url: string) => {
-      console.log("URL", url);
       const paths = url.split("/");
 
       // If the event-type is deleted, we can't show the empty assignment warning
