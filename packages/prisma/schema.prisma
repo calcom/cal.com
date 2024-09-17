@@ -184,8 +184,8 @@ model Credential {
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
 
-  delegatedTo          DomainWideDelegation? @relation(fields: [delegatedToId], references: [id], onDelete: Cascade)
-  delegatedToId        String?
+  delegatedTo   DomainWideDelegation? @relation(fields: [delegatedToId], references: [id], onDelete: Cascade)
+  delegatedToId String?
 
   @@index([userId])
   @@index([appId])
@@ -1516,42 +1516,41 @@ model AttributeToUser {
 }
 
 model DomainWideDelegation {
-  id                String            @id @default(uuid())
-  workspacePlatform WorkspacePlatform @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
+  id                  String            @id @default(uuid())
+  workspacePlatform   WorkspacePlatform @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
   workspacePlatformId Int
 
   // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
   serviceAccountKey Json
-  serviceAccountClientId String
 
-  enabled           Boolean           @default(false)
-  organizationId    Int
-  organization      Team              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  Credential        Credential[]
-  domain            String
-  inErrorState      Boolean           @default(false)
+  enabled        Boolean      @default(false)
+  organizationId Int
+  organization   Team         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Credential     Credential[]
+  domain         String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Should be fare to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
+  // Because we don't know which domain the organization might have, we couldn't make it unique as that would prevent an authorized owner to prevent using that domain.
   @@unique([organizationId, domain])
-  // Ensures that two different organizations don't control the same domain
-  @@unique([domain])
 }
-
 
 // It is for domain-wide delegation 
 model WorkspacePlatform {
-  id  Int     @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
+  /// @zod.min(1)
   slug String
-  
+
+  /// @zod.min(1)
   name String
+
   description String
-  
+
   defaultServiceAccountKey Json
-  defaultServiceAccountClientId String
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

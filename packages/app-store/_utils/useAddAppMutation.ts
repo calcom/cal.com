@@ -18,7 +18,7 @@ type CustomUseMutationOptions =
   | Omit<UseMutationOptions<unknown, unknown, unknown, unknown>, "mutationKey" | "mutationFn" | "onSuccess">
   | undefined;
 
-type AddAppMutationData = { setupPending: boolean } | void;
+type AddAppMutationData = { setupPending: boolean; message?: string } | void;
 export type UseAddAppMutationOptions = CustomUseMutationOptions & {
   onSuccess?: (data: AddAppMutationData) => void;
   installGoogleVideo?: boolean;

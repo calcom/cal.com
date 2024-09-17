@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import checkSession from "../../_utils/auth";
-import { checkInstalled } from "../../_utils/installation";
+import { assertNotInstalled } from "../../_utils/installation";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
-  await assertInstalled("closecom", session.user?.id);
+  await assertNotInstalled("closecom", session.user?.id);
 
   const returnTo = req.query.returnTo;
 

@@ -6,7 +6,7 @@ export const DomainWideDelegationCreateSchema = z.object({
 });
 
 export const DomainWideDelegationUpdateSchema = z.object({
-  id: z.string().optional(),
+  id: z.string(),
   workspacePlatformSlug: z.string(),
   domain: z.string(),
   enabled: z.boolean(),

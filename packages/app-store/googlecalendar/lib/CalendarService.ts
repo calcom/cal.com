@@ -9,6 +9,7 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { CalendarAppConfigurationClientIdNotAuthorizedError } from "@calcom/lib/CalendarAppConfigurationError";
 import type CalendarService from "@calcom/lib/CalendarService";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -184,11 +185,20 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   private getAuthedCalendarFromDomainWideDelegation = async () => {
+    const user = this.credential.user;
+    if (!user) {
+      this.log.error(
+        "Couldn't check for domain wide delegation without user",
+        safeStringify(this.credential)
+      );
+      return null;
+    }
+
     //TODO: Compute it once and save it
-    const domainWideDelegation = await DomainWideDelegationRepository.findByCredential({
-      credential: this.credential,
-      workspacePlatform: "GOOGLE",
-    });
+    const domainWideDelegation =
+      await DomainWideDelegationRepository.findByUserIncludeSensitiveServiceAccountKey({
+        user,
+      });
 
     if (domainWideDelegation && domainWideDelegation.enabled && domainWideDelegation.serviceAccountKey) {
       const emailToImpersonate = this.credential.user?.email;
@@ -200,6 +210,7 @@ export default class GoogleCalendarService implements Calendar {
         "Using domain wide delegation with service account email",
         safeStringify({
           serviceAccountEmail: domainWideDelegation.serviceAccountKey.client_email,
+          privateKey: domainWideDelegation.serviceAccountKey.private_key,
           emailToImpersonate,
         })
       );
@@ -209,7 +220,18 @@ export default class GoogleCalendarService implements Calendar {
         scopes: ["https://www.googleapis.com/auth/calendar"],
         subject: emailToImpersonate,
       });
-      await authClient.authorize();
+
+      try {
+        await authClient.authorize();
+      } catch (error) {
+        if ((error as any).response?.data?.error === "unauthorized_client") {
+          throw new CalendarAppConfigurationClientIdNotAuthorizedError(
+            "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
+          );
+        }
+        throw error;
+      }
+
       return google.calendar({
         version: "v3",
         auth: authClient,

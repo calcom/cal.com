@@ -313,41 +313,22 @@ export class OrganizationRepository {
     return organization ?? null;
   }
 
-  static async findByCredentialOfMember({
-    userId,
-    teamId,
-  }: {
-    userId?: number | null;
-    teamId?: number | null;
-  }) {
-    const log = logger.getSubLogger({ prefix: "findByCredentialOfMember" });
-    if (userId) {
-      const organization = await prisma.team.findFirst({
-        where: {
-          isOrganization: true,
-          members: {
-            some: {
-              userId,
+  static async findByMemberEmailId({ email }: { email: string }) {
+    const log = logger.getSubLogger({ prefix: ["findByMemberEmailId"] });
+    log.debug("called with", { email });
+    const organization = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        members: {
+          some: {
+            user: {
+              email,
             },
           },
         },
-      });
-      return organization;
-    }
+      },
+    });
 
-    if (teamId) {
-      const organization = await prisma.team.findUnique({
-        where: {
-          id: teamId,
-        },
-        select: {
-          parent: true,
-        },
-      });
-      return organization?.parent ?? null;
-    }
-
-    log.error("No userId or teamId in credential");
-    return null;
+    return organization;
   }
 }

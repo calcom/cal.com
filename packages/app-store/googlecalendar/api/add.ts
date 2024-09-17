@@ -6,32 +6,80 @@ import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
+import type { App } from "@calcom/types/App";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { metadata } from "../_metadata";
 import { SCOPES } from "../lib/constants";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
+async function getDomainWideDelegationForApp({
+  user,
+  appMetadata,
+}: {
+  user: {
+    email: string;
+  };
+  appMetadata: Pick<App, "domainWideDelegation">;
+}) {
+  const log = logger.getSubLogger({ prefix: ["getDomainWideDelegationForApp"] });
+
+  const domainWideDelegation = await DomainWideDelegationRepository.findUniqueByOrganizationMemberEmail({
+    email: user.email,
+  });
+
+  if (!domainWideDelegation || !domainWideDelegation.enabled || !appMetadata.domainWideDelegation) {
+    log.debug("Domain-wide delegation isn't enabled for this app", {
+      domainWideDelegationEnabled: domainWideDelegation?.enabled,
+      metadataDomainWideDelegation: appMetadata.domainWideDelegation,
+    });
+    return null;
+  }
+
+  if (
+    domainWideDelegation.workspacePlatform.slug !== appMetadata.domainWideDelegation.workspacePlatformSlug
+  ) {
+    log.info("Domain-wide delegation isn't compatible with this app", {
+      domainWideDelegation: domainWideDelegation.workspacePlatform.slug,
+      appSlug: metadata.slug,
+    });
+    return null;
+  }
+
+  log.debug("Domain-wide delegation is enabled");
+
+  return domainWideDelegation;
+}
+
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  if (!req.session?.user) {
+  const loggedInUser = req.session?.user;
+
+  if (!loggedInUser) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
 
-  const loggedInUser = req.session.user;
-  const domainWideDelegation = await DomainWideDelegationRepository.findByOrganizationMemberEmail({
-    email: loggedInUser.email,
-    workspacePlatform: "GOOGLE",
+  const translate = await getTranslation(loggedInUser.locale ?? "en", "common");
+
+  // Ideally this should never happen, as email is there in session user but typings aren't accurate it seems
+  // TODO: So, confirm and later fix the typings
+  if (!loggedInUser.email) {
+    throw new HttpError({ statusCode: 400, message: "Session user must have an email" });
+  }
+
+  const domainWideDelegation = await getDomainWideDelegationForApp({
+    user: {
+      email: loggedInUser.email,
+    },
+    appMetadata: metadata,
   });
 
-  if (domainWideDelegation && domainWideDelegation.enabled) {
-    logger.debug("Domain-wide delegation is enabled");
-    // FIXME: How about if the app is installed for a team? Is that possible? I think not.
-    // We should figure it out and add appropriate comment here.
+  if (domainWideDelegation) {
     if (await isAppInstalled({ appId: metadata.slug, userId: loggedInUser.id })) {
       throw new HttpError({
         statusCode: 422,
-        message: "Domain-wide delegation restricts adding more than one installation",
+        message: translate("domain_wide_delegation_restricts_adding_more_than_one_installation"),
       });
     }
 
@@ -45,7 +93,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         access_token: "NOT_A_TOKEN",
       },
     });
-    res.status(200).json({ message: "App successfully installed and is using delegated credentials" });
+    res
+      .status(200)
+      .json({ message: translate("app_successfully_installed_and_is_using_delegated_credentials") });
     return;
   }
 

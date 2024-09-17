@@ -26,7 +26,9 @@ function isAllowedMultipleInstalls({
   categories: string[];
   variant: string;
 }): boolean {
-  // TODO: We could disable it for Domain-wide delegation cases here but for now backend does it when someone tries to install the app
+  // TODO: We have disable multiple installs for Domain-wide delegation cases
+  // Right now the API route handles it but we should have it here as well
+  // Though we might want to enable it later. Because, Domain-wide Delegated credentials would be considered pre-installed
   const isCalendarApp = categories.includes("calendar");
   const isOtherVariant = variant === "other";
   return isCalendarApp && !isOtherVariant;

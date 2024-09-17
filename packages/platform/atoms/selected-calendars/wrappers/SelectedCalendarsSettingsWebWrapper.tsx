@@ -104,7 +104,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                           <Link href={`/apps/${connectedCalendar.integration.slug}`}>
                             {connectedCalendar.integration.name}
                           </Link>
-                          : {t("calendar_error")}
+                          : {connectedCalendar.error?.message || t("calendar_error")}
                         </span>
                       }
                       iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"

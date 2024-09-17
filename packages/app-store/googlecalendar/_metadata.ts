@@ -19,6 +19,9 @@ export const metadata = {
   email: "help@cal.com",
   dirName: "googlecalendar",
   isOAuth: true,
+  domainWideDelegation: {
+    workspacePlatformSlug: "google",
+  },
 } as AppMeta;
 
 export default metadata;

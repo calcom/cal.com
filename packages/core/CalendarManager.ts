@@ -6,6 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { CalendarAppConfigurationClientIdNotAuthorizedError } from "@calcom/lib/CalendarAppConfigurationError";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -102,6 +103,10 @@ export const getConnectedCalendars = async (
           if (error.message === "invalid_grant") {
             errorMessage = "Access token expired or revoked";
           }
+        }
+
+        if (error instanceof CalendarAppConfigurationClientIdNotAuthorizedError) {
+          errorMessage = error.message;
         }
 
         log.error("getConnectedCalendars failed", safeStringify(error), safeStringify({ item }));

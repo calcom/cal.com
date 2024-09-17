@@ -1,18 +1,16 @@
-import DomainWideDelegationList from "@calcom/features/ee/organizations/pages/settings/domainWideDelegation/domainWideDelegationList";
+import DomainWideDelegationList from "@calcom/features/ee/organizations/pages/settings/domainWideDelegation";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
 const Page = () => {
-  const { t } = useLocale();
   return (
     <>
       <Meta
         borderInShellHeader={false}
-        title={t("domain_wide_delegation")}
-        description={t("domain_wide_delegation_description")}
+        title="Domain-wide delegation"
+        description="Domain-wide delegation allows you to manage access to Google Workspace calendars for your organization."
       />
       <DomainWideDelegationList />
     </>
