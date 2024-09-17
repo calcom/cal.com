@@ -178,6 +178,7 @@ const nextConfig = {
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
+    serverActions: true,
   },
   i18n: {
     ...i18n,
