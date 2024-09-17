@@ -4,8 +4,8 @@ import { EventType } from "@calcom/atoms/monorepo";
 
 import type { PageProps } from "@lib/event-types/[type]/getServerSideProps";
 
-const EventTypePageWrapper = (props: PageProps & { isAppDir?: boolean }) => {
-  return <EventType {...props} />;
+const EventTypePageWrapper = ({ type, ...rest }: PageProps) => {
+  return <EventType {...rest} id={type} isAppDir={false} />;
 };
 
 export default EventTypePageWrapper;

@@ -1,12 +1,34 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import React, { useEffect } from "react";
+import { usePathname } from "next/navigation";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter as usePageRouter } from "next/router";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import type { NextRouter as NextPageRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
 
+import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { showToast } from "@calcom/ui";
+
+import { useEventTypeForm } from "../hooks/useEventTypeForm";
+import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
+
+const ManagedEventTypeDialog = dynamic(
+  () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
+);
+
+const AssignmentWarningDialog = dynamic(
+  () => import("@calcom/features/eventtypes/components/dialogs/AssignmentWarningDialog")
+);
 
 const EventSetupTab = dynamic(() =>
   // import web wrapper when it's ready
@@ -72,12 +94,95 @@ const EventAITab = dynamic(() =>
 );
 
 export type EventTypeWebWrapperProps = {
-  type: number;
+  id: number;
   isAppDir?: boolean;
 };
 
-const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir?: boolean }) => {
+// discriminative factor: isAppDir
+type EventTypeAppComponentProp = {
+  id: number;
+  isAppDir: true;
+  pathname: string;
+  pageRouter: null;
+};
+
+// discriminative factor: isAppDir
+type EventTypePageComponentProp = {
+  id: number;
+  isAppDir: false;
+  pageRouter: NextPageRouter;
+  pathname: null;
+};
+
+type EventTypeAppPageComponentProp = EventTypeAppComponentProp | EventTypePageComponentProp;
+
+const EventType = ({
+  id,
+  isAppDir,
+  pageRouter,
+  pathname,
+  ...rest
+}: EventTypeSetupProps & EventTypeAppPageComponentProp) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const isTeamEventTypeDeleted = useRef(false);
+  const leaveWithoutAssigningHosts = useRef(false);
+  const telemetry = useTelemetry();
+  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
+  const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
+  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
+    extendsFeature: "EventType",
+    teamId: eventType.team?.id || eventType.parent?.teamId,
+    onlyInstalled: true,
+  });
+  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+    onSuccess: async () => {
+      const currentValues = form.getValues();
+
+      currentValues.children = currentValues.children.map((child) => ({
+        ...child,
+        created: true,
+      }));
+      currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
+
+      // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
+      form.reset(currentValues);
+
+      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
+    },
+    async onSettled() {
+      await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.getByViewer.invalidate();
+    },
+    onError: (err) => {
+      let message = "";
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
+      }
+
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
+        message = `${err.data.code}: ${t(err.message)}`;
+      }
+
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        message = t("unexpected_error_try_again");
+      }
+
+      showToast(message ? t(message) : t(err.message), "error");
+    },
+  });
+
+  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const slug = form.watch("slug") ?? eventType.slug;
+
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
     eventType: {
       id,
@@ -101,8 +206,8 @@ const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir
         destinationCalendar={destinationCalendar}
       />
     ),
-    //availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    //team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
@@ -116,6 +221,37 @@ const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir
     webhooks: <EventWebhooksTab eventType={eventType} />,
     ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
+
+  useHandleRouteChange({
+    watchTrigger: isAppDir ? pageRouter : pathname,
+    isTeamEventTypeDeleted: isTeamEventTypeDeleted.current,
+    isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
+    isTeamEventType: !!team,
+    assignedUsers: eventType.children,
+    hosts: eventType.hosts,
+    assignAllTeamMembers: eventType.assignAllTeamMembers,
+    isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+    onError: (url) => {
+      setIsOpenAssignmentWarnDialog(true);
+      setPendingRoute(url);
+      if (!isAppDir) {
+        pageRouter.events.emit(
+          "routeChangeError",
+          new Error(`Aborted route change to ${url} because none was assigned to team event`)
+        );
+        throw "Aborted";
+      }
+
+      throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
+    },
+    onStart: (handleRouteChange) => {
+      !isAppDir && pageRouter.events.on("routeChangeStart", handleRouteChange);
+      isAppDir && handleRouteChange(pathname || "");
+    },
+    onEnd: (handleRouteChange) => {
+      !isAppDir && pageRouter.events.off("routeChangeStart", handleRouteChange);
+    },
+  });
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -133,8 +269,9 @@ const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir
       ];
 
       Components.forEach((C) => {
+        // how to preload with app dir?
         // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
-        C.render.preload();
+        C.render?.preload();
       });
     }, 300);
 
@@ -142,13 +279,71 @@ const EventType = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir
       clearTimeout(timeout);
     };
   }, []);
-  return <EventTypeComponent {...rest} allActiveWorkflows={allActiveWorkflows} tabMap={tabMap} />;
+
+  const onDelete = () => {
+    isTeamEventTypeDeleted.current = true;
+  };
+  const onConflict = (conflicts: ChildrenEventType[]) => {
+    setSlugExistsChildrenDialogOpen(conflicts);
+  };
+  return (
+    <EventTypeComponent
+      {...rest}
+      allActiveWorkflows={allActiveWorkflows}
+      tabMap={tabMap}
+      onDelete={onDelete}
+      onConflict={onConflict}
+      handleSubmit={handleSubmit}
+      eventTypeApps={eventTypeApps}
+      formMethods={form}
+      isUpdating={updateMutation.isPending}>
+      <>
+        {slugExistsChildrenDialogOpen.length ? (
+          <ManagedEventTypeDialog
+            slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
+            isPending={form.formState.isSubmitting}
+            onOpenChange={() => {
+              setSlugExistsChildrenDialogOpen([]);
+            }}
+            slug={slug}
+            onConfirm={(e: { preventDefault: () => void }) => {
+              e.preventDefault();
+              handleSubmit();
+              telemetry.event(telemetryEventTypes.slugReplacementAction);
+              setSlugExistsChildrenDialogOpen([]);
+            }}
+          />
+        ) : null}
+        <AssignmentWarningDialog
+          isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
+          setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
+          pendingRoute={pendingRoute}
+          leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+          id={eventType.id}
+        />
+      </>
+    </EventTypeComponent>
+  );
 };
 
-export const EventTypeWebWrapper = ({ type, isAppDir }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id: type });
+const EventTypePageWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir?: boolean }) => {
+  const router = usePageRouter();
+  return <EventType {...rest} id={id} isAppDir={false} pageRouter={router} pathname={null} />;
+};
+
+const EventTypeAppWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number; isAppDir?: boolean }) => {
+  const pathname = usePathname();
+  return <EventType {...rest} id={id} isAppDir={true} pathname={pathname} pageRouter={null} />;
+};
+
+export const EventTypeWebWrapper = ({ id, isAppDir }: EventTypeWebWrapperProps & { isAppDir?: boolean }) => {
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
 
   if (!eventTypeQueryData) return null;
 
-  return <EventType {...eventTypeQueryData} id={type} isAppDir={isAppDir} />;
+  return isAppDir ? (
+    <EventTypeAppWrapper {...eventTypeQueryData} id={id} isAppDir={true} />
+  ) : (
+    <EventTypePageWrapper {...eventTypeQueryData} id={id} isAppDir={false} />
+  );
 };
