@@ -75,6 +75,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
   view?: VIEW_TYPE;
+  metadata?: Record<string, string>;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -343,7 +344,7 @@ export const BookerPlatformWrapper = (
     event,
     bookingForm: bookerForm.bookingForm,
     hashedLink: props.hashedLink,
-    metadata: {},
+    metadata: props.metadata ?? {},
     handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
@@ -381,14 +382,16 @@ export const BookerPlatformWrapper = (
         });
         setBookingData(null);
       }
-      if (isOverlayCalendarEnabled) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
-      } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
+      localStorage.removeItem("overlayCalendarSwitchDefault");
+    }
+    setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
+  }, [view, isOverlayCalendarEnabled]);
 
   return (
     <AtomsWrapper>

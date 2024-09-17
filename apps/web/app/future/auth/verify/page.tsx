@@ -4,7 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { z } from "zod";
 
-import { StripeRepository } from "@calcom/lib/server/repository/stripe";
+import { StripeService } from "@calcom/lib/server/service/stripe";
 
 import { getServerSideProps } from "@server/lib/auth/verify/getServerSideProps";
 
@@ -28,7 +28,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     );
   }
 
-  const data = await StripeRepository.getCheckoutSession({
+  const data = await StripeService.getCheckoutSession({
     stripeCustomerId,
     checkoutSessionId: sessionId,
   });

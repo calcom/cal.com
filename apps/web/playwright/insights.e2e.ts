@@ -75,11 +75,10 @@ test.describe("Insights", async () => {
 
     // go to insights page
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
+    await page.waitForURL(/.*\/insights\?teamId=[^&]*&isAll=false.*/);
 
     // expect url to have isAll and TeamId in query params
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).toContain("teamId=");
+    await expect(page).toHaveURL(/.*\/insights\?teamId=[^&]*&isAll=false.*/);
   });
 
   test("should be able to go to insights as members", async ({ page, users }) => {
@@ -92,12 +91,10 @@ test.describe("Insights", async () => {
     // go to insights page
     await page.goto("/insights");
 
-    await page.waitForLoadState("networkidle");
+    await page.waitForURL(/.*\/insights\?userId=[^&]*&isAll=false.*/);
 
     // expect url to have isAll and TeamId in query params
-
-    expect(page.url()).toContain("isAll=false");
-    expect(page.url()).not.toContain("teamId=");
+    await expect(page).toHaveURL(/.*\/insights\?userId=[^&]*&isAll=false.*/);
   });
 
   test("team select filter should have 2 teams and your account option only as member", async ({
@@ -113,7 +110,7 @@ test.describe("Insights", async () => {
     // go to insights page
     await page.goto("/insights");
 
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     // get div from team select filter with this class flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1
     await page.getByTestId("dashboard-shell").getByText("Team: test-insights").click();
@@ -137,7 +134,7 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await page.getByTestId("dashboard-shell").getByText("All").nth(1).click();
 
@@ -223,7 +220,7 @@ test.describe("Insights", async () => {
       )
       .nth(0)
       .click();
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     await page
       .locator(
@@ -231,7 +228,7 @@ test.describe("Insights", async () => {
       )
       .nth(1)
       .click();
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
     // press escape button to close the filter
     await page.keyboard.press("Escape");
 
@@ -250,7 +247,7 @@ test.describe("Insights", async () => {
     await owner.apiLogin();
 
     await page.goto("/insights");
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     const downloadPromise = page.waitForEvent("download");
 
