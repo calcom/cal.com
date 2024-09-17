@@ -18,6 +18,7 @@ export type NewSeatedBookingObject = {
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
   bookerEmail: string;
+  bookerPhoneNumber?: string | null;
   tAttendees: TFunction;
   bookingSeat: BookingSeat;
   reqUserId: number | undefined;

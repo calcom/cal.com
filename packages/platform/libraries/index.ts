@@ -5,10 +5,11 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -48,6 +49,7 @@ const handleInstantMeeting = instantMeetingMethods.default;
 export { handleInstantMeeting };
 
 export { handleMarkNoShow };
+export { handleCreatePhoneCall };
 
 export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
@@ -112,7 +114,7 @@ export type { SystemField, UserField } from "@calcom/lib/event-types/transformer
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
-export { symmetricEncrypt };
+export { symmetricEncrypt, symmetricDecrypt };
 export { CalendarService };
 
 export { getCalendar };
@@ -120,3 +122,5 @@ export { getCalendar };
 export { getTranslation };
 
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+
+export { ErrorCode } from "@calcom/lib/errorCodes";

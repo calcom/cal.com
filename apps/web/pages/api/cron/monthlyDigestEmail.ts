@@ -102,12 +102,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         OR: [
           {
             teamId: team.id,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ],
         createdAt: {
@@ -132,12 +133,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         OR: [
           {
             teamId: team.id,
+            isTeamBooking: true,
           },
           {
             userId: {
               in: userIdsFromTeams,
             },
-            teamId: null,
+            isTeamBooking: false,
           },
         ],
       };

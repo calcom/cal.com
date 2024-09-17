@@ -97,29 +97,6 @@ jobs:
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
-  i18n:
-    name: Run i18n
-    runs-on: buildjet-2vcpu-ubuntu-2204
-    permissions:
-      actions: write
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-      # Doing this custom checkout of the common.json files from the PR since we don't
-      # want to checkout the entire branch for security reasons as this job is granted
-      # write permissions.
-      - run: git fetch --depth=2 origin ${{ github.event.pull_request.head.sha }}
-        if: ${{ github.event.pull_request.head.sha != '' }}
-      - run: find apps/web/public/static/locales/** -name "common.json" | xargs git checkout ${{ github.event.pull_request.head.sha }} --
-        if: ${{ github.event.pull_request.head.sha != '' }}
-        shell: bash
-      - run: git checkout ${{ github.event.pull_request.head.sha }} -- i18n.json
-        if: ${{ github.event.pull_request.head.sha != '' }}
-      - uses: replexica/replexica@main
-        with:
-          api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
-
   type-check:
     name: Type check
     needs: [changes, check-label, deps]
