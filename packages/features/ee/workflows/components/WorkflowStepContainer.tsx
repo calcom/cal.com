@@ -914,63 +914,34 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     {form.formState.errors.steps &&
                       form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
                         <p className="mt-1 text-xs text-red-500">
-                          {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
+                          {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}sd
                         </p>
                       )}
                   </div>
                 )}
 
-                {step.action !== WorkflowActions.SMS_ATTENDEE &&
-                step.action !== WorkflowActions.SMS_NUMBER ? (
-                  <>
-                    <div className="mb-2 flex items-center pb-[1.5px]">
-                      <Label className="mb-0 flex-none ">
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                    </div>
-                    <Editor
-                      getText={() => {
-                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                      }}
-                      setText={(text: string) => {
-                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                        props.form.clearErrors();
-                      }}
-                      variables={DYNAMIC_TEXT_VARIABLES}
-                      height="200px"
-                      updateTemplate={updateTemplate}
-                      firstRender={firstRender}
-                      setFirstRender={setFirstRender}
-                      editable={!props.readOnly && !isWhatsappAction(step.action)}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center">
-                      <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                      {!props.readOnly && (
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableBody}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <TextArea
-                      ref={(e) => {
-                        reminderBodyFormRef?.(e);
-                        refReminderBody.current = e;
-                      }}
-                      className="my-0 h-24"
-                      disabled={props.readOnly}
-                      required
-                      {...restReminderBodyForm}
-                    />
-                  </>
-                )}
+                <div className="mb-2 flex items-center pb-[1.5px]">
+                  <Label className="mb-0 flex-none ">
+                    {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                  </Label>
+                </div>
+                <Editor
+                  getText={() => {
+                    return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                  }}
+                  setText={(text: string) => {
+                    props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                    props.form.clearErrors();
+                  }}
+                  variables={DYNAMIC_TEXT_VARIABLES}
+                  height="200px"
+                  updateTemplate={updateTemplate}
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
+                  editable={!props.readOnly && !isWhatsappAction(step.action)}
+                  action={step.action}
+                />
+
                 {form.formState.errors.steps &&
                   form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
                     <p className="mt-1 text-sm text-red-500">
