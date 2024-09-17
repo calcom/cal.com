@@ -60,7 +60,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     dateRange: [
       startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "week"),
       endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
-      "w",
+      !startTimeParsed && !endTimeParsed ? "w" : null,
     ],
     selectedTimeView: "week",
     selectedUserId: userIdParsed || null,
