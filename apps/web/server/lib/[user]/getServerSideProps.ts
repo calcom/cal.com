@@ -23,7 +23,7 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
-export type UserPageProps = {
+type UserPageProps = {
   trpcState: DehydratedState;
   profile: {
     name: string;
