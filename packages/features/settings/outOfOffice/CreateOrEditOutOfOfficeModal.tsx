@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -32,6 +33,7 @@ export type BookingRedirectForm = {
 };
 
 type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
+type Option = { value: number; label: string };
 
 export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
@@ -45,20 +47,22 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  // TODO: support infinite scrolling
-  const { data, isFetching, status, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    trpc.viewer.teams.listMembers.useInfiniteQuery(
-      {
-        limit: 10,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-        refetchOnWindowFocus: true,
-        refetchOnMount: true,
-        staleTime: 0,
-      }
-    );
+  const [searchText, setSearchText] = useState("");
+  const debouncedSearchTerm = useDebounce(searchText, 500);
+
+  const { data, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
+    {
+      limit: 10,
+      searchTerm: debouncedSearchTerm,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      placeholderData: keepPreviousData,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0,
+    }
+  );
 
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
 
@@ -74,8 +78,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         value: member.id,
         label: member.name || member.email || "",
       })) || [];
-
-  type Option = { value: number; label: string };
 
   const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
 
@@ -237,11 +239,14 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       render={({ field: { onChange, value } }) => (
                         <Select<Option>
                           name="toTeamUsername"
+                          isLoading={isFetching}
                           data-testid="team_username_select"
                           value={memberListOptions.find((member) => member.value === value)}
                           placeholder={t("select_team_member")}
-                          isSearchable
                           options={memberListOptions}
+                          onInputChange={(inputValue) => {
+                            setSearchText(inputValue);
+                          }}
                           onChange={(selectedOption) => {
                             if (selectedOption?.value) {
                               onChange(selectedOption.value);
