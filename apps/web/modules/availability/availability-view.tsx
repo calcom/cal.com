@@ -19,6 +19,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { UseTRPCQueryResult } from "@calcom/trpc/react/shared";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -178,10 +179,10 @@ function AvailabilityListWithQuery({
   });
 
   const query = availabilityList
-    ? {
+    ? ({
         status: "success",
         data: availabilityList,
-      }
+      } as UseTRPCQueryResult<typeof availabilityList, any>)
     : _query;
 
   return (

@@ -34,7 +34,7 @@ const Page = async () => {
         orgId,
         userId,
       }),
-      AvailabilityRepository.getList({ userId, defaultScheduleId: session?.uesr?.defaultScheduleId }),
+      AvailabilityRepository.getList({ userId, defaultScheduleId: null }),
     ]);
     return (
       <AvailabilityPage
