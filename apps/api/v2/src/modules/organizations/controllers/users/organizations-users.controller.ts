@@ -14,28 +14,29 @@ import {
 import { ClassSerializerInterceptor } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { PlatformPlan } from "src/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetOrg } from "src/modules/auth/decorators/get-org/get-org.decorator";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "src/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "src/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "src/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "src/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "src/modules/auth/guards/roles/roles.guard";
-import { IsUserInOrg } from "src/modules/auth/guards/users/is-user-in-org.guard";
-import { CreateOrganizationUserInput } from "src/modules/organizations/inputs/create-organization-user.input";
-import { GetOrganizationsUsersInput } from "src/modules/organizations/inputs/get-organization-users.input";
-import { UpdateOrganizationUserInput } from "src/modules/organizations/inputs/update-organization-user.input";
-import { GetOrganizationUsersOutput } from "src/modules/organizations/outputs/get-organization-users.output";
-import { GetOrganizationUserOutput } from "src/modules/organizations/outputs/get-organization-users.output";
-import { OrganizationsUsersService } from "src/modules/organizations/services/organizations-users-service";
-import { GetUserOutput } from "src/modules/users/outputs/get-users.output";
-import { UserWithProfile } from "src/modules/users/users.repository";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Team } from "@calcom/prisma/client";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { GetOrg } from "../../../auth/decorators/get-org/get-org.decorator";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsUserInOrg } from "../../../auth/guards/users/is-user-in-org.guard";
+import { CreateOrganizationUserInput } from "../../../organizations/inputs/create-organization-user.input";
+import { GetOrganizationsUsersInput } from "../../../organizations/inputs/get-organization-users.input";
+import { UpdateOrganizationUserInput } from "../../../organizations/inputs/update-organization-user.input";
+import { GetOrganizationUsersOutput } from "../../../organizations/outputs/get-organization-users.output";
+import { GetOrganizationUserOutput } from "../../../organizations/outputs/get-organization-users.output";
+import { OrganizationsUsersService } from "../../../organizations/services/organizations-users-service";
+import { GetUserOutput } from "../../../users/outputs/get-users.output";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Controller({
   path: "/v2/organizations/:orgId/users",

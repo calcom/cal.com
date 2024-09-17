@@ -42,4 +42,3 @@ lerna-debug.log*
 .env.*
 !.env.example
 !.env.appStore.example
-.vercel

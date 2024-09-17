@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
+
+import { PrismaReadService } from "../prisma/prisma-read.service";
 
 @Injectable()
 export class ProfilesRepository {

@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { MembershipsRepository } from "src/modules/memberships/memberships.repository";
-import { CreateOrgTeamDto } from "src/modules/organizations/inputs/create-organization-team.input";
-import { UpdateOrgTeamDto } from "src/modules/organizations/inputs/update-organization-team.input";
-import { OrganizationsTeamsRepository } from "src/modules/organizations/repositories/organizations-teams.repository";
-import { UserWithProfile } from "src/modules/users/users.repository";
 
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
+
+import { MembershipsRepository } from "../../memberships/memberships.repository";
+import { CreateOrgTeamDto } from "../../organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "../../organizations/inputs/update-organization-team.input";
+import { OrganizationsTeamsRepository } from "../../organizations/repositories/organizations-teams.repository";
+import { UserWithProfile } from "../../users/users.repository";
 
 @Injectable()
 export class OrganizationsTeamsService {

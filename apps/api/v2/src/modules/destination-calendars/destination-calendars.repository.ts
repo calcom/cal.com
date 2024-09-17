@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
+
+import { PrismaWriteService } from "../prisma/prisma-write.service";
 
 @Injectable()
 export class DestinationCalendarsRepository {

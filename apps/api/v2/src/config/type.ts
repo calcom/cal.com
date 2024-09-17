@@ -13,7 +13,6 @@ export type AppConfig = {
   db: {
     readUrl: string;
     writeUrl: string;
-    redisUrl: string;
   };
   next: {
     authSecret: string;

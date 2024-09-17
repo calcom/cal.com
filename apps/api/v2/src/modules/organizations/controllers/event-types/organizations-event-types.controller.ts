@@ -14,23 +14,6 @@ import {
   Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { PlatformPlan } from "src/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "src/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "src/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "src/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "src/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "src/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "src/modules/auth/guards/teams/is-team-in-org.guard";
-import { CreateTeamEventTypeOutput } from "src/modules/organizations/controllers/event-types/outputs/teams/create-team-event-type.output";
-import { DeleteTeamEventTypeOutput } from "src/modules/organizations/controllers/event-types/outputs/teams/delete-team-event-type.output";
-import { GetTeamEventTypeOutput } from "src/modules/organizations/controllers/event-types/outputs/teams/get-team-event-type.output";
-import { GetTeamEventTypesOutput } from "src/modules/organizations/controllers/event-types/outputs/teams/get-team-event-types.output";
-import { UpdateTeamEventTypeOutput } from "src/modules/organizations/controllers/event-types/outputs/teams/update-team-event-type.output";
-import { OrganizationsEventTypesService } from "src/modules/organizations/services/event-types/organizations-event-types.service";
-import { UserWithProfile } from "src/modules/users/users.repository";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -39,6 +22,24 @@ import {
   SkipTakePagination,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../../auth/guards/teams/is-team-in-org.guard";
+import { CreateTeamEventTypeOutput } from "../../../organizations/controllers/event-types/outputs/teams/create-team-event-type.output";
+import { DeleteTeamEventTypeOutput } from "../../../organizations/controllers/event-types/outputs/teams/delete-team-event-type.output";
+import { GetTeamEventTypeOutput } from "../../../organizations/controllers/event-types/outputs/teams/get-team-event-type.output";
+import { GetTeamEventTypesOutput } from "../../../organizations/controllers/event-types/outputs/teams/get-team-event-types.output";
+import { UpdateTeamEventTypeOutput } from "../../../organizations/controllers/event-types/outputs/teams/update-team-event-type.output";
+import { OrganizationsEventTypesService } from "../../../organizations/services/event-types/organizations-event-types.service";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Controller({
   path: "/v2/organizations/:orgId",

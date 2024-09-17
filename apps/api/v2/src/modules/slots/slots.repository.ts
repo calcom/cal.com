@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
 
 import { MINUTES_TO_BOOK } from "@calcom/platform-libraries";
 import { ReserveSlotInput } from "@calcom/platform-types";
+
+import { PrismaReadService } from "../prisma/prisma-read.service";
+import { PrismaWriteService } from "../prisma/prisma-write.service";
 
 @Injectable()
 export class SlotsRepository {

@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, ValidateNested, IsEnum } from "class-validator";
-import { PlatformOAuthClientDto } from "src/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+
+import { PlatformOAuthClientDto } from "../../../../oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 
 export class GetOAuthClientsResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

@@ -1,8 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
-import { UsersService } from "src/modules/users/services/users.service";
-import { UserWithProfile } from "src/modules/users/users.repository";
 
 import {
   getEventTypeById,
@@ -11,6 +7,11 @@ import {
 } from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
+
+import { PrismaReadService } from "../../../modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "../../../modules/prisma/prisma-write.service";
+import { UsersService } from "../../../modules/users/services/users.service";
+import { UserWithProfile } from "../../../modules/users/users.repository";
 
 type InputEventTransformed = Omit<
   CreateEventTypeInput_2024_06_14,

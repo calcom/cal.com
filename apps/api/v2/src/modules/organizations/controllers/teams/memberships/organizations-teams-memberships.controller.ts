@@ -15,27 +15,28 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { PlatformPlan } from "src/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "src/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "src/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "src/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "src/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "src/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "src/modules/auth/guards/teams/is-team-in-org.guard";
-import { CreateOrgTeamMembershipDto } from "src/modules/organizations/inputs/create-organization-team-membership.input";
-import { UpdateOrgTeamMembershipDto } from "src/modules/organizations/inputs/update-organization-team-membership.input";
-import { OrganizationsRepository } from "src/modules/organizations/organizations.repository";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../../lib/api-versions";
+import { PlatformPlan } from "../../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../../../auth/guards/teams/is-team-in-org.guard";
+import { CreateOrgTeamMembershipDto } from "../../../../organizations/inputs/create-organization-team-membership.input";
+import { UpdateOrgTeamMembershipDto } from "../../../../organizations/inputs/update-organization-team-membership.input";
+import { OrganizationsRepository } from "../../../../organizations/organizations.repository";
 import {
   OrgTeamMembershipOutputDto,
   OrgTeamMembershipsOutputResponseDto,
   OrgTeamMembershipOutputResponseDto,
-} from "src/modules/organizations/outputs/organization-teams-memberships.output";
-import { OrganizationsTeamsMembershipsService } from "src/modules/organizations/services/organizations-teams-memberships.service";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
+} from "../../../../organizations/outputs/organization-teams-memberships.output";
+import { OrganizationsTeamsMembershipsService } from "../../../../organizations/services/organizations-teams-memberships.service";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/memberships",

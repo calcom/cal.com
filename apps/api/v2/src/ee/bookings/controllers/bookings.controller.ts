@@ -1,55 +1,54 @@
 import {
-  Controller,
-  Post,
-  Logger,
-  Req,
-  InternalServerErrorException,
   Body,
+  Controller,
+  Get,
   Headers,
   HttpException,
-  Param,
-  Get,
-  Query,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
+  Param,
+  Post,
+  Query,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
-import { CreateBookingInput } from "src/ee/bookings/inputs/create-booking.input";
-import { CreateRecurringBookingInput } from "src/ee/bookings/inputs/create-recurring-booking.input";
-import { MarkNoShowInput } from "src/ee/bookings/inputs/mark-no-show.input";
-import { GetBookingOutput } from "src/ee/bookings/outputs/get-booking.output";
-import { GetBookingsOutput } from "src/ee/bookings/outputs/get-bookings.output";
-import { MarkNoShowOutput } from "src/ee/bookings/outputs/mark-no-show.output";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "src/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "src/modules/auth/guards/permissions/permissions.guard";
-import { BillingService } from "src/modules/billing/services/billing.service";
-import { OAuthClientRepository } from "src/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "src/modules/oauth-clients/services/oauth-flow.service";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
 
-import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
+import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
-  handleNewBooking,
   BookingResponse,
   HttpError,
-  handleNewRecurringBooking,
-  handleInstantMeeting,
-  handleMarkNoShow,
   getAllUserBookings,
+  getBookingForReschedule,
   getBookingInfo,
   handleCancelBooking,
-  getBookingForReschedule,
+  handleInstantMeeting,
+  handleMarkNoShow,
+  handleNewBooking,
+  handleNewRecurringBooking,
 } from "@calcom/platform-libraries";
-import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
+import { ApiResponse, CancelBookingInput, GetBookingsInput, Status } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../modules/auth/guards/permissions/permissions.guard";
+import { BillingService } from "../../../modules/billing/services/billing.service";
+import { OAuthClientRepository } from "../../../modules/oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "../../../modules/oauth-clients/services/oauth-flow.service";
+import { PrismaReadService } from "../../../modules/prisma/prisma-read.service";
+import { CreateBookingInput } from "../inputs/create-booking.input";
+import { CreateRecurringBookingInput } from "../inputs/create-recurring-booking.input";
+import { MarkNoShowInput } from "../inputs/mark-no-show.input";
+import { GetBookingOutput } from "../outputs/get-booking.output";
+import { GetBookingsOutput } from "../outputs/get-bookings.output";
+import { MarkNoShowOutput } from "../outputs/mark-no-show.output";
 
 type BookingRequest = Request & {
   userId?: number;

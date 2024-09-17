@@ -11,10 +11,11 @@ import {
   IsDate,
   IsNumber,
 } from "class-validator";
-import { Editable } from "src/ee/event-types/event-types_2024_04_15/inputs/enums/editable";
-import { BaseField } from "src/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
-import { Frequency } from "src/ee/event-types/event-types_2024_04_15/inputs/enums/frequency";
-import { EventTypeLocation_2024_04_15 } from "src/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
+
+import { Editable } from "./enums/editable";
+import { BaseField } from "./enums/field-type";
+import { Frequency } from "./enums/frequency";
+import { EventTypeLocation_2024_04_15 } from "./event-type-location.input";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.

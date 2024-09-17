@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
-import { OutputEventTypesService_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { OrganizationsEventTypesRepository } from "src/modules/organizations/repositories/organizations-event-types.repository";
-import { UsersRepository } from "src/modules/users/users.repository";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
+
+import { OutputEventTypesService_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { OrganizationsEventTypesRepository } from "../../../organizations/repositories/organizations-event-types.repository";
+import { UsersRepository } from "../../../users/users.repository";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null; hosts: Host[] };
 type DatabaseEventType = EventType & EventTypeRelations;

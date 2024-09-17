@@ -7,12 +7,13 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { Request } from "express";
-import { GetUserReturnType } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { OAuthClientRepository } from "src/modules/oauth-clients/oauth-client.repository";
-import { UsersService } from "src/modules/users/services/users.service";
-import { WebhooksService } from "src/modules/webhooks/services/webhooks.service";
 
 import { PlatformOAuthClient, Webhook } from "@calcom/prisma/client";
+
+import { GetUserReturnType } from "../../auth/decorators/get-user/get-user.decorator";
+import { OAuthClientRepository } from "../../oauth-clients/oauth-client.repository";
+import { UsersService } from "../../users/services/users.service";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsOAuthClientWebhookGuard implements CanActivate {

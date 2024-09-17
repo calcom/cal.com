@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { OutputSchedulesService_2024_06_11 } from "src/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
-import { OrganizationSchedulesRepository } from "src/modules/organizations/repositories/organizations-schedules.repository";
-import { UsersRepository } from "src/modules/users/users.repository";
 
 import { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
+
+import { OutputSchedulesService_2024_06_11 } from "../../../ee/schedules/schedules_2024_06_11/services/output-schedules.service";
+import { OrganizationSchedulesRepository } from "../../organizations/repositories/organizations-schedules.repository";
+import { UsersRepository } from "../../users/users.repository";
 
 @Injectable()
 export class OrganizationsSchedulesService {

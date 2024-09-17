@@ -6,9 +6,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Request } from "express";
-import { OrganizationsMembershipRepository } from "src/modules/organizations/repositories/organizations-membership.repository";
 
 import { Membership } from "@calcom/prisma/client";
+
+import { OrganizationsMembershipRepository } from "../../../organizations/repositories/organizations-membership.repository";
 
 @Injectable()
 export class IsMembershipInOrg implements CanActivate {

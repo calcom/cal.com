@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";
-import { UpdatedScheduleOutput_2024_04_15 } from "src/ee/schedules/schedules_2024_04_15/outputs/schedule-updated.output";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+
+import { UpdatedScheduleOutput_2024_04_15 } from "./schedule-updated.output";
 
 export class UpdateScheduleOutput_2024_04_15 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

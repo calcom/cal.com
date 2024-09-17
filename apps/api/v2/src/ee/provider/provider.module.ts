@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
-import { CalProviderController } from "src/ee/provider/provider.controller";
-import { CredentialsRepository } from "src/modules/credentials/credentials.repository";
-import { OAuthClientModule } from "src/modules/oauth-clients/oauth-client.module";
-import { PrismaModule } from "src/modules/prisma/prisma.module";
-import { TokensModule } from "src/modules/tokens/tokens.module";
+
+import { CredentialsRepository } from "../../modules/credentials/credentials.repository";
+import { OAuthClientModule } from "../../modules/oauth-clients/oauth-client.module";
+import { PrismaModule } from "../../modules/prisma/prisma.module";
+import { TokensModule } from "../../modules/tokens/tokens.module";
+import { CalProviderController } from "./provider.controller";
 
 @Module({
   imports: [PrismaModule, TokensModule, OAuthClientModule],

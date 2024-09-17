@@ -1,7 +1,7 @@
-import { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
+
+import { getEnv } from "../../env";
 
 @Injectable()
 export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
@@ -9,8 +9,8 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
 
   public prisma: PrismaClient;
 
-  constructor(readonly configService: ConfigService) {
-    const dbUrl = configService.get("db.writeUrl", { infer: true });
+  constructor() {
+    const dbUrl = getEnv("DATABASE_WRITE_URL");
 
     this.prisma = new PrismaClient({
       datasources: {

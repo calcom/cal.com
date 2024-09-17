@@ -1,26 +1,25 @@
 import {
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { User } from "@prisma/client";
 import { DateTime } from "luxon";
-import { CalendarsRepository } from "src/ee/calendars/calendars.repository";
-import { AppsRepository } from "src/modules/apps/apps.repository";
+import { z } from "zod";
+
+import { getBusyCalendarTimes, getConnectedDestinationCalendars } from "@calcom/platform-libraries";
+import { Calendar } from "@calcom/platform-types";
+import { PrismaClient } from "@calcom/prisma";
+
+import { AppsRepository } from "../../../modules/apps/apps.repository";
 import {
   CredentialsRepository,
   CredentialsWithUserEmail,
-} from "src/modules/credentials/credentials.repository";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
-import { UsersRepository } from "src/modules/users/users.repository";
-import { z } from "zod";
-
-import { getConnectedDestinationCalendars, getBusyCalendarTimes } from "@calcom/platform-libraries";
-import { Calendar } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
+} from "../../../modules/credentials/credentials.repository";
+import { PrismaWriteService } from "../../../modules/prisma/prisma-write.service";
+import { UsersRepository } from "../../../modules/users/users.repository";
+import { CalendarsRepository } from "../../calendars/calendars.repository";
 
 @Injectable()
 export class CalendarsService {
@@ -31,9 +30,7 @@ export class CalendarsService {
     private readonly credentialsRepository: CredentialsRepository,
     private readonly appsRepository: AppsRepository,
     private readonly calendarsRepository: CalendarsRepository,
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService,
-    private readonly config: ConfigService
+    private readonly dbWrite: PrismaWriteService
   ) {}
 
   async getCalendars(userId: number) {

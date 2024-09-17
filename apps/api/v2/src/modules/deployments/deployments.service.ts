@@ -1,28 +1,24 @@
 import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { DeploymentsRepository } from "src/modules/deployments/deployments.repository";
-import { RedisService } from "src/modules/redis/redis.service";
 
-const CACHING_TIME = 86400000; // 24 hours in milliseconds
-
-const getLicenseCacheKey = (key: string) => `api-v2-license-key-url-${key}`;
+import { getEnv } from "../../env";
+import { DeploymentsRepository } from "../deployments/deployments.repository";
 
 type LicenseCheckResponse = {
   valid: boolean;
 };
 @Injectable()
 export class DeploymentsService {
-  constructor(
-    private readonly deploymentsRepository: DeploymentsRepository,
-    private readonly configService: ConfigService,
-    private readonly redisService: RedisService
-  ) {}
+  constructor(private readonly deploymentsRepository: DeploymentsRepository) {}
+
+  private is_e2e = getEnv("IS_E2E");
+  private licenseKey = getEnv("CALCOM_LICENSE_KEY");
+  private licenseKeyUrl = getEnv("GET_LICENSE_KEY_URL");
 
   async checkLicense() {
-    if (this.configService.get("e2e")) {
+    if (this.is_e2e) {
       return true;
     }
-    let licenseKey = this.configService.get("api.licenseKey");
+    let licenseKey = this.licenseKey;
 
     if (!licenseKey) {
       /** We try to check on DB only if env is undefined */
@@ -33,15 +29,10 @@ export class DeploymentsService {
     if (!licenseKey) {
       return false;
     }
-    const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `?key=${licenseKey}`;
-    const cachedData = await this.redisService.redis.get(getLicenseCacheKey(licenseKey));
-    if (cachedData) {
-      return (JSON.parse(cachedData) as LicenseCheckResponse)?.valid;
-    }
+    const licenseKeyUrl = this.licenseKeyUrl + `?key=${licenseKey}`;
+
     const response = await fetch(licenseKeyUrl, { mode: "cors" });
     const data = (await response.json()) as LicenseCheckResponse;
-    const cacheKey = getLicenseCacheKey(licenseKey);
-    this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
     return data.valid;
   }
 }

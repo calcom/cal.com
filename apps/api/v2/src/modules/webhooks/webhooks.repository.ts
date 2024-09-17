@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
 import { v4 as uuidv4 } from "uuid";
 
 import { Webhook } from "@calcom/prisma/client";
 
+import { PrismaReadService } from "../prisma/prisma-read.service";
 import { PrismaWriteService } from "../prisma/prisma-write.service";
 
 type WebhookInputData = Pick<

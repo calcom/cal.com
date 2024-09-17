@@ -1,9 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Request } from "express";
-import { GetUserReturnType } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { WebhooksService } from "src/modules/webhooks/services/webhooks.service";
 
 import { Webhook } from "@calcom/prisma/client";
+
+import { GetUserReturnType } from "../../auth/decorators/get-user/get-user.decorator";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsUserWebhookGuard implements CanActivate {

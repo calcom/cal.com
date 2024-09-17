@@ -1,14 +1,4 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { DEFAULT_EVENT_TYPES } from "src/ee/event-types/event-types_2024_06_14/constants/constants";
-import { EventTypesRepository_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { InputEventTypesService_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { OutputEventTypesService_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { SchedulesRepository_2024_06_11 } from "src/ee/schedules/schedules_2024_06_11/schedules.repository";
-import { MembershipsRepository } from "src/modules/memberships/memberships.repository";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
-import { SelectedCalendarsRepository } from "src/modules/selected-calendars/selected-calendars.repository";
-import { UsersService } from "src/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "src/modules/users/users.repository";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
@@ -20,6 +10,17 @@ import {
   EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
+
+import { MembershipsRepository } from "../../../../modules/memberships/memberships.repository";
+import { PrismaWriteService } from "../../../../modules/prisma/prisma-write.service";
+import { SelectedCalendarsRepository } from "../../../../modules/selected-calendars/selected-calendars.repository";
+import { UsersService } from "../../../../modules/users/services/users.service";
+import { UserWithProfile, UsersRepository } from "../../../../modules/users/users.repository";
+import { SchedulesRepository_2024_06_11 } from "../../../schedules/schedules_2024_06_11/schedules.repository";
+import { DEFAULT_EVENT_TYPES } from "../constants/constants";
+import { EventTypesRepository_2024_06_14 } from "../event-types.repository";
+import { InputEventTypesService_2024_06_14 } from "../services/input-event-types.service";
+import { OutputEventTypesService_2024_06_14 } from "../services/output-event-types.service";
 
 @Injectable()
 export class EventTypesService_2024_06_14 {

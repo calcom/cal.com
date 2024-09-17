@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
-import { SchedulesController_2024_04_15 } from "src/ee/schedules/schedules_2024_04_15/controllers/schedules.controller";
-import { SchedulesRepository_2024_04_15 } from "src/ee/schedules/schedules_2024_04_15/schedules.repository";
-import { SchedulesService_2024_04_15 } from "src/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PrismaModule } from "src/modules/prisma/prisma.module";
-import { TokensModule } from "src/modules/tokens/tokens.module";
-import { UsersModule } from "src/modules/users/users.module";
+
+import { PrismaModule } from "../../../modules/prisma/prisma.module";
+import { TokensModule } from "../../../modules/tokens/tokens.module";
+import { UsersModule } from "../../../modules/users/users.module";
+import { SchedulesController_2024_04_15 } from "./controllers/schedules.controller";
+import { SchedulesRepository_2024_04_15 } from "./schedules.repository";
+import { SchedulesService_2024_04_15 } from "./services/schedules.service";
 
 @Module({
   imports: [PrismaModule, UsersModule, TokensModule],

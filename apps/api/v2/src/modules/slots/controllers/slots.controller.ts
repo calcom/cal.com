@@ -1,14 +1,15 @@
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { SlotsService } from "src/modules/slots/services/slots.service";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
 import { RemoveSelectedSlotInput, ReserveSlotInput } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { SlotsService } from "../../slots/services/slots.service";
 
 @Controller({
   path: "/v2/slots",

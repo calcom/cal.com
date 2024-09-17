@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { AppConfig } from "src/config/type";
 import Stripe from "stripe";
+
+import { getEnv } from "../../env";
 
 @Injectable()
 export class StripeService {
   public stripe: Stripe;
 
-  constructor(configService: ConfigService<AppConfig>) {
-    this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
+  constructor() {
+    this.stripe = new Stripe(getEnv("STRIPE_API_KEY"), {
       apiVersion: "2020-08-27",
     });
   }

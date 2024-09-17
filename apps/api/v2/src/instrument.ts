@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
-import { getEnv } from "src/env";
+
+import { getEnv } from "./env";
 
 if (process.env.SENTRY_DSN) {
   // Ensure to call this before requiring any other modules!

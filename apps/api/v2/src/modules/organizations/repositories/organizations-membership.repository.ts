@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { CreateOrgMembershipDto } from "src/modules/organizations/inputs/create-organization-membership.input";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
 
+import { PrismaReadService } from "../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../prisma/prisma-write.service";
+import { CreateOrgMembershipDto } from "../inputs/create-organization-membership.input";
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 
 @Injectable()

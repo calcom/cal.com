@@ -1,22 +1,21 @@
 import { Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { CalendarsRepository } from "src/ee/calendars/calendars.repository";
-import { CalendarsService } from "src/ee/calendars/services/calendars.service";
-import { GcalController } from "src/ee/gcal/gcal.controller";
-import { AppsRepository } from "src/modules/apps/apps.repository";
-import { GCalService } from "src/modules/apps/services/gcal.service";
-import { CredentialsRepository } from "src/modules/credentials/credentials.repository";
-import { OAuthClientModule } from "src/modules/oauth-clients/oauth-client.module";
-import { PrismaModule } from "src/modules/prisma/prisma.module";
-import { SelectedCalendarsRepository } from "src/modules/selected-calendars/selected-calendars.repository";
-import { TokensModule } from "src/modules/tokens/tokens.module";
-import { UsersRepository } from "src/modules/users/users.repository";
+
+import { AppsRepository } from "../../modules/apps/apps.repository";
+import { GCalService } from "../../modules/apps/services/gcal.service";
+import { CredentialsRepository } from "../../modules/credentials/credentials.repository";
+import { OAuthClientModule } from "../../modules/oauth-clients/oauth-client.module";
+import { PrismaModule } from "../../modules/prisma/prisma.module";
+import { SelectedCalendarsRepository } from "../../modules/selected-calendars/selected-calendars.repository";
+import { TokensModule } from "../../modules/tokens/tokens.module";
+import { UsersRepository } from "../../modules/users/users.repository";
+import { CalendarsRepository } from "../calendars/calendars.repository";
+import { CalendarsService } from "../calendars/services/calendars.service";
+import { GcalController } from "./gcal.controller";
 
 @Module({
   imports: [PrismaModule, TokensModule, OAuthClientModule],
   providers: [
     AppsRepository,
-    ConfigService,
     CredentialsRepository,
     SelectedCalendarsRepository,
     GCalService,

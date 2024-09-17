@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
-import { CredentialsRepository } from "src/modules/credentials/credentials.repository";
+
+import { CredentialsRepository } from "../credentials/credentials.repository";
 
 @Module({
   imports: [],

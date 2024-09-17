@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { CreateOrgTeamMembershipDto } from "src/modules/organizations/inputs/create-organization-team-membership.input";
-import { UpdateOrgTeamMembershipDto } from "src/modules/organizations/inputs/update-organization-team-membership.input";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
+
+import { PrismaReadService } from "../../prisma/prisma-read.service";
+import { PrismaWriteService } from "../../prisma/prisma-write.service";
+import { CreateOrgTeamMembershipDto } from "../inputs/create-organization-team-membership.input";
+import { UpdateOrgTeamMembershipDto } from "../inputs/update-organization-team-membership.input";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsRepository {

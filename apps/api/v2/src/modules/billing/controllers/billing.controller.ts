@@ -3,31 +3,31 @@ import {
   Body,
   Controller,
   Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
   Headers,
   HttpCode,
   HttpStatus,
   Logger,
+  Param,
+  Post,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
 import { Request } from "express";
-import { AppConfig } from "src/config/type";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { MembershipRoles } from "src/modules/auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "src/modules/auth/guards/next-auth/next-auth.guard";
-import { OrganizationRolesGuard } from "src/modules/auth/guards/organization-roles/organization-roles.guard";
-import { SubscribeToPlanInput } from "src/modules/billing/controllers/inputs/subscribe-to-plan.input";
-import { CheckPlatformBillingResponseDto } from "src/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
-import { SubscribeTeamToBillingResponseDto } from "src/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
-import { BillingService } from "src/modules/billing/services/billing.service";
-import { PlatformPlan } from "src/modules/billing/types";
 import { Stripe } from "stripe";
 
 import { ApiResponse } from "@calcom/platform-types";
+
+import { getEnv } from "../../../env";
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { MembershipRoles } from "../../auth/decorators/roles/membership-roles.decorator";
+import { NextAuthGuard } from "../../auth/guards/next-auth/next-auth.guard";
+import { OrganizationRolesGuard } from "../../auth/guards/organization-roles/organization-roles.guard";
+import { SubscribeToPlanInput } from "../../billing/controllers/inputs/subscribe-to-plan.input";
+import { CheckPlatformBillingResponseDto } from "../../billing/controllers/outputs/CheckPlatformBillingResponse.dto";
+import { SubscribeTeamToBillingResponseDto } from "../../billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
+import { BillingService } from "../../billing/services/billing.service";
+import { PlatformPlan } from "../../billing/types";
 
 @Controller({
   path: "/v2/billing",
@@ -38,11 +38,8 @@ export class BillingController {
   private readonly stripeWhSecret: string;
   private logger = new Logger("Billing Controller");
 
-  constructor(
-    private readonly billingService: BillingService,
-    private readonly configService: ConfigService<AppConfig>
-  ) {
-    this.stripeWhSecret = configService.get("stripe.webhookSecret", { infer: true }) ?? "";
+  constructor(private readonly billingService: BillingService) {
+    this.stripeWhSecret = getEnv("STRIPE_API_KEY");
   }
 
   @Get("/:teamId/check")

@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { ConnectedCalendar, Calendar } from "src/ee/calendars/outputs/connected-calendars.output";
-import { CalendarsService } from "src/ee/calendars/services/calendars.service";
-import { DestinationCalendarsRepository } from "src/modules/destination-calendars/destination-calendars.repository";
+
+import { ConnectedCalendar, Calendar } from "../../../ee/calendars/outputs/connected-calendars.output";
+import { CalendarsService } from "../../../ee/calendars/services/calendars.service";
+import { DestinationCalendarsRepository } from "../../destination-calendars/destination-calendars.repository";
 
 @Injectable()
 export class DestinationCalendarsService {

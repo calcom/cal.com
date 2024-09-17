@@ -1,19 +1,24 @@
-import { Logger, NotFoundException } from "@nestjs/common";
-import { BadRequestException, UnauthorizedException } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
 import { google } from "googleapis";
-import { OAuthCalendarApp } from "src/ee/calendars/calendars.interface";
-import { CalendarsService } from "src/ee/calendars/services/calendars.service";
-import { AppsRepository } from "src/modules/apps/apps.repository";
-import { CredentialsRepository } from "src/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "src/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "src/modules/tokens/tokens.repository";
 import { z } from "zod";
 
-import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
+import { GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { getEnv } from "../../../env";
+import { AppsRepository } from "../../../modules/apps/apps.repository";
+import { CredentialsRepository } from "../../../modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "../../../modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "../../../modules/tokens/tokens.repository";
+import { OAuthCalendarApp } from "../../calendars/calendars.interface";
+import { CalendarsService } from "../../calendars/services/calendars.service";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -22,12 +27,12 @@ const CALENDAR_SCOPES = [
 
 @Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
-  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
+  private apiUrl = getEnv("API_URL");
+  private redirectUri = `${this.apiUrl}/gcal/oauth/save`;
   private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
   private logger = new Logger("GcalService");
 
   constructor(
-    private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
     private readonly calendarsService: CalendarsService,
@@ -42,7 +47,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
-    const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir);
+    const redirectUrl = await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir);
 
     return { status: SUCCESS_STATUS, data: { authUrl: redirectUrl } };
   }

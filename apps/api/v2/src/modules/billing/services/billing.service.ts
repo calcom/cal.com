@@ -1,16 +1,16 @@
 import { InjectQueue } from "@nestjs/bull";
 import { Injectable, InternalServerErrorException, Logger, OnModuleDestroy } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Queue } from "bull";
 import { DateTime } from "luxon";
-import { AppConfig } from "src/config/type";
-import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "src/modules/billing/billing.processor";
-import { BillingRepository } from "src/modules/billing/billing.repository";
-import { BillingConfigService } from "src/modules/billing/services/billing.config.service";
-import { PlatformPlan } from "src/modules/billing/types";
-import { OrganizationsRepository } from "src/modules/organizations/organizations.repository";
-import { StripeService } from "src/modules/stripe/stripe.service";
 import Stripe from "stripe";
+
+import { getEnv } from "../../../env";
+import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "../../billing/billing.processor";
+import { BillingRepository } from "../../billing/billing.repository";
+import { BillingConfigService } from "../../billing/services/billing.config.service";
+import { PlatformPlan } from "../../billing/types";
+import { OrganizationsRepository } from "../../organizations/organizations.repository";
+import { StripeService } from "../../stripe/stripe.service";
 
 @Injectable()
 export class BillingService implements OnModuleDestroy {
@@ -21,11 +21,10 @@ export class BillingService implements OnModuleDestroy {
     private readonly teamsRepository: OrganizationsRepository,
     public readonly stripeService: StripeService,
     private readonly billingRepository: BillingRepository,
-    private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
-    this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
+    this.webAppUrl = getEnv("WEB_APP_URL");
   }
 
   async getBillingData(teamId: number) {

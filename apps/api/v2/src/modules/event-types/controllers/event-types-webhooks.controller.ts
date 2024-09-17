@@ -13,24 +13,25 @@ import {
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";
 import { plainToClass } from "class-transformer";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { GetWebhook } from "src/modules/webhooks/decorators/get-webhook-decorator";
-import { IsUserEventTypeWebhookGuard } from "src/modules/webhooks/guards/is-user-event-type-webhook-guard";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "src/modules/webhooks/inputs/webhook.input";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { GetWebhook } from "../../webhooks/decorators/get-webhook-decorator";
+import { IsUserEventTypeWebhookGuard } from "../../webhooks/guards/is-user-event-type-webhook-guard";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../webhooks/inputs/webhook.input";
 import {
   EventTypeWebhookOutputResponseDto,
   EventTypeWebhookOutputDto,
   EventTypeWebhooksOutputResponseDto,
-} from "src/modules/webhooks/outputs/event-type-webhook.output";
-import { DeleteManyWebhooksOutputResponseDto } from "src/modules/webhooks/outputs/webhook.output";
-import { PartialWebhookInputPipe, WebhookInputPipe } from "src/modules/webhooks/pipes/WebhookInputPipe";
-import { WebhookOutputPipe } from "src/modules/webhooks/pipes/WebhookOutputPipe";
-import { EventTypeWebhooksService } from "src/modules/webhooks/services/event-type-webhooks.service";
-import { WebhooksService } from "src/modules/webhooks/services/webhooks.service";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
+} from "../../webhooks/outputs/event-type-webhook.output";
+import { DeleteManyWebhooksOutputResponseDto } from "../../webhooks/outputs/webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "../../webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "../../webhooks/pipes/WebhookOutputPipe";
+import { EventTypeWebhooksService } from "../../webhooks/services/event-type-webhooks.service";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/webhooks",

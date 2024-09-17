@@ -18,20 +18,21 @@ import {
   ApiBadRequestResponse as DocsBadRequestResponse,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
-import { getEnv } from "src/env";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { NextAuthGuard } from "src/modules/auth/guards/next-auth/next-auth.guard";
-import { KeysResponseDto } from "src/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthAuthorizeInput } from "src/modules/oauth-clients/inputs/authorize.input";
-import { ExchangeAuthorizationCodeInput } from "src/modules/oauth-clients/inputs/exchange-code.input";
-import { RefreshTokenInput } from "src/modules/oauth-clients/inputs/refresh-token.input";
-import { OAuthClientRepository } from "src/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "src/modules/oauth-clients/services/oauth-flow.service";
-import { TokensRepository } from "src/modules/tokens/tokens.repository";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+
+import { getEnv } from "../../../../env";
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { NextAuthGuard } from "../../../auth/guards/next-auth/next-auth.guard";
+import { KeysResponseDto } from "../../../oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { OAuthAuthorizeInput } from "../../../oauth-clients/inputs/authorize.input";
+import { ExchangeAuthorizationCodeInput } from "../../../oauth-clients/inputs/exchange-code.input";
+import { RefreshTokenInput } from "../../../oauth-clients/inputs/refresh-token.input";
+import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "../../../oauth-clients/services/oauth-flow.service";
+import { TokensRepository } from "../../../tokens/tokens.repository";
 
 @Controller({
   path: "/v2/oauth/:clientId",

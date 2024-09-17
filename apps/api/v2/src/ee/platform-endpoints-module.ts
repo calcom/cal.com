@@ -1,15 +1,16 @@
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
-import { BookingsModule } from "src/ee/bookings/bookings.module";
-import { CalendarsModule } from "src/ee/calendars/calendars.module";
-import { EventTypesModule_2024_04_15 } from "src/ee/event-types/event-types_2024_04_15/event-types.module";
-import { EventTypesModule_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/event-types.module";
-import { GcalModule } from "src/ee/gcal/gcal.module";
-import { MeModule } from "src/ee/me/me.module";
-import { ProviderModule } from "src/ee/provider/provider.module";
-import { SchedulesModule_2024_04_15 } from "src/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesModule_2024_06_11 } from "src/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SlotsModule } from "src/modules/slots/slots.module";
+
+import { SlotsModule } from "../modules/slots/slots.module";
+import { BookingsModule } from "./bookings/bookings.module";
+import { CalendarsModule } from "./calendars/calendars.module";
+import { EventTypesModule_2024_04_15 } from "./event-types/event-types_2024_04_15/event-types.module";
+import { EventTypesModule_2024_06_14 } from "./event-types/event-types_2024_06_14/event-types.module";
+import { GcalModule } from "./gcal/gcal.module";
+import { MeModule } from "./me/me.module";
+import { ProviderModule } from "./provider/provider.module";
+import { SchedulesModule_2024_04_15 } from "./schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesModule_2024_06_11 } from "./schedules/schedules_2024_06_11/schedules.module";
 
 @Module({
   imports: [

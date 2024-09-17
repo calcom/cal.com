@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
 import { IsArray, IsBoolean, IsTimeZone, IsOptional, IsString, ValidateNested } from "class-validator";
-import { CreateAvailabilityInput_2024_04_15 } from "src/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
+
+import { CreateAvailabilityInput_2024_04_15 } from "./create-availability.input";
 
 export class CreateScheduleInput_2024_04_15 {
   @IsString()

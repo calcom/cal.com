@@ -1,20 +1,21 @@
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 import { getToken } from "next-auth/jwt";
-import { NextAuthPassportStrategy } from "src/lib/passport/strategies/types";
-import { UsersRepository } from "src/modules/users/users.repository";
+
+import { getEnv } from "../../../../env";
+import { NextAuthPassportStrategy } from "../../../../lib/passport/strategies/types";
+import { UsersRepository } from "../../../users/users.repository";
 
 @Injectable()
 export class NextAuthStrategy extends PassportStrategy(NextAuthPassportStrategy, "next-auth") {
-  constructor(private readonly userRepository: UsersRepository, private readonly config: ConfigService) {
+  constructor(private readonly userRepository: UsersRepository) {
     super();
   }
 
   async authenticate(req: Request) {
     try {
-      const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
+      const nextAuthSecret = getEnv("NEXTAUTH_SECRET");
       const payload = await getToken({ req, secret: nextAuthSecret });
 
       if (!payload) {

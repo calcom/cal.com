@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { CreateOrgMembershipDto } from "src/modules/organizations/inputs/create-organization-membership.input";
-import { OrganizationsMembershipRepository } from "src/modules/organizations/repositories/organizations-membership.repository";
 
+import { CreateOrgMembershipDto } from "../../organizations/inputs/create-organization-membership.input";
+import { OrganizationsMembershipRepository } from "../../organizations/repositories/organizations-membership.repository";
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 
 @Injectable()

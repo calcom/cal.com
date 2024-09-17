@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { PlatformPlan } from "src/modules/billing/types";
+
+import { PlatformPlan } from "../../billing/types";
 
 @Injectable()
 export class BillingConfigService {

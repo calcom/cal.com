@@ -1,29 +1,29 @@
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
-import { BadRequestException, UnauthorizedException } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Request } from "express";
 import { stringify } from "querystring";
-import { OAuthCalendarApp } from "src/ee/calendars/calendars.interface";
-import { CalendarsService } from "src/ee/calendars/services/calendars.service";
-import { CredentialsRepository } from "src/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "src/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "src/modules/tokens/tokens.repository";
 import { z } from "zod";
 
 import {
-  SUCCESS_STATUS,
   OFFICE_365_CALENDAR,
   OFFICE_365_CALENDAR_ID,
   OFFICE_365_CALENDAR_TYPE,
+  SUCCESS_STATUS,
 } from "@calcom/platform-constants";
+
+import { getEnv } from "../../../env";
+import { CredentialsRepository } from "../../../modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "../../../modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "../../../modules/tokens/tokens.repository";
+import { OAuthCalendarApp } from "../../calendars/calendars.interface";
+import { CalendarsService } from "../../calendars/services/calendars.service";
 
 @Injectable()
 export class OutlookService implements OAuthCalendarApp {
-  private redirectUri = `${this.config.get("api.url")}/calendars/${OFFICE_365_CALENDAR}/save`;
+  private apiUrl = getEnv("API_URL");
+  private redirectUri = `${this.apiUrl}/calendars/${OFFICE_365_CALENDAR}/save`;
 
   constructor(
-    private readonly config: ConfigService,
     private readonly calendarsService: CalendarsService,
     private readonly credentialRepository: CredentialsRepository,
     private readonly tokensRepository: TokensRepository,

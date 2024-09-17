@@ -1,9 +1,10 @@
 import { Process, Processor } from "@nestjs/bull";
 import { Logger } from "@nestjs/common";
 import { Job } from "bull";
-import { BillingRepository } from "src/modules/billing/billing.repository";
-import { OrganizationsRepository } from "src/modules/organizations/organizations.repository";
-import { StripeService } from "src/modules/stripe/stripe.service";
+
+import { BillingRepository } from "../billing/billing.repository";
+import { OrganizationsRepository } from "../organizations/organizations.repository";
+import { StripeService } from "../stripe/stripe.service";
 
 export const INCREMENT_JOB = "increment";
 export const BILLING_QUEUE = "billing";

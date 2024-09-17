@@ -1,7 +1,8 @@
 import { IsBoolean, IsNumber, IsOptional } from "class-validator";
-import { CreateBookingInput } from "src/ee/bookings/inputs/create-booking.input";
 
 import type { AppsStatus } from "@calcom/platform-libraries";
+
+import { CreateBookingInput } from "./create-booking.input";
 
 export class CreateRecurringBookingInput extends CreateBookingInput {
   @IsBoolean()

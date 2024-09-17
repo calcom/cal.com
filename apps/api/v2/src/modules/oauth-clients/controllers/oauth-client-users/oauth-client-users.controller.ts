@@ -15,24 +15,25 @@ import {
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { Locales } from "src/lib/enums/locales";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { CreateManagedUserOutput } from "src/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
-import { GetManagedUserOutput } from "src/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
-import { GetManagedUsersOutput } from "src/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
-import { ManagedUserOutput } from "src/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
-import { KeysResponseDto } from "src/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthClientGuard } from "src/modules/oauth-clients/guards/oauth-client-guard";
-import { OAuthClientRepository } from "src/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersService } from "src/modules/oauth-clients/services/oauth-clients-users.service";
-import { TokensRepository } from "src/modules/tokens/tokens.repository";
-import { CreateManagedUserInput } from "src/modules/users/inputs/create-managed-user.input";
-import { UpdateManagedUserInput } from "src/modules/users/inputs/update-managed-user.input";
-import { UsersRepository } from "src/modules/users/users.repository";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Pagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { Locales } from "../../../../lib/enums/locales";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { CreateManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { GetManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
+import { GetManagedUsersOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
+import { ManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
+import { KeysResponseDto } from "../../../oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { OAuthClientGuard } from "../../../oauth-clients/guards/oauth-client-guard";
+import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
+import { OAuthClientUsersService } from "../../../oauth-clients/services/oauth-clients-users.service";
+import { TokensRepository } from "../../../tokens/tokens.repository";
+import { CreateManagedUserInput } from "../../../users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "../../../users/inputs/update-managed-user.input";
+import { UsersRepository } from "../../../users/users.repository";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",

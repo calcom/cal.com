@@ -1,7 +1,8 @@
 import { Global, Module } from "@nestjs/common";
 import { JwtModule as NestJwtModule } from "@nestjs/jwt";
-import { getEnv } from "src/env";
-import { JwtService } from "src/modules/jwt/jwt.service";
+
+import { getEnv } from "../../env";
+import { JwtService } from "../jwt/jwt.service";
 
 @Global()
 @Module({

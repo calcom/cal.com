@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum } from "class-validator";
-import { OrgMembershipOutputDto } from "src/modules/organizations/outputs/organization-membership/membership.output";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+
+import { OrgMembershipOutputDto } from "../../../organizations/outputs/organization-membership/membership.output";
 
 export class DeleteOrgMembership {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

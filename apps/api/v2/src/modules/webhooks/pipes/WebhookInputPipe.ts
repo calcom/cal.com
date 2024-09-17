@@ -1,5 +1,6 @@
 import { PipeTransform, Injectable } from "@nestjs/common";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "src/modules/webhooks/inputs/webhook.input";
+
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../inputs/webhook.input";
 
 @Injectable()
 export class WebhookInputPipe implements PipeTransform {

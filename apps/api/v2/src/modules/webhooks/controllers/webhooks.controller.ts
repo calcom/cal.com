@@ -2,25 +2,26 @@ import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } f
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";
 import { plainToClass } from "class-transformer";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { UserWithProfile } from "src/modules/users/users.repository";
-import { GetWebhook } from "src/modules/webhooks/decorators/get-webhook-decorator";
-import { IsUserWebhookGuard } from "src/modules/webhooks/guards/is-user-webhook-guard";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "src/modules/webhooks/inputs/webhook.input";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
+import { UserWithProfile } from "../../users/users.repository";
+import { GetWebhook } from "../../webhooks/decorators/get-webhook-decorator";
+import { IsUserWebhookGuard } from "../../webhooks/guards/is-user-webhook-guard";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../webhooks/inputs/webhook.input";
 import {
   UserWebhookOutputDto,
   UserWebhookOutputResponseDto,
   UserWebhooksOutputResponseDto,
-} from "src/modules/webhooks/outputs/user-webhook.output";
-import { PartialWebhookInputPipe, WebhookInputPipe } from "src/modules/webhooks/pipes/WebhookInputPipe";
-import { WebhookOutputPipe } from "src/modules/webhooks/pipes/WebhookOutputPipe";
-import { UserWebhooksService } from "src/modules/webhooks/services/user-webhooks.service";
-import { WebhooksService } from "src/modules/webhooks/services/webhooks.service";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
+} from "../../webhooks/outputs/user-webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "../../webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "../../webhooks/pipes/WebhookOutputPipe";
+import { UserWebhooksService } from "../../webhooks/services/user-webhooks.service";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Controller({
   path: "/v2/webhooks",

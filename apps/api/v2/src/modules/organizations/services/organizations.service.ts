@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { OrganizationsRepository } from "src/modules/organizations/organizations.repository";
+
+import { OrganizationsRepository } from "../../organizations/organizations.repository";
 
 @Injectable()
 export class OrganizationsService {

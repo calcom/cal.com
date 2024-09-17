@@ -13,32 +13,33 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { PlatformPlan } from "src/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetTeam } from "src/modules/auth/decorators/get-team/get-team.decorator";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "src/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "src/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "src/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "src/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "src/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "src/modules/auth/guards/teams/is-team-in-org.guard";
-import { CreateOrgTeamDto } from "src/modules/organizations/inputs/create-organization-team.input";
-import { UpdateOrgTeamDto } from "src/modules/organizations/inputs/update-organization-team.input";
-import {
-  OrgMeTeamOutputDto,
-  OrgMeTeamsOutputResponseDto,
-  OrgTeamOutputResponseDto,
-  OrgTeamsOutputResponseDto,
-} from "src/modules/organizations/outputs/organization-team.output";
-import { OrganizationsTeamsService } from "src/modules/organizations/services/organizations-teams.service";
-import { UserWithProfile } from "src/modules/users/users.repository";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { OrgTeamOutputDto } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { GetTeam } from "../../../auth/decorators/get-team/get-team.decorator";
+import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "../../../auth/guards/teams/is-team-in-org.guard";
+import { CreateOrgTeamDto } from "../../../organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "../../../organizations/inputs/update-organization-team.input";
+import {
+  OrgMeTeamOutputDto,
+  OrgMeTeamsOutputResponseDto,
+  OrgTeamOutputResponseDto,
+  OrgTeamsOutputResponseDto,
+} from "../../../organizations/outputs/organization-team.output";
+import { OrganizationsTeamsService } from "../../../organizations/services/organizations-teams.service";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams",

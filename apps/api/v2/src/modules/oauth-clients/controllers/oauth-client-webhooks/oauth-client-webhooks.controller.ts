@@ -2,27 +2,27 @@ import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } f
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Webhook, MembershipRole } from "@prisma/client";
 import { plainToClass } from "class-transformer";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { MembershipRoles } from "src/modules/auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "src/modules/auth/guards/next-auth/next-auth.guard";
-import { OrganizationRolesGuard } from "src/modules/auth/guards/organization-roles/organization-roles.guard";
-import { GetWebhook } from "src/modules/webhooks/decorators/get-webhook-decorator";
-import { IsOAuthClientWebhookGuard } from "src/modules/webhooks/guards/is-oauth-client-webhook-guard";
-import { CreateWebhookInputDto, UpdateWebhookInputDto } from "src/modules/webhooks/inputs/webhook.input";
-import {
-  OAuthClientWebhookOutputResponseDto,
-  OAuthClientWebhookOutputDto,
-  OAuthClientWebhooksOutputResponseDto,
-} from "src/modules/webhooks/outputs/oauth-client-webhook.output";
-import { DeleteManyWebhooksOutputResponseDto } from "src/modules/webhooks/outputs/webhook.output";
-import { PartialWebhookInputPipe, WebhookInputPipe } from "src/modules/webhooks/pipes/WebhookInputPipe";
-import { WebhookOutputPipe } from "src/modules/webhooks/pipes/WebhookOutputPipe";
-import { OAuthClientWebhooksService } from "src/modules/webhooks/services/oauth-clients-webhooks.service";
-import { WebhooksService } from "src/modules/webhooks/services/webhooks.service";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
 
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { MembershipRoles } from "../../../auth/decorators/roles/membership-roles.decorator";
+import { NextAuthGuard } from "../../../auth/guards/next-auth/next-auth.guard";
+import { OrganizationRolesGuard } from "../../../auth/guards/organization-roles/organization-roles.guard";
+import { GetWebhook } from "../../../webhooks/decorators/get-webhook-decorator";
+import { IsOAuthClientWebhookGuard } from "../../../webhooks/guards/is-oauth-client-webhook-guard";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "../../../webhooks/inputs/webhook.input";
+import {
+  OAuthClientWebhookOutputResponseDto,
+  OAuthClientWebhookOutputDto,
+  OAuthClientWebhooksOutputResponseDto,
+} from "../../../webhooks/outputs/oauth-client-webhook.output";
+import { DeleteManyWebhooksOutputResponseDto } from "../../../webhooks/outputs/webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "../../../webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "../../../webhooks/pipes/WebhookOutputPipe";
+import { OAuthClientWebhooksService } from "../../../webhooks/services/oauth-clients-webhooks.service";
+import { WebhooksService } from "../../../webhooks/services/webhooks.service";
 import { OAuthClientGuard } from "../../guards/oauth-client-guard";
 
 @Controller({

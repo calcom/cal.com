@@ -1,12 +1,13 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { MembershipRoles } from "src/modules/auth/decorators/roles/membership-roles.decorator";
-import { MembershipsRepository } from "src/modules/memberships/memberships.repository";
-import { OrganizationsService } from "src/modules/organizations/services/organizations.service";
-import { UsersService } from "src/modules/users/services/users.service";
-import { UserWithProfile } from "src/modules/users/users.repository";
 
 import { MembershipRole } from "@calcom/prisma/enums";
+
+import { MembershipRoles } from "../../../auth/decorators/roles/membership-roles.decorator";
+import { MembershipsRepository } from "../../../memberships/memberships.repository";
+import { OrganizationsService } from "../../../organizations/services/organizations.service";
+import { UsersService } from "../../../users/services/users.service";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Injectable()
 export class OrganizationRolesGuard implements CanActivate {

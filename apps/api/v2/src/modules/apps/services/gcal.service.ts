@@ -1,7 +1,8 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { google } from "googleapis";
-import { AppsRepository } from "src/modules/apps/apps.repository";
 import { z } from "zod";
+
+import { AppsRepository } from "../../apps/apps.repository";
 
 @Injectable()
 export class GCalService {

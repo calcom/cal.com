@@ -1,8 +1,4 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { InputEventTypesService_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { OrganizationsEventTypesRepository } from "src/modules/organizations/repositories/organizations-event-types.repository";
-import { OrganizationsTeamsRepository } from "src/modules/organizations/repositories/organizations-teams.repository";
-import { UsersRepository } from "src/modules/users/users.repository";
 
 import {
   CreateTeamEventTypeInput_2024_06_14,
@@ -10,6 +6,11 @@ import {
   HostPriority,
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/client";
+
+import { InputEventTypesService_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { OrganizationsEventTypesRepository } from "../../../organizations/repositories/organizations-event-types.repository";
+import { OrganizationsTeamsRepository } from "../../../organizations/repositories/organizations-teams.repository";
+import { UsersRepository } from "../../../users/users.repository";
 
 @Injectable()
 export class InputOrganizationsEventTypesService {

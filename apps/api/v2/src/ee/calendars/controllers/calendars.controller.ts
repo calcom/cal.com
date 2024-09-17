@@ -17,24 +17,6 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
-import { CalendarsRepository } from "src/ee/calendars/calendars.repository";
-import { DeleteCalendarCredentialsInputBodyDto } from "src/ee/calendars/input/delete-calendar-credentials.input";
-import { GetBusyTimesOutput } from "src/ee/calendars/outputs/busy-times.output";
-import { ConnectedCalendarsOutput } from "src/ee/calendars/outputs/connected-calendars.output";
-import {
-  DeletedCalendarCredentialsOutputResponseDto,
-  DeletedCalendarCredentialsOutputDto,
-} from "src/ee/calendars/outputs/delete-calendar-credentials.output";
-import { AppleCalendarService } from "src/ee/calendars/services/apple-calendar.service";
-import { CalendarsService } from "src/ee/calendars/services/calendars.service";
-import { GoogleCalendarService } from "src/ee/calendars/services/gcal.service";
-import { OutlookService } from "src/ee/calendars/services/outlook.service";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "src/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "src/modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "src/modules/users/users.repository";
 import { z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
@@ -46,6 +28,25 @@ import {
   APPLE_CALENDAR,
 } from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
+
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../../modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "../../../modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "../../../modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "../../../modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "../../../modules/users/users.repository";
+import { CalendarsRepository } from "../calendars.repository";
+import { DeleteCalendarCredentialsInputBodyDto } from "../input/delete-calendar-credentials.input";
+import { GetBusyTimesOutput } from "../outputs/busy-times.output";
+import { ConnectedCalendarsOutput } from "../outputs/connected-calendars.output";
+import {
+  DeletedCalendarCredentialsOutputResponseDto,
+  DeletedCalendarCredentialsOutputDto,
+} from "../outputs/delete-calendar-credentials.output";
+import { AppleCalendarService } from "../services/apple-calendar.service";
+import { CalendarsService } from "../services/calendars.service";
+import { GoogleCalendarService } from "../services/gcal.service";
+import { OutlookService } from "../services/outlook.service";
 
 @Controller({
   path: "/v2/calendars",

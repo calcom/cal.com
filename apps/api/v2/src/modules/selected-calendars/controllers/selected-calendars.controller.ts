@@ -1,23 +1,24 @@
-import { Body, Controller, Post, UseGuards, Delete, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
-import { CalendarsRepository } from "src/ee/calendars/calendars.repository";
-import { CalendarsService } from "src/ee/calendars/services/calendars.service";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { GetUser } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+import { CalendarsRepository } from "../../../ee/calendars/calendars.repository";
+import { CalendarsService } from "../../../ee/calendars/services/calendars.service";
+import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
+import { GetUser } from "../../auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "../../auth/guards/api-auth/api-auth.guard";
 import {
   SelectedCalendarsInputDto,
   SelectedCalendarsQueryParamsInputDto,
-} from "src/modules/selected-calendars/inputs/selected-calendars.input";
+} from "../../selected-calendars/inputs/selected-calendars.input";
 import {
-  SelectedCalendarOutputResponseDto,
   SelectedCalendarOutputDto,
-} from "src/modules/selected-calendars/outputs/selected-calendars.output";
-import { SelectedCalendarsRepository } from "src/modules/selected-calendars/selected-calendars.repository";
-import { UserWithProfile } from "src/modules/users/users.repository";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+  SelectedCalendarOutputResponseDto,
+} from "../../selected-calendars/outputs/selected-calendars.output";
+import { SelectedCalendarsRepository } from "../../selected-calendars/selected-calendars.repository";
+import { UserWithProfile } from "../../users/users.repository";
 
 @Controller({
   path: "/v2/selected-calendars",

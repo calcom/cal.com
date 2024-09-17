@@ -1,20 +1,21 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { EventTypesRepository_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { EventTypesService_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/services/event-types.service";
-import { MembershipsRepository } from "src/modules/memberships/memberships.repository";
-import { OrganizationsEventTypesRepository } from "src/modules/organizations/repositories/organizations-event-types.repository";
-import { OrganizationsTeamsRepository } from "src/modules/organizations/repositories/organizations-teams.repository";
-import { InputOrganizationsEventTypesService } from "src/modules/organizations/services/event-types/input.service";
-import { OutputOrganizationsEventTypesService } from "src/modules/organizations/services/event-types/output.service";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
-import { UsersService } from "src/modules/users/services/users.service";
-import { UserWithProfile } from "src/modules/users/users.repository";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+
+import { EventTypesRepository_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/event-types.repository";
+import { EventTypesService_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { MembershipsRepository } from "../../../memberships/memberships.repository";
+import { OrganizationsEventTypesRepository } from "../../../organizations/repositories/organizations-event-types.repository";
+import { OrganizationsTeamsRepository } from "../../../organizations/repositories/organizations-teams.repository";
+import { InputOrganizationsEventTypesService } from "../../../organizations/services/event-types/input.service";
+import { OutputOrganizationsEventTypesService } from "../../../organizations/services/event-types/output.service";
+import { PrismaWriteService } from "../../../prisma/prisma-write.service";
+import { UsersService } from "../../../users/services/users.service";
+import { UserWithProfile } from "../../../users/users.repository";
 
 @Injectable()
 export class OrganizationsEventTypesService {

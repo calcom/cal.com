@@ -8,9 +8,10 @@ import {
 } from "@nestjs/common";
 import { EventType, Webhook } from "@prisma/client";
 import { Request } from "express";
-import { EventTypesRepository_2024_06_14 } from "src/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { GetUserReturnType } from "src/modules/auth/decorators/get-user/get-user.decorator";
-import { WebhooksService } from "src/modules/webhooks/services/webhooks.service";
+
+import { EventTypesRepository_2024_06_14 } from "../../../ee/event-types/event-types_2024_06_14/event-types.repository";
+import { GetUserReturnType } from "../../auth/decorators/get-user/get-user.decorator";
+import { WebhooksService } from "../../webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsUserEventTypeWebhookGuard implements CanActivate {

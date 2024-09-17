@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { DateTime } from "luxon";
-import { TokenExpiredException } from "src/modules/auth/guards/api-auth/token-expired.exception";
-import { OAuthClientRepository } from "src/modules/oauth-clients/oauth-client.repository";
-import { RedisService } from "src/modules/redis/redis.service";
-import { TokensRepository } from "src/modules/tokens/tokens.repository";
 
 import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
+
+import { TokenExpiredException } from "../../auth/guards/api-auth/token-expired.exception";
+import { OAuthClientRepository } from "../../oauth-clients/oauth-client.repository";
+import { TokensRepository } from "../../tokens/tokens.repository";
 
 @Injectable()
 export class OAuthFlowService {
@@ -13,8 +13,7 @@ export class OAuthFlowService {
 
   constructor(
     private readonly tokensRepository: TokensRepository,
-    private readonly oAuthClientRepository: OAuthClientRepository,
-    private readonly redisService: RedisService
+    private readonly oAuthClientRepository: OAuthClientRepository
   ) {}
 
   async propagateAccessToken(accessToken: string) {
@@ -26,14 +25,6 @@ export class OAuthFlowService {
         this.logger.warn(`Token for ${ownerId} had no expiry time, assuming it's new.`);
         expiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
       }
-
-      const cacheKey = this._generateActKey(accessToken);
-      await this.redisService.redis.hmset(cacheKey, {
-        ownerId: ownerId,
-        expiresAt: expiry?.toJSON(),
-      });
-
-      await this.redisService.redis.expireat(cacheKey, Math.floor(expiry.getTime() / 1000));
     } catch (err) {
       this.logger.error("Access Token Propagation Failed, falling back to DB...", err);
     }
@@ -42,21 +33,11 @@ export class OAuthFlowService {
   async getOwnerId(accessToken: string) {
     const cacheKey = this._generateOwnerIdKey(accessToken);
 
-    try {
-      const ownerId = await this.redisService.redis.get(cacheKey);
-      if (ownerId) {
-        return Number.parseInt(ownerId);
-      }
-    } catch (err) {
-      this.logger.warn("Cache#getOwnerId fetch failed, falling back to DB...");
-    }
-
     const ownerIdFromDb = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 
     if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
 
     // await in case of race conditions, but void it's return since cache writes shouldn't halt execution.
-    void (await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb)); // expires in 1 hour
 
     return ownerIdFromDb;
   }
@@ -82,19 +63,12 @@ export class OAuthFlowService {
 
     // we can't use a Promise#all or similar here because we care about execution order
     // however we can't allow caches to fail a validation hence the results are voided.
-    void (await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() }));
-    void (await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000)));
 
     return true;
   }
 
   private async readFromCache(secret: string) {
     const cacheKey = this._generateActKey(secret);
-    const tokenData = await this.redisService.redis.hgetall(cacheKey);
-
-    if (tokenData && new Date() < new Date(tokenData.expiresAt)) {
-      return { status: "CACHE_HIT", cacheKey };
-    }
 
     return { status: "CACHE_MISS", cacheKey };
   }

@@ -1,7 +1,8 @@
 import type { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { PrismaClient } from "@prisma/client";
+
+import { getEnv } from "../../env";
 
 @Injectable()
 export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
@@ -9,8 +10,8 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
   public prisma: PrismaClient;
 
-  constructor(readonly configService: ConfigService) {
-    const dbUrl = configService.get("db.readUrl", { infer: true });
+  constructor() {
+    const dbUrl = getEnv("DATABASE_READ_URL");
 
     this.prisma = new PrismaClient({
       datasources: {

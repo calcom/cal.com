@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreateOrgTeamMembershipDto } from "src/modules/organizations/inputs/create-organization-team-membership.input";
-import { UpdateOrgTeamMembershipDto } from "src/modules/organizations/inputs/update-organization-team-membership.input";
-import { OrganizationsTeamsMembershipsRepository } from "src/modules/organizations/repositories/organizations-teams-memberships.repository";
+
+import { CreateOrgTeamMembershipDto } from "../../organizations/inputs/create-organization-team-membership.input";
+import { UpdateOrgTeamMembershipDto } from "../../organizations/inputs/update-organization-team-membership.input";
+import { OrganizationsTeamsMembershipsRepository } from "../../organizations/repositories/organizations-teams-memberships.repository";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsService {

@@ -5,12 +5,8 @@ import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/com
 import { BaseExceptionFilter, HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as Sentry from "@sentry/node";
-import * as cookieParser from "cookie-parser";
+// import * as cookieParser from "cookie-parser";
 import { Request } from "express";
-import helmet from "helmet";
-import { HttpExceptionFilter } from "src/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "src/filters/prisma-exception.filter";
-import { ZodExceptionFilter } from "src/filters/zod-exception.filter";
 
 import {
   API_VERSIONS,
@@ -21,7 +17,11 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 
+// import helmet from "helmet";
+import { HttpExceptionFilter } from "./filters/http-exception.filter";
+import { PrismaExceptionFilter } from "./filters/prisma-exception.filter";
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
+import { ZodExceptionFilter } from "./filters/zod-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
@@ -38,7 +38,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     defaultVersion: VERSION_2024_04_15,
   });
 
-  app.use(helmet());
+  // app.use(helmet());
 
   app.enableCors({
     origin: "*",
@@ -79,7 +79,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
 
-  app.use(cookieParser());
+  // app.use(cookieParser());
 
   return app;
 };

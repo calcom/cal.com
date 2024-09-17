@@ -1,21 +1,13 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
-import { OrganizationsRepository } from "src/modules/organizations/organizations.repository";
-import { RedisService } from "src/modules/redis/redis.service";
 
 import { Team } from "@calcom/prisma/client";
 
-type CachedData = {
-  org?: Team;
-  canAccess?: boolean;
-};
+import { OrganizationsRepository } from "../../../organizations/organizations.repository";
 
 @Injectable()
 export class IsAdminAPIEnabledGuard implements CanActivate {
-  constructor(
-    private organizationsRepository: OrganizationsRepository,
-    private readonly redisService: RedisService
-  ) {}
+  constructor(private organizationsRepository: OrganizationsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     let canAccess = false;
@@ -24,17 +16,6 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
 
     if (!organizationId) {
       throw new ForbiddenException("No organization id found in request params.");
-    }
-
-    const REDIS_CACHE_KEY = `apiv2:org:${organizationId}:guard:isAdminAccess`;
-    const cachedData = await this.redisService.redis.get(REDIS_CACHE_KEY);
-
-    if (cachedData) {
-      const { org: cachedOrg, canAccess: cachedCanAccess } = JSON.parse(cachedData) as CachedData;
-      if (cachedOrg?.id === Number(organizationId) && cachedCanAccess !== undefined) {
-        request.organization = cachedOrg;
-        return cachedCanAccess;
-      }
     }
 
     const org = await this.organizationsRepository.findById(Number(organizationId));
@@ -50,13 +31,6 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
       }
     }
     canAccess = true;
-    org &&
-      (await this.redisService.redis.set(
-        REDIS_CACHE_KEY,
-        JSON.stringify({ org: org, canAccess } satisfies CachedData),
-        "EX",
-        300
-      ));
     return canAccess;
   }
 }

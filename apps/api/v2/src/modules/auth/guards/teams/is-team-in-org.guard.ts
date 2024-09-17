@@ -6,9 +6,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Request } from "express";
-import { OrganizationsTeamsRepository } from "src/modules/organizations/repositories/organizations-teams.repository";
 
 import { Team } from "@calcom/prisma/client";
+
+import { OrganizationsTeamsRepository } from "../../../organizations/repositories/organizations-teams.repository";
 
 @Injectable()
 export class IsTeamInOrg implements CanActivate {

@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import type { PlatformOAuthClient } from "@prisma/client";
-import { JwtService } from "src/modules/jwt/jwt.service";
-import { PrismaReadService } from "src/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "src/modules/prisma/prisma-write.service";
 
 import type { CreateOAuthClientInput } from "@calcom/platform-types";
+
+import { JwtService } from "../jwt/jwt.service";
+import { PrismaReadService } from "../prisma/prisma-read.service";
+import { PrismaWriteService } from "../prisma/prisma-write.service";
 
 @Injectable()
 export class OAuthClientRepository {

@@ -13,17 +13,6 @@ import {
   Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { SchedulesService_2024_06_11 } from "src/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { PlatformPlan } from "src/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "src/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "src/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "src/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "src/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "src/modules/auth/guards/roles/roles.guard";
-import { IsUserInOrg } from "src/modules/auth/guards/users/is-user-in-org.guard";
-import { OrganizationsSchedulesService } from "src/modules/organizations/services/organizations-schedules.service";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -36,6 +25,18 @@ import {
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
+
+import { SchedulesService_2024_06_11 } from "../../../../ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { IsUserInOrg } from "../../../auth/guards/users/is-user-in-org.guard";
+import { OrganizationsSchedulesService } from "../../../organizations/services/organizations-schedules.service";
 
 @Controller({
   path: "/v2/organizations/:orgId",

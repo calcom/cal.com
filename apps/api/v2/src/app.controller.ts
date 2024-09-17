@@ -1,6 +1,7 @@
 import { Controller, Get, Version, VERSION_NEUTRAL } from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { getEnv } from "src/env";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
+
+import { getEnv } from "./env";
 
 @Controller()
 @DocsTags("Health - development only")

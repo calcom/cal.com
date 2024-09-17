@@ -1,15 +1,15 @@
 import { Module } from "@nestjs/common";
-import { BookingsController } from "src/ee/bookings/controllers/bookings.controller";
-import { BillingModule } from "src/modules/billing/billing.module";
-import { OAuthClientRepository } from "src/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "src/modules/oauth-clients/services/oauth-flow.service";
-import { PrismaModule } from "src/modules/prisma/prisma.module";
-import { RedisModule } from "src/modules/redis/redis.module";
-import { TokensModule } from "src/modules/tokens/tokens.module";
-import { TokensRepository } from "src/modules/tokens/tokens.repository";
+
+import { BillingModule } from "../../modules/billing/billing.module";
+import { OAuthClientRepository } from "../../modules/oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "../../modules/oauth-clients/services/oauth-flow.service";
+import { PrismaModule } from "../../modules/prisma/prisma.module";
+import { TokensModule } from "../../modules/tokens/tokens.module";
+import { TokensRepository } from "../../modules/tokens/tokens.repository";
+import { BookingsController } from "../bookings/controllers/bookings.controller";
 
 @Module({
-  imports: [PrismaModule, RedisModule, TokensModule, BillingModule],
+  imports: [PrismaModule, TokensModule, BillingModule],
   providers: [TokensRepository, OAuthFlowService, OAuthClientRepository],
   controllers: [BookingsController],
 })

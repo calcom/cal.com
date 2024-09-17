@@ -14,29 +14,30 @@ import {
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
-import { API_VERSIONS_VALUES } from "src/lib/api-versions";
-import { PlatformPlan } from "src/modules/auth/decorators/billing/platform-plan.decorator";
-import { GetMembership } from "src/modules/auth/decorators/get-membership/get-membership.decorator";
-import { Roles } from "src/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "src/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "src/modules/auth/guards/billing/platform-plan.guard";
-import { IsMembershipInOrg } from "src/modules/auth/guards/memberships/is-membership-in-org.guard";
-import { IsAdminAPIEnabledGuard } from "src/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "src/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "src/modules/auth/guards/roles/roles.guard";
-import { CreateOrgMembershipDto } from "src/modules/organizations/inputs/create-organization-membership.input";
-import { UpdateOrgMembershipDto } from "src/modules/organizations/inputs/update-organization-membership.input";
-import { CreateOrgMembershipOutput } from "src/modules/organizations/outputs/organization-membership/create-membership.output";
-import { DeleteOrgMembership } from "src/modules/organizations/outputs/organization-membership/delete-membership.output";
-import { GetAllOrgMemberships } from "src/modules/organizations/outputs/organization-membership/get-all-memberships.output";
-import { GetOrgMembership } from "src/modules/organizations/outputs/organization-membership/get-membership.output";
-import { OrgMembershipOutputDto } from "src/modules/organizations/outputs/organization-membership/membership.output";
-import { UpdateOrgMembership } from "src/modules/organizations/outputs/organization-membership/update-membership.output";
-import { OrganizationsMembershipService } from "src/modules/organizations/services/organizations-membership.service";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
 import { Membership } from "@calcom/prisma/client";
+
+import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
+import { PlatformPlan } from "../../../auth/decorators/billing/platform-plan.decorator";
+import { GetMembership } from "../../../auth/decorators/get-membership/get-membership.decorator";
+import { Roles } from "../../../auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "../../../auth/guards/billing/platform-plan.guard";
+import { IsMembershipInOrg } from "../../../auth/guards/memberships/is-membership-in-org.guard";
+import { IsAdminAPIEnabledGuard } from "../../../auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "../../../auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "../../../auth/guards/roles/roles.guard";
+import { CreateOrgMembershipDto } from "../../../organizations/inputs/create-organization-membership.input";
+import { UpdateOrgMembershipDto } from "../../../organizations/inputs/update-organization-membership.input";
+import { CreateOrgMembershipOutput } from "../../../organizations/outputs/organization-membership/create-membership.output";
+import { DeleteOrgMembership } from "../../../organizations/outputs/organization-membership/delete-membership.output";
+import { GetAllOrgMemberships } from "../../../organizations/outputs/organization-membership/get-all-memberships.output";
+import { GetOrgMembership } from "../../../organizations/outputs/organization-membership/get-membership.output";
+import { OrgMembershipOutputDto } from "../../../organizations/outputs/organization-membership/membership.output";
+import { UpdateOrgMembership } from "../../../organizations/outputs/organization-membership/update-membership.output";
+import { OrganizationsMembershipService } from "../../../organizations/services/organizations-membership.service";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",
