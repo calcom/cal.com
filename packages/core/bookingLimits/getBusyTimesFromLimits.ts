@@ -240,7 +240,7 @@ const _getBusyTimesFromTeamLimits = async (
 
   const limitManager = new LimitManager();
 
-  getBusyTimesFromBookingLimits({
+  await getBusyTimesFromBookingLimits({
     bookings: busyTimes,
     bookingLimits,
     dateFrom,
