@@ -21,5 +21,5 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const getData = withAppDirSsr(getServerSideProps);
-const Page = (props: EventTypePageProps) => <EventType id={props.type} isAppDir={true} />;
+const Page = ({ type, ...rest }: EventTypePageProps) => <EventType {...rest} id={type} isAppDir={true} />;
 export default WithLayout({ getLayout: null, getData, Page })<"P">;
