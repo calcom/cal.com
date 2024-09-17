@@ -1,12 +1,11 @@
 "use client";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Meta, ButtonGroup } from "@calcom/ui";
+import { Button, Icon, ButtonGroup } from "@calcom/ui";
 
-const AdminAPIViewWrapper = () => {
+export const AdminAPIView = () => {
   const { t } = useLocale();
 
   const features = [
@@ -28,11 +27,6 @@ const AdminAPIViewWrapper = () => {
   ];
   return (
     <LicenseRequired>
-      <Meta
-        title={`${t("admin")} ${t("api_reference")}`}
-        description={t("leverage_our_api")}
-        borderInShellHeader={false}
-      />
       <div className="mt-8">
         <UpgradeTip
           plan="enterprise"
@@ -59,6 +53,4 @@ const AdminAPIViewWrapper = () => {
   );
 };
 
-AdminAPIViewWrapper.getLayout = getLayout;
-
-export default AdminAPIViewWrapper;
+export default AdminAPIView;

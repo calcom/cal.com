@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import type { AriaRole, ComponentType } from "react";
 import React, { Fragment, useEffect } from "react";
@@ -70,9 +72,11 @@ export const withLicenseRequired =
   // eslint-disable-next-line react/display-name
   (hocProps: T) =>
     (
-      <LicenseRequired>
-        <Component {...hocProps} />
-      </LicenseRequired>
+      <div>
+        <LicenseRequired>
+          <Component {...hocProps} />
+        </LicenseRequired>
+      </div>
     );
 
 export default LicenseRequired;

@@ -26,6 +26,9 @@ const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
 const colorScheme = searchParams.get("color-scheme");
 const prerender = searchParams.get("prerender");
+
+window.ENABLE_FUTURE_ROUTES = searchParams.get("future-routes") === "true";
+
 if (colorScheme) {
   document.documentElement.style.colorScheme = colorScheme;
 }
