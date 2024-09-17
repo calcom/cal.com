@@ -2,8 +2,8 @@ import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
 
-import type { BookingField_2024_06_14 } from "./booking-fields.input";
-import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
+import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
+import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
 import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
 import {
   BookingLimitsDuration_2024_06_14,
@@ -38,8 +38,8 @@ export class UpdateEventTypeInput_2024_06_14 {
   locations?: Location_2024_06_14[];
 
   @IsOptional()
-  @ValidateBookingFields_2024_06_14()
-  bookingFields?: BookingField_2024_06_14[];
+  @ValidateInputBookingFields_2024_06_14()
+  bookingFields?: InputBookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()
@@ -122,9 +122,9 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   locations?: Location_2024_06_14[];
 
   @IsOptional()
-  @ValidateBookingFields_2024_06_14()
+  @ValidateInputBookingFields_2024_06_14()
   @DocsProperty()
-  bookingFields?: BookingField_2024_06_14[];
+  bookingFields?: InputBookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()
