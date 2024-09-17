@@ -516,7 +516,58 @@ export class UserRepository {
       },
     });
   }
-
+  static async getUserAdminTeams(userId: number) {
+    return prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        avatarUrl: true,
+        name: true,
+        username: true,
+        teams: {
+          where: {
+            accepted: true,
+            OR: [
+              {
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+              {
+                team: {
+                  parent: {
+                    members: {
+                      some: {
+                        id: userId,
+                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+                isOrganization: true,
+                parent: {
+                  select: {
+                    logoUrl: true,
+                    name: true,
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
     const membershipQuery = {
       members: {
@@ -541,29 +592,6 @@ export class UserRepository {
       },
     });
     return !!teams.length;
-  }
-
-  static async getUserAdminTeams(userId: number): Promise<number[]> {
-    const user = await prisma.user.findFirst({
-      where: {
-        id: userId,
-      },
-      select: {
-        teams: {
-          where: {
-            accepted: true,
-            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-          },
-          select: { teamId: true },
-        },
-      },
-    });
-
-    const teamIds = [];
-    for (const team of user?.teams || []) {
-      teamIds.push(team.teamId);
-    }
-    return teamIds;
   }
 
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
