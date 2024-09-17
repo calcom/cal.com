@@ -72,12 +72,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       parent: {
         select: {
           teamId: true,
-          team: {
-            select: {
-              id: true,
-              bookingLimits: true,
-            },
-          },
         },
       },
       useEventTypeDestinationCalendarEmail: true,

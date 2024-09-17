@@ -59,16 +59,6 @@ const _getEventType = async (id: number) => {
           bookingLimits: true,
         },
       },
-      parent: {
-        select: {
-          team: {
-            select: {
-              id: true,
-              bookingLimits: true,
-            },
-          },
-        },
-      },
       hosts: {
         select: {
           user: {
@@ -290,11 +280,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           initialData?.busyTimesFromLimitsBookings ?? []
         )
       : [];
-  const teamOfEventType = eventType?.team ?? eventType?.parent?.team;
-  const teamBookingLimits = parseBookingLimit(teamOfEventType?.bookingLimits);
+  const teamOfEventType = eventType?.team;
+  const teamBookingLimits = parseBookingLimit(eventType?.team);
 
   const busyTimesFromTeamLimits =
-    teamBookingLimits && teamOfEventType
+    eventType?.team && teamBookingLimits
       ? await getBusyTimesFromTeamLimits(
           user,
           teamBookingLimits,
