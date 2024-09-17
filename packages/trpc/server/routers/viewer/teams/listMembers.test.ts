@@ -9,7 +9,7 @@ import {
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import lazyLoadMembers from "./lazyLoadMembers.handler";
+import listMembers from "./listMembers.handler";
 
 const createTeamWithMembers = async ({ isPrivate = false }: { isPrivate?: boolean }) => {
   const team = {
@@ -94,7 +94,7 @@ const createTeamWithMembers = async ({ isPrivate = false }: { isPrivate?: boolea
   };
 };
 
-describe("lazyLoadMembers", () => {
+describe("listMembers", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
@@ -110,10 +110,10 @@ describe("lazyLoadMembers", () => {
       } as NonNullable<TrpcSessionUser>,
     };
 
-    const result = await lazyLoadMembers({
+    const result = await listMembers({
       ctx,
       input: {
-        teamId: team.id,
+        teamIds: [team.id],
         limit: 10,
       },
     });
@@ -148,10 +148,10 @@ describe("lazyLoadMembers", () => {
       } as NonNullable<TrpcSessionUser>,
     };
 
-    const result = await lazyLoadMembers({
+    const result = await listMembers({
       ctx,
       input: {
-        teamId: team.id,
+        teamIds: [team.id],
         limit: 10,
       },
     });
@@ -187,10 +187,10 @@ describe("lazyLoadMembers", () => {
     };
 
     await expect(
-      lazyLoadMembers({
+      listMembers({
         ctx: nonAdminUserCtx,
         input: {
-          teamId: team.id,
+          teamIds: [team.id],
           limit: 10,
         },
       })
@@ -218,10 +218,10 @@ describe("lazyLoadMembers", () => {
     };
 
     await expect(
-      lazyLoadMembers({
+      listMembers({
         ctx: nonAdminUserCtx,
         input: {
-          teamId: team.id,
+          teamIds: [team.id],
           limit: 10,
         },
       })
@@ -239,10 +239,10 @@ describe("lazyLoadMembers", () => {
     };
 
     // Search by email
-    const searchByEmail = await lazyLoadMembers({
+    const searchByEmail = await listMembers({
       ctx,
       input: {
-        teamId: team.id,
+        teamIds: [team.id],
         limit: 10,
         searchTerm: "organizer",
       },
@@ -257,10 +257,10 @@ describe("lazyLoadMembers", () => {
     ]);
 
     // Search by name
-    const searchByName = await lazyLoadMembers({
+    const searchByName = await listMembers({
       ctx,
       input: {
-        teamId: team.id,
+        teamIds: [team.id],
         limit: 10,
         searchTerm: organizer.name,
       },
