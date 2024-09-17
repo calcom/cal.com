@@ -13,7 +13,7 @@ import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
   team?: RouterOutputs["viewer"]["teams"]["get"];
-  member?: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
+  member?: RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {

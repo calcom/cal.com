@@ -42,7 +42,6 @@ import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
-  member: RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
   isOrgAdminOrOwner: boolean | undefined;
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
 }
@@ -112,7 +111,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export default function MemberListItem(props: Props) {
+export default function MemberList(props: Props) {
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();

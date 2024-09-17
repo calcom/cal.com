@@ -2,7 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
 
-import type { User } from "./MemberListItem";
+import type { User } from "./MemberList";
 
 interface Props {
   users: User[];
