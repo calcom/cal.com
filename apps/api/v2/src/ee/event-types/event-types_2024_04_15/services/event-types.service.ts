@@ -15,6 +15,7 @@ import {
   updateEventType,
   EventTypesPublic,
   getEventTypesPublic,
+  systemBeforeFieldEmail,
 } from "@calcom/platform-libraries";
 import { EventType } from "@calcom/prisma/client";
 
@@ -127,8 +128,17 @@ export class EventTypesService_2024_04_15 {
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_04_15, user: UserWithProfile) {
     this.checkCanUpdateEventType(user.id, eventTypeId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
+    const bookingFields = [...(body.bookingFields || [])];
+
+    if (
+      !bookingFields.find((field) => field.type === "email") &&
+      !bookingFields.find((field) => field.type === "phone")
+    ) {
+      bookingFields.push(systemBeforeFieldEmail);
+    }
+
     await updateEventType({
-      input: { id: eventTypeId, ...body },
+      input: { id: eventTypeId, ...body, bookingFields },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
