@@ -1,4 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
+import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsBoolean, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
@@ -20,154 +21,293 @@ import {
 
 export class NameDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
   isDefault = true;
 
   @IsString()
+  @DocsProperty({
+    default: "name",
+  })
   slug!: "name";
 
   @IsString()
+  @DocsProperty({
+    default: "name",
+  })
   type!: "name";
 
   @IsBoolean()
+  @DocsProperty()
   required!: true;
 }
 
 export class EmailDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
   isDefault = true;
 
   @IsString()
+  @DocsProperty({
+    default: "email",
+  })
   slug!: "email";
 
   @IsString()
+  @DocsProperty({
+    default: "email",
+  })
   type!: "email";
 
   @IsBoolean()
+  @DocsProperty()
   required!: true;
 }
 
 export class LocationDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
   isDefault = true;
 
   @IsString()
+  @DocsProperty({
+    default: "location",
+  })
   slug!: "location";
 
   @IsString()
+  @DocsProperty({
+    default: "radioInput",
+  })
   type!: "radioInput";
 
   @IsBoolean()
+  @DocsProperty()
   required!: false;
 }
 
 export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
   isDefault = true;
 
   @IsString()
+  @DocsProperty({
+    default: "rescheduleReason",
+  })
   slug!: "rescheduleReason";
 
   @IsString()
+  @DocsProperty({
+    default: "textarea",
+  })
   type!: "textarea";
 
   @IsBoolean()
+  @DocsProperty()
   required!: false;
 }
 
 export class TitleDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
   isDefault = true;
 
   @IsString()
+  @DocsProperty({
+    default: "title",
+  })
   slug!: "title";
 
   @IsString()
+  @DocsProperty({
+    default: "text",
+  })
   type!: "text";
 
   @IsBoolean()
+  @DocsProperty()
   required!: true;
 }
 
 export class NotesDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
   isDefault = true;
 
   @IsString()
+  @DocsProperty({
+    default: "notes",
+  })
   slug!: "notes";
 
   @IsString()
+  @DocsProperty({
+    default: "textarea",
+  })
   type!: "textarea";
 
   @IsBoolean()
+  @DocsProperty()
   required!: false;
 }
 
 export class GuestsDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
   isDefault = true;
 
   @IsString()
+  @DocsProperty({
+    default: "guests",
+  })
   slug!: "guests";
 
   @IsString()
+  @DocsProperty({
+    default: "multiemail",
+  })
   type!: "multiemail";
 
   @IsBoolean()
+  @DocsProperty()
   required!: false;
 }
 
 export class PhoneFieldOutput_2024_06_14 extends PhoneFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class AddressFieldOutput_2024_06_14 extends AddressFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class TextFieldOutput_2024_06_14 extends TextFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class NumberFieldOutput_2024_06_14 extends NumberFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class TextAreaFieldOutput_2024_06_14 extends TextAreaFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class SelectFieldOutput_2024_06_14 extends SelectFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class MultiSelectFieldOutput_2024_06_14 extends MultiSelectFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class MultiEmailFieldOutput_2024_06_14 extends MultiEmailFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class CheckboxGroupFieldOutput_2024_06_14 extends CheckboxGroupFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class RadioGroupFieldOutput_2024_06_14 extends RadioGroupFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 
 export class BooleanFieldOutput_2024_06_14 extends BooleanFieldInput_2024_06_14 {
   @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
   isDefault = false;
 }
 

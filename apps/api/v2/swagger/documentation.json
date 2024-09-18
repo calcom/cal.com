@@ -6213,13 +6213,17 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "default": "email"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "default": "email"
           },
           "required": {
             "type": "boolean"
@@ -6237,13 +6241,17 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "default": "name"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "default": "name"
           },
           "required": {
             "type": "boolean"
@@ -6261,13 +6269,17 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "default": "location"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "default": "radioInput"
           },
           "required": {
             "type": "boolean"
@@ -6285,13 +6297,17 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "default": "rescheduleReason"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "default": "textarea"
           },
           "required": {
             "type": "boolean"
@@ -6309,13 +6325,17 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "default": "title"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "default": "text"
           },
           "required": {
             "type": "boolean"
@@ -6333,13 +6353,17 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "default": "notes"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "default": "textarea"
           },
           "required": {
             "type": "boolean"
@@ -6357,13 +6381,17 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "default": "guests"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "default": "multiemail"
           },
           "required": {
             "type": "boolean"
@@ -6415,7 +6443,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6461,7 +6491,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6517,7 +6549,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6568,7 +6602,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6624,7 +6660,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6675,7 +6713,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6723,7 +6763,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6779,7 +6821,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6840,7 +6884,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6891,7 +6937,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
@@ -6941,7 +6989,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false
+            "default": false,
+            "description": "This property is always false because it's not default field but custom field",
+            "example": false
           }
         },
         "required": [
