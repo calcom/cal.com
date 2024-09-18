@@ -108,26 +108,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     },
   });
 
-  // if (booking.userId !== user.id && booking.eventTypeId) {
-  //   // Only query database when it is explicitly required.
-  //   const eventType = await prisma.eventType.findFirst({
-  //     where: {
-  //       id: booking.eventTypeId,
-  //       schedulingType: SchedulingType.COLLECTIVE,
-  //     },
-  //     select: {
-  //       users: {
-  //         select: {
-  //           id: true,
-  //         },
-  //       },
-  //     },
-  //   });
-
-  //   if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
-  //     throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
-  //   }
-  // }
+  await checkIfUserIsAuthorizedToConfirmBooking({
+    eventTypeId: booking.eventTypeId,
+    loggedInUserId: user.id,
+    teamId: booking.eventType?.teamId,
+    bookingUserId: booking.userId,
+  });
 
   // Do not move this before authorization check.
   // This is done to avoid exposing extra information to the requester.
@@ -419,4 +405,45 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };
+};
+
+const checkIfUserIsAuthorizedToConfirmBooking = async ({
+  eventTypeId,
+  loggedInUserId,
+  teamId,
+  bookingUserId,
+}: {
+  eventTypeId: number | null;
+  loggedInUserId: number;
+  teamId?: number | null;
+  bookingUserId: number | null;
+}): Promise<void> => {
+  // Check if the user is the owner of the event type
+  if (bookingUserId === loggedInUserId) return;
+
+  // Check if user is associated with the event type
+  if (eventTypeId) {
+    const eventType = await prisma.eventType.findUnique({
+      where: {
+        id: eventTypeId,
+        OR: [{ hosts: { some: { userId: loggedInUserId } } }, { users: { some: { id: loggedInUserId } } }],
+      },
+    });
+    console.log("eventTypeId", eventType);
+    if (eventType) return;
+  }
+
+  // Check if the user is an admin/owner of the team the booking belongs to
+  if (teamId) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId: loggedInUserId,
+        teamId: teamId,
+        OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
+      },
+    });
+    if (membership) return;
+  }
+
+  throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };
