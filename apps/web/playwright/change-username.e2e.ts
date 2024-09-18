@@ -134,7 +134,6 @@ test.describe("Change username on settings", () => {
       const usernameInput = page.locator("[data-testid=username-input]");
 
       await usernameInput.fill(previousUsername);
-      // await page.waitForLoadState("networkidle");
       await expect(page.locator("[data-testid=update-username-btn]").nth(0)).toBeHidden();
       await expect(page.locator("[data-testid=update-username-btn]").nth(1)).toBeHidden();
     });

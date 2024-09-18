@@ -15,7 +15,6 @@ export const inviteUserToOrganization = async ({
   usersFixture: ReturnType<typeof createUsersFixture>;
 }) => {
   await page.goto("/settings/organizations/members");
-  // await page.waitForLoadState("networkidle");
   const invitedUserEmail = usersFixture.trackEmail({
     username: email.split("@")[0],
     domain: email.split("@")[1],

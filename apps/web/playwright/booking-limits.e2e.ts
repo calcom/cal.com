@@ -165,7 +165,6 @@ test.describe("Booking limits", () => {
 
         await confirmReschedule(page);
 
-        // await page.waitForLoadState("networkidle");
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
         const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: bookingId } });

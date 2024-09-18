@@ -194,7 +194,6 @@ test.describe("Update Profile", () => {
     secondaryEmail: string;
   }) => {
     await test.step("the user receives the correct invitation link", async () => {
-      // await page.waitForLoadState("networkidle");
       const verificationToken = await prisma.verificationToken.findFirst({
         where: {
           identifier: secondaryEmail,
@@ -244,7 +243,6 @@ test.describe("Update Profile", () => {
     expect(await secondaryEmailConfirmDialog.isVisible()).toBe(false);
 
     await test.step("the user receives the correct invitation link", async () => {
-      // await page.waitForLoadState("networkidle");
       const verificationToken = await prisma.verificationToken.findFirst({
         where: {
           identifier: secondaryEmail,

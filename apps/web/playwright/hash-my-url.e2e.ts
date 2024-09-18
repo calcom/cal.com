@@ -36,8 +36,6 @@ test.describe("hash my url", () => {
     // click update
     await page.locator('[data-testid="update-eventtype"]').press("Enter");
 
-    // await page.waitForLoadState("networkidle");
-
     // book using generated url hash
     await page.goto($url);
     await selectFirstAvailableTimeSlotNextMonth(page);
