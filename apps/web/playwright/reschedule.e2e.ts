@@ -199,7 +199,7 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page).toHaveURL(/.*booking/);
 
-    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+    const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
     expect(newBooking.status).toBe(BookingStatus.PENDING);
   });
@@ -221,7 +221,7 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page).toHaveURL(/.*booking/);
 
-    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+    const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
     expect(newBooking.status).toBe(BookingStatus.ACCEPTED);
   });
@@ -240,7 +240,7 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page).toHaveURL(/.*booking/);
 
-    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+    const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
     expect(newBooking.status).toBe(BookingStatus.ACCEPTED);
   });
