@@ -252,8 +252,7 @@ export const useEventTypeForm = ({
     return updatedFields;
   };
 
-  const handleSubmit = async () => {
-    const values = form.getValues();
+  const handleSubmit = async (values: FormValues) => {
     const { children } = values;
     const dirtyValues = getDirtyFields(values);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;

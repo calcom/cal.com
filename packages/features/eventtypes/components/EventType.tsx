@@ -61,7 +61,7 @@ export const EventType = (
     onDelete: () => void;
     onConflict: (eventTypes: ChildrenEventType[]) => void;
     children?: React.ReactNode;
-    handleSubmit: () => void;
+    handleSubmit: (values: FormValues) => void;
     formMethods: UseFormReturn<FormValues>;
     eventTypeApps?: EventTypeApps;
     isUpdating: boolean;
