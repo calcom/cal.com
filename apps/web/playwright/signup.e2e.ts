@@ -25,7 +25,7 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      // await page.waitForLoadState("networkidle");
+      await expect(page.locator("text=Create your account")).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
 
@@ -52,7 +52,8 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      // await page.waitForLoadState("networkidle");
+
+      await expect(page.locator("text=Create your account")).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
 
@@ -83,7 +84,7 @@ test.describe("Signup Flow Test", async () => {
 
     // Signup with premium username name
     await page.goto("/signup");
-    // await page.waitForLoadState("networkidle");
+    await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
     await page.locator('input[name="username"]').fill("rock");
@@ -111,7 +112,7 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
-    // await page.waitForLoadState("networkidle");
+    await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
@@ -130,6 +131,7 @@ test.describe("Signup Flow Test", async () => {
   test("Signup fields prefilled with query params", async ({ page, users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
+    await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
     const usernameInput = page.locator('input[name="username"]');
@@ -179,7 +181,7 @@ test.describe("Signup Flow Test", async () => {
 
     const signupUrlWithToken = `/signup?token=${token}`;
     await page.goto(signupUrlWithToken);
-    // await page.waitForLoadState("networkidle");
+    await expect(page.locator("text=Create your account")).toBeVisible();
 
     const usernameField = page.locator('input[name="username"]');
     const emailField = page.locator('input[name="email"]');
@@ -210,7 +212,7 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
-    await page.waitForLoadState("domcontentloaded");
+    await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
@@ -218,7 +220,6 @@ test.describe("Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
     const submitButton = page.locator('button[type="submit"]');
-    await submitButton.waitFor({ state: "attached" });
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
@@ -250,7 +251,6 @@ test.describe("Signup Flow Test", async () => {
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
-    // await page.waitForLoadState("networkidle");
 
     await test.step("Invite User to team", async () => {
       // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)
@@ -258,7 +258,7 @@ test.describe("Signup Flow Test", async () => {
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
-      // await page.waitForLoadState("networkidle");
+
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -279,7 +279,7 @@ test.describe("Signup Flow Test", async () => {
       const context = await browser.newContext();
       const newPage = await context.newPage();
       await newPage.goto(inviteLink);
-      await newPage.waitForLoadState("networkidle");
+      await expect(newPage.locator("text=Create your account")).toBeVisible();
 
       const url = new URL(newPage.url());
       expect(url.pathname).toBe("/signup");
