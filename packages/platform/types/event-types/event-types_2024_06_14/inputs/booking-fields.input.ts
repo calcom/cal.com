@@ -303,6 +303,8 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     boolean: BooleanFieldInput_2024_06_14,
   };
 
+  private reservedSystemSlugs = ["name", "email", "location", "rescheduleReason"];
+
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {
       throw new BadRequestException(`'bookingFields' must be an array.`);
@@ -321,6 +323,14 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
 
       if (!slug) {
         throw new BadRequestException(`Each booking field must have a 'slug' property.`);
+      }
+
+      if (this.reservedSystemSlugs.includes(slug)) {
+        throw new BadRequestException(
+          `The slug '${slug}' is reserved and cannot be used, because it is a slug of a default booking field. Reserved slugs are: ${this.reservedSystemSlugs.join(
+            ", "
+          )}`
+        );
       }
 
       if (slugs.includes(slug)) {
