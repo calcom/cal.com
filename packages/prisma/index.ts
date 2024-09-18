@@ -4,6 +4,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { withOptimize } from "@prisma/extension-optimize";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
+import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "./middleware";
@@ -26,7 +27,8 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
     .$extends(usageTrackingExtention())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
-    .$extends(withAccelerate())
+    .$extends(disallowUndefinedDeleteUpdateManyExtension())
+    .$extends(withAccelerate());
     .$extends(withOptimize());
 
 // If any changed on middleware server restart is required
@@ -39,6 +41,7 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(usageTrackingExtention())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
+  .$extends(disallowUndefinedDeleteUpdateManyExtension())
   .$extends(withAccelerate());
 if (process.env.ENABLE_OPTIMIZE_EXTENSION === "true") {
   prismaWithClientExtensions.$extends(withOptimize());

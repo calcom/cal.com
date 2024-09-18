@@ -1,3 +1,6 @@
+## 0.0.36
+Released to support PR https://github.com/calcom/cal.com/pull/16685
+
 ## 0.0.31 
 PR https://github.com/calcom/cal.com/pull/16414 fixed issue of deleting and rescheduling recurring events.
 
