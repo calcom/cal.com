@@ -4,11 +4,11 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
+import { EventType } from "@calcom/atoms/monorepo";
+
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
 import type { PageProps as EventTypePageProps } from "@lib/event-types/[type]/getServerSideProps";
-
-import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
@@ -21,5 +21,5 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const getData = withAppDirSsr(getServerSideProps);
-const Page = (props: EventTypePageProps) => <EventTypePageWrapper {...props} isAppDir={true} />;
+const Page = ({ type, ...rest }: EventTypePageProps) => <EventType {...rest} id={type} isAppDir={true} />;
 export default WithLayout({ getLayout: null, getData, Page })<"P">;

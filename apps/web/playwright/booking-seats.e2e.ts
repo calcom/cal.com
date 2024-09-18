@@ -104,7 +104,6 @@ test.describe("Booking with Seats", () => {
 
     // confirm cancellation
     await page.locator('[data-testid="confirm_cancel"]').click();
-    // await page.waitForLoadState("networkidle");
 
     await expect(page.locator("text=This event is canceled")).toBeVisible();
 
@@ -229,8 +228,6 @@ test.describe("Reschedule for booking with seats", () => {
 
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    // await page.waitForLoadState("networkidle");
-
     await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
 
     await page.goto(
@@ -239,8 +236,6 @@ test.describe("Reschedule for booking with seats", () => {
 
     // Page should not be 404
     await page.locator('[data-testid="confirm_cancel"]').click();
-
-    // await page.waitForLoadState("networkidle");
 
     await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
   });
@@ -407,8 +402,6 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForURL(/\/booking\/.*/);
 
     await expect(page).toHaveURL(/\/booking\/.*/);
-
-    // await page.waitForLoadState("networkidle");
 
     const updatedBooking = await prisma.booking.findFirst({
       where: { id: booking.id },
