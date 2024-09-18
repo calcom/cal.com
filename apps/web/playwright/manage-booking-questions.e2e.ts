@@ -11,6 +11,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
 import {
+  confirmReschedule,
   createHttpServer,
   createNewEventType,
   selectFirstAvailableTimeSlotNextMonth,
@@ -659,7 +660,7 @@ async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
-  await page.click('[data-testid="confirm-reschedule-button"]');
+  await confirmReschedule(page);
 }
 
 async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {

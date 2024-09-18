@@ -448,3 +448,9 @@ export async function submitAndWaitForResponse(
   expect(response.status()).toBe(expectedStatusCode);
   return response.json();
 }
+
+export async function confirmReschedule(page: Page) {
+  await submitAndWaitForResponse(page, "api/book/event", {
+    action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
+  });
+}

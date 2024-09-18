@@ -7,6 +7,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
+  confirmReschedule,
   createNewSeatedEventType,
   createUserWithSeatedEventAndAttendees,
   selectFirstAvailableTimeSlotNextMonth,
@@ -402,7 +403,7 @@ test.describe("Reschedule for booking with seats", () => {
     await expect(reasonElement).toBeVisible();
 
     // expect to be redirected to reschedule page
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     // should wait for URL but that path starts with booking/
     await page.waitForURL(/\/booking\/.*/);

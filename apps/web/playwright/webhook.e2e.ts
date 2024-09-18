@@ -9,6 +9,7 @@ import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
   bookTimeSlot,
+  confirmReschedule,
   createUserWithSeatedEventAndAttendees,
   gotoRoutingLink,
   selectFirstAvailableTimeSlotNextMonth,
@@ -147,7 +148,7 @@ test.describe("BOOKING_REJECTED", async () => {
     await page.goto("/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
 
-    await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm", {
+    await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm?batch=1", {
       action: () => page.click('[data-testid="rejection-confirm"]'),
     });
 
@@ -361,7 +362,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page.getByTestId("success-page")).toBeVisible();
 
@@ -429,7 +430,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page.getByTestId("success-page")).toBeVisible();
 
@@ -462,7 +463,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page).toHaveURL(/.*booking/);
 

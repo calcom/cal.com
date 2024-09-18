@@ -15,6 +15,7 @@ import {
   IS_STRIPE_ENABLED,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
+  confirmReschedule,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -95,11 +96,7 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page.locator('[name="name"]')).toBeDisabled();
     await expect(page.locator('[name="email"]')).toBeDisabled();
-
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
-
-    // await page.waitForLoadState("networkidle");
-
+    await confirmReschedule(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: booking.uid } });
@@ -151,7 +148,7 @@ test.describe("Reschedule Tests", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await page.waitForURL((url) => {
       return url.pathname.indexOf("/payment") > -1;
@@ -181,7 +178,7 @@ test.describe("Reschedule Tests", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page).toHaveURL(/.*booking/);
   });
@@ -198,13 +195,13 @@ test.describe("Reschedule Tests", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page).toHaveURL(/.*booking/);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
-    expect(newBooking?.status).toBe(BookingStatus.PENDING);
+    expect(newBooking.status).toBe(BookingStatus.PENDING);
   });
 
   test("Opt in event should be ACCEPTED when rescheduled by OWNER", async ({ page, users, bookings }) => {
@@ -220,13 +217,13 @@ test.describe("Reschedule Tests", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page).toHaveURL(/.*booking/);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
-    expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+    expect(newBooking.status).toBe(BookingStatus.ACCEPTED);
   });
 
   test("Attendee should be able to reschedule a booking", async ({ page, users, bookings }) => {
@@ -239,13 +236,13 @@ test.describe("Reschedule Tests", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page).toHaveURL(/.*booking/);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
-    expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+    expect(newBooking.status).toBe(BookingStatus.ACCEPTED);
   });
 
   test("Should be able to book slot that overlaps with original rescheduled booking", async ({
@@ -274,7 +271,7 @@ test.describe("Reschedule Tests", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
     await expect(page).toHaveURL(/.*booking/);
   });
   test("Should load Valid Cal video url after rescheduling Opt in events", async ({
@@ -317,19 +314,17 @@ test.describe("Reschedule Tests", async () => {
     await page.goto(`/reschedule/${currentBooking.uid}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
     await expect(page).toHaveURL(/.*booking/);
 
     const newBooking = await prisma.booking.findFirstOrThrow({
       where: { fromReschedule: currentBooking.uid },
     });
     expect(newBooking).not.toBeUndefined();
-    expect(newBooking?.status).toBe(BookingStatus.PENDING);
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    await confirmBooking(newBooking?.id);
+    expect(newBooking.status).toBe(BookingStatus.PENDING);
+    await confirmBooking(newBooking.id);
 
     const booking = await prisma.booking.findFirstOrThrow({ where: { id: newBooking.id } });
-    console.log({ booking });
     expect(booking).not.toBeUndefined();
     expect(booking.status).toBe(BookingStatus.ACCEPTED);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -413,7 +408,7 @@ test.describe("Reschedule Tests", async () => {
 
       async function expectSuccessfulReschedule() {
         await selectFirstAvailableTimeSlotNextMonth(page);
-        await page.locator("[data-testid=confirm-reschedule-button]").click();
+        await confirmReschedule(page);
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
       }
     });
