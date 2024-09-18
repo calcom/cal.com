@@ -55,12 +55,12 @@ import {
   Badge,
   Button,
   EmailInput,
+  EmptyScreen,
   HeadSeo,
-  useCalcomTheme,
+  Icon,
   TextArea,
   showToast,
-  EmptyScreen,
-  Icon,
+  useCalcomTheme,
 } from "@calcom/ui";
 import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
@@ -334,12 +334,7 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    const data = trpc.viewer.supabase.get.useQuery("EventType");
-    console.log(data);
-  }, []);
-
-  useEffect(() => {
-    if (pathname) {
+    if (pathname && pathname.includes("/booking/")) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
       const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
@@ -387,7 +382,7 @@ export default function Success(props: PageProps) {
           console.error({ error });
         });
     }
-  }, [eventTypes, pathname]);
+  }, [pathname]);
 
   useEffect(() => {
     setCalculatedDuration(dayjs(bookingInfo.endTime).diff(dayjs(bookingInfo.startTime), "minutes"));
