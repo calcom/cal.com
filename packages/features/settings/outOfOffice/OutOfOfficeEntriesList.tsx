@@ -51,7 +51,7 @@ export enum OutOfOfficeTab {
   TEAM = "team",
 }
 
-export const OutOfOfficeEntriesList = () => {
+export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: number }) => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [oooEntriesUpdated, setOOOEntriesUpdated] = useState(0);
@@ -92,7 +92,7 @@ export const OutOfOfficeEntriesList = () => {
     if (selectedTab === OutOfOfficeTab.MINE) {
       setDebouncedSearchTerm("");
     }
-  }, [oooEntriesUpdated, deletedEntry, selectedTab, refetch]);
+  }, [oooEntriesAdded, oooEntriesUpdated, deletedEntry, selectedTab, refetch]);
 
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   //Flatten the array of arrays from the useInfiniteQuery hook
@@ -108,7 +108,7 @@ export const OutOfOfficeEntriesList = () => {
       id: "member",
       header: `Member`,
       cell: ({ row }) => {
-        if (!row.original || !row.original.user) {
+        if (!row.original || !row.original.user || isPending || isFetching) {
           return <SkeletonText className="h-8 w-full" />;
         }
         const { avatarUrl, username, email } = row.original.user;
@@ -143,7 +143,7 @@ export const OutOfOfficeEntriesList = () => {
       const item = row.original;
       return (
         <>
-          {row.original ? (
+          {row.original && !isPending && !isFetching ? (
             <div className="flex flex-row justify-between p-2">
               <div className="flex flex-row items-center">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
@@ -346,6 +346,7 @@ export const OutOfOfficeEntriesList = () => {
               }}
               currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
               setOOOEntriesUpdated={setOOOEntriesUpdated}
+              setOOOEntriesAdded={null}
             />
           )}
         </div>

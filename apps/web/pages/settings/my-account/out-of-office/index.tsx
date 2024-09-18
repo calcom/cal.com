@@ -34,6 +34,7 @@ const Page = () => {
   );
 
   const [selectedTab, setSelectedTab] = useState(searchParams?.get("type") ?? OutOfOfficeTab.MINE);
+  const [oooEntriesAdded, setOOOEntriesAdded] = useState(0);
 
   const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
 
@@ -69,11 +70,15 @@ const Page = () => {
               options={toggleGroupOptions}
               disabled={!isOrgAdminOrOwner || isOrgAndPrivate}
             />
-            {isPending ? <SkeletonText className="h-8 w-20" /> : <CreateNewOutOfOfficeEntryButton />}
+            {isPending ? (
+              <SkeletonText className="h-8 w-20" />
+            ) : (
+              <CreateNewOutOfOfficeEntryButton setOOOEntriesAdded={setOOOEntriesAdded} />
+            )}
           </div>
         }
       />
-      <OutOfOfficeEntriesList />
+      <OutOfOfficeEntriesList oooEntriesAdded={oooEntriesAdded} />
     </>
   );
 };

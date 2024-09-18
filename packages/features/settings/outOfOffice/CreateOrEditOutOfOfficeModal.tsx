@@ -39,11 +39,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   closeModal,
   currentlyEditingOutOfOfficeEntry,
   setOOOEntriesUpdated,
+  setOOOEntriesAdded,
 }: {
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
   setOOOEntriesUpdated: Dispatch<SetStateAction<number>> | null;
+  setOOOEntriesAdded: Dispatch<SetStateAction<number>> | null;
 }) => {
   const { t } = useLocale();
 
@@ -120,6 +122,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       );
       if (setOOOEntriesUpdated) {
         setOOOEntriesUpdated((previousValue) => previousValue + 1);
+      }
+      if (setOOOEntriesAdded && !currentlyEditingOutOfOfficeEntry) {
+        setOOOEntriesAdded((previousValue) => previousValue + 1);
       }
       closeModal();
     },

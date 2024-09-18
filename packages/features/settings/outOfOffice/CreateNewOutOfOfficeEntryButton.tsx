@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,7 +9,11 @@ import { Button, Icon } from "@calcom/ui";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 
-const CreateNewOutOfOfficeEntry = () => {
+const CreateNewOutOfOfficeEntry = ({
+  setOOOEntriesAdded,
+}: {
+  setOOOEntriesAdded: Dispatch<SetStateAction<number>> | null;
+}) => {
   const { t } = useLocale();
 
   const params = useSearchParams();
@@ -38,6 +43,7 @@ const CreateNewOutOfOfficeEntry = () => {
           }}
           currentlyEditingOutOfOfficeEntry={null}
           setOOOEntriesUpdated={null}
+          setOOOEntriesAdded={setOOOEntriesAdded}
         />
       )}
     </>
