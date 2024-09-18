@@ -71,8 +71,7 @@ export function createAppsFixture(page: Page) {
     },
 
     installConferencingAppNewFlow: async (app: TApp, eventTypeIds: number[]) => {
-      await page.goto("apps/categories/conferencing");
-      await page.getByTestId(`app-store-app-card-${app.slug}`).click();
+      await page.goto(`apps/${app.slug}`);
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
@@ -80,6 +79,7 @@ export function createAppsFixture(page: Page) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
       await page.click(`[data-testid="save-event-types"]`);
+      page.waitForLoadState("networkidle");
 
       for (let eindex = 0; eindex < eventTypeIds.length; eindex++) {
         if (!app.organizerInputPlaceholder) continue;
