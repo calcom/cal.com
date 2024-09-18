@@ -1,3 +1,6 @@
+## 0.0.37
+Released to support PR https://github.com/calcom/cal.com/pull/16200
+
 ## 0.0.36
 Released to support PR https://github.com/calcom/cal.com/pull/16685
 
