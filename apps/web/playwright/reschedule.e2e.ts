@@ -6,13 +6,15 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { apiLogin } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import {
-  selectFirstAvailableTimeSlotNextMonth,
   bookTimeSlot,
   doOnOrgDomain,
   goToUrlWithErrorHandling,
   IS_STRIPE_ENABLED,
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -275,23 +277,28 @@ test.describe("Reschedule Tests", async () => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await expect(page).toHaveURL(/.*booking/);
   });
-
   test("Should load Valid Cal video url after rescheduling Opt in events", async ({
     page,
     users,
     bookings,
+    browser,
   }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!process.env.DAILY_API_KEY, "DAILY_API_KEY is needed for this test");
     const user = await users.create();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
 
     const confirmBooking = async (bookingId: number) => {
-      await user.apiLogin();
-      await page.goto("/bookings/upcoming");
-      const elem = await page.locator(`[data-bookingid="${bookingId}"][data-testid="confirm"]`);
-      await elem.click();
-      await page.getByTestId("toast-success").waitFor();
-      await user.logout();
+      const authedContext = await browser.newContext();
+      const authedPage = await authedContext.newPage();
+      const userSnapshot = await user.self();
+      await apiLogin({ ...userSnapshot, password: userSnapshot.username }, authedPage);
+      await authedPage.goto("/bookings/upcoming");
+      await submitAndWaitForResponse(authedPage, "/api/trpc/bookings/confirm?batch=1", {
+        action: () => authedPage.locator(`[data-bookingid="${bookingId}"][data-testid="confirm"]`).click(),
+      });
+      await authedContext.close();
     };
 
     await page.goto(`/${user.username}/${eventType.slug}`);
@@ -303,38 +310,33 @@ test.describe("Reschedule Tests", async () => {
     const pathSegments = pageUrl.pathname.split("/");
     const bookingUID = pathSegments[pathSegments.length - 1];
 
-    const currentBooking = await prisma.booking.findFirst({ where: { uid: bookingUID } });
+    const currentBooking = await prisma.booking.findFirstOrThrow({ where: { uid: bookingUID } });
     expect(currentBooking).not.toBeUndefined();
+    await confirmBooking(currentBooking.id);
+
+    await page.goto(`/reschedule/${currentBooking.uid}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await expect(page).toHaveURL(/.*booking/);
+
+    const newBooking = await prisma.booking.findFirstOrThrow({
+      where: { fromReschedule: currentBooking.uid },
+    });
+    expect(newBooking).not.toBeUndefined();
+    expect(newBooking?.status).toBe(BookingStatus.PENDING);
     // eslint-disable-next-line playwright/no-conditional-in-test
-    if (currentBooking) {
-      await confirmBooking(currentBooking.id);
+    await confirmBooking(newBooking?.id);
 
-      await page.goto(`/reschedule/${currentBooking.uid}`);
-      await selectFirstAvailableTimeSlotNextMonth(page);
-
-      await page.locator('[data-testid="confirm-reschedule-button"]').click();
-      await expect(page).toHaveURL(/.*booking/);
-
-      const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: currentBooking.uid } });
-      expect(newBooking).not.toBeUndefined();
-      expect(newBooking?.status).toBe(BookingStatus.PENDING);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (newBooking) {
-        await confirmBooking(newBooking?.id);
-
-        const booking = await prisma.booking.findFirst({ where: { id: newBooking.id } });
-        expect(booking).not.toBeUndefined();
-        expect(booking?.status).toBe(BookingStatus.ACCEPTED);
-        const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
-        expect(locationVideoCallUrl).not.toBeUndefined();
-
-        // eslint-disable-next-line playwright/no-conditional-in-test
-        if (booking && locationVideoCallUrl) {
-          await page.goto(locationVideoCallUrl);
-          await expect(page.frameLocator("iFrame").locator('text="Continue"')).toBeVisible();
-        }
-      }
-    }
+    const booking = await prisma.booking.findFirstOrThrow({ where: { id: newBooking.id } });
+    console.log({ booking });
+    expect(booking).not.toBeUndefined();
+    expect(booking.status).toBe(BookingStatus.ACCEPTED);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+    const locationVideoCallUrl = bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl!;
+    expect(locationVideoCallUrl).not.toBeUndefined();
+    await page.goto(locationVideoCallUrl);
+    await expect(page.frameLocator("iFrame").locator('text="Continue"')).toBeVisible();
   });
 
   test("Should be able to a dynamic group booking", async () => {

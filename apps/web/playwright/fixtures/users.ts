@@ -17,7 +17,12 @@ import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from 
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
-import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
+import {
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
+  teamEventSlug,
+  teamEventTitle,
+} from "../lib/testUtils";
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
 
@@ -1014,10 +1019,10 @@ export async function login(
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
-  await signInLocator.click();
-
   // waiting for specific login request to resolve
-  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  await submitAndWaitForResponse(page, "/api/auth/callback/credentials", {
+    action: () => signInLocator.click(),
+  });
 }
 
 export async function apiLogin(

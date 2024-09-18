@@ -12,6 +12,7 @@ import {
   createUserWithSeatedEventAndAttendees,
   gotoRoutingLink,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 // remove dynamic properties that differs depending on where you run the tests
@@ -145,8 +146,10 @@ test.describe("BOOKING_REJECTED", async () => {
     const webhookReceiver = await webhooks.createReceiver();
     await page.goto("/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
-    await page.click('[data-testid="rejection-confirm"]');
-    await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
+
+    await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm", {
+      action: () => page.click('[data-testid="rejection-confirm"]'),
+    });
 
     await webhookReceiver.waitForRequestCount(1);
 
@@ -577,11 +580,13 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     expect(newMeetingEndedTriggers.length).toBe(0);
 
     // disable webhook
-    await page.click('[data-testid="webhook-switch"]');
-    await page.getByTestId("webhook-switch").click();
-    const response = await page.waitForResponse("/api/trpc/webhook/edit?batch=1");
-    expect(response.status()).toBe(200);
-    // await page.waitForLoadState("networkidle");
+    await submitAndWaitForResponse(page, "/api/trpc/webhook/edit?batch=1", {
+      action: () => page.getByTestId("webhook-switch").click(),
+    });
+    // Enable webhook
+    await submitAndWaitForResponse(page, "/api/trpc/webhook/edit?batch=1", {
+      action: () => page.getByTestId("webhook-switch").click(),
+    });
 
     const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
       where: {

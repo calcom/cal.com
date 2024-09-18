@@ -12,6 +12,7 @@ import {
   bookTimeSlot,
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
   testName,
 } from "../lib/testUtils";
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
@@ -658,11 +659,9 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
   const emailRequiredFiled = await page.locator('[data-testid="field-required"]');
   await emailRequiredFiled.locator("> :nth-child(2)").click();
   await page.getByTestId("field-add-save").click();
-
-  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-  await page.locator("[data-testid=update-eventtype]").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 };
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
@@ -673,9 +672,7 @@ const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');
   await phoneRequiredFiled.locator("> :nth-child(1)").click();
   await page.getByTestId("field-add-save").click();
-
-  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-  await page.locator("[data-testid=update-eventtype]").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 };

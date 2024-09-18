@@ -13,6 +13,7 @@ import {
   gotoFirstEventType,
   saveEventType,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -131,9 +132,9 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       await page.waitForURL((url) => {
         return !!url.pathname.match(/\/event-types\/.+/);
       });
-      await page.locator("[data-testid=update-eventtype]").click();
-      const toast = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast).toBeTruthy();
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+        action: () => page.locator("[data-testid=update-eventtype]").click(),
+      });
     });
 
     test("can add multiple organizer address", async ({ page }) => {
@@ -154,7 +155,9 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       await page.locator("[data-testid=add-location]").click();
       await fillLocation(page, locationData[2], 2);
 
-      await page.locator("[data-testid=update-eventtype]").click();
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+        action: () => page.locator("[data-testid=update-eventtype]").click(),
+      });
 
       await page.goto("/event-types");
 
@@ -225,7 +228,6 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await page.locator(`text="Cal Video (Global)"`).click();
 
         await saveEventType(page);
-        await page.getByTestId("toast-success").waitFor();
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -247,7 +249,6 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await page.locator(`input[name="${locationInputName}"]`).fill(testUrl);
 
         await saveEventType(page);
-        await page.getByTestId("toast-success").waitFor();
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -301,7 +302,9 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         const locationAddress = "New Delhi";
 
         await fillLocation(page, locationAddress, 0, false);
-        await page.locator("[data-testid=update-eventtype]").click();
+        await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+          action: () => page.locator("[data-testid=update-eventtype]").click(),
+        });
 
         await page.goto("/event-types");
 
