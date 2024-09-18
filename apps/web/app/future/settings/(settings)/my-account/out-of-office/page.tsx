@@ -1,5 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 import { getFixedT } from "app/_utils";
+import { useState } from "react";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -14,6 +15,7 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const session = await getServerSessionForAppDir();
+  const [oooEntriesAdded, setOOOEntriesAdded] = useState(0);
 
   const t = await getFixedT(session?.user.locale || "en");
 
@@ -21,8 +23,8 @@ const Page = async () => {
     <SettingsHeader
       title={t("out_of_office")}
       description={t("out_of_office_description")}
-      CTA={<CreateNewOutOfOfficeEntryButton />}>
-      <OutOfOfficeEntriesList />
+      CTA={<CreateNewOutOfOfficeEntryButton setOOOEntriesAdded={setOOOEntriesAdded} />}>
+      <OutOfOfficeEntriesList oooEntriesAdded={oooEntriesAdded} />
     </SettingsHeader>
   );
 };
