@@ -17,7 +17,7 @@ import {
   transformFutureBookingLimitsInternalToApi,
   transformRecurrenceInternalToApi,
 } from ".";
-import type { CustomField } from "../api-request";
+import type { CustomField } from "./booking-fields";
 
 describe("transformLocationsInternalToApi", () => {
   it("should reverse transform address location", () => {
@@ -129,6 +129,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "phone",
         slug: "your-phone",
         label: "Your phone number",
@@ -164,6 +165,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "address",
         slug: "your-address",
         label: "Your address",
@@ -199,6 +201,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "text",
         slug: "your-text",
         label: "Your text",
@@ -234,6 +237,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "number",
         slug: "your-number",
         label: "Your number",
@@ -269,6 +273,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "textarea",
         slug: "your-textarea",
         label: "Your detailed information",
@@ -308,6 +313,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "select",
         slug: "your-select",
         label: "Your selection",
@@ -347,6 +353,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "multiselect",
         slug: "your-multiselect",
         label: "Your multiple selections",
@@ -382,6 +389,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "multiemail",
         slug: "your-multiemail",
         label: "Your multiple emails",
@@ -420,6 +428,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "checkbox",
         slug: "your-checkbox",
         label: "Your checkboxes",
@@ -458,6 +467,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "radio",
         slug: "your-radio",
         label: "Your radio buttons",
@@ -493,6 +503,7 @@ describe("transformBookingFieldsInternalToApi", () => {
 
     const expectedOutput = [
       {
+        isDefault: false,
         type: "boolean",
         slug: "agree-to-terms",
         label: "Agree to terms?",

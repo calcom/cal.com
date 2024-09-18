@@ -9,6 +9,7 @@ import type {
   Recurrence_2024_06_14,
 } from "@calcom/platform-types";
 
+import type { CustomField } from "../internal-to-api/booking-fields";
 import {
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
@@ -17,7 +18,6 @@ import {
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
 } from "./index";
-import type { CustomField } from "./index";
 
 describe("transformLocationsApiToInternal", () => {
   it("should transform address", () => {
