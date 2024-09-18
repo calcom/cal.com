@@ -1,10 +1,7 @@
 import type { BookerProps } from "@calcom/features/bookings/Booker";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
-  systemAfterFields,
-  systemBeforeFields,
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
 } from "@calcom/lib/event-types/transformers";
@@ -216,51 +213,22 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
 }
 
 function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
-  // note(Lauris): EventTypeOutput_2024_06_14["bookingFields"] will contain both system and custom fields,
-  // but we re-apply system fields to ensure that even types that don't have system fields in the DB will have them in frontend.
+  const systemBeforeFields: SystemField[] = [
+    systemBeforeFieldName,
+    systemBeforeFieldEmail,
+    systemBeforeFieldLocation,
+  ];
 
   const transformedCustomFields: CustomField[] = transformBookingFieldsApiToInternal(
     bookingFields.filter((field) => isCustomField(field))
   );
 
-  const missingSystemBeforeFields: SystemField[] = [];
-  for (const field of systemBeforeFields) {
-    const existingBookingFieldIndex = transformedCustomFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemBeforeFields.push(field);
-    } else {
-      // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-      transformedCustomFields[existingBookingFieldIndex] = {
-        ...field,
-        ...transformedCustomFields[existingBookingFieldIndex],
-      };
-    }
-  }
-
-  const missingSystemAfterFields: SystemField[] = [];
-  for (const field of systemAfterFields) {
-    const existingBookingFieldIndex = transformedCustomFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemAfterFields.push(field);
-    } else {
-      transformedCustomFields[existingBookingFieldIndex] = {
-        // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-        ...field,
-        ...transformedCustomFields[existingBookingFieldIndex],
-      };
-    }
-  }
+  const systemAfterFields: SystemField[] = [systemAfterFieldRescheduleReason];
 
   const transformedBookingFields: (SystemField | CustomField)[] = [
-    ...missingSystemBeforeFields,
+    ...systemBeforeFields,
     ...transformedCustomFields,
-    ...missingSystemAfterFields,
+    ...systemAfterFields,
   ];
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
