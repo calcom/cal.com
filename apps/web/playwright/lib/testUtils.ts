@@ -218,11 +218,9 @@ export async function installAppleCalendar(page: Page) {
 }
 
 export async function getInviteLink(page: Page) {
-  const response = await submitAndWaitForResponse(page, "/api/trpc/teams/createInvite?batch=1", {
+  const json = await submitAndWaitForResponse(page, "/api/trpc/teams/createInvite?batch=1", {
     action: () => page.locator(`[data-testid="copy-invite-link-button"]`).click(),
   });
-  expect(response.status()).toBe(200);
-  const json = await response.json();
   return json[0].result.data.json.inviteLink as string;
 }
 
