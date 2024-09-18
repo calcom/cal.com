@@ -285,7 +285,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo.tz(timeZone),
           duration,
           eventType,
-          initialData?.busyTimesFromLimitsBookings ?? []
+          initialData?.busyTimesFromLimitsBookings ?? [],
+          initialData?.rescheduleUid ?? undefined
         )
       : [];
 

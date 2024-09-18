@@ -26,7 +26,8 @@ const _getBusyTimesFromLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  bookings: EventBusyDetails[]
+  bookings: EventBusyDetails[],
+  rescheduleUid?: string
 ) => {
   performance.mark("limitsStart");
 
@@ -43,6 +44,7 @@ const _getBusyTimesFromLimits = async (
       dateTo,
       eventTypeId: eventType.id,
       limitManager,
+      rescheduleUid,
     });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
@@ -58,7 +60,8 @@ const _getBusyTimesFromLimits = async (
       dateTo,
       duration,
       eventType,
-      limitManager
+      limitManager,
+      rescheduleUid
     );
     performance.mark("durationLimitsEnd");
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
@@ -82,11 +85,22 @@ const _getBusyTimesFromBookingLimits = async (params: {
   dateFrom: Dayjs;
   dateTo: Dayjs;
   limitManager: LimitManager;
+  rescheduleUid?: string;
   eventTypeId?: number;
   teamId?: number;
   user?: { id: number; email: string };
 }) => {
-  const { bookings, bookingLimits, dateFrom, dateTo, limitManager, eventTypeId, teamId, user } = params;
+  const {
+    bookings,
+    bookingLimits,
+    dateFrom,
+    dateTo,
+    limitManager,
+    eventTypeId,
+    teamId,
+    user,
+    rescheduleUid,
+  } = params;
 
   for (const key of descendingLimitKeys) {
     const limit = bookingLimits?.[key];
@@ -108,6 +122,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
             key,
             teamId,
             user,
+            rescheduleUid,
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit);
@@ -149,7 +164,8 @@ const _getBusyTimesFromDurationLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  limitManager: LimitManager
+  limitManager: LimitManager,
+  rescheduleUid?: string | null // test if this already works, probably not
 ) => {
   for (const key of descendingLimitKeys) {
     const limit = durationLimits?.[key];
@@ -214,7 +230,7 @@ const _getBusyTimesFromTeamLimits = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   teamId: number,
-  rescheduleUid?: string | null
+  rescheduleUid?: string
 ) => {
   const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
     dateFrom.toISOString(),
@@ -246,6 +262,7 @@ const _getBusyTimesFromTeamLimits = async (
     dateFrom,
     dateTo,
     limitManager,
+    rescheduleUid,
     teamId,
     user,
   });
