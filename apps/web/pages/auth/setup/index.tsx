@@ -64,7 +64,6 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   );
 }
 
-Setup.isThemeSupported = false;
 Setup.PageWrapper = PageWrapper;
 export default Setup;
 
