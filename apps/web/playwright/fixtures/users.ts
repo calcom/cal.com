@@ -1014,7 +1014,6 @@ export async function login(
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
-  // waiting for specific login request to resolve
 
   // waiting for specific login request to resolve
   const responsePromise = page.waitForResponse(/\/api\/auth\/callback\/credentials/);
