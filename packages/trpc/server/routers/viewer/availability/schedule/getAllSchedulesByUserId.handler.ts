@@ -17,10 +17,7 @@ type GetOptions = {
 export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions) => {
   const { user } = ctx;
 
-  const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({
-    ctx,
-    input: { memberId: input?.userId },
-  });
+  const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({ memberId: input?.userId, userId: user.id });
 
   const isCurrentUserOwner = input?.userId === user.id;
 
