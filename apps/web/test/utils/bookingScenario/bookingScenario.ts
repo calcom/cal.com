@@ -145,6 +145,7 @@ export type InputEventType = {
   length?: number;
   offsetStart?: number;
   slotInterval?: number;
+  userId?: number;
   minimumBookingNotice?: number;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
@@ -1249,7 +1250,6 @@ export function getScenarioData(
       ];
     });
   }
-
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {
@@ -1298,10 +1298,10 @@ export function enableEmailFeature() {
 
 export function mockNoTranslations() {
   log.silly("Mocking i18n.getTranslation to return identity function");
-  // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
+      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });

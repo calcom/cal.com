@@ -544,7 +544,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownMenuItem>
                 )}
 
-                {!isPlatformPages && (
+                {!isPlatformPages && isPlatformUser && (
                   <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="blocks"
@@ -578,6 +578,7 @@ function UserDropdown({ small }: UserDropdownProps) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  isLoading?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
@@ -797,8 +798,11 @@ const NavigationItem: React.FC<{
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <Icon
-              name={item.icon}
-              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
+              name={item.isLoading ? "rotate-cw" : item.icon}
+              className={classNames(
+                "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                item.isLoading && "animate-spin"
+              )}
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -934,6 +938,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
+  const [isReferalLoading, setIsReferalLoading] = useState(false);
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
@@ -969,19 +974,25 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
           href: "",
           onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
-            fetchAndCopyToClipboard(
-              fetch("/api/generate-referral-link", {
-                method: "POST",
-              })
-                .then((res) => res.json())
-                .then((res) => res.shortLink),
-              {
-                onSuccess: () => showToast(t("link_copied"), "success"),
-                onFailure: () => showToast("Copy to clipboard failed", "error"),
-              }
-            );
+            setIsReferalLoading(true);
+            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
+            setTimeout(() => {
+              fetchAndCopyToClipboard(
+                fetch("/api/generate-referral-link", {
+                  method: "POST",
+                })
+                  .then((res) => res.json())
+                  .then((res) => res.shortLink),
+                {
+                  onSuccess: () => showToast(t("link_copied"), "success"),
+                  onFailure: () => showToast("Copy to clipboard failed", "error"),
+                }
+              );
+              setIsReferalLoading(false);
+            }, 1000);
           },
           icon: "gift",
+          isLoading: isReferalLoading,
         }
       : null,
     {
@@ -1082,10 +1093,11 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   onClick={item.onClick}>
                   {!!item.icon && (
                     <Icon
-                      name={item.icon}
+                      name={item.isLoading ? "rotate-cw" : item.icon}
                       className={classNames(
                         "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
+                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                        item.isLoading && "animate-spin"
                       )}
                       aria-hidden="true"
                     />

@@ -15,10 +15,6 @@ import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
-import { type EmbedProps } from "@lib/withEmbedSsr";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 type Props = {
   eventData: Pick<
