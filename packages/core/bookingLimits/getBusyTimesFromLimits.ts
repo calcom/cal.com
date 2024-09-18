@@ -165,7 +165,7 @@ const _getBusyTimesFromDurationLimits = async (
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   limitManager: LimitManager,
-  rescheduleUid?: string | null // test if this already works, probably not
+  rescheduleUid?: string
 ) => {
   for (const key of descendingLimitKeys) {
     const limit = durationLimits?.[key];
@@ -190,6 +190,7 @@ const _getBusyTimesFromDurationLimits = async (
           eventId: eventType.id,
           startDate: periodStart.toDate(),
           endDate: periodStart.endOf(unit).toDate(),
+          rescheduleUid,
         });
         if (totalYearlyDuration + selectedDuration > limit) {
           limitManager.addBusyTime(periodStart, unit);

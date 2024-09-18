@@ -300,7 +300,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateFrom.tz(timeZone),
           dateTo.tz(timeZone),
           eventType?.team.id,
-          initialData?.rescheduleUid
+          initialData?.rescheduleUid ?? undefined
         )
       : [];
 
