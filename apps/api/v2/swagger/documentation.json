@@ -655,33 +655,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "username",
-            "required": true,
-            "in": "query",
-            "description": "The username of the user to get event types for. If only username provided will get all event types.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "eventSlug",
-            "required": true,
-            "in": "query",
-            "description": "Slug of event type to return. Notably, if eventSlug is provided then username must be provided too, because multiple users can have event with same slug.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "usernames",
-            "required": true,
-            "in": "query",
-            "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1867,15 +1840,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "eventSlug",
-            "required": true,
-            "in": "query",
-            "description": "Slug of team event type to return.",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -5386,714 +5350,6 @@
           "refreshToken"
         ]
       },
-      "AddressLocation_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "address",
-            "description": "only allowed value for type is `address`"
-          },
-          "address": {
-            "type": "string",
-            "example": "123 Example St, City, Country"
-          },
-          "public": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "type",
-          "address",
-          "public"
-        ]
-      },
-      "LinkLocation_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "link",
-            "description": "only allowed value for type is `link`"
-          },
-          "link": {
-            "type": "string",
-            "example": "https://customvideo.com/join/123456"
-          },
-          "public": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "type",
-          "link",
-          "public"
-        ]
-      },
-      "IntegrationLocation_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "integration",
-            "description": "only allowed value for type is `integration`"
-          },
-          "integration": {
-            "type": "string",
-            "example": "cal-video",
-            "enum": [
-              "cal-video"
-            ]
-          }
-        },
-        "required": [
-          "type",
-          "integration"
-        ]
-      },
-      "PhoneLocation_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "phone",
-            "description": "only allowed value for type is `phone`"
-          },
-          "phone": {
-            "type": "string",
-            "example": "+37120993151"
-          },
-          "public": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "type",
-          "phone",
-          "public"
-        ]
-      },
-      "NameField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "name",
-            "description": "only allowed value for type is `name`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking"
-          },
-          "label": {
-            "type": "string"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "EmailField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "email",
-            "description": "only allowed value for type is `email`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "PhoneField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "phone",
-            "description": "only allowed value for type is `phone`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "AddressField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "address",
-            "description": "only allowed value for type is `address`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please enter your address"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "e.g., 1234 Main St"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "TextField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "text",
-            "description": "only allowed value for type is `text`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please enter your text"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "e.g., Enter text here"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "NumberField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "number",
-            "description": "only allowed value for type is `number`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please enter a number"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "e.g., 100"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "TextAreaField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "textarea",
-            "description": "only allowed value for type is `textarea`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please enter detailed information"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "e.g., Detailed description here..."
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "SelectField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "select",
-            "description": "only allowed value for type is `select`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please select an option"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "Select..."
-          },
-          "options": {
-            "example": [
-              "Option 1",
-              "Option 2"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder",
-          "options"
-        ]
-      },
-      "MultiSelectField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "multiselect",
-            "description": "only allowed value for type is `multiselect`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please select multiple options"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "options": {
-            "example": [
-              "Option 1",
-              "Option 2"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "options"
-        ]
-      },
-      "MultiEmailField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "multiemail",
-            "description": "only allowed value for type is `multiemail`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Please enter multiple emails"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "placeholder": {
-            "type": "string",
-            "example": "e.g., example@example.com"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder"
-        ]
-      },
-      "CheckboxGroupField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "checkbox",
-            "description": "only allowed value for type is `checkbox`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Select all that apply"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "options": {
-            "example": [
-              "Checkbox 1",
-              "Checkbox 2"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "options"
-        ]
-      },
-      "RadioGroupField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "radio",
-            "description": "only allowed value for type is `radio`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Select one option"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "options": {
-            "example": [
-              "Radio 1",
-              "Radio 2"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required",
-          "options"
-        ]
-      },
-      "BooleanField_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "boolean",
-            "description": "only allowed value for type is `boolean`"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
-            "example": "some-slug"
-          },
-          "label": {
-            "type": "string",
-            "example": "Agree to terms?"
-          },
-          "required": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "type",
-          "slug",
-          "label",
-          "required"
-        ]
-      },
-      "BusinessDaysWindow_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "businessDays",
-              "calendarDays",
-              "range"
-            ],
-            "description": "Whether the window should be business days, calendar days or a range of dates"
-          },
-          "value": {
-            "type": "number",
-            "example": 5,
-            "description": "How many business day into the future can this event be booked"
-          },
-          "rolling": {
-            "type": "boolean",
-            "example": true,
-            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
-          }
-        },
-        "required": [
-          "type",
-          "value",
-          "rolling"
-        ]
-      },
-      "CalendarDaysWindow_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "businessDays",
-              "calendarDays",
-              "range"
-            ],
-            "description": "Whether the window should be business days, calendar days or a range of dates"
-          },
-          "value": {
-            "type": "number",
-            "example": 5,
-            "description": "How many calendar days into the future can this event be booked"
-          },
-          "rolling": {
-            "type": "boolean",
-            "example": true,
-            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
-          }
-        },
-        "required": [
-          "type",
-          "value",
-          "rolling"
-        ]
-      },
-      "RangeWindow_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "businessDays",
-              "calendarDays",
-              "range"
-            ],
-            "description": "Whether the window should be business days, calendar days or a range of dates"
-          },
-          "value": {
-            "example": [
-              "2030-09-05",
-              "2030-09-09"
-            ],
-            "description": "Date range for when this event can be booked.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "value"
-        ]
-      },
-      "BookingLimitsCount_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "day": {
-            "type": "number",
-            "description": "The number of bookings per day",
-            "example": 1
-          },
-          "week": {
-            "type": "number",
-            "description": "The number of bookings per week",
-            "example": 2
-          },
-          "month": {
-            "type": "number",
-            "description": "The number of bookings per month",
-            "example": 3
-          },
-          "year": {
-            "type": "number",
-            "description": "The number of bookings per year",
-            "example": 4
-          }
-        },
-        "required": [
-          "day",
-          "week",
-          "month",
-          "year"
-        ]
-      },
-      "BookingLimitsDuration_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "day": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per day (must be a multiple of 15)",
-            "example": 60
-          },
-          "week": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per week (must be a multiple of 15)",
-            "example": 120
-          },
-          "month": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per month (must be a multiple of 15)",
-            "example": 180
-          },
-          "year": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per year (must be a multiple of 15)",
-            "example": 240
-          }
-        }
-      },
-      "Recurrence_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "interval": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats every {count} week | month | year"
-          },
-          "occurrences": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats for a maximum of {count} events"
-          },
-          "frequency": {
-            "type": "string",
-            "enum": [
-              "yearly",
-              "monthly",
-              "weekly"
-            ]
-          }
-        },
-        "required": [
-          "interval",
-          "occurrences",
-          "frequency"
-        ]
-      },
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6105,174 +5361,15 @@
             "type": "string",
             "example": "Learn the secrets of masterchief!"
           },
-          "slug": {
-            "type": "string",
-            "example": "learn-the-secrets-of-masterchief"
-          },
           "description": {
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/NameField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/EmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/AddressField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NumberField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextAreaField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/SelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiSelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiEmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CheckboxGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RadioGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/BooleanField_2024_06_14"
-                }
-              ]
-            }
-          },
-          "disableGuests": {
-            "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
-          },
-          "slotInterval": {
-            "type": "number",
-            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "description": "Minimum number of minutes before the event that a booking can be made."
-          },
-          "beforeEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
-          },
-          "afterEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
-          },
-          "scheduleId": {
-            "type": "number",
-            "description": "If you want that this event has different schedule than user's default one you can specify it here."
-          },
-          "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean",
-            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
-          },
-          "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
-          },
-          "bookingWindow": {
-            "type": "array",
-            "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
-          },
-          "offsetStart": {
-            "type": "number",
-            "description": "Offset timeslots shown to bookers by a specified number of minutes"
-          },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
           }
         },
         "required": [
           "lengthInMinutes",
           "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "recurrence"
+          "description"
         ]
       },
       "EventTypeOutput_2024_06_14": {
@@ -6281,211 +5378,10 @@
           "id": {
             "type": "number",
             "example": 1
-          },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "slug": {
-            "type": "string",
-            "example": "learn-the-secrets-of-masterchief"
-          },
-          "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          },
-          "locations": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/NameField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/EmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/AddressField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NumberField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextAreaField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/SelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiSelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiEmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CheckboxGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RadioGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/BooleanField_2024_06_14"
-                }
-              ]
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "number",
-            "example": 60
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "example": 0
-          },
-          "beforeEventBuffer": {
-            "type": "number",
-            "example": 0
-          },
-          "afterEventBuffer": {
-            "type": "number",
-            "example": 0
-          },
-          "recurrence": {
-            "type": "object"
-          },
-          "metadata": {
-            "type": "object"
-          },
-          "requiresConfirmation": {
-            "type": "boolean"
-          },
-          "price": {
-            "type": "number"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "seatsPerTimeSlot": {
-            "type": "object"
-          },
-          "forwardParamsSuccessRedirect": {
-            "type": "object"
-          },
-          "successRedirectUrl": {
-            "type": "object"
-          },
-          "seatsShowAvailabilityCount": {
-            "type": "object"
-          },
-          "scheduleId": {
-            "type": "object"
-          },
-          "bookingLimitsCount": {
-            "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean"
-          },
-          "bookingLimitsDuration": {
-            "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-          },
-          "bookingWindow": {
-            "type": "array",
-            "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
-          },
-          "offsetStart": {
-            "type": "number"
-          },
-          "ownerId": {
-            "type": "number",
-            "example": 10
-          },
-          "users": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         },
         "required": [
-          "id",
-          "lengthInMinutes",
-          "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "recurrence",
-          "metadata",
-          "requiresConfirmation",
-          "price",
-          "currency",
-          "lockTimeZoneToggleOnBookingPage",
-          "seatsPerTimeSlot",
-          "forwardParamsSuccessRedirect",
-          "successRedirectUrl",
-          "seatsShowAvailabilityCount",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "ownerId",
-          "users"
+          "id"
         ]
       },
       "CreateEventTypeOutput_2024_06_14": {
@@ -6558,184 +5454,7 @@
       },
       "UpdateEventTypeInput_2024_06_14": {
         "type": "object",
-        "properties": {
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "slug": {
-            "type": "string",
-            "example": "learn-the-secrets-of-masterchief"
-          },
-          "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/NameField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/EmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/AddressField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NumberField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextAreaField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/SelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiSelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiEmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CheckboxGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RadioGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/BooleanField_2024_06_14"
-                }
-              ]
-            }
-          },
-          "disableGuests": {
-            "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
-          },
-          "slotInterval": {
-            "type": "number",
-            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "description": "Minimum number of minutes before the event that a booking can be made."
-          },
-          "beforeEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
-          },
-          "afterEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
-          },
-          "scheduleId": {
-            "type": "number",
-            "description": "If you want that this event has different schedule than user's default one you can specify it here."
-          },
-          "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean",
-            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
-          },
-          "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
-          },
-          "bookingWindow": {
-            "type": "array",
-            "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
-          },
-          "offsetStart": {
-            "type": "number",
-            "description": "Offset timeslots shown to bookers by a specified number of minutes"
-          },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
-          }
-        },
-        "required": [
-          "lengthInMinutes",
-          "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "recurrence"
-        ]
+        "properties": {}
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -7308,31 +6027,21 @@
         "properties": {
           "name": {
             "type": "string",
-            "example": "Catch up hours"
+            "example": "One-on-one coaching"
           },
           "timeZone": {
             "type": "string",
-            "example": "Europe/Rome",
-            "description": "Timezone is used to calculate available times when an event using the schedule is booked."
+            "example": "Europe/Rome"
           },
           "availability": {
-            "description": "Each object contains days and times when the user is available. If not passed, the default availability is Monday to Friday from 09:00 to 17:00.",
             "example": [
               {
                 "days": [
                   "Monday",
                   "Tuesday"
                 ],
-                "startTime": "17:00",
-                "endTime": "19:00"
-              },
-              {
-                "days": [
-                  "Wednesday",
-                  "Thursday"
-                ],
-                "startTime": "16:00",
-                "endTime": "20:00"
+                "startTime": "09:00",
+                "endTime": "10:00"
               }
             ],
             "type": "array",
@@ -7342,16 +6051,14 @@
           },
           "isDefault": {
             "type": "boolean",
-            "example": true,
-            "description": "Each user should have 1 default schedule. If you specified `timeZone` when creating managed user, then the default schedule will be created with that timezone.\n    Default schedule means that if an event type is not tied to a specific schedule then the default schedule is used."
+            "example": true
           },
           "overrides": {
-            "description": "Need to change availability for a specific date? Add an override.",
             "example": [
               {
                 "date": "2024-05-20",
-                "startTime": "18:00",
-                "endTime": "21:00"
+                "startTime": "12:00",
+                "endTime": "14:00"
               }
             ],
             "type": "array",
@@ -7966,153 +6673,9 @@
             "type": "string",
             "example": "Learn the secrets of masterchief!"
           },
-          "slug": {
-            "type": "string",
-            "example": "learn-the-secrets-of-masterchief"
-          },
           "description": {
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          },
-          "locations": {
-            "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/NameField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/EmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/AddressField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NumberField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextAreaField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/SelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiSelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiEmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CheckboxGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RadioGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/BooleanField_2024_06_14"
-                }
-              ]
-            }
-          },
-          "disableGuests": {
-            "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
-          },
-          "slotInterval": {
-            "type": "number",
-            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "description": "Minimum number of minutes before the event that a booking can be made."
-          },
-          "beforeEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
-          },
-          "afterEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
-          },
-          "scheduleId": {
-            "type": "number",
-            "description": "If you want that this event has different schedule than user's default one you can specify it here."
-          },
-          "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean",
-            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
-          },
-          "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
-          },
-          "bookingWindow": {
-            "type": "array",
-            "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
-          },
-          "offsetStart": {
-            "type": "number",
-            "description": "Offset timeslots shown to bookers by a specified number of minutes"
-          },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
           },
           "schedulingType": {
             "type": "object"
@@ -8124,29 +6687,13 @@
             }
           },
           "assignAllTeamMembers": {
-            "type": "boolean",
-            "description": "If true, all current and future team members will be assigned to this event type"
+            "type": "boolean"
           }
         },
         "required": [
           "lengthInMinutes",
           "title",
-          "slug",
           "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "recurrence",
           "schedulingType",
           "hosts",
           "assignAllTeamMembers"
@@ -8181,6 +6728,1032 @@
           "status",
           "data"
         ]
+      },
+      "AddressLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone"
+            ],
+            "example": "address",
+            "description": "only allowed value for type is `address`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "address",
+          "public"
+        ]
+      },
+      "LinkLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone"
+            ],
+            "example": "link",
+            "description": "only allowed value for type is `link`"
+          },
+          "link": {
+            "type": "string",
+            "example": "https://customvideo.com/join/123456"
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "link",
+          "public"
+        ]
+      },
+      "IntegrationLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone"
+            ],
+            "example": "integration",
+            "description": "only allowed value for type is `integration`"
+          },
+          "integration": {
+            "type": "string",
+            "enum": [
+              "cal-video"
+            ],
+            "example": "cal-video"
+          }
+        },
+        "required": [
+          "type",
+          "integration"
+        ]
+      },
+      "PhoneLocation_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "link",
+              "integration",
+              "phone"
+            ],
+            "example": "phone",
+            "description": "only allowed value for type is `phone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "phone",
+          "public"
+        ]
+      },
+      "EmailDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "isDefault": {
+            "type": "object",
+            "default": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isDefault",
+          "slug",
+          "type",
+          "required"
+        ]
+      },
+      "NameDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "isDefault": {
+            "type": "object",
+            "default": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isDefault",
+          "slug",
+          "type",
+          "required"
+        ]
+      },
+      "LocationDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "isDefault": {
+            "type": "object",
+            "default": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isDefault",
+          "slug",
+          "type",
+          "required"
+        ]
+      },
+      "RescheduleReasonDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "isDefault": {
+            "type": "object",
+            "default": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isDefault",
+          "slug",
+          "type",
+          "required"
+        ]
+      },
+      "TitleDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "isDefault": {
+            "type": "object",
+            "default": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isDefault",
+          "slug",
+          "type",
+          "required"
+        ]
+      },
+      "NotesDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "isDefault": {
+            "type": "object",
+            "default": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isDefault",
+          "slug",
+          "type",
+          "required"
+        ]
+      },
+      "GuestsDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "isDefault": {
+            "type": "object",
+            "default": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isDefault",
+          "slug",
+          "type",
+          "required"
+        ]
+      },
+      "AddressFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "address",
+            "description": "only allowed value for type is `address`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your address"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., 1234 Main St"
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "isDefault"
+        ]
+      },
+      "BooleanFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "boolean",
+            "description": "only allowed value for type is `boolean`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Agree to terms?"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "isDefault"
+        ]
+      },
+      "CheckboxGroupFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "checkbox",
+            "description": "only allowed value for type is `checkbox`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Select all that apply"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "example": [
+              "Checkbox 1",
+              "Checkbox 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "options",
+          "isDefault"
+        ]
+      },
+      "MultiEmailFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "multiemail",
+            "description": "only allowed value for type is `multiemail`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter multiple emails"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., example@example.com"
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "isDefault"
+        ]
+      },
+      "MultiSelectFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "multiselect",
+            "description": "only allowed value for type is `multiselect`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please select multiple options"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "example": [
+              "Option 1",
+              "Option 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "options",
+          "isDefault"
+        ]
+      },
+      "NumberFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "number",
+            "description": "only allowed value for type is `number`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter a number"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., 100"
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "isDefault"
+        ]
+      },
+      "PhoneFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "phone",
+            "description": "only allowed value for type is `phone`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "isDefault"
+        ]
+      },
+      "RadioGroupFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "radio",
+            "description": "only allowed value for type is `radio`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Select one option"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "example": [
+              "Radio 1",
+              "Radio 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "options",
+          "isDefault"
+        ]
+      },
+      "SelectFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "select",
+            "description": "only allowed value for type is `select`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please select an option"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "Select..."
+          },
+          "options": {
+            "example": [
+              "Option 1",
+              "Option 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "options",
+          "isDefault"
+        ]
+      },
+      "TextAreaFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "textarea",
+            "description": "only allowed value for type is `textarea`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter detailed information"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Detailed description here..."
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "isDefault"
+        ]
+      },
+      "TextFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "address",
+              "text",
+              "number",
+              "textarea",
+              "select",
+              "multiselect",
+              "multiemail",
+              "checkbox",
+              "radio",
+              "boolean"
+            ],
+            "example": "text",
+            "description": "only allowed value for type is `text`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your text"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Enter text here"
+          },
+          "isDefault": {
+            "type": "object",
+            "default": false
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "isDefault"
+        ]
+      },
+      "BookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          }
+        }
+      },
+      "BusinessDaysWindow_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "businessDays",
+              "calendarDays",
+              "range"
+            ],
+            "description": "Whether the window should be business days, calendar days or a range of dates"
+          },
+          "value": {
+            "type": "number",
+            "example": 5,
+            "description": "How many business day into the future can this event be booked"
+          },
+          "rolling": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "CalendarDaysWindow_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "businessDays",
+              "calendarDays",
+              "range"
+            ],
+            "description": "Whether the window should be business days, calendar days or a range of dates"
+          },
+          "value": {
+            "type": "number",
+            "example": 5,
+            "description": "How many calendar days into the future can this event be booked"
+          },
+          "rolling": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "RangeWindow_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "businessDays",
+              "calendarDays",
+              "range"
+            ],
+            "description": "Whether the window should be business days, calendar days or a range of dates"
+          },
+          "value": {
+            "example": [
+              "2030-09-05",
+              "2030-09-09"
+            ],
+            "description": "Date range for when this event can be booked.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "Recurrence_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
+            "enum": [
+              "yearly",
+              "monthly",
+              "weekly"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "interval",
+          "occurrences",
+          "frequency"
+        ]
+      },
+      "BookingLimitsCount_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per day",
+            "example": 1
+          },
+          "week": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per week",
+            "example": 2
+          },
+          "month": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per month",
+            "example": 3
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1,
+            "description": "The number of bookings per year",
+            "example": 4
+          }
+        }
       },
       "TeamEventTypeResponseHost": {
         "type": "object",
@@ -8263,43 +7836,58 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameField_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailField_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/PhoneField_2024_06_14"
+                  "$ref": "#/components/schemas/LocationDefaultFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/AddressField_2024_06_14"
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/TextField_2024_06_14"
+                  "$ref": "#/components/schemas/TitleDefaultFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/NumberField_2024_06_14"
+                  "$ref": "#/components/schemas/NotesDefaultFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/TextAreaField_2024_06_14"
+                  "$ref": "#/components/schemas/GuestsDefaultFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/SelectField_2024_06_14"
+                  "$ref": "#/components/schemas/PhoneFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/MultiSelectField_2024_06_14"
+                  "$ref": "#/components/schemas/AddressFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/MultiEmailField_2024_06_14"
+                  "$ref": "#/components/schemas/TextFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/CheckboxGroupField_2024_06_14"
+                  "$ref": "#/components/schemas/NumberFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/RadioGroupField_2024_06_14"
+                  "$ref": "#/components/schemas/TextAreaFieldOutput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/BooleanField_2024_06_14"
+                  "$ref": "#/components/schemas/SelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
                 }
               ]
             }
@@ -8538,6 +8126,21 @@
           "templateType"
         ]
       },
+      "Data": {
+        "type": "object",
+        "properties": {
+          "callId": {
+            "type": "string"
+          },
+          "agentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "callId",
+          "agentId"
+        ]
+      },
       "CreatePhoneCallOutput": {
         "type": "object",
         "properties": {
@@ -8585,160 +8188,43 @@
         "type": "object",
         "properties": {
           "lengthInMinutes": {
-            "type": "number",
-            "example": 60
+            "type": "number"
           },
           "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
+            "type": "string"
           },
           "slug": {
-            "type": "string",
-            "example": "learn-the-secrets-of-masterchief"
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+            "type": "string"
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
             "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
-                }
-              ]
+              "type": "string"
             }
           },
           "bookingFields": {
             "type": "array",
-            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
             "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/NameField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/EmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/AddressField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NumberField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextAreaField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/SelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiSelectField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiEmailField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CheckboxGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RadioGroupField_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/BooleanField_2024_06_14"
-                }
-              ]
+              "type": "string"
             }
           },
           "disableGuests": {
-            "type": "boolean",
-            "description": "If true, person booking this event't cant add guests via their emails."
+            "type": "boolean"
           },
           "slotInterval": {
-            "type": "number",
-            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
+            "type": "number"
           },
           "minimumBookingNotice": {
-            "type": "number",
-            "description": "Minimum number of minutes before the event that a booking can be made."
+            "type": "number"
           },
           "beforeEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "type": "number"
           },
           "afterEventBuffer": {
-            "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
-          },
-          "scheduleId": {
-            "type": "number",
-            "description": "If you want that this event has different schedule than user's default one you can specify it here."
-          },
-          "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean",
-            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
-          },
-          "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
-          },
-          "bookingWindow": {
-            "type": "array",
-            "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
-          },
-          "offsetStart": {
-            "type": "number",
-            "description": "Offset timeslots shown to bookers by a specified number of minutes"
-          },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
+            "type": "number"
           },
           "hosts": {
             "type": "array",
@@ -8747,8 +8233,7 @@
             }
           },
           "assignAllTeamMembers": {
-            "type": "boolean",
-            "description": "If true, all current and future team members will be assigned to this event type"
+            "type": "boolean"
           }
         },
         "required": [
@@ -8763,13 +8248,6 @@
           "minimumBookingNotice",
           "beforeEventBuffer",
           "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "recurrence",
           "hosts",
           "assignAllTeamMembers"
         ]

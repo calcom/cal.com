@@ -2,22 +2,20 @@ import { ApiProperty as DocsProperty, getSchemaPath, ApiExtraModels } from "@nes
 import { Type } from "class-transformer";
 import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
 
-import type { BookingField_2024_06_14 } from "./booking-fields.input";
+import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import {
-  AddressField_2024_06_14,
-  BooleanField_2024_06_14,
-  CheckboxGroupField_2024_06_14,
-  EmailField_2024_06_14,
-  MultiEmailField_2024_06_14,
-  MultiSelectField_2024_06_14,
-  NameField_2024_06_14,
-  NumberField_2024_06_14,
-  PhoneField_2024_06_14,
-  RadioGroupField_2024_06_14,
-  SelectField_2024_06_14,
-  TextAreaField_2024_06_14,
-  TextField_2024_06_14,
-  ValidateBookingFields_2024_06_14,
+  AddressFieldInput_2024_06_14,
+  BooleanFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
+  MultiEmailFieldInput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  NumberFieldInput_2024_06_14,
+  PhoneFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
+  SelectFieldInput_2024_06_14,
+  TextAreaFieldInput_2024_06_14,
+  TextFieldInput_2024_06_14,
+  ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
 import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
 import {
@@ -53,19 +51,17 @@ import { Recurrence_2024_06_14 } from "./recurrence.input";
   LinkLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
   PhoneLocation_2024_06_14,
-  NameField_2024_06_14,
-  EmailField_2024_06_14,
-  PhoneField_2024_06_14,
-  AddressField_2024_06_14,
-  TextField_2024_06_14,
-  NumberField_2024_06_14,
-  TextAreaField_2024_06_14,
-  SelectField_2024_06_14,
-  MultiSelectField_2024_06_14,
-  MultiEmailField_2024_06_14,
-  CheckboxGroupField_2024_06_14,
-  RadioGroupField_2024_06_14,
-  BooleanField_2024_06_14,
+  PhoneFieldInput_2024_06_14,
+  AddressFieldInput_2024_06_14,
+  TextFieldInput_2024_06_14,
+  NumberFieldInput_2024_06_14,
+  TextAreaFieldInput_2024_06_14,
+  SelectFieldInput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  MultiEmailFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
+  BooleanFieldInput_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14
@@ -109,29 +105,27 @@ export class UpdateEventTypeInput_2024_06_14 {
   locations?: Location_2024_06_14[];
 
   @IsOptional()
-  @ValidateBookingFields_2024_06_14()
+  @ValidateInputBookingFields_2024_06_14()
   @DocsProperty({
     description:
       "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
     oneOf: [
-      { $ref: getSchemaPath(NameField_2024_06_14) },
-      { $ref: getSchemaPath(EmailField_2024_06_14) },
-      { $ref: getSchemaPath(PhoneField_2024_06_14) },
-      { $ref: getSchemaPath(AddressField_2024_06_14) },
-      { $ref: getSchemaPath(TextField_2024_06_14) },
-      { $ref: getSchemaPath(NumberField_2024_06_14) },
-      { $ref: getSchemaPath(TextAreaField_2024_06_14) },
-      { $ref: getSchemaPath(SelectField_2024_06_14) },
-      { $ref: getSchemaPath(MultiSelectField_2024_06_14) },
-      { $ref: getSchemaPath(MultiEmailField_2024_06_14) },
-      { $ref: getSchemaPath(CheckboxGroupField_2024_06_14) },
-      { $ref: getSchemaPath(RadioGroupField_2024_06_14) },
-      { $ref: getSchemaPath(BooleanField_2024_06_14) },
+      { $ref: getSchemaPath(PhoneFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(AddressFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(TextFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(NumberFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(TextAreaFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(SelectFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(MultiSelectFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(MultiEmailFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(CheckboxGroupFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(RadioGroupFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(BooleanFieldInput_2024_06_14) },
     ],
     type: "array",
   })
   @Type(() => Object)
-  bookingFields?: BookingField_2024_06_14[];
+  bookingFields?: InputBookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()
@@ -223,24 +217,23 @@ export class UpdateEventTypeInput_2024_06_14 {
   })
   recurrence?: Recurrence_2024_06_14;
 }
+
 @ApiExtraModels(
   AddressLocation_2024_06_14,
   LinkLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
   PhoneLocation_2024_06_14,
-  NameField_2024_06_14,
-  EmailField_2024_06_14,
-  PhoneField_2024_06_14,
-  AddressField_2024_06_14,
-  TextField_2024_06_14,
-  NumberField_2024_06_14,
-  TextAreaField_2024_06_14,
-  SelectField_2024_06_14,
-  MultiSelectField_2024_06_14,
-  MultiEmailField_2024_06_14,
-  CheckboxGroupField_2024_06_14,
-  RadioGroupField_2024_06_14,
-  BooleanField_2024_06_14,
+  PhoneFieldInput_2024_06_14,
+  AddressFieldInput_2024_06_14,
+  TextFieldInput_2024_06_14,
+  NumberFieldInput_2024_06_14,
+  TextAreaFieldInput_2024_06_14,
+  SelectFieldInput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  MultiEmailFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
+  BooleanFieldInput_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14

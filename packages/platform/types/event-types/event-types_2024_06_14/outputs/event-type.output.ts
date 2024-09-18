@@ -11,7 +11,7 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import type { Location_2024_06_14, BookingField_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
+import type { Location_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
 import {
   Host as TeamEventTypeHostInput,
   BookingLimitsDuration_2024_06_14,
@@ -20,22 +20,6 @@ import {
   RangeWindow_2024_06_14,
 } from "../inputs";
 import { Recurrence_2024_06_14 } from "../inputs";
-import {
-  AddressField_2024_06_14,
-  BooleanField_2024_06_14,
-  CheckboxGroupField_2024_06_14,
-  EmailField_2024_06_14,
-  MultiEmailField_2024_06_14,
-  MultiSelectField_2024_06_14,
-  NameField_2024_06_14,
-  NumberField_2024_06_14,
-  PhoneField_2024_06_14,
-  RadioGroupField_2024_06_14,
-  SelectField_2024_06_14,
-  TextAreaField_2024_06_14,
-  TextField_2024_06_14,
-  ValidateBookingFields_2024_06_14,
-} from "../inputs/booking-fields.input";
 import { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import {
   AddressLocation_2024_06_14,
@@ -44,6 +28,28 @@ import {
   PhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
 } from "../inputs/locations.input";
+import {
+  EmailDefaultFieldOutput_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
+  RescheduleReasonDefaultFieldOutput_2024_06_14,
+  TitleDefaultFieldOutput_2024_06_14,
+  NotesDefaultFieldOutput_2024_06_14,
+  GuestsDefaultFieldOutput_2024_06_14,
+  AddressFieldOutput_2024_06_14,
+  BooleanFieldOutput_2024_06_14,
+  CheckboxGroupFieldOutput_2024_06_14,
+  MultiEmailFieldOutput_2024_06_14,
+  MultiSelectFieldOutput_2024_06_14,
+  NumberFieldOutput_2024_06_14,
+  PhoneFieldOutput_2024_06_14,
+  RadioGroupFieldOutput_2024_06_14,
+  SelectFieldOutput_2024_06_14,
+  TextAreaFieldOutput_2024_06_14,
+  TextFieldOutput_2024_06_14,
+} from "../outputs/booking-fields.output";
+import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
+import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 
 enum SchedulingTypeEnum {
   ROUND_ROBIN = "ROUND_ROBIN",
@@ -83,19 +89,24 @@ class User_2024_06_14 {
   LinkLocation_2024_06_14,
   IntegrationLocation_2024_06_14,
   PhoneLocation_2024_06_14,
-  NameField_2024_06_14,
-  EmailField_2024_06_14,
-  PhoneField_2024_06_14,
-  AddressField_2024_06_14,
-  TextField_2024_06_14,
-  NumberField_2024_06_14,
-  TextAreaField_2024_06_14,
-  SelectField_2024_06_14,
-  MultiSelectField_2024_06_14,
-  MultiEmailField_2024_06_14,
-  CheckboxGroupField_2024_06_14,
-  RadioGroupField_2024_06_14,
-  BooleanField_2024_06_14,
+  EmailDefaultFieldOutput_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
+  RescheduleReasonDefaultFieldOutput_2024_06_14,
+  TitleDefaultFieldOutput_2024_06_14,
+  NotesDefaultFieldOutput_2024_06_14,
+  GuestsDefaultFieldOutput_2024_06_14,
+  AddressFieldOutput_2024_06_14,
+  BooleanFieldOutput_2024_06_14,
+  CheckboxGroupFieldOutput_2024_06_14,
+  MultiEmailFieldOutput_2024_06_14,
+  MultiSelectFieldOutput_2024_06_14,
+  NumberFieldOutput_2024_06_14,
+  PhoneFieldOutput_2024_06_14,
+  RadioGroupFieldOutput_2024_06_14,
+  SelectFieldOutput_2024_06_14,
+  TextAreaFieldOutput_2024_06_14,
+  TextFieldOutput_2024_06_14,
   BookingLimitsDuration_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
@@ -138,27 +149,32 @@ class BaseEventTypeOutput_2024_06_14 {
   @Type(() => Object)
   locations!: Location_2024_06_14[];
 
-  @ValidateBookingFields_2024_06_14()
+  @ValidateOutputBookingFields_2024_06_14()
   @DocsProperty({
     oneOf: [
-      { $ref: getSchemaPath(NameField_2024_06_14) },
-      { $ref: getSchemaPath(EmailField_2024_06_14) },
-      { $ref: getSchemaPath(PhoneField_2024_06_14) },
-      { $ref: getSchemaPath(AddressField_2024_06_14) },
-      { $ref: getSchemaPath(TextField_2024_06_14) },
-      { $ref: getSchemaPath(NumberField_2024_06_14) },
-      { $ref: getSchemaPath(TextAreaField_2024_06_14) },
-      { $ref: getSchemaPath(SelectField_2024_06_14) },
-      { $ref: getSchemaPath(MultiSelectField_2024_06_14) },
-      { $ref: getSchemaPath(MultiEmailField_2024_06_14) },
-      { $ref: getSchemaPath(CheckboxGroupField_2024_06_14) },
-      { $ref: getSchemaPath(RadioGroupField_2024_06_14) },
-      { $ref: getSchemaPath(BooleanField_2024_06_14) },
+      { $ref: getSchemaPath(NameDefaultFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(EmailDefaultFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(LocationDefaultFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(RescheduleReasonDefaultFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(TitleDefaultFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(NotesDefaultFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(GuestsDefaultFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(PhoneFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(AddressFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(TextFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(NumberFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(TextAreaFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(SelectFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(MultiSelectFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(MultiEmailFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(CheckboxGroupFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(RadioGroupFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(BooleanFieldOutput_2024_06_14) },
     ],
     type: "array",
   })
   @Type(() => Object)
-  bookingFields!: BookingField_2024_06_14[];
+  bookingFields!: OutputBookingField_2024_06_14[];
 
   @IsBoolean()
   @DocsProperty()
