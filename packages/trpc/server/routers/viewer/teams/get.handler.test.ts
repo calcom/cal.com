@@ -8,9 +8,9 @@ import {
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import getTeamWithMinimalData from "./get.handler";
+import getTeam from "./get.handler";
 
-describe("getTeamWithMinimalData", () => {
+describe("getTeam", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
@@ -64,7 +64,7 @@ describe("getTeamWithMinimalData", () => {
       } as NonNullable<TrpcSessionUser>,
     };
 
-    const result = await getTeamWithMinimalData({
+    const result = await getTeam({
       ctx,
       input: {
         teamId: team.id,
