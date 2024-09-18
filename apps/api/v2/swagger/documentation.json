@@ -655,6 +655,33 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "username",
+            "required": true,
+            "in": "query",
+            "description": "The username of the user to get event types for. If only username provided will get all event types.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of event type to return. Notably, if eventSlug is provided then username must be provided too, because multiple users can have event with same slug.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "usernames",
+            "required": true,
+            "in": "query",
+            "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1840,6 +1867,15 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of team event type to return.",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -5350,1396 +5386,11 @@
           "refreshToken"
         ]
       },
-      "CreateEventTypeInput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          }
-        },
-        "required": [
-          "lengthInMinutes",
-          "title",
-          "description"
-        ]
-      },
-      "EventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
-      "CreateEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetEventTypesOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateEventTypeInput_2024_06_14": {
-        "type": "object",
-        "properties": {}
-      },
-      "UpdateEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "DeleteData_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "slug": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "lengthInMinutes",
-          "title",
-          "slug"
-        ]
-      },
-      "DeleteEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/DeleteData_2024_06_14"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "SelectedCalendarsInputDto": {
-        "type": "object",
-        "properties": {
-          "integration": {
-            "type": "string"
-          },
-          "externalId": {
-            "type": "string"
-          },
-          "credentialId": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "integration",
-          "externalId",
-          "credentialId"
-        ]
-      },
-      "SelectedCalendarOutputDto": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "number"
-          },
-          "integration": {
-            "type": "string"
-          },
-          "externalId": {
-            "type": "string"
-          },
-          "credentialId": {
-            "type": "number",
-            "nullable": true
-          }
-        },
-        "required": [
-          "userId",
-          "integration",
-          "externalId",
-          "credentialId"
-        ]
-      },
-      "SelectedCalendarOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/SelectedCalendarOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "OrgTeamOutputDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "parentId": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "slug": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "calVideoLogo": {
-            "type": "string"
-          },
-          "appLogo": {
-            "type": "string"
-          },
-          "appIconLogo": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "hideBranding": {
-            "type": "boolean"
-          },
-          "isOrganization": {
-            "type": "boolean"
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "hideBookATeamMember": {
-            "type": "boolean",
-            "default": false
-          },
-          "metadata": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London"
-          },
-          "weekStart": {
-            "type": "string",
-            "default": "Sunday"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "OrgTeamsOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrgTeamOutputDto"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "OrgMeTeamsOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrgTeamOutputDto"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "OrgTeamOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrgTeamOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateOrgTeamDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "slug": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "calVideoLogo": {
-            "type": "string"
-          },
-          "appLogo": {
-            "type": "string"
-          },
-          "appIconLogo": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "hideBranding": {
-            "type": "boolean",
-            "default": false
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "hideBookATeamMember": {
-            "type": "boolean"
-          },
-          "metadata": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London"
-          },
-          "weekStart": {
-            "type": "string",
-            "default": "Sunday"
-          }
-        }
-      },
-      "CreateOrgTeamDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "slug": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "calVideoLogo": {
-            "type": "string"
-          },
-          "appLogo": {
-            "type": "string"
-          },
-          "appIconLogo": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "hideBranding": {
-            "type": "boolean",
-            "default": false
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "hideBookATeamMember": {
-            "type": "boolean"
-          },
-          "metadata": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London"
-          },
-          "weekStart": {
-            "type": "string",
-            "default": "Sunday"
-          },
-          "autoAcceptCreator": {
-            "type": "boolean",
-            "default": true
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
-      "ScheduleAvailabilityInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "days": {
-            "type": "string",
-            "enum": [
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday"
-            ],
-            "example": [
-              "Monday",
-              "Tuesday"
-            ],
-            "description": "Array of days when schedule is active."
-          },
-          "startTime": {
-            "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
-            "example": "08:00",
-            "description": "startTime must be a valid time in format HH:MM e.g. 08:00"
-          },
-          "endTime": {
-            "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
-            "example": "15:00",
-            "description": "endTime must be a valid time in format HH:MM e.g. 15:00"
-          }
-        },
-        "required": [
-          "days",
-          "startTime",
-          "endTime"
-        ]
-      },
-      "ScheduleOverrideInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "example": "2024-05-20"
-          },
-          "startTime": {
-            "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
-            "example": "12:00",
-            "description": "startTime must be a valid time in format HH:MM e.g. 12:00"
-          },
-          "endTime": {
-            "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
-            "example": "13:00",
-            "description": "endTime must be a valid time in format HH:MM e.g. 13:00"
-          }
-        },
-        "required": [
-          "date",
-          "startTime",
-          "endTime"
-        ]
-      },
-      "ScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 254
-          },
-          "ownerId": {
-            "type": "number",
-            "example": 478
-          },
-          "name": {
-            "type": "string",
-            "example": "Catch up hours"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "17:00",
-                "endTime": "19:00"
-              },
-              {
-                "days": [
-                  "Wednesday",
-                  "Thursday"
-                ],
-                "startTime": "16:00",
-                "endTime": "20:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "18:00",
-                "endTime": "21:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "ownerId",
-          "name",
-          "timeZone",
-          "availability",
-          "isDefault",
-          "overrides"
-        ]
-      },
-      "GetSchedulesOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-            }
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "CreateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "timeZone",
-          "isDefault"
-        ]
-      },
-      "CreateScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-              }
-            ]
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        }
-      },
-      "UpdateScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "DeleteScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "GetUserOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "The ID of the user",
-            "example": 1
-          },
-          "username": {
-            "type": "string",
-            "nullable": true,
-            "description": "The username of the user",
-            "example": "john_doe"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "description": "The name of the user",
-            "example": "John Doe"
-          },
-          "email": {
-            "type": "string",
-            "description": "The email of the user",
-            "example": "john@example.com"
-          },
-          "emailVerified": {
-            "format": "date-time",
-            "type": "string",
-            "nullable": true,
-            "description": "The date when the email was verified",
-            "example": "2022-01-01T00:00:00Z"
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true,
-            "description": "The bio of the user",
-            "example": "I am a software developer"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "nullable": true,
-            "description": "The URL of the user's avatar",
-            "example": "https://example.com/avatar.jpg"
-          },
-          "timeZone": {
-            "type": "string",
-            "description": "The time zone of the user",
-            "example": "America/New_York"
-          },
-          "weekStart": {
-            "type": "string",
-            "description": "The week start day of the user",
-            "example": "Monday"
-          },
-          "appTheme": {
-            "type": "string",
-            "nullable": true,
-            "description": "The app theme of the user",
-            "example": "light"
-          },
-          "theme": {
-            "type": "string",
-            "nullable": true,
-            "description": "The theme of the user",
-            "example": "default"
-          },
-          "defaultScheduleId": {
-            "type": "number",
-            "nullable": true,
-            "description": "The ID of the default schedule for the user",
-            "example": 1
-          },
-          "locale": {
-            "type": "string",
-            "nullable": true,
-            "description": "The locale of the user",
-            "example": "en-US"
-          },
-          "timeFormat": {
-            "type": "number",
-            "nullable": true,
-            "description": "The time format of the user",
-            "example": 12
-          },
-          "hideBranding": {
-            "type": "boolean",
-            "description": "Whether to hide branding for the user",
-            "example": false
-          },
-          "brandColor": {
-            "type": "string",
-            "nullable": true,
-            "description": "The brand color of the user",
-            "example": "#ffffff"
-          },
-          "darkBrandColor": {
-            "type": "string",
-            "nullable": true,
-            "description": "The dark brand color of the user",
-            "example": "#000000"
-          },
-          "allowDynamicBooking": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "Whether dynamic booking is allowed for the user",
-            "example": true
-          },
-          "createdDate": {
-            "format": "date-time",
-            "type": "string",
-            "description": "The date when the user was created",
-            "example": "2022-01-01T00:00:00Z"
-          },
-          "verified": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "Whether the user is verified",
-            "example": true
-          },
-          "invitedTo": {
-            "type": "number",
-            "nullable": true,
-            "description": "The ID of the user who invited this user",
-            "example": 1
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "timeZone",
-          "weekStart",
-          "hideBranding",
-          "createdDate"
-        ]
-      },
-      "GetOrganizationUsersOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GetUserOutput"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "CreateOrganizationUserInput": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "description": "User email address",
-            "example": "user@example.com"
-          },
-          "username": {
-            "type": "string",
-            "description": "Username",
-            "example": "user123"
-          },
-          "weekday": {
-            "type": "string",
-            "description": "Preferred weekday",
-            "example": "Monday"
-          },
-          "brandColor": {
-            "type": "string",
-            "description": "Brand color in HEX format",
-            "example": "#FFFFFF"
-          },
-          "darkBrandColor": {
-            "type": "string",
-            "description": "Dark brand color in HEX format",
-            "example": "#000000"
-          },
-          "hideBranding": {
-            "type": "boolean",
-            "description": "Hide branding",
-            "example": false
-          },
-          "timeZone": {
-            "type": "string",
-            "description": "Time zone",
-            "example": "America/New_York"
-          },
-          "theme": {
-            "type": "string",
-            "nullable": true,
-            "description": "Theme",
-            "example": "dark"
-          },
-          "appTheme": {
-            "type": "string",
-            "nullable": true,
-            "description": "Application theme",
-            "example": "light"
-          },
-          "timeFormat": {
-            "type": "number",
-            "description": "Time format",
-            "example": 24
-          },
-          "defaultScheduleId": {
-            "type": "number",
-            "minimum": 0,
-            "description": "Default schedule ID",
-            "example": 1
-          },
-          "locale": {
-            "type": "string",
-            "nullable": true,
-            "default": "en",
-            "description": "Locale",
-            "example": "en"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "description": "Avatar URL",
-            "example": "https://example.com/avatar.jpg"
-          },
-          "organizationRole": {
-            "type": "object",
-            "default": "MEMBER"
-          },
-          "autoAccept": {
-            "type": "object",
-            "default": true
-          }
-        },
-        "required": [
-          "email",
-          "organizationRole",
-          "autoAccept"
-        ]
-      },
-      "GetOrganizationUserOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/GetUserOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateOrganizationUserInput": {
-        "type": "object",
-        "properties": {}
-      },
-      "OrgMembershipOutputDto": {
-        "type": "object",
-        "properties": {
-          "role": {
-            "type": "string",
-            "enum": [
-              "MEMBER",
-              "OWNER",
-              "ADMIN"
-            ]
-          },
-          "id": {
-            "type": "number"
-          },
-          "userId": {
-            "type": "number"
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "accepted": {
-            "type": "boolean"
-          },
-          "disableImpersonation": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "role",
-          "id",
-          "userId",
-          "teamId",
-          "accepted"
-        ]
-      },
-      "GetAllOrgMemberships": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "CreateOrgMembershipDto": {
-        "type": "object",
-        "properties": {
-          "role": {
-            "type": "string",
-            "default": "MEMBER",
-            "enum": [
-              "MEMBER",
-              "OWNER",
-              "ADMIN"
-            ]
-          },
-          "userId": {
-            "type": "number"
-          },
-          "accepted": {
-            "type": "boolean",
-            "default": false
-          },
-          "disableImpersonation": {
-            "type": "boolean",
-            "default": false
-          }
-        },
-        "required": [
-          "role",
-          "userId"
-        ]
-      },
-      "CreateOrgMembershipOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetOrgMembership": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "DeleteOrgMembership": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateOrgMembershipDto": {
-        "type": "object",
-        "properties": {
-          "role": {
-            "type": "string",
-            "default": "MEMBER",
-            "enum": [
-              "MEMBER",
-              "OWNER",
-              "ADMIN"
-            ]
-          },
-          "accepted": {
-            "type": "boolean",
-            "default": false
-          },
-          "disableImpersonation": {
-            "type": "boolean",
-            "default": false
-          }
-        }
-      },
-      "UpdateOrgMembership": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrgMembershipOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "CreateTeamEventTypeInput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          },
-          "schedulingType": {
-            "type": "object"
-          },
-          "hosts": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "assignAllTeamMembers": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "lengthInMinutes",
-          "title",
-          "description",
-          "schedulingType",
-          "hosts",
-          "assignAllTeamMembers"
-        ]
-      },
-      "CreateTeamEventTypeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
-                }
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "AddressLocation_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone"
-            ],
             "example": "address",
             "description": "only allowed value for type is `address`"
           },
@@ -6762,12 +5413,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone"
-            ],
             "example": "link",
             "description": "only allowed value for type is `link`"
           },
@@ -6790,21 +5435,15 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone"
-            ],
             "example": "integration",
             "description": "only allowed value for type is `integration`"
           },
           "integration": {
             "type": "string",
+            "example": "cal-video",
             "enum": [
               "cal-video"
-            ],
-            "example": "cal-video"
+            ]
           }
         },
         "required": [
@@ -6817,12 +5456,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone"
-            ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
           },
@@ -6838,6 +5471,741 @@
           "type",
           "phone",
           "public"
+        ]
+      },
+      "PhoneFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "phone",
+            "description": "only allowed value for type is `phone`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder"
+        ]
+      },
+      "AddressFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "address",
+            "description": "only allowed value for type is `address`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your address"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., 1234 Main St"
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder"
+        ]
+      },
+      "TextFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "text",
+            "description": "only allowed value for type is `text`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter your text"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Enter text here"
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder"
+        ]
+      },
+      "NumberFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "number",
+            "description": "only allowed value for type is `number`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter a number"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., 100"
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder"
+        ]
+      },
+      "TextAreaFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "textarea",
+            "description": "only allowed value for type is `textarea`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter detailed information"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., Detailed description here..."
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder"
+        ]
+      },
+      "SelectFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "select",
+            "description": "only allowed value for type is `select`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please select an option"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "Select..."
+          },
+          "options": {
+            "example": [
+              "Option 1",
+              "Option 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder",
+          "options"
+        ]
+      },
+      "MultiSelectFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "multiselect",
+            "description": "only allowed value for type is `multiselect`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please select multiple options"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "example": [
+              "Option 1",
+              "Option 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "options"
+        ]
+      },
+      "MultiEmailFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "multiemail",
+            "description": "only allowed value for type is `multiemail`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Please enter multiple emails"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "e.g., example@example.com"
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "placeholder"
+        ]
+      },
+      "CheckboxGroupFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "checkbox",
+            "description": "only allowed value for type is `checkbox`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Select all that apply"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "example": [
+              "Checkbox 1",
+              "Checkbox 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "options"
+        ]
+      },
+      "RadioGroupFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "radio",
+            "description": "only allowed value for type is `radio`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Select one option"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "example": [
+              "Radio 1",
+              "Radio 2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required",
+          "options"
+        ]
+      },
+      "BooleanFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "boolean",
+            "description": "only allowed value for type is `boolean`"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+            "example": "some-slug"
+          },
+          "label": {
+            "type": "string",
+            "example": "Agree to terms?"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "label",
+          "required"
+        ]
+      },
+      "BusinessDaysWindow_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "businessDays",
+              "calendarDays",
+              "range"
+            ],
+            "description": "Whether the window should be business days, calendar days or a range of dates"
+          },
+          "value": {
+            "type": "number",
+            "example": 5,
+            "description": "How many business day into the future can this event be booked"
+          },
+          "rolling": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
+          }
+        },
+        "required": [
+          "type",
+          "value",
+          "rolling"
+        ]
+      },
+      "CalendarDaysWindow_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "businessDays",
+              "calendarDays",
+              "range"
+            ],
+            "description": "Whether the window should be business days, calendar days or a range of dates"
+          },
+          "value": {
+            "type": "number",
+            "example": 5,
+            "description": "How many calendar days into the future can this event be booked"
+          },
+          "rolling": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
+          }
+        },
+        "required": [
+          "type",
+          "value",
+          "rolling"
+        ]
+      },
+      "RangeWindow_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "businessDays",
+              "calendarDays",
+              "range"
+            ],
+            "description": "Whether the window should be business days, calendar days or a range of dates"
+          },
+          "value": {
+            "example": [
+              "2030-09-05",
+              "2030-09-09"
+            ],
+            "description": "Date range for when this event can be booked.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ]
+      },
+      "BookingLimitsCount_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "description": "The number of bookings per day",
+            "example": 1
+          },
+          "week": {
+            "type": "number",
+            "description": "The number of bookings per week",
+            "example": 2
+          },
+          "month": {
+            "type": "number",
+            "description": "The number of bookings per month",
+            "example": 3
+          },
+          "year": {
+            "type": "number",
+            "description": "The number of bookings per year",
+            "example": 4
+          }
+        },
+        "required": [
+          "day",
+          "week",
+          "month",
+          "year"
+        ]
+      },
+      "BookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          }
+        }
+      },
+      "Recurrence_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "yearly",
+              "monthly",
+              "weekly"
+            ]
+          }
+        },
+        "required": [
+          "interval",
+          "occurrences",
+          "frequency"
+        ]
+      },
+      "CreateEventTypeInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string",
+            "example": "learn-the-secrets-of-masterchief"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookingFields": {
+            "type": "array",
+            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextAreaFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                }
+              ]
+            }
+          },
+          "disableGuests": {
+            "type": "boolean",
+            "description": "If true, person booking this event't cant add guests via their emails."
+          },
+          "slotInterval": {
+            "type": "number",
+            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "description": "Minimum number of minutes before the event that a booking can be made."
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "description": "Time spaces that can be appended after an event to give more time after it."
+          },
+          "scheduleId": {
+            "type": "number",
+            "description": "If you want that this event has different schedule than user's default one you can specify it here."
+          },
+          "bookingLimitsCount": {
+            "description": "Limit how many times this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+              }
+            ]
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean",
+            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
+          },
+          "bookingLimitsDuration": {
+            "description": "Limit total amount of time that this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+              }
+            ]
+          },
+          "bookingWindow": {
+            "type": "array",
+            "description": "Limit how far in the future this event can be booked",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
+          },
+          "offsetStart": {
+            "type": "number",
+            "description": "Offset timeslots shown to bookers by a specified number of minutes"
+          },
+          "recurrence": {
+            "description": "Create a recurring event that can be booked once but will occur multiple times",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "recurrence"
         ]
       },
       "EmailDefaultFieldOutput_2024_06_14": {
@@ -7584,109 +6952,195 @@
           "isDefault"
         ]
       },
-      "BookingLimitsDuration_2024_06_14": {
+      "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
-          "day": {
+          "id": {
             "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 1
+          },
+          "lengthInMinutes": {
+            "type": "number",
             "example": 60
           },
-          "week": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per week (must be a multiple of 15)",
-            "example": 120
-          },
-          "month": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per month (must be a multiple of 15)",
-            "example": 180
-          },
-          "year": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per year (must be a multiple of 15)",
-            "example": 240
-          }
-        }
-      },
-      "BusinessDaysWindow_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
+          "title": {
             "type": "string",
-            "enum": [
-              "businessDays",
-              "calendarDays",
-              "range"
-            ],
-            "description": "Whether the window should be business days, calendar days or a range of dates"
+            "example": "Learn the secrets of masterchief!"
           },
-          "value": {
-            "type": "number",
-            "example": 5,
-            "description": "How many business day into the future can this event be booked"
-          },
-          "rolling": {
-            "type": "boolean",
-            "example": true,
-            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
-          }
-        },
-        "required": [
-          "type",
-          "value"
-        ]
-      },
-      "CalendarDaysWindow_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
+          "slug": {
             "type": "string",
-            "enum": [
-              "businessDays",
-              "calendarDays",
-              "range"
-            ],
-            "description": "Whether the window should be business days, calendar days or a range of dates"
+            "example": "learn-the-secrets-of-masterchief"
           },
-          "value": {
-            "type": "number",
-            "example": 5,
-            "description": "How many calendar days into the future can this event be booked"
-          },
-          "rolling": {
-            "type": "boolean",
-            "example": true,
-            "description": "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date."
-          }
-        },
-        "required": [
-          "type",
-          "value"
-        ]
-      },
-      "RangeWindow_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
+          "description": {
             "type": "string",
-            "enum": [
-              "businessDays",
-              "calendarDays",
-              "range"
-            ],
-            "description": "Whether the window should be business days, calendar days or a range of dates"
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "value": {
-            "example": [
-              "2030-09-05",
-              "2030-09-09"
-            ],
-            "description": "Date range for when this event can be booked.",
+          "locations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/NameDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AddressFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextAreaFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
+                }
+              ]
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "slotInterval": {
+            "type": "number",
+            "example": 60
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "example": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "example": 0
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "example": 0
+          },
+          "recurrence": {
+            "type": "object"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "requiresConfirmation": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "seatsPerTimeSlot": {
+            "type": "object"
+          },
+          "forwardParamsSuccessRedirect": {
+            "type": "object"
+          },
+          "successRedirectUrl": {
+            "type": "object"
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "object"
+          },
+          "scheduleId": {
+            "type": "object"
+          },
+          "bookingLimitsCount": {
+            "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+          },
+          "bookingWindow": {
+            "type": "array",
+            "description": "Limit how far in the future this event can be booked",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
+          },
+          "offsetStart": {
+            "type": "number"
+          },
+          "ownerId": {
+            "type": "number",
+            "example": 10
+          },
+          "users": {
             "type": "array",
             "items": {
               "type": "string"
@@ -7694,66 +7148,1719 @@
           }
         },
         "required": [
-          "type",
-          "value"
+          "id",
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "recurrence",
+          "metadata",
+          "requiresConfirmation",
+          "price",
+          "currency",
+          "lockTimeZoneToggleOnBookingPage",
+          "seatsPerTimeSlot",
+          "forwardParamsSuccessRedirect",
+          "successRedirectUrl",
+          "seatsShowAvailabilityCount",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "ownerId",
+          "users"
         ]
       },
-      "Recurrence_2024_06_14": {
+      "CreateEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
-          "interval": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats every {count} week | month | year"
-          },
-          "occurrences": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats for a maximum of {count} events"
-          },
-          "frequency": {
+          "status": {
+            "type": "string",
             "enum": [
-              "yearly",
-              "monthly",
-              "weekly"
+              "success",
+              "error"
             ],
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ],
+            "example": "success"
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetEventTypesOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ],
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateEventTypeInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string",
+            "example": "learn-the-secrets-of-masterchief"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookingFields": {
+            "type": "array",
+            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextAreaFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                }
+              ]
+            }
+          },
+          "disableGuests": {
+            "type": "boolean",
+            "description": "If true, person booking this event't cant add guests via their emails."
+          },
+          "slotInterval": {
+            "type": "number",
+            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "description": "Minimum number of minutes before the event that a booking can be made."
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "description": "Time spaces that can be appended after an event to give more time after it."
+          },
+          "scheduleId": {
+            "type": "number",
+            "description": "If you want that this event has different schedule than user's default one you can specify it here."
+          },
+          "bookingLimitsCount": {
+            "description": "Limit how many times this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+              }
+            ]
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean",
+            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
+          },
+          "bookingLimitsDuration": {
+            "description": "Limit total amount of time that this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+              }
+            ]
+          },
+          "bookingWindow": {
+            "type": "array",
+            "description": "Limit how far in the future this event can be booked",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
+          },
+          "offsetStart": {
+            "type": "number",
+            "description": "Offset timeslots shown to bookers by a specified number of minutes"
+          },
+          "recurrence": {
+            "description": "Create a recurring event that can be booked once but will occur multiple times",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "recurrence"
+        ]
+      },
+      "UpdateEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ],
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteData_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
             "type": "string"
           }
         },
         "required": [
-          "interval",
-          "occurrences",
-          "frequency"
+          "id",
+          "lengthInMinutes",
+          "title",
+          "slug"
         ]
       },
-      "BookingLimitsCount_2024_06_14": {
+      "DeleteEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
-          "day": {
-            "type": "number",
-            "minimum": 1,
-            "description": "The number of bookings per day",
-            "example": 1
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ],
+            "example": "success"
           },
-          "week": {
-            "type": "number",
-            "minimum": 1,
-            "description": "The number of bookings per week",
-            "example": 2
+          "data": {
+            "$ref": "#/components/schemas/DeleteData_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "SelectedCalendarsInputDto": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string"
           },
-          "month": {
-            "type": "number",
-            "minimum": 1,
-            "description": "The number of bookings per month",
-            "example": 3
+          "externalId": {
+            "type": "string"
           },
-          "year": {
+          "credentialId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
+      },
+      "SelectedCalendarOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "credentialId": {
             "type": "number",
-            "minimum": 1,
-            "description": "The number of bookings per year",
-            "example": 4
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
+      },
+      "SelectedCalendarOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SelectedCalendarOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OrgTeamOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isOrganization": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean",
+            "default": false
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "OrgTeamsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgTeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OrgMeTeamsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgTeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OrgTeamOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgTeamOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateOrgTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
           }
         }
+      },
+      "CreateOrgTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          },
+          "autoAcceptCreator": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ScheduleAvailabilityInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "string",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
+            "example": [
+              "Monday",
+              "Tuesday"
+            ],
+            "description": "Array of days when schedule is active."
+          },
+          "startTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "08:00",
+            "description": "startTime must be a valid time in format HH:MM e.g. 08:00"
+          },
+          "endTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "15:00",
+            "description": "endTime must be a valid time in format HH:MM e.g. 15:00"
+          }
+        },
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "ScheduleOverrideInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2024-05-20"
+          },
+          "startTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "12:00",
+            "description": "startTime must be a valid time in format HH:MM e.g. 12:00"
+          },
+          "endTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "13:00",
+            "description": "endTime must be a valid time in format HH:MM e.g. 13:00"
+          }
+        },
+        "required": [
+          "date",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "ScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 254
+          },
+          "ownerId": {
+            "type": "number",
+            "example": 478
+          },
+          "name": {
+            "type": "string",
+            "example": "Catch up hours"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "17:00",
+                "endTime": "19:00"
+              },
+              {
+                "days": [
+                  "Wednesday",
+                  "Thursday"
+                ],
+                "startTime": "16:00",
+                "endTime": "20:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "18:00",
+                "endTime": "21:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "name",
+          "timeZone",
+          "availability",
+          "isDefault",
+          "overrides"
+        ]
+      },
+      "GetSchedulesOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+            }
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Catch up hours"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome",
+            "description": "Timezone is used to calculate available times when an event using the schedule is booked."
+          },
+          "availability": {
+            "description": "Each object contains days and times when the user is available. If not passed, the default availability is Monday to Friday from 09:00 to 17:00.",
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "17:00",
+                "endTime": "19:00"
+              },
+              {
+                "days": [
+                  "Wednesday",
+                  "Thursday"
+                ],
+                "startTime": "16:00",
+                "endTime": "20:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true,
+            "description": "Each user should have 1 default schedule. If you specified `timeZone` when creating managed user, then the default schedule will be created with that timezone.\n    Default schedule means that if an event type is not tied to a specific schedule then the default schedule is used."
+          },
+          "overrides": {
+            "description": "Need to change availability for a specific date? Add an override.",
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "18:00",
+                "endTime": "21:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
+      },
+      "CreateScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+              }
+            ]
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        }
+      },
+      "UpdateScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "GetUserOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The ID of the user",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "description": "The username of the user",
+            "example": "john_doe"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "The name of the user",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the user",
+            "example": "john@example.com"
+          },
+          "emailVerified": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true,
+            "description": "The date when the email was verified",
+            "example": "2022-01-01T00:00:00Z"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "description": "The bio of the user",
+            "example": "I am a software developer"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "The URL of the user's avatar",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The time zone of the user",
+            "example": "America/New_York"
+          },
+          "weekStart": {
+            "type": "string",
+            "description": "The week start day of the user",
+            "example": "Monday"
+          },
+          "appTheme": {
+            "type": "string",
+            "nullable": true,
+            "description": "The app theme of the user",
+            "example": "light"
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true,
+            "description": "The theme of the user",
+            "example": "default"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true,
+            "description": "The ID of the default schedule for the user",
+            "example": 1
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true,
+            "description": "The locale of the user",
+            "example": "en-US"
+          },
+          "timeFormat": {
+            "type": "number",
+            "nullable": true,
+            "description": "The time format of the user",
+            "example": 12
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "description": "Whether to hide branding for the user",
+            "example": false
+          },
+          "brandColor": {
+            "type": "string",
+            "nullable": true,
+            "description": "The brand color of the user",
+            "example": "#ffffff"
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "nullable": true,
+            "description": "The dark brand color of the user",
+            "example": "#000000"
+          },
+          "allowDynamicBooking": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether dynamic booking is allowed for the user",
+            "example": true
+          },
+          "createdDate": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date when the user was created",
+            "example": "2022-01-01T00:00:00Z"
+          },
+          "verified": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether the user is verified",
+            "example": true
+          },
+          "invitedTo": {
+            "type": "number",
+            "nullable": true,
+            "description": "The ID of the user who invited this user",
+            "example": 1
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "timeZone",
+          "weekStart",
+          "hideBranding",
+          "createdDate"
+        ]
+      },
+      "GetOrganizationUsersOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetUserOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username",
+            "example": "user123"
+          },
+          "weekday": {
+            "type": "string",
+            "description": "Preferred weekday",
+            "example": "Monday"
+          },
+          "brandColor": {
+            "type": "string",
+            "description": "Brand color in HEX format",
+            "example": "#FFFFFF"
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "description": "Dark brand color in HEX format",
+            "example": "#000000"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "description": "Hide branding",
+            "example": false
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "Time zone",
+            "example": "America/New_York"
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true,
+            "description": "Theme",
+            "example": "dark"
+          },
+          "appTheme": {
+            "type": "string",
+            "nullable": true,
+            "description": "Application theme",
+            "example": "light"
+          },
+          "timeFormat": {
+            "type": "number",
+            "description": "Time format",
+            "example": 24
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Default schedule ID",
+            "example": 1
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true,
+            "default": "en",
+            "description": "Locale",
+            "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "Avatar URL",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "organizationRole": {
+            "type": "object",
+            "default": "MEMBER"
+          },
+          "autoAccept": {
+            "type": "object",
+            "default": true
+          }
+        },
+        "required": [
+          "email",
+          "organizationRole",
+          "autoAccept"
+        ]
+      },
+      "GetOrganizationUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetUserOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateOrganizationUserInput": {
+        "type": "object",
+        "properties": {}
+      },
+      "OrgMembershipOutputDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
+          },
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "disableImpersonation": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "role",
+          "id",
+          "userId",
+          "teamId",
+          "accepted"
+        ]
+      },
+      "GetAllOrgMemberships": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateOrgMembershipDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
+          },
+          "userId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableImpersonation": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "role",
+          "userId"
+        ]
+      },
+      "CreateOrgMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetOrgMembership": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteOrgMembership": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateOrgMembershipDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableImpersonation": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "UpdateOrgMembership": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgMembershipOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateTeamEventTypeInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string",
+            "example": "learn-the-secrets-of-masterchief"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookingFields": {
+            "type": "array",
+            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextAreaFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                }
+              ]
+            }
+          },
+          "disableGuests": {
+            "type": "boolean",
+            "description": "If true, person booking this event't cant add guests via their emails."
+          },
+          "slotInterval": {
+            "type": "number",
+            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "description": "Minimum number of minutes before the event that a booking can be made."
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "description": "Time spaces that can be appended after an event to give more time after it."
+          },
+          "scheduleId": {
+            "type": "number",
+            "description": "If you want that this event has different schedule than user's default one you can specify it here."
+          },
+          "bookingLimitsCount": {
+            "description": "Limit how many times this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+              }
+            ]
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean",
+            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
+          },
+          "bookingLimitsDuration": {
+            "description": "Limit total amount of time that this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+              }
+            ]
+          },
+          "bookingWindow": {
+            "type": "array",
+            "description": "Limit how far in the future this event can be booked",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
+          },
+          "offsetStart": {
+            "type": "number",
+            "description": "Offset timeslots shown to bookers by a specified number of minutes"
+          },
+          "recurrence": {
+            "description": "Create a recurring event that can be booked once but will occur multiple times",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              }
+            ]
+          },
+          "schedulingType": {
+            "type": "object"
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assignAllTeamMembers": {
+            "type": "boolean",
+            "description": "If true, all current and future team members will be assigned to this event type"
+          }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "recurrence",
+          "schedulingType",
+          "hosts",
+          "assignAllTeamMembers"
+        ]
+      },
+      "CreateTeamEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "TeamEventTypeResponseHost": {
         "type": "object",
@@ -8188,43 +9295,154 @@
         "type": "object",
         "properties": {
           "lengthInMinutes": {
-            "type": "number"
+            "type": "number",
+            "example": 60
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "example": "learn-the-secrets-of-masterchief"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
           "locations": {
             "type": "array",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
             "items": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/IntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneLocation_2024_06_14"
+                }
+              ]
             }
           },
           "bookingFields": {
             "type": "array",
+            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
             "items": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextAreaFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldInput_2024_06_14"
+                }
+              ]
             }
           },
           "disableGuests": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "If true, person booking this event't cant add guests via their emails."
           },
           "slotInterval": {
-            "type": "number"
+            "type": "number",
+            "description": "Number representing length of each slot when event is booked. By default it equal length of the event type.\n      If event length is 60 minutes then we would have slots 9AM, 10AM, 11AM etc. but if it was changed to 30 minutes then\n      we would have slots 9AM, 9:30AM, 10AM, 10:30AM etc. as the available times to book the 60 minute event."
           },
           "minimumBookingNotice": {
-            "type": "number"
+            "type": "number",
+            "description": "Minimum number of minutes before the event that a booking can be made."
           },
           "beforeEventBuffer": {
-            "type": "number"
+            "type": "number",
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
-            "type": "number"
+            "type": "number",
+            "description": "Time spaces that can be appended after an event to give more time after it."
+          },
+          "scheduleId": {
+            "type": "number",
+            "description": "If you want that this event has different schedule than user's default one you can specify it here."
+          },
+          "bookingLimitsCount": {
+            "description": "Limit how many times this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+              }
+            ]
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean",
+            "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
+          },
+          "bookingLimitsDuration": {
+            "description": "Limit total amount of time that this event can be booked",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+              }
+            ]
+          },
+          "bookingWindow": {
+            "type": "array",
+            "description": "Limit how far in the future this event can be booked",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
+          },
+          "offsetStart": {
+            "type": "number",
+            "description": "Offset timeslots shown to bookers by a specified number of minutes"
+          },
+          "recurrence": {
+            "description": "Create a recurring event that can be booked once but will occur multiple times",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              }
+            ]
           },
           "hosts": {
             "type": "array",
@@ -8233,7 +9451,8 @@
             }
           },
           "assignAllTeamMembers": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "If true, all current and future team members will be assigned to this event type"
           }
         },
         "required": [
@@ -8248,6 +9467,13 @@
           "minimumBookingNotice",
           "beforeEventBuffer",
           "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "recurrence",
           "hosts",
           "assignAllTeamMembers"
         ]
