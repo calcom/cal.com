@@ -2,9 +2,7 @@ import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import RoutingFormsRoutingConfig, {
-  serverSidePropsConfig as RoutingFormsServerSidePropsConfig,
-} from "@calcom/app-store/routing-forms/pages/app-routing.config";
+import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
@@ -15,7 +13,7 @@ import type { AppProps } from "@lib/app-providers";
 import { ssrInit } from "@server/lib/ssr";
 
 type AppPageType = {
-  getServerSideProps: AppGetServerSideProps;
+  getServerSideProps?: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ((props: any) => JSX.Element) &
@@ -25,7 +23,7 @@ type AppPageType = {
 type Found = {
   notFound: false;
   Component: AppPageType["default"];
-  getServerSideProps?: AppPageType["getServerSideProps"];
+  getServerSideProps: AppPageType["getServerSideProps"];
 };
 
 type NotFound = {
@@ -39,10 +37,7 @@ const AppsRouting = {
 };
 
 function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as unknown as Record<
-    string,
-    AppPageType
-  >;
+  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPageType>;
 
   if (!routingConfig) {
     return {
@@ -103,20 +98,17 @@ export async function getServerSideProps(
         notFound: true,
       };
     }
-    const routeGetServerSideProps = RoutingFormsServerSidePropsConfig[appName];
 
-    const result = routeGetServerSideProps
-      ? await routeGetServerSideProps(
-          context as GetServerSidePropsContext<{
-            slug: string;
-            pages: string[];
-            appPages: string[];
-          }>,
-          prisma,
-          user,
-          ssrInit
-        )
-      : {};
+    const result = await route.getServerSideProps(
+      context as GetServerSidePropsContext<{
+        slug: string;
+        pages: string[];
+        appPages: string[];
+      }>,
+      prisma,
+      user,
+      ssrInit
+    );
 
     if (result.notFound) {
       return { notFound: true };
