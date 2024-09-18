@@ -73,6 +73,7 @@
     "test-e2e:embed-react": "yarn db-seed && yarn e2e:embed-react",
     "test-playwright": "yarn playwright test --config=playwright.config.ts",
     "test": "vitest run",
+    "test:ui": "vitest --ui",
     "type-check": "turbo run type-check",
     "type-check:ci": "turbo run type-check:ci --log-prefix=none",
     "web": "yarn workspace @calcom/web",
@@ -85,8 +86,10 @@
     "@playwright/test": "^1.45.3",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^16.0.1",
     "@types/jsdom": "^21.1.3",
     "@types/jsonwebtoken": "^9.0.3",
+    "@vitest/ui": "^2.1.1",
     "c8": "^7.13.0",
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
@@ -104,9 +107,9 @@
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
     "typescript": "^4.9.4",
-    "vitest": "^0.34.6",
-    "vitest-fetch-mock": "^0.2.2",
-    "vitest-mock-extended": "^1.1.3"
+    "vitest": "^2.1.1",
+    "vitest-fetch-mock": "^0.3.0",
+    "vitest-mock-extended": "^2.0.2"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.59.0",
