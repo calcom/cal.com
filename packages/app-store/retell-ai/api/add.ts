@@ -11,7 +11,7 @@ const handler: AppDeclarativeHandler = {
   handlerType: "add",
   redirect: {
     newTab: true,
-    url: "https://docs.retellai.com/retell-llm/add-tool-calling#book-appointment-with-cal-com",
+    url: "https://go.cal.com/retellai",
   },
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
