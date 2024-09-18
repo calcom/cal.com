@@ -33,7 +33,8 @@ export class TeamBilling {
   /** Fetch a single team with minimal data needed for billing */
   static async findBySubscriptionId(subscriptionId: string) {
     if (!IS_TEAM_BILLING_ENABLED) return stubTeam;
-    return prisma.team.findFirstOrThrow({
+    console.log("subscriptionId", subscriptionId);
+    const team = await prisma.team.findFirstOrThrow({
       where: {
         metadata: {
           path: ["subscriptionId"],
@@ -42,6 +43,8 @@ export class TeamBilling {
       },
       select: teamBillingSelect,
     });
+    console.log("team", team);
+    return team;
   }
   /** Fetch multiple teams with minimal data needed for billing */
   static async findMany(teamIds: number[]) {

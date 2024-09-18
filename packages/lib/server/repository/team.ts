@@ -182,7 +182,7 @@ export class TeamRepository {
   }
 
   static async deleteById({ id }: { id: number }) {
-    const teamBilling = await TeamBilling.findAndCreate(id);
+    const teamBilling = await TeamBilling.findAndInit(id);
     await teamBilling.cancel();
 
     try {
