@@ -4,6 +4,10 @@ import type { CustomField, SystemField } from "@calcom/lib/event-types/transform
 import {
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldRescheduleReason,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
