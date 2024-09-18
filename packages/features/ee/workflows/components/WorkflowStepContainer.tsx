@@ -161,13 +161,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
     : { ref: null, name: "" };
 
-  const { ref: reminderBodyFormRef, ...restReminderBodyForm } = step
-    ? form.register(`steps.${step.stepNumber - 1}.reminderBody`)
-    : { ref: null, name: "" };
-
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
-
-  const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
   const getNumberVerificationStatus = () =>
     !!step &&
@@ -184,17 +178,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
-
-  const addVariableBody = (variable: string) => {
-    if (step) {
-      const currentMessageBody = refReminderBody?.current?.value || "";
-      const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
-      const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
-        .toUpperCase()
-        .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
-    }
-  };
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
