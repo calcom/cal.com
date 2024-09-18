@@ -130,7 +130,10 @@ export class EventTypesService_2024_04_15 {
     const eventTypeUser = await this.getUserToUpdateEvent(user);
     const bookingFields = [...(body.bookingFields || [])];
 
-    if (!bookingFields.find((field) => field.type === "email")) {
+    if (
+      !bookingFields.find((field) => field.type === "email") &&
+      !bookingFields.find((field) => field.type === "phone")
+    ) {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
