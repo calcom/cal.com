@@ -22,4 +22,7 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
 process.env = {
   ...env,
   ...process.env,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY:
+    "BIds0AQJ96xGBjTSMHTOqLBLutQE7Lu32KKdgSdy7A2cS4mKI2cgb3iGkhDJa5Siy-stezyuPm8qpbhmNxdNHMw",
+  VAPID_PRIVATE_KEY: "6cJtkASCar5sZWguIAW7OjvyixpBw9p8zL8WDDwk9Jk",
 };
