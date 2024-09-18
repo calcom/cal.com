@@ -31,13 +31,13 @@ export function getRecurringWhen({
   return "";
 }
 
-export function WhenInfo(props: {
+export const WhenInfo = (props: {
   calEvent: CalendarEvent;
   timeZone: string;
   t: TFunction;
   locale: string;
   timeFormat: TimeFormat;
-}) {
+}) => {
   const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat } = props;
 
   function getRecipientStart(format: string) {
@@ -53,8 +53,10 @@ export function WhenInfo(props: {
     attendee: props.calEvent.attendees[0],
   });
 
+  const isRTL = locale === "he";
+
   return (
-    <div>
+    <div className={isRTL ? "rtl-text" : ""}>
       <Info
         label={`${t("when")} ${recurringInfo !== "" ? ` - ${recurringInfo}` : ""}`}
         lineThrough={
@@ -71,4 +73,4 @@ export function WhenInfo(props: {
       />
     </div>
   );
-}
+};

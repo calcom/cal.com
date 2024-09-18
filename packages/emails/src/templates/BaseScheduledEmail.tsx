@@ -29,6 +29,7 @@ export const BaseScheduledEmail = (
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   const { t, timeZone, locale, timeFormat: timeFormat_ } = props;
+  const isRTL = locale === "he";
 
   const timeFormat = timeFormat_ ?? TimeFormat.TWELVE_HOUR;
 
@@ -50,8 +51,6 @@ export const BaseScheduledEmail = (
 
   return (
     <BaseEmailHtml
-      hideLogo={Boolean(props.calEvent.platformClientId)}
-      headerType={props.headerType || "checkCircle"}
       subject={props.subject || subject}
       title={t(
         props.title
@@ -65,40 +64,51 @@ export const BaseScheduledEmail = (
           ? null
           : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
       }
-      subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
-      {props.calEvent.cancellationReason && (
-        <Info
-          label={t(
-            props.calEvent.cancellationReason.startsWith("$RCH$")
-              ? "reason_for_reschedule"
-              : "cancellation_reason"
-          )}
-          description={
-            !!props.calEvent.cancellationReason && props.calEvent.cancellationReason.replace("$RCH$", "")
-          } // Removing flag to distinguish reschedule from cancellation
-          withSpacer
+      subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}
+      headerType={props.headerType || "checkCircle"}
+      hideLogo={Boolean(props.calEvent.platformClientId)}
+      locale={locale}>
+      <div className={isRTL ? "rtl-text" : ""}>
+        {props.calEvent.cancellationReason && (
+          <Info
+            label={t(
+              props.calEvent.cancellationReason.startsWith("$RCH$")
+                ? "reason_for_reschedule"
+                : "cancellation_reason"
+            )}
+            description={
+              !!props.calEvent.cancellationReason && props.calEvent.cancellationReason.replace("$RCH$", "")
+            }
+            withSpacer
+          />
+        )}
+        <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
+        <Info label={t("what")} description={props.calEvent.title} withSpacer />
+        <WhenInfo
+          timeFormat={timeFormat}
+          calEvent={props.calEvent}
+          t={t}
+          timeZone={timeZone}
+          locale={locale}
         />
-      )}
-      <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
-      <Info label={t("what")} description={props.calEvent.title} withSpacer />
-      <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
-      <WhoInfo calEvent={props.calEvent} t={t} />
-      <LocationInfo calEvent={props.calEvent} t={t} />
-      <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
-      {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
-      <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
-      {props.calEvent.paymentInfo?.amount && (
-        <Info
-          label={props.calEvent.paymentInfo.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
-          description={formatPrice(
-            props.calEvent.paymentInfo.amount,
-            props.calEvent.paymentInfo.currency,
-            props.attendee.language.locale
-          )}
-          withSpacer
-        />
-      )}
+        <WhoInfo calEvent={props.calEvent} t={t} />
+        <LocationInfo calEvent={props.calEvent} t={t} />
+        <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
+        <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
+        {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
+        <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
+        {props.calEvent.paymentInfo?.amount && (
+          <Info
+            label={props.calEvent.paymentInfo.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
+            description={formatPrice(
+              props.calEvent.paymentInfo.amount,
+              props.calEvent.paymentInfo.currency,
+              props.attendee.language.locale
+            )}
+            withSpacer
+          />
+        )}
+      </div>
     </BaseEmailHtml>
   );
 };
