@@ -1,28 +1,27 @@
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DateRangePicker } from "@calcom/ui";
 import { Select } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 import "./DateSelect.css";
 
-type RangeType = "tdy" | "w" | "t" | "m" | "y" | undefined | null;
-
-const presetOptions = [
-  { label: "Today", value: "tdy" },
-  { label: "Last 7 days", value: "w" },
-  { label: "Last 30 days", value: "t" },
-  { label: "Month to Date", value: "m" },
-  { label: "Year to Date", value: "y" },
-  { label: "Custom", value: null },
-];
-
 export const DateSelect = () => {
+  const { t } = useLocale();
+  const presetOptions = [
+    { label: t("today"), value: "tdy" },
+    { label: t("last_number_of_days", { count: 7 }), value: "w" },
+    { label: t("last_number_of_days", { count: 30 }), value: "t" },
+    { label: t("month_to_date"), value: "m" },
+    { label: t("year_to_date"), value: "y" },
+    { label: t("custom_range"), value: null },
+  ];
+
   const { filter, setConfigFilters } = useFilterContext();
   const currentDate = dayjs();
   const [initialStartDate, initialEndDate, range] = filter?.dateRange || [null, null, null];
-
   const [startDate, setStartDate] = useState(initialStartDate);
   const [endDate, setEndDate] = useState(initialEndDate);
   const startValue = startDate?.toDate() || null;
@@ -31,13 +30,9 @@ export const DateSelect = () => {
 
   const updateDateRange = (val: string | null) => {
     setSelectedPreset(presetOptions.find((c) => c.value === val));
-    // get and update startDate & endDate based on selectedPreset
-
-    // Initialize startDate and endDate variables
     let startDate = dayjs();
     let endDate = dayjs();
 
-    // Update startDate and endDate based on the selected preset value
     switch (val) {
       case "tdy": // Today
         startDate = dayjs().startOf("day");
@@ -62,10 +57,10 @@ export const DateSelect = () => {
       default:
         break;
     }
-    // Update the state and the config filters
+    // Update the datepicker date selection
     setStartDate(startDate);
     setEndDate(endDate);
-
+    // Update the configuration filter
     setConfigFilters({
       dateRange: [dayjs(startDate), dayjs(endDate), val],
     });
@@ -95,7 +90,7 @@ export const DateSelect = () => {
         data-testid="insights-preset"
         options={presetOptions}
         value={selectedPreset}
-        className="w-40 text-black"
+        className="w-40 capitalize text-black"
         defaultValue={selectedPreset}
         onChange={(e) => {
           if (e) {
