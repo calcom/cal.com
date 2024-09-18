@@ -1,3 +1,5 @@
+import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
+import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -33,6 +35,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
@@ -91,6 +94,30 @@ export class OrganizationsEventTypesController {
     };
   }
 
+  @Roles("TEAM_ADMIN")
+  @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
+  async createPhoneCall(
+    @Param("eventTypeId") eventTypeId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Body() body: CreatePhoneCallInput,
+    @GetUser() user: UserWithProfile
+  ): Promise<CreatePhoneCallOutput> {
+    const data = await handleCreatePhoneCall({
+      user: {
+        id: user.id,
+        timeZone: user.timeZone,
+        profile: { organization: { id: orgId } },
+      },
+      input: { ...body, eventTypeId },
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data,
+    };
+  }
+
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
   async getTeamEventTypes(
@@ -138,7 +165,7 @@ export class OrganizationsEventTypesController {
   @Patch("/teams/:teamId/event-types/:eventTypeId")
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("eventTypeId") eventTypeId: number,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @GetUser() user: UserWithProfile,
     @Body() bodyEventType: UpdateTeamEventTypeInput_2024_06_14
   ): Promise<UpdateTeamEventTypeOutput> {

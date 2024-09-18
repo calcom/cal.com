@@ -11,11 +11,13 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import type { Location_2024_06_14, BookingField_2024_06_14 } from "../inputs";
-import { Host as TeamEventTypeHostInput } from "../inputs";
-import { RecurringEvent_2024_06_14 } from "../inputs";
-import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
+import type { Location_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
+import { Host as TeamEventTypeHostInput, BookingLimitsDuration_2024_06_14 } from "../inputs";
+import { Recurrence_2024_06_14 } from "../inputs";
+import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
+import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
+import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 
 enum SchedulingTypeEnum {
   ROUND_ROBIN = "ROUND_ROBIN",
@@ -23,7 +25,7 @@ enum SchedulingTypeEnum {
   MANAGED = "MANAGED",
 }
 
-export type SchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
+export type EventTypesOutputSchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
 
 class User_2024_06_14 {
   @IsInt()
@@ -74,8 +76,8 @@ export class EventTypeOutput_2024_06_14 {
   @ValidateLocations_2024_06_14()
   locations!: Location_2024_06_14[];
 
-  @ValidateBookingFields_2024_06_14()
-  bookingFields!: BookingField_2024_06_14[];
+  @ValidateOutputBookingFields_2024_06_14()
+  bookingFields!: OutputBookingField_2024_06_14[];
 
   @IsBoolean()
   disableGuests!: boolean;
@@ -98,10 +100,10 @@ export class EventTypeOutput_2024_06_14 {
   afterEventBuffer?: number;
 
   @IsEnum(SchedulingTypeEnum)
-  schedulingType!: SchedulingType | null;
+  schedulingType!: EventTypesOutputSchedulingType | null;
 
-  @Type(() => RecurringEvent_2024_06_14)
-  recurringEvent!: RecurringEvent_2024_06_14 | null;
+  @Type(() => Recurrence_2024_06_14)
+  recurrence!: Recurrence_2024_06_14 | null;
 
   @Type(() => Object)
   metadata!: Record<string, unknown>;
@@ -137,6 +139,25 @@ export class EventTypeOutput_2024_06_14 {
 
   @IsInt()
   scheduleId!: number | null;
+
+  @IsOptional()
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
+
+  @IsOptional()
+  bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offsetStart?: number;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -165,8 +186,8 @@ export class TeamEventTypeOutput_2024_06_14 {
   @ValidateLocations_2024_06_14()
   locations!: Location_2024_06_14[];
 
-  @ValidateBookingFields_2024_06_14()
-  bookingFields!: BookingField_2024_06_14[];
+  @ValidateOutputBookingFields_2024_06_14()
+  bookingFields!: OutputBookingField_2024_06_14[];
 
   @IsBoolean()
   disableGuests!: boolean;
@@ -189,10 +210,10 @@ export class TeamEventTypeOutput_2024_06_14 {
   afterEventBuffer?: number;
 
   @IsEnum(SchedulingTypeEnum)
-  schedulingType!: SchedulingType | null;
+  schedulingType!: EventTypesOutputSchedulingType | null;
 
-  @Type(() => RecurringEvent_2024_06_14)
-  recurringEvent!: RecurringEvent_2024_06_14 | null;
+  @Type(() => Recurrence_2024_06_14)
+  recurrence!: Recurrence_2024_06_14 | null;
 
   @Type(() => Object)
   metadata!: Record<string, unknown>;
@@ -247,4 +268,23 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsBoolean()
   @IsOptional()
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
+
+  @IsOptional()
+  bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offsetStart?: number;
 }

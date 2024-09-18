@@ -5,7 +5,7 @@ import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@cal
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
+import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
@@ -88,7 +88,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
-    : eventType.users.map((user) => ({ user, isFixed: false, priority: 2 }));
+    : eventType.users.map((user) => ({
+        user,
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+        weightAdjustment: 0,
+      }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
@@ -130,8 +136,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
     availableUsers,
-    eventTypeId: eventTypeId,
+    eventType: {
+      id: eventTypeId,
+      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+    },
+    allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
   });
+
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
@@ -191,6 +202,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         name: attendee.name,
         timeZone: attendee.timeZone,
         language: { translate: tAttendee, locale: attendee.locale ?? "en" },
+        phoneNumber: attendee.phoneNumber || undefined,
       }))
     );
   }
@@ -358,7 +370,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   });
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmails(evt, [
+  await sendRoundRobinScheduledEmailsAndSMS(evt, [
     {
       ...reassignedRRHost,
       name: reassignedRRHost.name || "",
@@ -399,7 +411,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       });
     }
 
-    await sendRoundRobinCancelledEmails(
+    await sendRoundRobinCancelledEmailsAndSMS(
       cancelledRRHostEvt,
       [
         {
@@ -451,6 +463,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       },
     });
 
+    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
+
     for (const workflowReminder of workflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
@@ -459,6 +473,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         await scheduleEmailReminder({
           evt: {
             ...evt,
+            metadata: workflowEventMetadata,
             eventType,
           },
           action: WorkflowActions.EMAIL_HOST,
@@ -519,8 +534,6 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         },
       },
     });
-
-    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
 
     await scheduleWorkflowReminders({
       workflows: newEventWorkflows,

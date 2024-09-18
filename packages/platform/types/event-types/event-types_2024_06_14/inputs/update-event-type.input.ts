@@ -2,11 +2,18 @@ import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
 
-import type { BookingField_2024_06_14 } from "./booking-fields.input";
-import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
+import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
+import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
+import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
+import {
+  BookingLimitsDuration_2024_06_14,
+  ValidateBookingLimistsDuration,
+} from "./booking-limits-duration.input";
+import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-window.input";
 import { Host } from "./create-event-type.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
+import { Recurrence_2024_06_14 } from "./recurrence.input";
 
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -31,8 +38,8 @@ export class UpdateEventTypeInput_2024_06_14 {
   locations?: Location_2024_06_14[];
 
   @IsOptional()
-  @ValidateBookingFields_2024_06_14()
-  bookingFields?: BookingField_2024_06_14[];
+  @ValidateInputBookingFields_2024_06_14()
+  bookingFields?: InputBookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()
@@ -58,6 +65,34 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsInt()
   @IsOptional()
   scheduleId?: number;
+
+  @IsOptional()
+  @Type(() => BookingLimitsCount_2024_06_14)
+  @ValidateBookingLimistsCount()
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  @ValidateBookingLimistsDuration()
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
+
+  @IsOptional()
+  @ValidateBookingWindow()
+  bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offsetStart?: number;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Recurrence_2024_06_14)
+  recurrence?: Recurrence_2024_06_14;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -87,9 +122,9 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   locations?: Location_2024_06_14[];
 
   @IsOptional()
-  @ValidateBookingFields_2024_06_14()
+  @ValidateInputBookingFields_2024_06_14()
   @DocsProperty()
-  bookingFields?: BookingField_2024_06_14[];
+  bookingFields?: InputBookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()
@@ -128,4 +163,32 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  @Type(() => BookingLimitsCount_2024_06_14)
+  @ValidateBookingLimistsCount()
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  @ValidateBookingLimistsDuration()
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
+
+  @IsOptional()
+  @ValidateBookingWindow()
+  bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offsetStart?: number;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Recurrence_2024_06_14)
+  recurrence?: Recurrence_2024_06_14;
 }

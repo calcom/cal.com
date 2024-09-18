@@ -255,7 +255,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/core-features/event-types
+ *        url: https://docs.cal.com/docs/core-features/event-types
  *     responses:
  *       201:
  *         description: OK, event type created

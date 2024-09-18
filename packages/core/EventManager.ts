@@ -7,7 +7,7 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -57,7 +57,7 @@ const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
-  const eventLocationType = getEventLocationTypeFromApp(location);
+  const eventLocationType = getLocationFromApp(location);
   if (eventLocationType) {
     const requestId = uuidv5(location, uuidv5.URL);
 
@@ -186,9 +186,12 @@ export default class EventManager {
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
         if (evt.location && evt.responses) {
-          evt.responses["location"].value = {
-            optionValue: "",
-            value: evt.location,
+          evt.responses["location"] = {
+            ...(evt.responses["location"] ?? {}),
+            value: {
+              optionValue: "",
+              value: evt.location,
+            },
           };
         }
       }
@@ -256,9 +259,12 @@ export default class EventManager {
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
         if (evt.location && evt.responses) {
-          evt.responses["location"].value = {
-            optionValue: "",
-            value: evt.location,
+          evt.responses["location"] = {
+            ...(evt.responses["location"] ?? {}),
+            value: {
+              optionValue: "",
+              value: evt.location,
+            },
           };
         }
       }

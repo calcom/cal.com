@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -43,12 +43,15 @@ enum PeriodType {
 }
 
 model Host {
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int
-  isFixed     Boolean   @default(false)
-  priority    Int?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
+  eventType        EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId      Int
+  isFixed          Boolean   @default(false)
+  priority         Int?
+  weight           Int?
+  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  weightAdjustment Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -101,6 +104,7 @@ model EventType {
   periodCountCalendarDays                 Boolean?
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
+  requiresConfirmationWillBlockSlot       Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
@@ -134,12 +138,16 @@ model EventType {
   durationLimits                          Json?
   isInstantEvent                          Boolean                   @default(false)
   instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
+  instantMeetingScheduleId                Int?
+  instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
+  isRRWeightsEnabled                      Boolean                   @default(false)
+
   /// @zod.custom(imports.eventTypeColor)
-  eventTypeColor                          Json?
-  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
+  eventTypeColor                   Json?
+  rescheduleWithSameRoundRobinHost Boolean @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -322,11 +330,13 @@ model User {
   movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
-
-  OutOfOfficeReasons     OutOfOfficeReason[]
-  smsLockState           SMSLockState        @default(UNLOCKED)
-  smsLockReviewedByAdmin Boolean             @default(false)
-  smsCreditsCount        SmsCreditCount[]
+  OutOfOfficeReasons         OutOfOfficeReason[]
+  smsLockState               SMSLockState                 @default(UNLOCKED)
+  smsLockReviewedByAdmin     Boolean                      @default(false)
+  NotificationsSubscriptions NotificationsSubscriptions[]
+  referralLinkId             String?
+  features                   UserFeatures[]
+  smsCreditsCount            SmsCreditCount[]
 
   @@unique([email])
   @@unique([email, username])
@@ -337,6 +347,15 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+model NotificationsSubscriptions {
+  id           Int    @id @default(autoincrement())
+  userId       Int
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription String
+
+  @@index([userId, subscription])
 }
 
 // It holds Organization Profiles as well as User Profiles for users that have been added to an organization
@@ -417,7 +436,9 @@ model Team {
   smsLockState             SMSLockState            @default(UNLOCKED)
   platformBilling          PlatformBilling?
   activeOrgWorkflows       WorkflowsOnTeams[]
+  attributes               Attribute[]
   smsLockReviewedByAdmin   Boolean                 @default(false)
+  features                 TeamFeatures[]
   smsCreditCounts          SmsCreditCount[]
   smsCreditAllocationType  SmsCreditAllocationType @default(SPECIFIC)
   smsCreditAllocationValue Int?                    @default(50)
@@ -450,14 +471,15 @@ enum MembershipRole {
 }
 
 model Membership {
-  id                   Int            @id @default(autoincrement())
+  id                   Int               @id @default(autoincrement())
   teamId               Int
   userId               Int
-  accepted             Boolean        @default(false)
+  accepted             Boolean           @default(false)
   role                 MembershipRole
-  team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  disableImpersonation Boolean        @default(false)
+  team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disableImpersonation Boolean           @default(false)
+  AttributeToUser      AttributeToUser[]
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -525,6 +547,7 @@ model Attendee {
   email       String
   name        String
   timeZone    String
+  phoneNumber String?
   locale      String?      @default("en")
   booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int?
@@ -593,6 +616,10 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  /// @zod.email()
+  cancelledBy           String?
+  /// @zod.email()
+  rescheduledBy         String?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -604,13 +631,14 @@ model Booking {
 }
 
 model Schedule {
-  id           Int            @id @default(autoincrement())
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int
-  eventType    EventType[]
-  name         String
-  timeZone     String?
-  availability Availability[]
+  id                   Int            @id @default(autoincrement())
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               Int
+  eventType            EventType[]
+  instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
+  name                 String
+  timeZone             String?
+  availability         Availability[]
 
   @@index([userId])
 }
@@ -733,6 +761,7 @@ enum WebhookTriggerEvents {
   RECORDING_READY
   INSTANT_MEETING
   RECORDING_TRANSCRIPTION_GENERATED
+  OOO_CREATED
 }
 
 model Webhook {
@@ -1118,22 +1147,48 @@ model VerifiedEmail {
 
 model Feature {
   // The feature slug, ex: 'v2-workflows'
-  slug        String       @id @unique
+  slug        String         @id @unique
   // If the feature is currently enabled
-  enabled     Boolean      @default(false)
+  enabled     Boolean        @default(false)
   // A short description of the feature
   description String?
   // The type of feature flag
-  type        FeatureType? @default(RELEASE)
+  type        FeatureType?   @default(RELEASE)
   // If the flag is considered stale
-  stale       Boolean?     @default(false)
+  stale       Boolean?       @default(false)
   lastUsedAt  DateTime?
-  createdAt   DateTime?    @default(now())
-  updatedAt   DateTime?    @default(now()) @updatedAt
+  createdAt   DateTime?      @default(now())
+  updatedAt   DateTime?      @default(now()) @updatedAt
   updatedBy   Int?
+  users       UserFeatures[]
+  teams       TeamFeatures[]
 
   @@index([enabled])
   @@index([stale])
+}
+
+model UserFeatures {
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
+  featureId  String
+  assignedAt DateTime @default(now())
+  assignedBy String
+  updatedAt  DateTime @updatedAt
+
+  @@id([userId, featureId])
+}
+
+model TeamFeatures {
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId     Int
+  feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
+  featureId  String
+  assignedAt DateTime @default(now())
+  assignedBy String
+  updatedAt  DateTime @updatedAt
+
+  @@id([teamId, featureId])
 }
 
 enum FeatureType {
@@ -1207,6 +1262,7 @@ view BookingTimeStatus {
   ratingFeedback String?
   rating         Int?
   noShowHost     Boolean?
+  isTeamBooking  Boolean
 }
 
 model CalendarCache {
@@ -1459,4 +1515,54 @@ enum SmsCreditAllocationType {
   ALL
   NONE
   SPECIFIC
+}
+
+enum AttributeType {
+  TEXT
+  NUMBER
+  SINGLE_SELECT
+  MULTI_SELECT
+}
+
+model AttributeOption {
+  id            String            @id @default(uuid())
+  attribute     Attribute         @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeId   String
+  value         String
+  slug          String
+  assignedUsers AttributeToUser[]
+
+  @@unique([attributeId, value])
+}
+
+model Attribute {
+  id String @id @default(uuid())
+
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId Int
+
+  type AttributeType
+
+  name String
+  slug String @unique
+
+  enabled Boolean @default(true)
+
+  usersCanEditRelation Boolean @default(false)
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  options   AttributeOption[]
+}
+
+model AttributeToUser {
+  id String @id @default(uuid())
+
+  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId Int
+
+  attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
+  attributeOptionId String
+
+  @@unique([memberId, attributeOptionId])
 }

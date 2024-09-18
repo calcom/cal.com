@@ -117,9 +117,10 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
 
-      const test = await page.getByTestId("continue").click();
-      const toast = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast).toBeTruthy();
+      const submitPromise = page.waitForResponse("/api/trpc/eventTypes/duplicate?batch=1");
+      await page.getByTestId("continue").click();
+      const response = await submitPromise;
+      expect(response.status()).toBe(200);
     });
 
     test("edit first event", async ({ page }) => {
@@ -268,14 +269,12 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await addAnotherLocation(page, "Cal Video (Global)");
 
         await saveEventType(page);
-        await page.waitForLoadState("networkidle");
 
         // Remove Attendee Phone Number Location
         const removeButtomId = "delete-locations.0.type";
         await page.getByTestId(removeButtomId).click();
 
         await saveEventType(page);
-        await page.waitForLoadState("networkidle");
 
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);

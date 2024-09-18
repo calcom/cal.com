@@ -365,6 +365,10 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      {
+        source: "/icons/sprite.svg",
+        destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[

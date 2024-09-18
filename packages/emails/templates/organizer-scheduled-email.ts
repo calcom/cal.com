@@ -8,7 +8,8 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
-import generateIcsString from "../lib/generateIcsString";
+import generateIcsFile from "../lib/generateIcsFile";
+import { GenerateIcsRole } from "../lib/generateIcsFile";
 import BaseEmail from "./_base-email";
 
 export default class OrganizerScheduledEmail extends BaseEmail {
@@ -31,19 +32,15 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: generateIcsString({
-          event: this.calEvent,
-          title: this.calEvent.recurringEvent?.count
-            ? this.t("new_event_scheduled_recurring")
-            : this.t("new_event_scheduled"),
-          subtitle: this.t("emailed_you_and_any_other_attendees"),
-          role: "organizer",
-          status: "CONFIRMED",
-        }),
-        method: "REQUEST",
-      },
+      icalEvent: generateIcsFile({
+        calEvent: this.calEvent,
+        title: this.calEvent.recurringEvent?.count
+          ? this.t("new_event_scheduled_recurring")
+          : this.t("new_event_scheduled"),
+        subtitle: this.t("emailed_you_and_any_other_attendees"),
+        role: GenerateIcsRole.ORGANIZER,
+        status: "CONFIRMED",
+      }),
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],

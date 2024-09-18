@@ -6,9 +6,23 @@ export const zodNonRouterField = z.object({
   identifier: z.string().optional(),
   placeholder: z.string().optional(),
   type: z.string(),
+  /**
+   * @deprecated in favour of `options`
+   */
   selectText: z.string().optional(),
   required: z.boolean().optional(),
   deleted: z.boolean().optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        // To keep backwards compatibility with the options generated from legacy selectText, we allow saving null as id
+        // It helps in differentiating whether the routing logic should consider the option.label as value or option.id as value.
+        // This is important for legacy routes which has option.label saved in conditions and it must keep matching with the value of the option
+        id: z.string().or(z.null()),
+      })
+    )
+    .optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({

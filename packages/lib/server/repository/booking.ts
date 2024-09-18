@@ -1,4 +1,7 @@
-import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@prisma/client";
+
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
 
@@ -54,6 +57,130 @@ export class BookingRepository {
     });
   }
 
+  static async getAllBookingsForRoundRobin({
+    users,
+    eventTypeId,
+  }: {
+    users: { id: number; email: string }[];
+    eventTypeId: number;
+  }) {
+    const whereClause: Prisma.BookingWhereInput = {
+      OR: [
+        {
+          user: {
+            id: {
+              in: users.map((user) => user.id),
+            },
+          },
+          OR: [
+            {
+              noShowHost: false,
+            },
+            {
+              noShowHost: null,
+            },
+          ],
+        },
+        {
+          attendees: {
+            some: {
+              email: {
+                in: users.map((user) => user.email),
+              },
+            },
+          },
+        },
+      ],
+      attendees: { some: { noShow: false } },
+      status: BookingStatus.ACCEPTED,
+      eventTypeId,
+    };
+
+    const allBookings = await prisma.booking.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        attendees: true,
+        userId: true,
+        createdAt: true,
+        status: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return allBookings;
+  }
+
+  static async findBookingByUid({ bookingUid }: { bookingUid: string }) {
+    return await prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingMinimalSelect,
+    });
+  }
+
+  static async findBookingForMeetingPage({ bookingUid }: { bookingUid: string }) {
+    return await prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        ...bookingMinimalSelect,
+        uid: true,
+        description: true,
+        isRecorded: true,
+        user: {
+          select: {
+            id: true,
+            timeZone: true,
+            name: true,
+            email: true,
+            username: true,
+          },
+        },
+        references: {
+          select: {
+            id: true,
+            uid: true,
+            type: true,
+            meetingUrl: true,
+            meetingPassword: true,
+          },
+          where: {
+            type: "daily_video",
+          },
+        },
+      },
+    });
+  }
+
+  static async findBookingForMeetingEndedPage({ bookingUid }: { bookingUid: string }) {
+    return await prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        ...bookingMinimalSelect,
+        uid: true,
+        user: {
+          select: {
+            credentials: true,
+          },
+        },
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            meetingUrl: true,
+          },
+        },
+      },
+    });
+  }
+
   static async findBookingByUidAndUserId({ bookingUid, userId }: { bookingUid: string; userId: number }) {
     return await prisma.booking.findFirst({
       where: {
@@ -94,6 +221,31 @@ export class BookingRepository {
             },
           },
         ],
+      },
+    });
+  }
+
+  static async updateLocationById({
+    where: { id },
+    data: { location, metadata, referencesToCreate },
+  }: {
+    where: { id: number };
+    data: {
+      location: string;
+      metadata: Record<string, unknown>;
+      referencesToCreate: Prisma.BookingReferenceCreateInput[];
+    };
+  }) {
+    await prisma.booking.update({
+      where: {
+        id,
+      },
+      data: {
+        location,
+        metadata,
+        references: {
+          create: referencesToCreate,
+        },
       },
     });
   }

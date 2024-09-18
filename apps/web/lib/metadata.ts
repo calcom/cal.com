@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 
-import { truncateOnWord } from "@calcom/lib/text";
-
 type RootMetadataRecipe = Readonly<{
   twitterCreator: string;
   twitterSite: string;
@@ -63,20 +61,4 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
     creator: recipe.twitterCreator,
     card: "summary_large_image",
   },
-});
-
-export const preparePageMetadata = (recipe: PageMetadataRecipe): Metadata => ({
-  title: recipe.title,
-  alternates: {
-    canonical: recipe.canonical,
-  },
-  openGraph: {
-    description: truncateOnWord(recipe.description, 158),
-    url: recipe.canonical,
-    type: "website",
-    siteName: recipe.siteName,
-    title: recipe.title,
-    images: [recipe.image],
-  },
-  metadataBase: recipe.metadataBase,
 });

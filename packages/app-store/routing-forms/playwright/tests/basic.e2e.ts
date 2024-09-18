@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { selectInteractions } from "@calcom/web/playwright/lib/pageObject";
 import { gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
 
 import {
@@ -17,18 +18,23 @@ function todo(title: string) {
   test.skip(title, () => {});
 }
 
+const Identifiers = {
+  multi: "multi",
+  multiNewFormat: "multi-new-format",
+  select: "test-select",
+  selectNewFormat: "test-select-new-format",
+};
+
 test.describe("Routing Forms", () => {
   test.describe("Zero State Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
-      await page.waitForSelector('[data-testid="empty-screen"]');
-
       const formId = await addForm(page);
 
       await page.click('[href*="/forms"]');
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
-      expect(await page.locator('[data-testid="routing-forms-list"] > div').count()).toBe(1);
+      await expect(page.locator('[data-testid="routing-forms-list"] > div')).toHaveCount(1);
 
       await gotoRoutingLink({ page, formId });
       await expect(page.locator("text=Test Form Name")).toBeVisible();
@@ -52,8 +58,8 @@ test.describe("Routing Forms", () => {
         label,
       });
 
-      expect(await page.inputValue(`[data-testid="description"]`)).toBe(description);
-      expect(await page.locator('[data-testid="field"]').count()).toBe(types.length);
+      await expect(page.locator('[data-testid="description"]')).toHaveValue(description);
+      await expect(page.locator('[data-testid="field"]')).toHaveCount(types.length);
 
       fields.forEach((item, index) => {
         createdFields[index] = { label: item.label, typeIndex: index };
@@ -73,6 +79,7 @@ test.describe("Routing Forms", () => {
     test.describe("F1<-F2 Relationship", () => {
       test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
+        await page.goto(`/routing-forms/forms`);
         const form2Id = await addForm(page, { name: "F2" });
 
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
@@ -105,7 +112,7 @@ test.describe("Routing Forms", () => {
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        expect(await page.locator('[data-testid="field"]').count()).toBe(2);
+        await expect(page.locator('[data-testid="field"]')).toHaveCount(2);
         await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
         // Add 1 more field in F1
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
@@ -118,7 +125,7 @@ test.describe("Routing Forms", () => {
         await page.goto(`/routing-forms/form-edit/${form2Id}`);
         //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        expect(await page.locator('[data-testid="field"]').count()).toBe(3);
+        await expect(page.locator('[data-testid="field"]')).toHaveCount(3);
         await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
       });
       todo("Create relationship by using duplicate with live connect");
@@ -150,15 +157,15 @@ test.describe("Routing Forms", () => {
 
       await page.fill('[data-testid="form-field-Test Field Long Text"]', "manual-fill");
 
-      expect(await page.locator(`[data-testid="form-field-firstField"]`).inputValue()).toBe("456");
-      expect(await page.locator(`[data-testid="form-field-Test Field Number"]`).inputValue()).toBe("456");
+      await expect(page.locator('[data-testid="form-field-firstField"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test Field Number"]')).toHaveValue("456");
 
       // TODO: Verify select and multiselect has prefilled values.
       // expect(await page.locator(`[data-testid="form-field-Test Field Select"]`).inputValue()).toBe("456");
       // expect(await page.locator(`[data-testid="form-field-Test Field MultiSelect"]`).inputValue()).toBe("456");
 
-      expect(await page.locator(`[data-testid="form-field-Test Field Phone"]`).inputValue()).toBe("456");
-      expect(await page.locator(`[data-testid="form-field-Test Field Email"]`).inputValue()).toBe(
+      await expect(page.locator('[data-testid="form-field-Test Field Phone"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test Field Email"]')).toHaveValue(
         "456@example.com"
       );
 
@@ -190,7 +197,6 @@ test.describe("Routing Forms", () => {
         }
       );
       await user.apiLogin();
-      await page.goto(`/routing-forms/forms`);
     });
 
     test.afterEach(async ({ users }) => {
@@ -202,6 +208,9 @@ test.describe("Routing Forms", () => {
   todo("should be able to duplicate form");
 
   test.describe("Seeded Routing Form ", () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto(`/routing-forms/forms`);
+    });
     test.afterEach(async ({ users }) => {
       // This also delete forms on cascade
       await users.deleteAll();
@@ -230,11 +239,10 @@ test.describe("Routing Forms", () => {
       await page.goto(`/routing-forms/reporting/${routingForm.id}`);
 
       const headerEls = page.locator("[data-testid='reporting-header'] th");
-      // Once the response is there, React would soon render it, so 500ms is enough
-      // FIXME: Sometimes it takes more than 500ms, so added a timeout of 1000ms for now. There might be something wrong with rendering.
-      await headerEls.first().waitFor({
-        timeout: 1000,
-      });
+
+      // Wait for the headers to be visible(will automaically wait for getting response from backend) along with it the rows are rendered.
+      await headerEls.first().waitFor();
+
       const numHeaderEls = await headerEls.count();
       const headers = [];
       for (let i = 0; i < numHeaderEls; i++) {
@@ -254,11 +262,17 @@ test.describe("Routing Forms", () => {
         responses.push(rowResponses);
       }
 
-      expect(headers).toEqual(["Test field", "Multi Select"]);
+      expect(headers).toEqual([
+        "Test field",
+        "Multi Select(with Legacy `selectText`)",
+        "Multi Select",
+        "Legacy Select",
+        "Select",
+      ]);
       expect(responses).toEqual([
-        ["event-routing", ""],
-        ["external-redirect", ""],
-        ["custom-page", ""],
+        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2"],
+        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2"],
+        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2"],
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
@@ -281,19 +295,27 @@ test.describe("Routing Forms", () => {
       });
       const csvRows = csv.trim().split("\n");
       const csvHeaderRow = csvRows[0];
-      expect(csvHeaderRow).toEqual("Test field,Multi Select,Submission Time");
+      expect(csvHeaderRow).toEqual(
+        "Test field,Multi Select(with Legacy `selectText`),Multi Select,Legacy Select,Select,Submission Time"
+      );
 
       const firstResponseCells = csvRows[1].split(",");
       const secondResponseCells = csvRows[2].split(",");
       const thirdResponseCells = csvRows[3].split(",");
 
-      expect(firstResponseCells.slice(0, -1).join(",")).toEqual("event-routing,");
+      expect(firstResponseCells.slice(0, -1).join(",")).toEqual(
+        "event-routing,Option-2,Option-2,Option-2,Option-2"
+      );
       expect(new Date(firstResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
-      expect(secondResponseCells.slice(0, -1).join(",")).toEqual("external-redirect,");
+      expect(secondResponseCells.slice(0, -1).join(",")).toEqual(
+        "external-redirect,Option-2,Option-2,Option-2,Option-2"
+      );
       expect(new Date(secondResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
-      expect(thirdResponseCells.slice(0, -1).join(",")).toEqual("custom-page,");
+      expect(thirdResponseCells.slice(0, -1).join(",")).toEqual(
+        "custom-page,Option-2,Option-2,Option-2,Option-2"
+      );
       expect(new Date(thirdResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
     });
 
@@ -303,12 +325,12 @@ test.describe("Routing Forms", () => {
 
       // Router should be publicly accessible
       await users.logout();
-      page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
+      await page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
       await page.waitForURL((url) => {
         return url.pathname.endsWith("/pro/30min") && url.searchParams.get("Test field") === "event-routing";
       });
 
-      page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
+      await page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
         return (
           url.hostname.includes("google.com") && url.searchParams.get("Test field") === "external-redirect"
@@ -318,8 +340,13 @@ test.describe("Routing Forms", () => {
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
       await expect(page.locator("text=Custom Page Result")).toBeVisible();
 
-      await page.goto(`/router?form=${routingForm.id}&Test field=doesntmatter&multi=Option-2`);
-      await expect(page.locator("text=Multiselect chosen")).toBeVisible();
+      await page.goto(`/router?form=${routingForm.id}&Test field=doesntmatter&${Identifiers.multi}=Option-2`);
+      await expect(page.locator("text=Multiselect(Legacy) chosen")).toBeVisible({ timeout: 10000 });
+
+      await page.goto(
+        `/router?form=${routingForm.id}&Test field=doesntmatter&${Identifiers.multiNewFormat}=d1302635-9f12-17b1-9153-c3a854649182`
+      );
+      await expect(page.locator("text=Multiselect chosen")).toBeVisible({ timeout: 10000 });
     });
 
     test("Routing Link should validate fields", async ({ page, users }) => {
@@ -331,17 +358,16 @@ test.describe("Routing Forms", () => {
         return document.querySelectorAll("input")[0].validity.valueMissing;
       });
       expect(firstInputMissingValue).toBe(true);
-      expect(await page.locator('button[type="submit"][disabled]').count()).toBe(0);
+      await expect(page.locator('button[type="submit"][disabled]')).toHaveCount(0);
     });
 
     test("Test preview should return correct route", async ({ page, users }) => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
-      page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
+      await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
       await page.click('[data-testid="test-preview"]');
-      await page.waitForLoadState("networkidle");
 
-      // //event redirect
+      //event redirect
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
       await page.click('[data-testid="test-routing"]');
       let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
@@ -364,8 +390,34 @@ test.describe("Routing Forms", () => {
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
       expect(route).toBe("https://google.com");
+      await page.click('[data-testid="dialog-rejection"]');
+
+      // Multiselect(Legacy)
+      await page.click('[data-testid="test-preview"]');
+      await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
+      await page.click(`[data-testid="form-field-${Identifiers.multi}"]`); // Open dropdown
+      await page.click("text=Option-2"); // Select option
+      await page.click('[data-testid="test-routing"]');
+      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      expect(routingType).toBe("Custom Page");
+      expect(route).toBe("Multiselect(Legacy) chosen");
+      await page.click('[data-testid="dialog-rejection"]');
+
+      // Multiselect
+      await page.click('[data-testid="test-preview"]');
+      await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
+      await page.click(`[data-testid="form-field-${Identifiers.multiNewFormat}"]`); // Open dropdown
+      await page.click("text=Option-2"); // Select option
+      await page.click('[data-testid="test-routing"]');
+      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      expect(routingType).toBe("Custom Page");
+      expect(route).toBe("Multiselect chosen");
+      await page.click('[data-testid="dialog-rejection"]');
 
       //fallback route
+      await page.click('[data-testid="test-preview"]');
       await page.fill('[data-testid="form-field-Test field"]', "fallback");
       await page.click('[data-testid="test-routing"]');
       routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
@@ -398,24 +450,57 @@ async function expectCurrentFormToHaveFields(
 
 async function fillSeededForm(page: Page, routingFormId: string) {
   await gotoRoutingLink({ page, formId: routingFormId });
-  await page.fill('[data-testid="form-field-Test field"]', "event-routing");
-  page.click('button[type="submit"]');
 
-  await page.waitForURL((url) => {
-    return url.pathname.endsWith("/pro/30min");
-  });
+  await (async function firstResponse() {
+    await page.fill('[data-testid="form-field-Test field"]', "event-routing");
+    await fillAllOptionsBasedFields();
+    page.click('button[type="submit"]');
 
-  await gotoRoutingLink({ page, formId: routingFormId });
-  await page.fill('[data-testid="form-field-Test field"]', "external-redirect");
-  page.click('button[type="submit"]');
-  await page.waitForURL((url) => {
-    return url.hostname.includes("google.com");
-  });
+    await page.waitForURL((url) => {
+      return url.pathname.endsWith("/pro/30min");
+    });
+  })();
 
   await gotoRoutingLink({ page, formId: routingFormId });
-  await page.fill('[data-testid="form-field-Test field"]', "custom-page");
-  await page.click('button[type="submit"]');
-  await expect(page.locator("text=Custom Page Result")).toBeVisible();
+  await (async function secondResponse() {
+    await page.fill('[data-testid="form-field-Test field"]', "external-redirect");
+    await fillAllOptionsBasedFields();
+    page.click('button[type="submit"]');
+    await page.waitForURL((url) => {
+      return url.hostname.includes("google.com");
+    });
+  })();
+
+  await gotoRoutingLink({ page, formId: routingFormId });
+  await (async function thirdResponse() {
+    await page.fill('[data-testid="form-field-Test field"]', "custom-page");
+    await fillAllOptionsBasedFields();
+    page.click('button[type="submit"]');
+    await expect(page.locator("text=Custom Page Result")).toBeVisible();
+  })();
+
+  async function fillAllOptionsBasedFields() {
+    await selectInteractions.chooseOption({
+      selector: `[data-testid="form-field-${Identifiers.multiNewFormat}"]`,
+      optionText: "Option-2",
+      page,
+    });
+    await selectInteractions.chooseOption({
+      selector: `[data-testid="form-field-${Identifiers.multi}"]`,
+      optionText: "Option-2",
+      page,
+    });
+    await selectInteractions.chooseOption({
+      selector: `[data-testid="form-field-${Identifiers.selectNewFormat}"]`,
+      optionText: "Option-2",
+      page,
+    });
+    await selectInteractions.chooseOption({
+      selector: `[data-testid="form-field-${Identifiers.select}"]`,
+      optionText: "Option-2",
+      page,
+    });
+  }
 }
 
 async function addAllTypesOfFieldsAndSaveForm(
@@ -452,8 +537,11 @@ async function addAllTypesOfFieldsAndSaveForm(
       identifier = "firstField";
     }
 
-    if (fieldTypeLabel === "MultiSelect" || fieldTypeLabel === "Select") {
-      await page.fill(`[name="fields.${nth}.selectText"]`, "123\n456\n789");
+    if (fieldTypeLabel === "Multiple Selection" || fieldTypeLabel === "Single Selection") {
+      await page.fill(`[data-testid="fields.${nth}.options.0-input"]`, "123");
+      await page.fill(`[data-testid="fields.${nth}.options.1-input"]`, "456");
+      await page.fill(`[data-testid="fields.${nth}.options.2-input"]`, "789");
+      await page.fill(`[data-testid="fields.${nth}.options.3-input"]`, "10-11-12");
     }
 
     await page.fill(`[name="fields.${nth}.label"]`, label);

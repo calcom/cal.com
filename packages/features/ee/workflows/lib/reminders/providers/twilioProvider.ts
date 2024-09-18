@@ -48,6 +48,8 @@ export const sendSMS = async (
   teamId?: number | null, // teamId of workflow
   whatsapp = false
 ) => {
+  log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
+
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {

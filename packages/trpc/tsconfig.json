@@ -1,12 +1,41 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
-  "include": ["client", "next", "react", "server"],
+  "paths": {
+    "~/*": ["/*"],
+    "@calcom/app-store": ["../app-store"],
+    "@calcom/app-store/*": ["../app-store/*"],
+    "@calcom/dayjs": ["../dayjs"],
+    "@calcom/dayjs/*": ["../dayjs/*"],
+    "@calcom/features": ["../features"],
+    "@calcom/features/*": ["../features/*"],
+    "@calcom/lib": ["../lib"],
+    "@calcom/lib/*": ["../lib/*"],
+    "@calcom/platform-constants": ["../platform/constants/index.ts"],
+    "@calcom/platform-enums": ["../platform/enums/index.ts"],
+    "@calcom/platform-types": ["../platform/types/index.ts"],
+    "@calcom/platform-utils": ["../platform/utils/index.ts"],
+    "@calcom/prisma": ["../prisma"],
+    "@calcom/prisma/*": ["../prisma/*"]
+  },
+  "include": [
+    "../types/@wojtekmaj__react-daterange-picker.d.ts",
+    "../types/business-days-plugin.d.ts",
+    "../types/next-auth.d.ts",
+    "../types/next.d.ts",
+    "../types/window.d.ts",
+    "client",
+    "next",
+    "react",
+    "server"
+  ],
   "compilerOptions": {
     "isolatedModules": false,
     "noEmit": false,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "experimentalDecorators": true,
     "declarationMap": false,
+    "resolveJsonModule": true,
     "outFile": "types/router.d.ts"
   }
 }

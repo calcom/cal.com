@@ -11,6 +11,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
 
@@ -22,16 +23,27 @@ import EmptyScreen from "../components/EmptyScreen";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
-function WorkflowsPage() {
+type PageProps = {
+  filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;
+};
+
+function WorkflowsPage({ filteredList }: PageProps) {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
-  const queryRes = trpc.viewer.workflows.filteredList.useQuery({
-    filters,
-  });
+  const { data, isPending: _isPending } = trpc.viewer.workflows.filteredList.useQuery(
+    {
+      filters,
+    },
+    {
+      enabled: !filteredList,
+    }
+  );
+  const filteredWorkflows = filteredList ?? data;
+  const isPending = filteredList ? false : _isPending;
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -74,7 +86,7 @@ function WorkflowsPage() {
             ) : null
           }>
           <>
-            {queryRes.data?.totalCount ? (
+            {filteredWorkflows?.totalCount ? (
               <div className="flex">
                 <TeamsFilter />
                 <div className="mb-4 ml-auto">
@@ -90,11 +102,11 @@ function WorkflowsPage() {
               </div>
             ) : null}
             <FilterResults
-              queryRes={queryRes}
+              queryRes={{ isPending, data: filteredWorkflows }}
               emptyScreen={<EmptyScreen isFilteredView={false} />}
               noResultsScreen={<EmptyScreen isFilteredView={true} />}
               SkeletonLoader={SkeletonLoader}>
-              <WorkflowList workflows={queryRes.data?.filtered} />
+              <WorkflowList workflows={filteredWorkflows?.filtered} />
             </FilterResults>
           </>
         </ShellMain>
@@ -136,7 +148,7 @@ const Filter = (props: {
   return (
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
-        <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
+        <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer">
           <Avatar
             imageSrc={userAvatar || ""}
             size="sm"
@@ -171,7 +183,7 @@ const Filter = (props: {
         </div>
         {teams.map((profile) => (
           <div
-            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer"
+            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
             key={`${profile.teamId || 0}`}>
             <Avatar
               imageSrc={profile.image || ""}

@@ -37,6 +37,7 @@ export type Invitee = {
   firstName: string;
   lastName: string;
   timeZone: string;
+  phoneNumber?: string;
   language: {
     translate: TFunction;
     locale: string;
@@ -57,6 +58,8 @@ export type IsFixedAwareUser = User & {
   credentials: CredentialPayload[];
   organization?: { slug: string };
   priority?: number;
+  weight?: number;
+  weightAdjustment?: number;
 };
 
 export type NewBookingEventType = AwaitedGetDefaultEvent | getEventTypeResponse;
