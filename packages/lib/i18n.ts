@@ -12,3 +12,14 @@ export const localeOptions = locales.map((locale) => ({
 export const defaultLocaleOption = localeOptions.find(
   (locale) => locale.value === i18n.defaultLocale
 ) as (typeof localeOptions)[number];
+
+// List of known RTL locales, it returnbs rtl or ltr for respective locales
+const rtlLocales = ["ar", "he"];
+
+export function getTextDirection(locale: string): "ltr" | "rtl" {
+  return rtlLocales.includes(locale) || rtlLocales.includes(locale.split("-")[0]) ? "rtl" : "ltr";
+}
+
+export function isRTL(locale: string): boolean {
+  return getTextDirection(locale) === "rtl";
+}

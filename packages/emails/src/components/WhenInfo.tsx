@@ -9,6 +9,7 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
+import { getTextDirection } from "../../../lib/i18n";
 import { Info } from "./Info";
 
 export function getRecurringWhen({
@@ -53,7 +54,8 @@ export const WhenInfo = (props: {
     attendee: props.calEvent.attendees[0],
   });
 
-  const isRTL = locale === "he" || locale === "ar";
+  const textDirection = getTextDirection(props.locale);
+  const isRTL = textDirection === "rtl";
 
   return (
     <div className={isRTL ? "rtl-text" : ""}>

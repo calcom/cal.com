@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-head-element */
+import { getTextDirection } from "../../../lib/i18n";
 import BaseTable from "./BaseTable";
 import EmailBodyLogo from "./EmailBodyLogo";
 import EmailHead from "./EmailHead";
@@ -26,7 +27,8 @@ export const BaseEmailHtml = (props: {
   hideLogo?: boolean;
   locale: string;
 }) => {
-  const isRTL = props.locale === "he" || props.locale === "ar";
+  const textDirection = getTextDirection(props.locale);
+  const isRTL = textDirection === "rtl";
 
   return (
     <Html lang={props.locale}>
