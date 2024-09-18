@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
@@ -130,15 +129,6 @@ const BookingLimitsViewWrapper = () => {
     {
       enabled: !!Number(params.id),
     }
-  );
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (error) {
-        router.replace("/teams");
-      }
-    },
-    [error]
   );
 
   if (isPending)
