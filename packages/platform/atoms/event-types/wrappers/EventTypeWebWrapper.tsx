@@ -135,7 +135,7 @@ const EventTypePageWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: numbe
 
 const EventTypeAppWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
   const pathname = usePathname();
-  return <EventTypeWeb {...rest} id={id} isAppDir={true} pathname={pathname} pageRouter={null} />;
+  return <EventTypeWeb {...rest} id={id} isAppDir={true} pathname={pathname ?? ""} pageRouter={null} />;
 };
 
 const EventTypeWeb = ({
@@ -330,7 +330,7 @@ const EventTypeWeb = ({
             slug={slug}
             onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
-              handleSubmit();
+              handleSubmit(form.getValues());
               telemetry.event(telemetryEventTypes.slugReplacementAction);
               setSlugExistsChildrenDialogOpen([]);
             }}
