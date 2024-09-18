@@ -64,7 +64,6 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
-      await page.waitForLoadState("networkidle");
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
@@ -276,7 +275,6 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await page.getByTestId(removeButtomId).click();
 
         await saveEventType(page);
-        await page.waitForLoadState("networkidle");
 
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);

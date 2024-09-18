@@ -39,7 +39,6 @@ checkRoute "$APP_ROUTER_CONNECT_AND_JOIN_ENABLED" app/future/connect-and-join
 # These are routes that don't have and environment variable to enable or disable them
 # Will stop removing gradually as we test and confirm that they are working
 rm -rf \
-   app/future/[user]\
    app/future/booking\
    app/future/d\
    app/future/enterprise\
