@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-head-element */
 import BaseTable from "./BaseTable";
 import EmailBodyLogo from "./EmailBodyLogo";
+import EmailHead from "./EmailHead";
 import EmailScheduledBodyHeaderContent from "./EmailScheduledBodyHeaderContent";
 import EmailSchedulingBodyDivider from "./EmailSchedulingBodyDivider";
 import type { BodyHeadType } from "./EmailSchedulingBodyHeader";
@@ -29,7 +30,8 @@ export const BaseEmailHtml = (props: {
 
   return (
     <Html lang={props.locale}>
-      <head>
+      <EmailHead title={props.subject} />
+      <body style={{ wordSpacing: "normal", backgroundColor: "#F3F4F6" }}>
         <style>
           {`
             .rtl-text {
@@ -38,7 +40,7 @@ export const BaseEmailHtml = (props: {
             }
           `}
         </style>
-      </head>
+      </body>
       <body className={isRTL ? "rtl-text" : ""}>
         <RawHtml
           html={`<!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
