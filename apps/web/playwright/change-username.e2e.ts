@@ -60,7 +60,7 @@ test.describe("Change username on settings", () => {
       page.click("[data-testid=save-username]"),
       page.getByTestId("toast-success").waitFor(),
     ]);
-    await page.waitForLoadState("networkidle");
+    // await page.waitForLoadState("networkidle");
 
     const updatedUser = await prisma.user.findUniqueOrThrow({
       where: {
@@ -149,7 +149,7 @@ test.describe("Change username on settings", () => {
       const usernameInput = page.locator("[data-testid=username-input]");
 
       await usernameInput.fill(previousUsername);
-      await page.waitForLoadState("networkidle");
+      // await page.waitForLoadState("networkidle");
       await expect(page.locator("[data-testid=update-username-btn]").nth(0)).toBeHidden();
       await expect(page.locator("[data-testid=update-username-btn]").nth(1)).toBeHidden();
     });

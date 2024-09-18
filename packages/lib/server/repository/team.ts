@@ -182,26 +182,33 @@ export class TeamRepository {
   }
 
   static async deleteById({ id }: { id: number }) {
-    const teamBilling = await TeamBilling.findAndCreate(input.teamId);
+    const teamBilling = await TeamBilling.findAndCreate(id);
     await teamBilling.cancel();
 
     try {
-      await this._deleteWorkflowRemindersOfRemovedTeam(input.teamId);
+      await this._deleteWorkflowRemindersOfRemovedTeam(id);
     } catch (e) {
       console.error(e);
     }
 
     const deletedTeam = await prisma.$transaction(async (tx) => {
+      await tx.eventType.deleteMany({
+        where: {
+          teamId: id,
+          schedulingType: "MANAGED",
+        },
+      });
+
       // delete all memberships
       await tx.membership.deleteMany({
         where: {
-          teamId: input.teamId,
+          teamId: id,
         },
       });
 
       const deletedTeam = await tx.team.delete({
         where: {
-          id: input.teamId,
+          id: id,
         },
       });
       return deletedTeam;

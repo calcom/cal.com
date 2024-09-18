@@ -79,6 +79,7 @@ export const generateTeamCheckoutSession = async ({
       teamName,
       teamSlug,
       userId,
+      dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
     },
   });
   return session;
@@ -174,6 +175,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     subscription_data: {
       metadata: {
         teamId,
+        dubCustomerId: userId,
       },
     },
   });

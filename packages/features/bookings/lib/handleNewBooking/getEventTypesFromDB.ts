@@ -24,6 +24,11 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         },
       },
       slug: true,
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
       teamId: true,
       team: {
         select: {
@@ -124,13 +129,16 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     },
   });
 
+  const { profile, ...restEventType } = eventType;
+  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
+
   return {
-    ...eventType,
+    ...restEventType,
     metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields(eventType || {}),
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
     isDynamic: false,
   };
 };

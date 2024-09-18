@@ -120,7 +120,7 @@ export const VerifyCodeDialog = ({
                 <p>{error}</p>
               </div>
             )}
-            <DialogFooter>
+            <DialogFooter noSticky>
               <DialogClose onClick={() => setIsOpenDialog(false)} />
               <Button type="submit" onClick={verifyCode} loading={isPending}>
                 {t("submit")}
