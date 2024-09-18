@@ -41,7 +41,6 @@ test.describe("Users can impersonate", async () => {
     await stopImpersonatingButton.click();
     await expect(stopImpersonatingButton).toBeHidden();
 
-    // await page.waitForLoadState("networkidle");
     // Return to user
     const ogUser = await impersonatedUsernameInput.inputValue();
 
