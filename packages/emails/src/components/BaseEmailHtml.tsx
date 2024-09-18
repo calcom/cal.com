@@ -26,7 +26,7 @@ export const BaseEmailHtml = (props: {
   hideLogo?: boolean;
   locale: string;
 }) => {
-  const isRTL = props.locale === "he";
+  const isRTL = props.locale === "he" || props.locale === "ar";
 
   return (
     <Html lang={props.locale}>

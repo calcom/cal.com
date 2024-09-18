@@ -29,7 +29,7 @@ export const BaseScheduledEmail = (
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   const { t, timeZone, locale, timeFormat: timeFormat_ } = props;
-  const isRTL = locale === "he";
+  const isRTL = locale === "he" || locale === "ar";
 
   const timeFormat = timeFormat_ ?? TimeFormat.TWELVE_HOUR;
 

@@ -53,7 +53,7 @@ export const WhenInfo = (props: {
     attendee: props.calEvent.attendees[0],
   });
 
-  const isRTL = locale === "he";
+  const isRTL = locale === "he" || locale === "ar";
 
   return (
     <div className={isRTL ? "rtl-text" : ""}>
