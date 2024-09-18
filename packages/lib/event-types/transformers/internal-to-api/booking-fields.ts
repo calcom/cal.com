@@ -10,11 +10,11 @@ export function transformBookingFieldsInternalToApi(
   databaseBookingFields: (SystemField | CustomField)[]
 ): OutputBookingField_2024_06_14[] {
   const defaultFields: SystemField[] = databaseBookingFields.filter(
-    (field): field is SystemField => "defaultLabel" in field
+    (field): field is SystemField => field.editable === "system" || field.editable === "system-but-optional"
   );
 
   const customFields: CustomField[] = databaseBookingFields.filter(
-    (field): field is CustomField => !("defaultLabel" in field)
+    (field): field is CustomField => field.editable === "user"
   );
 
   const responseDefaultFields: DefaultFieldOutput_2024_06_14[] = defaultFields.map((field) => {
@@ -401,12 +401,6 @@ export const systemBeforeFieldLocation: LocationReasonSystemField = {
   ],
 };
 
-export const systemBeforeFields: SystemField[] = [
-  systemBeforeFieldName,
-  systemBeforeFieldEmail,
-  systemBeforeFieldLocation,
-];
-
 export const systemAfterFieldRescheduleReason: RescheduleReasonSystemField = {
   defaultLabel: "reason_for_reschedule",
   type: "textarea",
@@ -428,58 +422,3 @@ export const systemAfterFieldRescheduleReason: RescheduleReasonSystemField = {
     },
   ],
 };
-
-const systemAfterFieldTitle: TitleSystemField = {
-  defaultLabel: "what_is_this_meeting_about",
-  type: "text",
-  name: "title",
-  editable: "system-but-optional",
-  required: true,
-  defaultPlaceholder: "",
-  sources: [
-    {
-      label: "Default",
-      id: "default",
-      type: "default",
-    },
-  ],
-};
-
-const systemAfterFieldNotes: NotesSystemField = {
-  defaultLabel: "additional_notes",
-  type: "textarea",
-  name: "notes",
-  editable: "system-but-optional",
-  required: false,
-  defaultPlaceholder: "share_additional_notes",
-  sources: [
-    {
-      label: "Default",
-      id: "default",
-      type: "default",
-    },
-  ],
-};
-
-const systemAfterFieldGuests: GuestsSystemField = {
-  defaultLabel: "additional_guests",
-  type: "multiemail",
-  editable: "system-but-optional",
-  name: "guests",
-  defaultPlaceholder: "email",
-  required: false,
-  sources: [
-    {
-      label: "Default",
-      id: "default",
-      type: "default",
-    },
-  ],
-};
-
-export const systemAfterFields: SystemField[] = [
-  systemAfterFieldRescheduleReason,
-  systemAfterFieldTitle,
-  systemAfterFieldNotes,
-  systemAfterFieldGuests,
-];
