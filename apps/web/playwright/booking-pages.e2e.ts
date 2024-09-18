@@ -28,15 +28,12 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const user = await users.create({
     name,
   });
-  const [response] = await Promise.all([
-    // This promise resolves to the main resource response
-    page.waitForResponse(
-      (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
-    ),
-
-    // Trigger the page navigation
-    page.goto(`/${user.username}/30-min`),
-  ]);
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+  );
+  await page.goto(`/${user.username}/30-min`);
+  await page.content();
+  const response = await responsePromise;
   const ssrResponse = await response.text();
   const document = new JSDOM(ssrResponse).window.document;
 
