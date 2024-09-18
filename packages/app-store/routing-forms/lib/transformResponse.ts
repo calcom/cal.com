@@ -1,4 +1,7 @@
+import type { z } from "zod";
+
 import type { Field, FormResponse } from "../types/types";
+import { areSelectOptionsInLegacyFormat } from "./selectOptions";
 
 /**
  * It takes care of correctly transforming the input to label or id depending on various cases
@@ -17,9 +20,10 @@ function transformSelectValue({
   if (!options) {
     return idOrLabel;
   }
-  const areOptionsInLegacyFormat = !!options.find((option) => !option.id);
   // Because for legacy saved options, routes must have labels in them instead of ids
-  const shouldUseLabelAsValue = areOptionsInLegacyFormat;
+  const shouldUseLabelAsValue = areSelectOptionsInLegacyFormat(
+    field as typeof field & z.BRAND<"FIELD_WITH_OPTIONS">
+  );
   const foundOptionById = options.find((option) => option.id === idOrLabel);
   if (foundOptionById) {
     if (shouldUseLabelAsValue) {

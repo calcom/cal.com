@@ -36,12 +36,14 @@ export type Person = {
   locale?: string | null;
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
+  phoneNumber?: string | null;
 };
 
 export type TeamMember = {
   id?: number;
   name: string;
   email: string;
+  phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
 };

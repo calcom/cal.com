@@ -20,7 +20,7 @@ import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hook
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -142,6 +142,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const verifyCode = useVerifyCode({
     onSuccess: () => {
+      if (!bookerForm.formEmail) return;
+
       verifyEmail.setVerifiedEmail(bookerForm.formEmail);
       verifyEmail.setEmailVerificationModalVisible(false);
       bookings.handleBookEvent();
@@ -186,7 +188,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         router.push("/apps/categories/calendar");
       }}
       onClickOverlayContinue={(provider: "calcom" | "google" = "calcom") => {
-        const currentUrl = new URL(window.location.href);
+        const currentUrl = new URL(`${WEBAPP_URL}/login`);
         currentUrl.searchParams.set("overlayCalendar", "true");
         if (provider === "google") {
           const url = new URL("/getting-started/connected-calendar", window.location.origin);

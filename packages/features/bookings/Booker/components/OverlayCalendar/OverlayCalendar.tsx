@@ -1,3 +1,5 @@
+import { useIsPlatform } from "@calcom/atoms/monorepo";
+
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 import { useOverlayCalendar } from "../hooks/useOverlayCalendar";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
@@ -29,6 +31,7 @@ export const OverlayCalendar = ({
   handleClickContinue,
   hasSession,
 }: OverlayCalendarProps) => {
+  const isPlatform = useIsPlatform();
   const {
     handleCloseContinueModal,
     handleCloseSettingsModal,
@@ -37,6 +40,12 @@ export const OverlayCalendar = ({
     handleToggleConnectedCalendar,
     checkIsCalendarToggled,
   } = useOverlayCalendar({ connectedCalendars, overlayBusyDates, onToggleCalendar });
+
+  // on platform we don't handle connecting to third party calendar via booker yet
+  if (isPlatform && connectedCalendars?.length === 0) {
+    return <></>;
+  }
+
   return (
     <>
       <OverlayCalendarSwitch
@@ -44,11 +53,13 @@ export const OverlayCalendar = ({
         hasSession={hasSession}
         onStateChange={handleSwitchStateChange}
       />
-      <OverlayCalendarContinueModal
-        open={isOpenOverlayContinueModal}
-        onClose={handleCloseContinueModal}
-        onContinue={handleClickContinue}
-      />
+      {!isPlatform && (
+        <OverlayCalendarContinueModal
+          open={isOpenOverlayContinueModal}
+          onClose={handleCloseContinueModal}
+          onContinue={handleClickContinue}
+        />
+      )}
       <OverlayCalendarSettingsModal
         connectedCalendars={connectedCalendars}
         open={isOpenOverlaySettingsModal}

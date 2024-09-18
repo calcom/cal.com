@@ -32,8 +32,6 @@ test.describe("hash my url", () => {
     // click update
     await page.locator('[data-testid="update-eventtype"]').press("Enter");
 
-    await page.waitForLoadState("networkidle");
-
     // book using generated url hash
     await page.goto($url);
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -57,9 +55,10 @@ test.describe("hash my url", () => {
     await page.getByTestId("vertical-tab-event_setup_tab_title").click();
     await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
+    const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
     await page.locator("[data-testid=update-eventtype]").click();
-    await page.getByTestId("toast-success").waitFor();
-    await page.waitForLoadState("networkidle");
+    const response = await submitPromise;
+    expect(response.status()).toBe(200);
     await page.locator(".primary-navigation >> text=Advanced").click();
     const $url2 = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
     expect($url2.includes("somethingrandom")).toBeTruthy();
