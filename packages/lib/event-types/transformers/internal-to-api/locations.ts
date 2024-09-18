@@ -6,7 +6,7 @@ import type {
   Integration_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { transformLocationsApiToInternal } from "../api-request";
+import type { transformLocationsApiToInternal } from "../api-to-internal";
 
 const reverseIntegrationsMapping: Record<string, Integration_2024_06_14> = {
   "integrations:daily": "cal-video",
