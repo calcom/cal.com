@@ -6,10 +6,11 @@ import {
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
-  systemBeforeFields,
-  systemAfterFields,
-  SystemField,
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemAfterFieldRescheduleReason,
 } from "@calcom/platform-libraries";
+import { systemBeforeFieldLocation } from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
@@ -92,12 +93,14 @@ export class InputEventTypesService_2024_06_14 {
     inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
     hasMultipleLocations: boolean
   ) {
+    const defaultFieldsBefore = [systemBeforeFieldName, systemBeforeFieldEmail];
     // note(Lauris): if event type has multiple locations then a radio button booking field has to be displayed to allow booker to pick location
-    const defaultFieldsBefore = hasMultipleLocations
-      ? systemBeforeFields
-      : systemBeforeFields.filter((field: SystemField) => field.name !== "location");
+    if (hasMultipleLocations) {
+      defaultFieldsBefore.push(systemBeforeFieldLocation);
+    }
+
     const customFields = transformBookingFieldsApiToInternal(inputBookingFields);
-    const defaultFieldsAfter = systemAfterFields;
+    const defaultFieldsAfter = [systemAfterFieldRescheduleReason];
 
     return [...defaultFieldsBefore, ...customFields, ...defaultFieldsAfter];
   }
