@@ -9,6 +9,8 @@ checkRoute () {
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
 checkRoute "$APP_ROUTER_AVAILABILITY_ENABLED" app/future/availability
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
+checkRoute "$APP_ROUTER_SETTINGS_PLATFORM_ENABLED" app/future/settings/platform
+checkRoute "$APP_ROUTER_SETTINGS_ORG_ENABLED" app/future/settings/organizations
 checkRoute "$APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED" app/future/apps/installed
 checkRoute "$APP_ROUTER_APPS_SLUG_ENABLED" app/future/apps/\[slug\]
 checkRoute "$APP_ROUTER_APPS_SLUG_SETUP_ENABLED" app/future/apps/\[slug\]/setup
@@ -37,7 +39,6 @@ checkRoute "$APP_ROUTER_CONNECT_AND_JOIN_ENABLED" app/future/connect-and-join
 # These are routes that don't have and environment variable to enable or disable them
 # Will stop removing gradually as we test and confirm that they are working
 rm -rf \
-   app/future/[user]\
    app/future/booking\
    app/future/d\
    app/future/enterprise\

@@ -78,6 +78,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -176,6 +177,7 @@ describe("getSchedule", () => {
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
           teamMemberEmail: "example@example.com",
+          orgSlug: null,
         },
       });
 
@@ -195,6 +197,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
 
@@ -321,6 +324,7 @@ describe("getSchedule", () => {
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
           teamMemberEmail: "example@example.com",
+          orgSlug: null,
         },
       });
 
@@ -349,6 +353,7 @@ describe("getSchedule", () => {
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
           teamMemberEmail: "example1@example.com",
+          orgSlug: null,
         },
       });
 
@@ -438,6 +443,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -470,6 +476,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -529,6 +536,7 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const scheduleForEventWith30Length = await getSchedule({
         input: {
+          orgSlug: null,
           eventTypeId: 1,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
@@ -565,6 +573,7 @@ describe("getSchedule", () => {
 
       const scheduleForEventWith30minsLengthAndSlotInterval2hrs = await getSchedule({
         input: {
+          orgSlug: null,
           eventTypeId: 2,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
@@ -630,6 +639,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -653,6 +663,7 @@ describe("getSchedule", () => {
           endTime: `${todayDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
@@ -715,6 +726,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -789,6 +801,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -847,6 +860,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -911,6 +925,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -989,6 +1004,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1101,6 +1117,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T23:59:59.999Z`,
           timeZone: Timezones["+6:00"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1112,6 +1129,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T23:59:59.999Z`,
           timeZone: Timezones["+6:00"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1202,6 +1220,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
+          orgSlug: null,
         },
       });
 
@@ -1300,6 +1319,7 @@ describe("getSchedule", () => {
           endTime: `${plus1DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
 
@@ -1330,6 +1350,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
 
@@ -1438,6 +1459,7 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
       // A user with blocked time in another event, still affects Team Event availability
@@ -1466,6 +1488,7 @@ describe("getSchedule", () => {
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
+          orgSlug: null,
         },
       });
       // A user with blocked time in another event, still affects Team Event availability
@@ -1503,21 +1526,20 @@ describe("getSchedule", () => {
       });
 
       const scenario = await createBookingScenario(
-        getScenarioData({
-          eventTypes: [
-            {
-              id: 1,
-              slotInterval: 45,
-              length: 45,
-              users: [
-                {
-                  id: 101,
-                },
-              ],
-            },
-          ],
-          organizer,
-        })
+        getScenarioData(
+          {
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                length: 45,
+                userId: 101,
+              },
+            ],
+            organizer,
+          },
+          { id: org.id }
+        )
       );
 
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });

@@ -338,6 +338,7 @@ model User {
   smsLockState               SMSLockState                 @default(UNLOCKED)
   smsLockReviewedByAdmin     Boolean                      @default(false)
   NotificationsSubscriptions NotificationsSubscriptions[]
+  referralLinkId             String?
 
   @@unique([email])
   @@unique([email, username])
@@ -544,6 +545,7 @@ model Attendee {
   email       String
   name        String
   timeZone    String
+  phoneNumber String?
   locale      String?      @default("en")
   booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int?
@@ -1233,6 +1235,7 @@ view BookingTimeStatus {
   ratingFeedback String?
   rating         Int?
   noShowHost     Boolean?
+  isTeamBooking  Boolean
 }
 
 model CalendarCache {
