@@ -85,8 +85,9 @@ export async function getServerSideProps(
   if (route.notFound) {
     return { notFound: true };
   }
+  const routeGetServerSideProps = RoutingFormsServerSidePropsConfig[appName];
 
-  if (route.getServerSideProps) {
+  if (routeGetServerSideProps) {
     // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
@@ -100,8 +101,6 @@ export async function getServerSideProps(
         notFound: true,
       };
     }
-
-    const routeGetServerSideProps = RoutingFormsServerSidePropsConfig[appName];
 
     const result = await routeGetServerSideProps(
       context as GetServerSidePropsContext<{
