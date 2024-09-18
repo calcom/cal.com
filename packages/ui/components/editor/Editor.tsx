@@ -74,19 +74,19 @@ export const Editor = (props: TextEditorProps) => {
     <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 transition focus-within:ring-2">
+          <ToolbarPlugin
+            getText={props.getText}
+            setText={props.setText}
+            editable={editable}
+            excludedToolbarItems={props.excludedToolbarItems}
+            variables={props.variables}
+            updateTemplate={props.updateTemplate}
+            firstRender={props.firstRender}
+            setFirstRender={props.setFirstRender}
+          />
           <div
             className={classNames("editor-inner scroll-bar overflow-x-hidden", !editable && "!bg-subtle")}
             style={{ height: props.height, maxHeight: props.maxHeight }}>
-            <ToolbarPlugin
-              getText={props.getText}
-              setText={props.setText}
-              editable={editable}
-              excludedToolbarItems={props.excludedToolbarItems}
-              variables={props.variables}
-              updateTemplate={props.updateTemplate}
-              firstRender={props.firstRender}
-              setFirstRender={props.setFirstRender}
-            />
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
