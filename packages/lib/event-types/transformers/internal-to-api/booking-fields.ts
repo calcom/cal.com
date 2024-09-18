@@ -24,7 +24,6 @@ export function transformBookingFieldsInternalToApi(
           isDefault: true,
           type: field.type,
           slug: field.name,
-          label: field.label,
           required: field.required,
         };
       case "email":
@@ -32,7 +31,6 @@ export function transformBookingFieldsInternalToApi(
           isDefault: true,
           type: field.type,
           slug: field.name,
-          label: field.label,
           required: field.required,
         };
       case "location":
@@ -40,7 +38,6 @@ export function transformBookingFieldsInternalToApi(
           isDefault: true,
           type: field.type,
           slug: field.name,
-          label: field.label,
           required: field.required,
         };
       case "rescheduleReason":
@@ -48,7 +45,6 @@ export function transformBookingFieldsInternalToApi(
           isDefault: true,
           type: field.type,
           slug: field.name,
-          label: field.label,
           required: field.required,
         };
       case "title":
@@ -56,7 +52,6 @@ export function transformBookingFieldsInternalToApi(
           isDefault: true,
           type: field.type,
           slug: field.name,
-          label: field.label,
           required: field.required,
         };
       case "notes":
@@ -64,7 +59,6 @@ export function transformBookingFieldsInternalToApi(
           isDefault: true,
           type: field.type,
           slug: field.name,
-          label: field.label,
           required: field.required,
         };
       case "guests":
@@ -72,11 +66,12 @@ export function transformBookingFieldsInternalToApi(
           isDefault: true,
           type: field.type,
           slug: field.name,
-          label: field.label,
           required: field.required,
         };
       default:
-        throw new Error(`Unsupported default booking field '${field}'.`);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        throw new Error(`Unsupported default booking field '${field.name}'.`);
     }
   });
 
