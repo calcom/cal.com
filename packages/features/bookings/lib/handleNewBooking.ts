@@ -84,8 +84,9 @@ import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResp
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getOriginalRescheduledBookingAndSeat } from "./handleNewBooking/getOriginalRescheduledBookingAndSeat";
+import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
+import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
@@ -291,16 +292,12 @@ async function handler(
     reqBodyRescheduleUid: reqBody.rescheduleUid,
   });
 
-  const {
-    rescheduleUid,
-    originalRescheduledBooking: originalBooking,
-    bookingSeat,
-  } = await getOriginalRescheduledBookingAndSeat({
-    reqBodyRescheduleUid: reqBody.rescheduleUid,
-    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
-  });
+  const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
+  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
 
-  let originalRescheduledBooking = originalBooking;
+  let originalRescheduledBooking = rescheduleUid
+    ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
+    : null;
 
   let luckyUserResponse;
   let isFirstSeat = true;
