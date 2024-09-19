@@ -170,10 +170,11 @@ export default function Signup({
   redirectUrl,
   emailVerificationEnabled,
 }: SignupProps) {
+  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [displaySignupForm, setDisplaySignupForm] = useState(false);
+  const [displaySignupForm, setDisplaySignupForm] = useState(isOrgInviteByLink);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -222,7 +223,6 @@ export default function Signup({
     }
   };
 
-  const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
@@ -456,7 +456,7 @@ export default function Signup({
               <div className="mt-12">
                 {/* Upper Row */}
                 <div className="mt-6 flex flex-col gap-2 md:flex-row">
-                  {true ? (
+                  {isGoogleLoginEnabled ? (
                     <Button
                       color="primary"
                       loading={isGoogleLoading}
