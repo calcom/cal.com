@@ -115,6 +115,10 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
+    if (!recurrence) {
+      return undefined;
+    }
+
     return transformRecurrenceApiToInternal(recurrence);
   }
 }
