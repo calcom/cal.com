@@ -5,6 +5,7 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
@@ -48,6 +49,7 @@ const handleInstantMeeting = instantMeetingMethods.default;
 export { handleInstantMeeting };
 
 export { handleMarkNoShow };
+export { handleCreatePhoneCall };
 
 export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
@@ -92,22 +94,31 @@ export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-u
 export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 export {
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeIntervalLimits,
-  transformApiEventTypeLocations,
-  getResponseEventTypeLocations,
-  getResponseEventTypeBookingFields,
+  // note(Lauris): Api to internal
+  transformBookingFieldsApiToInternal,
+  transformLocationsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
+  transformRecurrenceApiToInternal,
+  // note(Lauris): Internal to api
+  transformBookingFieldsInternalToApi,
+  transformLocationsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformRecurrenceInternalToApi,
+  // note(Lauris): schemas
   TransformedLocationsSchema,
   BookingFieldsSchema,
-  getResponseEventTypeIntervalLimits,
-  getResponseEventTypeFutureBookingLimits,
-  transformApiEventTypeFutureBookingLimits,
-  transformApiEventTypeRecurrence,
-  getResponseEventTypeRecurrence,
+  // note(Lauris): constants
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldRescheduleReason,
 } from "@calcom/lib/event-types/transformers";
 
+export type { SystemField, CustomField } from "@calcom/lib/event-types/transformers";
+
 export { parseBookingLimit } from "@calcom/lib";
-export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";

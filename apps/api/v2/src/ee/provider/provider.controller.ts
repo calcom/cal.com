@@ -40,6 +40,11 @@ export class CalProviderController {
 
     return {
       status: SUCCESS_STATUS,
+      data: {
+        clientId: oAuthClient.id,
+        organizationId: oAuthClient.organizationId,
+        name: oAuthClient.name,
+      },
     };
   }
 

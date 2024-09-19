@@ -6,8 +6,8 @@ import { Injectable } from "@nestjs/common";
 
 import {
   getEventTypeById,
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeLocations,
+  transformBookingFieldsApiToInternal,
+  transformLocationsApiToInternal,
 } from "@calcom/platform-libraries";
 import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
@@ -30,8 +30,8 @@ type InputEventTransformed = Omit<
 > & {
   length: number;
   slug: string;
-  locations?: ReturnType<typeof transformApiEventTypeLocations>;
-  bookingFields?: ReturnType<typeof transformApiEventTypeBookingFields>;
+  locations?: ReturnType<typeof transformLocationsApiToInternal>;
+  bookingFields?: ReturnType<typeof transformBookingFieldsApiToInternal>;
 };
 
 @Injectable()

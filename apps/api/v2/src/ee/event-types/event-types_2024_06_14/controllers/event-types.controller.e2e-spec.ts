@@ -250,7 +250,6 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.description).toEqual(body.description);
           expect(createdEventType.lengthInMinutes).toEqual(body.lengthInMinutes);
           expect(createdEventType.locations).toEqual(body.locations);
-          expect(createdEventType.bookingFields).toEqual(body.bookingFields);
           expect(createdEventType.ownerId).toEqual(user.id);
           expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
           expect(createdEventType.bookingLimitsCount).toEqual(body.bookingLimitsCount);
@@ -259,6 +258,16 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.offsetStart).toEqual(body.offsetStart);
           expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
           expect(createdEventType.recurrence).toEqual(body.recurrence);
+
+          const responseBookingFields = body.bookingFields || [];
+          const expectedBookingFields = [
+            { isDefault: true, required: true, slug: "name", type: "name" },
+            { isDefault: true, required: true, slug: "email", type: "email" },
+            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            ...responseBookingFields.map((field) => ({ isDefault: false, ...field })),
+          ];
+
+          expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           eventType = responseBody.data;
         });
     });
@@ -476,6 +485,16 @@ describe("Event types Endpoints", () => {
     let legacyEventTypeId1: number;
     let legacyEventTypeId2: number;
 
+    const expectedReturnSystemFields = [
+      { isDefault: true, required: true, slug: "name", type: "name" },
+      { isDefault: true, required: true, slug: "email", type: "email" },
+      { isDefault: true, type: "radioInput", slug: "location", required: false },
+      { isDefault: true, required: true, slug: "title", type: "text" },
+      { isDefault: true, required: false, slug: "notes", type: "textarea" },
+      { isDefault: true, required: false, slug: "guests", type: "multiemail" },
+      { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+    ];
+
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         userEmail,
@@ -545,7 +564,7 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
-    it("should return empty bookingFields if system fields are the only one in database", async () => {
+    it("should return system bookingFields stored in database", async () => {
       const legacyEventTypeInput = {
         title: "legacy event type",
         description: "legacy event type description",
@@ -638,11 +657,11 @@ describe("Event types Endpoints", () => {
         .then(async (response) => {
           const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
           const fetchedEventType = responseBody.data;
-          expect(fetchedEventType.bookingFields).toEqual([]);
+          expect(fetchedEventType.bookingFields).toEqual(expectedReturnSystemFields);
         });
     });
 
-    it("should return user created bookingFields among system fields in the database", async () => {
+    it("should return user created bookingFields with system fields", async () => {
       const userDefinedBookingField = {
         name: "team",
         type: "textarea",
@@ -755,7 +774,9 @@ describe("Event types Endpoints", () => {
           const fetchedEventType = responseBody.data;
 
           expect(fetchedEventType.bookingFields).toEqual([
+            ...expectedReturnSystemFields,
             {
+              isDefault: false,
               type: userDefinedBookingField.type,
               slug: userDefinedBookingField.name,
               label: userDefinedBookingField.label,
