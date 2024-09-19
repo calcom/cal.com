@@ -8,7 +8,6 @@ import {
   getOriginalRescheduledBooking,
   type OriginalRescheduledBooking,
 } from "./getOriginalRescheduledBooking";
-import type { BookingType } from "./types";
 
 type InputProps = {
   reqBodyRescheduleUid?: string;
@@ -28,33 +27,31 @@ const validateOriginalRescheduledBooking = async (originalRescheduledBooking: Or
   }
 };
 
+export const getSeatedBooking = async (bookingSeatUid: string): Promise<BookingSeat | null> => {
+  // rescheduleUid can be bookingUid and bookingSeatUid
+  return prisma.bookingSeat.findUnique({
+    where: {
+      referenceUid: bookingSeatUid,
+    },
+    include: {
+      booking: true,
+      attendee: true,
+    },
+  });
+};
+
 export const getOriginalRescheduledBookingAndSeat = async ({
   reqBodyRescheduleUid,
   seatsPerTimeSlot,
 }: InputProps) => {
-  let rescheduleUid = reqBodyRescheduleUid;
-  let bookingSeat: BookingSeat = null;
-  let originalRescheduledBooking: BookingType = null;
-
-  //this gets the original rescheduled booking
-  if (rescheduleUid) {
-    // rescheduleUid can be bookingUid and bookingSeatUid
-    bookingSeat = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUid: rescheduleUid,
-      },
-      include: {
-        booking: true,
-        attendee: true,
-      },
-    });
-    if (bookingSeat) {
-      rescheduleUid = bookingSeat.booking.uid;
-    }
-    originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid, !!seatsPerTimeSlot);
-
-    validateOriginalRescheduledBooking(originalRescheduledBooking);
+  if (!reqBodyRescheduleUid) {
+    return { rescheduleUid: undefined, originalRescheduledBooking: null, bookingSeat: null };
   }
+
+  const bookingSeat = await getSeatedBooking(reqBodyRescheduleUid);
+  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBodyRescheduleUid;
+  const originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid, !!seatsPerTimeSlot);
+  validateOriginalRescheduledBooking(originalRescheduledBooking);
 
   return { rescheduleUid, originalRescheduledBooking, bookingSeat };
 };
