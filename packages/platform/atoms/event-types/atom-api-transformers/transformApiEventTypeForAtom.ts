@@ -1,13 +1,20 @@
 import type { BookerProps } from "@calcom/features/bookings/Booker";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
-import type { UserField, SystemField } from "@calcom/lib/event-types/transformers";
+import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
-  transformApiEventTypeLocations,
-  transformApiEventTypeBookingFields,
+  transformLocationsApiToInternal,
+  transformBookingFieldsApiToInternal,
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldRescheduleReason,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import type { EventTypeOutput_2024_06_14, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import type {
+  CustomFieldOutput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+  TeamEventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
 import {
   bookerLayoutOptions,
   BookerLayouts,
@@ -184,7 +191,7 @@ function isDefaultEvent(eventSlug: string) {
 }
 
 function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
-  const transformed = transformApiEventTypeLocations(locations);
+  const transformed = transformLocationsApiToInternal(locations);
 
   const withPrivateHidden = transformed.map((location) => {
     const { displayLocationPublicly, type } = location;
@@ -210,133 +217,29 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
 }
 
 function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
-  const transformedBookingFields: (SystemField | UserField)[] =
-    transformApiEventTypeBookingFields(bookingFields);
-
-  // These fields should be added before other user fields
   const systemBeforeFields: SystemField[] = [
-    {
-      type: "name",
-      // This is the `name` of the main field
-      name: "name",
-      editable: "system",
-      // This Label is used in Email only as of now.
-      defaultLabel: "your_name",
-      required: true,
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "email_address",
-      type: "email",
-      name: "email",
-      required: true,
-      editable: "system",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "location",
-      type: "radioInput",
-      name: "location",
-      editable: "system",
-      hideWhenJustOneOption: true,
-      required: false,
-      getOptionsAt: "locations",
-      optionsInputs: {
-        attendeeInPerson: {
-          type: "address",
-          required: true,
-          placeholder: "",
-        },
-        phone: {
-          type: "phone",
-          required: true,
-          placeholder: "",
-        },
-      },
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
+    systemBeforeFieldName,
+    systemBeforeFieldEmail,
+    systemBeforeFieldLocation,
   ];
 
-  // These fields should be added after other user fields
-  const systemAfterFields: SystemField[] = [
-    {
-      defaultLabel: "reason_for_reschedule",
-      type: "textarea",
-      editable: "system-but-optional",
-      name: "rescheduleReason",
-      defaultPlaceholder: "reschedule_placeholder",
-      required: false,
-      views: [
-        {
-          id: "reschedule",
-          label: "Reschedule View",
-        },
-      ],
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
+  const transformedCustomFields: CustomField[] = transformBookingFieldsApiToInternal(
+    bookingFields.filter((field) => isCustomField(field))
+  );
+
+  const systemAfterFields: SystemField[] = [systemAfterFieldRescheduleReason];
+
+  const transformedBookingFields: (SystemField | CustomField)[] = [
+    ...systemBeforeFields,
+    ...transformedCustomFields,
+    ...systemAfterFields,
   ];
 
-  const missingSystemBeforeFields: SystemField[] = [];
-
-  for (const field of systemBeforeFields) {
-    const existingBookingFieldIndex = transformedBookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemBeforeFields.push(field);
-    } else {
-      // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-      transformedBookingFields[existingBookingFieldIndex] = {
-        ...field,
-        ...transformedBookingFields[existingBookingFieldIndex],
-      };
-    }
-  }
-
-  transformedBookingFields.push(...missingSystemBeforeFields);
-
-  const missingSystemAfterFields: SystemField[] = [];
-  for (const field of systemAfterFields) {
-    const existingBookingFieldIndex = transformedBookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemAfterFields.push(field);
-    } else {
-      transformedBookingFields[existingBookingFieldIndex] = {
-        // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-        ...field,
-        ...transformedBookingFields[existingBookingFieldIndex],
-      };
-    }
-  }
-
-  transformedBookingFields.push(...missingSystemAfterFields);
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
+}
+
+function isCustomField(
+  field: EventTypeOutput_2024_06_14["bookingFields"][number]
+): field is CustomFieldOutput_2024_06_14 {
+  return !field.isDefault;
 }
