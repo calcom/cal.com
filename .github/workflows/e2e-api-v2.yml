@@ -15,7 +15,7 @@ env:
   IS_E2E: true
   NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
   NEXTAUTH_URL: ${{ secrets.CI_NEXTAUTH_URL }}
-  NODE_OPTIONS: --max-old-space-size=8192
+  NODE_OPTIONS: --max-old-space-size=16384
   REDIS_URL: "redis://localhost:6379"
   STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
@@ -70,7 +70,6 @@ jobs:
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          export NODE_OPTIONS=--max-old-space-size=8192
           yarn test:e2e
           EXIT_CODE=$?
           echo "yarn test:e2e command exit code: $EXIT_CODE"
