@@ -13,13 +13,27 @@ export const defaultLocaleOption = localeOptions.find(
   (locale) => locale.value === i18n.defaultLocale
 ) as (typeof localeOptions)[number];
 
-// List of known RTL locales, it returnbs rtl or ltr for respective locales
-const rtlLocales = ["ar", "he"];
-
-export function getTextDirection(locale: string): "ltr" | "rtl" {
-  return rtlLocales.includes(locale) || rtlLocales.includes(locale.split("-")[0]) ? "rtl" : "ltr";
+interface ExtendedLocale extends Intl.Locale {
+  getTextInfo?: () => { direction: "ltr" | "rtl" };
 }
 
-export function isRTL(locale: string): boolean {
+export function getTextDirection(locale: string): "ltr" | "rtl" {
+  try {
+    if (typeof Intl.Locale !== "undefined" && "getTextInfo" in Intl.Locale.prototype) {
+      const extendedLocale = new Intl.Locale(locale) as ExtendedLocale;
+      if (extendedLocale.getTextInfo) {
+        return extendedLocale.getTextInfo().direction;
+      }
+    }
+    // Fallback for gbrowsers that don't support Intl.Locale.prototype.getTextInfo
+    const rtlLocales = ["ar", "he"];
+    return rtlLocales.some((lang) => locale.toLowerCase().startsWith(lang)) ? "rtl" : "ltr";
+  } catch (error) {
+    console.error(`Error determining text direction for locale ${locale}:`, error);
+    return "ltr";
+  }
+}
+
+export function isLocaleRightToLeft(locale: string): boolean {
   return getTextDirection(locale) === "rtl";
 }

@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import dayjs from "@calcom/dayjs";
+import { isLocaleRightToLeft } from "@calcom/lib/i18n";
 import { formatPrice } from "@calcom/lib/price";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -29,7 +30,7 @@ export const BaseScheduledEmail = (
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   const { t, timeZone, locale, timeFormat: timeFormat_ } = props;
-  const isRTL = locale === "he" || locale === "ar";
+  const isRTL = isLocaleRightToLeft(locale);
 
   const timeFormat = timeFormat_ ?? TimeFormat.TWELVE_HOUR;
 
