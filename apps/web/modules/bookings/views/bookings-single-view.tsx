@@ -256,15 +256,6 @@ export default function Success(props: PageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const html = document.querySelector("html");
-
-  useEffect(() => {
-    const hasDarkMode = html?.classList.contains("dark");
-    if (hasDarkMode) {
-      html?.classList.remove("dark");
-    }
-  }, [html]);
-
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment });
   };
