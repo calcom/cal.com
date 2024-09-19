@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
-
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
@@ -218,6 +218,16 @@ export async function getEventType(
           ...availabilityUserSelect,
         },
       },
+      team: {
+        select: {
+          members: {
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -419,8 +429,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
     }
 
-    const userId = ctx?.req?.user?.id;
-    const isUserEventOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.userId)
+    const session = ctx?.req ? await getServerSession({ req: ctx?.req }) : null;
+    const userId = session?.user?.id;
+    const isUserEventOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.userId || 0)
     const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
     const isUserTeamAdminOrOwner = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
     if (isUserEventOwner || isUserTeamAdminOrOwner) {
