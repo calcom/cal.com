@@ -10,7 +10,7 @@ import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Signup Flow Test", async () => {
+test.describe("Email Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
     features.reset(); // This resets to the inital state not an empt yarray
   });
@@ -25,6 +25,8 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
+      await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+      await page.locator('[data-testid="continue-with-email-button"]').click();
       await expect(page.locator("text=Create your account")).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
@@ -52,7 +54,8 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-
+      await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+      await page.locator('[data-testid="continue-with-email-button"]').click();
       await expect(page.locator("text=Create your account")).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
@@ -84,6 +87,8 @@ test.describe("Signup Flow Test", async () => {
 
     // Signup with premium username name
     await page.goto("/signup");
+    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+    await page.locator('[data-testid="continue-with-email-button"]').click();
     await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
@@ -112,6 +117,8 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
+    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+    await page.locator('[data-testid="continue-with-email-button"]').click();
     await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
@@ -131,6 +138,8 @@ test.describe("Signup Flow Test", async () => {
   test("Signup fields prefilled with query params", async ({ page, users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
+    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+    await page.locator('[data-testid="continue-with-email-button"]').click();
     await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
@@ -212,6 +221,8 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
+    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+    await page.locator('[data-testid="continue-with-email-button"]').click();
     await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Fill form
@@ -283,7 +294,8 @@ test.describe("Signup Flow Test", async () => {
 
       const url = new URL(newPage.url());
       expect(url.pathname).toBe("/signup");
-
+      await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+      await page.locator('[data-testid="continue-with-email-button"]').click();
       // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
