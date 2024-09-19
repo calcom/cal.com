@@ -266,7 +266,7 @@ async function handler(
   validateEventLength({
     reqBodyStart: reqBody.start,
     reqBodyEnd: reqBody.end,
-    eventTypeMutipleDuration: eventType.metadata?.multipleDuration,
+    eventTypeMultipleDuration: eventType.metadata?.multipleDuration,
     eventTypeLength: eventType.length,
     logger: loggerWithEventDetails,
   });
