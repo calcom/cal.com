@@ -72,6 +72,7 @@ export class InternalTeamBilling implements TeamBilling {
     });
 
     try {
+      // TODO: extract this to new billing service
       const checkoutSession = await purchaseTeamOrOrgSubscription({
         teamId,
         seatsUsed: membershipCount,
@@ -135,7 +136,7 @@ export class InternalTeamBilling implements TeamBilling {
     }
   }
   /** Used to prevent double charges for the same team */
-  private checkIfTeamPaymentRequired = async () => {
+  async checkIfTeamPaymentRequired() {
     const { paymentId } = this.team.metadata || {};
     /** If there's no paymentId, we need to pay this team */
     if (!paymentId) return { url: null, paymentId: null, paymentRequired: true };
@@ -148,5 +149,5 @@ export class InternalTeamBilling implements TeamBilling {
       paymentId,
       paymentRequired: false,
     };
-  };
+  }
 }

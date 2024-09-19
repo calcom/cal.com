@@ -1,21 +1,25 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { TeamBilling } from './index';
-import { InternalTeamBilling } from './internal-team-billing';
-import { StubTeamBilling } from './stub-team-billing';
-import { IS_TEAM_BILLING_ENABLED } from '@calcom/lib/constants';
 import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
 
-vi.mock('@calcom/lib/constants', () => ({
-  IS_TEAM_BILLING_ENABLED: vi.fn(),
-  IS_PRODUCTION: false,
-}));
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-describe('TeamBilling', () => {
+import * as constants from "@calcom/lib/constants";
+
+import { TeamBilling } from "./index";
+import { InternalTeamBilling } from "./internal-team-billing";
+import { StubTeamBilling } from "./stub-team-billing";
+
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = await vi.importActual("@calcom/lib/constants");
+  return {
+    ...actual,
+    IS_TEAM_BILLING_ENABLED: vi.fn(),
+    IS_PRODUCTION: false,
+  };
+});
+
+describe("TeamBilling", () => {
   const mockTeam = { id: 1, metadata: null, isOrganization: true, parentId: null };
-  const mockTeams = [
-    mockTeam,
-    { id: 2, metadata: null, isOrganization: false, parentId: 1 }
-  ];
+  const mockTeams = [mockTeam, { id: 2, metadata: null, isOrganization: false, parentId: 1 }];
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -25,15 +29,14 @@ describe('TeamBilling', () => {
     vi.unstubAllEnvs();
   });
 
-  describe('init', () => {
-    it('should return InternalTeamBilling when team billing is enabled', () => {
-      vi.mock(IS_TEAM_BILLING_ENABLED).mockResolvedValue(true)
-
+  describe("init", () => {
+    it("should return InternalTeamBilling when team billing is enabled", () => {
+      constants.IS_TEAM_BILLING_ENABLED = true;
       const result = TeamBilling.init(mockTeam);
       expect(result).toBeInstanceOf(InternalTeamBilling);
     });
 
-    it('should return StubTeamBilling when team billing is disabled', () => {
+    it("should return StubTeamBilling when team billing is disabled", () => {
       constants.IS_TEAM_BILLING_ENABLED = false;
 
       const result = TeamBilling.init(mockTeam);
@@ -41,8 +44,8 @@ describe('TeamBilling', () => {
     });
   });
 
-  describe('initMany', () => {
-    it('should initialize multiple team billings', () => {
+  describe("initMany", () => {
+    it("should initialize multiple team billings", () => {
       const result = TeamBilling.initMany(mockTeams);
       expect(result).toHaveLength(2);
       expect(result[0]).toBeInstanceOf(StubTeamBilling);
@@ -50,15 +53,15 @@ describe('TeamBilling', () => {
     });
   });
 
-  describe('find', () => {
-    it('should return stubTeam when team billing is disabled', async () => {
+  describe("find", () => {
+    it("should return stubTeam when team billing is disabled", async () => {
       constants.IS_TEAM_BILLING_ENABLED = false;
 
       const result = await TeamBilling.find(1);
       expect(result).toEqual({ id: -1, metadata: expect.any(Object), isOrganization: true, parentId: -1 });
     });
 
-    it('should call prisma.team.findUniqueOrThrow when team billing is enabled', async () => {
+    it("should call prisma.team.findUniqueOrThrow when team billing is enabled", async () => {
       constants.IS_TEAM_BILLING_ENABLED = true;
 
       prismaMock.team.findUniqueOrThrow.mockResolvedValue(mockTeam);
@@ -68,15 +71,15 @@ describe('TeamBilling', () => {
     });
   });
 
-  describe('findBySubscriptionId', () => {
-    it('should return stubTeam when team billing is disabled', async () => {
+  describe("findBySubscriptionId", () => {
+    it("should return stubTeam when team billing is disabled", async () => {
       constants.IS_TEAM_BILLING_ENABLED = false;
 
-      const result = await TeamBilling.findBySubscriptionId('sub_123');
+      const result = await TeamBilling.findBySubscriptionId("sub_123");
       expect(result).toEqual({ id: -1, metadata: {}, isOrganization: true, parentId: -1 });
     });
 
-    it('should call prisma.team.findFirstOrThrow when team billing is enabled', async () => {
+    it("should call prisma.team.findFirstOrThrow when team billing is enabled", async () => {
       constants.IS_TEAM_BILLING_ENABLED = true;
 
       prismaMock.team.findFirstOrThrow.mockResolvedValue({
