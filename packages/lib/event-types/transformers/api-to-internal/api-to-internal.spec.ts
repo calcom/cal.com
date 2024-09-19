@@ -8,7 +8,7 @@ import {
   FrequencyInput,
 } from "@calcom/platform-enums/monorepo";
 import type {
-  BookingField_2024_06_14,
+  InputBookingField_2024_06_14,
   Location_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
@@ -21,12 +21,8 @@ import type {
   SeatOptionsDisabledSchema,
 } from "@calcom/platform-types";
 
-import type { UserField } from "./api-request";
+import type { CustomField } from "../internal-to-api/booking-fields";
 import {
-  transformApiEventTypeLocations,
-  transformApiEventTypeBookingFields,
-  transformSelectOptions,
-  transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeBookerLayouts,
   transformApiEventTypeConfirmationPolicy,
@@ -34,8 +30,16 @@ import {
   transformApiEventTypeColors,
   transformApiSeatOptions,
 } from "./api-request";
+import {
+  transformLocationsApiToInternal,
+  transformBookingFieldsApiToInternal,
+  transformSelectOptionsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
+  transformRecurrenceApiToInternal,
+} from "./index";
 
-describe("transformApiEventTypeLocations", () => {
+describe("transformLocationsApiToInternal", () => {
   it("should transform address", () => {
     const input: Location_2024_06_14[] = [
       {
@@ -47,7 +51,7 @@ describe("transformApiEventTypeLocations", () => {
 
     const expectedOutput = [{ type: "inPerson", address: "London road 10-1", displayLocationPublicly: true }];
 
-    const result = transformApiEventTypeLocations(input);
+    const result = transformLocationsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -65,7 +69,7 @@ describe("transformApiEventTypeLocations", () => {
       { type: "link", link: "https://customvideo.com/join/123456", displayLocationPublicly: true },
     ];
 
-    const result = transformApiEventTypeLocations(input);
+    const result = transformLocationsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -80,7 +84,7 @@ describe("transformApiEventTypeLocations", () => {
 
     const expectedOutput = [{ type: "integrations:daily" }];
 
-    const result = transformApiEventTypeLocations(input);
+    const result = transformLocationsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -98,85 +102,15 @@ describe("transformApiEventTypeLocations", () => {
       { type: "userPhone", hostPhoneNumber: "+37120993151", displayLocationPublicly: true },
     ];
 
-    const result = transformApiEventTypeLocations(input);
+    const result = transformLocationsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("transformApiEventTypeBookingFields", () => {
-  it("should transform name field", () => {
-    const bookingField: BookingField_2024_06_14 = {
-      type: "name",
-      slug: "name",
-      label: "Your name",
-      required: true,
-      placeholder: "alice",
-    };
-
-    const input: BookingField_2024_06_14[] = [bookingField];
-
-    const expectedOutput: UserField[] = [
-      {
-        name: bookingField.slug,
-        type: bookingField.type,
-        label: bookingField.label,
-        sources: [
-          {
-            id: "user",
-            type: "user",
-            label: "User",
-            fieldRequired: true,
-          },
-        ],
-        editable: "user",
-        required: bookingField.required,
-        placeholder: bookingField.placeholder,
-      },
-    ];
-
-    const result = transformApiEventTypeBookingFields(input);
-
-    expect(result).toEqual(expectedOutput);
-  });
-
-  it("should transform email field", () => {
-    const bookingField: BookingField_2024_06_14 = {
-      type: "email",
-      slug: "email",
-      label: "Your email",
-      required: true,
-      placeholder: "example@example.com",
-    };
-
-    const input: BookingField_2024_06_14[] = [bookingField];
-
-    const expectedOutput: UserField[] = [
-      {
-        name: bookingField.slug,
-        type: bookingField.type,
-        label: bookingField.label,
-        sources: [
-          {
-            id: "user",
-            type: "user",
-            label: "User",
-            fieldRequired: true,
-          },
-        ],
-        editable: "user",
-        required: bookingField.required,
-        placeholder: bookingField.placeholder,
-      },
-    ];
-
-    const result = transformApiEventTypeBookingFields(input);
-
-    expect(result).toEqual(expectedOutput);
-  });
-
+describe("transformBookingFieldsApiToInternal", () => {
   it("should transform phone field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "phone",
       slug: "phone",
       label: "Your phone number",
@@ -184,9 +118,9 @@ describe("transformApiEventTypeBookingFields", () => {
       placeholder: "123456789",
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -205,13 +139,13 @@ describe("transformApiEventTypeBookingFields", () => {
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform address field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "address",
       slug: "address",
       label: "Your address",
@@ -219,9 +153,9 @@ describe("transformApiEventTypeBookingFields", () => {
       placeholder: "1234 Main St",
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -240,13 +174,13 @@ describe("transformApiEventTypeBookingFields", () => {
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform text field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "text",
       slug: "text",
       label: "Your text",
@@ -254,9 +188,9 @@ describe("transformApiEventTypeBookingFields", () => {
       placeholder: "Enter your text",
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -275,13 +209,13 @@ describe("transformApiEventTypeBookingFields", () => {
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform number field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "number",
       slug: "number",
       label: "Your number",
@@ -289,9 +223,9 @@ describe("transformApiEventTypeBookingFields", () => {
       placeholder: "100",
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -310,13 +244,13 @@ describe("transformApiEventTypeBookingFields", () => {
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform textarea field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "textarea",
       slug: "textarea",
       label: "Your detailed information",
@@ -324,9 +258,9 @@ describe("transformApiEventTypeBookingFields", () => {
       placeholder: "Detailed description here...",
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -345,13 +279,13 @@ describe("transformApiEventTypeBookingFields", () => {
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform select field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "select",
       slug: "select",
       label: "Your selection",
@@ -360,9 +294,9 @@ describe("transformApiEventTypeBookingFields", () => {
       options: ["Option 1", "Option 2"],
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -378,17 +312,17 @@ describe("transformApiEventTypeBookingFields", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
-        options: transformSelectOptions(bookingField.options),
+        options: transformSelectOptionsApiToInternal(bookingField.options),
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform multiselect field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "multiselect",
       slug: "multiselect",
       label: "Your multiple selections",
@@ -396,9 +330,9 @@ describe("transformApiEventTypeBookingFields", () => {
       options: ["Option 1", "Option 2"],
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -414,17 +348,17 @@ describe("transformApiEventTypeBookingFields", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: "",
-        options: transformSelectOptions(bookingField.options),
+        options: transformSelectOptionsApiToInternal(bookingField.options),
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform multiemail field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "multiemail",
       slug: "multiemail",
       label: "Your multiple emails",
@@ -432,9 +366,9 @@ describe("transformApiEventTypeBookingFields", () => {
       placeholder: "example@example.com",
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -453,13 +387,13 @@ describe("transformApiEventTypeBookingFields", () => {
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform checkbox field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "checkbox",
       slug: "checkbox",
       label: "Your checkboxes",
@@ -467,9 +401,9 @@ describe("transformApiEventTypeBookingFields", () => {
       options: ["Checkbox 1", "Checkbox 2"],
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -485,17 +419,17 @@ describe("transformApiEventTypeBookingFields", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: "",
-        options: transformSelectOptions(bookingField.options),
+        options: transformSelectOptionsApiToInternal(bookingField.options),
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform radio field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "radio",
       slug: "radio",
       label: "Your radio buttons",
@@ -503,9 +437,9 @@ describe("transformApiEventTypeBookingFields", () => {
       options: ["Radio 1", "Radio 2"],
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -521,26 +455,26 @@ describe("transformApiEventTypeBookingFields", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: "",
-        options: transformSelectOptions(bookingField.options),
+        options: transformSelectOptionsApiToInternal(bookingField.options),
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 
   it("should transform boolean field", () => {
-    const bookingField: BookingField_2024_06_14 = {
+    const bookingField: InputBookingField_2024_06_14 = {
       type: "boolean",
       slug: "boolean",
       label: "Agree to terms?",
       required: true,
     };
 
-    const input: BookingField_2024_06_14[] = [bookingField];
+    const input: InputBookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: UserField[] = [
+    const expectedOutput: CustomField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -559,13 +493,13 @@ describe("transformApiEventTypeBookingFields", () => {
       },
     ];
 
-    const result = transformApiEventTypeBookingFields(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("transformApiEventTypeIntervalLimits", () => {
+describe("transformIntervalLimitsApiToInternal", () => {
   it("should transform booking limits count or booking limits duration", () => {
     const input: BookingLimitsCount_2024_06_14 = {
       day: 2,
@@ -580,13 +514,13 @@ describe("transformApiEventTypeIntervalLimits", () => {
       PER_MONTH: 22,
       PER_YEAR: 33,
     };
-    const result = transformApiEventTypeIntervalLimits(input);
+    const result = transformIntervalLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("transformApiEventTypeFutureBookingLimits", () => {
+describe("transformFutureBookingLimitsApiToInternal", () => {
   it("should transform range type", () => {
     const input: BookingWindow_2024_06_14 = {
       type: "range",
@@ -599,7 +533,7 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
       periodEndDate: new Date("2024-08-28"),
     };
 
-    const result = transformApiEventTypeFutureBookingLimits(input);
+    const result = transformFutureBookingLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -616,7 +550,7 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
       periodCountCalendarDays: true,
     };
 
-    const result = transformApiEventTypeFutureBookingLimits(input);
+    const result = transformFutureBookingLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -633,7 +567,7 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
       periodCountCalendarDays: true,
     };
 
-    const result = transformApiEventTypeFutureBookingLimits(input);
+    const result = transformFutureBookingLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -650,7 +584,7 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
       periodCountCalendarDays: false,
     };
 
-    const result = transformApiEventTypeFutureBookingLimits(input);
+    const result = transformFutureBookingLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -667,7 +601,7 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
       periodCountCalendarDays: false,
     };
 
-    const result = transformApiEventTypeFutureBookingLimits(input);
+    const result = transformFutureBookingLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -817,7 +751,7 @@ describe("transformApiSeatOptions", () => {
   });
 });
 
-describe("transformApiEventTypeRecurrence", () => {
+describe("transformRecurrenceApiToInternal", () => {
   it("should transform recurrence", () => {
     const input: Recurrence_2024_06_14 = {
       frequency: FrequencyInput.weekly,
@@ -829,16 +763,15 @@ describe("transformApiEventTypeRecurrence", () => {
       count: 10,
       freq: 2,
     };
-    const result = transformApiEventTypeRecurrence(input);
-    expect(result).toEqual(expectedOutput);
-  });
+    const result = transformRecurrenceApiToInternal(input);
 
-  it("should transform recurrence - disabled", () => {
-    const input: CreateEventTypeInput_2024_06_14["recurrence"] = {
-      disabled: true,
-    };
-    const expectedOutput = undefined;
-    const result = transformApiEventTypeRecurrence(input);
-    expect(result).toEqual(expectedOutput);
+    it("should transform recurrence - disabled", () => {
+      const input: CreateEventTypeInput_2024_06_14["recurrence"] = {
+        disabled: true,
+      };
+      const expectedOutput = undefined;
+      const result = transformApiEventTypeRecurrence(input);
+      expect(result).toEqual(expectedOutput);
+    });
   });
 });

@@ -4,17 +4,17 @@ import type { EventType, User, Schedule, DestinationCalendar } from "@prisma/cli
 import {
   EventTypeMetaDataSchema,
   userMetadata,
-  getResponseEventTypeLocations,
-  getResponseEventTypeBookingFields,
+  transformLocationsInternalToApi,
+  transformBookingFieldsInternalToApi,
   parseRecurringEvent,
   TransformedLocationsSchema,
   BookingFieldsSchema,
   SystemField,
-  UserField,
+  CustomField,
   parseBookingLimit,
-  getResponseEventTypeIntervalLimits,
-  getResponseEventTypeFutureBookingLimits,
-  getResponseEventTypeRecurrence,
+  transformIntervalLimitsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformRecurrenceInternalToApi,
 } from "@calcom/platform-libraries";
 import {
   getResponseEventTypeBookerLayouts,
@@ -191,7 +191,7 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformLocations(locations: any) {
     if (!locations) return [];
-    return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
+    return transformLocationsInternalToApi(TransformedLocationsSchema.parse(locations));
   }
 
   transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {
@@ -202,16 +202,17 @@ export class OutputEventTypesService_2024_06_14 {
     };
   }
 
-  transformBookingFields(inputBookingFields: (SystemField | UserField)[] | null) {
-    if (!inputBookingFields) return [];
-    const userFields = inputBookingFields.filter((field) => field.editable === "user") as UserField[];
-    return getResponseEventTypeBookingFields(userFields);
+  transformBookingFields(bookingFields: (SystemField | CustomField)[] | null) {
+    if (!bookingFields) return [];
+
+    return transformBookingFieldsInternalToApi(bookingFields);
   }
 
   transformRecurringEvent(recurringEvent: any) {
     if (!recurringEvent) return null;
     const recurringEventParsed = parseRecurringEvent(recurringEvent);
-    return getResponseEventTypeRecurrence(recurringEventParsed);
+    if (!recurringEventParsed) return null;
+    return transformRecurrenceInternalToApi(recurringEventParsed);
   }
 
   transformMetadata(metadata: any) {
@@ -237,11 +238,11 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformIntervalLimits(bookingLimits: any) {
     const bookingLimitsParsed = parseBookingLimit(bookingLimits);
-    return getResponseEventTypeIntervalLimits(bookingLimitsParsed);
+    return transformIntervalLimitsInternalToApi(bookingLimitsParsed);
   }
 
   transformBookingWindow(bookingLimits: TransformFutureBookingsLimitSchema_2024_06_14) {
-    return getResponseEventTypeFutureBookingLimits(bookingLimits);
+    return transformFutureBookingLimitsInternalToApi(bookingLimits);
   }
 
   transformBookerLayouts(bookerLayouts: BookerLayoutsTransformedSchema) {

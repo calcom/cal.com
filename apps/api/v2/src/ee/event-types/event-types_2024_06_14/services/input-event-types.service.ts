@@ -5,12 +5,16 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import {
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeLocations,
-  transformApiEventTypeIntervalLimits,
-  transformApiEventTypeFutureBookingLimits,
+  transformBookingFieldsApiToInternal,
+  transformLocationsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
+  transformRecurrenceApiToInternal,
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemAfterFieldRescheduleReason,
   EventTypeMetaDataSchema,
-  transformApiEventTypeRecurrence,
+  systemBeforeFieldLocation,
 } from "@calcom/platform-libraries";
 import {
   transformApiEventTypeBookerLayouts,
@@ -108,11 +112,12 @@ export class InputEventTypesService_2024_06_14 {
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
+    const hasMultipleLocations = (locations || defaultLocations).length > 1;
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: this.transformInputLocations(locations || defaultLocations),
-      bookingFields: this.transformInputBookingFields(bookingFields),
+      bookingFields: this.transformInputBookingFields(bookingFields, hasMultipleLocations),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -159,11 +164,16 @@ export class InputEventTypesService_2024_06_14 {
       : {};
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
+    const hasMultipleLocations = !!(locations && locations?.length > 1);
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
+      bookingFields: bookingFields
+        ? this.transformInputBookingFields(bookingFields, hasMultipleLocations)
+        : undefined,
+      schedule: inputEventType.scheduleId,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -189,19 +199,31 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputLocations(inputLocations: CreateEventTypeInput_2024_06_14["locations"]) {
-    return transformApiEventTypeLocations(inputLocations);
+    return transformLocationsApiToInternal(inputLocations);
   }
 
-  transformInputBookingFields(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]) {
-    return transformApiEventTypeBookingFields(inputBookingFields);
+  transformInputBookingFields(
+    inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
+    hasMultipleLocations: boolean
+  ) {
+    const defaultFieldsBefore = [systemBeforeFieldName, systemBeforeFieldEmail];
+    // note(Lauris): if event type has multiple locations then a radio button booking field has to be displayed to allow booker to pick location
+    if (hasMultipleLocations) {
+      defaultFieldsBefore.push(systemBeforeFieldLocation);
+    }
+
+    const customFields = transformBookingFieldsApiToInternal(inputBookingFields);
+    const defaultFieldsAfter = [systemAfterFieldRescheduleReason];
+
+    return [...defaultFieldsBefore, ...customFields, ...defaultFieldsAfter];
   }
 
   transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]) {
-    return transformApiEventTypeIntervalLimits(inputBookingFields);
+    return transformIntervalLimitsApiToInternal(inputBookingFields);
   }
 
   transformInputBookingWindow(inputBookingWindow: CreateEventTypeInput_2024_06_14["bookingWindow"]) {
-    const res = transformApiEventTypeFutureBookingLimits(inputBookingWindow);
+    const res = transformFutureBookingLimitsApiToInternal(inputBookingWindow);
     return !!res ? res : {};
   }
 
@@ -215,7 +237,7 @@ export class InputEventTypesService_2024_06_14 {
     return transformApiEventTypeConfirmationPolicy(requiresConfirmation);
   }
   transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
-    return transformApiEventTypeRecurrence(recurrence);
+    return transformRecurrenceApiToInternal(recurrence);
   }
 
   transformInputEventTypeColor(color: CreateEventTypeInput_2024_06_14["color"]) {

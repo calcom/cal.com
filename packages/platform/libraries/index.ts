@@ -94,13 +94,27 @@ export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-u
 export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 export {
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeIntervalLimits,
-  transformApiEventTypeLocations,
-  getResponseEventTypeLocations,
-  getResponseEventTypeBookingFields,
+  // note(Lauris): Api to internal
+  transformBookingFieldsApiToInternal,
+  transformLocationsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
+  transformRecurrenceApiToInternal,
+  // note(Lauris): Internal to api
+  transformBookingFieldsInternalToApi,
+  transformLocationsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformRecurrenceInternalToApi,
+  // note(Lauris): schemas
   TransformedLocationsSchema,
   BookingFieldsSchema,
+  // note(Lauris): constants
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldRescheduleReason,
+  //temp -- will remove
   getResponseEventTypeIntervalLimits,
   getResponseEventTypeFutureBookingLimits,
   transformApiEventTypeFutureBookingLimits,
@@ -116,8 +130,9 @@ export {
   getResponseEventTypeRecurrence,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
-export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
+export type { SystemField, CustomField } from "@calcom/lib/event-types/transformers";
+
+export { parseBookingLimit } from "@calcom/lib";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";

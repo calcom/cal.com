@@ -1,11 +1,11 @@
 import type {
-  transformApiEventTypeBookingFields,
   transformApiEventTypeColors,
   transformApiEventTypeFutureBookingLimits,
   transformApiEventTypeIntervalLimits,
-  transformApiEventTypeLocations,
   transformApiEventTypeRecurrence,
   transformApiSeatOptions,
+  transformBookingFieldsApiToInternal,
+  transformLocationsApiToInternal,
 } from "@calcom/lib/event-types/transformers";
 
 import type { CreateEventTypeInput_2024_06_14, ConfirmationPolicyTransformedSchema } from "../inputs";
@@ -28,9 +28,10 @@ export type InputEventTransformed_2024_06_14 = Omit<
   length: number;
   slug: string;
   eventName?: string;
-  locations?: ReturnType<typeof transformApiEventTypeLocations>;
   bookingLimits?: ReturnType<typeof transformApiEventTypeIntervalLimits>;
-  bookingFields?: ReturnType<typeof transformApiEventTypeBookingFields>;
+
+  locations?: ReturnType<typeof transformLocationsApiToInternal>;
+  bookingFields?: ReturnType<typeof transformBookingFieldsApiToInternal>;
   durationLimits?: ReturnType<typeof transformApiEventTypeIntervalLimits>;
   recurringEvent?: ReturnType<typeof transformApiEventTypeRecurrence>;
   eventTypeColor?: ReturnType<typeof transformApiEventTypeColors>;

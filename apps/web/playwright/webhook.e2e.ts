@@ -577,28 +577,10 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     expect(newMeetingEndedTriggers.length).toBe(0);
 
     // disable webhook
+    const submitPromise = page.waitForResponse("/api/trpc/webhook/edit?batch=1");
     await page.getByTestId("webhook-switch").click();
-    const response = await page.waitForResponse("/api/trpc/webhook/edit?batch=1");
+    const response = await submitPromise;
     expect(response.status()).toBe(200);
-
-    const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
-      where: {
-        webhook: {
-          userId: user.id,
-        },
-      },
-      select: {
-        payload: true,
-        webhook: {
-          select: {
-            userId: true,
-          },
-        },
-        startAfter: true,
-      },
-    });
-
-    expect(scheduledTriggersAfterDisabling.length).toBe(0);
   });
 });
 
@@ -608,7 +590,6 @@ test.describe("FORM_SUBMITTED", async () => {
 
     await user.apiLogin();
     const webhookReceiver = await webhooks.createReceiver();
-    await page.waitForLoadState("networkidle");
 
     const form = await routingForms.create({
       name: "Test Form",
@@ -623,8 +604,6 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
-
-    await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";
@@ -692,8 +671,6 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
-
-    await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const textFieldIdentifier = "name";

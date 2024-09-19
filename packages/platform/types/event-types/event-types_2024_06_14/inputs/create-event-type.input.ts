@@ -14,8 +14,8 @@ import {
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
-import type { BookingField_2024_06_14 } from "./booking-fields.input";
-import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
+import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
+import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
 import { ValidateBookingLimistsCount } from "./booking-limits-count.input";
 import type { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
@@ -61,8 +61,8 @@ export class CreateEventTypeInput_2024_06_14 {
   locations?: Location_2024_06_14[];
 
   @IsOptional()
-  @ValidateBookingFields_2024_06_14()
-  bookingFields?: BookingField_2024_06_14[];
+  @ValidateInputBookingFields_2024_06_14()
+  bookingFields?: InputBookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()

@@ -9,3 +9,4 @@ export { Timezone } from "./timezone";
 export { SelectedCalendarsSettingsWebWrapper } from "./selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 export { DestinationCalendarSettingsWebWrapper } from "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
 export * from "./availability";
+export { EventTypeWebWrapper as EventType } from "./event-types/wrappers/EventTypeWebWrapper";
