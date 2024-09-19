@@ -584,10 +584,6 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     await submitAndWaitForResponse(page, "/api/trpc/webhook/edit?batch=1", {
       action: () => page.getByTestId("webhook-switch").click(),
     });
-    // Enable webhook
-    await submitAndWaitForResponse(page, "/api/trpc/webhook/edit?batch=1", {
-      action: () => page.getByTestId("webhook-switch").click(),
-    });
 
     const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
       where: {
