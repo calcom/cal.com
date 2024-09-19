@@ -257,7 +257,9 @@ export default function Success(props: PageProps) {
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.remove("dark");
+    const html = document.querySelector("html");
+    html?.setAttribute("data-testid", "dark-mode");
+    html?.classList.remove("dark");
   }, []);
 
   const sendFeedback = async (rating: string, comment: string) => {
