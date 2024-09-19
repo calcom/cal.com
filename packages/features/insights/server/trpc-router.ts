@@ -18,7 +18,7 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
-type ctx = TRPCContextInner & {
+type Ctx = TRPCContextInner & {
   user: NonNullable<CreateInnerContextOptions["user"] & { isOwnerAdminOfParentTeam: boolean }>;
 };
 
@@ -28,7 +28,7 @@ interface BuildBaseWhereConditionType {
   memberUserId?: number;
   userId?: number;
   isAll?: boolean;
-  ctx: ctx;
+  ctx: Ctx;
 }
 
 const buildBaseWhereCondition = async ({
