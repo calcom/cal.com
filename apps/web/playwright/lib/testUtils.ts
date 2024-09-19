@@ -449,8 +449,8 @@ export async function submitAndWaitForResponse(
   return response.json();
 }
 
-export async function confirmReschedule(page: Page) {
-  await submitAndWaitForResponse(page, "/api/book/event", {
+export async function confirmReschedule(page: Page, url = "/api/book/event") {
+  await submitAndWaitForResponse(page, url, {
     action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
   });
 }

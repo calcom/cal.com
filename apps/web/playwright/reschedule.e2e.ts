@@ -10,12 +10,12 @@ import { apiLogin } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
+  confirmReschedule,
   doOnOrgDomain,
   goToUrlWithErrorHandling,
   IS_STRIPE_ENABLED,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
-  confirmReschedule,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -408,7 +408,10 @@ test.describe("Reschedule Tests", async () => {
 
       async function expectSuccessfulReschedule() {
         await selectFirstAvailableTimeSlotNextMonth(page);
-        await confirmReschedule(page);
+        const { protocol, host } = new URL(page.url());
+        // Needed since we we're expecting a non-org URL, causing timeouts.
+        const url = getNonOrgUrlFromOrgUrl(`${protocol}//${host}/api/book/event`);
+        await confirmReschedule(page, url);
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
       }
     });
