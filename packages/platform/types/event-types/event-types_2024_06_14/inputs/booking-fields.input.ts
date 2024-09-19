@@ -5,9 +5,7 @@ import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator"
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
-const bookingFields = [
-  "name",
-  "email",
+const inputBookingFieldTypes = [
   "phone",
   "address",
   "text",
@@ -21,53 +19,8 @@ const bookingFields = [
   "boolean",
 ] as const;
 
-export class NameField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
-  type!: "name";
-
-  @IsString()
-  @DocsProperty()
-  slug!: string;
-
-  @IsString()
-  @DocsProperty()
-  label!: string;
-
-  @IsBoolean()
-  @DocsProperty()
-  required!: boolean;
-
-  @IsString()
-  @IsOptional()
-  @DocsProperty()
-  placeholder?: string;
-}
-export class EmailField_2024_06_14 {
-  @IsIn(bookingFields)
-  @DocsProperty()
-  type!: "email";
-
-  @IsString()
-  @DocsProperty()
-  slug!: string;
-
-  @IsString()
-  @DocsProperty()
-  label!: string;
-
-  @IsBoolean()
-  @DocsProperty()
-  required!: boolean;
-
-  @IsString()
-  @IsOptional()
-  @DocsProperty()
-  placeholder?: string;
-}
-
-export class PhoneField_2024_06_14 {
-  @IsIn(bookingFields)
+export class PhoneFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "phone";
 
@@ -89,8 +42,8 @@ export class PhoneField_2024_06_14 {
   placeholder?: string;
 }
 
-export class AddressField_2024_06_14 {
-  @IsIn(bookingFields)
+export class AddressFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "address";
 
@@ -113,8 +66,8 @@ export class AddressField_2024_06_14 {
   placeholder?: string;
 }
 
-export class TextField_2024_06_14 {
-  @IsIn(bookingFields)
+export class TextFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "text";
 
@@ -137,8 +90,8 @@ export class TextField_2024_06_14 {
   placeholder?: string;
 }
 
-export class NumberField_2024_06_14 {
-  @IsIn(bookingFields)
+export class NumberFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "number";
 
@@ -161,8 +114,8 @@ export class NumberField_2024_06_14 {
   placeholder?: string;
 }
 
-export class TextAreaField_2024_06_14 {
-  @IsIn(bookingFields)
+export class TextAreaFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "textarea";
 
@@ -185,8 +138,8 @@ export class TextAreaField_2024_06_14 {
   placeholder?: string;
 }
 
-export class SelectField_2024_06_14 {
-  @IsIn(bookingFields)
+export class SelectFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "select";
 
@@ -213,8 +166,8 @@ export class SelectField_2024_06_14 {
   options!: string[];
 }
 
-export class MultiSelectField_2024_06_14 {
-  @IsIn(bookingFields)
+export class MultiSelectFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "multiselect";
 
@@ -235,8 +188,8 @@ export class MultiSelectField_2024_06_14 {
   options!: string[];
 }
 
-export class MultiEmailField_2024_06_14 {
-  @IsIn(bookingFields)
+export class MultiEmailFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "multiemail";
 
@@ -259,8 +212,8 @@ export class MultiEmailField_2024_06_14 {
   placeholder?: string;
 }
 
-export class CheckboxGroupField_2024_06_14 {
-  @IsIn(bookingFields)
+export class CheckboxGroupFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "checkbox";
 
@@ -281,8 +234,8 @@ export class CheckboxGroupField_2024_06_14 {
   options!: string[];
 }
 
-export class RadioGroupField_2024_06_14 {
-  @IsIn(bookingFields)
+export class RadioGroupFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "radio";
 
@@ -303,8 +256,8 @@ export class RadioGroupField_2024_06_14 {
   options!: string[];
 }
 
-export class BooleanField_2024_06_14 {
-  @IsIn(bookingFields)
+export class BooleanFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty()
   type!: "boolean";
 
@@ -321,38 +274,36 @@ export class BooleanField_2024_06_14 {
   required!: boolean;
 }
 
-export type BookingField_2024_06_14 =
-  | NameField_2024_06_14
-  | EmailField_2024_06_14
-  | PhoneField_2024_06_14
-  | AddressField_2024_06_14
-  | TextField_2024_06_14
-  | NumberField_2024_06_14
-  | TextAreaField_2024_06_14
-  | SelectField_2024_06_14
-  | MultiSelectField_2024_06_14
-  | MultiEmailField_2024_06_14
-  | CheckboxGroupField_2024_06_14
-  | RadioGroupField_2024_06_14
-  | BooleanField_2024_06_14;
+export type InputBookingField_2024_06_14 =
+  | PhoneFieldInput_2024_06_14
+  | AddressFieldInput_2024_06_14
+  | TextFieldInput_2024_06_14
+  | NumberFieldInput_2024_06_14
+  | TextAreaFieldInput_2024_06_14
+  | SelectFieldInput_2024_06_14
+  | MultiSelectFieldInput_2024_06_14
+  | MultiEmailFieldInput_2024_06_14
+  | CheckboxGroupFieldInput_2024_06_14
+  | RadioGroupFieldInput_2024_06_14
+  | BooleanFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
-class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
-  private classTypeMap: { [key: string]: new () => BookingField_2024_06_14 } = {
-    name: NameField_2024_06_14,
-    email: EmailField_2024_06_14,
-    phone: PhoneField_2024_06_14,
-    address: AddressField_2024_06_14,
-    text: TextField_2024_06_14,
-    number: NumberField_2024_06_14,
-    textarea: TextAreaField_2024_06_14,
-    select: SelectField_2024_06_14,
-    multiselect: MultiSelectField_2024_06_14,
-    multiemail: MultiEmailField_2024_06_14,
-    checkbox: CheckboxGroupField_2024_06_14,
-    radio: RadioGroupField_2024_06_14,
-    boolean: BooleanField_2024_06_14,
+class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
+  private classTypeMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {
+    phone: PhoneFieldInput_2024_06_14,
+    address: AddressFieldInput_2024_06_14,
+    text: TextFieldInput_2024_06_14,
+    number: NumberFieldInput_2024_06_14,
+    textarea: TextAreaFieldInput_2024_06_14,
+    select: SelectFieldInput_2024_06_14,
+    multiselect: MultiSelectFieldInput_2024_06_14,
+    multiemail: MultiEmailFieldInput_2024_06_14,
+    checkbox: CheckboxGroupFieldInput_2024_06_14,
+    radio: RadioGroupFieldInput_2024_06_14,
+    boolean: BooleanFieldInput_2024_06_14,
   };
+
+  private reservedSystemSlugs = ["name", "email", "location", "rescheduleReason"];
 
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {
@@ -372,6 +323,14 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
 
       if (!slug) {
         throw new BadRequestException(`Each booking field must have a 'slug' property.`);
+      }
+
+      if (this.reservedSystemSlugs.includes(slug)) {
+        throw new BadRequestException(
+          `The slug '${slug}' is reserved and cannot be used, because it is a slug of a default booking field. Reserved slugs are: ${this.reservedSystemSlugs.join(
+            ", "
+          )}`
+        );
       }
 
       if (slugs.includes(slug)) {
@@ -402,15 +361,15 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
   }
 }
 
-export function ValidateBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
+export function ValidateInputBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (object: any, propertyName: string) {
     registerDecorator({
-      name: "ValidateBookingFields",
+      name: "ValidateInputBookingFields",
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
-      validator: new BookingFieldValidator_2024_06_14(),
+      validator: new InputBookingFieldValidator_2024_06_14(),
     });
   };
 }
