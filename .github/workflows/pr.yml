@@ -121,28 +121,28 @@ jobs:
   build-api-v1:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
