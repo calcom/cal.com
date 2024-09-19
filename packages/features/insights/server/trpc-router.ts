@@ -5,6 +5,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
+import type { CreateInnerContextOptions, TRPCContextInner } from "@calcom/trpc/server/createContext";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -17,15 +18,38 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
-const buildWhereCondition = async ({ teamId, eventTypeId, memberUserId, userId, isAll, ctx }) => {
-  let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
+type ctx = TRPCContextInner & {
+  user: NonNullable<CreateInnerContextOptions["user"] & { isOwnerAdminOfParentTeam: boolean }>;
+};
+
+interface BuildBaseWhereConditionType {
+  teamId?: number | null;
+  eventTypeId?: number;
+  memberUserId?: number;
+  userId?: number;
+  isAll?: boolean;
+  ctx: ctx;
+}
+
+const buildBaseWhereCondition = async ({
+  teamId,
+  eventTypeId,
+  memberUserId,
+  userId,
+  isAll,
+  ctx,
+}: BuildBaseWhereConditionType): Promise<{
+  whereCondition: Prisma.BookingTimeStatusWhereInput;
+  isEmptyResponse?: boolean;
+}> => {
+  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
   // EventType Filter
-  if (eventTypeId) whereConditional.OR = [{ eventTypeId }, { eventParentId: eventTypeId }];
+  if (eventTypeId) whereCondition.OR = [{ eventTypeId }, { eventParentId: eventTypeId }];
   // User/Member filter
-  if (memberUserId) whereConditional.userId = memberUserId;
+  if (memberUserId) whereCondition.userId = memberUserId;
   if (userId) {
-    whereConditional.teamId = null;
-    whereConditional.userId = userId;
+    whereCondition.teamId = null;
+    whereCondition.userId = userId;
   }
   // organization-wide queries condition
   if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
@@ -38,9 +62,9 @@ const buildWhereCondition = async ({ teamId, eventTypeId, memberUserId, userId, 
       },
     });
     if (teamsFromOrg.length === 0) {
-      return emptyResponseEventsByStatus;
+      return { whereCondition, isEmptyResponse: true };
     }
-    teamConditional = {
+    const teamConditional = {
       id: {
         in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
       },
@@ -55,8 +79,8 @@ const buildWhereCondition = async ({ teamId, eventTypeId, memberUserId, userId, 
       },
     });
     const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
-    whereConditional = {
-      ...whereConditional,
+    whereCondition = {
+      ...whereCondition,
       OR: [
         {
           teamId: {
@@ -85,8 +109,8 @@ const buildWhereCondition = async ({ teamId, eventTypeId, memberUserId, userId, 
       },
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
-    whereConditional = {
-      ...whereConditional,
+    whereCondition = {
+      ...whereCondition,
       OR: [
         {
           teamId,
@@ -101,7 +125,7 @@ const buildWhereCondition = async ({ teamId, eventTypeId, memberUserId, userId, 
       ],
     };
   }
-  return whereConditional;
+  return { whereCondition };
 };
 
 const buildHashMapForUsers = <
@@ -230,7 +254,7 @@ export const insightsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().optional().nullable(),
+        teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
@@ -451,7 +475,7 @@ export const insightsRouter = router({
   eventsTimeline: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().optional().nullable(),
+        teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
@@ -493,7 +517,8 @@ export const insightsRouter = router({
           timeView = "day";
         }
       }
-      let whereConditional = await buildWhereCondition({
+
+      const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -501,7 +526,9 @@ export const insightsRouter = router({
         isAll,
         ctx,
       });
-
+      const { isEmptyResponse } = r;
+      let { whereCondition: whereConditional } = r;
+      if (isEmptyResponse) return emptyResponseEventsByStatus;
       // Get timeline data
       const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
 
@@ -555,7 +582,7 @@ export const insightsRouter = router({
       z.object({
         memberUserId: z.coerce.number().optional(),
         eventTypeId: z.coerce.number().optional(),
-        teamId: z.coerce.number().optional().nullable(),
+        teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
         userId: z.coerce.number().optional(),
@@ -575,8 +602,7 @@ export const insightsRouter = router({
         return [];
       }
 
-      let bookingWhere = await buildWhereCondition({
-        teamId,
+      const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -584,7 +610,9 @@ export const insightsRouter = router({
         isAll,
         ctx,
       });
-
+      const { isEmptyResponse } = r;
+      let { whereCondition: bookingWhere } = r;
+      if (isEmptyResponse) return emptyResponseEventsByStatus;
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
@@ -691,7 +719,7 @@ export const insightsRouter = router({
       z.object({
         memberUserId: z.coerce.number().optional(),
         eventTypeId: z.coerce.number().optional(),
-        teamId: z.coerce.number().optional().nullable(),
+        teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
         userId: z.coerce.number().optional(),
@@ -720,8 +748,7 @@ export const insightsRouter = router({
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
 
-      const whereConditional = await buildWhereCondition({
-        teamId,
+      const { whereCondition: whereConditional, isEmptyResponse } = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -729,6 +756,8 @@ export const insightsRouter = router({
         isAll,
         ctx,
       });
+
+      if (isEmptyResponse) return emptyResponseEventsByStatus;
 
       const timeView = EventsInsights.getTimeView("week", startDate, endDate);
       const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
@@ -781,7 +810,7 @@ export const insightsRouter = router({
       z.object({
         memberUserId: z.coerce.number().optional(),
         eventTypeId: z.coerce.number().optional(),
-        teamId: z.coerce.number().optional().nullable(),
+        teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
         userId: z.coerce.number().optional(),
@@ -796,8 +825,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      let bookingWhere = await buildWhereCondition({
-        teamId,
+      const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -805,6 +833,10 @@ export const insightsRouter = router({
         isAll,
         ctx,
       });
+      const { isEmptyResponse } = r;
+      let { whereCondition: bookingWhere } = r;
+      if (isEmptyResponse) return emptyResponseEventsByStatus;
+
       bookingWhere = {
         ...bookingWhere,
         teamId,
@@ -866,8 +898,8 @@ export const insightsRouter = router({
   membersWithLeastBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        userId: z.coerce.number().nullish(),
-        memberUserId: z.coerce.number().nullish(),
+        userId: z.coerce.number().optional(),
+        memberUserId: z.coerce.number().optional(),
         teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
@@ -882,8 +914,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      let bookingWhere = await buildWhereCondition({
-        teamId,
+      const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -891,6 +922,10 @@ export const insightsRouter = router({
         isAll,
         ctx,
       });
+      const { isEmptyResponse } = r;
+      let { whereCondition: bookingWhere } = r;
+      if (isEmptyResponse) return emptyResponseEventsByStatus;
+
       bookingWhere = {
         ...bookingWhere,
         teamId,
@@ -1162,8 +1197,8 @@ export const insightsRouter = router({
   eventTypeList: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().optional().nullable(),
-        userId: z.coerce.number().optional().nullable(),
+        teamId: z.coerce.number().nullish(),
+        userId: z.coerce.number().nullish(),
         isAll: z.boolean().optional(),
       })
     )
@@ -1272,8 +1307,8 @@ export const insightsRouter = router({
   recentRatings: userBelongsToTeamProcedure
     .input(
       z.object({
-        userId: z.coerce.number().nullish(),
-        memberUserId: z.coerce.number().nullish(),
+        userId: z.coerce.number().optional(),
+        memberUserId: z.coerce.number().optional(),
         teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
@@ -1288,8 +1323,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      let bookingWhere = await buildWhereCondition({
-        teamId,
+      const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -1297,6 +1331,10 @@ export const insightsRouter = router({
         isAll,
         ctx,
       });
+      const { isEmptyResponse } = r;
+      let { whereCondition: bookingWhere } = r;
+      if (isEmptyResponse) return emptyResponseEventsByStatus;
+
       bookingWhere = {
         ...bookingWhere,
         teamId,
@@ -1396,8 +1434,8 @@ export const insightsRouter = router({
   membersWithMostNoShow: userBelongsToTeamProcedure
     .input(
       z.object({
-        userId: z.coerce.number().nullish(),
-        memberUserId: z.coerce.number().nullish(),
+        userId: z.coerce.number().optional(),
+        memberUserId: z.coerce.number().optional(),
         teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
@@ -1411,8 +1449,7 @@ export const insightsRouter = router({
         return [];
       }
       const user = ctx.user;
-      let bookingWhere = await buildWhereCondition({
-        teamId,
+      const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -1420,6 +1457,10 @@ export const insightsRouter = router({
         isAll,
         ctx,
       });
+      const { isEmptyResponse } = r;
+      let { whereCondition: bookingWhere } = r;
+      if (isEmptyResponse) return emptyResponseEventsByStatus;
+
       bookingWhere = {
         ...bookingWhere,
         teamId,
@@ -1519,7 +1560,9 @@ export const insightsRouter = router({
   membersWithHighestRatings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable().optional(),
+        userId: z.coerce.number().optional(),
+        memberUserId: z.coerce.number().optional(),
+        teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
@@ -1654,7 +1697,9 @@ export const insightsRouter = router({
   membersWithLowestRatings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable().optional(),
+        userId: z.coerce.number().optional(),
+        memberUserId: z.coerce.number().optional(),
+        teamId: z.coerce.number().nullish(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
