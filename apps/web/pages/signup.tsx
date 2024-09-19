@@ -174,7 +174,7 @@ export default function Signup({
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [displaySignupForm, setDisplaySignupForm] = useState(isOrgInviteByLink);
+  const [displaySignupForm, setDisplaySignupForm] = useState(token);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
