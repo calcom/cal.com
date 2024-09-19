@@ -520,9 +520,11 @@ following
 7. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
 8. Set the "OAuth Redirect URL" under "OAuth Information" as `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
 9. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
-10. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write:meeting` and `user:read:settings`.
-12. Click "Done".
-13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
+10. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left,
+    1. click the category "Meeting" and check the scope `meeting:write:meeting`.
+    2. click the category "User" and check the scope `user:read:settings`.
+11. Click "Done".
+12. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
 ### Obtaining Daily API Credentials
 
