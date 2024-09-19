@@ -385,6 +385,7 @@ export class ProfileRepository {
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
+                allowSEOIndexing: true,
               },
             },
             members: {
