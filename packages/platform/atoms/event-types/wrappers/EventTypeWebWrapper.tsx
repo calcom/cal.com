@@ -57,9 +57,7 @@ const EventLimitsTab = dynamic(() =>
 
 const EventAdvancedTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab").then(
-    (mod) => mod.EventAdvancedTab
-  )
+  import("./EventAdvancedWebWrapper").then((mod) => mod)
 );
 
 const EventInstantTab = dynamic(() =>
