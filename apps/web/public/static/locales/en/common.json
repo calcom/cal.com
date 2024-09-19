@@ -2614,7 +2614,7 @@
   "sms_limit_almost_reached_second_part": "Once the limit is reached, we will automatically send SMS notifications to your attendees as emails instead. For more details, please visit: {{url}}",
   "sms_limit_reached_subject": "{{appName}}: SMS limit reached",
   "sms_credits": "SMS Credits",
-  "managed_sms_credit_allocation": "Manage your team's SMS credits",
+  "managed_sms_credit_allocation": "Manage your team's SMS credit (includes Whatsapp messages)",
   "no_limit": "No limit",
   "none": "None",
   "specific": "Specific",
@@ -2630,5 +2630,9 @@
   "credit_allocation_description": "Manage how many of your team's credits can be used for team members' personal event types",
   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "sms_beyond_limit": "SMS beyond your limit",
+  "sms_beyond_limit_description": "Control how SMS are handled once your free credits are used",
+  "pay_sms_over_limit": "Pay for SMS over the limit",
+  "pay_sms_over_limit_description": "Allow getting charged for extra SMS beyond your limit. You will be charged for each SMS sent. Pricing details are available <1>here</1>",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑,↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

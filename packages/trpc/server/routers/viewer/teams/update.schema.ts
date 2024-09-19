@@ -27,6 +27,7 @@ export const ZUpdateInputSchema = z.object({
     .enum([SmsCreditAllocationType.ALL, SmsCreditAllocationType.NONE, SmsCreditAllocationType.SPECIFIC])
     .optional(),
   smsCreditAllocationValue: z.number().optional(),
+  smsOveragesLimit: z.number().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

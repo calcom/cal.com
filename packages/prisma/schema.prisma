@@ -442,6 +442,7 @@ model Team {
   smsCreditCounts          SmsCreditCount[]
   smsCreditAllocationType  SmsCreditAllocationType @default(SPECIFIC)
   smsCreditAllocationValue Int?                    @default(50)
+  smsOveragesLimit         Int                     @default(0)
 
   @@unique([slug, parentId])
   @@index([parentId])

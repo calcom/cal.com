@@ -58,6 +58,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: input.theme,
     smsCreditAllocationType: input.smsCreditAllocationType,
     smsCreditAllocationValue: input.smsCreditAllocationValue,
+    smsOveragesLimit: input.smsOveragesLimit,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
