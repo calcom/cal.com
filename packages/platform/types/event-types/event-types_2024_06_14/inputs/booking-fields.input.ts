@@ -21,11 +21,15 @@ const inputBookingFieldTypes = [
 
 export class PhoneFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
   type!: "phone";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -44,11 +48,15 @@ export class PhoneFieldInput_2024_06_14 {
 
 export class AddressFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "address", description: "only allowed value for type is `address`" })
   type!: "address";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -68,11 +76,15 @@ export class AddressFieldInput_2024_06_14 {
 
 export class TextFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "text", description: "only allowed value for type is `text`" })
   type!: "text";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -92,11 +104,15 @@ export class TextFieldInput_2024_06_14 {
 
 export class NumberFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "number", description: "only allowed value for type is `number`" })
   type!: "number";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -116,11 +132,15 @@ export class NumberFieldInput_2024_06_14 {
 
 export class TextAreaFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "textarea", description: "only allowed value for type is `textarea`" })
   type!: "textarea";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -140,11 +160,15 @@ export class TextAreaFieldInput_2024_06_14 {
 
 export class SelectFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "select", description: "only allowed value for type is `select`" })
   type!: "select";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -168,11 +192,15 @@ export class SelectFieldInput_2024_06_14 {
 
 export class MultiSelectFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "multiselect", description: "only allowed value for type is `multiselect`" })
   type!: "multiselect";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -190,11 +218,15 @@ export class MultiSelectFieldInput_2024_06_14 {
 
 export class MultiEmailFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "multiemail", description: "only allowed value for type is `multiemail`" })
   type!: "multiemail";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -214,11 +246,15 @@ export class MultiEmailFieldInput_2024_06_14 {
 
 export class CheckboxGroupFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "checkbox", description: "only allowed value for type is `checkbox`" })
   type!: "checkbox";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -236,11 +272,15 @@ export class CheckboxGroupFieldInput_2024_06_14 {
 
 export class RadioGroupFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "radio", description: "only allowed value for type is `radio`" })
   type!: "radio";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()
@@ -258,11 +298,15 @@ export class RadioGroupFieldInput_2024_06_14 {
 
 export class BooleanFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty()
+  @DocsProperty({ example: "boolean", description: "only allowed value for type is `boolean`" })
   type!: "boolean";
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
   slug!: string;
 
   @IsString()

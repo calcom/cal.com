@@ -1731,6 +1731,7 @@
   "already_have_account": "已經有帳號嗎？",
   "already_have_key": "我已經有金鑰：",
   "already_have_key_suggestion": "請複製您目前的 CALCOM_LICENSE_KEY 環境變數至此處。",
+  "create_license_key": "建立授權金鑰",
   "app_is_enabled": "已啟用 {{appName}}",
   "app_is_disabled": "已停用 {{appName}}",
   "keys_have_been_saved": "已儲存金鑰",

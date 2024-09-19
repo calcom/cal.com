@@ -1731,6 +1731,7 @@
   "already_have_account": "Zaten bir hesabınız var mı?",
   "already_have_key": "Zaten bir anahtarım var:",
   "already_have_key_suggestion": "Lütfen mevcut CALCOM_LICENSE_KEY ortam değişkeninizi buraya kopyalayın.",
+  "create_license_key": "Lisans Anahtarı Oluştur",
   "app_is_enabled": "{{appName}} etkinleştirildi",
   "app_is_disabled": "{{appName}} devre dışı bırakıldı",
   "keys_have_been_saved": "Anahtarlar kaydedildi",
