@@ -25,7 +25,8 @@ const handlePayment = async (
     uid: string;
   },
   bookerName: string,
-  bookerEmail: string
+  bookerEmail: string,
+  bookerPhoneNumber?: string | null
 ) => {
   const paymentApp = (await appStore[
     paymentAppCredentials?.app?.dirName as keyof typeof appStore
@@ -50,8 +51,9 @@ const handlePayment = async (
         currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
+      paymentOption,
       bookerEmail,
-      paymentOption
+      bookerPhoneNumber
     );
   } else {
     paymentData = await paymentInstance.create(
@@ -63,8 +65,9 @@ const handlePayment = async (
       booking.userId,
       booking.user?.username ?? null,
       bookerName,
-      bookerEmail,
       paymentOption,
+      bookerEmail,
+      bookerPhoneNumber,
       selectedEventType.title,
       evt.title
     );

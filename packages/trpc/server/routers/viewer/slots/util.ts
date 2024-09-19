@@ -38,6 +38,8 @@ import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
+const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+
 export const checkIfIsAvailable = ({
   time,
   busy,
@@ -113,6 +115,7 @@ async function getEventTypeId({
       organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
     );
   }
+  if (!userId && !teamId) throw new TRPCError({ code: "NOT_FOUND" });
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventTypeSlug,
@@ -134,6 +137,7 @@ export async function getEventType(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  log.info("getEventType", safeStringify({ usernameList, eventTypeSlug, isTeamEvent, organizationDetails }));
   const eventTypeId =
     input.eventTypeId ||
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -442,7 +446,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
-  const bookingsSelect = {
+  const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
     id: true,
     uid: true,
     userId: true,
@@ -468,7 +472,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         },
       },
     }),
-  };
+  });
 
   const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
     where: {
@@ -477,9 +481,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         in: allUserIds,
       },
     },
-    select: {
-      ...bookingsSelect,
-    },
+    select: bookingsSelect,
   });
 
   const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
@@ -493,9 +495,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         },
       },
     },
-    select: {
-      ...bookingsSelect,
-    },
+    select: bookingsSelect,
   });
 
   const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
@@ -511,9 +511,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         in: [BookingStatus.PENDING],
       },
     },
-    select: {
-      ...bookingsSelect,
-    },
+    select: bookingsSelect,
   });
 
   const [resultOne, resultTwo, resultThree] = await Promise.all([
@@ -843,7 +841,7 @@ async function getUserIdFromUsername(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-
+  log.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
   const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
