@@ -1,5 +1,14 @@
 # @calcom/embed-react
 
+## 1.5.1
+
+### Patch Changes
+
+- Ships latest types of new events added like bookingSuccessfulV2
+- Updated dependencies
+  - @calcom/embed-core@1.5.1
+  - @calcom/embed-snippet@1.3.1
+
 ## 1.5.0
 
 ### Minor Changes
