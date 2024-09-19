@@ -2,12 +2,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
-import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
-import {
-  getEventLocationType,
-  getSuccessPageLocationMessage,
-  guessEventLocationType,
-} from "@calcom/app-store/locations";
+import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
@@ -18,6 +14,7 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -284,20 +281,36 @@ function BookingListItem(booking: BookingItemProps) {
       setIsOpenLocationDialog(false);
       utils.viewer.bookings.invalidate();
     },
+    onError: (e) => {
+      const errorMessages: Record<string, string> = {
+        UNAUTHORIZED: t("you_are_unauthorized_to_make_this_change_to_the_booking"),
+        BAD_REQUEST: e.message,
+      };
+
+      const message = errorMessages[e.data?.code as string] || t("location_update_failed");
+      showToast(message, "error");
+    },
   });
 
-  const saveLocation = (
-    newLocationType: EventLocationType["type"],
-    details: {
-      [key: string]: string;
+  const saveLocation = async ({
+    newLocation,
+    credentialId,
+  }: {
+    newLocation: string;
+    /**
+     * It could be set for conferencing locations that support team level installations.
+     */
+    credentialId: number | null;
+  }) => {
+    try {
+      await setLocationMutation.mutateAsync({
+        bookingId: booking.id,
+        newLocation,
+        credentialId,
+      });
+    } catch {
+      // Errors are shown through the mutation onError handler
     }
-  ) => {
-    let newLocation = newLocationType as string;
-    const eventLocationType = getEventLocationType(newLocationType);
-    if (eventLocationType?.organizerInputType) {
-      newLocation = details[Object.keys(details)[0]];
-    }
-    setLocationMutation.mutate({ bookingId: booking.id, newLocation, details });
   };
 
   // Getting accepted recurring dates to show
@@ -310,7 +323,7 @@ function BookingListItem(booking: BookingItemProps) {
     const urlSearchParams = new URLSearchParams({
       allRemainingBookings: isTabRecurring.toString(),
     });
-    if (booking.attendees[0]) urlSearchParams.set("email", booking.attendees[0].email);
+    if (booking.attendees?.[0]?.email) urlSearchParams.set("email", booking.attendees[0].email);
     return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
   };
 
@@ -344,6 +357,7 @@ function BookingListItem(booking: BookingItemProps) {
       email: attendee.email,
       id: attendee.id,
       noShow: attendee.noShow || false,
+      phoneNumber: attendee.phoneNumber,
     };
   });
   return (
@@ -718,6 +732,7 @@ const FirstAttendee = ({
 type AttendeeProps = {
   name?: string;
   email: string;
+  phoneNumber: string | null;
   id: number;
   noShow: boolean;
 };
@@ -728,7 +743,7 @@ type NoShowProps = {
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee } = attendeeProps;
+  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
   const { t } = useLocale();
 
   const [noShow, setNoShow] = useState(noShowAttendee);
@@ -772,38 +787,43 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem className="focus:outline-none">
-          <DropdownItem
-            StartIcon="mail"
-            href={`mailto:${email}`}
-            onClick={(e) => {
-              setOpenDropdown(false);
-              e.stopPropagation();
-            }}>
-            <a href={`mailto:${email}`}>{t("email")}</a>
-          </DropdownItem>
-        </DropdownMenuItem>
+        {!isSmsCalEmail(email) && (
+          <DropdownMenuItem className="focus:outline-none">
+            <DropdownItem
+              StartIcon="mail"
+              href={`mailto:${email}`}
+              onClick={(e) => {
+                setOpenDropdown(false);
+                e.stopPropagation();
+              }}>
+              <a href={`mailto:${email}`}>{t("email")}</a>
+            </DropdownItem>
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuItem className="focus:outline-none">
           <DropdownItem
             StartIcon={isCopied ? "clipboard-check" : "clipboard"}
             onClick={(e) => {
               e.preventDefault();
-              copyToClipboard(email);
+              const isEmailCopied = isSmsCalEmail(email);
+              copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
               setOpenDropdown(false);
-              showToast(t("email_copied"), "success");
+              showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
             }}>
             {!isCopied ? t("copy") : t("copied")}
           </DropdownItem>
         </DropdownMenuItem>
+
         {isBookingInPast && (
           <DropdownMenuItem className="focus:outline-none">
             {noShow ? (
               <DropdownItem
                 data-testid="unmark-no-show"
                 onClick={(e) => {
+                  e.preventDefault();
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                  e.preventDefault();
                 }}
                 StartIcon="eye">
                 {t("unmark_as_no_show")}
@@ -812,9 +832,9 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
               <DropdownItem
                 data-testid="mark-no-show"
                 onClick={(e) => {
+                  e.preventDefault();
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                  e.preventDefault();
                 }}
                 StartIcon="eye-off">
                 {t("mark_as_no_show")}

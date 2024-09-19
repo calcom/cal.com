@@ -137,12 +137,18 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string; title?: string }) => {
+export const bookTimeSlot = async (
+  page: Page,
+  opts?: { name?: string; email?: string; title?: string; attendeePhoneNumber?: string }
+) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
   await page.fill('[name="email"]', opts?.email ?? testEmail);
   if (opts?.title) {
     await page.fill('[name="title"]', opts.title);
+  }
+  if (opts?.attendeePhoneNumber) {
+    await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
   await page.press('[name="email"]', "Enter");
 };
@@ -201,7 +207,7 @@ export async function gotoRoutingLink({
   await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
 
   // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 export async function installAppleCalendar(page: Page) {
@@ -423,4 +429,16 @@ export async function gotoBookingPage(page: Page) {
 
 export async function saveEventType(page: Page) {
   await page.locator("[data-testid=update-eventtype]").click();
+}
+
+/** Fastest way so far to test for saving changes and form submissions */
+export async function submitAndWaitForResponse(
+  page: Page,
+  url: string,
+  { action = () => page.locator('[type="submit"]').click(), expectedStatusCode = 200 } = {}
+) {
+  const submitPromise = page.waitForResponse(url);
+  await action();
+  const response = await submitPromise;
+  expect(response.status()).toBe(expectedStatusCode);
 }

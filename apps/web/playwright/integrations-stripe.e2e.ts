@@ -265,7 +265,7 @@ test.describe("Stripe integration skip true", () => {
   });
 });
 
-test.describe("Stripe integration with the new app install flow skip flase", () => {
+test.describe("Stripe integration with the new app install flow skip false", () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 

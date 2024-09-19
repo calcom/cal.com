@@ -14,6 +14,7 @@ export type DefaultEventLocationType = {
   label: string;
   messageForOrganizer: string;
   category: "in person" | "conferencing" | "other" | "phone";
+  linkType: "static";
 
   iconUrl: string;
   urlRegExp?: string;
@@ -101,6 +102,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "attendeeAddress",
     iconUrl: "/map-pin-dark.svg",
     category: "in person",
+    linkType: "static",
   },
   {
     default: true,
@@ -114,6 +116,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "somewhereElse",
     iconUrl: "/message-pin.svg",
     category: "other",
+    linkType: "static",
   },
   {
     default: true,
@@ -126,6 +129,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "address",
     iconUrl: "/map-pin-dark.svg",
     category: "in person",
+    linkType: "static",
   },
   {
     default: true,
@@ -137,6 +141,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "hostDefault",
     category: "conferencing",
     messageForOrganizer: "",
+    linkType: "static",
   },
   {
     default: true,
@@ -148,6 +153,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "link",
     iconUrl: "/link.svg",
     category: "other",
+    linkType: "static",
   },
   {
     default: true,
@@ -163,6 +169,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     // inputType: "phone"
     iconUrl: "/phone.svg",
     category: "phone",
+    linkType: "static",
   },
   {
     default: true,
@@ -174,6 +181,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "hostPhoneNumber",
     iconUrl: "/phone.svg",
     category: "phone",
+    linkType: "static",
   },
 ];
 
@@ -247,21 +255,20 @@ for (const [appName, meta] of Object.entries(appStoreMetadata)) {
   }
 }
 
-const locationsTypes = [...defaultLocations, ...locationsFromApps];
-export const getStaticLinkBasedLocation = (locationType: string) =>
-  locationsFromApps.find((l) => l.linkType === "static" && l.type === locationType);
+const locations = [...defaultLocations, ...locationsFromApps];
 
-export const getEventLocationTypeFromApp = (locationType: string) =>
+export const getLocationFromApp = (locationType: string) =>
   locationsFromApps.find((l) => l.type === locationType);
 
+// TODO: Rename this to getLocationByType()
 export const getEventLocationType = (locationType: string | undefined | null) =>
-  locationsTypes.find((l) => l.type === locationType);
+  locations.find((l) => l.type === locationType);
 
-export const getEventLocationTypeFromValue = (value: string | undefined | null) => {
+const getStaticLinkLocationByValue = (value: string | undefined | null) => {
   if (!value) {
     return null;
   }
-  return locationsTypes.find((l) => {
+  return locations.find((l) => {
     if (l.default || l.linkType == "dynamic" || !l.urlRegExp) {
       return;
     }
@@ -270,7 +277,7 @@ export const getEventLocationTypeFromValue = (value: string | undefined | null) 
 };
 
 export const guessEventLocationType = (locationTypeOrValue: string | undefined | null) =>
-  getEventLocationType(locationTypeOrValue) || getEventLocationTypeFromValue(locationTypeOrValue);
+  getEventLocationType(locationTypeOrValue) || getStaticLinkLocationByValue(locationTypeOrValue);
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
@@ -303,7 +310,7 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
  * @returns string
  */
 export const getMessageForOrganizer = (location: string, t: TFunction) => {
-  const videoLocation = getEventLocationTypeFromApp(location);
+  const videoLocation = getLocationFromApp(location);
   const defaultLocation = defaultLocations.find((l) => l.type === location);
   if (defaultLocation) {
     return t(defaultLocation.messageForOrganizer);
@@ -464,8 +471,17 @@ export const getTranslatedLocation = (
 export const getOrganizerInputLocationTypes = () => {
   const result: DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"][] = [];
 
-  const locations = locationsTypes.filter((location) => !!location.organizerInputType);
-  locations?.forEach((l) => result.push(l.type));
+  const organizerInputTypeLocations = locations.filter((location) => !!location.organizerInputType);
+  organizerInputTypeLocations?.forEach((l) => result.push(l.type));
 
   return result;
+};
+
+export const isAttendeeInputRequired = (locationType: string) => {
+  const location = locations.find((l) => l.type === locationType);
+  if (!location) {
+    // Consider throwing an error here. This shouldn't happen normally.
+    return false;
+  }
+  return location.attendeeInputType;
 };

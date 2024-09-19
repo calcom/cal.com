@@ -6,6 +6,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
+import isSmsCalEmail from "./isSmsCalEmail";
 
 const translator = short();
 
@@ -39,9 +40,11 @@ export const getWho = (calEvent: CalendarEvent, t: TFunction) => {
     .map((attendee) => {
       return `
 ${attendee?.name || t("guest")}
-${attendee.email}
-      `;
+${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
+
+`;
     })
+
     .join("");
 
   const organizer = `
