@@ -163,6 +163,7 @@ test.describe("Bookings", () => {
 
       const { team } = await owner.getFirstTeamMembership();
       const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
 
@@ -172,7 +173,7 @@ test.describe("Bookings", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj });
+          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj: eventHostsObj });
 
           // Since all the users have the same leastRecentlyBooked value
           // Anyone of the teammates could be the Host of the booking.
@@ -542,6 +543,7 @@ test.describe("Bookings", () => {
       await expectPageToBeNotFound({ page, url: `/${usernameInOrg}` });
       await userOutsideOrganization.apiLogin();
       await acceptTeamOrOrgInvite(page);
+      await userOutsideOrganization.logout();
       await test.step("Book through new link", async () => {
         await doOnOrgDomain(
           {
