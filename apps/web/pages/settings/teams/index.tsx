@@ -1,9 +1,9 @@
-import TeamMembersView from "@calcom/features/ee/teams/pages/team-members-view";
+import TeamListingView from "@calcom/features/ee/teams/pages/team-listing-view";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 
 import PageWrapper from "@components/PageWrapper";
 
-const Page = () => <TeamMembersView />;
+const Page = () => <TeamListingView />;
 
 Page.getLayout = getLayout;
 Page.PageWrapper = PageWrapper;
