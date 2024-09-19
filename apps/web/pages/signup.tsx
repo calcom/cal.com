@@ -473,14 +473,13 @@ export default function Signup({
                       className={classNames("w-full justify-center rounded-md text-center")}
                       onClick={async () => {
                         setIsGoogleLoading(true);
-                        const username = formMethods.getValues("username");
                         const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
                         const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
                         const searchQueryParams = new URLSearchParams();
-                        if (username) {
+                        if (prepopulateFormValues?.username) {
                           // If username is present we save it in query params to check for premium
-                          searchQueryParams.set("username", username);
-                          localStorage.setItem("username", username);
+                          searchQueryParams.set("username", prepopulateFormValues.username);
+                          localStorage.setItem("username", prepopulateFormValues.username);
                         }
                         if (token) {
                           searchQueryParams.set("email", prepopulateFormValues?.email);
