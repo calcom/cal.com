@@ -1,5 +1,4 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import type { NextApiRequest } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -26,12 +25,12 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import {
   bookingMetadataSchema,
   EventTypeMetaDataSchema,
   schemaBookingCancelParams,
 } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import {
   deleteAllWorkflowReminders,
   getAllWorkflowsFromEventType,
@@ -361,28 +360,26 @@ async function handler(req: CustomRequest) {
       );
     })
   );
-  waitUntil(Promise.all(promises));
+  await Promise.all(promises);
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
 
-  waitUntil(
-    sendCancelledReminders({
-      workflows,
-      smsReminderNumber: bookingToDelete.smsReminderNumber,
-      evt: {
-        ...evt,
-        metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
-        ...{
-          eventType: {
-            slug: bookingToDelete.eventType?.slug,
-            schedulingType: bookingToDelete.eventType?.schedulingType,
-            hosts: bookingToDelete.eventType?.hosts,
-          },
+  await sendCancelledReminders({
+    workflows,
+    smsReminderNumber: bookingToDelete.smsReminderNumber,
+    evt: {
+      ...evt,
+      metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
+      ...{
+        eventType: {
+          slug: bookingToDelete.eventType?.slug,
+          schedulingType: bookingToDelete.eventType?.schedulingType,
+          hosts: bookingToDelete.eventType?.hosts,
         },
       },
-      hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
-    })
-  );
+    },
+    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+  });
 
   let updatedBookings: {
     id: number;
@@ -523,23 +520,19 @@ async function handler(req: CustomRequest) {
     workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders));
   }
 
-  waitUntil(
-    Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
-      log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
-    })
-  );
+  await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
+    log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
+  });
 
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   try {
     // TODO: if emails fail try to requeue them
     if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
-      waitUntil(
-        sendCancelledEmailsAndSMS(
-          evt,
-          { eventName: bookingToDelete?.eventType?.eventName },
-          bookingToDelete?.eventType?.metadata as EventTypeMetadata
-        )
+      await sendCancelledEmailsAndSMS(
+        evt,
+        { eventName: bookingToDelete?.eventType?.eventName },
+        bookingToDelete?.eventType?.metadata as EventTypeMetadata
       );
   } catch (error) {
     console.error("Error deleting event", error);
