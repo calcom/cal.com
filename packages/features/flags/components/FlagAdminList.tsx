@@ -1,9 +1,19 @@
+import type { FeatureFlagRepository } from "@calcom/lib/server/repository/featureFlag";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch, showToast } from "@calcom/ui";
 
-export const FlagAdminList = () => {
-  const [data] = trpc.viewer.features.list.useSuspenseQuery();
+export type FlagAdminListProps = {
+  ssrProps?: {
+    featureFlags?: Awaited<ReturnType<typeof FeatureFlagRepository.getFeatureFlags>>;
+  };
+  revalidateCache?: () => Promise<void>;
+};
+
+export const FlagAdminList = ({ ssrProps, revalidateCache }: FlagAdminListProps) => {
+  const [_data] = trpc.viewer.features.list.useSuspenseQuery();
+  const data = ssrProps?.featureFlags ?? _data;
+
   return (
     <List roundContainer noBorderTreatment>
       {data.map((flag) => (
@@ -17,7 +27,7 @@ export const FlagAdminList = () => {
             <ListItemText component="p">{flag.description}</ListItemText>
           </div>
           <div className="flex py-2">
-            <FlagToggle flag={flag} />
+            <FlagToggle flag={flag} onSuccess={revalidateCache} />
           </div>
         </ListItem>
       ))}
@@ -27,7 +37,7 @@ export const FlagAdminList = () => {
 
 type Flag = RouterOutputs["viewer"]["features"]["list"][number];
 
-const FlagToggle = (props: { flag: Flag }) => {
+const FlagToggle = (props: { flag: Flag; onSuccess?: () => void }) => {
   const {
     flag: { slug, enabled },
   } = props;
@@ -37,6 +47,7 @@ const FlagToggle = (props: { flag: Flag }) => {
       showToast("Flags successfully updated", "success");
       utils.viewer.features.list.invalidate();
       utils.viewer.features.map.invalidate();
+      props.onSuccess?.();
     },
   });
   return (

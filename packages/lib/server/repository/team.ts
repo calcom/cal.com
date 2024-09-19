@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getParsedTeam } from "./teamUtils";
@@ -177,5 +177,36 @@ export class TeamRepository {
       return null;
     }
     return getParsedTeam(team);
+  }
+
+  static async getAllOrgs() {
+    const allOrgs = await prisma.team.findMany({
+      where: {
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        organizationSettings: true,
+        members: {
+          where: {
+            role: "OWNER",
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return allOrgs.map((org) => ({ ...org, metadata: teamMetadataSchema.parse(org.metadata) }));
   }
 }

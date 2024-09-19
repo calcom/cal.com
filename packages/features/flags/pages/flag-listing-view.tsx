@@ -2,9 +2,9 @@
 
 import { Suspense } from "react";
 
-import NoSSR from "@calcom/core/components/NoSSR";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui";
 
+import type { FlagAdminListProps } from "../components/FlagAdminList";
 import { FlagAdminList } from "../components/FlagAdminList";
 
 const SkeletonLoader = () => {
@@ -18,12 +18,10 @@ const SkeletonLoader = () => {
   );
 };
 
-export const FlagListingView = () => {
+export const FlagListingView = (props: FlagAdminListProps) => {
   return (
-    <NoSSR>
-      <Suspense fallback={<SkeletonLoader />}>
-        <FlagAdminList />
-      </Suspense>
-    </NoSSR>
+    <Suspense fallback={<SkeletonLoader />}>
+      <FlagAdminList {...props} />
+    </Suspense>
   );
 };

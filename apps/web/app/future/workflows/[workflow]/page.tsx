@@ -54,7 +54,13 @@ const Page = async ({ params, searchParams }: PageProps) => {
   } catch (err) {}
 
   return (
-    <LegacyPage workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers} />
+    <LegacyPage
+      ssrProps={{
+        workflow,
+        verifiedEmails,
+        verifiedNumbers,
+      }}
+    />
   );
 };
 

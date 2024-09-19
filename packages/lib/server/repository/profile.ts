@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";

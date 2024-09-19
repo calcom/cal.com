@@ -1,5 +1,6 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import type { AdminRepository } from "@calcom/lib/server/repository/admin";
 import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import type { IconName } from "@calcom/ui";
@@ -9,6 +10,7 @@ const { Cell, ColumnTitle, Header, Row } = Table;
 
 type Props = {
   setSMSLockState: (param: { userId?: number; teamId?: number; lock: boolean }) => void;
+  usersAndTeams?: Awaited<ReturnType<typeof AdminRepository.getSMSLockStateTeamsUsers>>;
 };
 
 type User = {
@@ -28,8 +30,11 @@ type Team = {
   logoUrl?: string | null;
 };
 
-function UsersTable({ setSMSLockState }: Props) {
-  const { data: usersAndTeams } = trpc.viewer.admin.getSMSLockStateTeamsUsers.useQuery();
+function UsersTable({ setSMSLockState, usersAndTeams: usersAndTeamsProp }: Props) {
+  const { data } = trpc.viewer.admin.getSMSLockStateTeamsUsers.useQuery(undefined, {
+    enabled: !usersAndTeamsProp,
+  });
+  const usersAndTeams = usersAndTeamsProp ?? data;
 
   if (!usersAndTeams) {
     return <></>;
