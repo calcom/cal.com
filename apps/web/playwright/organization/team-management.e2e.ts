@@ -57,7 +57,6 @@ test.describe("Teams", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      // await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       // Cleanup here since this user is created without our fixtures.

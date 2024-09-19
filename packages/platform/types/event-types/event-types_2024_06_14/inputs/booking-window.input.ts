@@ -1,4 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
+import { ApiProperty } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import {
   IsEnum,
@@ -29,6 +30,10 @@ export type TransformFutureBookingsLimitSchema_2024_06_14 = {
 // Base class for common properties and validation
 class BookingWindowBase {
   @IsEnum(BookingWindowPeriodInputTypeEnum_2024_06_14)
+  @ApiProperty({
+    enum: ["businessDays", "calendarDays", "range"],
+    description: "Whether the window should be business days, calendar days or a range of dates",
+  })
   type!: BookingWindowPeriodInputType_2024_06_14;
 }
 
@@ -36,20 +41,32 @@ class BookingWindowBase {
 export class BusinessDaysWindow_2024_06_14 extends BookingWindowBase {
   @IsNumber()
   @IsDefined()
+  @ApiProperty({ example: 5, description: "How many business day into the future can this event be booked" })
   value!: number;
 
   @IsOptional()
   @IsBoolean()
+  @ApiProperty({
+    example: true,
+    description:
+      "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date.",
+  })
   rolling?: boolean;
 }
 
 export class CalendarDaysWindow_2024_06_14 extends BookingWindowBase {
   @IsNumber()
   @IsDefined()
+  @ApiProperty({ example: 5, description: "How many calendar days into the future can this event be booked" })
   value!: number;
 
   @IsOptional()
   @IsBoolean()
+  @ApiProperty({
+    example: true,
+    description:
+      "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date.",
+  })
   rolling?: boolean;
 }
 
@@ -58,6 +75,11 @@ export class RangeWindow_2024_06_14 extends BookingWindowBase {
   @ArrayNotEmpty()
   @IsDateString({}, { each: true })
   @IsDefined()
+  @ApiProperty({
+    type: [String],
+    example: ["2030-09-05", "2030-09-09"],
+    description: "Date range for when this event can be booked.",
+  })
   value!: string[];
 }
 
