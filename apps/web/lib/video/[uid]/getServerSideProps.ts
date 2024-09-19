@@ -78,10 +78,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const oldVideoReference = getCalVideoReference(bookingObj.references);
 
+  console.log("bookingObj.references", bookingObj.references);
+
   // set meetingPassword for guests
   if (session?.user.id !== bookingObj.user?.id) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
-      oldVideoReference.meetingPassword
+      oldVideoReference.meetingPassword,
+      session?.user.id
     );
 
     bookingObj.references.forEach((bookRef) => {
@@ -92,7 +95,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   else {
     const meetingPassword = await setEnableRecordingUIForOrganizer(
       oldVideoReference.id,
-      oldVideoReference.meetingPassword
+      oldVideoReference.meetingPassword,
+      session?.user.id
     );
     if (!!meetingPassword) {
       bookingObj.references.forEach((bookRef) => {

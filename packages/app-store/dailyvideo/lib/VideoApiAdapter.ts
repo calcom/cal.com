@@ -111,7 +111,10 @@ async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   return allTranscriptsAccessLinks;
 }
 
-export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToken: string | null) => {
+export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
+  meetingToken: string | null,
+  userId?: string
+) => {
   if (!meetingToken) return null;
 
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
@@ -120,6 +123,7 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
       room_name: token.room_name,
       exp: token.exp,
       enable_recording_ui: false,
+      user_id: userId,
     },
   }).then(meetingTokenSchema.parse);
 
@@ -129,7 +133,8 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
 // Only for backward compatibility
 export const setEnableRecordingUIForOrganizer = async (
   bookingReferenceId: number,
-  meetingToken: string | null
+  meetingToken: string | null,
+  userId?: string
 ) => {
   if (!meetingToken) return null;
 
@@ -142,6 +147,7 @@ export const setEnableRecordingUIForOrganizer = async (
       exp: token.exp,
       enable_recording_ui: false,
       is_owner: true,
+      user_id: userId,
     },
   }).then(meetingTokenSchema.parse);
 
