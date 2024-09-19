@@ -459,7 +459,6 @@ export default function Signup({
                   {true ? (
                     <Button
                       color="primary"
-                      disabled={!!formMethods.formState.errors.username || premiumUsername}
                       loading={isGoogleLoading}
                       CustomStartIcon={
                         <img
