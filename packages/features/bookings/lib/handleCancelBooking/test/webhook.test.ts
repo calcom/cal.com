@@ -14,16 +14,10 @@ import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/
 import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { vi, describe } from "vitest";
+import { describe } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
-
-vi.mock("@vercel/functions", () => {
-  return {
-    waitUntil: async (promise: Promise<unknown>) => await promise.catch(console.error),
-  };
-});
 
 describe("Cancel Booking", () => {
   setupAndTeardown();
@@ -75,7 +69,6 @@ describe("Cancel Booking", () => {
         ],
         bookings: [
           {
-            attendees: [{ email: "attendee@example.com" }],
             id: idOfBookingToBeCancelled,
             uid: uidOfBookingToBeCancelled,
             eventTypeId: 1,
