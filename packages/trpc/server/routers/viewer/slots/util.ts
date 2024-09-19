@@ -14,6 +14,7 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { isUserReschedulingOwner } from "@calcom/features/bookings/lib/handleNewBooking/getRequiresConfirmationFlags";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -25,7 +26,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { PeriodType, Prisma } from "@calcom/prisma/client";
+import { MembershipRole, PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -414,22 +415,28 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
     }
 
-    // Get attendees email ids
-    const attendeesEmails = originalRescheduledBooking?.attendees?.map((a) => a.email);
-    if (attendeesEmails?.length) {
-      attendeeUsers = await prisma.user.findMany({
-        where: {
-          email: {
-            in: attendeesEmails,
+    const userId = ctx?.req?.user?.id;
+    const isUserEventOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.userId)
+    const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
+    const isUserTeamAdminOrOwner = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+    if (isUserEventOwner || isUserTeamAdminOrOwner) {
+      // Get attendees email ids
+      const attendeesEmails = originalRescheduledBooking?.attendees?.map((a) => a.email);
+      if (attendeesEmails?.length) {
+        attendeeUsers = await prisma.user.findMany({
+          where: {
+            email: {
+              in: attendeesEmails,
+            },
           },
-        },
-        select: {
-          ...availabilityUserSelect,
-          credentials: {
-            select: credentialForCalendarServiceSelect,
+          select: {
+            ...availabilityUserSelect,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
           },
-        },
-      });
+        });
+      }
     }
   }
 

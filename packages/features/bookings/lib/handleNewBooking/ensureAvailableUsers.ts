@@ -2,19 +2,15 @@ import type { Logger } from "tslog";
 
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma, { userSelect } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+
 import { checkForConflicts } from "../conflictChecker/checkForConflicts";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
-import { isUserReschedulingOwner } from "./getRequiresConfirmationFlags";
-import type { BookingType, IsFixedAwareUser } from "./types";
-
+import type { IsFixedAwareUser, BookingType } from "./types";
 
 type DateRange = {
   start: Dayjs;
@@ -56,8 +52,7 @@ export async function ensureAvailableUsers(
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  loggerWithEventDetails: Logger<unknown>,
-  userId: number | undefined
+  loggerWithEventDetails: Logger<unknown>
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
 
@@ -69,46 +64,11 @@ export async function ensureAvailableUsers(
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
-  let attendeeUsers: IsFixedAwareUser[] = [];
-  let isEventOwnerOrTeamAdmin = false;
-  if (input.originalRescheduledBooking?.uid) {
-    const isEventOwner = isUserReschedulingOwner(userId, input.originalRescheduledBooking?.user?.id);
-    const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
-    const isUserTeamAdminOrOwner =
-      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-    isEventOwnerOrTeamAdmin = isEventOwner || isUserTeamAdminOrOwner
-    if (isEventOwnerOrTeamAdmin) {
-      const attendeesEmails = input.originalRescheduledBooking?.attendees?.map((a) => a.email);
-      if (attendeesEmails?.length) {
-        let attendees = await prisma.user.findMany({
-          where: {
-            email: {
-              in: attendeesEmails,
-            },
-          },
-          select: {
-            ...userSelect.select,
-            credentials: {
-              select: credentialForCalendarServiceSelect,
-            },
-          }
-        });
-        attendeeUsers = attendees.map((u) => {
-          return {
-            ...u,
-            isFixed: true,
-          };
-        });
-      }
-    }
-  }
-  const totalUsers = [...eventType.users, ...attendeeUsers].filter(
-    (user, index, self) => index === self.findIndex((t) => t.id === user.id)
-  );
+
   const busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> =
     eventType && (bookingLimits || durationLimits)
       ? await getBusyTimesForLimitChecks({
-          userIds: [...totalUsers.map((u) => u.id)],
+          userIds: eventType.users.map((u) => u.id),
           eventTypeId: eventType.id,
           startDate: startDateTimeUtc.format(),
           endDate: endDateTimeUtc.format(),
@@ -119,7 +79,7 @@ export async function ensureAvailableUsers(
       : [];
 
   const usersAvailability = await getUsersAvailability({
-    users: totalUsers,
+    users: eventType.users,
     query: {
       ...input,
       eventTypeId: eventType.id,
@@ -136,7 +96,7 @@ export async function ensureAvailableUsers(
   });
 
   usersAvailability.forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
-    const user = totalUsers[index];
+    const user = eventType.users[index];
 
     loggerWithEventDetails.debug(
       "calendarBusyTimes==>>>",
@@ -179,21 +139,7 @@ export async function ensureAvailableUsers(
     }
   });
 
-  if (input.originalRescheduledBooking?.uid && isEventOwnerOrTeamAdmin) {
-    const fixedAvailableUsers = availableUsers.filter((u) => u.isFixed);
-    const fixedTotalUsers = totalUsers.filter((u) => u.isFixed);
-    if(fixedAvailableUsers.length !== fixedTotalUsers.length) {
-      loggerWithEventDetails.error(
-        `Not all users are available for rescheduled booking.`,
-        safeStringify({
-          startDateTimeUtc,
-          endDateTimeUtc,
-          input,
-        })
-      );
-      throw new Error(ErrorCode.NoAvailableSlotsFound);
-    }
-  } else if (!availableUsers.length) {
+  if (!availableUsers.length) {
     loggerWithEventDetails.error(
       `No available users found.`,
       safeStringify({

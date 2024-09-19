@@ -83,6 +83,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
+import { MembershipRole } from "@calcom/prisma/client";
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -94,7 +95,7 @@ import { getBookingData } from "./handleNewBooking/getBookingData";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
-import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
+import { getRequiresConfirmationFlags, isUserReschedulingOwner } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadUsers } from "./handleNewBooking/loadUsers";
 import type {
@@ -444,6 +445,7 @@ async function handler(
   let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
+  let attendeeUsers: IsFixedAwareUser[] = [];
 
   //this gets the original rescheduled booking
   if (rescheduleUid) {
@@ -473,6 +475,33 @@ async function handler(
       !originalRescheduledBooking.rescheduled
     ) {
       throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
+    }
+    const isUserEventOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
+    const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
+    const isUserTeamAdminOrOwner = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+    if (isUserEventOwner || isUserTeamAdminOrOwner) {
+      const attendeesEmails = originalRescheduledBooking?.attendees?.map((a) => a.email);
+      if (attendeesEmails?.length) {
+        let attendees = await prisma.user.findMany({
+          where: {
+            email: {
+              in: attendeesEmails,
+            },
+          },
+          select: {
+            ...userSelect.select,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
+          }
+        });
+        attendeeUsers = attendees.map((u) => {
+          return {
+            ...u,
+            isFixed: true,
+          };
+        });
+      }
     }
   }
 
@@ -532,8 +561,7 @@ async function handler(
                 timeZone: reqBody.timeZone,
                 originalRescheduledBooking,
               },
-              loggerWithEventDetails,
-              userId
+              loggerWithEventDetails
             );
           }
         } else {
@@ -545,8 +573,7 @@ async function handler(
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
-            loggerWithEventDetails,
-            userId
+            loggerWithEventDetails
           );
         }
       }
@@ -554,15 +581,14 @@ async function handler(
 
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
       const availableUsers = await ensureAvailableUsers(
-        eventTypeWithUsers,
+        {...eventTypeWithUsers, users:[...eventTypeWithUsers.users, ...attendeeUsers] },
         {
           dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
           dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
           timeZone: reqBody.timeZone,
           originalRescheduledBooking,
         },
-        loggerWithEventDetails, 
-        userId
+        loggerWithEventDetails
       );
       const luckyUsers: typeof users = [];
       const luckyUserPool: IsFixedAwareUser[] = [];
@@ -633,8 +659,7 @@ async function handler(
                   timeZone: reqBody.timeZone,
                   originalRescheduledBooking,
                 },
-                loggerWithEventDetails,
-                userId
+                loggerWithEventDetails
               );
             }
             // if no error, then lucky user is available for the next slots
@@ -650,7 +675,7 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
+      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length + attendeeUsers.length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.

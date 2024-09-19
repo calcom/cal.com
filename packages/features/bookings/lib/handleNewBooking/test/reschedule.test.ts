@@ -799,7 +799,7 @@ describe("handleNewBooking", () => {
 
           req.userId = host1.id;
 
-          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
+          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_users_found_error");
         },
         timeout
       );
@@ -943,7 +943,7 @@ describe("handleNewBooking", () => {
 
           req.userId = host1.id;
 
-          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
+          await expect(handleNewBooking(req)).rejects.toThrowError("hosts_unavailable_for_booking");
         },
         timeout
       );
@@ -2238,7 +2238,7 @@ describe("handleNewBooking", () => {
 
           req.userId = host1.id;
 
-          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_slots_found_error");
+          await expect(handleNewBooking(req)).rejects.toThrowError("no_available_users_found_error");
         },
         timeout
       );
