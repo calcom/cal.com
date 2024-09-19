@@ -1,9 +1,8 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { SearchParams } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { GetServerSidePropsResult } from "next";
-import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import z from "zod";
@@ -18,13 +17,7 @@ const paramsSchema = z.object({
   pages: z.array(z.string()),
 });
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) => {
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const p = paramsSchema.safeParse(params);
 
   if (!p.success) {
@@ -34,7 +27,7 @@ export const generateMetadata = async ({
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
-  const formName = form?.name ?? "Forms";
+  const formName = form?.name ?? "Routing Forms";
   const formDescription = form?.description ?? "";
 
   return await _generateMetadata(
