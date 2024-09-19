@@ -470,10 +470,7 @@ export default function Signup({
                           alt=""
                         />
                       }
-                      className={classNames(
-                        "w-full justify-center rounded-md text-center",
-                        formMethods.formState.errors.username ? "opacity-50" : ""
-                      )}
+                      className={classNames("w-full justify-center rounded-md text-center")}
                       onClick={async () => {
                         setIsGoogleLoading(true);
                         const username = formMethods.getValues("username");
@@ -517,7 +514,8 @@ export default function Signup({
                     className={classNames("w-full justify-center rounded-md text-center")}
                     onClick={() => {
                       setDisplaySignupForm(true);
-                    }}>
+                    }}
+                    data-testid="continue-with-email-button">
                     Continue with email
                   </Button>
                 </div>
