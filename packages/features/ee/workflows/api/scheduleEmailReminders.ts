@@ -18,7 +18,6 @@ import {
   getAllRemindersToDelete,
   getAllUnscheduledReminders,
 } from "../lib/getWorkflowReminders";
-import { getiCalEventAsString } from "../lib/getiCalEventAsString";
 import {
   cancelScheduledEmail,
   deleteScheduledSend,
@@ -283,7 +282,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 attachments: reminder.workflowStep.includeCalendarEvent
                   ? [
                       {
-                        content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
+                        content: Buffer.from(
+                          generateIcsString({ event: reminder.booking, status: "CONFIRMED" }) || ""
+                        ).toString("base64"),
                         filename: "event.ics",
                         type: "text/calendar; method=REQUEST",
                         disposition: "attachment",
