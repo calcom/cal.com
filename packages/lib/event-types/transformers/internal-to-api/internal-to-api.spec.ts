@@ -26,14 +26,11 @@ import {
   transformIntervalLimitsInternalToApi,
   transformFutureBookingLimitsInternalToApi,
   transformRecurrenceInternalToApi,
+  transformBookerLayoutsInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformSeatsInternalToApi,
 } from ".";
-import {
-  getResponseEventTypeFutureBookingLimits,
-  getResponseEventTypeBookerLayouts,
-  getResponseEventTypeRequiresConfirmation,
-  getResponseEventTypeColors,
-  getResponseSeatOptions,
-} from "./api-response";
 import type { CustomField } from "./booking-fields";
 
 describe("transformLocationsInternalToApi", () => {
@@ -648,13 +645,13 @@ describe("transformFutureBookingLimitsInternalToApi", () => {
       disabled: true,
     };
 
-    const result = getResponseEventTypeFutureBookingLimits(transformedField);
+    const result = transformFutureBookingLimitsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("getResponseEventTypeBookerLayouts", () => {
+describe("transformBookerLayoutsInternalToApi", () => {
   it("should reverse transform booker layout", () => {
     const transformedField: BookerLayoutsTransformedSchema = {
       enabledLayouts: [
@@ -673,13 +670,13 @@ describe("getResponseEventTypeBookerLayouts", () => {
       ],
       defaultLayout: BookerLayoutsInputEnum_2024_06_14.week,
     };
-    const result = getResponseEventTypeBookerLayouts(transformedField);
+    const result = transformBookerLayoutsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("getResponseEventTypeRequiresConfirmation", () => {
+describe("transformRequiresConfirmationInternalToApi", () => {
   it("should reverse transform requires confirmation - time", () => {
     const transformedField = {
       requiresConfirmation: true,
@@ -698,7 +695,7 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
       },
       blockUnconfirmedBookingsInBooker: true,
     };
-    const result = getResponseEventTypeRequiresConfirmation(
+    const result = transformRequiresConfirmationInternalToApi(
       transformedField.requiresConfirmation,
       transformedField.requiresConfirmationWillBlockSlot,
       transformedField.requiresConfirmationThreshold
@@ -717,7 +714,7 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
       type: ConfirmationPolicyEnum.ALWAYS,
       blockUnconfirmedBookingsInBooker: true,
     };
-    const result = getResponseEventTypeRequiresConfirmation(
+    const result = transformRequiresConfirmationInternalToApi(
       transformedField.requiresConfirmation,
       transformedField.requiresConfirmationWillBlockSlot,
       undefined
@@ -734,7 +731,7 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
     const expectedOutput = {
       disabled: true,
     };
-    const result = getResponseEventTypeRequiresConfirmation(
+    const result = transformRequiresConfirmationInternalToApi(
       transformedField.requiresConfirmation,
       !!undefined,
       undefined
@@ -744,7 +741,7 @@ describe("getResponseEventTypeRequiresConfirmation", () => {
   });
 });
 
-describe("getResponseEventTypeColors", () => {
+describe("transformEventTypeColorsInternalToApi", () => {
   it("should reverse transform event type colors", () => {
     const transformedField: EventTypeColorsTransformedSchema = {
       darkEventTypeColor: "#292929",
@@ -756,13 +753,13 @@ describe("getResponseEventTypeColors", () => {
       lightThemeHex: "#fafafa",
     };
 
-    const result = getResponseEventTypeColors(transformedField);
+    const result = transformEventTypeColorsInternalToApi(transformedField);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("getResponseSeatOptions", () => {
+describe("transformSeatsInternalToApi", () => {
   it("should reverse transform event type seats", () => {
     const transformedSeats: SeatOptionsTransformedSchema = {
       seatsPerTimeSlot: 10,
@@ -776,7 +773,7 @@ describe("getResponseSeatOptions", () => {
       showAvailabilityCount: false,
     };
 
-    const result = getResponseSeatOptions(transformedSeats);
+    const result = transformSeatsInternalToApi(transformedSeats);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -790,7 +787,7 @@ describe("getResponseSeatOptions", () => {
       disabled: true,
     };
 
-    const result = getResponseSeatOptions(transformedSeats);
+    const result = transformSeatsInternalToApi(transformedSeats);
 
     expect(result).toEqual(expectedOutput);
   });

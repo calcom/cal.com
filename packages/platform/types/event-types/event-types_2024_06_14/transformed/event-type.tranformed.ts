@@ -1,9 +1,9 @@
 import type {
-  transformApiEventTypeColors,
-  transformApiEventTypeFutureBookingLimits,
-  transformApiEventTypeIntervalLimits,
-  transformApiEventTypeRecurrence,
-  transformApiSeatOptions,
+  transformEventColorsApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformRecurrenceApiToInternal,
+  transformSeatsApiToInternal,
   transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
 } from "@calcom/lib/event-types/transformers";
@@ -28,18 +28,17 @@ export type InputEventTransformed_2024_06_14 = Omit<
   length: number;
   slug: string;
   eventName?: string;
-  bookingLimits?: ReturnType<typeof transformApiEventTypeIntervalLimits>;
-
+  bookingLimits?: ReturnType<typeof transformIntervalLimitsApiToInternal>;
   locations?: ReturnType<typeof transformLocationsApiToInternal>;
   bookingFields?: ReturnType<typeof transformBookingFieldsApiToInternal>;
-  durationLimits?: ReturnType<typeof transformApiEventTypeIntervalLimits>;
-  recurringEvent?: ReturnType<typeof transformApiEventTypeRecurrence>;
-  eventTypeColor?: ReturnType<typeof transformApiEventTypeColors>;
+  durationLimits?: ReturnType<typeof transformIntervalLimitsApiToInternal>;
+  recurringEvent?: ReturnType<typeof transformRecurrenceApiToInternal>;
+  eventTypeColor?: ReturnType<typeof transformEventColorsApiToInternal>;
 } & Partial<
     Pick<ConfirmationPolicyTransformedSchema, "requiresConfirmation" | "requiresConfirmationWillBlockSlot">
   > &
-  Partial<ReturnType<typeof transformApiSeatOptions>> &
-  Partial<ReturnType<typeof transformApiEventTypeFutureBookingLimits>>;
+  Partial<ReturnType<typeof transformSeatsApiToInternal>> &
+  Partial<ReturnType<typeof transformFutureBookingLimitsApiToInternal>>;
 
 export type InputTeamEventTransformed_2024_06_14 = InputEventTransformed_2024_06_14 & {
   hosts: {

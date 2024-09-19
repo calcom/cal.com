@@ -17,11 +17,11 @@ import {
   systemBeforeFieldLocation,
 } from "@calcom/platform-libraries";
 import {
-  transformApiEventTypeBookerLayouts,
-  transformApiEventTypeConfirmationPolicy,
-  transformApiEventTypeColors,
+  transformBookerLayoutsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformEventColorsApiToInternal,
   validateCustomEventName,
-  transformApiSeatOptions,
+  transformSeatsApiToInternal,
 } from "@calcom/platform-libraries-1.2.3";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -228,24 +228,24 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputBookerLayouts(inputBookerLayouts: CreateEventTypeInput_2024_06_14["bookerLayouts"]) {
-    return transformApiEventTypeBookerLayouts(inputBookerLayouts);
+    return transformBookerLayoutsApiToInternal(inputBookerLayouts);
   }
 
   transformInputConfirmationPolicy(
     requiresConfirmation: CreateEventTypeInput_2024_06_14["confirmationPolicy"]
   ) {
-    return transformApiEventTypeConfirmationPolicy(requiresConfirmation);
+    return transformConfirmationPolicyApiToInternal(requiresConfirmation);
   }
   transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
     return transformRecurrenceApiToInternal(recurrence);
   }
 
   transformInputEventTypeColor(color: CreateEventTypeInput_2024_06_14["color"]) {
-    return transformApiEventTypeColors(color);
+    return transformEventColorsApiToInternal(color);
   }
 
   transformInputSeatOptions(seats: CreateEventTypeInput_2024_06_14["seats"]) {
-    return transformApiSeatOptions(seats);
+    return transformSeatsApiToInternal(seats);
   }
   async validateEventTypeInputs(
     eventTypeId?: number,

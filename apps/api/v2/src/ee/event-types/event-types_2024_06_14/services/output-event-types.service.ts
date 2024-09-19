@@ -17,11 +17,11 @@ import {
   transformRecurrenceInternalToApi,
 } from "@calcom/platform-libraries";
 import {
-  getResponseEventTypeBookerLayouts,
-  getResponseEventTypeRequiresConfirmation,
-  getResponseEventTypeColors,
+  transformBookerLayoutsInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformEventTypeColorsInternalToApi,
   parseEventTypeColor,
-  getResponseSeatOptions,
+  transformSeatsInternalToApi,
 } from "@calcom/platform-libraries-1.2.3";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
@@ -247,7 +247,7 @@ export class OutputEventTypesService_2024_06_14 {
 
   transformBookerLayouts(bookerLayouts: BookerLayoutsTransformedSchema) {
     if (!bookerLayouts) return undefined;
-    return getResponseEventTypeBookerLayouts(bookerLayouts);
+    return transformBookerLayoutsInternalToApi(bookerLayouts);
   }
 
   transformRequiresConfirmation(
@@ -255,7 +255,7 @@ export class OutputEventTypesService_2024_06_14 {
     requiresConfirmationWillBlockSlot: boolean,
     requiresConfirmationThreshold?: NoticeThresholdTransformedSchema
   ) {
-    return getResponseEventTypeRequiresConfirmation(
+    return transformRequiresConfirmationInternalToApi(
       requiresConfirmation,
       requiresConfirmationWillBlockSlot,
       requiresConfirmationThreshold
@@ -265,7 +265,7 @@ export class OutputEventTypesService_2024_06_14 {
   transformEventTypeColor(eventTypeColor: any) {
     if (!eventTypeColor) return undefined;
     const parsedeventTypeColor = parseEventTypeColor(eventTypeColor);
-    return getResponseEventTypeColors(parsedeventTypeColor);
+    return transformEventTypeColorsInternalToApi(parsedeventTypeColor);
   }
 
   transformSeats(
@@ -273,7 +273,7 @@ export class OutputEventTypesService_2024_06_14 {
     seatsShowAttendees: boolean | null,
     seatsShowAvailabilityCount: boolean | null
   ) {
-    return getResponseSeatOptions({
+    return transformSeatsInternalToApi({
       seatsPerTimeSlot,
       seatsShowAttendees: !!seatsShowAttendees,
       seatsShowAvailabilityCount: !!seatsShowAvailabilityCount,

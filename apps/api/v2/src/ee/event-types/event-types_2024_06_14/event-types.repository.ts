@@ -6,11 +6,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { EventType, User, Schedule } from "@prisma/client";
 
-import {
-  getEventTypeById,
-  transformBookingFieldsApiToInternal,
-  transformLocationsApiToInternal,
-} from "@calcom/platform-libraries";
+import { getEventTypeById } from "@calcom/platform-libraries";
 import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 

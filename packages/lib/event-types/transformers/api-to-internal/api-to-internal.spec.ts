@@ -23,20 +23,16 @@ import type {
 
 import type { CustomField } from "../internal-to-api/booking-fields";
 import {
-  transformApiEventTypeFutureBookingLimits,
-  transformApiEventTypeBookerLayouts,
-  transformApiEventTypeConfirmationPolicy,
-  transformApiEventTypeRecurrence,
-  transformApiEventTypeColors,
-  transformApiSeatOptions,
-} from "./api-request";
-import {
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
   transformSelectOptionsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
+  transformSeatsApiToInternal,
+  transformEventColorsApiToInternal,
+  transformBookerLayoutsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
 } from "./index";
 
 describe("transformLocationsApiToInternal", () => {
@@ -615,13 +611,13 @@ describe("transformFutureBookingLimitsApiToInternal", () => {
       periodType: "UNLIMITED",
     };
 
-    const result = transformApiEventTypeFutureBookingLimits(input);
+    const result = transformFutureBookingLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("transformApiEventTypeBookerLayouts", () => {
+describe("transformBookerLayoutsApiToInternal", () => {
   it("should transform booker layouts", () => {
     const input: BookerLayouts_2024_06_14 = {
       enabledLayouts: [
@@ -640,13 +636,13 @@ describe("transformApiEventTypeBookerLayouts", () => {
       ],
       defaultLayout: BookerLayoutsOutputEnum_2024_06_14.week_view,
     };
-    const result = transformApiEventTypeBookerLayouts(input);
+    const result = transformBookerLayoutsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 });
 
-describe("transformApiEventTypeConfirmationPolicy", () => {
+describe("transformConfirmationPolicyApiToInternal", () => {
   it("should transform requires confirmation - time", () => {
     const input: ConfirmationPolicy_2024_06_14 = {
       type: ConfirmationPolicyEnum.TIME,
@@ -665,7 +661,7 @@ describe("transformApiEventTypeConfirmationPolicy", () => {
       },
       requiresConfirmationWillBlockSlot: true,
     };
-    const result = transformApiEventTypeConfirmationPolicy(input);
+    const result = transformConfirmationPolicyApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -680,7 +676,7 @@ describe("transformApiEventTypeConfirmationPolicy", () => {
       requiresConfirmation: true,
       requiresConfirmationWillBlockSlot: true,
     };
-    const result = transformApiEventTypeConfirmationPolicy(input);
+    const result = transformConfirmationPolicyApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -695,12 +691,13 @@ describe("transformApiEventTypeConfirmationPolicy", () => {
       requiresConfirmationWillBlockSlot: false,
       requiresConfirmationThreshold: undefined,
     };
-    const result = transformApiEventTypeConfirmationPolicy(input);
+    const result = transformConfirmationPolicyApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 });
-describe("transformApiEventTypeColors", () => {
+
+describe("transformEventColorsApiToInternal", () => {
   it("should transform event type colors", () => {
     const input: EventTypeColor_2024_06_14 = {
       darkThemeHex: "#292929",
@@ -712,12 +709,13 @@ describe("transformApiEventTypeColors", () => {
       lightEventTypeColor: "#fafafa",
     };
 
-    const result = transformApiEventTypeColors(input);
+    const result = transformEventColorsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
 });
-describe("transformApiSeatOptions", () => {
+
+describe("transformSeatsApiToInternal", () => {
   it("should transform seat options", () => {
     const input: CreateEventTypeInput_2024_06_14["seats"] = {
       seatsPerTimeSlot: 20,
@@ -731,7 +729,7 @@ describe("transformApiSeatOptions", () => {
       seatsShowAvailabilityCount: false,
     };
 
-    const result = transformApiSeatOptions(input);
+    const result = transformSeatsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -745,7 +743,7 @@ describe("transformApiSeatOptions", () => {
       seatsPerTimeSlot: null,
     };
 
-    const result = transformApiSeatOptions(input);
+    const result = transformSeatsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -764,14 +762,15 @@ describe("transformRecurrenceApiToInternal", () => {
       freq: 2,
     };
     const result = transformRecurrenceApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
 
-    it("should transform recurrence - disabled", () => {
-      const input: CreateEventTypeInput_2024_06_14["recurrence"] = {
-        disabled: true,
-      };
-      const expectedOutput = undefined;
-      const result = transformApiEventTypeRecurrence(input);
-      expect(result).toEqual(expectedOutput);
-    });
+  it("should transform recurrence - disabled", () => {
+    const input: CreateEventTypeInput_2024_06_14["recurrence"] = {
+      disabled: true,
+    };
+    const expectedOutput = undefined;
+    const result = transformRecurrenceApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
   });
 });

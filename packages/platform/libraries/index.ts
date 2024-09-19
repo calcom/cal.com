@@ -100,12 +100,20 @@ export {
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
+  transformBookerLayoutsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformEventColorsApiToInternal,
+  transformSeatsApiToInternal,
   // note(Lauris): Internal to api
   transformBookingFieldsInternalToApi,
   transformLocationsInternalToApi,
   transformIntervalLimitsInternalToApi,
   transformFutureBookingLimitsInternalToApi,
   transformRecurrenceInternalToApi,
+  transformBookerLayoutsInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformSeatsInternalToApi,
   // note(Lauris): schemas
   TransformedLocationsSchema,
   BookingFieldsSchema,
@@ -114,25 +122,11 @@ export {
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
-  //temp -- will remove
-  getResponseEventTypeIntervalLimits,
-  getResponseEventTypeFutureBookingLimits,
-  transformApiEventTypeFutureBookingLimits,
-  transformApiEventTypeBookerLayouts,
-  getResponseEventTypeBookerLayouts,
-  getResponseEventTypeRequiresConfirmation,
-  transformApiEventTypeConfirmationPolicy,
-  getResponseEventTypeColors,
-  transformApiEventTypeColors,
-  transformApiSeatOptions,
-  getResponseSeatOptions,
-  transformApiEventTypeRecurrence,
-  getResponseEventTypeRecurrence,
 } from "@calcom/lib/event-types/transformers";
 
 export type { SystemField, CustomField } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit } from "@calcom/lib";
+export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
