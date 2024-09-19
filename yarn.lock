@@ -11111,7 +11111,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:5.4.2, @prisma/client@npm:^5.4.2":
+"@prisma/client@npm:5.4.2":
   version: 5.4.2
   resolution: "@prisma/client@npm:5.4.2"
   dependencies:
@@ -11122,6 +11122,20 @@ __metadata:
     prisma:
       optional: true
   checksum: e01aebad95a6168668a214784e036ba4d6c6ac2c7eff35c7c3b1b729d2fc70b7f1addfce8a8550b24ffadf9be45538f2bd8a2257dfac9ec18d1d900437bf6660
+  languageName: node
+  linkType: hard
+
+"@prisma/client@patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 5.4.2
+  resolution: "@prisma/client@patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch::version=5.4.2&hash=7d32a5&locator=calcom-monorepo%40workspace%3A."
+  dependencies:
+    "@prisma/engines-version": 5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574
+  peerDependencies:
+    prisma: "*"
+  peerDependenciesMeta:
+    prisma:
+      optional: true
+  checksum: 660e842d16c64ca1c1697f3c8ac897eaae81b74a228fc0d80c67df98a59031e3981d879ab5876e98431e04767edf0204b5a9e2abf9a9ba5eeb1031e091983b67
   languageName: node
   linkType: hard
 
