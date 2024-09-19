@@ -450,7 +450,7 @@ export async function submitAndWaitForResponse(
 }
 
 export async function confirmReschedule(page: Page) {
-  await submitAndWaitForResponse(page, "api/book/event", {
+  await submitAndWaitForResponse(page, "/api/book/event", {
     action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
   });
 }
