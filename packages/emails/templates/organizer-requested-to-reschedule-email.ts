@@ -22,12 +22,6 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.t("request_reschedule_title_organizer", {
-          attendee: this.calEvent.attendees[0].name,
-        }),
-        subtitle: this.t("request_reschedule_subtitle_organizer", {
-          attendee: this.calEvent.attendees[0].name,
-        }),
         role: GenerateIcsRole.ORGANIZER,
         status: "CANCELLED",
       }),
