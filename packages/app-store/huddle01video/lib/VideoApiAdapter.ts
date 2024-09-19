@@ -6,7 +6,7 @@ import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";
 
 import { getHuddle01APIKey, getHuddle01Credential } from "../utils/storage";
 
-const API_END_POINT = "https://platform-api-darshan.huddle01.workers.dev/api/v2/calendar";
+const API_END_POINT = "https://platform-api-akmo.huddle01.workers.dev/api/v2/calendar";
 
 const fetchHuddleAPI = async (userId: number) => {
   const { identityToken } = await getHuddle01Credential(userId);
