@@ -3,6 +3,7 @@ import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
+import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/server/domainWideDelegation";
 
 type AppCredentialsByTypeOptions = {
   ctx: {
@@ -31,10 +32,12 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
     },
   });
 
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
+
   // For app pages need to return which teams the user can install the app on
   // return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
   return {
-    credentials,
+    credentials: [...credentials, ...domainWideDelegationCredentials],
     userAdminTeams: userAdminTeamsIds,
   };
 };

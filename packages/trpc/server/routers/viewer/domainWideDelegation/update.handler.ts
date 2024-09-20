@@ -5,7 +5,7 @@ import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/works
 import { TRPCError } from "@calcom/trpc/server";
 
 import type { DomainWideDelegationUpdateSchema } from "./schema";
-import { handleDomainWideDelegationError } from "./utils";
+import { handleDomainWideDelegationError, ensureNoServiceAccountKey } from "./utils";
 
 export default async function handler({
   input,
@@ -14,7 +14,7 @@ export default async function handler({
   input: z.infer<typeof DomainWideDelegationUpdateSchema>;
   ctx: { user: { id: number; organizationId: number | null } };
 }) {
-  const { id, workspacePlatformSlug, domain, enabled } = input;
+  const { id, workspacePlatformSlug, domain } = input;
   const { user } = ctx;
   const { organizationId } = user;
 
@@ -42,15 +42,12 @@ export default async function handler({
       data: {
         workspacePlatformId: workspacePlatform.id,
         domain,
-        enabled,
+        enabled: true,
         organizationId,
       },
     });
 
-    return {
-      ...updatedDelegation,
-      serviceAccountKey: undefined,
-    };
+    return ensureNoServiceAccountKey(updatedDelegation);
   } catch (error) {
     handleDomainWideDelegationError(error);
   }

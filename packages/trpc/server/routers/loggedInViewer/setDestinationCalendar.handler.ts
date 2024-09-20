@@ -28,9 +28,10 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
   const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-  const credentialId = allCals.find(
+  const cal = allCals.find(
     (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
-  )?.credentialId;
+  )
+  const { credentialId, domainWideDelegationCredentialId } = cal || {};
 
   if (!credentialId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
@@ -63,14 +64,22 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     update: {
       integration,
       externalId,
-      credentialId,
+      ...(credentialId && credentialId > 0 ? {
+        credentialId,
+      } : {
+        domainWideDelegationCredentialId,
+      }),
       primaryEmail,
     },
     create: {
       ...where,
       integration,
       externalId,
-      credentialId,
+      ...(credentialId && credentialId > 0 ? {
+        credentialId,
+      } : {
+        domainWideDelegationCredentialId,
+      }),
       primaryEmail,
     },
   });

@@ -68,36 +68,36 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 400, message: "Session user must have an email" });
   }
 
-  const domainWideDelegation = await getDomainWideDelegationForApp({
-    user: {
-      email: loggedInUser.email,
-    },
-    appMetadata: metadata,
-  });
+  // const domainWideDelegation = await getDomainWideDelegationForApp({
+  //   user: {
+  //     email: loggedInUser.email,
+  //   },
+  //   appMetadata: metadata,
+  // });
 
-  if (domainWideDelegation) {
-    if (await isAppInstalled({ appId: metadata.slug, userId: loggedInUser.id })) {
-      throw new HttpError({
-        statusCode: 422,
-        message: translate("domain_wide_delegation_restricts_adding_more_than_one_installation"),
-      });
-    }
+  // if (domainWideDelegation) {
+  //   if (await isAppInstalled({ appId: metadata.slug, userId: loggedInUser.id })) {
+  //     throw new HttpError({
+  //       statusCode: 422,
+  //       message: translate("domain_wide_delegation_restricts_adding_more_than_one_installation"),
+  //     });
+  //   }
 
-    await createDefaultInstallation({
-      appType: metadata.type,
-      user: loggedInUser,
-      slug: metadata.slug,
-      delegatedToId: domainWideDelegation.id,
-      key: {
-        // FIXME: zod validation somewhere requires access_token, when infact it isn't needed for domain-wide delegation
-        access_token: "NOT_A_TOKEN",
-      },
-    });
-    res
-      .status(200)
-      .json({ message: translate("app_successfully_installed_and_is_using_delegated_credentials") });
-    return;
-  }
+  //   await createDefaultInstallation({
+  //     appType: metadata.type,
+  //     user: loggedInUser,
+  //     slug: metadata.slug,
+  //     delegatedToId: domainWideDelegation.id,
+  //     key: {
+  //       // FIXME: zod validation somewhere requires access_token, when infact it isn't needed for domain-wide delegation
+  //       access_token: "NOT_A_TOKEN",
+  //     },
+  //   });
+  //   res
+  //     .status(200)
+  //     .json({ message: translate("app_successfully_installed_and_is_using_delegated_credentials") });
+  //   return;
+  // }
 
   const { client_id, client_secret } = await getGoogleAppKeys();
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;

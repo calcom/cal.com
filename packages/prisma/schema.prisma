@@ -211,7 +211,8 @@ model DestinationCalendar {
   eventTypeId  Int?        @unique
   credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-
+  domainWideDelegation   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
   @@index([userId])
   @@index([eventTypeId])
   @@index([credentialId])
@@ -668,6 +669,8 @@ model SelectedCalendar {
   externalId   String
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId Int?
+  domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
+  domainWideDelegationCredentialId String?
 
   @@id([userId, integration, externalId])
   @@index([userId])
@@ -1555,6 +1558,9 @@ model DomainWideDelegation {
   organization   Team         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   Credential     Credential[]
   domain         String
+
+  selectedCalendars   SelectedCalendar[]
+  destinationCalendar DestinationCalendar[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

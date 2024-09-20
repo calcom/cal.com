@@ -31,7 +31,7 @@ interface DelegationItemProps {
       slug: string;
     };
   };
-  toggleDelegation: (id: string) => void;
+  toggleDelegation: (delegation: DelegationItemProps["delegation"]) => void;
   onEdit: (delegation: DelegationItemProps["delegation"]) => void;
   onDelete: (id: string) => void;
 }
@@ -56,7 +56,7 @@ function DelegationListItemActions({
   onDelete,
 }: {
   delegation: DelegationItemProps["delegation"];
-  toggleDelegation: (id: string) => void;
+  toggleDelegation: DelegationItemProps["toggleDelegation"]
   onEdit: (delegation: DelegationItemProps["delegation"]) => void;
   onDelete: (id: string) => void;
 }) {
@@ -64,7 +64,7 @@ function DelegationListItemActions({
 
   return (
     <div className="flex items-center space-x-2">
-      <Switch checked={delegation.enabled} onCheckedChange={() => toggleDelegation(delegation.id)} />
+      <Switch checked={delegation.enabled} onCheckedChange={() => toggleDelegation(delegation)} />
       <DropdownActions
         actions={[
           {
@@ -260,6 +260,13 @@ function DomainWideDelegationList() {
     },
   });
 
+  const toggleEnabledMutation = trpc.viewer.domainWideDelegation.toggleEnabled.useMutation({
+    onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const createMutation = trpc.viewer.domainWideDelegation.add.useMutation({
     onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
     onError: (error) => {
@@ -278,14 +285,11 @@ function DomainWideDelegationList() {
     deleteMutation.mutate({ id });
   };
 
-  const toggleDelegation = (id: string) => {
-    const delegation = delegations?.find((d) => d.id === id);
+  const toggleDelegation = (delegation: DelegationItemProps["delegation"]) => {
     if (delegation) {
-      updateMutation.mutate({
-        id,
-        workspacePlatformSlug: delegation.workspacePlatform.slug,
+      toggleEnabledMutation.mutate({
+        id: delegation.id,
         enabled: !delegation.enabled,
-        domain: delegation.domain,
       });
     }
   };

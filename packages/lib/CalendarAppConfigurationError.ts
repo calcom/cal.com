@@ -11,3 +11,10 @@ export class CalendarAppConfigurationClientIdNotAuthorizedError extends Calendar
     this.name = "CalendarAppConfigurationClientIdNotAuthorizedError";
   }
 }
+
+export class CalendarAppConfigurationDomainWideDelegationNotEnabledError extends CalendarAppConfigurationError {
+  constructor(message: string) {
+    super(message);
+    this.name = "CalendarAppConfigurationDomainWideDelegationNotEnabledError";
+  }
+}

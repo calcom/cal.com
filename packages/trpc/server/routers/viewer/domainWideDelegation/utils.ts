@@ -52,9 +52,8 @@ export const handleDomainWideDelegationError = (error: unknown) => {
   });
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ensureNoServiceAccountKey = <T extends { serviceAccountKey: any }>(domainWideDelegation: T) => {
-  const { serviceAccountKey, ...rest } = domainWideDelegation;
+export const ensureNoServiceAccountKey = <T extends {id:string; serviceAccountKey?: unknown }>(domainWideDelegation: T) => {
+  const { serviceAccountKey: _1, ...rest } = domainWideDelegation;
   return {
     ...rest,
     serviceAccountKey: undefined,

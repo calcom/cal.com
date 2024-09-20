@@ -58,15 +58,16 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                           connectedCalendar.primary?.email ?? connectedCalendar.integration.description
                         }
                         className="border-subtle mt-4 rounded-lg border"
-                        actions={
-                          <div className="flex w-32 justify-end">
-                            <DisconnectIntegration
-                              credentialId={connectedCalendar.credentialId}
-                              trashIcon
-                              onSuccess={props.onChanged}
-                              buttonProps={{ className: "border border-default" }}
-                            />
-                          </div>
+                        actions={!connectedCalendar.domainWideDelegationCredentialId && (
+                            <div className="flex w-32 justify-end">
+                              <DisconnectIntegration
+                                credentialId={connectedCalendar.credentialId}
+                                trashIcon
+                                onSuccess={props.onChanged}
+                                buttonProps={{ className: "border border-default" }}
+                              />
+                            </div>
+                          )
                         }>
                         <div className="border-subtle border-t">
                           {!fromOnboarding && (
@@ -85,6 +86,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === props.destinationCalendarId}
                                     credentialId={cal.credentialId}
+                                    domainWideDelegationCredentialId={connectedCalendar.domainWideDelegationCredentialId}
                                   />
                                 ))}
                               </ul>

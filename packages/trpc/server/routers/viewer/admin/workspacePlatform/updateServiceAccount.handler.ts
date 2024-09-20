@@ -5,7 +5,7 @@ import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/works
 import { TRPCError } from "@trpc/server";
 
 import type { workspacePlatformUpdateServiceAccountSchema } from "./schema";
-
+import { ensureNoServiceAccountKey } from "./utils";
 export default async function updateServiceAccountHandler({
   input,
 }: {
@@ -18,7 +18,7 @@ export default async function updateServiceAccountHandler({
         defaultServiceAccountKey: input.defaultServiceAccountKey,
       },
     });
-    return { workspacePlatform: updatedWorkspacePlatform };
+    return ensureNoServiceAccountKey(updatedWorkspacePlatform);
   } catch (error) {
     console.error(error);
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to update service account" });

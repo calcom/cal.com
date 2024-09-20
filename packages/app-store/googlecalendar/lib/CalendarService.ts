@@ -9,7 +9,7 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import { CalendarAppConfigurationClientIdNotAuthorizedError } from "@calcom/lib/CalendarAppConfigurationError";
+import { CalendarAppConfigurationClientIdNotAuthorizedError, CalendarAppConfigurationDomainWideDelegationNotEnabledError } from "@calcom/lib/CalendarAppConfigurationError";
 import type CalendarService from "@calcom/lib/CalendarService";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -199,8 +199,16 @@ export default class GoogleCalendarService implements Calendar {
       await DomainWideDelegationRepository.findByUserIncludeSensitiveServiceAccountKey({
         user,
       });
+    
+    const isDomainWideDelegationEnabled = domainWideDelegation && domainWideDelegation.enabled;
 
-    if (domainWideDelegation && domainWideDelegation.enabled && domainWideDelegation.serviceAccountKey) {
+    if (this.credential.delegatedToId && !isDomainWideDelegationEnabled) {
+      throw new CalendarAppConfigurationDomainWideDelegationNotEnabledError(
+        "Credential needs domain wide delegation enabled"
+      );
+    }
+
+    if (domainWideDelegation && domainWideDelegation.enabled) {
       const emailToImpersonate = this.credential.user?.email;
       if (!emailToImpersonate) {
         this.log.error("No email to impersonate found for domain wide delegation");
@@ -210,7 +218,7 @@ export default class GoogleCalendarService implements Calendar {
         "Using domain wide delegation with service account email",
         safeStringify({
           serviceAccountEmail: domainWideDelegation.serviceAccountKey.client_email,
-          privateKey: domainWideDelegation.serviceAccountKey.private_key,
+          clientId: domainWideDelegation.serviceAccountKey.client_id,
           emailToImpersonate,
         })
       );
@@ -245,6 +253,7 @@ export default class GoogleCalendarService implements Calendar {
         },
         serviceAccountKeyIsSet: !!domainWideDelegation?.serviceAccountKey,
         credential: {
+          id: this.credential.id,
           userId: this.credential.userId,
           teamId: this.credential.teamId,
         },

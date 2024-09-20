@@ -87,6 +87,7 @@ export class WorkspacePlatformRepository {
     return await prisma.workspacePlatform.update({
       where: { id },
       data,
+      select: safeWorkspacePlatformSelect,
     });
   }
 }

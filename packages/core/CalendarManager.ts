@@ -6,7 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { CalendarAppConfigurationClientIdNotAuthorizedError } from "@calcom/lib/CalendarAppConfigurationError";
+import { CalendarAppConfigurationClientIdNotAuthorizedError, CalendarAppConfigurationError } from "@calcom/lib/CalendarAppConfigurationError";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -49,13 +49,16 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { integration, credential } = item;
+        console.log("credential", credential);
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
+        const domainWideDelegationCredentialId = credential.delegatedToId;
         if (!calendar) {
           return {
             integration,
             credentialId,
+            domainWideDelegationCredentialId,
           };
         }
         const cals = await calendar.listCalendars();
@@ -68,6 +71,7 @@ export const getConnectedCalendars = async (
               primary: cal.primary || null,
               isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               credentialId,
+              domainWideDelegationCredentialId,
             };
           }),
           ["primary"]
@@ -92,6 +96,7 @@ export const getConnectedCalendars = async (
         return {
           integration: cleanIntegrationKeys(integration),
           credentialId,
+          domainWideDelegationCredentialId,
           primary,
           calendars,
         };
@@ -105,7 +110,7 @@ export const getConnectedCalendars = async (
           }
         }
 
-        if (error instanceof CalendarAppConfigurationClientIdNotAuthorizedError) {
+        if (error instanceof CalendarAppConfigurationError) {
           errorMessage = error.message;
         }
 
@@ -114,6 +119,7 @@ export const getConnectedCalendars = async (
         return {
           integration: cleanIntegrationKeys(item.integration),
           credentialId: item.credential.id,
+          domainWideDelegationCredentialId: item.credential.delegatedToId,
           error: {
             message: errorMessage,
           },

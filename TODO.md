@@ -33,3 +33,6 @@ Security Testing
     - [x] We don't even let the admin user see the added service account key.
     - [ ] We intend to implement Workload Identity Federation in the future.
     
+
+Version-2.0
+- Workload Identity Federation to ensure that the service account key is never stored in DB.

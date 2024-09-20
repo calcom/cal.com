@@ -23,7 +23,6 @@ const domainWideDelegationSafeSelect = {
   createdAt: true,
   updatedAt: true,
   organizationId: true,
-  serviceAccountKey: true,
   workspacePlatform: {
     select: {
       name: true,
@@ -97,7 +96,7 @@ export class DomainWideDelegationRepository {
       select: domainWideDelegationSafeSelect,
     });
 
-    return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
+    return domainWideDelegation
   }
 
   static async findByUserIncludeSensitiveServiceAccountKey({
@@ -107,7 +106,7 @@ export class DomainWideDelegationRepository {
       email: string;
     };
   }) {
-    const log = repositoryLogger.getSubLogger({ prefix: ["findByUser"] });
+    const log = repositoryLogger.getSubLogger({ prefix: ["findByUserIncludeSensitiveServiceAccountKey"] });
     log.debug("called with", { user });
     const organization = await OrganizationRepository.findByMemberEmailId({
       email: user.email,
@@ -143,28 +142,33 @@ export class DomainWideDelegationRepository {
     data,
   }: {
     id: string;
-    data: {
+    data: Partial<{
       workspacePlatformId: number;
       domain: string;
       enabled: boolean;
       organizationId: number;
-    };
+    }>;
   }) {
+
+    const { workspacePlatformId, organizationId, ...rest } = data;
     return await prisma.domainWideDelegation.update({
       where: { id },
       data: {
-        workspacePlatform: {
-          connect: {
-            id: data.workspacePlatformId,
+        ...(workspacePlatformId && {
+          workspacePlatform: {
+            connect: {
+              id: workspacePlatformId,
+            },
           },
-        },
-        domain: data.domain,
-        enabled: data.enabled,
-        organization: {
-          connect: {
-            id: data.organizationId,
+        }),
+        ...(organizationId && {
+          organization: {
+            connect: {
+              id: organizationId,
+            },
           },
-        },
+        }),
+        ...rest,
       },
       select: domainWideDelegationSafeSelect,
     });
