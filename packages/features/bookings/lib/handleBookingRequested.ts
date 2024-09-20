@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
+import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -41,8 +41,9 @@ export async function handleBookingRequested(args: {
   const { evt, booking } = args;
 
   log.debug("Emails: Sending booking requested emails");
+
   await sendOrganizerRequestEmail({ ...evt }, booking?.eventType?.metadata as EventTypeMetadata);
-  await sendAttendeeRequestEmail(
+  await sendAttendeeRequestEmailAndSMS(
     { ...evt },
     evt.attendees[0],
     booking?.eventType?.metadata as EventTypeMetadata

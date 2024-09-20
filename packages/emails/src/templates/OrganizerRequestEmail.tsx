@@ -9,8 +9,6 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
   const token = props.calEvent.oneTimePassword;
   //TODO: We should switch to using org domain if available
   const actionHref = `${WEBAPP_URL}/api/verify-booking-token/?token=${token}&userId=${userId}&bookingUid=${uid}`;
-  const rejectLink = new URL(`${props.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${props.calEvent.uid}`);
-  rejectLink.searchParams.append("reject", "true");
   return (
     <OrganizerScheduledEmail
       title={

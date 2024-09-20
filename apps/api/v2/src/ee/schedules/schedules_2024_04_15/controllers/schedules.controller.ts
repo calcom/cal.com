@@ -23,7 +23,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiResponse, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -36,7 +36,7 @@ import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input"
   version: VERSION_2024_04_15_VALUE,
 })
 @UseGuards(ApiAuthGuard, PermissionsGuard)
-@DocsTags("Schedules")
+@DocsExcludeController(true)
 export class SchedulesController_2024_04_15 {
   constructor(private readonly schedulesService: SchedulesService_2024_04_15) {}
 

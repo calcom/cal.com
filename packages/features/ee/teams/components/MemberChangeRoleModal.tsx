@@ -11,7 +11,7 @@ type MembershipRoleOption = {
   value: MembershipRole;
 };
 
-const updateRoleInCache = ({
+export const updateRoleInCache = ({
   utils,
   teamId,
   searchTerm,

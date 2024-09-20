@@ -7,7 +7,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { test, todo } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
-import { IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { confirmReschedule, IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -173,7 +173,7 @@ test.describe("Stripe integration skip true", () => {
     await page.click('[data-testid="cancel"]');
     await page.click('[data-testid="confirm_cancel"]');
 
-    await expect(await page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
   });
 
   test.describe("When event is paid and confirmed", () => {
@@ -242,12 +242,12 @@ test.describe("Stripe integration skip true", () => {
       await page.goto(`${user.username}/${eventType?.slug}`);
 
       // Confirm MXN currency it's displayed use expect
-      await expect(await page.getByText("MX$200.00")).toBeVisible();
+      await expect(page.getByText("MX$200.00")).toBeVisible();
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
       // Confirm again in book form page
-      await expect(await page.getByText("MX$200.00")).toBeVisible();
+      await expect(page.getByText("MX$200.00")).toBeVisible();
 
       // --- fill form
       await page.fill('[name="name"]', "Stripe Stripeson");
@@ -260,12 +260,12 @@ test.describe("Stripe integration skip true", () => {
       await page.waitForURL("/payment/*");
 
       // Confirm again in book form page
-      await expect(await page.getByText("MX$200.00")).toBeVisible();
+      await expect(page.getByText("MX$200.00")).toBeVisible();
     });
   });
 });
 
-test.describe("Stripe integration with the new app install flow skip flase", () => {
+test.describe("Stripe integration with the new app install flow skip false", () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
@@ -403,7 +403,7 @@ test.describe("Stripe integration with the new app install flow skip flase", () 
     await page.click('[data-testid="cancel"]');
     await page.click('[data-testid="confirm_cancel"]');
 
-    await expect(await page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
   });
 
   test.describe("When event is paid and confirmed skip false", () => {
@@ -438,7 +438,7 @@ test.describe("Stripe integration with the new app install flow skip flase", () 
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
-      await page.click('[data-testid="confirm-reschedule-button"]');
+      await confirmReschedule(page);
 
       await expect(page.getByText("This meeting is scheduled")).toBeVisible();
     });
@@ -477,12 +477,12 @@ test.describe("Stripe integration with the new app install flow skip flase", () 
       await page.goto(`${user.username}/${eventType?.slug}`);
 
       // Confirm MXN currency it's displayed use expect
-      await expect(await page.getByText("MX$200.00")).toBeVisible();
+      await expect(page.getByText("MX$200.00")).toBeVisible();
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
       // Confirm again in book form page
-      await expect(await page.getByText("MX$200.00")).toBeVisible();
+      await expect(page.getByText("MX$200.00")).toBeVisible();
 
       // --- fill form
       await page.fill('[name="name"]', "Stripe Stripeson");
@@ -495,7 +495,7 @@ test.describe("Stripe integration with the new app install flow skip flase", () 
       await page.waitForURL("/payment/*");
 
       // Confirm again in book form page
-      await expect(await page.getByText("MX$200.00")).toBeVisible();
+      await expect(page.getByText("MX$200.00")).toBeVisible();
     });
   });
 });
