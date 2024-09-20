@@ -23,7 +23,10 @@ export default class FeedbackEmail extends BaseEmail {
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: process.env.SEND_FEEDBACK_EMAIL,
       subject: `User Feedback`,
-      html: await renderEmail("FeedbackEmail", this.feedback),
+      html: await renderEmail("FeedbackEmail", {
+        feedback: this.feedback,
+        t: (key: string) => key,
+      }),
       text: this.getTextBody(),
     };
   }
