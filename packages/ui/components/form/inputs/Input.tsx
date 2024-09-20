@@ -1,5 +1,6 @@
 "use client";
 
+import { type TFunction } from "i18next";
 import type { ReactNode } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -107,7 +108,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 
 type TextAreaFieldProps = {
   label?: ReactNode;
-  t?: (key: string) => string;
+  t?: TFunction<string, undefined>;
 } & React.ComponentProps<typeof TextArea> & {
     name: string;
     labelProps?: React.ComponentProps<typeof Label>;

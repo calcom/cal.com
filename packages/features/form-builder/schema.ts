@@ -1,3 +1,4 @@
+import { type TFunction } from "i18next";
 import { z } from "zod";
 
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
@@ -268,7 +269,7 @@ export const fieldTypesSchemaMap: Partial<
         response: string;
         isPartialSchema: boolean;
         ctx: z.RefinementCtx;
-        m: (key: string) => string;
+        m: TFunction<string, undefined>;
       }) => void;
     }
   >

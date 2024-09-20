@@ -1,3 +1,4 @@
+import { type TFunction } from "i18next";
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
@@ -7,7 +8,7 @@ import { InputError } from "./InputError";
 type hintsOrErrorsProps = {
   hintErrors?: string[];
   fieldName: string;
-  t: (key: string) => string;
+  t: TFunction<string, undefined>;
 };
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>({
