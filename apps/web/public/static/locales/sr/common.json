@@ -1731,6 +1731,7 @@
   "already_have_account": "Već imate nalog?",
   "already_have_key": "Već imam ključ:",
   "already_have_key_suggestion": "Kopirajte ovde postojeću CALCOM_LICENSE_KEY promenljivu okruženja.",
+  "create_license_key": "Kreiraj licencni ključ",
   "app_is_enabled": "Aplikacija {{appName}} je omogućena",
   "app_is_disabled": "Aplikacija {{appName}} je onemogućena",
   "keys_have_been_saved": "Ključevi su sačuvani",

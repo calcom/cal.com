@@ -1731,6 +1731,7 @@
   "already_have_account": "Už máte účet?",
   "already_have_key": "Klíč již mám:",
   "already_have_key_suggestion": "Zkopírujte sem svou stávající proměnnou prostředí CALCOM_LICENSE_KEY.",
+  "create_license_key": "Vytvořit licenční klíč",
   "app_is_enabled": "Aplikace {{appName}} je povolena",
   "app_is_disabled": "Aplikace {{appName}} je zakázána",
   "keys_have_been_saved": "Klíče byly uloženy",
