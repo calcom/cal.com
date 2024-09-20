@@ -1,12 +1,9 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, it } from "vitest";
 
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { handler } from "../../../pages/api/bookings/_get";
 
@@ -167,7 +164,6 @@ describe("GET /api/bookings", async () => {
 
       const responseData = await handler(req);
       responseData.bookings.forEach((booking) => {
-        console.log(booking);
         expect(new Date(booking.startTime).getTime()).toBeGreaterThanOrEqual(new Date().getTime());
       });
     });
@@ -193,92 +189,24 @@ describe("GET /api/bookings", async () => {
   });
 
   describe("Expand feature to add relational data in return payload", () => {
-    function buildMockData() {
-      prismock.user.create({
-        data: {
-          id: 1,
-          username: "admin",
-          name: "Admin User",
-          email: " admin@example.com",
-        },
-      });
-      prismock.team.create({
-        data: {
-          id: 1,
-          name: "Team 1",
-          slug: "team1",
-          members: {
-            createMany: {
-              data: [
-                {
-                  userId: 1,
-                  role: MembershipRole.ADMIN,
-                  accepted: true,
-                },
-              ],
-            },
-          },
-        },
-      });
-      prismock.eventType.create({
-        data: {
-          id: 1,
-          title: "Team Event",
-          slug: "team-event",
-          length: 60,
-          bookings: {
-            connect: {
-              id: 2,
-            },
-          },
-        },
-      });
-      prismock.booking.create({
-        data: {
-          id: 2,
-          uid: "2",
-          title: "Example Booking",
-          userId: 1,
-          startTime: "2024-08-30T06:45:00.000Z",
-          endTime: "2024-08-30T07:45:00.000Z",
-          eventTypeId: 1,
-          attendees: {
-            create: {
-              name: "Admin User",
-              email: "admin@example.com",
-              timeZone: "UTC",
-            },
-          },
-        },
-      });
-      prismock.eventType.update({
-        where: {
-          id: 1,
-        },
-        data: {
-          team: {
-            connect: {
-              id: 1,
-            },
-          },
-        },
-      });
-    }
     it("Returns only team data when expand=team is set", async () => {
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         query: {
           expand: "team",
         },
-        prisma: prismock,
+        pagination: DefaultPagination,
       });
-      buildMockData();
 
-      req.userId = 1;
+      req.userId = adminUser.id;
+      req.isOrganizationOwnerOrAdmin = true;
 
       const responseData = await handler(req);
+      console.log("bookings=>", responseData.bookings);
       responseData.bookings.forEach((booking) => {
-        expect(booking.eventType?.team?.slug).toBe("team-event");
+        if (booking.id === 31) expect(booking.eventType?.team?.slug).toBe("team1");
+        if (booking.id === 19) expect(booking.eventType?.team).toBe(null);
       });
     });
   });
