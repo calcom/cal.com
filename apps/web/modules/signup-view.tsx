@@ -41,7 +41,7 @@ import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, PasswordField, TextField, Form, Alert, CheckboxField, Icon } from "@calcom/ui";
 
-import { getServerSideProps } from "@lib/signup/getServerSideProps";
+import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
@@ -169,10 +169,11 @@ export default function Signup({
   emailVerificationEnabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
+  const displayMiddleDivider = isGoogleLoginEnabled; // Add the isOutlookLoginEnabled flag here when Outlook login is added
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [displaySignupForm, setDisplaySignupForm] = useState(token);
+  const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -201,7 +202,7 @@ export default function Signup({
   }
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
-  const displayBackButton = displaySignupForm;
+  const displayBackButton = token ? false : displayEmailForm;
 
   const handleErrorsAndStripe = async (resp: Response) => {
     if (!resp.ok) {
@@ -331,7 +332,7 @@ export default function Signup({
                   className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group mb-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
                   StartIcon="arrow-left"
                   onClick={() => {
-                    setDisplaySignupForm(false);
+                    setDisplayEmailForm(false);
                   }}>
                   {t("back")}
                 </Button>
@@ -353,7 +354,7 @@ export default function Signup({
             </div>
 
             {/* Form Container */}
-            {displaySignupForm && (
+            {displayEmailForm && (
               <div className="mt-12">
                 <Form
                   className="flex flex-col gap-4"
@@ -450,7 +451,7 @@ export default function Signup({
                 </Form>
               </div>
             )}
-            {!displaySignupForm && (
+            {!displayEmailForm && (
               <div className="mt-12">
                 {/* Upper Row */}
                 <div className="mt-6 flex flex-col gap-2 md:flex-row">
@@ -493,15 +494,17 @@ export default function Signup({
                   ) : null}
                 </div>
 
-                <div className="mt-6">
-                  <div className="relative flex items-center">
-                    <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
-                      {t("or").toLocaleLowerCase()}
-                    </span>
-                    <div className="border-subtle flex-grow border-t" />
+                {displayMiddleDivider && (
+                  <div className="mt-6">
+                    <div className="relative flex items-center">
+                      <div className="border-subtle flex-grow border-t" />
+                      <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                        {t("or").toLocaleLowerCase()}
+                      </span>
+                      <div className="border-subtle flex-grow border-t" />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Lower Row */}
                 <div className="mt-6 flex flex-col gap-2 md:flex-row">
@@ -510,7 +513,7 @@ export default function Signup({
                     disabled={isGoogleLoading}
                     className={classNames("w-full justify-center rounded-md text-center")}
                     onClick={() => {
-                      setDisplaySignupForm(true);
+                      setDisplayEmailForm(true);
                     }}
                     data-testid="continue-with-email-button">
                     Continue with email
