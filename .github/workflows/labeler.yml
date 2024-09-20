@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: equitybee/team-label-action@main
+      - uses: equitybee/team-label-action@v1.0.3
         with:
           repo-token: ${{ secrets.EQUITY_BEE_TEAM_LABELER_ACTION_TOKEN }}
           organization-name: calcom
