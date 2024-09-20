@@ -93,6 +93,7 @@ export class OutputOrganizationsEventTypesService {
       teamId,
       ownerId: userId,
       parentEventTypeId: parentId,
+      schedulingType: databaseEventType.schedulingType,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
     };
   }
