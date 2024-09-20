@@ -573,7 +573,7 @@ async function handler(
         const end = req.body.allRecurringDates[i].end;
         if (isTeamEvent) {
           // each fixed user must be available
-          for (const key in fixedParticipants) {
+          for (const key in fixedUsers) {
             await ensureAvailableUsers(
               { ...eventTypeWithUsers, users: [fixedUsers[key]] },
               {
