@@ -173,7 +173,7 @@ yarn dx
 
 #### Development tip
 
-Add NEXT_PUBLIC_LOGGER_LEVEL={level} to your .env file to control the logging verbosity for all tRPC queries and mutations.\
+Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
 Where {level} can be one of the following:
  
 `0` for silly \
