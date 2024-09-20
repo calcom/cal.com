@@ -21,7 +21,6 @@ const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) =>
     await teamBilling.downgrade();
     return { success: true };
   }
-  return { success: false };
 };
 
 export default handler;

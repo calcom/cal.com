@@ -3,10 +3,14 @@ import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
+import removeMember from "@calcom/features/ee/teams/lib/removeMember";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
+import { TRPCError } from "@trpc/server";
 
 import { getParsedTeam } from "./teamUtils";
 
@@ -182,9 +186,6 @@ export class TeamRepository {
   }
 
   static async deleteById({ id }: { id: number }) {
-    const teamBilling = await TeamBilling.findAndInit(id);
-    await teamBilling.cancel();
-
     try {
       await this._deleteWorkflowRemindersOfRemovedTeam(id);
     } catch (e) {
@@ -211,6 +212,9 @@ export class TeamRepository {
           id: id,
         },
       });
+
+      const teamBilling = await TeamBilling.findAndInit(id);
+      await teamBilling.cancel();
       return deletedTeam;
     });
 
@@ -218,6 +222,85 @@ export class TeamRepository {
 
     return deletedTeam;
   }
+
+  // TODO: Move errors away from TRPC error to make it more generic
+  static async inviteMemberByToken(token: string, userId: number) {
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        token,
+        OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
+      },
+      include: {
+        team: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    if (!verificationToken.teamId || !verificationToken.team)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Invite token is not associated with any team",
+      });
+
+    try {
+      await prisma.membership.create({
+        data: {
+          teamId: verificationToken.teamId,
+          userId: userId,
+          role: MembershipRole.MEMBER,
+          accepted: false,
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "This user is a member of this team / has a pending invitation.",
+          });
+        }
+      } else throw e;
+    }
+
+    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
+    await teamBilling.updateQuantity();
+
+    return verificationToken.team.name;
+  }
+
+  static async publish(teamId: number) {
+    const teamBilling = await TeamBilling.findAndInit(teamId);
+    await teamBilling.publish();
+  }
+
+  static async removeMembers(teamIds: number[], memberIds: number[], isOrg = false) {
+    const deleteMembershipPromises = [];
+
+    for (const memberId of memberIds) {
+      for (const teamId of teamIds) {
+        deleteMembershipPromises.push(
+          // This removeMember function is from @calcom/features/ee/teams/lib/removeMember.ts we should probably move it to this repository.
+          removeMember({
+            teamId,
+            memberId,
+            isOrg,
+          })
+        );
+      }
+    }
+
+    await Promise.all(deleteMembershipPromises);
+
+    const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
+    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
+    await Promise.allSettled(teamBillingPromises);
+  }
+
+  // TODO: Add invite members by email here from inviteMember.handler.ts theres just a lot of code here that needs refactored.
 
   private static async _deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
     const team = await prisma.team.findFirst({
