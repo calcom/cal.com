@@ -1,4 +1,3 @@
-import { type TFunction } from "i18next";
 import type { ReactNode } from "react";
 
 import type { Input } from "./TextField";
@@ -17,7 +16,7 @@ export type InputFieldProps = {
   labelSrOnly?: boolean;
   containerClassName?: string;
   showAsteriskIndicator?: boolean;
-  t?: TFunction<string, undefined>;
+  t?: (key: string) => string;
   dataTestid?: string;
   noLabel?: boolean;
   onClickAddon?: () => void;
