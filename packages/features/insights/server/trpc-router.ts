@@ -5,7 +5,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
-import type { CreateInnerContextOptions, TRPCContextInner } from "@calcom/trpc/server/createContext";
+import type { readonlyPrisma } from "@calcom/prisma";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -18,8 +18,10 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
-type Ctx = TRPCContextInner & {
-  user: NonNullable<CreateInnerContextOptions["user"] & { isOwnerAdminOfParentTeam: boolean }>;
+type Ctx = {
+  userIsOwnerAdminOfParentTeam: boolean;
+  userOrganizationId: number | null;
+  insightsDb: typeof readonlyPrisma;
 };
 
 interface BuildBaseWhereConditionType {
@@ -52,10 +54,10 @@ const buildBaseWhereCondition = async ({
     whereCondition.userId = userId;
   }
   // organization-wide queries condition
-  if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
+  if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
     const teamsFromOrg = await ctx.insightsDb.team.findMany({
       where: {
-        parentId: ctx.user.organizationId,
+        parentId: ctx.userOrganizationId,
       },
       select: {
         id: true,
@@ -66,7 +68,7 @@ const buildBaseWhereCondition = async ({
     }
     const teamConditional = {
       id: {
-        in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
+        in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
       },
     };
     const usersFromOrg = await ctx.insightsDb.membership.findMany({
@@ -84,7 +86,7 @@ const buildBaseWhereCondition = async ({
       OR: [
         {
           teamId: {
-            in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
+            in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
           },
           isTeamBooking: true,
         },
@@ -517,14 +519,17 @@ export const insightsRouter = router({
           timeView = "day";
         }
       }
-
       const r = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
         userId: selfUserId,
         isAll,
-        ctx,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
       });
       const { isEmptyResponse } = r;
       let { whereCondition: whereConditional } = r;
@@ -608,7 +613,11 @@ export const insightsRouter = router({
         memberUserId,
         userId,
         isAll,
-        ctx,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
@@ -754,7 +763,11 @@ export const insightsRouter = router({
         memberUserId,
         userId,
         isAll,
-        ctx,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
       });
 
       if (isEmptyResponse) return emptyResponseEventsByStatus;
@@ -831,7 +844,11 @@ export const insightsRouter = router({
         memberUserId,
         userId,
         isAll,
-        ctx,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
@@ -920,7 +937,11 @@ export const insightsRouter = router({
         memberUserId,
         userId,
         isAll,
-        ctx,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
@@ -1329,7 +1350,11 @@ export const insightsRouter = router({
         memberUserId,
         userId,
         isAll,
-        ctx,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
@@ -1455,7 +1480,11 @@ export const insightsRouter = router({
         memberUserId,
         userId,
         isAll,
-        ctx,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
