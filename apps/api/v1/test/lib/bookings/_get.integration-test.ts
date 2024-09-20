@@ -6,9 +6,9 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, it } from "vitest";
 
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { handler } from "../../../pages/api/bookings/_get";
-import { MembershipRole } from ".prisma/client";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
