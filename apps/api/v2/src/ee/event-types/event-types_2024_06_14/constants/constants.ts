@@ -36,7 +36,6 @@ const sixtyMinutesVideo: EventTypeWithLocation = {
   locations: [{ type: "integrations:daily" }],
 };
 
-// Export the event types as a single object
 export const DEFAULT_EVENT_TYPES = {
   thirtyMinutes,
   thirtyMinutesVideo,
