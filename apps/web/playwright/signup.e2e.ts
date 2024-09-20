@@ -26,7 +26,7 @@ test.describe("Signup Main Page Test", async () => {
     await page.goto("/signup");
     await expect(page.locator('[data-testid="continue-with-google-button"]')).toBeVisible();
     await page.locator('[data-testid="continue-with-google-button"]').click();
-    expect(page.url()).toContain("/auth/sso/google");
+    await page.waitForURL("/auth/sso/google");
   });
 });
 
