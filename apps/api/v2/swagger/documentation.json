@@ -3518,6 +3518,58 @@
         ]
       }
     },
+    "/v2/calendars/ics-feed/save": {
+      "post": {
+        "operationId": "CalendarsController_createIcsFeed",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIcsFeedInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateIcsFeedOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
+    "/v2/calendars/ics-feed/check": {
+      "post": {
+        "operationId": "CalendarsController_CheckIcsFeed",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
     "/v2/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
@@ -10593,6 +10645,76 @@
           },
           "data": {
             "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateIcsFeedInputDto": {
+        "type": "object",
+        "properties": {
+          "read_only": {
+            "type": "boolean",
+            "default": true,
+            "example": false,
+            "description": "Whether to allowing writing to the calendar or not"
+          },
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "urls"
+        ]
+      },
+      "CreateIcsFeedOutput": {
+        "type": "object",
+        "properties": {
+          "primary": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "primaryEmail": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          },
+          "integrationTitle": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateIcsFeedOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateIcsFeedOutput"
+            }
           }
         },
         "required": [

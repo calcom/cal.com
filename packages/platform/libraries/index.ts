@@ -1,5 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarService } from "@calcom/app-store/applecalendar/lib";
+import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
@@ -133,3 +134,5 @@ export { getTranslation };
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
+
+export { IcsFeedCalendarService };
