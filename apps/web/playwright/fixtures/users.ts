@@ -1014,10 +1014,11 @@ export async function login(
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
-  await signInLocator.click();
 
   // waiting for specific login request to resolve
-  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  const responsePromise = page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  await signInLocator.click();
+  await responsePromise;
 }
 
 export async function apiLogin(

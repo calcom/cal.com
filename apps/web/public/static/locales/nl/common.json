@@ -1731,6 +1731,7 @@
   "already_have_account": "Heeft u al een account?",
   "already_have_key": "Ik heb al een code:",
   "already_have_key_suggestion": "Kopieer hier uw bestaande CALCOM_LICENSE_KEY-omgevingsvariabele.",
+  "create_license_key": "Licentiesleutel aanmaken",
   "app_is_enabled": "{{appName}} is ingeschakeld",
   "app_is_disabled": "{{appName}} is uitgeschakeld",
   "keys_have_been_saved": "Sleutels zijn opgeslagen",

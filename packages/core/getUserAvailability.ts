@@ -281,6 +281,16 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     currentSeats = await getCurrentSeats(eventType, dateFrom, dateTo);
   }
 
+  const userSchedule = user.schedules.filter(
+    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
+  )[0];
+
+  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+
+  const schedule = eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule;
+
+  const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
+
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
@@ -289,8 +299,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       ? await getBusyTimesFromLimits(
           bookingLimits,
           durationLimits,
-          dateFrom,
-          dateTo,
+          dateFrom.tz(timeZone),
+          dateTo.tz(timeZone),
           duration,
           eventType,
           initialData?.busyTimesFromLimitsBookings ?? []
@@ -329,14 +339,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ...busyTimesFromLimits,
   ];
 
-  const userSchedule = user.schedules.filter(
-    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-  )[0];
-
-  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
-
-  const schedule = eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule;
-
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
@@ -350,8 +352,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   );
 
   const startGetWorkingHours = performance.now();
-
-  const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
   if (
     !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))

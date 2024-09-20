@@ -33,9 +33,9 @@ test.describe("Availablity", () => {
     await page.getByTestId("add-override-submit-btn").click();
     await page.getByTestId("dialog-rejection").click();
     await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
-    await page.locator('[form="availability-form"][type="submit"]').click();
-    const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
-    const json = await response.json();
+    await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1", {
+      action: () => page.locator('[form="availability-form"][type="submit"]').click(),
+    });
     const nextMonth = dayjs().add(1, "month").startOf("month");
     const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
     await page.goto(troubleshooterURL);

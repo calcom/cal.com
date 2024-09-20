@@ -1151,6 +1151,87 @@ describe("getSchedule", () => {
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
     });
 
+    test("test that booking limit is working correctly if user is all day available and attendee is in different timezone than host", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 1,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                name: "All Day available",
+                availability: [
+                  {
+                    userId: null,
+                    eventTypeId: null,
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T00:00:00.000Z"),
+                    endTime: new Date("1970-01-01T23:59:59.999Z"),
+                    date: null,
+                  },
+                ],
+                timeZone: Timezones["+6:00"],
+              },
+            ],
+          },
+        ],
+        // One bookings for each(E1 and E2) on plus2Date
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T08:00:00.000Z`,
+            endTime: `${plus2DateString}T09:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const thisUserAvailabilityBookingLimit = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["-11:00"], //attendee timezone
+          isTeamEvent: false,
+          orgSlug: null,
+        },
+      });
+
+      const availableSlotsInTz: dayjs.Dayjs[] = [];
+      for (const date in thisUserAvailabilityBookingLimit.slots) {
+        thisUserAvailabilityBookingLimit.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0); // 1 booking per day as limit
+    });
+
     test("a slot counts as being busy when the eventType is requiresConfirmation and requiresConfirmationWillBlockSlot", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
