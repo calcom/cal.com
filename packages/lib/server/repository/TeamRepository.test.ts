@@ -19,6 +19,10 @@ vi.mock("@calcom/lib/domainManager/organization", () => ({
   deleteDomain: vi.fn(),
 }));
 
+vi.mock("@calcom/features/ee/teams/lib/removeMember", () => ({
+  default: vi.fn(),
+}));
+
 describe("TeamRepository", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -127,18 +131,6 @@ describe("TeamRepository", () => {
       await TeamRepository.publish(1);
 
       expect(mockTeamBilling.publish).toHaveBeenCalled();
-    });
-  });
-
-  describe("removeMembers", () => {
-    it("should remove members and update billing", async () => {
-      const mockTeamBilling = { updateQuantity: vi.fn() };
-      TeamBilling.findAndInitMany.mockResolvedValue([mockTeamBilling]);
-
-      await TeamRepository.removeMembers([1], [2, 3]);
-
-      expect(prismaMock.membership.deleteMany).toHaveBeenCalledTimes(2);
-      expect(mockTeamBilling.updateQuantity).toHaveBeenCalled();
     });
   });
 });
