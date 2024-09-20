@@ -28,15 +28,12 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const user = await users.create({
     name,
   });
-  const [response] = await Promise.all([
-    // This promise resolves to the main resource response
-    page.waitForResponse(
-      (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
-    ),
-
-    // Trigger the page navigation
-    page.goto(`/${user.username}/30-min`),
-  ]);
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+  );
+  await page.goto(`/${user.username}/30-min`);
+  await page.content();
+  const response = await responsePromise;
   const ssrResponse = await response.text();
   const document = new JSDOM(ssrResponse).window.document;
 
@@ -300,10 +297,8 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await eventTypeLink.waitFor();
     await eventTypeLink.click();
 
-    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -337,10 +332,8 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.locator('[data-testid="back"]').waitFor();
     await page.click('[data-testid="back"]');
 
-    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    // await pageTwo.waitForLoadState("networkidle");
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
     await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
@@ -509,8 +502,6 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     // books 9AM slots for 120 minutes (test-user is not available at this time, availability starts at 10)
     await page.locator('[data-testid="time"]').nth(0).click();
 
-    // await page.waitForLoadState("networkidle");
-
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
@@ -540,8 +531,6 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
     // Again book a 9AM slot for 120 minutes where test-user is not available
     await page.locator('[data-testid="time"]').nth(0).click();
-
-    // await page.waitForLoadState("networkidle");
 
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);

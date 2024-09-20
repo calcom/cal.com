@@ -1731,6 +1731,7 @@
   "already_have_account": "Bạn đã có sẵn tài khoản?",
   "already_have_key": "Tôi đã có một khoá:",
   "already_have_key_suggestion": "Vui lòng sao chép biến số môi trường CALCOM_LICENSE_KEY hiện có của bạn tại đây.",
+  "create_license_key": "Tạo Khóa Giấy Phép",
   "app_is_enabled": "{{appName}} đã được kích hoạt",
   "app_is_disabled": "{{appName}} đã được vô hiệu hoá",
   "keys_have_been_saved": "Các khoá đã được lưu lại",
