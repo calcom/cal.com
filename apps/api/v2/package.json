@@ -33,7 +33,7 @@
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",
-    "@golevelup/ts- ": "^0.4.0",
+    "@golevelup/ts-jest": "^0.4.0",
     "@microsoft/microsoft-graph-types-beta": "^0.42.0-preview",
     "@nestjs/bull": "^10.1.1",
     "@nestjs/common": "^10.0.0",
