@@ -208,7 +208,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
     const status: EventStatus =
-      triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ? "DECLINED" : "CONFIRMED";
+      triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ? "CANCELLED" : "CONFIRMED";
 
     return sendSendgridMail(
       {

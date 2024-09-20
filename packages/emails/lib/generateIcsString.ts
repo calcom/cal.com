@@ -16,13 +16,28 @@ export enum BookingAction {
   LocationChange = "location_change",
 }
 
+export type ICSCalendarEvent = Pick<
+  CalendarEvent,
+  | "uid"
+  | "iCalUID"
+  | "iCalSequence"
+  | "startTime"
+  | "endTime"
+  | "title"
+  | "organizer"
+  | "attendees"
+  | "location"
+  | "recurringEvent"
+  | "team"
+>;
+
 const generateIcsString = ({
   event,
   status,
   partstat = "ACCEPTED",
   t,
 }: {
-  event: CalendarEvent;
+  event: ICSCalendarEvent;
   status: EventStatus;
   partstat?: ParticipationStatus;
   t?: TFunction;
