@@ -1,11 +1,11 @@
 import type { Prisma } from "@prisma/client";
 
-import { TeamBilling } from "@calcom/ee/billing/teams";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -66,8 +66,7 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
   await checkPermissions({ ctx, input });
 
   try {
-    const teamBilling = await TeamBilling.findAndInit(teamId);
-    await teamBilling.publish();
+    await TeamRepository.publish(teamId);
   } catch (error) {
     /** We return the url for client redirect if needed */
     if (error instanceof Redirect) return { url: error.url };
