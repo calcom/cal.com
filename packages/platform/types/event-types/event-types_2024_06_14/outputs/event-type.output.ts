@@ -234,7 +234,8 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsInt()
   @DocsProperty()
-  seatsPerTimeSlot!: number | null;
+  @IsOptional()
+  seatsPerTimeSlot?: number | null;
 
   @IsBoolean()
   @DocsProperty()
@@ -248,9 +249,10 @@ class BaseEventTypeOutput_2024_06_14 {
   @DocsProperty()
   isInstantEvent!: boolean;
 
+  @IsOptional()
   @IsBoolean()
   @DocsProperty()
-  seatsShowAvailabilityCount!: boolean | null;
+  seatsShowAvailabilityCount?: boolean | null;
 
   @IsInt()
   @DocsProperty()

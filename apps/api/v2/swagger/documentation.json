@@ -7138,6 +7138,9 @@
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
           },
+          "seatsPerTimeSlot": {
+            "type": "object"
+          },
           "forwardParamsSuccessRedirect": {
             "type": "object"
           },
@@ -7147,11 +7150,20 @@
           "isInstantEvent": {
             "type": "boolean"
           },
+          "seatsShowAvailabilityCount": {
+            "type": "object"
+          },
           "scheduleId": {
+            "type": "object"
+          },
+          "bookingLimitsCount": {
             "type": "object"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "type": "object"
           },
           "bookingWindow": {
             "type": "array",
@@ -7229,11 +7241,15 @@
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
+          "seatsPerTimeSlot",
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
           "isInstantEvent",
+          "seatsShowAvailabilityCount",
           "scheduleId",
+          "bookingLimitsCount",
           "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
           "bookingWindow",
           "bookerLayouts",
           "confirmationPolicy",
@@ -9119,6 +9135,10 @@
           "lockTimeZoneToggleOnBookingPage": {
             "type": "boolean"
           },
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "nullable": true
+          },
           "forwardParamsSuccessRedirect": {
             "type": "boolean",
             "nullable": true
@@ -9130,12 +9150,22 @@
           "isInstantEvent": {
             "type": "boolean"
           },
+          "seatsShowAvailabilityCount": {
+            "type": "boolean",
+            "nullable": true
+          },
           "scheduleId": {
             "type": "number",
             "nullable": true
           },
+          "bookingLimitsCount": {
+            "type": "object"
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "type": "object"
           },
           "bookingWindow": {
             "type": "array",
@@ -9215,12 +9245,6 @@
               "COLLECTIVE",
               "MANAGED"
             ]
-          },
-          "bookingLimitsCount": {
-            "type": "object"
-          },
-          "bookingLimitsDuration": {
-            "type": "object"
           }
         },
         "required": [
