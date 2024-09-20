@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const expandEnum = z.enum(["team", "payment", "etc"]);
+const expandEnum = z.enum(["team"]);
 
 export const schemaQuerySingleOrMultipleExpand = z
   .union([
