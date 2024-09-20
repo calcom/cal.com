@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-head-element */
-import { getTextDirection } from "../../../lib/i18n";
+import { getTextDirection } from "@calcom/lib/i18n";
+
 import BaseTable from "./BaseTable";
 import EmailBodyLogo from "./EmailBodyLogo";
 import EmailHead from "./EmailHead";
@@ -22,16 +22,16 @@ export const BaseEmailHtml = (props: {
   callToAction?: React.ReactNode;
   subject: string;
   title?: string;
-  subtitle?: React.ReactNode | string;
+  subtitle?: React.ReactNode;
   headerType?: BodyHeadType;
   hideLogo?: boolean;
-  locale: string;
+  locale?: string;
 }) => {
-  const textDirection = getTextDirection(props.locale);
+  const textDirection = getTextDirection(props.locale || "en");
   const isRTL = textDirection === "rtl";
 
   return (
-    <Html lang={props.locale}>
+    <Html lang={props.locale || "en"}>
       <EmailHead title={props.subject} />
       <body style={{ wordSpacing: "normal", backgroundColor: "#F3F4F6" }}>
         <style>

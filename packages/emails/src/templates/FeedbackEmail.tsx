@@ -1,19 +1,24 @@
-import { BaseEmailHtml, Info } from "../components";
+import type { TFunction } from "next-i18next";
 
-export interface Feedback {
-  username: string;
-  email: string;
-  rating: string;
-  comment: string;
-}
+import type { Feedback } from "../../templates/feedback-email";
+import { BaseEmailHtml } from "../components";
+import { Info } from "../components/Info";
 
-export const FeedbackEmail = (props: Feedback & Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
+export const FeedbackEmail = (
+  props: {
+    feedback: Feedback;
+    t: TFunction;
+  } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
+) => {
+  const { feedback, t } = props;
   return (
-    <BaseEmailHtml subject="Feedback" title="Feedback">
-      <Info label="Username" description={props.username} withSpacer />
-      <Info label="Email" description={props.email} withSpacer />
-      <Info label="Rating" description={props.rating} withSpacer />
-      <Info label="Comment" description={props.comment} withSpacer />
+    <BaseEmailHtml subject="Feedback" title="Feedback" locale={props.locale || "en"}>
+      <Info label={t("user")} description={feedback.username || ""} withSpacer />
+      <Info label={t("email")} description={feedback.email || ""} withSpacer />
+      <Info label={t("rating")} description={feedback.rating?.toString() || ""} withSpacer />
+      <Info label={t("comment")} description={feedback.comment || ""} withSpacer />
     </BaseEmailHtml>
   );
 };
+
+export default FeedbackEmail;

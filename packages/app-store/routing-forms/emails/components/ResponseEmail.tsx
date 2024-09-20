@@ -8,11 +8,13 @@ import type { OrderedResponses } from "../../types/types";
 export const ResponseEmail = ({
   form,
   orderedResponses,
+  locale,
   ...props
 }: {
   form: Pick<App_RoutingForms_Form, "id" | "name">;
   orderedResponses: OrderedResponses;
   subject: string;
+  locale?: string;
 } & Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
   return (
     <BaseEmailHtml
@@ -35,6 +37,7 @@ export const ResponseEmail = ({
       }
       title={form.name}
       subtitle="New Response Received"
+      locale={locale || "en"}
       {...props}>
       {orderedResponses.map((fieldResponse, index) => {
         return (
