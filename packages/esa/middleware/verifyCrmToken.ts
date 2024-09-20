@@ -75,7 +75,7 @@ export const verifyCrmToken: NextMiddleware = async function (req, res, next) {
 
   try {
     const { authorization } = req.headers;
-    const _result = { tokenDetails: undefined, zohoUser: undefined } || verifyCRMAuthorization(authorization);
+    const _result = verifyCRMAuthorization(authorization);
 
     await next();
   } catch (error) {
