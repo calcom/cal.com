@@ -1733,6 +1733,7 @@ checksums:
     already_have_account: 699043a787e26ec2ecad53f52df28d5b
     already_have_key: 18768c72aec29b91c4a8fb5b9af7f77d
     already_have_key_suggestion: c2c89f46f30bf9713e7ae09b63adc470
+    create_license_key: 1430b640d5efb293d0484cf2f9fac5c7
     app_is_enabled: 38a2bd1420d7cc809fb716dd73ffceda
     app_is_disabled: da8f70cedc70b97cf1461f91952f1373
     keys_have_been_saved: d2aaa76ef379fc0b2d44a7fb1bfdb75b
