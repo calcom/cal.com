@@ -487,10 +487,10 @@ async function handler(
     }
     const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
     let isTeamOwnerOrAdmin = false;
-    if (isTeamEventType) {
+    if (isTeamEventType && eventType?.teamId) {
       const teamOwnerOrAdmin = await prisma.membership.findFirst({
         where: {
-          teamId: eventType?.teamId || 0,
+          teamId: eventType?.teamId,
           userId,
           role: {
             in: [MembershipRole.ADMIN, MembershipRole.OWNER],
@@ -573,10 +573,9 @@ async function handler(
         const end = req.body.allRecurringDates[i].end;
         if (isTeamEvent) {
           // each fixed user must be available
-          const fixedParticipants = [...fixedUsers, ...guestsList];
           for (const key in fixedParticipants) {
             await ensureAvailableUsers(
-              { ...eventTypeWithUsers, users: [fixedParticipants[key]] },
+              { ...eventTypeWithUsers, users: [fixedUsers[key]] },
               {
                 dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                 dateTo: dayjs(end).tz(reqBody.timeZone).format(),
@@ -588,7 +587,7 @@ async function handler(
           }
         } else {
           await ensureAvailableUsers(
-            { ...eventTypeWithUsers, users: [...eventTypeWithUsers.users, ...guestsList] },
+            eventTypeWithUsers,
             {
               dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
               dateTo: dayjs(end).tz(reqBody.timeZone).format(),
