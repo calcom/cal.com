@@ -2633,6 +2633,7 @@
   "sms_beyond_limit": "SMS beyond your limit",
   "sms_beyond_limit_description": "Control how SMS are handled once your free credits are used",
   "pay_sms_over_limit": "Pay for SMS over the limit",
-  "pay_sms_over_limit_description": "Allow getting charged for extra SMS beyond your limit. You will be charged for each SMS sent. Pricing details are available <1>here</1>",
+  "pay_sms_over_limit_description": "Allow getting charged for SMS beyond your limit. You will be charged for each SMS sent. Pricing details are available <1>here</1>",
+  "allow_charging_for_sms": "Allow charging for SMS beyond limit",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑,↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

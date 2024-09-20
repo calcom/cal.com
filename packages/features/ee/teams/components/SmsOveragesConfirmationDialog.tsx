@@ -1,8 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, Icon } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, Icon, TextField } from "@calcom/ui";
 
 import type { FormValues } from "../pages/team-sms-credits-view";
 
@@ -25,12 +25,28 @@ export const SmsOveragesConfirmationDialog = (props: ISmsOveragesDialog) => {
             <Icon name="user-plus" className="m-auto h-6 w-6" />
           </div>
           <div className="w-full pt-1">
-            <DialogHeader title="Allow charging for additional SMS" />
+            <DialogHeader title={t("allow_charging_for_sms")} />
+            <div className="max-w-32">
+              <Controller
+                name="smsOveragesLimit"
+                control={formMethods.control}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    name="Limit"
+                    min={1}
+                    value={value || undefined}
+                    onChange={onChange}
+                    addOnSuffix="$"
+                  />
+                )}
+              />
+            </div>
             <DialogFooter>
               <Button
                 onClick={() => {
                   setIsOpenDialog(false);
                   formMethods.setValue("smsOveragesEnabled", false);
+                  formMethods.setValue("smsOveragesLimit", 0);
                 }}
                 type="button"
                 color="secondary">
@@ -39,7 +55,8 @@ export const SmsOveragesConfirmationDialog = (props: ISmsOveragesDialog) => {
               <Button
                 loading={false}
                 onClick={() => {
-                  console.log("confirm");
+                  setIsOpenDialog(false);
+                  // run mutation to change overage limit in db
                 }}>
                 {t("accept")}
               </Button>
