@@ -70,8 +70,6 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
   const free = await users.create({ username: "free.example" });
   await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
 
-  // await page.waitForLoadState("networkidle");
-
   const listItemByDurationTestId = (duration: number) => `multiple-choice-${duration}mins`;
 
   let listItemLocator = await page.getByTestId(listItemByDurationTestId(duration));

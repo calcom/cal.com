@@ -10,7 +10,7 @@ import React, { Suspense, useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -139,6 +139,9 @@ tabs.find((tab) => {
     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
     // TODO: Enable dsync for self hosters
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
+  }
+  if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
   }
 });
 
