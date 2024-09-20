@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { test } from "../lib/fixtures";
-import { localize, getInviteLink } from "../lib/testUtils";
+import { getInviteLink, localize } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -75,7 +75,6 @@ test.describe("Team", () => {
         password: "P4ssw0rd!",
       });
       await page.locator(`button:text("${t("add")}")`).click();
-      await page.locator(`[data-testid="copy-invite-link-button"]`).click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
