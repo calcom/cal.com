@@ -23,47 +23,6 @@ export class IcsFeedService implements ICSFeedCalendarApp {
     urls: string[],
     readonly = true
   ): Promise<CreateIcsFeedOutputResponseDto> {
-    return await this.saveCalendarCredentials(userId, userEmail, urls, readonly);
-  }
-
-  async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    return await this.checkIfCalendarConnected(userId);
-  }
-
-  async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const icsFeedCredentials = await this.credentialRepository.getByTypeAndUserId(ICS_CALENDAR_TYPE, userId);
-
-    if (!icsFeedCredentials) {
-      throw new BadRequestException("Credentials for Ics Feed calendar not found.");
-    }
-
-    if (icsFeedCredentials.invalid) {
-      throw new BadRequestException("Invalid Ics Feed credentials.");
-    }
-
-    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const icsCalendar = connectedCalendars.find(
-      (cal: { integration: { type: string } }) => cal.integration.type === ICS_CALENDAR_TYPE
-    );
-
-    if (!icsCalendar) {
-      throw new UnauthorizedException("Ics Feed not connected.");
-    }
-    if (icsCalendar.error?.message) {
-      throw new UnauthorizedException(icsCalendar.error?.message);
-    }
-
-    return {
-      status: SUCCESS_STATUS,
-    };
-  }
-
-  async saveCalendarCredentials(
-    userId: number,
-    userEmail: string,
-    urls: string[],
-    readonly = true
-  ): Promise<CreateIcsFeedOutputResponseDto> {
     const data = {
       type: ICS_CALENDAR_TYPE,
       ICS_CALENDAR,
@@ -112,5 +71,33 @@ export class IcsFeedService implements ICSFeedCalendarApp {
       this.logger.error("Could not add ICS feeds", e);
       throw new BadRequestException("Could not add ICS feeds, try using private ics feed.");
     }
+  }
+
+  async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
+    const icsFeedCredentials = await this.credentialRepository.getByTypeAndUserId(ICS_CALENDAR_TYPE, userId);
+
+    if (!icsFeedCredentials) {
+      throw new BadRequestException("Credentials for Ics Feed calendar not found.");
+    }
+
+    if (icsFeedCredentials.invalid) {
+      throw new BadRequestException("Invalid Ics Feed credentials.");
+    }
+
+    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
+    const icsCalendar = connectedCalendars.find(
+      (cal: { integration: { type: string } }) => cal.integration.type === ICS_CALENDAR_TYPE
+    );
+
+    if (!icsCalendar) {
+      throw new UnauthorizedException("Ics Feed not connected.");
+    }
+    if (icsCalendar.error?.message) {
+      throw new UnauthorizedException(icsCalendar.error?.message);
+    }
+
+    return {
+      status: SUCCESS_STATUS,
+    };
   }
 }

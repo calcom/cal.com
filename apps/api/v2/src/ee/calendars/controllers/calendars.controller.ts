@@ -73,12 +73,12 @@ export class CalendarsController {
     @GetUser("email") userEmail: string,
     @Body() body: CreateIcsFeedInputDto
   ): Promise<CreateIcsFeedOutputResponseDto> {
-    return await this.icsFeedService.save(userId, userEmail, body.urls, body.read_only);
+    return await this.icsFeedService.save(userId, userEmail, body.urls, body.readOnly);
   }
 
   @Get("/ics-feed/check")
   @UseGuards(ApiAuthGuard)
-  async CheckIcsFeed(@GetUser("id") userId: number): Promise<ApiResponse> {
+  async checkIcsFeed(@GetUser("id") userId: number): Promise<ApiResponse> {
     return await this.icsFeedService.check(userId);
   }
 

@@ -197,10 +197,10 @@ describe("Platform Calendars Endpoints", () => {
       .expect(200);
   });
 
-  it(`/GET/v2/calendars/${ICS_CALENDAR}/save with access token should fail to create a new ics feed calendar credentials with invalid urls`, async () => {
+  it(`/POST/v2/calendars/${ICS_CALENDAR}/save with access token should fail to create a new ics feed calendar credentials with invalid urls`, async () => {
     const body = {
       urls: ["https://cal.com/ics/feed.ics", "https://not-an-ics-feed.com"],
-      read_only: false,
+      readOnly: false,
     };
     await request(app.getHttpServer())
       .post(`/v2/calendars/${ICS_CALENDAR}/save`)
@@ -210,10 +210,10 @@ describe("Platform Calendars Endpoints", () => {
       .expect(400);
   });
 
-  it(`/GET/v2/calendars/${ICS_CALENDAR}/save with access token should create a new ics feed calendar credentials`, async () => {
+  it(`/POST/v2/calendars/${ICS_CALENDAR}/save with access token should create a new ics feed calendar credentials`, async () => {
     const body = {
       urls: ["https://cal.com/ics/feed.ics"],
-      read_only: false,
+      readOnly: false,
     };
     jest
       .spyOn(IcsFeedCalendarService.prototype, "listCalendars")

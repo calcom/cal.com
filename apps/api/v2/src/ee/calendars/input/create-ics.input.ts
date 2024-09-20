@@ -19,8 +19,8 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
     try {
       const urlObject = new URL(url);
       return (
-        urlObject.protocol === "http:" ||
-        (urlObject.protocol === "https:" && urlObject.pathname.endsWith(".ics"))
+        (urlObject.protocol === "http:" || urlObject.protocol === "https:") &&
+        urlObject.pathname.endsWith(".ics")
       );
     } catch (error) {
       return false;
@@ -33,6 +33,16 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
 }
 
 export class CreateIcsFeedInputDto {
+  @ApiProperty({
+    example: ["https://cal.com/ics/feed.ics", "http://cal.com/ics/feed.ics"],
+    description: "An array of ICS URLs",
+    type: "array",
+    items: {
+      type: "string",
+      example: "https://cal.com/ics/feed.ics",
+    },
+    required: true,
+  })
   @IsArray()
   @ArrayNotEmpty()
   @IsNotEmpty({ each: true })
@@ -48,5 +58,5 @@ export class CreateIcsFeedInputDto {
     default: true,
   })
   @IsOptional()
-  read_only?: boolean = true;
+  readOnly?: boolean = true;
 }
