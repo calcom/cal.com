@@ -18,7 +18,7 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
-type Ctx = {
+type BuildBaseWhereConditionCtxType = {
   userIsOwnerAdminOfParentTeam: boolean;
   userOrganizationId: number | null;
   insightsDb: typeof readonlyPrisma;
@@ -30,7 +30,7 @@ interface BuildBaseWhereConditionType {
   memberUserId?: number;
   userId?: number;
   isAll?: boolean;
-  ctx: Ctx;
+  ctx: BuildBaseWhereConditionCtxType;
 }
 
 const buildBaseWhereCondition = async ({
