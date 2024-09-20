@@ -173,11 +173,30 @@ yarn dx
 
 #### Development tip
 
-> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **tRPC**.
+> Add NEXT_PUBLIC_LOGGER_LEVEL={level} to your .env file to control the logging verbosity for all tRPC queries and mutations.
+> 
+> Where {level} can be one of the following:
+> 
+> silly: Most verbose, logs every detail (0)
+> trace: Logs execution paths and function calls (1)
+> debug: Logs debugging information for developers (2)
+> info: General operational messages (3)
+> warn: Logs non-critical issues that could lead to errors (4)
+> error: Logs errors that need attention (5)
+> fatal: Logs only severe errors that cause the application to crash (6)
+>
+> When you set NEXT_PUBLIC_LOGGER_LEVEL={level} in your .env file, it enables logging at that level and higher. Here's how it works:
+> 
+> The logger will include all logs that are at the specified level or higher. For example:
+> If you set NEXT_PUBLIC_LOGGER_LEVEL=2, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged.
+> If you set NEXT_PUBLIC_LOGGER_LEVEL=3, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored.
+> If you set NEXT_PUBLIC_LOGGER_LEVEL=5, only error (5) and fatal (6) logs will be shown.
+> This cascading effect allows you to filter logs based on how critical they are, starting at the specified level and logging all more severe levels. This gives you fine-grained control over the verbosity of logs, so you can adjust it depending on the environment (e.g., debug in development and error in production).
 
 ```sh
-echo 'NEXT_PUBLIC_DEBUG=1' >> .env
+echo 'NEXT_PUBLIC_LOGGER_LEVEL=3' >> .env
 ```
+for Logger level to be set at info, for example.
 
 #### Gitpod Setup
 
