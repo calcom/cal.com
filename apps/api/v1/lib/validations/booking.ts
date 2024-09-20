@@ -33,7 +33,6 @@ export const schemaBookingGetParams = z.object({
   order: z.enum(["asc", "desc"]).default("asc"),
   sortBy: z.enum(["createdAt", "updatedAt"]).optional(),
   status: z.enum(["upcoming"]).optional(),
-  expand: z.enum(["team"]).optional(),
 });
 
 export type Status = z.infer<typeof schemaBookingGetParams>["status"];
