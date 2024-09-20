@@ -1731,6 +1731,7 @@
   "already_have_account": "Уже маєте обліковий запис?",
   "already_have_key": "У мене вже є ключ:",
   "already_have_key_suggestion": "Скопіюйте сюди наявну змінну оточення CALCOM_LICENSE_KEY.",
+  "create_license_key": "Створити ліцензійний ключ",
   "app_is_enabled": "{{appName}} увімкнено",
   "app_is_disabled": "{{appName}} вимкнено",
   "keys_have_been_saved": "Ключі збережено",

@@ -8,7 +8,7 @@ import ReactDom from "react-dom";
 
 // Because we don't import from @calcom/embed-react, this file isn't able to test if the build is successful or not and thus npm package would work or not correctly.
 // There are tests in test/built which verifiy that the types from built package are correctly generated and exported correctly.
-import Cal, { getCalApi } from "./src/index";
+import Cal, { getCalApi, type EmbedEvent } from "./src/index";
 
 const api = getCalApi({
   namespace: "inline",
@@ -48,6 +48,27 @@ function App() {
         api("off", {
           action: "*",
           callback,
+        });
+
+        // Also, validates the type of e.detail.data as TS runs on this file
+        const bookingSuccessfulV2Callback = (e: EmbedEvent<"bookingSuccessfulV2">) => {
+          const data = e.detail.data;
+          console.log("bookingSuccessfulV2", {
+            endTime: data.endTime,
+            startTime: data.startTime,
+            title: data.title,
+          });
+
+          // Remove the event listener after it is fired once as I don't need it.
+          api("off", {
+            action: "bookingSuccessfulV2",
+            callback: bookingSuccessfulV2Callback,
+          });
+        };
+
+        api("on", {
+          action: "bookingSuccessfulV2",
+          callback: bookingSuccessfulV2Callback,
         });
       });
     };

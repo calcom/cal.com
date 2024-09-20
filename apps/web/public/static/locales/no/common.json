@@ -1731,6 +1731,7 @@
   "already_have_account": "Har du allerede en bruker?",
   "already_have_key": "Jeg har allerede en nøkkel:",
   "already_have_key_suggestion": "Vennligst kopier din eksisterende CALCOM_LICENSE_KEY miljøvariabel her.",
+  "create_license_key": "Opprett lisensnøkkel",
   "app_is_enabled": "{{appName}} er aktivert",
   "app_is_disabled": "{{appName}} er deaktivert",
   "keys_have_been_saved": "Nøkler har blitt lagret",
