@@ -22,12 +22,11 @@ export const VerifyEmailByCode = (
       <p style={{ fontWeight: 400 }}>
         <>{props.language("hi_user_name", { name: props.user.name })}!</>
       </p>
-      <div style={{ lineHeight: "6px" }}>
-        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+      <div>
+        <p style={{ fontWeight: 400 }}>
           <>{props.language("verify_email_by_code_email_body")}</>
-          <br />
-          <p>{props.verificationEmailCode}</p>
         </p>
+        <p>{props.verificationEmailCode}</p>
       </div>
       <div style={{ lineHeight: "6px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
