@@ -531,7 +531,7 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      const { isEmptyResponse } = r;
+
       let { whereCondition: whereConditional } = r;
 
       // Get timeline data
@@ -619,7 +619,7 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      const { isEmptyResponse } = r;
+
       let { whereCondition: bookingWhere } = r;
 
       bookingWhere = {
@@ -757,7 +757,7 @@ export const insightsRouter = router({
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
 
-      const { whereCondition: whereConditional, isEmptyResponse } = await buildBaseWhereCondition({
+      const { whereCondition: whereConditional } = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -848,7 +848,7 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      const { isEmptyResponse } = r;
+
       let { whereCondition: bookingWhere } = r;
 
       bookingWhere = {
@@ -940,7 +940,7 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      const { isEmptyResponse } = r;
+
       let { whereCondition: bookingWhere } = r;
 
       bookingWhere = {
@@ -1352,7 +1352,7 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      const { isEmptyResponse } = r;
+
       let { whereCondition: bookingWhere } = r;
 
       bookingWhere = {
@@ -1481,7 +1481,6 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
 
       bookingWhere = {
