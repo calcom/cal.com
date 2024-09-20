@@ -232,6 +232,10 @@ class BaseEventTypeOutput_2024_06_14 {
   @DocsProperty()
   lockTimeZoneToggleOnBookingPage!: boolean;
 
+  @IsInt()
+  @DocsProperty()
+  seatsPerTimeSlot!: number | null;
+
   @IsBoolean()
   @DocsProperty()
   forwardParamsSuccessRedirect!: boolean | null;
@@ -244,11 +248,16 @@ class BaseEventTypeOutput_2024_06_14 {
   @DocsProperty()
   isInstantEvent!: boolean;
 
+  @IsBoolean()
+  @DocsProperty()
+  seatsShowAvailabilityCount!: boolean | null;
+
   @IsInt()
   @DocsProperty()
   scheduleId!: number | null;
 
   @IsOptional()
+  @DocsProperty()
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
@@ -257,6 +266,7 @@ class BaseEventTypeOutput_2024_06_14 {
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
+  @DocsProperty()
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
