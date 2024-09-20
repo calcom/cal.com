@@ -3,17 +3,10 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
-import { EventType, User, Schedule } from "@prisma/client";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
 import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
-
-type EventTypeWithRelations = EventType & {
-  users: User[];
-  schedule: Schedule | null;
-};
-export type GetEventTypeById = EventTypeWithRelations | null;
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {

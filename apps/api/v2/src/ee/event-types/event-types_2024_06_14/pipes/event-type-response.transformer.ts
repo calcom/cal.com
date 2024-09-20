@@ -1,12 +1,14 @@
-import type { GetEventTypeById } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { Injectable, PipeTransform } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 
 import { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 
-import { OutputEventTypesService_2024_06_14 } from "../services/output-event-types.service";
+import {
+  DatabaseEventType,
+  OutputEventTypesService_2024_06_14,
+} from "../services/output-event-types.service";
 
-type EventTypeResponse = GetEventTypeById & { ownerId: number };
+type EventTypeResponse = DatabaseEventType & { ownerId: number };
 
 @Injectable()
 export class EventTypeResponseTransformPipe implements PipeTransform {
