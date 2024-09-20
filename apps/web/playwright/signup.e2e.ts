@@ -10,6 +10,26 @@ import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
 
+test.describe("Signup Main Page Test", async () => {
+  test.beforeEach(async ({ features }) => {
+    features.reset();
+  });
+
+  test("Continue with email button must exist / work", async ({ page }) => {
+    await page.goto("/signup");
+    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+    await page.locator('[data-testid="continue-with-email-button"]').click();
+    await expect(page.locator("text=Create your account")).toBeVisible();
+  });
+
+  test("Continue with google button must exist / work", async ({ page }) => {
+    await page.goto("/signup");
+    await expect(page.locator('[data-testid="continue-with-google-button"]')).toBeVisible();
+    await page.locator('[data-testid="continue-with-google-button"]').click();
+    expect(page.url()).toContain("/auth/sso/google");
+  });
+});
+
 test.describe("Email Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
     features.reset(); // This resets to the inital state not an empt yarray

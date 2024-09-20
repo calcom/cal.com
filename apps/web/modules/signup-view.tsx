@@ -470,6 +470,7 @@ export default function Signup({
                         />
                       }
                       className={classNames("w-full justify-center rounded-md text-center")}
+                      data-testid="continue-with-google-button"
                       onClick={async () => {
                         setIsGoogleLoading(true);
                         const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
