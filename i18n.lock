@@ -1733,6 +1733,7 @@ checksums:
     already_have_account: 699043a787e26ec2ecad53f52df28d5b
     already_have_key: 18768c72aec29b91c4a8fb5b9af7f77d
     already_have_key_suggestion: c2c89f46f30bf9713e7ae09b63adc470
+    create_license_key: 1430b640d5efb293d0484cf2f9fac5c7
     app_is_enabled: 38a2bd1420d7cc809fb716dd73ffceda
     app_is_disabled: da8f70cedc70b97cf1461f91952f1373
     keys_have_been_saved: d2aaa76ef379fc0b2d44a7fb1bfdb75b
@@ -2371,13 +2372,13 @@ checksums:
     success_entry_created: 7371d1da61d3b78c6859963bfc8df80d
     booking_redirect_email_subject: 59a74aa72e693a193f0bdb513794d808
     booking_redirect_email_title: 7c0ba7628b1a872d7abf0b4ee50be4df
-    booking_redirect_email_description: f229b4730fc5f8523ec6ca2c4b8577e2
+    booking_redirect_email_description: cdfcc5b984c02b52e55a0958531e0402
     booking_redirect_updated_email_subject: dc33a30036e9497f8a942ff509aaff70
     booking_redirect_updated_email_title: 37409d1ca2685465afd1aa0898ef3e61
-    booking_redirect_updated_email_description: 175c4da94a06784b151359d02884abc7
+    booking_redirect_updated_email_description: 2974a9c8de3a728405e80396b3c8953e
     booking_redirect_cancelled_email_subject: 489308ee958156e2ee21ee5ec9e1a647
     booking_redirect_cancelled_email_title: b7ccf43f9dd77b870d919899c1e740a1
-    booking_redirect_cancelled_email_description: d38363f5b5415334abb61966024831e2
+    booking_redirect_cancelled_email_description: 631de30fb5397a38acbf0adf4604569f
     success_accept_booking_redirect: f14fd998841a38aa2c23aeff4ce61605
     success_reject_booking_redirect: c9fb9a88a657c28b7f99839281961e47
     copy_link_booking_redirect_request: 086c87c753f24ffc12c0d68c6b2f8b0b

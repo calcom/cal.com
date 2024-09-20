@@ -67,8 +67,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       const state: IntegrationOAuthCallbackState = {
         onErrorReturnTo,
         fromApp: true,
-        ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
+        ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(returnTo && { returnTo }),
         ...(defaultInstall && { defaultInstall }),
       };
