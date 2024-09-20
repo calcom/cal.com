@@ -69,6 +69,14 @@ export default function EditOAuthClientWebhooks() {
                     value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
                     label: "recording_transcription_generated",
                   },
+                  {
+                    value: WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW,
+                    label: "after_hosts_daily_no_show",
+                  },
+                  {
+                    value: WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW,
+                    label: "after_guests_daily_no_show",
+                  },
                 ]}
                 onSubmit={async (data) => {
                   try {

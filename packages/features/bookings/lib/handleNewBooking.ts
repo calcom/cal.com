@@ -1803,6 +1803,45 @@ async function handler(
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
   }
 
+  // Check for Guest No show and Host No show Webhook and Workflows
+  const subscriberHostsNoShowStarted = {
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW,
+    teamId,
+    orgId,
+  };
+
+  const subscribersHostsNoShowStarted = await getWebhooks(subscriberHostsNoShowStarted);
+
+  console.log("subscribersHostsNoShowStarted", subscribersHostsNoShowStarted);
+
+  const subscriberGuestsNoShowStarted = {
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW,
+    teamId,
+    orgId,
+  };
+
+  const subscribersGuestsNoShowStarted = await getWebhooks(subscriberGuestsNoShowStarted);
+  console.log("subscribersGuestsNoShowStarted", subscribersGuestsNoShowStarted);
+
+  console.log("workflows", workflows);
+  const workflowHostsNoShow = workflows.filter(
+    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW
+  );
+  const workflowGuestsNoShow = workflows.filter(
+    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+  );
+
+  const allNoShowWorkflows = [...workflowHostsNoShow, ...workflowGuestsNoShow];
+  const allNoShowWebhooks = [...subscribersHostsNoShowStarted, ...subscribersGuestsNoShowStarted];
+
+  // if (!!allNoShowWebhooks.length || !!allNoShowWorkflows.length) {
+  // await tasker.create("triggerNoShow", JSON.stringify({ allNoShowWebhooks, allNoShowWorkflows, createdAt }));
+  // }
+
   // booking successful
   req.statusCode = 201;
 

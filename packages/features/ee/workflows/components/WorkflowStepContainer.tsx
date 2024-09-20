@@ -1,4 +1,5 @@
 import type { WorkflowStep } from "@prisma/client";
+import { type TFunction } from "i18next";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -68,6 +69,19 @@ type WorkflowStepProps = {
   readOnly: boolean;
 };
 
+const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
+  if (trigger === WorkflowTriggerEvents.AFTER_EVENT) {
+    return t("how_long_after");
+  } else if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
+    return t("how_long_before");
+  } else if (trigger === WorkflowTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW) {
+    return t("how_long_after_hosts_no_show");
+  } else if (trigger === WorkflowTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW) {
+    return t("how_long_after_guests_no_show");
+  }
+  return null;
+};
+
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -113,14 +127,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
-      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
+  // const [showTimeSection, setShowTimeSection] = useState(
+  //   form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
+  //     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+  // );
 
-  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
+  // const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
+  //   form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+  // );
+
+  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
@@ -328,21 +344,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (
-                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
-                          val.value === WorkflowTriggerEvents.AFTER_EVENT
-                        ) {
-                          setShowTimeSection(true);
-                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
-                            setShowTimeSectionAfter(true);
+                        const newTimeSectionText = getTimeSectionText(val.value, t);
+                        if (newTimeSectionText) {
+                          setTimeSectionText(newTimeSectionText);
+                          if (
+                            val.value === WorkflowTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW ||
+                            val.value === WorkflowTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+                          ) {
+                            form.setValue("time", 5);
+                            form.setValue("timeUnit", TimeUnit.MINUTE);
                           } else {
-                            setShowTimeSectionAfter(false);
+                            form.setValue("time", 24);
+                            form.setValue("timeUnit", TimeUnit.HOUR);
                           }
-                          form.setValue("time", 24);
-                          form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
-                          setShowTimeSection(false);
-                          setShowTimeSectionAfter(false);
+                          setTimeSectionText(null);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -354,9 +370,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 );
               }}
             />
-            {showTimeSection && (
+            {!!timeSectionText && (
               <div className="mt-5">
-                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
+                <Label>{timeSectionText}</Label>
                 <TimeTimeUnitInput form={form} disabled={props.readOnly} />
                 {!props.readOnly && (
                   <div className="mt-1 flex text-gray-500">

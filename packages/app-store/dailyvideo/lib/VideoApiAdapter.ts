@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { handleErrorsJson } from "@calcom/lib/errors";
+import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import { fetcher } from "@calcom/lib/dailyApiFetcher";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import {
@@ -15,7 +16,6 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 
 import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
 import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
-import { getDailyAppKeys } from "./getDailyAppKeys";
 import {
   dailyReturnTypeSchema,
   getTranscripts,
@@ -52,19 +52,6 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   appId: "daily-video",
   invalid: false,
   teamId: null,
-};
-
-export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
-  const { api_key } = await getDailyAppKeys();
-  return fetch(`https://api.daily.co/v1${endpoint}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${api_key}`,
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-    ...init,
-  }).then(handleErrorsJson);
 };
 
 function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {

@@ -8,6 +8,7 @@ import type { TaskHandler, TaskTypes } from "../tasker";
 const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   sendEmail: () => import("./sendEmail").then((module) => module.sendEmail),
   sendWebhook: () => import("./sendWebook").then((module) => module.sendWebhook),
+  triggerNoShow: () => import("./triggerNoShow").then((module) => module.triggerNoShow),
   sendSms: () => Promise.resolve(() => Promise.reject(new Error("Not implemented"))),
 };
 
