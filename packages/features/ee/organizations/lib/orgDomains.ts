@@ -43,8 +43,14 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
     return null;
   }
   // Define which is the current domain/subdomain
-  const slug = hostname.replace(`.${currentHostname}` ?? "", "");
-  return slug ?? null;
+  const slug = hostname.endsWith(`.${currentHostname}`) ? hostname.replace(`.${currentHostname}`, "") : "";
+
+  if (!slug) {
+    log.warn("Non-local subdomain hostname", { hostname });
+    return null;
+  }
+
+  return slug;
 }
 
 export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: string | string[]) {
