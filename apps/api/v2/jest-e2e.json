@@ -13,6 +13,6 @@
   "setupFiles": ["<rootDir>/test/setEnvVars.ts"],
   "reporters": ["default", "jest-summarizing-reporter"],
   "workerIdleMemoryLimit": "512MB",
-  "isolateModules": true,
+  "resetModules": true,
   "maxWorkers": 1
 }
