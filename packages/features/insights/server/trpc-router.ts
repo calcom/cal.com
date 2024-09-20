@@ -533,7 +533,7 @@ export const insightsRouter = router({
       });
       const { isEmptyResponse } = r;
       let { whereCondition: whereConditional } = r;
-      if (isEmptyResponse) return emptyResponseEventsByStatus;
+
       // Get timeline data
       const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
 
@@ -621,7 +621,7 @@ export const insightsRouter = router({
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
-      if (isEmptyResponse) return emptyResponseEventsByStatus;
+
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
@@ -770,8 +770,6 @@ export const insightsRouter = router({
         },
       });
 
-      if (isEmptyResponse) return emptyResponseEventsByStatus;
-
       const timeView = EventsInsights.getTimeView("week", startDate, endDate);
       const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
 
@@ -852,7 +850,6 @@ export const insightsRouter = router({
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
-      if (isEmptyResponse) return emptyResponseEventsByStatus;
 
       bookingWhere = {
         ...bookingWhere,
@@ -945,7 +942,6 @@ export const insightsRouter = router({
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
-      if (isEmptyResponse) return emptyResponseEventsByStatus;
 
       bookingWhere = {
         ...bookingWhere,
@@ -1358,7 +1354,6 @@ export const insightsRouter = router({
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
-      if (isEmptyResponse) return emptyResponseEventsByStatus;
 
       bookingWhere = {
         ...bookingWhere,
@@ -1488,7 +1483,6 @@ export const insightsRouter = router({
       });
       const { isEmptyResponse } = r;
       let { whereCondition: bookingWhere } = r;
-      if (isEmptyResponse) return emptyResponseEventsByStatus;
 
       bookingWhere = {
         ...bookingWhere,
