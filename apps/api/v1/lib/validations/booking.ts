@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-import { _AttendeeModel, _BookingModel as Booking, _PaymentModel, _UserModel } from "@calcom/prisma/zod";
+import {
+  _AttendeeModel,
+  _BookingModel as Booking,
+  _EventTypeModel,
+  _PaymentModel,
+  _TeamModel,
+  _UserModel,
+} from "@calcom/prisma/zod";
 import { extendedBookingCreateBody, iso8601 } from "@calcom/prisma/zod-utils";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
@@ -26,6 +33,7 @@ export const schemaBookingGetParams = z.object({
   order: z.enum(["asc", "desc"]).default("asc"),
   sortBy: z.enum(["createdAt", "updatedAt"]).optional(),
   status: z.enum(["upcoming"]).optional(),
+  expand: z.enum(["team"]).optional(),
 });
 
 export type Status = z.infer<typeof schemaBookingGetParams>["status"];
@@ -46,7 +54,23 @@ export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
   .merge(schemaBookingEditParams)
   .omit({ uid: true });
 
+const teamSchema = _TeamModel.pick({
+  name: true,
+  slug: true,
+});
+
 export const schemaBookingReadPublic = Booking.extend({
+  eventType: _EventTypeModel
+    .pick({
+      title: true,
+      slug: true,
+    })
+    .merge(
+      z.object({
+        team: teamSchema.nullish(),
+      })
+    )
+    .nullish(),
   attendees: z
     .array(
       _AttendeeModel.pick({
@@ -87,6 +111,7 @@ export const schemaBookingReadPublic = Booking.extend({
   timeZone: true,
   attendees: true,
   user: true,
+  eventType: true,
   payment: true,
   metadata: true,
   status: true,
