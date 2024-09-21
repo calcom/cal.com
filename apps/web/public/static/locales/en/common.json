@@ -2615,7 +2615,7 @@
   "edit_ooo_team_label": "Edit out of office for team member",
   "create_ooo_dialog_team_title": "Create Out of Office",
   "ooo_team_empty_title": "Create OOO for your team",
-  "ooo_team_empty_description": "Communicate to your team member's bookers when you're team not available to take bookings. They can still book you're team upon their return or you can forward them to other team member.",
+  "ooo_team_empty_description": "Communicate to bookers when your team members are not available to take bookings. They can still be booked upon their return or you can forward them to another team member.",
   "forward_to_team_member_only": "Invalid Redirection!. OOO Forwarding can be done to a member of same team.",
   "ooo_team_redirect_infinite_not_allowed": "There is already a reverse forwarding between these users.",
   "previous_ooo_empty_title": "No previous OOO found",
