@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { z } from "zod";
+import { z } from "zod";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -21,7 +21,7 @@ type UseInitialFormValuesProps = {
     guests: string[];
     name: string | null;
   };
-  prevResponse?: Record<string, string>;
+  lastBookingResponse?: Record<string, string>;
 };
 
 export function useInitialFormValues({
@@ -34,7 +34,7 @@ export function useInitialFormValues({
   hasSession,
   extraOptions,
   prefillFormParams,
-  prevResponse,
+  lastBookingResponse,
 }: UseInitialFormValuesProps) {
   const [initialValues, setDefaultValues] = useState<{
     responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
@@ -55,7 +55,6 @@ export function useInitialFormValues({
       const querySchema = getBookingResponsesPartialSchema({
         bookingFields: eventType.bookingFields,
         view: rescheduleUid ? "reschedule" : "booking",
-        prevResponse,
       });
 
       const parsedQuery = await querySchema.parseAsync({
@@ -65,6 +64,7 @@ export function useInitialFormValues({
         // `guests` because the `name` of the corresponding bookingField is `guests`
         guests: prefillFormParams.guests,
       });
+      const parsedLastBookingResponse = z.record(z.any()).nullish().parse(lastBookingResponse);
 
       const defaultUserValues = {
         email:
@@ -72,13 +72,13 @@ export function useInitialFormValues({
             ? bookingData?.attendees[0].email
             : !!parsedQuery["email"]
             ? parsedQuery["email"]
-            : email ?? "",
+            : email ?? parsedLastBookingResponse?.email ?? "",
         name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
             : !!parsedQuery["name"]
             ? parsedQuery["name"]
-            : name ?? username ?? "",
+            : name ?? username ?? parsedLastBookingResponse?.name ?? "",
       };
 
       if (!isRescheduling) {

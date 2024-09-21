@@ -22,7 +22,7 @@ export interface IUseBookingForm {
     guests: string[];
     name: string | null;
   };
-  prevResponse?: Record<string, string>;
+  lastBookingResponse?: Record<string, string>;
 }
 
 export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
@@ -35,7 +35,7 @@ export const useBookingForm = ({
   hasSession,
   extraOptions,
   prefillFormParams,
-  prevResponse,
+  lastBookingResponse,
 }: IUseBookingForm) => {
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -48,7 +48,6 @@ export const useBookingForm = ({
         ? getBookingResponsesSchema({
             bookingFields: event.bookingFields,
             view: rescheduleUid ? "reschedule" : "booking",
-            prevResponse,
           })
         : // Fallback until event is loaded.
           z.object({}),
@@ -74,7 +73,7 @@ export const useBookingForm = ({
     hasSession,
     extraOptions,
     prefillFormParams,
-    prevResponse,
+    lastBookingResponse,
   });
 
   const bookingForm = useForm<BookingFormValues>({

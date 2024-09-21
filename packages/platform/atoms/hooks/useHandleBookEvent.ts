@@ -1,5 +1,6 @@
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponses";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
@@ -7,7 +8,6 @@ import {
 } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localStorage } from "@calcom/lib/webstorage";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import type { UseCreateBookingInput } from "./useCreateBooking";
@@ -54,8 +54,6 @@ export const useHandleBookEvent = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const orgSlug = useBookerStore((state) => state.org);
 
-  const prevResponsesToStore = ["name", "email"];
-
   const handleBookEvent = () => {
     const values = bookingForm.getValues();
     if (timeslot) {
@@ -78,12 +76,7 @@ export const useHandleBookEvent = ({
         ? duration
         : event.data.length;
 
-      if (values.responses) {
-        const prevResponse = Object.fromEntries(
-          Object.entries(values.responses).filter(([key]) => prevResponsesToStore.includes(key))
-        );
-        localStorage.setItem(`prevEventTypeResp`, JSON.stringify(prevResponse));
-      }
+      setLastBookingResponse(values.responses);
 
       const bookingInput = {
         values,

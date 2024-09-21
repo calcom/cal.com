@@ -8,7 +8,7 @@ import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-util
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
-type CommonParams = { bookingFields: BookingFields; view: View; prevResponse?: Record<string, string> };
+type CommonParams = { bookingFields: BookingFields; view: View };
 
 export const bookingResponse = dbReadResponseSchema;
 export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
@@ -20,18 +20,18 @@ const ensureValidPhoneNumber = (value: string) => {
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
 };
-export const getBookingResponsesPartialSchema = ({ bookingFields, view, prevResponse }: CommonParams) => {
+export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
-  return preprocess({ schema, bookingFields, isPartialSchema: true, view, prevResponse });
+  return preprocess({ schema, bookingFields, isPartialSchema: true, view });
 };
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({ bookingFields, view, prevResponse }: CommonParams) {
+export default function getBookingResponsesSchema({ bookingFields, view }: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view, prevResponse });
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
@@ -41,7 +41,6 @@ function preprocess<T extends z.ZodType>({
   bookingFields,
   isPartialSchema,
   view: currentView,
-  prevResponse,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
@@ -52,12 +51,11 @@ function preprocess<T extends z.ZodType>({
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
-      const prevResponses = z.record(z.any()).nullish().parse(prevResponse) || {};
       const newResponses = {} as typeof parsedResponses;
       // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
       if (!bookingFields) return parsedResponses;
       bookingFields.forEach((field) => {
-        const value = prevResponses[field.name] || parsedResponses[field.name];
+        const value = parsedResponses[field.name];
         if (value === undefined) {
           // If there is no response for the field, then we don't need to do any processing
           return;
