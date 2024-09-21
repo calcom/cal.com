@@ -1731,6 +1731,7 @@
   "already_have_account": "Aveți deja un cont?",
   "already_have_key": "Am deja o cheie:",
   "already_have_key_suggestion": "Copiați aici variabila de mediu CALCOM_LICENSE_KEY existentă.",
+  "create_license_key": "Creează Cheie de Licență",
   "app_is_enabled": "{{appName}} este activat",
   "app_is_disabled": "{{appName}} este dezactivat",
   "keys_have_been_saved": "Cheile au fost salvate",
