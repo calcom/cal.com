@@ -24,7 +24,8 @@ const querySchema = z.object({
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   const { action, token, bookingUid, userId } = querySchema.parse(req.query);
-  const { reason } = z.object({ reason: z.string().optional() }).parse(req.body);
+  // Rejections runs on a POST request, confirming on a GET request.
+  const { reason } = z.object({ reason: z.string().optional() }).parse(req.body || {});
 
   const booking = await prisma.booking.findUnique({
     where: { oneTimePassword: token },

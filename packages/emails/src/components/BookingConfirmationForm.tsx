@@ -1,6 +1,6 @@
 export const BookingConfirmationForm = (props: { action: string; children: React.ReactNode }) => {
   return (
-    <form action={props.action} method="POST">
+    <form action={props.action} method="POST" target="_blank">
       {props.children}
       <p
         style={{
