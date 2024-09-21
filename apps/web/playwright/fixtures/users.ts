@@ -1,4 +1,4 @@
-import type { Page, WorkerInfo } from "@playwright/test";
+import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
@@ -319,10 +319,14 @@ export const createUsersFixture = (
       }
 
       if (scenario.seedRoutingForms) {
-        const option2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
-        const option1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const multiSelectOption2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const multiSelectOption1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const selectOption1Uuid = "d0292635-9f12-17b1-9153-c3a854649182";
+        const selectOption2Uuid = "d0302635-9f12-17b1-9153-c3a854649182";
         const multiSelectLegacyFieldUuid = "d4292635-9f12-17b1-9153-c3a854649182";
         const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
+        const selectFieldUuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const legacySelectFieldUuid = "f0292635-9f12-17b1-9153-c3a854649182";
         await prisma.app_RoutingForms_Form.create({
           data: {
             routes: [
@@ -417,7 +421,7 @@ export const createUsersFixture = (
                       type: "rule",
                       properties: {
                         field: multiSelectFieldUuid,
-                        value: [[option2Uuid]],
+                        value: [[multiSelectOption2Uuid]],
                         operator: "multiselect_equals",
                         valueSrc: ["value"],
                         valueType: ["multiselect"],
@@ -455,11 +459,36 @@ export const createUsersFixture = (
                 identifier: "multi-new-format",
                 options: [
                   {
-                    id: option1Uuid,
+                    id: multiSelectOption1Uuid,
                     label: "Option-1",
                   },
                   {
-                    id: option2Uuid,
+                    id: multiSelectOption2Uuid,
+                    label: "Option-2",
+                  },
+                ],
+                required: false,
+              },
+              {
+                id: legacySelectFieldUuid,
+                type: "select",
+                label: "Legacy Select",
+                identifier: "test-select",
+                selectText: "Option-1\nOption-2",
+                required: false,
+              },
+              {
+                id: selectFieldUuid,
+                type: "select",
+                label: "Select",
+                identifier: "test-select-new-format",
+                options: [
+                  {
+                    id: selectOption1Uuid,
+                    label: "Option-1",
+                  },
+                  {
+                    id: selectOption2Uuid,
                     label: "Option-2",
                   },
                 ],
@@ -703,6 +732,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     self,
     apiLogin: async (password?: string) =>
       apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    /** Don't forget to close context at the end */
+    apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
+      const newContext = await browser.newContext();
+      const newPage = await newContext.newPage();
+      await apiLogin({ ...(await self()), password: password || user.username }, newPage);
+      // Don't forget to: newContext.close();
+      return [newContext, newPage] as const;
+    },
     /**
      * @deprecated use apiLogin instead
      */
@@ -985,10 +1022,11 @@ export async function login(
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
-  await signInLocator.click();
 
   // waiting for specific login request to resolve
-  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  const responsePromise = page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  await signInLocator.click();
+  await responsePromise;
 }
 
 export async function apiLogin(

@@ -31,7 +31,6 @@ export {};
 //     await test.step("Settings should so no calendars connected", async () => {
 //       const settingsCog = page.locator(`[data-testid=overlay-calendar-settings-button]`);
 //       await settingsCog.click();
-//       await page.waitForLoadState("networkidle");
 //       const emptyScreenLocator = page.locator(`[data-testid=empty-screen]`);
 //       await expect(emptyScreenLocator).toBeVisible();
 //     });
