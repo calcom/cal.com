@@ -215,6 +215,7 @@ checksums:
     view_notifications: cc622a9c6901ad67253f47ba0a6ad6a0
     view_public_page: ec22552c40f2e67e2ec4c873cae82d48
     copy_public_page_link: c0588480464a911cd42c908df3795cd4
+    copy_referral_link: a8e0454ac3f7dd14e4153970cbd6de71
     sign_out: 6d842546a84e919c519bf8cbffdf25a0
     add_another: 26ee6c7439e99431bd4e8d6181e23ac0
     install_another: f8e5dab6ee03046bcf4e3446312766c5
@@ -1732,6 +1733,7 @@ checksums:
     already_have_account: 699043a787e26ec2ecad53f52df28d5b
     already_have_key: 18768c72aec29b91c4a8fb5b9af7f77d
     already_have_key_suggestion: c2c89f46f30bf9713e7ae09b63adc470
+    create_license_key: 1430b640d5efb293d0484cf2f9fac5c7
     app_is_enabled: 38a2bd1420d7cc809fb716dd73ffceda
     app_is_disabled: da8f70cedc70b97cf1461f91952f1373
     keys_have_been_saved: d2aaa76ef379fc0b2d44a7fb1bfdb75b
@@ -2178,8 +2180,11 @@ checksums:
     add_to_team: 81ea05d21e72679f58a5bc77f6077ba1
     remove_users_from_org: 5b8a337674562e28e6edc4b85567b677
     remove_users_from_org_confirm: 0eaa017c65c82f4bebdd5bb3e130ed08
+    remove_users_from_team: dabc98f7ca9cbf9092adaac4e897fdca
+    remove_users_from_team_confirm: 3dcd3dc561e867d61d12114250c248d7
     user_has_no_schedules: e5d0b6aa04e67c8acf48ff92602a6da4
     user_isnt_in_any_teams: 937aeb3d084201cd70fb205c062d4eee
+    user_has_no_app_installed: 59246b2d2eaa1d2a70b853643f05fcc2
     requires_booker_email_verification: aca667f422e911b6f3851dcf60d64500
     description_requires_booker_email_verification: 82ccb213337629af22e379f7b5a7eaac
     requires_confirmation_mandatory: ff747a41552070f0291edbaa710d0946
@@ -2367,13 +2372,13 @@ checksums:
     success_entry_created: 7371d1da61d3b78c6859963bfc8df80d
     booking_redirect_email_subject: 59a74aa72e693a193f0bdb513794d808
     booking_redirect_email_title: 7c0ba7628b1a872d7abf0b4ee50be4df
-    booking_redirect_email_description: f229b4730fc5f8523ec6ca2c4b8577e2
+    booking_redirect_email_description: cdfcc5b984c02b52e55a0958531e0402
     booking_redirect_updated_email_subject: dc33a30036e9497f8a942ff509aaff70
     booking_redirect_updated_email_title: 37409d1ca2685465afd1aa0898ef3e61
-    booking_redirect_updated_email_description: 175c4da94a06784b151359d02884abc7
+    booking_redirect_updated_email_description: 2974a9c8de3a728405e80396b3c8953e
     booking_redirect_cancelled_email_subject: 489308ee958156e2ee21ee5ec9e1a647
     booking_redirect_cancelled_email_title: b7ccf43f9dd77b870d919899c1e740a1
-    booking_redirect_cancelled_email_description: d38363f5b5415334abb61966024831e2
+    booking_redirect_cancelled_email_description: 631de30fb5397a38acbf0adf4604569f
     success_accept_booking_redirect: f14fd998841a38aa2c23aeff4ce61605
     success_reject_booking_redirect: c9fb9a88a657c28b7f99839281961e47
     copy_link_booking_redirect_request: 086c87c753f24ffc12c0d68c6b2f8b0b

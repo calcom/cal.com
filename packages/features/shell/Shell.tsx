@@ -56,6 +56,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
+import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -544,7 +545,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownMenuItem>
                 )}
 
-                {!isPlatformPages && (
+                {!isPlatformPages && isPlatformUser && (
                   <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="blocks"
@@ -578,6 +579,7 @@ function UserDropdown({ small }: UserDropdownProps) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  isLoading?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
@@ -797,8 +799,11 @@ const NavigationItem: React.FC<{
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <Icon
-              name={item.icon}
-              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
+              name={item.isLoading ? "rotate-cw" : item.icon}
+              className={classNames(
+                "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                item.isLoading && "animate-spin"
+              )}
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -929,11 +934,12 @@ function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarCont
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
-  const { copyToClipboard } = useCopy();
+  const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
+  const [isReferalLoading, setIsReferalLoading] = useState(false);
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
@@ -967,18 +973,27 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       ? {
           name: "copy_referral_link",
           href: "",
-          onClick: async (e: { preventDefault: () => void }) => {
+          onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
-            const res = await fetch("/api/generate-referral-link", {
-              method: "POST",
-            });
-            const { shortLink } = await res.json();
-            copyToClipboard(shortLink, {
-              onSuccess: () => showToast(t("link_copied"), "success"),
-              onFailure: () => showToast("Copy to clipboard failed", "error"),
-            });
+            setIsReferalLoading(true);
+            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
+            setTimeout(() => {
+              fetchAndCopyToClipboard(
+                fetch("/api/generate-referral-link", {
+                  method: "POST",
+                })
+                  .then((res) => res.json())
+                  .then((res) => res.shortLink),
+                {
+                  onSuccess: () => showToast(t("link_copied"), "success"),
+                  onFailure: () => showToast("Copy to clipboard failed", "error"),
+                }
+              );
+              setIsReferalLoading(false);
+            }, 1000);
           },
           icon: "gift",
+          isLoading: isReferalLoading,
         }
       : null,
     {
@@ -1079,10 +1094,11 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   onClick={item.onClick}>
                   {!!item.icon && (
                     <Icon
-                      name={item.icon}
+                      name={item.isLoading ? "rotate-cw" : item.icon}
                       className={classNames(
                         "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
+                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                        item.isLoading && "animate-spin"
                       )}
                       aria-hidden="true"
                     />
@@ -1271,6 +1287,7 @@ function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
   const { data } = trpc.viewer.me.useQuery();
   const [menuOpen, setMenuOpen] = useState(false);
+  const refreshData = useRefreshData();
 
   if (!data || !ENABLE_PROFILE_SWITCHER || !sessionData) {
     return null;
@@ -1334,7 +1351,7 @@ function ProfileDropdown() {
                   update({
                     upId: option.value,
                   }).then(() => {
-                    window.location.reload();
+                    refreshData();
                   });
                 }}
                 className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}>
