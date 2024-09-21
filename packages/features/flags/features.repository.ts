@@ -7,12 +7,12 @@ import type { IFeaturesRepository } from "./features.repository.interface";
 export class FeaturesRepository implements IFeaturesRepository {
   async checkIfTeamHasFeature(teamId: number, slug: string) {
     try {
-      const userFeature = await db.teamFeatures.findUnique({
+      const teamFeature = await db.teamFeatures.findUnique({
         where: {
           teamId_featureId: { teamId, featureId: slug },
         },
       });
-      return !!userFeature;
+      return !!teamFeature;
     } catch (err) {
       captureException(err);
       throw err;
