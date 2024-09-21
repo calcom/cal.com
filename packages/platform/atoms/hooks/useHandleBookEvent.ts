@@ -1,6 +1,6 @@
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponses";
+import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import {
   useTimePreferences,
   mapBookingToMutationInput,

@@ -19,7 +19,7 @@ import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponses";
+import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
