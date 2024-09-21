@@ -28,13 +28,12 @@ export class InputOrganizationsEventTypesService {
 
     const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
 
-    await this.inputEventTypesService.validateEventTypeInputs(
-      undefined,
-      !!(transformedBody.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
-      transformedBody.locations,
-      transformedBody.requiresConfirmation,
-      transformedBody.eventName
-    );
+    await this.inputEventTypesService.validateEventTypeInputs({
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      locations: transformedBody.locations,
+      requiresConfirmation: transformedBody.requiresConfirmation,
+      eventName: transformedBody.eventName,
+    });
 
     transformedBody.destinationCalendar &&
       (await this.inputEventTypesService.validateInputDestinationCalendar(
@@ -58,13 +57,13 @@ export class InputOrganizationsEventTypesService {
 
     const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
 
-    await this.inputEventTypesService.validateEventTypeInputs(
-      eventTypeId,
-      !!(transformedBody?.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
-      transformedBody.locations,
-      transformedBody.requiresConfirmation,
-      transformedBody.eventName
-    );
+    await this.inputEventTypesService.validateEventTypeInputs({
+      eventTypeId: eventTypeId,
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      locations: transformedBody.locations,
+      requiresConfirmation: transformedBody.requiresConfirmation,
+      eventName: transformedBody.eventName,
+    });
 
     transformedBody.destinationCalendar &&
       (await this.inputEventTypesService.validateInputDestinationCalendar(

@@ -26,10 +26,19 @@ import {
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
+  InputEventTransformed_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
+
+interface ValidationContext {
+  eventTypeId?: number;
+  seatsPerTimeSlot?: number | null;
+  locations?: InputEventTransformed_2024_06_14["locations"];
+  requiresConfirmation?: boolean;
+  eventName?: string;
+}
 
 @Injectable()
 export class InputEventTypesService_2024_06_14 {
@@ -45,13 +54,12 @@ export class InputEventTypesService_2024_06_14 {
   ) {
     const transformedBody = this.transformInputCreateEventType(inputEventType);
 
-    await this.validateEventTypeInputs(
-      undefined,
-      !!(transformedBody.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
-      transformedBody.locations,
-      transformedBody.requiresConfirmation,
-      transformedBody.eventName
-    );
+    await this.validateEventTypeInputs({
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      locations: transformedBody.locations,
+      requiresConfirmation: transformedBody.requiresConfirmation,
+      eventName: transformedBody.eventName,
+    });
 
     transformedBody.destinationCalendar &&
       (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
@@ -69,13 +77,13 @@ export class InputEventTypesService_2024_06_14 {
   ) {
     const transformedBody = await this.transformInputUpdateEventType(inputEventType, eventTypeId);
 
-    await this.validateEventTypeInputs(
-      eventTypeId,
-      !!(transformedBody?.seatsPerTimeSlot && transformedBody?.seatsPerTimeSlot > 0),
-      transformedBody.locations,
-      transformedBody.requiresConfirmation,
-      transformedBody.eventName
-    );
+    await this.validateEventTypeInputs({
+      eventTypeId: eventTypeId,
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      locations: transformedBody.locations,
+      requiresConfirmation: transformedBody.requiresConfirmation,
+      eventName: transformedBody.eventName,
+    });
 
     transformedBody.destinationCalendar &&
       (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
@@ -173,7 +181,6 @@ export class InputEventTypesService_2024_06_14 {
       bookingFields: bookingFields
         ? this.transformInputBookingFields(bookingFields, hasMultipleLocations)
         : undefined,
-      schedule: inputEventType.scheduleId,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -247,176 +254,73 @@ export class InputEventTypesService_2024_06_14 {
   transformInputSeatOptions(seats: CreateEventTypeInput_2024_06_14["seats"]) {
     return transformSeatsApiToInternal(seats);
   }
-  async validateEventTypeInputs(
-    eventTypeId?: number,
-    seatsEnabled?: boolean,
-    locations?: ReturnType<typeof this.transformInputLocations>,
-    requiresConfirmation?: boolean,
-    eventName?: string
-  ) {
-    // Retrieve event type details from the database if eventTypeId is provided
+  async validateEventTypeInputs({
+    eventTypeId,
+    seatsPerTimeSlot,
+    locations,
+    requiresConfirmation,
+    eventName,
+  }: ValidationContext) {
+    let seatsPerTimeSlotDb: number | null = null;
+    let locationsDb: ReturnType<typeof this.transformInputLocations> = [];
+    let requiresConfirmationDb = false;
 
     if (eventTypeId != null) {
       const eventTypeDb = await this.eventTypesRepository.getEventTypeWithSeats(eventTypeId);
-      const seatsEnabledDb = !!eventTypeDb?.seatsPerTimeSlot && eventTypeDb.seatsPerTimeSlot > 0;
-      const locationsDb = this.outputEventTypesService.transformLocations(eventTypeDb?.locations);
-      const requiresConfirmationDb = eventTypeDb?.requiresConfirmation ?? false;
+      seatsPerTimeSlotDb = eventTypeDb?.seatsPerTimeSlot ?? null;
+      locationsDb = this.outputEventTypesService.transformLocations(eventTypeDb?.locations) ?? [];
+      requiresConfirmationDb = eventTypeDb?.requiresConfirmation ?? false;
+    }
 
-      seatsEnabled &&
-        (await this.validateSeatsInput(
-          locations,
-          requiresConfirmation,
-          locationsDb,
-          requiresConfirmationDb,
-          true
-        ));
-      locations &&
-        locations.length > 1 &&
-        (await this.validateLocationsInput(seatsEnabled, locations, seatsEnabledDb, true));
-      requiresConfirmation &&
-        (await this.validateRequiresConfirmationInput(
-          requiresConfirmation,
-          seatsEnabled,
-          seatsEnabledDb,
-          true
-        ));
-      eventName && (await this.validateCustomEventNameInput(eventName));
-    } else {
-      seatsEnabled &&
-        (await this.validateSeatsInput(locations, requiresConfirmation, undefined, undefined, false));
-      locations?.length > 1 && (await this.validateLocationsInput(seatsEnabled, locations, undefined, false));
-      requiresConfirmation &&
-        (await this.validateRequiresConfirmationInput(requiresConfirmation, seatsEnabled, undefined, false));
-      eventName && (await this.validateCustomEventNameInput(eventName));
+    const seatsPerTimeSlotFinal = seatsPerTimeSlot !== undefined ? seatsPerTimeSlot : seatsPerTimeSlotDb;
+    const seatsEnabledFinal = seatsPerTimeSlotFinal != null && seatsPerTimeSlotFinal > 0;
+
+    const locationsFinal = locations !== undefined ? locations : locationsDb;
+    const requiresConfirmationFinal =
+      requiresConfirmation !== undefined ? requiresConfirmation : requiresConfirmationDb;
+
+    this.validateSeatsSingleLocationRule(seatsEnabledFinal, locationsFinal);
+    this.validateSeatsRequiresConfirmationFalseRule(seatsEnabledFinal, requiresConfirmationFinal);
+    this.validateMultipleLocationsSeatsDisabledRule(locationsFinal, seatsEnabledFinal);
+    this.validateRequiresConfirmationSeatsDisabledRule(requiresConfirmationFinal, seatsEnabledFinal);
+
+    if (eventName) {
+      await this.validateCustomEventNameInput(eventName);
     }
   }
-  async validateSeatsInput(
-    locations?: ReturnType<typeof this.transformInputLocations>,
-    requiresConfirmation?: boolean,
-    locationsDb?: ReturnType<typeof this.transformInputLocations>,
-    requiresConfirmationDb?: boolean,
-    validateDb = false
+  validateSeatsSingleLocationRule(
+    seatsEnabled: boolean,
+    locations: ReturnType<typeof this.transformInputLocations>
   ) {
-    if (validateDb) {
-      // Validate based on both provided and database values
-
-      // 1. Check if provided locations have more than one entry
-      if (locations && locations.length > 1) {
-        throw new BadRequestException("Seats Validation failed: More than one location provided.");
-      }
-
-      // 2. If no locations are provided, validate based on the stored locations
-      if (!locations && locationsDb.length > 1) {
-        throw new BadRequestException(
-          "Seats Validation failed: More than one location stored in the database."
-        );
-      }
-
-      // 3. Check if requiresConfirmation is true
-      if (requiresConfirmation === true) {
-        throw new BadRequestException("Seats Validation failed: Requires confirmation is true.");
-      }
-
-      // 4. If requiresConfirmation is not provided, validate based on the stored value
-      if (requiresConfirmation == null && requiresConfirmationDb === true) {
-        throw new BadRequestException("Validation failed: Requires confirmation is true in the database.");
-      }
-
-      // If all checks are passed, validation is successful
-      return;
-    } else {
-      // Validate based on the provided locations and requiresConfirmation values
-
-      // 1. If locations are provided and the length is greater than 1, throw an error.
-      if (locations && locations.length > 1) {
-        throw new BadRequestException("Seats Validation failed: More than one location provided.");
-      }
-
-      // 2. If requiresConfirmation is true, throw an error.
-      if (requiresConfirmation === true) {
-        throw new BadRequestException("Seats Validation failed: Requires confirmation is true.");
-      }
-
-      // 3. If no failing conditions were met, pass validation.
-      return;
+    if (seatsEnabled && locations.length > 1) {
+      throw new BadRequestException(
+        "Seats Validation failed: Seats are enabled but more than one location provided."
+      );
     }
   }
-  async validateLocationsInput(
-    seatsEnabled?: boolean,
-    locations?: ReturnType<typeof this.transformInputLocations>,
-    seatsEnabledDb?: boolean,
-    validateDb = false
-  ) {
-    if (validateDb) {
-      // Validate based on both provided and database values
 
-      // 1. If seats are enabled and multiple locations are provided, validate the count
-      if (seatsEnabled && locations && locations.length > 1) {
-        throw new BadRequestException(
-          "Locations Validation failed: Seats are enabled but more than one location provided."
-        );
-      }
-
-      // 2. If no locations are provided, validate based on the stored locations and seatsEnabled status
-      if (seatsEnabledDb === true && locations && locations.length > 1) {
-        throw new BadRequestException(
-          "Locations Validation failed: Seats are enabled in database but more than one location provided."
-        );
-      }
-
-      // If all checks are passed, validation is successful
-      return;
-    } else {
-      // Validate based on the provided seatsEnabled and locations values
-
-      // 1. If seats are enabled and more than one location is provided, throw an error.
-      if (seatsEnabled && locations && locations.length > 1) {
-        throw new BadRequestException(
-          "Locations Validation failed: Seats are enabled but more than one location provided."
-        );
-      }
-
-      // If no failing conditions were met, pass validation.
-      return;
+  validateSeatsRequiresConfirmationFalseRule(seatsEnabled: boolean, requiresConfirmation: boolean) {
+    if (seatsEnabled && requiresConfirmation) {
+      throw new BadRequestException(
+        "Seats Validation failed: Seats are enabled but requiresConfirmation is true."
+      );
     }
   }
-  async validateRequiresConfirmationInput(
-    requiresConfirmation?: boolean,
-    seatsEnabled?: boolean,
-    seatsEnabledDb?: boolean,
-    validateDb = false
+
+  validateMultipleLocationsSeatsDisabledRule(
+    locations: ReturnType<typeof this.transformInputLocations>,
+    seatsEnabled: boolean
   ) {
-    if (validateDb) {
-      // Validate based on both provided and database values
+    if (locations.length > 1 && seatsEnabled) {
+      throw new BadRequestException("Locations Validation failed: Multiple locations but seats are enabled.");
+    }
+  }
 
-      // 1. If seats are enabled and requiresConfirmation is true, validate based on the stored value
-      if (seatsEnabled && requiresConfirmation) {
-        throw new BadRequestException(
-          "RequiresConfirmation Validation failed: RequiresConfirmation is set but Seats are enabled."
-        );
-      }
-
-      // 2. If seats are enabled in the database and requiresConfirmation is true, throw an error
-      if (seatsEnabledDb && requiresConfirmation) {
-        throw new BadRequestException(
-          "RequiresConfirmation Validation failed: RequiresConfirmation is set but Seats are enabled in the database."
-        );
-      }
-
-      // If all checks are passed, validation is successful
-      return;
-    } else {
-      // Validate based on the provided requiresConfirmation and seatsEnabled values
-
-      // 1. If seats are enabled and requiresConfirmation is true, throw an error.
-      if (seatsEnabled && requiresConfirmation === true) {
-        throw new BadRequestException(
-          "RequiresConfirmation Validation failed: RequiresConfirmation is set but Seats are enabled."
-        );
-      }
-
-      // If no failing conditions were met, pass validation.
-      return;
+  validateRequiresConfirmationSeatsDisabledRule(requiresConfirmation: boolean, seatsEnabled: boolean) {
+    if (requiresConfirmation && seatsEnabled) {
+      throw new BadRequestException(
+        "RequiresConfirmation Validation failed: Seats are enabled but requiresConfirmation is true."
+      );
     }
   }
 
