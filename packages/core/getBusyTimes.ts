@@ -155,29 +155,31 @@ export async function getBusyTimes(params: {
       select: bookingsSelect,
     });
 
-    const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
-      where: {
-        startTime: { lte: endTimeDate },
-        endTime: { gte: startTimeDate },
-        eventType: {
-          id: eventTypeId,
-          requiresConfirmation: true,
-          requiresConfirmationWillBlockSlot: true,
-        },
-        status: {
-          in: [BookingStatus.PENDING],
-        },
-      },
-      select: bookingsSelect,
-    });
+    const unconfirmedBookingsBlockingSlots = eventTypeId
+      ? prisma.booking.findMany({
+          where: {
+            startTime: { lte: endTimeDate },
+            endTime: { gte: startTimeDate },
+            eventType: {
+              id: eventTypeId,
+              requiresConfirmation: true,
+              requiresConfirmationWillBlockSlot: true,
+            },
+            status: {
+              in: [BookingStatus.PENDING],
+            },
+          },
+          select: bookingsSelect,
+        })
+      : null;
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([
       currentBookingsAllUsersQueryOne,
       currentBookingsAllUsersQueryTwo,
-      currentBookingsAllUsersQueryThree,
+      unconfirmedBookingsBlockingSlots,
     ]);
 
-    bookings = [...resultOne, ...resultTwo, ...resultThree];
+    bookings = [...resultOne, ...resultTwo, ...(resultThree ?? [])];
   }
 
   const bookingSeatCountMap: { [x: string]: number } = {};

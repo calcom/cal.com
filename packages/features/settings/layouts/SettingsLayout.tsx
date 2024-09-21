@@ -1,3 +1,5 @@
+"use client";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -8,7 +10,7 @@ import React, { Suspense, useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -137,6 +139,9 @@ tabs.find((tab) => {
     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
     // TODO: Enable dsync for self hosters
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
+  }
+  if (tab.name === "admin" && IS_CALCOM) {
+    tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
   }
 });
 
@@ -646,14 +651,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export default function SettingsLayout({
-  children,
-  hideHeader,
-  ...rest
-}: {
+export type SettingsLayoutProps = {
   children: React.ReactNode;
   hideHeader?: boolean;
-} & ComponentProps<typeof Shell>) {
+} & ComponentProps<typeof Shell>;
+
+export default function SettingsLayout({ children, hideHeader, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
