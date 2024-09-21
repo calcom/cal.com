@@ -1,14 +1,14 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 
-import { CallToAction, Separator, CallToActionTable, BookingConfirmationForm } from "../components";
+import { CallToAction, Separator, CallToActionTable } from "../components";
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
-  const { uid } = props.calEvent;
-  const userId = props.calEvent.organizer.id;
-  const token = props.calEvent.oneTimePassword;
+  const seedData = { bookingUid: props.calEvent.uid, userId: props.calEvent.organizer.id };
+  const token = symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "");
   //TODO: We should switch to using org domain if available
-  const actionHref = `${WEBAPP_URL}/api/verify-booking-token/?token=${token}&userId=${userId}&bookingUid=${uid}`;
+  const actionHref = `${WEBAPP_URL}/api/link/?token=${encodeURIComponent(token)}`;
   return (
     <OrganizerScheduledEmail
       title={
@@ -20,22 +20,20 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
       headerType="calendarCircle"
       subject="event_awaiting_approval_subject"
       callToAction={
-        <BookingConfirmationForm action={`${actionHref}&action=reject`}>
-          <CallToActionTable>
-            <CallToAction
-              label={props.calEvent.organizer.language.translate("confirm")}
-              href={`${actionHref}&action=accept`}
-              startIconName="confirmIcon"
-            />
-            <Separator />
-            <CallToAction
-              label={props.calEvent.organizer.language.translate("reject")}
-              // href={`${actionHref}&action=reject`}
-              startIconName="rejectIcon"
-              secondary
-            />
-          </CallToActionTable>
-        </BookingConfirmationForm>
+        <CallToActionTable>
+          <CallToAction
+            label={props.calEvent.organizer.language.translate("confirm")}
+            href={`${actionHref}&action=accept`}
+            startIconName="confirmIcon"
+          />
+          <Separator />
+          <CallToAction
+            label={props.calEvent.organizer.language.translate("reject")}
+            href={`${actionHref}&action=reject`}
+            startIconName="rejectIcon"
+            secondary
+          />
+        </CallToActionTable>
       }
       {...props}
     />
