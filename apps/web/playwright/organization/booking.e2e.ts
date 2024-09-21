@@ -542,9 +542,9 @@ test.describe("Bookings", () => {
       const usernameOutsideOrg = userOutsideOrganization.username;
       // Before invite is accepted the booking page isn't available
       await expectPageToBeNotFound({ page, url: `/${usernameInOrg}` });
-      await userOutsideOrganization.apiLogin();
-      await acceptTeamOrOrgInvite(page);
-      await userOutsideOrganization.logout();
+      const [newContext, newPage] = await userOutsideOrganization.apiLoginOnNewBrowser(browser);
+      await acceptTeamOrOrgInvite(newPage);
+      await newContext.close();
       await test.step("Book through new link", async () => {
         await doOnOrgDomain(
           {
