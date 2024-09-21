@@ -1731,6 +1731,7 @@
   "already_have_account": "Már van fiókja?",
   "already_have_key": "Már van kulcsom:",
   "already_have_key_suggestion": "Kérjük, másolja ide a meglévő CALCOM_LICENSE_KEY környezeti változót.",
+  "create_license_key": "Licenckulcs létrehozása",
   "app_is_enabled": "{{appName}} engedélyezve van",
   "app_is_disabled": "{{appName}} le van tiltva",
   "keys_have_been_saved": "A kulcsok mentésre kerültek",
