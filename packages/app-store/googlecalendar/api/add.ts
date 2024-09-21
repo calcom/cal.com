@@ -30,9 +30,9 @@ async function getDomainWideDelegationForApp({
     email: user.email,
   });
 
-  if (!domainWideDelegation || !domainWideDelegation.enabled || !appMetadata.domainWideDelegation) {
+  if (!domainWideDelegation || !appMetadata.domainWideDelegation) {
     log.debug("Domain-wide delegation isn't enabled for this app", {
-      domainWideDelegationEnabled: domainWideDelegation?.enabled,
+      domainWideDelegationIsThere: !!domainWideDelegation,
       metadataDomainWideDelegation: appMetadata.domainWideDelegation,
     });
     return null;

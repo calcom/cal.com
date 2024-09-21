@@ -18,7 +18,6 @@ const serviceAccountKeySchema = z
 const repositoryLogger = logger.getSubLogger({ prefix: ["DomainWideDelegationRepository"] });
 const domainWideDelegationSafeSelect = {
   id: true,
-  enabled: true,
   domain: true,
   createdAt: true,
   updatedAt: true,
@@ -51,7 +50,6 @@ export class DomainWideDelegationRepository {
 
   static async create(data: {
     domain: string;
-    enabled: boolean;
     organizationId: number;
     workspacePlatformId: number;
     serviceAccountKey: Exclude<Prisma.JsonValue, null>;
@@ -64,7 +62,6 @@ export class DomainWideDelegationRepository {
           },
         },
         domain: data.domain,
-        enabled: data.enabled,
         organization: {
           connect: {
             id: data.organizationId,
@@ -145,7 +142,6 @@ export class DomainWideDelegationRepository {
     data: Partial<{
       workspacePlatformId: number;
       domain: string;
-      enabled: boolean;
       organizationId: number;
     }>;
   }) {

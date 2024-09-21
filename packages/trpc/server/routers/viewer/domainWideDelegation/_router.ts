@@ -4,7 +4,6 @@ import {
   DomainWideDelegationCreateSchema,
   DomainWideDelegationUpdateSchema,
   DomainWideDelegationDeleteSchema,
-  DomainWideDelegationToggleEnabledSchema
 } from "./schema";
 
 const NAMESPACE = "domainWideDelegation";
@@ -21,10 +20,6 @@ export const domainWideDelegationRouter = router({
   }),
   add: authedOrgAdminProcedure.input(DomainWideDelegationCreateSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("add"), () => import("./add.handler"));
-    return handler(opts);
-  }),
-  toggleEnabled: authedOrgAdminProcedure.input(DomainWideDelegationToggleEnabledSchema).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("toggleEnabled"), () => import("./toggleEnabled.handler"));
     return handler(opts);
   }),
   delete: authedOrgAdminProcedure.input(DomainWideDelegationDeleteSchema).mutation(async (opts) => {

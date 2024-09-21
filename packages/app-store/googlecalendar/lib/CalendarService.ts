@@ -200,15 +200,14 @@ export default class GoogleCalendarService implements Calendar {
         user,
       });
     
-    const isDomainWideDelegationEnabled = domainWideDelegation && domainWideDelegation.enabled;
 
-    if (this.credential.delegatedToId && !isDomainWideDelegationEnabled) {
+    if (this.credential.delegatedToId && !domainWideDelegation) {
       throw new CalendarAppConfigurationDomainWideDelegationNotEnabledError(
         "Credential needs domain wide delegation enabled"
       );
     }
 
-    if (domainWideDelegation && domainWideDelegation.enabled) {
+    if (domainWideDelegation) {
       const emailToImpersonate = this.credential.user?.email;
       if (!emailToImpersonate) {
         this.log.error("No email to impersonate found for domain wide delegation");
@@ -248,9 +247,7 @@ export default class GoogleCalendarService implements Calendar {
     this.log.debug(
       "Not using domain wide delegation, using default OAuth2 client for Google Calendar",
       safeStringify({
-        domainWideDelegation: {
-          enabled: domainWideDelegation?.enabled,
-        },
+        domainWideDelegationIsThere: !!domainWideDelegation,
         serviceAccountKeyIsSet: !!domainWideDelegation?.serviceAccountKey,
         credential: {
           id: this.credential.id,

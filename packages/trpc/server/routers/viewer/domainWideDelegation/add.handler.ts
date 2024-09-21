@@ -52,7 +52,6 @@ export default async function handler({
     const createdDelegation = await DomainWideDelegationRepository.create({
       workspacePlatformId: workspacePlatform.id,
       domain,
-      enabled: true,
       organizationId,
       serviceAccountKey: workspacePlatform.defaultServiceAccountKey,
     });

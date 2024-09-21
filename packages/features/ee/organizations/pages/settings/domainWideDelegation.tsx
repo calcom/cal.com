@@ -24,14 +24,12 @@ interface DelegationItemProps {
   delegation: {
     id: string;
     domain: string;
-    enabled: boolean;
     serviceAccountClientId: string;
     workspacePlatform: {
       name: string;
       slug: string;
     };
   };
-  toggleDelegation: (delegation: DelegationItemProps["delegation"]) => void;
   onEdit: (delegation: DelegationItemProps["delegation"]) => void;
   onDelete: (id: string) => void;
 }
@@ -51,12 +49,10 @@ function getWorkspacePlatformOptions(workspacePlatforms: WorkspacePlatform[]) {
 
 function DelegationListItemActions({
   delegation,
-  toggleDelegation,
   onEdit,
   onDelete,
 }: {
   delegation: DelegationItemProps["delegation"];
-  toggleDelegation: DelegationItemProps["toggleDelegation"]
   onEdit: (delegation: DelegationItemProps["delegation"]) => void;
   onDelete: (id: string) => void;
 }) {
@@ -64,7 +60,6 @@ function DelegationListItemActions({
 
   return (
     <div className="flex items-center space-x-2">
-      <Switch checked={delegation.enabled} onCheckedChange={() => toggleDelegation(delegation)} />
       <DropdownActions
         actions={[
           {
@@ -85,7 +80,7 @@ function DelegationListItemActions({
   );
 }
 
-function DelegationListItem({ delegation, toggleDelegation, onEdit, onDelete }: DelegationItemProps) {
+function DelegationListItem({ delegation, onEdit, onDelete }: DelegationItemProps) {
   const { t } = useLocale();
   return (
     <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
@@ -103,7 +98,6 @@ function DelegationListItem({ delegation, toggleDelegation, onEdit, onDelete }: 
         </div>
         <DelegationListItemActions
           delegation={delegation}
-          toggleDelegation={toggleDelegation}
           onEdit={onEdit}
           onDelete={onDelete}
         />
@@ -120,12 +114,12 @@ function CreateDelegationDialog({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => void;
+  onSubmit: (data: { domain: string; workspacePlatformSlug: string;}) => void;
   workspacePlatforms: WorkspacePlatform[];
 }) {
   const { t } = useLocale();
 
-  const form = useForm<{ domain: string; workspacePlatformSlug: string; enabled: boolean }>({
+  const form = useForm<{ domain: string; workspacePlatformSlug: string; }>({
     defaultValues: {
       domain: "",
       workspacePlatformSlug: "",
@@ -159,12 +153,12 @@ function EditDelegationDialog({
   isOpen: boolean;
   onClose: () => void;
   delegation: DelegationItemProps["delegation"];
-  onSubmit: (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => void;
+  onSubmit: (data: { domain: string; workspacePlatformSlug: string; }) => void;
   workspacePlatforms: WorkspacePlatform[];
 }) {
   const { t } = useLocale();
 
-  const form = useForm<{ domain: string; workspacePlatformSlug: string; enabled: boolean }>({
+  const form = useForm<{ domain: string; workspacePlatformSlug: string;}>({
     defaultValues: {
       domain: delegation.domain,
       workspacePlatformSlug: delegation.workspacePlatform.slug,
@@ -224,7 +218,7 @@ function CreateEditDelegationDialog({
   isOpen: boolean;
   onClose: () => void;
   delegation: DelegationItemProps["delegation"] | null;
-  onSubmit: (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => void;
+  onSubmit: (data: { domain: string; workspacePlatformSlug: string;  }) => void;
   workspacePlatforms: WorkspacePlatform[];
 }) {
   if (delegation) {
@@ -260,13 +254,6 @@ function DomainWideDelegationList() {
     },
   });
 
-  const toggleEnabledMutation = trpc.viewer.domainWideDelegation.toggleEnabled.useMutation({
-    onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
-
   const createMutation = trpc.viewer.domainWideDelegation.add.useMutation({
     onSuccess: () => utils.viewer.domainWideDelegation.list.invalidate(),
     onError: (error) => {
@@ -283,15 +270,6 @@ function DomainWideDelegationList() {
 
   const onDelete = (id: string) => {
     deleteMutation.mutate({ id });
-  };
-
-  const toggleDelegation = (delegation: DelegationItemProps["delegation"]) => {
-    if (delegation) {
-      toggleEnabledMutation.mutate({
-        id: delegation.id,
-        enabled: !delegation.enabled,
-      });
-    }
   };
 
   const [createEditDialog, setCreateEditDialog] = useState<{
@@ -311,7 +289,7 @@ function DomainWideDelegationList() {
 
   const onCreateClick = () => setCreateEditDialog({ isOpen: true, delegation: null });
 
-  const handleSubmit = (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => {
+  const handleSubmit = (data: { domain: string; workspacePlatformSlug: string;  }) => {
     if (createEditDialog.delegation) {
       updateMutation.mutate({
         id: createEditDialog.delegation.id,
@@ -338,7 +316,6 @@ function DomainWideDelegationList() {
           <DelegationListItem
             key={delegation.id}
             delegation={delegation}
-            toggleDelegation={toggleDelegation}
             onEdit={onEditClick}
             onDelete={onDelete}
           />

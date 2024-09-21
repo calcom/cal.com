@@ -42,7 +42,6 @@ export default async function handler({
       data: {
         workspacePlatformId: workspacePlatform.id,
         domain,
-        enabled: true,
         organizationId,
       },
     });

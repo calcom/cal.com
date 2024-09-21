@@ -128,6 +128,8 @@ export const getConnectedCalendars = async (
     })
   );
 
+  console.log("connectedCalendars", JSON.stringify(connectedCalendars, null, 2));
+
   return { connectedCalendars, destinationCalendar };
 };
 
