@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 
-import { APP_NAME } from "@calcom/lib/constants";
-import { truncateOnWord } from "@calcom/lib/text";
-
 type RootMetadataRecipe = Readonly<{
   twitterCreator: string;
   twitterSite: string;
@@ -65,24 +62,3 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
     card: "summary_large_image",
   },
 });
-
-export const preparePageMetadata = (recipe: PageMetadataRecipe): Metadata => {
-  const titleSuffix = `| ${APP_NAME}`;
-  const { description } = recipe;
-  return {
-    title: recipe.title.includes(titleSuffix) ? recipe.title : `${recipe.title} ${titleSuffix}`,
-    description,
-    alternates: {
-      canonical: recipe.canonical,
-    },
-    openGraph: {
-      description: truncateOnWord(description, 158),
-      url: recipe.canonical,
-      type: "website",
-      siteName: recipe.siteName,
-      title: recipe.title,
-      images: [recipe.image],
-    },
-    metadataBase: recipe.metadataBase,
-  };
-};

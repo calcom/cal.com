@@ -21,8 +21,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponses";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -127,7 +126,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
-  const debouncedFormEmail = useDebounce(bookerForm.formEmail, 600);
   const schedule = useScheduleForEvent({
     prefetchNextMonth,
     username: props.username,
@@ -137,18 +135,20 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     month: props.month,
     duration: props.duration,
     selectedDate,
-    bookerEmail: debouncedFormEmail,
+    teamMemberEmail: props.teamMemberEmail,
   });
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,
     bookingForm: bookerForm.bookingForm,
     metadata: metadata ?? {},
-    teamMemberEmail: schedule.data?.teamMember,
+    teamMemberEmail: props.teamMemberEmail,
   });
 
   const verifyCode = useVerifyCode({
     onSuccess: () => {
+      if (!bookerForm.formEmail) return;
+
       verifyEmail.setVerifiedEmail(bookerForm.formEmail);
       verifyEmail.setEmailVerificationModalVisible(false);
       bookings.handleBookEvent();
@@ -193,11 +193,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         router.push("/apps/categories/calendar");
       }}
       onClickOverlayContinue={() => {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.pathname = "/login/";
-        currentUrl.searchParams.set("callbackUrl", window.location.pathname);
-        currentUrl.searchParams.set("overlayCalendar", "true");
-        router.push(currentUrl.toString());
+        const newUrl = new URL(`${WEBAPP_URL}/login`);
+        newUrl.searchParams.set("callbackUrl", window.location.pathname);
+        newUrl.searchParams.set("overlayCalendar", "true");
+        router.push(newUrl.toString());
       }}
       onOverlaySwitchStateChange={onOverlaySwitchStateChange}
       sessionUsername={session?.user.username}

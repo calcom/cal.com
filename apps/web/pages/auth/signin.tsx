@@ -1,34 +1,14 @@
-"use client";
-
-import type { getProviders } from "next-auth/react";
-import { signIn } from "next-auth/react";
-
-import { Button } from "@calcom/ui";
-
 import PageWrapper from "@components/PageWrapper";
 
 import { getServerSideProps } from "@server/lib/auth/signin/getServerSideProps";
 
-function signin({ providers }: { providers: Awaited<ReturnType<typeof getProviders>> }) {
-  if (!providers) {
-    return null;
-  }
+import type { PageProps } from "~/auth/signin-view";
+import SignIn from "~/auth/signin-view";
 
-  return (
-    <div className="center mt-10 justify-between space-y-5 text-center align-baseline">
-      {Object.values(providers).map((provider) => {
-        return (
-          <div key={provider.name}>
-            <Button onClick={() => signIn(provider.id)}>Sign in with {provider.name}</Button>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+const Page = (props: PageProps) => <SignIn {...props} />;
 
-signin.PageWrapper = PageWrapper;
+Page.PageWrapper = PageWrapper;
 
-export default signin;
+export default Page;
 
 export { getServerSideProps };

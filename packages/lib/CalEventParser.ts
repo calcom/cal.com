@@ -6,6 +6,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
+import isSmsCalEmail from "./isSmsCalEmail";
 
 const translator = short();
 
@@ -39,9 +40,11 @@ export const getWho = (calEvent: CalendarEvent, t: TFunction) => {
     .map((attendee) => {
       return `
 ${attendee?.name || t("guest")}
-${attendee.email}
-      `;
+${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
+
+`;
     })
+
     .join("");
 
   const organizer = `
@@ -183,7 +186,7 @@ export const getPlatformManageLink = (calEvent: CalendarEvent, t: TFunction) => 
   if (!calEvent.recurringEvent && calEvent.platformRescheduleUrl) {
     res += `${calEvent.platformCancelUrl ? ` ${t("or_lowercase")} ` : ""}${t(
       "reschedule"
-    )}: ${getRescheduleLink(calEvent)}`;
+    )}: ${getRescheduleLink({ calEvent })}`;
   }
 
   return res;
@@ -252,7 +255,15 @@ export const getPlatformRescheduleLink = (
   return "";
 };
 
-export const getRescheduleLink = (calEvent: CalendarEvent, attendee?: Person): string => {
+export const getRescheduleLink = ({
+  calEvent,
+  allowRescheduleForCancelledBooking = false,
+  attendee,
+}: {
+  calEvent: CalendarEvent;
+  allowRescheduleForCancelledBooking?: boolean;
+  attendee?: Person;
+}): string => {
   const Uid = getUid(calEvent);
   const seatUid = getSeatReferenceId(calEvent);
 
@@ -260,13 +271,15 @@ export const getRescheduleLink = (calEvent: CalendarEvent, attendee?: Person): s
     return getPlatformRescheduleLink(calEvent, Uid, seatUid);
   }
 
-  const rescheduleLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`);
-
+  const url = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`);
+  if (allowRescheduleForCancelledBooking) {
+    url.searchParams.append("allowRescheduleForCancelledBooking", "true");
+  }
   if (attendee?.email) {
-    rescheduleLink.searchParams.append("rescheduledBy", attendee.email);
+    url.searchParams.append("rescheduledBy", attendee.email);
   }
 
-  return rescheduleLink.toString();
+  return url.toString();
 };
 
 export const getRichDescription = (

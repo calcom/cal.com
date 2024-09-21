@@ -33,7 +33,7 @@ If you run it on localhost, check out the [additional information](https://githu
 
 ## Triggers
 
-Booking created, Booking rescheduled, Booking cancelled, Meeting ended
+Booking created, Booking rescheduled, Booking cancelled, Meeting ended, Out Of Office Created
 
 ### Booking created
 
@@ -56,9 +56,29 @@ Booking created, Booking rescheduled, Booking cancelled, Meeting ended
 
 Create the other triggers (booking rescheduled, booking cancelled and meeting ended) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
 
+### Out Of Office Created
+
+1. Settings
+   - Key: ooo_created
+   - Name: Out Of Office Created
+   - Noun: OOO Entry
+   - Description: Triggers when a new Out Of Office entry is created.
+2. API Configuration (apiKey is set automatically, leave it like it is):
+   - Trigger Type: REST Hook
+   - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
+     - Request Body
+       - subscriberUrl: {{bundle.targetUrl}}
+       - triggerEvent: OOO_CREATED
+   - Unsubscribe: DELETE `<baseUrl>`/api/integrations/zapier/deleteSubscription
+     - URL Params (in addition to apiKey)
+       - id: {{bundle.subscribeData.id}}
+   - PerformList: GET `<baseUrl>`/api/integrations/zapier/listOOOEntries
+3. Test your API request
+4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { oooEntry: { ... } } }
+
 ### Set ZAPIER_INVITE_LINK
 
-The invite link can be found under under Manage → Sharing.
+The invite link can be found under Manage → Sharing.
 
 ## Localhost
 
@@ -67,5 +87,5 @@ Localhost urls can not be used as the base URL for api endpoints
 Possible solution: using [https://ngrok.com/](https://ngrok.com/)
 
 1. Create Account
-2. [Download](https://ngrok.com/download) gnork and start a tunnel to your running localhost
+2. [Download](https://ngrok.com/download) ngrok and start a tunnel to your running localhost
    - Use forwarding url as your baseUrl for the URL endpoints

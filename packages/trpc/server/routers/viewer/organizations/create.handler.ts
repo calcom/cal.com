@@ -104,6 +104,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
           team: {
             select: {
               slug: true,
+              isOrganization: true,
+              isPlatform: true,
             },
           },
         },
@@ -159,6 +161,14 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+
+  const hasExistingPlatformOrOrgTeam = loggedInUser?.teams.find((team) => {
+    return team.team.isPlatform || team.team.isOrganization;
+  });
+
+  if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "User is already part of a team" });
+  }
 
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 

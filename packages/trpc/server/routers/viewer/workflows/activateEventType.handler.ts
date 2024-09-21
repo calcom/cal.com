@@ -254,6 +254,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },
+        metadata: booking.metadata,
       };
       for (const step of eventTypeWorkflow.steps) {
         if (
@@ -281,7 +282,9 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               }
               break;
             case WorkflowActions.EMAIL_ATTENDEE:
-              sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
+              sendTo = bookingInfo.attendees
+                .map((attendee) => attendee.email)
+                .filter((email): email is string => !!email);
               break;
             case WorkflowActions.EMAIL_ADDRESS:
               sendTo = step.sendTo ? [step.sendTo] : [];

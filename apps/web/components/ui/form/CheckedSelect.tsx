@@ -1,11 +1,10 @@
 import React from "react";
 import type { Props } from "react-select";
 
+import Select from "@calcom/features/form/components/Select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
-
-import Select from "@components/ui/form/Select";
 
 type CheckedSelectOption = {
   avatar: string;
