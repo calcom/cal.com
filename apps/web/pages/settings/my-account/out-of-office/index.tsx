@@ -41,9 +41,8 @@ const Page = () => {
   const { data } = trpc.viewer.organizations.listCurrent.useQuery();
   const isOrgAdminOrOwner =
     data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN);
-  const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
   const toggleGroupOptions = [{ value: OutOfOfficeTab.MINE, label: t("my_ooo") }];
-  if (isOrgAdminOrOwner && !isOrgAndPrivate) {
+  if (isOrgAdminOrOwner) {
     toggleGroupOptions.push({ value: OutOfOfficeTab.TEAM, label: t("team_ooo") });
   }
 
@@ -68,7 +67,7 @@ const Page = () => {
                 setSelectedTab(value);
               }}
               options={toggleGroupOptions}
-              disabled={!isOrgAdminOrOwner || isOrgAndPrivate}
+              disabled={!isOrgAdminOrOwner}
             />
             {isPending ? (
               <SkeletonText className="h-8 w-20" />

@@ -153,14 +153,19 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   ? t("create_ooo_dialog_team_title")
                   : t("create_an_out_of_office")
               }
+              subtitle={
+                oooType === "team"
+                  ? currentlyEditingOutOfOfficeEntry
+                    ? t("edit_ooo_dialog_team_subtitle")
+                    : t("create_ooo_dialog_team_subtitle")
+                  : undefined
+              }
             />
 
             {/* In case of Team, Select Member for whom OOO is created */}
             {oooType === "team" && (
-              <div className="mb-4 mt-4 h-16">
-                <p className="text-emphasis block text-sm font-medium">
-                  {currentlyEditingOutOfOfficeEntry ? t("edit_ooo_team_label") : t("create_ooo_team_label")}
-                </p>
+              <div className="mb-3 mt-4 h-16">
+                <p className="text-emphasis mb-1 block text-sm font-medium">{t("team_member")}</p>
                 <Controller
                   control={control}
                   name="forUserId"
@@ -267,7 +272,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               {profileRedirect && (
                 <div className="mt-4">
                   <div className="h-16">
-                    <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
+                    <p className="text-emphasis mb-1 block text-sm font-medium">{t("team_member")}</p>
                     <Controller
                       control={control}
                       name="toTeamUserId"
