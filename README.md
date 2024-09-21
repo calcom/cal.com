@@ -175,7 +175,7 @@ yarn dx
 
 Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
 Where {level} can be one of the following:
- 
+
 `0` for silly \
 `1` for trace \
 `2` for debug \
@@ -187,14 +187,14 @@ Where {level} can be one of the following:
 When you set `NEXT_PUBLIC_LOGGER_LEVEL={level}` in your .env file, it enables logging at that level and higher. Here's how it works:
 
 The logger will include all logs that are at the specified level or higher. For example: \
+
 - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
 - If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
-
-
 
 ```sh
 echo 'NEXT_PUBLIC_LOGGER_LEVEL=3' >> .env
 ```
+
 for Logger level to be set at info, for example.
 
 #### Gitpod Setup
@@ -417,25 +417,25 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 > [!NOTE]  
 > Our philosophy is simple, all "Singleplayer APIs" are open-source under AGPLv3. All commercial "Multiplayer APIs" are under a commercial license.
 
-|   | AGPLv3  | EE  | 
-|---|---|---|
-| Self-host for commercial purposes	  | ✅  |  ✅ |
-| Clone privately  | ✅  | ✅  |
-| Fork publicly  | ✅  | ✅ |
-| Requires CLA  |  ✅ | ✅  |
-| Official Support| ❌ | ✅ |
-| Derivative work privately | ❌  | ✅ |
-| SSO | ❌  | ✅ |
-| Admin Panel | ❌  | ✅ |
-| Impersonation | ❌  | ✅ |
-| Managed Event Types | ❌  | ✅ |
-| Organizations | ❌  | ✅ |
-| Payments | ❌  | ✅ |
-| Platform | ❌  | ✅ |
-| Teams | ❌  | ✅ |
-| Users | ❌  | ✅ |
-| Video | ❌  | ✅ |
-| Workflows | ❌  | ✅ |
+|                                   | AGPLv3 | EE  |
+| --------------------------------- | ------ | --- |
+| Self-host for commercial purposes | ✅     | ✅  |
+| Clone privately                   | ✅     | ✅  |
+| Fork publicly                     | ✅     | ✅  |
+| Requires CLA                      | ✅     | ✅  |
+|  Official Support                 | ❌     | ✅  |
+| Derivative work privately         | ❌     | ✅  |
+|  SSO                              | ❌     | ✅  |
+| Admin Panel                       | ❌     | ✅  |
+| Impersonation                     | ❌     | ✅  |
+| Managed Event Types               | ❌     | ✅  |
+| Organizations                     | ❌     | ✅  |
+| Payments                          | ❌     | ✅  |
+| Platform                          | ❌     | ✅  |
+| Teams                             | ❌     | ✅  |
+| Users                             | ❌     | ✅  |
+| Video                             | ❌     | ✅  |
+| Workflows                         | ❌     | ✅  |
 
 > [!TIP]
 > We work closely with the community and always invite feedback about what should be open and what is fine to be commercial. This list is not set and stone and we have moved things from commercial to open in the past. Please open a [discussion](https://github.com/calcom/cal.com/discussions) if you feel like something is wrong.
