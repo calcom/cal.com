@@ -1,4 +1,5 @@
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -6,6 +7,8 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../../trpc";
 import { getDefaultScheduleId } from "../util";
 import type { TGetAllByUserIdInputSchema } from "./getAllSchedulesByUserId.schema";
+
+const log = logger.getSubLogger({ prefix: ["getAllSchedulesByUserIdHandler"] });
 
 type GetOptions = {
   ctx: {
@@ -39,8 +42,9 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
   });
 
   if (!schedules) {
+    log.error(`No Schedules found for userId:${input.userId}`);
     throw new TRPCError({
-      code: "UNAUTHORIZED",
+      code: "NOT_FOUND",
     });
   }
 
