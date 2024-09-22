@@ -72,7 +72,7 @@ export const useEventTypeForm = ({
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
-      hashedLink: eventType.hashedLink?.link || undefined,
+      singleUseLinks: eventType.hashedLink.map((link) => link.link),
       eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,

@@ -195,8 +195,10 @@ describe("handleChildrenEventTypes", () => {
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          hashedLink: {
+            deleteMany: {},
+          },
           instantMeetingScheduleId: undefined,
-          singleUseLinks: { create: [{ link: expect.any(String) }] },
         },
         where: {
           userId_parentId: {
@@ -349,6 +351,9 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...rest,
           locations: [],
+          hashedLink: {
+            deleteMany: {},
+          },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           instantMeetingScheduleId: undefined,
@@ -441,7 +446,9 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
-          singleUseLinks: [],
+          hashedLink: {
+            deleteMany: {},
+          },
           instantMeetingScheduleId: undefined,
         },
         where: {

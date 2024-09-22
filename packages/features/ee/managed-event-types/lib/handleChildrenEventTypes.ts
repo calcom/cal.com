@@ -3,7 +3,6 @@ import type { Prisma } from "@prisma/client";
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
-import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -144,17 +143,6 @@ export default async function handleChildrenEventTypes({
   // Calculate if there are new workflows for which assigned members will get too
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
-  // Define hashedLink query input
-  const hashedLinkQuery = (userId: number, hasHashedLink: boolean) => {
-    return singleUseLinks.length > 0
-      ? !hasHashedLink
-        ? { create: [{ link: generateHashedLink(userId) }] }
-        : undefined
-      : hasHashedLink
-      ? { deleteMany: {} }
-      : undefined;
-  };
-
   // Store result for existent event types deletion process
   let deletedExistentEventTypes = undefined;
 
@@ -201,7 +189,6 @@ export default async function handleChildrenEventTypes({
                 data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
               },
             },*/
-            hashedLink: hashedLinkQuery(userId, false),
           },
         });
       })
@@ -242,43 +229,27 @@ export default async function handleChildrenEventTypes({
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
     console.log({ unlockedFieldProps });
     // Update event types for old users
-    const oldEventTypes = await prisma.$transaction(async (prisma) => {
-      return await Promise.all(
-        oldUserIds.map(async (userId) => {
-          const existingEventType = await prisma.eventType.findFirst({
-            where: {
+    const oldEventTypes = await prisma.$transaction(
+      oldUserIds.map((userId) => {
+        return prisma.eventType.update({
+          where: {
+            userId_parentId: {
               userId,
               parentId,
             },
-          });
-
-          const existingHashedLink = await prisma.hashedLink.findFirst({
-            where: {
-              eventTypeId: existingEventType ? existingEventType.id : undefined,
-            },
-          });
-
-          let eventType = null;
-
-          if (existingEventType) {
-            eventType = await prisma.eventType.update({
-              where: {
-                id: existingEventType.id,
-              },
-              data: {
-                ...updatePayloadFiltered,
-                hashedLink:
-                  "singleUseLinks" in unlockedFieldProps
-                    ? undefined
-                    : hashedLinkQuery(userId, existingHashedLink !== null),
-              },
-            });
-          }
-
-          return eventType;
-        })
-      );
-    });
+          },
+          data: {
+            ...updatePayloadFiltered,
+            hashedLink:
+              "singleUseLinks" in unlockedFieldProps
+                ? undefined
+                : {
+                    deleteMany: {},
+                  },
+          },
+        });
+      })
+    );
 
     if (currentWorkflowIds?.length) {
       await prisma.$transaction(
