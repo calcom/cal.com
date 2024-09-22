@@ -6,7 +6,6 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { apiLogin } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
@@ -400,14 +399,15 @@ test.describe("Reschedule Tests", async () => {
             page,
           },
           async ({ page }) => {
-            await page.goto(getNonOrgUrlFromOrgUrl(result.url));
+            const rescheduleUrlToBeOpenedInOrgContext = getNonOrgUrlFromOrgUrl(result.url);
+            await page.goto(rescheduleUrlToBeOpenedInOrgContext);
+            await selectFirstAvailableTimeSlotNextMonth(page);
             await expectSuccessfulReschedule();
           }
         );
       });
 
       async function expectSuccessfulReschedule() {
-        await selectFirstAvailableTimeSlotNextMonth(page);
         const { protocol, host } = new URL(page.url());
         // Needed since we we're expecting a non-org URL, causing timeouts.
         const url = getNonOrgUrlFromOrgUrl(`${protocol}//${host}/api/book/event`);
