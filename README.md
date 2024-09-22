@@ -531,17 +531,18 @@ following
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
 2. On the upper right, click "Develop" => "Build App".
-3. On "OAuth", select "Create".
+3. Select "General App" , click "Create".
 4. Name your App.
-5. Choose "User-managed app" as the app type.
-6. De-select the option to publish the app on the Zoom App Marketplace.
-7. Click "Create".
-8. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
-9. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
-10. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
-11. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
-12. Click "Done".
-13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
+5. Choose "User-managed app" for "Select how the app is managed".
+6. De-select the option to publish the app on the Zoom App Marketplace, if asked.
+7. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
+8. Set the "OAuth Redirect URL" under "OAuth Information" as `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
+9. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
+10. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left,
+    1. click the category "Meeting" and check the scope `meeting:write:meeting`.
+    2. click the category "User" and check the scope `user:read:settings`.
+11. Click "Done".
+12. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
 ### Obtaining Daily API Credentials
 
