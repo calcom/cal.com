@@ -33,7 +33,6 @@ interface handleChildrenEventTypesProps {
         };
       }[]
     | undefined;
-  singleUseLinks: string[];
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
   updatedValues: Prisma.EventTypeUpdateInput;
 }
@@ -91,7 +90,6 @@ export default async function handleChildrenEventTypes({
   oldEventType,
   updatedEventType,
   children,
-  singleUseLinks,
   prisma,
   profileId,
   updatedValues,
