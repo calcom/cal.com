@@ -709,6 +709,11 @@ const platformNavigation: NavigationItemType[] = [
     icon: "ellipsis",
     target: "_blank",
   },
+  {
+    name: "Billing",
+    href: "/settings/platform/billing",
+    icon: "chart-bar",
+  },
 ];
 
 const getDesktopNavigationItems = (isPlatformNavigation = false) => {
