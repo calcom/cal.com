@@ -143,10 +143,9 @@ expect.extend({
 
     if (!isEmailContentMatched) {
       logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
-
       return {
         pass: false,
-        message: () => `Email content ${isNot ? "is" : "is not"} matching. ${JSON.stringify(emailsToLog)}`,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching.`,
         actual: actualEmailContent,
         expected: expectedEmailContent,
       };
@@ -425,6 +424,16 @@ export async function expectBookingToBeInDatabase(
   expect(actualBooking).toEqual(expect.objectContaining(remainingBooking));
   expect(actualBooking?.references).toEqual(
     expect.arrayContaining((references || []).map((reference) => expect.objectContaining(reference)))
+  );
+}
+
+export function expectSMSToBeTriggered({ sms, toNumber }: { sms: Fixtures["sms"]; toNumber: string }) {
+  expect(sms.get()).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        to: toNumber,
+      }),
+    ])
   );
 }
 
@@ -764,6 +773,33 @@ export function expectSuccessfulBookingRescheduledEmails({
   );
 }
 
+export function expectSuccesfulLocationChangeEmails({
+  emails,
+  organizer,
+  location,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string };
+  location: {
+    href: string;
+    linkText: string;
+  };
+}) {
+  expect(emails).toHaveEmail(
+    {
+      titleTag: "location_changed_event_type_subject",
+      links: [
+        {
+          href: location.href,
+          text: location.linkText,
+        },
+      ],
+      to: `${organizer.email}`,
+    },
+    `${organizer.email}`
+  );
+}
+
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
@@ -792,7 +828,7 @@ export function expectBookingRequestedEmails({
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker?: { email: string; name: string };
 }) {
   expect(emails).toHaveEmail(
     {
@@ -803,14 +839,16 @@ export function expectBookingRequestedEmails({
     `${organizer.email}`
   );
 
-  expect(emails).toHaveEmail(
-    {
-      titleTag: "booking_submitted_subject",
-      to: `${booker.email}`,
-      noIcs: true,
-    },
-    `${booker.email}`
-  );
+  if (booker) {
+    expect(emails).toHaveEmail(
+      {
+        titleTag: "booking_submitted_subject",
+        to: `${booker.email}`,
+        noIcs: true,
+      },
+      `${booker.email}`
+    );
+  }
 }
 
 export function expectBookingRequestRescheduledEmails({
@@ -818,8 +856,6 @@ export function expectBookingRequestRescheduledEmails({
   loggedInUser,
   booker,
   booking,
-  bookNewTimePath,
-  organizer,
 }: {
   emails: Fixtures["emails"];
   organizer: ReturnType<typeof getOrganizer>;
@@ -840,7 +876,7 @@ export function expectBookingRequestRescheduledEmails({
       subHeading: "request_reschedule_subtitle",
       links: [
         {
-          href: `${bookingUrlOrigin}${bookNewTimePath}?rescheduleUid=${booking.uid}`,
+          href: `${bookingUrlOrigin}/reschedule/${booking.uid}?allowRescheduleForCancelledBooking=true`,
           text: "Book a new time",
         },
       ],
@@ -874,13 +910,17 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
   subscriberUrl,
   paidEvent,
   eventType,
+  isEmailHidden = false,
+  isAttendeePhoneNumberHidden = false,
 }: {
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker: { email: string; name: string; attendeePhoneNumber?: string };
   subscriberUrl: string;
   location: string;
   paidEvent?: boolean;
   eventType: InputEventType;
+  isEmailHidden?: boolean;
+  isAttendeePhoneNumberHidden?: boolean;
 }) {
   // There is an inconsistency in the way we send the data to the webhook for paid events and unpaid events. Fix that and then remove this if statement.
   if (!paidEvent) {
@@ -901,8 +941,17 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
           email: {
             label: "email_address",
             value: booker.email,
-            isHidden: false,
+            isHidden: isEmailHidden,
           },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                  isHidden: isAttendeePhoneNumberHidden,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -923,6 +972,14 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
         responses: {
           name: { label: "name", value: booker.name },
           email: { label: "email", value: booker.email },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -939,13 +996,17 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   subscriberUrl,
   paidEvent,
   videoCallUrl,
+  isEmailHidden = false,
+  isAttendeePhoneNumberHidden = false,
 }: {
   organizer: { email: string; name: string };
-  booker: { email: string; name: string };
+  booker: { email: string; name: string; attendeePhoneNumber?: string };
   subscriberUrl: string;
   location: string;
   paidEvent?: boolean;
   videoCallUrl?: string | null;
+  isEmailHidden?: boolean;
+  isAttendeePhoneNumberHidden?: boolean;
 }) {
   if (!paidEvent) {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
@@ -956,7 +1017,16 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
         },
         responses: {
           name: { label: "your_name", value: booker.name, isHidden: false },
-          email: { label: "email_address", value: booker.email, isHidden: false },
+          email: { label: "email_address", value: booker.email, isHidden: isEmailHidden },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                  isHidden: isAttendeePhoneNumberHidden,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -980,6 +1050,14 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
             label: "email",
             value: booker.email,
           },
+          ...(booker.attendeePhoneNumber
+            ? {
+                attendeePhoneNumber: {
+                  label: "phone_number",
+                  value: booker.attendeePhoneNumber,
+                },
+              }
+            : null),
           location: {
             label: "location",
             value: { optionValue: "", value: location },

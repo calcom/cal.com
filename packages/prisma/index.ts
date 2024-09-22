@@ -3,6 +3,7 @@ import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
+import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "./middleware";
@@ -14,7 +15,26 @@ const globalForPrisma = global as unknown as {
   prismaWithClientExtensions: PrismaClientWithExtensions;
 };
 
-if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
+const loggerLevel = parseInt(process.env.NEXT_PUBLIC_LOGGER_LEVEL ?? "", 10);
+
+if (!isNaN(loggerLevel)) {
+  switch (loggerLevel) {
+    case 5:
+    case 6:
+      prismaOptions.log = ["error"];
+      break;
+    case 4:
+      prismaOptions.log = ["warn", "error"];
+      break;
+    case 3:
+      prismaOptions.log = ["info", "error", "warn"];
+      break;
+    default:
+      // For values 0, 1, 2 (or anything else below 3)
+      prismaOptions.log = ["query", "info", "error", "warn"];
+      break;
+  }
+}
 
 // Prevents flooding with idle connections
 const prismaWithoutClientExtensions =
@@ -25,6 +45,7 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
     .$extends(usageTrackingExtention())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
+    .$extends(disallowUndefinedDeleteUpdateManyExtension())
     .$extends(withAccelerate());
 
 // If any changed on middleware server restart is required
@@ -37,6 +58,7 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(usageTrackingExtention())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
+  .$extends(disallowUndefinedDeleteUpdateManyExtension())
   .$extends(withAccelerate());
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
