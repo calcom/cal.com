@@ -347,6 +347,7 @@ export const useEventTypeForm = ({
       customInputs,
       children,
       assignAllTeamMembers,
+      singleUseLinks: values.singleUseLinks,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
