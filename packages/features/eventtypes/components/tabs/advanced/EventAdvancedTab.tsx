@@ -12,6 +12,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { SingleUseLinksController } from "@calcom/features/eventtypes/components";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
@@ -41,8 +42,6 @@ import {
   showToast,
   ColorPicker,
 } from "@calcom/ui";
-
-import { SingleUseLinksController } from "@components/eventtype/SingleUseLinksController";
 
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import RequiresConfirmationController from "./RequiresConfirmationController";

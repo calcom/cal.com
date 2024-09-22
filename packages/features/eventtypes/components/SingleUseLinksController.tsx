@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
 
+import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
