@@ -4904,6 +4904,11 @@
             "type": "string",
             "example": "alice@example.com"
           },
+          "name": {
+            "type": "string",
+            "example": "Alice Smith",
+            "description": "Managed user's name is used in emails"
+          },
           "timeFormat": {
             "type": "number",
             "example": 12,
@@ -4978,13 +4983,11 @@
             ],
             "type": "string",
             "example": "en"
-          },
-          "name": {
-            "type": "string"
           }
         },
         "required": [
-          "email"
+          "email",
+          "name"
         ]
       },
       "CreateManagedUserData": {
