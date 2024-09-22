@@ -45,6 +45,7 @@ export const SingleUseLinksController = ({
                     <TextField
                       containerClassName="w-full"
                       disabled
+                      data-testid={`generated-hash-url-${key}`}
                       labelSrOnly
                       type="text"
                       defaultValue={singleUseURL}
