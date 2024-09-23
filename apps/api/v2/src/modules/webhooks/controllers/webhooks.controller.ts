@@ -27,7 +27,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard)
-@ApiTags("Webhooks")
+@DocsTags("Webhooks")
 export class WebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,
