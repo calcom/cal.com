@@ -328,6 +328,7 @@ export const roundRobinReassignment = async ({
       timeZone: organizer.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
     },
+    bookerUrl,
     startTime: dayjs(booking.startTime).utc().format(),
     endTime: dayjs(booking.endTime).utc().format(),
     type: eventType.slug,
@@ -484,7 +485,6 @@ export const roundRobinReassignment = async ({
             ...evt,
             metadata: workflowEventMetadata,
             eventType,
-            bookerUrl,
           },
           action: WorkflowActions.EMAIL_HOST,
           triggerEvent: workflow.trigger,
@@ -552,7 +552,6 @@ export const roundRobinReassignment = async ({
         ...evt,
         metadata: workflowEventMetadata,
         eventType: { slug: eventType.slug },
-        bookerUrl,
       },
       hideBranding: !!eventType?.owner?.hideBranding,
     });
