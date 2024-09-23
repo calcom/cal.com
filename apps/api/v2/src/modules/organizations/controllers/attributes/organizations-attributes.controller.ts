@@ -38,7 +38,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Orgs / Teams / Attributes")
+@DocsTags("Orgs / Attributes")
 export class OrganizationsAttributesController {
   constructor(private readonly organizationsAttributesService: OrganizationAttributesService) {}
   // Gets all attributes for an organization

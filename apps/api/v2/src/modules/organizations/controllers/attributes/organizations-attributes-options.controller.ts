@@ -29,6 +29,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@DocsTags("Orgs / Attributes / Options")
 export class OrganizationsOptionsAttributesController {
   constructor(private readonly organizationsAttributesOptionsService: OrganizationAttributeOptionService) {}
 
