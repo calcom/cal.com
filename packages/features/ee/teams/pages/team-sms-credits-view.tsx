@@ -92,6 +92,16 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
     name: "smsCreditAllocationValue",
   });
 
+  const smsOveragesLimit = useWatch({
+    control: form.control,
+    name: "smsOveragesLimit",
+  });
+
+  const smsOveragesEnabled = useWatch({
+    control: form.control,
+    name: "smsOveragesEnabled",
+  });
+
   const availableCredits = Math.max(totalSmsCredits - team.smsCreditsUsed, 0);
 
   const percentageReached = (team.smsCreditsUsed / totalSmsCredits) * 100;
@@ -180,12 +190,36 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                 <RadioArea.Item className="bg-default w-full text-sm" value="enabled">
                   <strong className="mb-1 block">{t("pay_sms_over_limit")}</strong>
                   <Trans i18nKey="pay_sms_over_limit_description">
-                    Allow getting charged for extra SMS beyond your limit. You will be charged for each SMS
-                    sent. Pricing details are available
-                    <a href="https://www.example.com" className="underline">
+                    Allow getting charged for extra SMS beyond your limit. You will be charged at the end of
+                    every month. Pricing details are available
+                    <a href="https://www.example.com" className="underline" target="_blank">
                       here
                     </a>
                   </Trans>
+                  {smsOveragesEnabled && !paymentConfirmationDialogOpen ? (
+                    <div className="mt-4 flex">
+                      <div className="max-w-36">
+                        <Controller
+                          name="smsOveragesLimit"
+                          control={form.control}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              name="Max amount"
+                              min={1}
+                              value={value || undefined}
+                              onChange={onChange}
+                              addOnSuffix="$"
+                              type="number"
+                            />
+                          )}
+                        />
+                      </div>
+                      {/* disable button when no changes */}
+                      <Button className="mb-[4px] ml-auto mt-auto">{t("update")}</Button>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
                 </RadioArea.Item>
               </RadioArea.Group>
             </div>

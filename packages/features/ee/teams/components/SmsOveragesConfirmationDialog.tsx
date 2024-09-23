@@ -26,17 +26,19 @@ export const SmsOveragesConfirmationDialog = (props: ISmsOveragesDialog) => {
           </div>
           <div className="w-full pt-1">
             <DialogHeader title={t("allow_charging_for_sms")} />
+            <div className="mb-8 mt-8">TODO: More information here</div>
             <div className="max-w-32">
               <Controller
                 name="smsOveragesLimit"
                 control={formMethods.control}
                 render={({ field: { value, onChange } }) => (
                   <TextField
-                    name="Limit"
+                    name="Monthly Limit"
                     min={1}
                     value={value || undefined}
                     onChange={onChange}
                     addOnSuffix="$"
+                    type="number"
                   />
                 )}
               />
