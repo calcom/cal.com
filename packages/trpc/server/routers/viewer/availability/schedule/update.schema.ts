@@ -9,8 +9,8 @@ export const ZUpdateInputSchema = z.object({
     .array(
       z.array(
         z.object({
-          start: z.date(),
-          end: z.date(),
+          start: z.coerce.date(),
+          end: z.coerce.date(),
         })
       )
     )
@@ -18,8 +18,8 @@ export const ZUpdateInputSchema = z.object({
   dateOverrides: z
     .array(
       z.object({
-        start: z.date(),
-        end: z.date(),
+        start: z.coerce.date(),
+        end: z.coerce.date(),
       })
     )
     .optional(),
