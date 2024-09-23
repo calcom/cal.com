@@ -110,7 +110,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           forUserId: null,
         },
   });
-  console.log(isSubmitting);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
