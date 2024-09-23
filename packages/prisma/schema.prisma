@@ -612,6 +612,7 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  oneTimePassword       String?                    @unique @default(uuid())
   /// @zod.email()
   cancelledBy           String?
   /// @zod.email()
