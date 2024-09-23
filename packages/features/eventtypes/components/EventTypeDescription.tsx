@@ -46,8 +46,8 @@ export const EventTypeDescription = ({
         {eventType.description && (
           <div
             className={classNames(
-              "text-subtle line-clamp-3 break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
-              shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
+              "text-subtle  scrollbar-thin max-h-24 w-full overflow-y-auto py-1 text-sm leading-normal [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+              shortenDescription ? "" : ""
             )}
             dangerouslySetInnerHTML={{
               __html: eventType.descriptionAsSafeHTML || "",

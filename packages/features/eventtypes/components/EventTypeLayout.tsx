@@ -274,7 +274,7 @@ function EventTypeSingleLayout({
                   <Skeleton
                     as={Label}
                     htmlFor="hiddenSwitch"
-                    className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                    className="mt-2 hidden cursor-pointer self-center whitespace-nowrap bg-black pr-2 sm:inline">
                     {t("hidden")}
                   </Skeleton>
                 )}
