@@ -150,10 +150,12 @@ describe(
 
         const createdBooking = await handleNewBooking(req1);
 
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
         const mockBookingData2 = getMockRequestDataForBooking({
           data: {
@@ -239,10 +241,12 @@ describe(
 
         const createdBooking = await handleNewBooking(req1);
 
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
         const mockBookingData2 = getMockRequestDataForBooking({
           data: {
@@ -343,10 +347,12 @@ describe(
 
         const createdBooking = await handleNewBooking(req1);
 
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
         const mockBookingData2 = getMockRequestDataForBooking({
           data: {
@@ -440,10 +446,12 @@ describe(
 
         const createdBooking = await handleNewBooking(req1);
 
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
         const mockBookingData2 = getMockRequestDataForBooking({
           data: {
