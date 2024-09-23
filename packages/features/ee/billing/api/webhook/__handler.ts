@@ -22,13 +22,11 @@ type SWHandlers = {
 };
 
 /** Just a shorthand for HttpError  */
-class HttpCode extends HttpError {
+export class HttpCode extends HttpError {
   constructor(statusCode: number, message: string) {
     super({ statusCode, message });
   }
 }
-
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
 /**
  * Allows us to split big API handlers by webhook event, and lazy load them.
@@ -44,6 +42,7 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
  * ```
  */
 export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextApiRequest) => {
+  const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
   const sig = req.headers["stripe-signature"];
   if (!sig) throw new HttpCode(400, "Missing stripe-signature");
   if (!STRIPE_WEBHOOK_SECRET) throw new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET");
