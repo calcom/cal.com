@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/server/domainWideDelegation";
+import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 /**
  * Gets credentials from the user, team, and org if applicable
  *

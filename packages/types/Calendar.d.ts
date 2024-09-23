@@ -258,6 +258,8 @@ export interface Calendar {
   ): Promise<EventBusyDate[]>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
+
+  testDomainWideDelegationSetup(): Promise<boolean>;
 }
 
 /**

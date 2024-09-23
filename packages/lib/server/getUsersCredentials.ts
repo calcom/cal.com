@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-import { getAllDomainWideDelegationCredentialsForUser } from "./domainWideDelegation";
+import { getAllDomainWideDelegationCredentialsForUser } from "../domainWideDelegation/server";
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = { id: SessionUser["id"] };
 

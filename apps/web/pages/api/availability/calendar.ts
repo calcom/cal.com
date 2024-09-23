@@ -6,7 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
@@ -42,7 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { credentials, ...user } = userWithCredentials;
 
   if (req.method === "POST") {
-    const { integration, externalId, credentialId, domainWideDelegationCredentialId } = selectedCalendarSelectSchema.parse(req.body);
+    const { integration, externalId, credentialId, domainWideDelegationCredentialId } =
+      selectedCalendarSelectSchema.parse(req.body);
     await prisma.selectedCalendar.upsert({
       where: {
         userId_integration_externalId: {
@@ -55,11 +56,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: user.id,
         integration,
         externalId,
-        ...(credentialId && credentialId > 0 ? {
-          credentialId,
-        } : {
-          domainWideDelegationCredentialId,
-        }),
+        ...(!isDomainWideDelegationCredential({ credentialId })
+          ? {
+              credentialId,
+            }
+          : {
+              domainWideDelegationCredentialId,
+            }),
       },
       // already exists
       update: {},

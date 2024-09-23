@@ -17,7 +17,9 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
+    // It sorts by most popular first, then by installed first
     sortByMostPopular: true,
+    sortByInstalledFirst: true,
   });
   const { data } = useMeQuery();
   const { t } = useLocale();

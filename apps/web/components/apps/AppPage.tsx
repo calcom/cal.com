@@ -18,6 +18,7 @@ import type { App as AppType } from "@calcom/types/App";
 import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
+
 export type AppPageProps = {
   name: string;
   description: AppType["description"];

@@ -6,7 +6,7 @@ import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
-import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/server/domainWideDelegation";
+import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 
 export type TDependencyData = {
   name?: string;

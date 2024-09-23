@@ -7,20 +7,19 @@
     - Any domain can be added by a user
   - [x] Support multiple domains in DomainWideDelegation schema for an organization
     - [x] Use the domain as well to identify if the domain wide delegation is enabled
-  - [ ] Confirmation for DwD deletion
   - [ ] Don't allow disabled platform to be selected in the UI for creation.
     - We can restrict updating as well with that platform(i.e. show it in the list but not let it save)
     - But we shouldn't stop showing it in the UI, otherwise it might get changed to some other platform due to Select's nature.
-  - [ ] If the user doesn't exist in Google Workspace, and the user has connected personal account, should we correctly use the personal account?
-  - [ ] Fix installed status not showing correctly on apps/index.tsx. Install button isn't disabled there.
-  
-### Follow-up release
-- [ ] Just after creating Domain-wide delegation, there should be a check to ensure that the clientID has been added to the Workspace Platform and then only show it as enabled.
+  - [x] Before enabling Domain-wide delegation, there should be a check to ensure that the clientID has been added to the Workspace Platform
+  - [x] We should allow setting default conferencing app during onboarding
 
+### Follow-up release
+  - [ ] Confirmation for DwD deletion and disabling
+  - [ ] If DWD is enabled and the org member doesn't exist in Google Workspace, and the user has connected personal account, should we correctly use the personal account?
 
 ### To discuss
-  - [ ] 1. When the calendar is connect the first calendar isn't enabled to check for double bookings. Should we toggle that?
-
+  - 
+    
 ### Security Testing
 - [ ] Because a single credential controls all the emails calendars, can someone not authorized trick us into giving access to some other organization's calendars?
   - [ ] We need to really make sure that service account key is NEVER exposed
@@ -31,7 +30,7 @@
 - [ ] Inviting a new user. 
   - Verified that Google Calendar is shown pre-installed. 
   - How about Google Meet?
-- [ ] Troubleshooter. Seems to be not working
+- [x] Troubleshooter
 
 ### Documentation
 - After enabling domain-wide delegation, the credential is shown pre-installed and the connection can't be removed(or the app can't be uninstalled by user)

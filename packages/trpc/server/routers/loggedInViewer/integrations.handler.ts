@@ -15,6 +15,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
+import { getAllDomainWideDelegationCredentialsForUser, getAllDomainWideDelegationCredentialsForUserByAppSlug } from "@calcom/lib/domainWideDelegation/server";
 
 type IntegrationsOptions = {
   ctx: {
@@ -53,6 +54,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     extendsFeature,
     teamId,
     sortByMostPopular,
+    sortByInstalledFirst,
     appId,
   } = input;
   let credentials = await getUsersCredentials(user);
@@ -137,6 +139,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
+
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
+
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
@@ -193,15 +198,21 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         });
       }
 
+      // let domainWideDelegationCredentialsForApp = domainWideDelegationCredentials.filter((c) => c.appId === app.slug);
+      // if (app.usesCredentialsOf) {
+      //   const domainWideDelegationCredentialsForAppDependency = domainWideDelegationCredentials.filter((c) => c.appId === app.usesCredentialsOf);
+      //   domainWideDelegationCredentialsForApp = [...domainWideDelegationCredentialsForApp, ...domainWideDelegationCredentialsForAppDependency];
+      //   console.log("domainWideDelegationCredentialsForAppDependency", domainWideDelegationCredentialsForAppDependency);
+      // }
       return {
         ...app,
         ...(teams.length && {
           credentialOwner,
         }),
-        userCredentialIds,
+        userCredentialIds: [...userCredentialIds, /*...domainWideDelegationCredentialsForApp.map((c) => c.id)*/],
         invalidCredentialIds,
         teams,
-        isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
+        isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal /*|| !!domainWideDelegationCredentialsForApp.length*/,
         isSetupAlready,
         ...(app.dependencies && { dependencyData }),
       };
@@ -243,6 +254,12 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const aCount = installCountPerApp[a.slug] || 0;
       const bCount = installCountPerApp[b.slug] || 0;
       return bCount - aCount;
+    });
+  }
+
+  if (sortByInstalledFirst) {
+    apps.sort((a, b) => {
+      return (a.isInstalled ? 0 : 1) - (b.isInstalled ? 0 : 1);
     });
   }
 

@@ -185,30 +185,27 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   private getAuthedCalendarFromDomainWideDelegation = async () => {
-    const user = this.credential.user;
-    if (!user) {
-      this.log.error(
-        "Couldn't check for domain wide delegation without user",
-        safeStringify(this.credential)
-      );
-      return null;
-    }
+    const user = this.credential.delegatedToId;
 
     //TODO: Compute it once and save it
     const domainWideDelegation =
-      await DomainWideDelegationRepository.findByUserIncludeSensitiveServiceAccountKey({
-        user,
+      await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({
+        id: this.credential.delegatedToId,
       });
     
-    const isDomainWideDelegationEnabled = domainWideDelegation && domainWideDelegation.enabled;
 
-    if (this.credential.delegatedToId && !isDomainWideDelegationEnabled) {
+    if (this.credential.delegatedToId && !domainWideDelegation) {
+      this.log.error("CalendarAppDomainWideDelegationNotSetupError", safeStringify({
+        domainWideDelegationExists: !!domainWideDelegation,
+        domainWideDelegationEnabled: domainWideDelegation?.enabled,
+        forceEnableDomainWideDelegation,
+      }));
       throw new CalendarAppDomainWideDelegationNotSetupError(
         "Credential needs domain wide delegation to be setup and enabled"
       );
     }
 
-    if (domainWideDelegation && domainWideDelegation.enabled) {
+    if (domainWideDelegation) {
       const emailToImpersonate = this.credential.user?.email;
       if (!emailToImpersonate) {
         this.log.error("No email to impersonate found for domain wide delegation");
@@ -271,8 +268,8 @@ export default class GoogleCalendarService implements Calendar {
     return null;
   };
 
-  public authedCalendar = async () => {
-    const authedCalendarFromDomainWideDelegation = await this.getAuthedCalendarFromDomainWideDelegation();
+  public authedCalendar = async ({ forceEnableDomainWideDelegation = false }: { forceEnableDomainWideDelegation?: boolean } = {}) => {
+    const authedCalendarFromDomainWideDelegation = await this.getAuthedCalendarFromDomainWideDelegation({ forceEnableDomainWideDelegation });
     if (authedCalendarFromDomainWideDelegation) {
       return authedCalendarFromDomainWideDelegation;
     }
@@ -782,6 +779,13 @@ export default class GoogleCalendarService implements Calendar {
       this.log.error("There was an error getting calendars: ", safeStringify(error));
       throw error;
     }
+  }
+
+  // It would error if the domain wide delegation is not set up correctly
+  async testDomainWideDelegationSetup() {
+    const calendar = await this.authedCalendar({ forceEnableDomainWideDelegation: true });
+    const cals = await calendar.calendarList.list({ fields: "items(id)" });
+    return !!cals.data.items;
   }
 }
 

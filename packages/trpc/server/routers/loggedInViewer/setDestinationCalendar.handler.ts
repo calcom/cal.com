@@ -4,7 +4,7 @@ import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
-
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import type { TSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
@@ -64,7 +64,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     update: {
       integration,
       externalId,
-      ...(credentialId && credentialId > 0 ? {
+      ...(!isDomainWideDelegationCredential({ credentialId }) ? {
         credentialId,
       } : {
         domainWideDelegationCredentialId,
@@ -75,7 +75,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
       ...where,
       integration,
       externalId,
-      ...(credentialId && credentialId > 0 ? {
+      ...(!isDomainWideDelegationCredential({ credentialId }) ? {
         credentialId,
       } : {
         domainWideDelegationCredentialId,

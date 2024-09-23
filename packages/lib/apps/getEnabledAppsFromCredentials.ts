@@ -29,7 +29,9 @@ const getEnabledAppsFromCredentials = async (
       },
     },
   } satisfies Prisma.AppWhereInput;
-
+  const domainWideDelegationCredentials = credentials.filter((credential) => {
+    return credential.id < 0
+  })
   if (filterOnCredentials) {
     const userIds: number[] = [],
       teamIds: number[] = [];
@@ -48,10 +50,25 @@ const getEnabledAppsFromCredentials = async (
     ...(filterOnIds.credentials.some.OR.length && filterOnIds),
   };
 
-  const enabledApps = await prisma.app.findMany({
+  let enabledApps = await prisma.app.findMany({
     where,
     select: { slug: true, enabled: true },
   });
+
+  let domainWideDelegationApps = await prisma.app.findMany({
+    where: {
+      slug: {
+        in: domainWideDelegationCredentials.map((credential) => credential.appId)
+      }
+    },
+    select: { slug: true, enabled: true },
+  });
+  console.log({
+    domainWideDelegationCredentials,
+    domainWideDelegationApps,
+  });
+  enabledApps = [...enabledApps, ...domainWideDelegationApps];
+
   const apps = getApps(credentials, filterOnCredentials);
   const filteredApps = apps.reduce((reducedArray, app) => {
     const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);

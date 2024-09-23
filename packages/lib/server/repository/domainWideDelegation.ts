@@ -76,6 +76,20 @@ export class DomainWideDelegationRepository {
     });
   }
 
+  static async findById({ id }: { id: string }) {
+    return await prisma.domainWideDelegation.findUnique({
+      where: { id },
+      select: domainWideDelegationSafeSelect,
+    });
+  }
+
+  static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
+    return await prisma.domainWideDelegation.findUnique({
+      where: { id },
+      select: domainWideDelegationSelectIncludesServiceAccountKey,
+    });
+  }
+
   static async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
     const log = repositoryLogger.getSubLogger({ prefix: ["findUniqueByOrganizationMemberEmail"] });
     log.debug("called with", { email });
