@@ -183,7 +183,6 @@ PageProps & WithNonceProps<{}>) {
       {displaySSOLogin && (
         <div className="flex items-center gap-1">
           <p className="text-subtle">Have a SAML account?</p>
-
           <SAMLLogin
             samlTenantID={samlTenantID}
             samlProductID={samlProductID}
