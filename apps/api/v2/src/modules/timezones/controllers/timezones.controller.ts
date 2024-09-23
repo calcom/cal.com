@@ -16,6 +16,7 @@ export class TimezonesController {
   constructor(private readonly timezonesService: TimezonesService) {}
 
   @Get("/")
+  @ApiOperation({ summary: "Get all timezones" })
   async getTimeZones(): Promise<ApiResponse<CityTimezones>> {
     const timeZones = await this.timezonesService.getCityTimeZones();
 

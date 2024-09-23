@@ -39,10 +39,8 @@ async function generateSwagger(app: NestExpressApplication<Server>) {
   const logger = new Logger("App");
   logger.log(`Generating Swagger documentation...\n`);
 
-  const config = new DocumentBuilder().setTitle("Cal.com v2 API").build();
-
+  const config = new DocumentBuilder().setTitle("Cal.com API v2").build();
   const document = SwaggerModule.createDocument(app, config);
-
   const outputFile = "./swagger/documentation.json";
 
   if (fs.existsSync(outputFile)) {
@@ -52,6 +50,7 @@ async function generateSwagger(app: NestExpressApplication<Server>) {
   fs.writeFileSync(outputFile, JSON.stringify(document, null, 2), { encoding: "utf8" });
   SwaggerModule.setup("docs", app, document, {
     customCss: ".swagger-ui .topbar { display: none }",
+    tagsSorter: "alpha",
   });
 
   logger.log(`Swagger documentation available in the "/docs" endpoint\n`);
