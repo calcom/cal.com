@@ -1409,6 +1409,98 @@ describe("getSchedule", () => {
         }
       );
     });
+
+    test("get the correct availability when rescheduling if one guest is a cal.com user and other is not", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [{ id: 101 }],
+          },
+          {
+            id: 2,
+            slotInterval: 45,
+            length: 45,
+            users: [{ id: 102 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            email: "user1@example.com",
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            email: "user2@example.com",
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            uid: "uid1",
+            status: "ACCEPTED",
+            startTime: `${plus1DateString}T06:00:00.000Z`,
+            endTime: `${plus1DateString}T07:00:00.000Z`,
+            attendees: [{ email: "user2@example.com" }, { email: "non-cal-user@example.com" }],
+          },
+          {
+            eventTypeId: 1,
+            uid: "uid3",
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T08:00:00.000Z`,
+            endTime: `${plus2DateString}T09:00:00.000Z`,
+            attendees: [{ email: "non-cal-user@example.com" }],
+          },
+          {
+            userId: 102,
+            eventTypeId: 2,
+            uid: "uid2",
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
+          },
+        ],
+      });
+
+      const attendeeAvailability = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          rescheduleUid: "uid1",
+        },
+      });
+
+      expect(attendeeAvailability).toHaveTimeSlots(
+        [
+          `04:00:00.000Z`,
+          `04:45:00.000Z`,
+          `05:30:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
   });
 
   describe("Team Event", () => {
