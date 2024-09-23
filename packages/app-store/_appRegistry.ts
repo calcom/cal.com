@@ -6,6 +6,7 @@ import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/server/domainWideDelegation";
 
 export type TDependencyData = {
   name?: string;
@@ -79,14 +80,21 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
       },
     },
   });
+
+
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
     select: {
+      email: true,
+      id: true,
       metadata: true,
     },
   });
+
+
+  const domainWideDelegationCredentials = user ? await getAllDomainWideDelegationCredentialsForUser({ user: {id:userId, email: user.email} }) : [];
 
   const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
   const apps = [] as (App & {
@@ -95,6 +103,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
   })[];
   const installCountPerApp = await getInstallCountPerApp();
   for await (const dbapp of dbApps) {
+    const allCredentials = [...dbapp.credentials, ...domainWideDelegationCredentials];
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
     // Skip if app isn't installed
@@ -116,7 +125,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     apps.push({
       ...app,
       categories: dbapp.categories,
-      credentials: dbapp.credentials,
+      credentials: allCredentials,
       installed: true,
       installCount: installCountPerApp[dbapp.slug] || 0,
       isDefault: usersDefaultApp === dbapp.slug,

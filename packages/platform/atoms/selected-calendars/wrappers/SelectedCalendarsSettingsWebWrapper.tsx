@@ -111,14 +111,16 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                       }
                       iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                       actions={
-                        <div className="flex w-32 justify-end">
-                          <DisconnectIntegration
+                        !connectedCalendar.domainWideDelegationCredentialId && (
+                          <div className="flex w-32 justify-end">
+                            <DisconnectIntegration
                             credentialId={connectedCalendar.credentialId}
                             trashIcon
                             onSuccess={props.onChanged}
-                            buttonProps={{ className: "border border-default" }}
-                          />
-                        </div>
+                              buttonProps={{ className: "border border-default" }}
+                            />
+                          </div>
+                        )
                       }
                     />
                   );

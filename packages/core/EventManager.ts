@@ -138,6 +138,10 @@ export default class EventManager {
     this.appOptions = this.generateAppOptions(eventTypeAppMetadata);
   }
 
+  private async getCalendarCredentials () {
+    return this.calendarCredentials;
+  }
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration

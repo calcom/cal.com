@@ -3,7 +3,8 @@ import { z } from "zod";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
-
+import logger from "@calcom/lib/logger";
+const log = logger.getSubLogger({ prefix: ["domainWideDelegation/utils"] });
 export class InvalidServiceAccountKeyError extends Error {
   constructor(message: string) {
     super(message);
@@ -45,7 +46,7 @@ export const handleDomainWideDelegationError = (error: unknown) => {
     throw error;
   }
 
-  console.error("Error handling domain-wide delegation:", error);
+  log.error("Error handling domain-wide delegation:", safeStringify(error));
   throw new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
     message: "An error occurred while handling domain-wide delegation settings.",

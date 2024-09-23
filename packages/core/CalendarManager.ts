@@ -6,7 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { CalendarAppConfigurationClientIdNotAuthorizedError, CalendarAppConfigurationError } from "@calcom/lib/CalendarAppConfigurationError";
+import { CalendarAppDomainWideDelegationClientIdNotAuthorizedError, CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -110,7 +110,7 @@ export const getConnectedCalendars = async (
           }
         }
 
-        if (error instanceof CalendarAppConfigurationError) {
+        if (error instanceof CalendarAppDomainWideDelegationError) {
           errorMessage = error.message;
         }
 
@@ -128,7 +128,6 @@ export const getConnectedCalendars = async (
     })
   );
 
-  console.log("connectedCalendars", JSON.stringify(connectedCalendars, null, 2));
 
   return { connectedCalendars, destinationCalendar };
 };

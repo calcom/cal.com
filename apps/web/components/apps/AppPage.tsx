@@ -18,22 +18,6 @@ import type { App as AppType } from "@calcom/types/App";
 import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
-
-function isAllowedMultipleInstalls({
-  categories,
-  variant,
-}: {
-  categories: string[];
-  variant: string;
-}): boolean {
-  // TODO: We have disable multiple installs for Domain-wide delegation cases
-  // Right now the API route handles it but we should have it here as well
-  // Though we might want to enable it later. Because, Domain-wide Delegated credentials would be considered pre-installed
-  const isCalendarApp = categories.includes("calendar");
-  const isOtherVariant = variant === "other";
-  return isCalendarApp && !isOtherVariant;
-}
-
 export type AppPageProps = {
   name: string;
   description: AppType["description"];
@@ -179,7 +163,7 @@ export const AppPage = ({
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
 
-  const allowedMultipleInstalls = isAllowedMultipleInstalls({ categories, variant });
+  const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
   useEffect(() => {
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });

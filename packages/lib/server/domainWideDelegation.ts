@@ -25,9 +25,8 @@ export async function getAllDomainWideDelegationCredentialsForUser({ user }: { u
       }
 
       return {
-        // A negative ID confirms it isn't in DB and workspace platform ID informs for which platform it is created.
-        // ID value shouldn't matter though as it is mainly for retrieving from DB only.
-        id: -workspacePlatform.id,
+        // A negative ID confirms it isn't in DB. The code using this credential would check for -1 and use delegatedToId instead
+        id: -1,
         type: googleCalendarMetadata.type,
         delegatedToId: domainWideDelegation.id,
         appId: googleCalendarMetadata.slug,
