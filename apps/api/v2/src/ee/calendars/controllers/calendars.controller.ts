@@ -92,7 +92,7 @@ export class CalendarsController {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "Get calendars" })
+  @ApiOperation({ summary: "Get all calendars" })
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
