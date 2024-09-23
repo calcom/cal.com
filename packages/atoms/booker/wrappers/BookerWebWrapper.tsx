@@ -97,13 +97,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   });
   const slots = useSlots(event);
 
-  const prefetchNextMonth =
-    (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
-      !!bookerLayout.extraDays &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month());
-
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
       bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
@@ -116,7 +109,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
   const schedule = useScheduleForEvent({
-    prefetchNextMonth,
+    prefetchNextMonth: true,
     username: props.username,
     monthCount,
     dayCount,
