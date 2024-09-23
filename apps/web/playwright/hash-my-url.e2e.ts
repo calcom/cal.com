@@ -1,7 +1,11 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  bookTimeSlot,
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
+} from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -55,10 +59,9 @@ test.describe("hash my url", () => {
     await page.getByTestId("vertical-tab-event_setup_tab_title").click();
     await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
-    const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-    await page.locator("[data-testid=update-eventtype]").click();
-    const response = await submitPromise;
-    expect(response.status()).toBe(200);
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
     await page.locator(".primary-navigation >> text=Advanced").click();
     const $url2 = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
     expect($url2.includes("somethingrandom")).toBeTruthy();
