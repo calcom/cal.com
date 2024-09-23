@@ -219,7 +219,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     });
   }
 
-  const teamBilling = TeamBilling.create(team);
+  const teamBilling = TeamBilling.init(team);
   await teamBilling.updateQuantity();
 
   return {
