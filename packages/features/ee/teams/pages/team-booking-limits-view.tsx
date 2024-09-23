@@ -14,9 +14,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, Form, Meta, SettingsToggle, showToast } from "@calcom/ui";
-
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
+import { Button, Form, SettingsToggle, showToast } from "@calcom/ui";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
 
@@ -53,11 +51,6 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
 
   return (
     <>
-      <Meta
-        title={t("booking_limits")}
-        description={t("booking_limits_team_description")}
-        borderInShellHeader={false}
-      />
       {isAdmin ? (
         <>
           <Form
@@ -153,7 +146,5 @@ const BookingLimitsViewWrapper = () => {
 
   return <BookingLimitsView team={team} />;
 };
-
-BookingLimitsViewWrapper.getLayout = getLayout;
 
 export default BookingLimitsViewWrapper;
