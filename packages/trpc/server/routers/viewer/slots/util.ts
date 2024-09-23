@@ -181,6 +181,12 @@ export async function getEventType(
       team: {
         select: {
           id: true,
+          members: {
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
           bookingLimits: true,
         },
       },
@@ -231,16 +237,6 @@ export async function getEventType(
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
           ...availabilityUserSelect,
-        },
-      },
-      team: {
-        select: {
-          members: {
-            select: {
-              userId: true,
-              role: true,
-            },
-          },
         },
       },
     },
