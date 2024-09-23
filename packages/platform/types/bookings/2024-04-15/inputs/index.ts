@@ -12,7 +12,7 @@ import {
   IsString,
 } from "class-validator";
 
-export enum Status {
+export enum Status_2024_04_15 {
   upcoming = "upcoming",
   recurring = "recurring",
   past = "past",
@@ -20,7 +20,7 @@ export enum Status {
   unconfirmed = "unconfirmed",
 }
 
-type BookingStatus = `${Status}`;
+type BookingStatus = `${Status_2024_04_15}`;
 
 class Filters {
   @IsOptional()
@@ -33,7 +33,7 @@ class Filters {
   @Type(() => Number)
   userIds?: number[];
 
-  @IsEnum(Status)
+  @IsEnum(Status_2024_04_15)
   status!: BookingStatus;
 
   @IsOptional()
@@ -42,7 +42,7 @@ class Filters {
   eventTypeIds?: number[];
 }
 
-export class GetBookingsInput {
+export class GetBookingsInput_2024_04_15 {
   @ValidateNested({ each: true })
   @Type(() => Filters)
   filters!: Filters;
@@ -60,7 +60,7 @@ export class GetBookingsInput {
   cursor?: number | null;
 }
 
-export class CancelBookingInput {
+export class CancelBookingInput_2024_04_15 {
   @IsNumber()
   @IsOptional()
   @ApiProperty()
