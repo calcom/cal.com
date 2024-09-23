@@ -10,8 +10,12 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { createNewEventType } from "./lib/testUtils";
-import { createHttpServer, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  createHttpServer,
+  createNewEventType,
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
+} from "./lib/testUtils";
 
 function getLabelLocator(field: Locator) {
   // There are 2 labels right now. Will be one in future. The second one is hidden
@@ -655,7 +659,7 @@ async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
-  await page.click('[data-testid="confirm-reschedule-button"]');
+  await page.locator('[data-testid="confirm-reschedule-button"]').click();
 }
 
 async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
@@ -668,7 +672,9 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
 }
 
 async function saveEventType(page: Page) {
-  await page.locator("[data-testid=update-eventtype]").click();
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 }
 
 async function addWebhook(

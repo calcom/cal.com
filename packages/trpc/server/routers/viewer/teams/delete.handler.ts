@@ -30,6 +30,13 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   }
 
   const deletedTeam = await prisma.$transaction(async (tx) => {
+    await tx.eventType.deleteMany({
+      where: {
+        teamId: input.teamId,
+        schedulingType: "MANAGED",
+      },
+    });
+
     // delete all memberships
     await tx.membership.deleteMany({
       where: {
