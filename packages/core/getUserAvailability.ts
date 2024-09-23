@@ -237,6 +237,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           duration,
           eventType,
           initialData?.busyTimesFromLimitsBookings ?? [],
+          userId,
           initialData?.globalBookingLimits ?? null
         )
       : [];
@@ -486,6 +487,7 @@ const _getBusyTimesFromLimits = async (
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   bookings: EventBusyDetails[],
+  userId?: number,
   globalBookingLimits?: IntervalLimit | null
 ) => {
   performance.mark("limitsStart");
@@ -533,6 +535,7 @@ const _getBusyTimesFromLimits = async (
       dateTo,
       eventType.id,
       limitManager,
+      userId,
       true
     );
     performance.mark("globalBookingLimitsEnd");
@@ -562,6 +565,7 @@ const _getBusyTimesFromBookingLimits = async (
   dateTo: Dayjs,
   eventTypeId: number,
   limitManager: LimitManager,
+  userId?: number,
   isGlobalBookingLimits?: boolean
 ) => {
   for (const key of descendingLimitKeys) {
@@ -580,8 +584,10 @@ const _getBusyTimesFromBookingLimits = async (
           await checkBookingLimit({
             eventStartDate: periodStart.toDate(),
             limitingNumber: limit,
-            eventId: isGlobalBookingLimits ? undefined : eventTypeId,
+            eventId: eventTypeId,
             key,
+            userId,
+            isGlobalBookingLimits,
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit);

@@ -11,7 +11,7 @@ import { parseBookingLimit } from "../isBookingLimits";
 export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
-  eventId?: number,
+  eventId: number,
   rescheduleUid?: string | undefined,
   timeZone?: string | null,
   userId?: number
@@ -47,14 +47,16 @@ export async function checkBookingLimit({
   rescheduleUid,
   timeZone,
   userId,
+  isGlobalBookingLimits,
 }: {
   eventStartDate: Date;
-  eventId?: number;
+  eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
   rescheduleUid?: string | undefined;
   timeZone?: string | null;
   userId?: number;
+  isGlobalBookingLimits?: boolean;
 }) {
   {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
@@ -66,10 +68,28 @@ export async function checkBookingLimit({
     const startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
     const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
 
+    let whereInput = {};
+    if (userId) {
+      if (isGlobalBookingLimits) {
+        whereInput = {
+          userId,
+          eventType: {
+            schedulingType: null,
+          },
+        };
+      } else {
+        whereInput = {
+          eventId,
+          eventType: {
+            userId,
+          },
+        };
+      }
+    }
+
     const bookingsInPeriod = await prisma.booking.count({
       where: {
         status: BookingStatus.ACCEPTED,
-        ...(eventId ? { eventTypeId: eventId } : {}),
         // FIXME: bookings that overlap on one side will never be counted
         startTime: {
           gte: startDate,
@@ -80,13 +100,7 @@ export async function checkBookingLimit({
         uid: {
           not: rescheduleUid,
         },
-        ...(userId
-          ? {
-              eventType: {
-                userId,
-              },
-            }
-          : {}),
+        ...whereInput,
       },
     });
 

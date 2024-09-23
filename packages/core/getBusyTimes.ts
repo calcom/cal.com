@@ -312,11 +312,20 @@ export async function getBusyTimesForLimitChecks(params: {
     })}`
   );
 
+  let eventTypeIdFilter: Prisma.BookingWhereInput = { eventTypeId };
+  if (globalBookingLimits) {
+    if (bookingLimits && Object.keys(bookingLimits).length > 0) {
+      eventTypeIdFilter = { eventTypeId: { not: eventTypeId } };
+    } else {
+      eventTypeIdFilter = {};
+    }
+  }
+
   const where: Prisma.BookingWhereInput = {
     userId: {
       in: userIds,
     },
-    ...(!globalBookingLimits ? { eventTypeId } : {}),
+    ...eventTypeIdFilter,
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
     startTime: {
@@ -325,7 +334,6 @@ export async function getBusyTimesForLimitChecks(params: {
     endTime: {
       lte: limitDateTo.toDate(),
     },
-    ...(globalBookingLimits ? { eventTypeId: { not: eventTypeId } } : { eventTypeId: eventTypeId }),
   };
 
   if (rescheduleUid) {
