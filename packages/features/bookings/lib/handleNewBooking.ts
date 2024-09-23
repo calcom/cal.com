@@ -38,6 +38,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import tasker from "@calcom/features/tasker";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -1814,8 +1815,6 @@ async function handler(
 
   const subscribersHostsNoShowStarted = await getWebhooks(subscriberHostsNoShowStarted);
 
-  console.log("subscribersHostsNoShowStarted", subscribersHostsNoShowStarted);
-
   const subscriberGuestsNoShowStarted = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
@@ -1825,9 +1824,7 @@ async function handler(
   };
 
   const subscribersGuestsNoShowStarted = await getWebhooks(subscriberGuestsNoShowStarted);
-  console.log("subscribersGuestsNoShowStarted", subscribersGuestsNoShowStarted);
 
-  console.log("workflows", workflows);
   const workflowHostsNoShow = workflows.filter(
     (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW
   );
@@ -1835,12 +1832,33 @@ async function handler(
     (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
   );
 
-  const allNoShowWorkflows = [...workflowHostsNoShow, ...workflowGuestsNoShow];
-  const allNoShowWebhooks = [...subscribersHostsNoShowStarted, ...subscribersGuestsNoShowStarted];
+  const noShowPromises: Promise<any>[] = [];
 
-  // if (!!allNoShowWebhooks.length || !!allNoShowWorkflows.length) {
-  // await tasker.create("triggerNoShow", JSON.stringify({ allNoShowWebhooks, allNoShowWorkflows, createdAt }));
-  // }
+  noShowPromises.push(
+    ...subscribersGuestsNoShowStarted.map((webhook) => {
+      const scheduledAt = dayjs(booking.startTime).add(webhook.time, webhook.timeUnit.toLowerCase()).toDate();
+      return tasker.create(
+        "triggerHostNoShowWebhook",
+        JSON.stringify({ roomName: booking.uid, bookingId: booking.id, webhook }),
+        { scheduledAt }
+      );
+    })
+  );
+
+  noShowPromises.push(
+    ...subscribersHostsNoShowStarted.map((webhook) => {
+      const scheduledAt = dayjs(booking.startTime).add(webhook.time, webhook.timeUnit.toLowerCase()).toDate();
+      return tasker.create(
+        "triggerGuestNoShowWebhook",
+        JSON.stringify({ roomName: booking.uid, bookingId: booking.id, webhook }),
+        { scheduledAt }
+      );
+    })
+  );
+
+  await Promise.all(noShowPromises);
+
+  console.log("booking", booking);
 
   // booking successful
   req.statusCode = 201;

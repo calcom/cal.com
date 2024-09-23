@@ -161,8 +161,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
   } = args;
   if (isNotConfirmed || !workflows.length) return;
 
-  console.log("workflows", workflows);
-
   for (const workflow of workflows) {
     if (workflow.steps.length === 0) continue;
 
