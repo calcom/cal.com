@@ -287,10 +287,7 @@ test.describe("Reschedule Tests", async () => {
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
 
     const confirmBooking = async (bookingId: number) => {
-      const authedContext = await browser.newContext();
-      const authedPage = await authedContext.newPage();
-      const userSnapshot = await user.self();
-      await apiLogin({ ...userSnapshot, password: userSnapshot.username }, authedPage);
+      const [authedContext, authedPage] = await user.apiLoginOnNewBrowser(browser);
       await authedPage.goto("/bookings/upcoming");
       await submitAndWaitForResponse(authedPage, "/api/trpc/bookings/confirm?batch=1", {
         action: () => authedPage.locator(`[data-bookingid="${bookingId}"][data-testid="confirm"]`).click(),
