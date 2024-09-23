@@ -50,9 +50,7 @@ const EventTeamAssignmentTab = dynamic(() =>
 
 const EventLimitsTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab").then(
-    (mod) => mod.EventLimitsTab
-  )
+  import("./EventLimitsTabWebWrapper").then((mod) => mod)
 );
 
 const EventAdvancedTab = dynamic(() =>
