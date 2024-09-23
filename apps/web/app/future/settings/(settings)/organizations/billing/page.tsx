@@ -1,11 +1,5 @@
-import { _generateMetadata } from "app/_utils";
+import BillingPage, { generateMetadata } from "../../billing/page";
 
-import Page from "~/settings/billing/billing-view";
+export { generateMetadata };
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("billing"),
-    (t) => t("manage_billing_description")
-  );
-
-export default Page;
+export default BillingPage;

@@ -79,7 +79,6 @@ export class OAuthClientUsersController {
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
-    console.log("asap createUser client", JSON.stringify(client, null, 2));
 
     const isPlatformManaged = true;
     const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
@@ -189,6 +188,7 @@ export class OAuthClientUsersController {
       id: user.id,
       email: user.email,
       username: user.username,
+      name: user.name,
       timeZone: user.timeZone,
       weekStart: user.weekStart,
       createdDate: user.createdDate,
@@ -198,7 +198,3 @@ export class OAuthClientUsersController {
     };
   }
 }
-
-export type UserReturned = Pick<User, "id" | "email" | "username">;
-
-export type CreateUserResponse = { user: UserReturned; accessToken: string; refreshToken: string };

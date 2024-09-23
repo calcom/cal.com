@@ -330,12 +330,12 @@ model User {
   movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
-
   OutOfOfficeReasons         OutOfOfficeReason[]
   smsLockState               SMSLockState                 @default(UNLOCKED)
   smsLockReviewedByAdmin     Boolean                      @default(false)
   NotificationsSubscriptions NotificationsSubscriptions[]
   referralLinkId             String?
+  features                   UserFeatures[]
 
   @@unique([email])
   @@unique([email, username])
@@ -437,6 +437,7 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
+  features               TeamFeatures[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -611,6 +612,7 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  oneTimePassword       String?                    @unique @default(uuid())
   /// @zod.email()
   cancelledBy           String?
   /// @zod.email()
@@ -1142,22 +1144,48 @@ model VerifiedEmail {
 
 model Feature {
   // The feature slug, ex: 'v2-workflows'
-  slug        String       @id @unique
+  slug        String         @id @unique
   // If the feature is currently enabled
-  enabled     Boolean      @default(false)
+  enabled     Boolean        @default(false)
   // A short description of the feature
   description String?
   // The type of feature flag
-  type        FeatureType? @default(RELEASE)
+  type        FeatureType?   @default(RELEASE)
   // If the flag is considered stale
-  stale       Boolean?     @default(false)
+  stale       Boolean?       @default(false)
   lastUsedAt  DateTime?
-  createdAt   DateTime?    @default(now())
-  updatedAt   DateTime?    @default(now()) @updatedAt
+  createdAt   DateTime?      @default(now())
+  updatedAt   DateTime?      @default(now()) @updatedAt
   updatedBy   Int?
+  users       UserFeatures[]
+  teams       TeamFeatures[]
 
   @@index([enabled])
   @@index([stale])
+}
+
+model UserFeatures {
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
+  featureId  String
+  assignedAt DateTime @default(now())
+  assignedBy String
+  updatedAt  DateTime @updatedAt
+
+  @@id([userId, featureId])
+}
+
+model TeamFeatures {
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId     Int
+  feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
+  featureId  String
+  assignedAt DateTime @default(now())
+  assignedBy String
+  updatedAt  DateTime @updatedAt
+
+  @@id([teamId, featureId])
 }
 
 enum FeatureType {

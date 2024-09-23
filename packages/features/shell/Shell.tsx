@@ -56,6 +56,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
+import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -1291,6 +1292,7 @@ function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
   const { data } = trpc.viewer.me.useQuery();
   const [menuOpen, setMenuOpen] = useState(false);
+  const refreshData = useRefreshData();
 
   if (!data || !ENABLE_PROFILE_SWITCHER || !sessionData) {
     return null;
@@ -1354,7 +1356,7 @@ function ProfileDropdown() {
                   update({
                     upId: option.value,
                   }).then(() => {
-                    window.location.reload();
+                    refreshData();
                   });
                 }}
                 className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}>
