@@ -17,7 +17,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -38,11 +38,38 @@ import {
 })
 @UseGuards(ApiAuthGuard, PermissionsGuard)
 @DocsTags("Schedules")
+@ApiHeader({
+  name: "cal-api-version",
+  description: `Must be set to \`2024-06-11\``,
+  required: true,
+})
+@ApiHeader({
+  name: "Authorization",
+  description:
+    "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+  required: true,
+})
 export class SchedulesController_2024_06_11 {
   constructor(private readonly schedulesService: SchedulesService_2024_06_11) {}
 
   @Post("/")
   @Permissions([SCHEDULE_WRITE])
+  @ApiOperation({
+    summary: "Create a schedule",
+    description: `
+      The point of creating schedules is for event types to be available at specific times.
+
+      First goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.
+      1. If you passed \`timeZone\` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. Managed user can then change the default schedule via \`AvailabilitySettings\` atom.
+      2. If you did not, then we assume you want that user has specific schedule right away. You should create default schedule by specifying
+      \`"isDefault": true\` in the request body. Until the user has a default schedule that user can't be booked or manage his / her schedule via the AvailabilitySettings atom.
+
+      Second goal is to create other schedules that event types can point to, so that when that event is booked availability is not checked against the default schedule but against that specific schedule.
+      After creating a non default schedule you can update event type to point to that schedule via the PATCH \`event-types/{eventTypeId}\` endpoint.
+
+      When specifying start time and end time for each day use 24 hour format e.g. 08:00, 15:00 etc.
+      `,
+  })
   async createSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput_2024_06_11
@@ -59,7 +86,7 @@ export class SchedulesController_2024_06_11 {
   @Permissions([SCHEDULE_READ])
   @ApiResponse({
     status: 200,
-    description: "Returns the default schedule",
+    description: "Returns the default schedule of the authenticated user",
     type: GetDefaultScheduleOutput_2024_06_11,
   })
   async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetScheduleOutput_2024_06_11> {
@@ -88,6 +115,9 @@ export class SchedulesController_2024_06_11 {
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
+  @ApiOperation({
+    description: "Returns all schedules of the authenticated user",
+  })
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput_2024_06_11> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
 

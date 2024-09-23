@@ -1731,6 +1731,7 @@
   "already_have_account": "이미 계정이 있으신가요?",
   "already_have_key": "이미 키가 있습니다:",
   "already_have_key_suggestion": "기존 CALCOM_LICENSE_KEY 환경 변수를 여기에 복사하십시오.",
+  "create_license_key": "라이선스 키 생성",
   "app_is_enabled": "{{appName}} 앱이 활성화되었습니다",
   "app_is_disabled": "{{appName}} 앱이 비활성화되었습니다",
   "keys_have_been_saved": "키가 저장되었습니다",

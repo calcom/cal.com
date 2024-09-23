@@ -12,6 +12,7 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  confirmReschedule,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -128,7 +129,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     });
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });

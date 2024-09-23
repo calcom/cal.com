@@ -1731,6 +1731,7 @@
   "already_have_account": "មានគណនីរួចហើយ?",
   "already_have_key": "ខ្ញុំមានកូនសោរួចហើយ:",
   "already_have_key_suggestion": "សូមចម្លងអថេរបរិស្ថាន CALCOM_LICENSE_KEY របស់អ្នកនៅទីនេះ។",
+  "create_license_key": "បង្កើតកូនសោអាជ្ញាប័ណ្ណ",
   "app_is_enabled": "{{appName}} ត្រូវបានបើក",
   "app_is_disabled": "{{appName}} ត្រូវបានបិទ",
   "keys_have_been_saved": "កូនសោរត្រូវបានរក្សាទុក",
