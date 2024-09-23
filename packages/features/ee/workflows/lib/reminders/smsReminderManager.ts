@@ -36,7 +36,7 @@ export type AttendeeInBookingInfo = {
 
 export type BookingInfo = {
   uid?: string | null;
-  bookerUrl: string;
+  bookerUrl?: string;
   attendees: AttendeeInBookingInfo[];
   organizer: {
     language: { locale: string };
