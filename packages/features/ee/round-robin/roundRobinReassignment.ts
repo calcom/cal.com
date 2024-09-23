@@ -51,7 +51,13 @@ const bookingSelect = {
   references: true,
 };
 
-export const roundRobinReassignment = async ({ bookingId }: { bookingId: number }) => {
+export const roundRobinReassignment = async ({
+  bookingId,
+  orgId,
+}: {
+  bookingId: number;
+  orgId: number | null;
+}) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
@@ -309,7 +315,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       })
     : null;
 
-  const bookerUrl = await getBookerBaseUrl(eventType?.team?.parentId ?? organizer.id ?? null);
+  const bookerUrl = await getBookerBaseUrl(orgId);
 
   const evt: CalendarEvent = {
     organizer: {
