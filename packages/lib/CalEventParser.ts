@@ -181,7 +181,7 @@ export const getBookingUrl = (calEvent: CalendarEvent) => {
 
 export const getPlatformManageLink = (
   calEvent: Parameters<typeof getCancelLink>[0] &
-    Parameters<typeof getRescheduleLink>[0] &
+    Parameters<typeof getRescheduleLink>[0]["calEvent"] &
     Pick<CalendarEvent, "platformBookingUrl" | "platformRescheduleUrl">,
   t: TFunction
 ) => {

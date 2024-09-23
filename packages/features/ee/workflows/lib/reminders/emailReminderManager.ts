@@ -43,6 +43,7 @@ export interface ScheduleReminderArgs {
 }
 
 interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
+  evt: BookingInfo;
   sendTo: MailData["to"];
   action: ScheduleEmailReminderAction;
   emailSubject?: string;

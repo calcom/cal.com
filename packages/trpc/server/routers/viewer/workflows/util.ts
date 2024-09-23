@@ -26,6 +26,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -753,6 +754,7 @@ export async function scheduleBookingReminders(
           hosts: booking.eventType?.hosts,
         },
         metadata: booking.metadata,
+        type: booking.eventType?.slug,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
@@ -783,8 +785,33 @@ export async function scheduleBookingReminders(
             sendTo = [step.sendTo || ""];
             break;
         }
+
+        const organizerT = await getTranslation(bookingInfo.organizer.language.locale, "common");
+
+        const attendeePromises = [];
+        for (const attendee of bookingInfo.attendees) {
+          attendeePromises.push(
+            getTranslation(attendee.language.locale ?? "en", "common").then((tAttendee) => ({
+              ...attendee,
+              language: { translate: tAttendee, locale: attendee.language.locale ?? "en" },
+            }))
+          );
+        }
+
+        const attendees = await Promise.all(attendeePromises);
+
+        const emailEvent = {
+          ...bookingInfo,
+          type: bookingInfo.eventType.slug!,
+          organizer: {
+            ...bookingInfo.organizer,
+            language: { ...bookingInfo.organizer.language, translate: organizerT },
+          },
+          attendees,
+        };
+
         await scheduleEmailReminder({
-          evt: bookingInfo,
+          evt: emailEvent,
           triggerEvent: trigger,
           action: step.action,
           timeSpan: {

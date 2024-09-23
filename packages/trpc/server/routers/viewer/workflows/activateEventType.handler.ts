@@ -292,7 +292,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           }
 
           await scheduleEmailReminder({
-            evt: bookingInfo,
+            evt: emailEvent,
             triggerEvent: eventTypeWorkflow.trigger,
             action: step.action,
             timeSpan: {

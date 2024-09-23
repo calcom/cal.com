@@ -271,6 +271,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
 
+          const t = await getTranslation(reminder.booking.user?.locale ?? "en", "common");
+
+          const event = {
+            ...reminder.booking,
+            type: reminder.booking.eventType?.slug,
+            organizer: {
+              ...reminder.booking.user,
+              language: { translate: t, locale: reminder.booking.user?.locale ?? "en" },
+            },
+          };
+
           sendEmailPromises.push(
             sendSendgridMail(
               {
@@ -284,7 +295,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   ? [
                       {
                         content: Buffer.from(
-                          generateIcsString({ event: reminder.booking, status: "CONFIRMED" }) || ""
+                          generateIcsString({ event, status: "CONFIRMED" }) || ""
                         ).toString("base64"),
                         filename: "event.ics",
                         type: "text/calendar; method=REQUEST",
