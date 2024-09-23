@@ -225,7 +225,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       },
     });
 
-    const bookerUrl = await getBookerBaseUrl(ctx.user.organization.id ?? null);
+    const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
 
     for (const booking of bookingsForReminders) {
       const defaultLocale = "en";
