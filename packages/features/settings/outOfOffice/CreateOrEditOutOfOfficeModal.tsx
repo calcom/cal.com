@@ -59,7 +59,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     label: string;
   }[] =
     listMembers
-      ?.filter((member) => (oooType === "mine" ? me?.data?.id !== member.id : oooType === "team"))
+      ?.filter((member) =>
+        oooType === OutOfOfficeTab.MINE ? me?.data?.id !== member.id : oooType === OutOfOfficeTab.TEAM
+      )
       .map((member) => ({
         value: member.id,
         label: member.name || "",

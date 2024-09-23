@@ -22,7 +22,6 @@ const Page = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Get a new searchParams string by merging the current searchParams with a provided key/value pair
   const createQueryString = useCallback(
     (name: string, value: string) => {
       const params = new URLSearchParams(searchParams ?? undefined);
@@ -38,11 +37,13 @@ const Page = () => {
 
   const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
 
+  const { data: user } = trpc.viewer.me.useQuery();
   const { data } = trpc.viewer.organizations.listCurrent.useQuery();
   const isOrgAdminOrOwner =
     data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN);
   const toggleGroupOptions = [{ value: OutOfOfficeTab.MINE, label: t("my_ooo") }];
-  if (isOrgAdminOrOwner) {
+  const hasTeamOOOAccess = isOrgAdminOrOwner || user?.isTeamAdminOrOwner;
+  if (hasTeamOOOAccess) {
     toggleGroupOptions.push({ value: OutOfOfficeTab.TEAM, label: t("team_ooo") });
   }
 
@@ -67,7 +68,7 @@ const Page = () => {
                 setSelectedTab(value);
               }}
               options={toggleGroupOptions}
-              disabled={!isOrgAdminOrOwner}
+              disabled={!hasTeamOOOAccess}
             />
             {isPending ? (
               <SkeletonText className="h-8 w-20" />

@@ -11,7 +11,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOffice.schema";
+import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOfficeEntriesList.schema";
 import {
   Avatar,
   Button,
@@ -43,7 +43,7 @@ interface OutOfOfficeEntry {
     userId: number;
   } | null;
   notes: string | null;
-  user: { id: number; avatarUrl: string; username: string; email: string } | null;
+  user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
 }
 
 export enum OutOfOfficeTab {
@@ -111,7 +111,13 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
         if (!row.original || !row.original.user || isPending || isFetching) {
           return <SkeletonText className="h-8 w-full" />;
         }
-        const { avatarUrl, username, email } = row.original.user;
+        const { avatarUrl, username, email, name } = row.original.user;
+        const memberName =
+          name ||
+          (() => {
+            const emailName = email.split("@")[0];
+            return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+          })();
         return (
           <div className="flex items-center gap-2">
             <Avatar
@@ -123,11 +129,13 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
             />
             <div className="">
               <div
-                data-testid={`member-${username}-username`}
+                data-testid={`ooo-member-${username}-username`}
                 className="text-emphasis text-sm font-medium leading-none">
-                {username || "No username"}
+                {memberName}
               </div>
-              <div data-testid={`member-${username}-email`} className="text-subtle mt-1 text-sm leading-none">
+              <div
+                data-testid={`ooo-member-${username}-email`}
+                className="text-subtle mt-1 text-sm leading-none">
                 {email}
               </div>
             </div>
