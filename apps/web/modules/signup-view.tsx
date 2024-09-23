@@ -39,7 +39,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form, Alert, CheckboxField, Icon } from "@calcom/ui";
+import {
+  Button,
+  HeadSeo,
+  PasswordField,
+  TextField,
+  Form,
+  Alert,
+  CheckboxField,
+  Icon,
+  showToast,
+} from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -164,6 +174,7 @@ export default function Signup({
   token,
   orgSlug,
   isGoogleLoginEnabled,
+  isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
   emailVerificationEnabled,
@@ -519,6 +530,49 @@ export default function Signup({
                     data-testid="continue-with-email-button">
                     Continue with email
                   </Button>
+                  {isSAMLLoginEnabled ? (
+                    <Button
+                      color="secondary"
+                      disabled={
+                        !!formMethods.formState.errors.username ||
+                        !!formMethods.formState.errors.email ||
+                        premiumUsername ||
+                        isSubmitting ||
+                        isGoogleLoading
+                      }
+                      className={classNames(
+                        "w-full justify-center rounded-md text-center",
+                        formMethods.formState.errors.username && formMethods.formState.errors.email
+                          ? "opacity-50"
+                          : ""
+                      )}
+                      onClick={() => {
+                        if (!formMethods.getValues("username")) {
+                          formMethods.trigger("username");
+                        }
+                        if (!formMethods.getValues("email")) {
+                          formMethods.trigger("email");
+
+                          return;
+                        }
+                        const username = formMethods.getValues("username");
+                        if (!username) {
+                          showToast("error", t("username_required"));
+                          return;
+                        }
+                        localStorage.setItem("username", username);
+                        const sp = new URLSearchParams();
+                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                        sp.set("username", username);
+                        sp.set("email", formMethods.getValues("email"));
+                        router.push(
+                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                        );
+                      }}>
+                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
+                      {t("saml_sso")}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             )}
