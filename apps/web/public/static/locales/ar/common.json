@@ -1731,6 +1731,7 @@
   "already_have_account": "هل لديك حساب بالفعل؟",
   "already_have_key": "لدي مفتاح بالفعل:",
   "already_have_key_suggestion": "يرجى نسخ متغير البيئة الحالي CALCOM_LICENSE_KEY هنا.",
+  "create_license_key": "إنشاء مفتاح الترخيص",
   "app_is_enabled": "تم تمكين {{appName}}",
   "app_is_disabled": "تم تعطيل {{appName}}",
   "keys_have_been_saved": "تم حفظ المفاتيح",

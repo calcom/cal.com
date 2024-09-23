@@ -1,44 +1,12 @@
-"use client";
-
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import PageWrapper from "@components/PageWrapper";
 
-import type { getServerSideProps } from "@server/lib/auth/sso/direct/getServerSideProps";
+import { getServerSideProps } from "@server/lib/auth/sso/direct/getServerSideProps";
 
-// This page is used to initiate the SAML authentication flow by redirecting to the SAML provider.
-// Accessible only on self-hosted Cal.com instances.
-export default function Page({ samlTenantID, samlProductID }: inferSSRProps<typeof getServerSideProps>) {
-  const router = useRouter();
+import type { SSODirectPageProps } from "~/auth/sso/direct-view";
+import SSODirectView from "~/auth/sso/direct-view";
 
-  useEffect(() => {
-    if (HOSTED_CAL_FEATURES) {
-      router.push("/auth/login");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    // Initiate SAML authentication flow
-    signIn(
-      "saml",
-      {
-        callbackUrl: "/",
-      },
-      { tenant: samlTenantID, product: samlProductID }
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return null;
-}
-
-export { getServerSideProps };
+const Page = (props: SSODirectPageProps) => <SSODirectView {...props} />;
 
 Page.PageWrapper = PageWrapper;
+export default Page;
+export { getServerSideProps };

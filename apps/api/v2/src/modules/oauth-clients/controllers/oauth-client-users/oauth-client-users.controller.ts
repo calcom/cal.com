@@ -188,6 +188,7 @@ export class OAuthClientUsersController {
       id: user.id,
       email: user.email,
       username: user.username,
+      name: user.name,
       timeZone: user.timeZone,
       weekStart: user.weekStart,
       createdDate: user.createdDate,
@@ -197,7 +198,3 @@ export class OAuthClientUsersController {
     };
   }
 }
-
-export type UserReturned = Pick<User, "id" | "email" | "username">;
-
-export type CreateUserResponse = { user: UserReturned; accessToken: string; refreshToken: string };
