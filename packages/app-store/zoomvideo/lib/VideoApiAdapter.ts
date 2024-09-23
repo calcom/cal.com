@@ -332,7 +332,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           },
           body: JSON.stringify(await translateEvent(event)),
         });
-
         const updatedMeeting = await fetchZoomApi(`meetings/${bookingRef.uid}`);
         const result = zoomEventResultSchema.parse(updatedMeeting);
 
