@@ -12,7 +12,7 @@ class Attendee {
   noShow!: boolean;
 }
 
-class HandleMarkNoShowData {
+class HandleMarkNoShowData_2024_04_15 {
   @IsString()
   message!: string;
 
@@ -27,15 +27,15 @@ class HandleMarkNoShowData {
   attendees?: Attendee[];
 }
 
-export class MarkNoShowOutput {
+export class MarkNoShowOutput_2024_04_15 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: HandleMarkNoShowData,
+    type: HandleMarkNoShowData_2024_04_15,
   })
   @ValidateNested()
-  @Type(() => HandleMarkNoShowData)
-  data!: HandleMarkNoShowData;
+  @Type(() => HandleMarkNoShowData_2024_04_15)
+  data!: HandleMarkNoShowData_2024_04_15;
 }

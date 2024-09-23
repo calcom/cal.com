@@ -19,7 +19,7 @@
     "test:watch": "yarn dev:build && jest --watch",
     "test:cov": "yarn dev:build && jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.json",
+    "test:e2e": "yarn dev:build && NODE_OPTIONS='--max_old_space_size=8192' jest --ci --forceExit --config ./jest-e2e.json",
     "test:e2e:watch": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.json --watch",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
@@ -28,7 +28,7 @@
   "dependencies": {
     "@calcom/platform-constants": "*",
     "@calcom/platform-enums": "*",
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.36",
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.37",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",

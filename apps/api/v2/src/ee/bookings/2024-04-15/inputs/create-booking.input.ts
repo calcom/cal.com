@@ -40,7 +40,7 @@ class Response {
   notes?: string;
 }
 
-export class CreateBookingInput {
+export class CreateBookingInput_2024_04_15 {
   @IsString()
   @IsOptional()
   end?: string;
