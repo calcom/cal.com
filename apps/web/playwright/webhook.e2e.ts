@@ -9,9 +9,11 @@ import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
   bookTimeSlot,
+  confirmReschedule,
   createUserWithSeatedEventAndAttendees,
   gotoRoutingLink,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 // remove dynamic properties that differs depending on where you run the tests
@@ -145,8 +147,10 @@ test.describe("BOOKING_REJECTED", async () => {
     const webhookReceiver = await webhooks.createReceiver();
     await page.goto("/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
-    await page.click('[data-testid="rejection-confirm"]');
-    await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
+
+    await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm?batch=1", {
+      action: () => page.click('[data-testid="rejection-confirm"]'),
+    });
 
     await webhookReceiver.waitForRequestCount(1);
 
@@ -358,7 +362,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page.getByTestId("success-page")).toBeVisible();
 
@@ -426,7 +430,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page.getByTestId("success-page")).toBeVisible();
 
@@ -459,7 +463,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page).toHaveURL(/.*booking/);
 
@@ -577,10 +581,28 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     expect(newMeetingEndedTriggers.length).toBe(0);
 
     // disable webhook
-    const submitPromise = page.waitForResponse("/api/trpc/webhook/edit?batch=1");
-    await page.getByTestId("webhook-switch").click();
-    const response = await submitPromise;
-    expect(response.status()).toBe(200);
+    await submitAndWaitForResponse(page, "/api/trpc/webhook/edit?batch=1", {
+      action: () => page.getByTestId("webhook-switch").click(),
+    });
+
+    const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
+      where: {
+        webhook: {
+          userId: user.id,
+        },
+      },
+      select: {
+        payload: true,
+        webhook: {
+          select: {
+            userId: true,
+          },
+        },
+        startAfter: true,
+      },
+    });
+
+    expect(scheduledTriggersAfterDisabling.length).toBe(0);
   });
 });
 

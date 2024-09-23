@@ -7,7 +7,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { moveUserToOrg } from "@lib/orgMigration";
 
 import { test } from "./lib/fixtures";
-import { IS_STRIPE_ENABLED } from "./lib/testUtils";
+import { IS_STRIPE_ENABLED, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -15,59 +15,45 @@ const IS_SELF_HOSTED = !(
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || !!new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
 );
 
+const TESTING_USERNAMES = [
+  {
+    username: "demousernamex",
+    description: "",
+  },
+  {
+    username: "demo.username",
+    description: " to include periods(or dots)",
+  },
+];
+
 test.describe("Change username on settings", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  test("User can change username", async ({ page, users, prisma }) => {
-    const user = await users.create();
+  TESTING_USERNAMES.forEach((item) => {
+    test(`User can change username${item.description}`, async ({ page, users, prisma }) => {
+      const user = await users.create();
+      await user.apiLogin();
+      // Try to go homepage
+      await page.goto("/settings/my-account/profile");
+      // Change username from normal to normal
+      const usernameInput = page.locator("[data-testid=username-input]");
 
-    await user.apiLogin();
-    // Try to go homepage
-    await page.goto("/settings/my-account/profile");
-    // Change username from normal to normal
-    const usernameInput = page.locator("[data-testid=username-input]");
+      await usernameInput.fill(item.username);
+      await page.click("[data-testid=update-username-btn]");
+      await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+        action: () => page.click("[data-testid=save-username]"),
+      });
 
-    await usernameInput.fill("demousernamex");
-    await page.click("[data-testid=update-username-btn]");
-    await Promise.all([
-      page.click("[data-testid=save-username]"),
-      page.getByTestId("toast-success").waitFor(),
-    ]);
+      const newUpdatedUser = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: user.id,
+        },
+      });
 
-    const newUpdatedUser = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: user.id,
-      },
+      expect(newUpdatedUser.username).toBe(item.username);
     });
-
-    expect(newUpdatedUser.username).toBe("demousernamex");
-  });
-
-  test("User can change username to include periods(or dots)", async ({ page, users, prisma }) => {
-    const user = await users.create();
-
-    await user.apiLogin();
-    // Try to go homepage
-    await page.goto("/settings/my-account/profile");
-    // Change username from normal to normal
-    const usernameInput = page.locator("[data-testid=username-input]");
-    // User can change username to include dots(or periods)
-    await usernameInput.fill("demo.username");
-    await page.click("[data-testid=update-username-btn]");
-    await Promise.all([
-      page.click("[data-testid=save-username]"),
-      page.getByTestId("toast-success").waitFor(),
-    ]);
-
-    const updatedUser = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: user.id,
-      },
-    });
-
-    expect(updatedUser.username).toBe("demo.username");
   });
 
   test("User can update to PREMIUM username", async ({ page, users }, testInfo) => {

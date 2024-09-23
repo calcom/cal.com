@@ -210,6 +210,7 @@ export interface CalendarEvent {
   platformRescheduleUrl?: string | null;
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
+  oneTimePassword?: string | null;
 }
 
 export interface EntryPoint {
