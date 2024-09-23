@@ -1334,14 +1334,14 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
-            slotInterval: 60,
-            length: 60,
+            slotInterval: 45,
+            length: 45,
             users: [{ id: 101 }],
           },
           {
             id: 2,
-            slotInterval: 60,
-            length: 60,
+            slotInterval: 45,
+            length: 45,
             users: [{ id: 102 }],
           },
         ],
@@ -1365,8 +1365,8 @@ describe("getSchedule", () => {
             eventTypeId: 1,
             uid: "uid1",
             status: "ACCEPTED",
-            startTime: `${plus1DateString}T06:30:00.000Z`,
-            endTime: `${plus1DateString}T07:30:00.000Z`,
+            startTime: `${plus1DateString}T06:00:00.000Z`,
+            endTime: `${plus1DateString}T07:00:00.000Z`,
             attendees: [{ email: "user2@example.com" }],
           },
           {
@@ -1374,8 +1374,8 @@ describe("getSchedule", () => {
             eventTypeId: 2,
             uid: "uid2",
             status: "ACCEPTED",
-            startTime: `${plus2DateString}T09:30:00.000Z`,
-            endTime: `${plus2DateString}T10:30:00.000Z`,
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
           },
         ],
       });
@@ -1394,12 +1394,15 @@ describe("getSchedule", () => {
 
       expect(attendeeAvailability).toHaveTimeSlots(
         [
-          `04:30:00.000Z`,
+          `04:00:00.000Z`,
+          `04:45:00.000Z`,
           `05:30:00.000Z`,
-          `06:30:00.000Z`,
-          `07:30:00.000Z`,
-          `08:30:00.000Z`,
-          `11:00:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
         ],
         {
           dateString: plus2DateString,
