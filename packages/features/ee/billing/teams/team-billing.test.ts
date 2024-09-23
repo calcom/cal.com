@@ -31,12 +31,14 @@ describe("TeamBilling", () => {
 
   describe("init", () => {
     it("should return InternalTeamBilling when team billing is enabled", () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = true;
       const result = TeamBilling.init(mockTeam);
       expect(result).toBeInstanceOf(InternalTeamBilling);
     });
 
     it("should return StubTeamBilling when team billing is disabled", () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = false;
 
       const result = TeamBilling.init(mockTeam);
@@ -55,6 +57,7 @@ describe("TeamBilling", () => {
 
   describe("find", () => {
     it("should return stubTeam when team billing is disabled", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = false;
 
       const result = await TeamBilling.find(1);
@@ -62,6 +65,7 @@ describe("TeamBilling", () => {
     });
 
     it("should call prisma.team.findUniqueOrThrow when team billing is enabled", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = true;
 
       prismaMock.team.findUniqueOrThrow.mockResolvedValue(mockTeam);
@@ -73,6 +77,7 @@ describe("TeamBilling", () => {
 
   describe("findBySubscriptionId", () => {
     it("should return stubTeam when team billing is disabled", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = false;
 
       const result = await TeamBilling.findBySubscriptionId("sub_123");
@@ -80,6 +85,7 @@ describe("TeamBilling", () => {
     });
 
     it("should call prisma.team.findFirstOrThrow when team billing is enabled", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = true;
 
       prismaMock.team.findFirstOrThrow.mockResolvedValue({
@@ -104,12 +110,14 @@ describe("TeamBilling", () => {
 
   describe("findMany", () => {
     it("should return an empty array when IS_TEAM_BILLING_ENABLED is false", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = false;
       const result = await TeamBilling.findMany([1, 2]);
       expect(result).toEqual([]);
     });
 
     it("should call prisma.team.findMany when IS_TEAM_BILLING_ENABLED is true", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = true;
 
       prismaMock.team.findMany.mockResolvedValue([mockTeam]);
@@ -124,6 +132,7 @@ describe("TeamBilling", () => {
 
   describe("findAndInit", () => {
     it("should find and initialize a single team billing", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = true;
 
       prismaMock.team.findUniqueOrThrow.mockResolvedValue(mockTeam);
@@ -135,6 +144,7 @@ describe("TeamBilling", () => {
 
   describe("findAndInitMany", () => {
     it("should find and initialize multiple team billings", async () => {
+      // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = true;
 
       prismaMock.team.findMany.mockResolvedValue([mockTeam, { ...mockTeam, id: 2 }]);
