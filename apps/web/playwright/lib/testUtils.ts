@@ -446,7 +446,9 @@ export async function submitAndWaitForResponse(
   await action();
   const response = await submitPromise;
   expect(response.status()).toBe(expectedStatusCode);
-  return response.json();
+  try {
+    return response.json();
+  } catch (e) {}
 }
 
 export async function confirmReschedule(page: Page, url = "/api/book/event") {

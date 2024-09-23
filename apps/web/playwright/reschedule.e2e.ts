@@ -399,15 +399,14 @@ test.describe("Reschedule Tests", async () => {
             page,
           },
           async ({ page }) => {
-            const rescheduleUrlToBeOpenedInOrgContext = getNonOrgUrlFromOrgUrl(result.url);
-            await page.goto(rescheduleUrlToBeOpenedInOrgContext);
-            await selectFirstAvailableTimeSlotNextMonth(page);
+            await page.goto(getNonOrgUrlFromOrgUrl(result.url));
             await expectSuccessfulReschedule();
           }
         );
       });
 
       async function expectSuccessfulReschedule() {
+        await selectFirstAvailableTimeSlotNextMonth(page);
         const { protocol, host } = new URL(page.url());
         // Needed since we we're expecting a non-org URL, causing timeouts.
         const url = getNonOrgUrlFromOrgUrl(`${protocol}//${host}/api/book/event`);
