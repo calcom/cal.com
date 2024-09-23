@@ -431,6 +431,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       user?.id,
       originalRescheduledBooking?.userId || 0
     );
+    let isDynamicEventAndUserIsOwner = false;
+    if (input.usernameList && input.usernameList.length > 1 && user) {
+      isDynamicEventAndUserIsOwner = eventType.users.some((eventUser) => eventUser.id === user.id);
+    }
     let isTeamOwnerOrAdmin = false;
     if (input?.isTeamEvent && originalRescheduledBooking?.eventType?.teamId) {
       const teamOwnerOrAdmin = await prisma.membership.findFirst({
@@ -447,7 +451,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       });
       isTeamOwnerOrAdmin = !!teamOwnerOrAdmin;
     }
-    if (userReschedulingIsOwner || isTeamOwnerOrAdmin) {
+    if (userReschedulingIsOwner || isDynamicEventAndUserIsOwner || isTeamOwnerOrAdmin) {
       const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
       const attendees = await prisma.user.findMany({
         where: {
