@@ -15,6 +15,7 @@ import { scheduleSMSReminder } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 export type ExtendedCalendarEvent = CalendarEvent & {
+  bookerUrl: string;
   metadata?: { videoCallUrl: string | undefined };
   eventType: {
     slug?: string;

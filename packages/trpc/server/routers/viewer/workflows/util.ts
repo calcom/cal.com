@@ -23,6 +23,7 @@ import {
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -606,7 +607,8 @@ export async function scheduleWorkflowNotifications(
     timeUnit,
     trigger,
     userId,
-    teamId
+    teamId,
+    isOrg
   );
 }
 
@@ -712,10 +714,14 @@ export async function scheduleBookingReminders(
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
   userId: number,
-  teamId: number | null
+  teamId: number | null,
+  isOrg: boolean
 ) {
   if (!bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
+
+  const bookerUrl = await getBookerBaseUrl(isOrg ? teamId : null);
+
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
     // we do not have attendees phone number (user is notified about that when setting this action)
@@ -726,6 +732,7 @@ export async function scheduleBookingReminders(
       const defaultLocale = "en";
       const bookingInfo = {
         uid: booking.uid,
+        bookerUrl,
         attendees: booking.attendees.map((attendee) => {
           return {
             name: attendee.name,

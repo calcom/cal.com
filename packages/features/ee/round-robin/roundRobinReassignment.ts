@@ -18,6 +18,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -308,6 +309,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       })
     : null;
 
+  const bookerUrl = await getBookerBaseUrl(eventType?.team?.parentId ?? organizer.id ?? null);
+
   const evt: CalendarEvent = {
     organizer: {
       name: organizer.name || "",
@@ -475,6 +478,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
             ...evt,
             metadata: workflowEventMetadata,
             eventType,
+            bookerUrl,
           },
           action: WorkflowActions.EMAIL_HOST,
           triggerEvent: workflow.trigger,
@@ -538,7 +542,12 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     await scheduleWorkflowReminders({
       workflows: newEventWorkflows,
       smsReminderNumber: null,
-      calendarEvent: { ...evt, metadata: workflowEventMetadata, eventType: { slug: eventType.slug } },
+      calendarEvent: {
+        ...evt,
+        metadata: workflowEventMetadata,
+        eventType: { slug: eventType.slug },
+        bookerUrl,
+      },
       hideBranding: !!eventType?.owner?.hideBranding,
     });
   }
