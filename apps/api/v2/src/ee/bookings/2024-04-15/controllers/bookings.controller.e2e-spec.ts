@@ -1,8 +1,8 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
-import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
-import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
+import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
+import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
+import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -24,7 +24,7 @@ import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
-describe("Bookings Endpoints", () => {
+describe("Bookings Endpoints 2024-04-15", () => {
   describe("User Authenticated", () => {
     let app: INestApplication;
 
@@ -111,7 +111,7 @@ describe("Bookings Endpoints", () => {
         guests: [],
       };
 
-      const body: CreateBookingInput = {
+      const body: CreateBookingInput_2024_04_15 = {
         start: bookingStart,
         end: bookingEnd,
         eventTypeId: bookingEventTypeId,
@@ -166,7 +166,7 @@ describe("Bookings Endpoints", () => {
         guests: [],
       };
 
-      const body: CreateBookingInput = {
+      const body: CreateBookingInput_2024_04_15 = {
         start: bookingStart,
         end: bookingEnd,
         eventTypeId: bookingEventTypeId,
@@ -209,7 +209,7 @@ describe("Bookings Endpoints", () => {
         guests: [],
       };
 
-      const body: CreateBookingInput = {
+      const body: CreateBookingInput_2024_04_15 = {
         start: bookingStart,
         end: bookingEnd,
         eventTypeId: bookingEventTypeId,
@@ -266,7 +266,7 @@ describe("Bookings Endpoints", () => {
           guests: [],
         };
 
-        const body: CreateBookingInput = {
+        const body: CreateBookingInput_2024_04_15 = {
           rescheduleUid: createdBooking.uid,
           start: newBookingStart,
           end: newBookingEnd,
@@ -305,7 +305,7 @@ describe("Bookings Endpoints", () => {
       return request(app.getHttpServer())
         .get("/v2/bookings?filters[status]=upcoming")
         .then((response) => {
-          const responseBody: GetBookingsOutput = response.body;
+          const responseBody: GetBookingsOutput_2024_04_15 = response.body;
 
           expect(responseBody.data.bookings.length).toEqual(2);
           const fetchedBooking = responseBody.data.bookings.find(
@@ -329,7 +329,7 @@ describe("Bookings Endpoints", () => {
       return request(app.getHttpServer())
         .get(`/v2/bookings/${createdBooking.uid}`)
         .then((response) => {
-          const responseBody: GetBookingOutput = response.body;
+          const responseBody: GetBookingOutput_2024_04_15 = response.body;
           const bookingInfo = responseBody.data;
 
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
