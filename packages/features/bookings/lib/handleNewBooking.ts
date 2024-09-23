@@ -906,6 +906,7 @@ async function handler(
     platformRescheduleUrl,
     platformCancelUrl,
     platformBookingUrl,
+    oneTimePassword: isConfirmedByDefault ? null : undefined,
   };
 
   if (req.body.thirdPartyRecurringEventId) {
@@ -1110,6 +1111,7 @@ async function handler(
       })
     );
     evt.uid = booking?.uid ?? null;
+    evt.oneTimePassword = booking?.oneTimePassword ?? null;
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
