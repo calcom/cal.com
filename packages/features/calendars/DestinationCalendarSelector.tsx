@@ -15,7 +15,7 @@ interface Props {
   value: string | undefined;
   maxWidth?: number;
   hideAdvancedText?: boolean;
-  connectedCalendars?: RouterOutputs["viewer"]["connectedCalendars"];
+  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
 }
 
 interface Option {
@@ -52,12 +52,11 @@ const DestinationCalendarSelector = ({
   hidePlaceholder,
   hideAdvancedText,
   maxWidth,
-  connectedCalendars,
+  calendarsQueryData,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
-  // const query = trpc.viewer.connectedCalendars.useQuery();
-  const connectedCalendarsList = connectedCalendars?.connectedCalendars;
-  const destinationCalendar = connectedCalendars?.destinationCalendar;
+  const connectedCalendarsList = calendarsQueryData?.connectedCalendars;
+  const destinationCalendar = calendarsQueryData?.destinationCalendar;
 
   const [selectedOption, setSelectedOption] = useState<{
     value: string;

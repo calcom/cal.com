@@ -57,7 +57,7 @@ type BookingField = z.infer<typeof fieldSchema>;
 const CustomEventTypeModal = dynamic(() => import("./CustomEventTypeModal"));
 
 export type EventAdvancedTabProps = EventAdvancedWebWrapperProps & {
-  connectedCalendars?: RouterOutputs["viewer"]["connectedCalendars"];
+  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
   user?: RouterOutputs["viewer"]["me"];
   isUserLoading?: boolean;
 };
@@ -65,7 +65,7 @@ export type EventAdvancedTabProps = EventAdvancedWebWrapperProps & {
 export const EventAdvancedTab = ({
   eventType,
   team,
-  connectedCalendars,
+  calendarsQueryData,
   user,
   isUserLoading,
 }: EventAdvancedTabProps) => {
@@ -169,7 +169,7 @@ export const EventAdvancedTab = ({
   );
 
   const displayDestinationCalendarSelector =
-    !!connectedCalendars?.connectedCalendars?.length && (!team || isChildrenManagedEventType);
+    !!calendarsQueryData?.connectedCalendars?.length && (!team || isChildrenManagedEventType);
 
   const verifiedSecondaryEmails = [
     {
@@ -201,7 +201,7 @@ export const EventAdvancedTab = ({
                     onChange={onChange}
                     hidePlaceholder
                     hideAdvancedText
-                    connectedCalendars={connectedCalendars}
+                    calendarsQueryData={calendarsQueryData}
                   />
                 )}
               />

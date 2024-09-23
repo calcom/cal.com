@@ -27,7 +27,7 @@ const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps)
                 mutation.mutate(calendar);
               }}
               hidePlaceholder
-              connectedCalendars={connectedCalendarsQuery.data}
+              calendarsQueryData={connectedCalendarsQuery.data}
             />
           </div>
         </div>

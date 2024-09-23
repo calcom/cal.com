@@ -10,7 +10,7 @@ const EventAdvancedWebWrapper = (props: EventAdvancedWebWrapperProps) => {
   return (
     <EventAdvancedTab
       {...props}
-      connectedCalendars={connectedCalendarsQuery.data}
+      calendarsQueryData={connectedCalendarsQuery.data}
       user={user}
       isUserLoading={isPending}
     />
