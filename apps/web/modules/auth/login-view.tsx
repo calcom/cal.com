@@ -9,8 +9,9 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
@@ -44,6 +45,9 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
+  isSAMLLoginEnabled,
+  samlTenantID,
+  samlProductID,
   totpEmail,
 }: // eslint-disable-next-line @typescript-eslint/ban-types
 PageProps & WithNonceProps<{}>) {
@@ -90,12 +94,6 @@ PageProps & WithNonceProps<{}>) {
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
   callbackUrl = safeCallbackUrl || "";
-
-  const LoginFooter = (
-    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("dont_have_an_account")}
-    </Link>
-  );
 
   const TwoFactorFooter = (
     <>
@@ -170,8 +168,34 @@ PageProps & WithNonceProps<{}>) {
     [error]
   );
 
+  const displaySSOLogin = HOSTED_CAL_FEATURES
+    ? true
+    : isSAMLLoginEnabled && !isPending && data?.connectionExists;
+
+  const LoginFooter = (
+    <div className="flex flex-col items-center gap-1">
+      <div className="flex items-center gap-1">
+        <p className="text-subtle">{t("dont_have_an_account")}</p>
+        <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+          {t("sign_up")}
+        </Link>
+      </div>
+      {displaySSOLogin && (
+        <div className="flex items-center gap-1">
+          <p className="text-subtle">Have a SAML account?</p>
+
+          <SAMLLogin
+            samlTenantID={samlTenantID}
+            samlProductID={samlProductID}
+            setErrorMessage={setErrorMessage}
+          />
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
+    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] [--cal-brand-subtle:#9CA3AF] [--cal-brand-emphasis:#101010] [--cal-brand-text:white] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
         title={t("login")}
         description={t("login")}
