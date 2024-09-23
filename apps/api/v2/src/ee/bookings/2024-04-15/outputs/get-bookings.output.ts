@@ -202,7 +202,7 @@ class GetBookingsDataEntry {
   rescheduled?: any;
 }
 
-class GetBookingsData {
+class GetBookingsData_2024_04_15 {
   @ValidateNested()
   @Type(() => GetBookingsDataEntry)
   @IsArray()
@@ -215,15 +215,15 @@ class GetBookingsData {
   nextCursor!: number | null;
 }
 
-export class GetBookingsOutput {
+export class GetBookingsOutput_2024_04_15 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: GetBookingsData,
+    type: GetBookingsData_2024_04_15,
   })
   @ValidateNested()
-  @Type(() => GetBookingsData)
-  data!: GetBookingsData;
+  @Type(() => GetBookingsData_2024_04_15)
+  data!: GetBookingsData_2024_04_15;
 }

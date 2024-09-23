@@ -558,7 +558,6 @@ function assertInviteLink(inviteLink: string | null | undefined): asserts invite
 
 async function copyInviteLink(page: Page) {
   await page.locator('button:text("Add")').click();
-  await page.locator(`[data-testid="copy-invite-link-button"]`).click();
   const inviteLink = await getInviteLink(page);
   return inviteLink;
 }
