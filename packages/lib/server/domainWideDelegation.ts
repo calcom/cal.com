@@ -12,7 +12,7 @@ export async function getAllDomainWideDelegationCredentialsForUser({ user }: { u
   });
 
 
-  if (!domainWideDelegation) {
+  if (!domainWideDelegation || !domainWideDelegation.enabled) {
     return [];
   }
 

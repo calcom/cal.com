@@ -11,6 +11,11 @@ export const DomainWideDelegationUpdateSchema = z.object({
   domain: z.string(),
 });
 
+export const DomainWideDelegationToggleEnabledSchema = z.object({
+  id: z.string(),
+  enabled: z.boolean(),
+});
+
 export const DomainWideDelegationDeleteSchema = z.object({
   id: z.string(),
 });

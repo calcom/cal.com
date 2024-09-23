@@ -1553,6 +1553,7 @@ model DomainWideDelegation {
   // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
   serviceAccountKey Json
 
+  enabled        Boolean      @default(false)
   organizationId Int
   organization   Team         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   Credential     Credential[]

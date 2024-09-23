@@ -128,7 +128,6 @@ export const getConnectedCalendars = async (
     })
   );
 
-
   return { connectedCalendars, destinationCalendar };
 };
 
