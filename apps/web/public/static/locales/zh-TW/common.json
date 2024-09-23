@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "重新安排與相同的 Round-Robin 主機",
   "reschedule_with_same_round_robin_host_description": "重新安排的事件將分配給最初安排的相同主機",
   "disable_input_if_prefilled": "如果 URL 識別碼已填寫，則禁用輸入",
+  "booking_limits": "預約限制",
+  "booking_limits_team_description": "所有團隊活動類型的團隊成員預約限制",
+  "limit_team_booking_frequency_description": "限制團隊成員在所有活動類型（集體和round-robin）中的預約次數",
+  "booking_limits_updated_successfully": "預約限制更新成功",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您無權更改此預訂",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Đặt lại lịch với cùng một host Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Các sự kiện được đặt lại sẽ được giao cho cùng một host như ban đầu",
   "disable_input_if_prefilled": "Vô hiệu hóa đầu vào nếu URL đã được điền trước",
+  "booking_limits": "Giới hạn đặt lịch",
+  "booking_limits_team_description": "Giới hạn đặt lịch cho các thành viên trong nhóm trên tất cả các loại sự kiện của nhóm",
+  "limit_team_booking_frequency_description": "Giới hạn số lần các thành viên có thể được đặt lịch trên tất cả các loại sự kiện của nhóm (tập thể và round-robin)",
+  "booking_limits_updated_successfully": "Giới hạn đặt lịch đã được cập nhật thành công",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Bạn không có quyền thực hiện thay đổi này đối với đặt chỗ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

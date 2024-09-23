@@ -2606,5 +2606,9 @@ checksums:
     reschedule_with_same_round_robin_host_title: 0b315779fdae608827ceab1b1640423b
     reschedule_with_same_round_robin_host_description: d581417695b5275d6706a08b8d7dd39a
     disable_input_if_prefilled: 19415e3062d8ef1031beb38ce4a0b3c9
+    booking_limits: d5ad11cfda4e601b89557825502e661f
+    booking_limits_team_description: 691b85f82abc36bfe95c9cb22ebba62b
+    limit_team_booking_frequency_description: 9ae22ec673d2ddaf9a3948f73b4bdf3d
+    booking_limits_updated_successfully: c1dbc8e3ecbbc1c25351806a30ab6368
     you_are_unauthorized_to_make_this_change_to_the_booking: c770486d5b4b98a407ff485cbe60e563
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

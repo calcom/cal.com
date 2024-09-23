@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Перепланувати з тим самим ведучим Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Переплановані події будуть призначені тому ж ведучому, що й спочатку",
   "disable_input_if_prefilled": "Вимкнути введення, якщо ідентифікатор URL попередньо заповнений",
+  "booking_limits": "Обмеження бронювання",
+  "booking_limits_team_description": "Обмеження бронювання для членів команди для всіх типів командних подій",
+  "limit_team_booking_frequency_description": "Обмежте кількість разів, коли члени можуть бути заброньовані для всіх типів командних подій (колективних та round-robin)",
+  "booking_limits_updated_successfully": "Обмеження бронювання успішно оновлено",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Ви не маєте дозволу на внесення цієї зміни до бронювання",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
