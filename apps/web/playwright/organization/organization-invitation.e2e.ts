@@ -429,7 +429,7 @@ async function signupFromInviteLink({
   const context = await browser.newContext();
   const inviteLinkPage = await context.newPage();
   await inviteLinkPage.goto(inviteLink);
-  await expect(page.locator("text=Create your account")).toBeVisible();
+  await expect(inviteLinkPage.locator("text=Create your account")).toBeVisible();
 
   // Check required fields
   const button = inviteLinkPage.locator("button[type=submit][disabled]");
@@ -458,7 +458,7 @@ export async function signupFromEmailInviteLink({
   const signupPage = await context.newPage();
 
   signupPage.goto(inviteLink);
-  await expect(page.locator("text=Create your account")).toBeVisible();
+  await expect(signupPage.locator("text=Create your account")).toBeVisible();
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
   // await for value. initial value is ""
   if (expectedUsername) {
