@@ -303,7 +303,7 @@ export default class SalesforceCRMService implements CRM {
     let organizerId: string;
     if (organizerEmail) {
       const userQuery = await this.getSalesforceUserFromEmail(organizerEmail);
-      if (userQuery) {
+      if (userQuery.records.length > 0) {
         organizerId = (userQuery.records[0] as { Email: string; Id: string }).Id;
       }
     }
