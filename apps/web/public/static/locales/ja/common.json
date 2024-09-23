@@ -1731,6 +1731,7 @@
   "already_have_account": "既にアカウントをお持ちですか？",
   "already_have_key": "すでにキーを持っています:",
   "already_have_key_suggestion": "ここに既存の CALCOM_LICENSE_KEY 環境変数をコピーしてください。",
+  "create_license_key": "ライセンスキーを作成",
   "app_is_enabled": "{{appName}} は有効です",
   "app_is_disabled": "{{appName}} は無効です",
   "keys_have_been_saved": "キーが保存されました",

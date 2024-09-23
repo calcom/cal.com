@@ -1731,6 +1731,7 @@
   "already_have_account": "Already have an account?",
   "already_have_key": "I already have a key:",
   "already_have_key_suggestion": "Please copy your existing CALCOM_LICENSE_KEY environment variable here.",
+  "create_license_key": "Create License Key",
   "app_is_enabled": "{{appName}} is enabled",
   "app_is_disabled": "{{appName}} is disabled",
   "keys_have_been_saved": "Keys have been saved",
