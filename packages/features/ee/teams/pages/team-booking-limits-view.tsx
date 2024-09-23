@@ -58,7 +58,10 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
             handleSubmit={(values) => {
               if (values.bookingLimits) {
                 const isValid = validateIntervalLimitOrder(values.bookingLimits);
-                if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+                if (!isValid) {
+                  reset();
+                  throw new Error(t("event_setup_booking_limits_error"));
+                }
               }
               mutation.mutate({ ...values, id: team.id });
             }}>
