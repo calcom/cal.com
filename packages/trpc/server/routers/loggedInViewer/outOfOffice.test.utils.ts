@@ -9,6 +9,7 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import { v4 as uuidv4 } from "uuid";
+import { beforeEach, afterEach } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
