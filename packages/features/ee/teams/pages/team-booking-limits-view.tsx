@@ -7,7 +7,7 @@ import { useForm, Controller } from "react-hook-form";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
+import { classNames, validateIntervalLimitOrder } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -56,6 +56,10 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
           <Form
             form={form}
             handleSubmit={(values) => {
+              if (values.bookingLimits) {
+                const isValid = validateIntervalLimitOrder(values.bookingLimits);
+                if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+              }
               mutation.mutate({ ...values, id: team.id });
             }}>
             <Controller

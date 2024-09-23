@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
@@ -47,6 +48,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+  if (input.bookingLimits) {
+    const isValid = validateIntervalLimitOrder(input.bookingLimits);
+    if (!isValid)
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+  }
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
