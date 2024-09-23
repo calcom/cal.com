@@ -32,7 +32,7 @@ export const ZOutOfOfficeEntriesListSchema = z.object({
   cursor: z.number().nullish(),
   fetchTeamMembersEntries: z.boolean().optional().default(false),
   searchTerm: z.string().optional(),
-  recordType: z.enum(["current", "previous"]).default(OutOfOfficeRecordType.CURRENT),
+  recordType: z.nativeEnum(OutOfOfficeRecordType).default(OutOfOfficeRecordType.CURRENT),
 });
 
 export type TOutOfOfficeEntriesListSchema = z.infer<typeof ZOutOfOfficeEntriesListSchema>;
