@@ -437,7 +437,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       isDynamicEventAndUserIsOwner = eventType.users.some((eventUser) => eventUser.id === user.id);
     }
     let isTeamOrOrgOwnerOrAdmin = false;
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: user.id });
+    const orgId = user?.id && (await getOrgIdFromMemberOrTeamId({ memberId: user?.id }));
     if (input?.isTeamEvent && originalRescheduledBooking?.eventType?.teamId) {
       const teamIdFilter = orgId
         ? { in: [originalRescheduledBooking?.eventType?.teamId, orgId] }
