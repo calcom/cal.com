@@ -12,6 +12,14 @@ import {
 export function transformFutureBookingLimitsApiToInternal(
   inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingWindow"]
 ): TransformFutureBookingsLimitSchema_2024_06_14 | undefined {
+  if (!inputBookingLimits) {
+    return;
+  }
+  if (inputBookingLimits.disabled) {
+    return {
+      periodType: BookingWindowPeriodOutputTypeEnum_2024_06_14.UNLIMITED,
+    };
+  }
   switch (inputBookingLimits?.type) {
     case BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays:
       return {

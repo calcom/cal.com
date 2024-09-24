@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Újraütemezés ugyanazzal a Round-Robin házigazdával",
   "reschedule_with_same_round_robin_host_description": "Az újraütemezett események ugyanahhoz a házigazdához lesznek rendelve, mint eredetileg",
   "disable_input_if_prefilled": "Bemenet letiltása, ha az URL azonosító előre kitöltött",
+  "booking_limits": "Foglalási korlátok",
+  "booking_limits_team_description": "Foglalási korlátok a csapattagok számára az összes csapat eseménytípusra vonatkozóan",
+  "limit_team_booking_frequency_description": "Korlátozza, hogy a tagok hányszor foglalhatók az összes csapat eseménytípusra (kollektív és round-robin)",
+  "booking_limits_updated_successfully": "A foglalási korlátok sikeresen frissítve",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nincs jogosultsága a foglalás módosításához",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
