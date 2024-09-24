@@ -16,6 +16,7 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import {
   isTimeOutOfBounds,
   calculatePeriodLimits,
@@ -435,11 +436,15 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     if (input.usernameList && input.usernameList.length > 1 && user) {
       isDynamicEventAndUserIsOwner = eventType.users.some((eventUser) => eventUser.id === user.id);
     }
-    let isTeamOwnerOrAdmin = false;
+    let isTeamOrOrgOwnerOrAdmin = false;
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: user.id });
     if (input?.isTeamEvent && originalRescheduledBooking?.eventType?.teamId) {
-      const teamOwnerOrAdmin = await prisma.membership.findFirst({
+      const teamIdFilter = orgId
+        ? { in: [originalRescheduledBooking?.eventType?.teamId, orgId] }
+        : originalRescheduledBooking?.eventType?.teamId;
+      const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
         where: {
-          teamId: originalRescheduledBooking?.eventType?.teamId,
+          teamId: teamIdFilter,
           userId: user?.id,
           role: {
             in: [MembershipRole.ADMIN, MembershipRole.OWNER],
@@ -449,9 +454,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           userId: true,
         },
       });
-      isTeamOwnerOrAdmin = !!teamOwnerOrAdmin;
+      isTeamOrOrgOwnerOrAdmin = !!teamOrOrgOwnerOrAdmin;
     }
-    if (userReschedulingIsOwner || isDynamicEventAndUserIsOwner || isTeamOwnerOrAdmin) {
+    if (userReschedulingIsOwner || isDynamicEventAndUserIsOwner || isTeamOrOrgOwnerOrAdmin) {
       const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
       const attendees = await prisma.user.findMany({
         where: {

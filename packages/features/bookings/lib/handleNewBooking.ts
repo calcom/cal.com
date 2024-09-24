@@ -486,11 +486,13 @@ async function handler(
       throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
     }
     const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
-    let isTeamOwnerOrAdmin = false;
+    let isTeamOrOrgOwnerOrAdmin = false;
+    const orgId = userId && (await getOrgIdFromMemberOrTeamId({ memberId: userId }));
     if (isTeamEventType && eventType?.teamId) {
-      const teamOwnerOrAdmin = await prisma.membership.findFirst({
+      const teamIdFilter = orgId ? { in: [eventType?.teamId, orgId] } : eventType?.teamId;
+      const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
         where: {
-          teamId: eventType?.teamId,
+          teamId: teamIdFilter,
           userId,
           role: {
             in: [MembershipRole.ADMIN, MembershipRole.OWNER],
@@ -500,9 +502,9 @@ async function handler(
           userId: true,
         },
       });
-      isTeamOwnerOrAdmin = !!teamOwnerOrAdmin;
+      isTeamOrOrgOwnerOrAdmin = !!teamOrOrgOwnerOrAdmin;
     }
-    if (userReschedulingIsOwner || isTeamOwnerOrAdmin) {
+    if (userReschedulingIsOwner || isTeamOrOrgOwnerOrAdmin) {
       const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
       const attendees = await prisma.user.findMany({
         where: {
