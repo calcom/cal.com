@@ -504,7 +504,11 @@ async function handler(
       });
       isTeamOrOrgOwnerOrAdmin = !!teamOrOrgOwnerOrAdmin;
     }
-    if (userReschedulingIsOwner || isTeamOrOrgOwnerOrAdmin) {
+    let isDynamicEventAndUserIsOwner = false;
+    if (dynamicUserList.length > 1 && userId) {
+      isDynamicEventAndUserIsOwner = users.some((eventUser) => eventUser.id === userId);
+    }
+    if (userReschedulingIsOwner || isTeamOrOrgOwnerOrAdmin || isDynamicEventAndUserIsOwner) {
       const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
       const attendees = await prisma.user.findMany({
         where: {
