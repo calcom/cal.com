@@ -8,7 +8,7 @@ import { resetTestEmails } from "@calcom/lib/testEmails";
 import { MembershipRole, SmsCreditAllocationType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { addCredits } from "../smsCreditUtils";
+import { addCredits } from "../smsCreditsUtils";
 
 interface SmsCreditCountWithTeam {
   id: number;

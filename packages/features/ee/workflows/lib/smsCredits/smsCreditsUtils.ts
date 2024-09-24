@@ -14,10 +14,12 @@ const smsCreditCountSelect = {
   warningSent: true,
   month: true,
   credits: true,
+  overageCharges: true,
   team: {
     select: {
       id: true,
       name: true,
+      smsOverageLimit: true,
       members: {
         select: {
           accepted: true,
@@ -135,37 +137,42 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
 
     const acceptedMembers = team.members.filter((member) => member.accepted);
 
-    const totalCredits = acceptedMembers.length * SMS_CREDITS_PER_MEMBER;
+    const freeCredits = acceptedMembers.length * SMS_CREDITS_PER_MEMBER;
 
-    if (smsCreditCountTeam.credits > totalCredits) {
+    if (smsCreditCountTeam.credits > freeCredits) {
       if (!smsCreditCountTeam.limitReached) {
-        // limit reached
-        const ownersAndAdmins = await Promise.all(
-          acceptedMembers
-            .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
-            .map(async (member) => {
-              return {
-                email: member.user.email,
-                name: member.user.name,
-                t: await getTranslation(member.user.locale ?? "en", "common"),
-              };
-            })
-        );
+        if (smsCreditCountTeam.team.smsOverageLimit === 0) {
+          const ownersAndAdmins = await Promise.all(
+            acceptedMembers
+              .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
+              .map(async (member) => {
+                return {
+                  email: member.user.email,
+                  name: member.user.name,
+                  t: await getTranslation(member.user.locale ?? "en", "common"),
+                };
+              })
+          );
 
-        await sendSmsLimitReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
+          await sendSmsLimitReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
 
-        await prisma.smsCreditCount.update({
-          where: {
-            id: smsCreditCountTeam.id,
-          },
-          data: {
-            limitReached: true,
-          },
-        });
-        return { teamId }; // limit reached now, allow sending last sms
+          await prisma.smsCreditCount.update({
+            where: {
+              id: smsCreditCountTeam.id,
+            },
+            data: {
+              limitReached: true,
+            },
+          });
+          return { teamId, isFree: true }; // limit reached now, allow sending last sms
+        } else {
+          // free Credits are used, limit is not yet reached
+          return { teamId, isFree: false };
+        }
       }
       return null; // limit was already reached, don't send sms
-    } else if (smsCreditCountTeam.credits > totalCredits * 0.8) {
+    } else if (smsCreditCountTeam.credits > freeCredits * 0.8) {
+      //todo: I need a different calculation here, maybe 80% or 80% what's above the limit
       if (!smsCreditCountTeam.warningSent) {
         const ownersAndAdmins = await Promise.all(
           acceptedMembers

@@ -1498,15 +1498,16 @@ model PlatformBilling {
 }
 
 model SmsCreditCount {
-  id           Int      @id @default(autoincrement())
-  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int?
-  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId       Int
-  credits      Int      @default(0)
-  month        DateTime
-  limitReached Boolean?
-  warningSent  Boolean?
+  id             Int      @id @default(autoincrement())
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int?
+  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId         Int
+  credits        Int      @default(0)
+  month          DateTime
+  overageCharges Int      @default(0)
+  limitReached   Boolean?
+  warningSent    Boolean?
 }
 
 enum SmsCreditAllocationType {

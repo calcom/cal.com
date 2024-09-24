@@ -7,7 +7,7 @@ import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
-import { addCredits } from "../../smsCredits/smsCreditUtils";
+import { addCredits } from "../../smsCredits/smsCreditsUtils";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
@@ -84,11 +84,15 @@ export const sendSMS = async (params: {
   const payingTeam = await addCredits(phoneNumber, userId, teamId);
 
   if (!!payingTeam) {
+    const statusCallback = !payingTeam.isFree
+      ? `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?teamToCharge={payingTeam.teamId}`
+      : undefined;
     const response = await twilio.messages.create({
       body: body,
       messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
       to: getSMSNumber(phoneNumber, whatsapp),
       from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+      ...(statusCallback ? { statusCallback } : {}),
     });
     return { ...response, teamId: payingTeam.teamId };
   } else {
