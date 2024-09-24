@@ -34,7 +34,7 @@ import {
   Post,
   Body,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
@@ -84,6 +84,7 @@ export class CalendarsController {
 
   @UseGuards(ApiAuthGuard)
   @Get("/busy-times")
+  @ApiOperation({ summary: "Get busy times" })
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
     @GetUser() user: UserWithProfile
@@ -112,6 +113,7 @@ export class CalendarsController {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Get all calendars" })
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
@@ -124,6 +126,7 @@ export class CalendarsController {
   @UseGuards(ApiAuthGuard)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get connect URL" })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -146,6 +149,7 @@ export class CalendarsController {
   @Get("/:calendar/save")
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
+  @ApiOperation({ summary: "Save a calendar" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -175,6 +179,7 @@ export class CalendarsController {
 
   @UseGuards(ApiAuthGuard)
   @Post("/:calendar/credentials")
+  @ApiOperation({ summary: "Sync credentials" })
   async syncCredentials(
     @GetUser() user: User,
     @Param("calendar") calendar: string,
@@ -197,6 +202,7 @@ export class CalendarsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @Permissions([APPS_READ])
+  @ApiOperation({ summary: "Check a calendar connection" })
   async check(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<ApiResponse> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
@@ -216,6 +222,7 @@ export class CalendarsController {
   @UseGuards(ApiAuthGuard)
   @Post("/:calendar/disconnect")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Disconnect a calendar" })
   async deleteCalendarCredentials(
     @Param("calendar") calendar: string,
     @Body() body: DeleteCalendarCredentialsInputBodyDto,
