@@ -1,8 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
-import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -35,6 +34,7 @@ export class SlotsController {
       },
     },
   })
+  @ApiOperation({ summary: "Reserve a slot" })
   async reserveSlot(
     @Body() body: ReserveSlotInput,
     @Res({ passthrough: true }) res: ExpressResponse,
@@ -59,6 +59,7 @@ export class SlotsController {
       },
     },
   })
+  @ApiOperation({ summary: "Delete a selected slot" })
   async deleteSelectedSlot(
     @Query() params: RemoveSelectedSlotInput,
     @Req() req: ExpressRequest
@@ -112,6 +113,7 @@ export class SlotsController {
       },
     },
   })
+  @ApiOperation({ summary: "Get available slots" })
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput,
     @Req() req: ExpressRequest
