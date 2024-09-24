@@ -159,6 +159,21 @@ describe("OAuth Client Users Endpoints", () => {
         .expect(400);
     });
 
+    it(`should fail /POST with incorrect timeFormat`, async () => {
+      const requestBody = {
+        email: userEmail,
+        timeZone: userTimeZone,
+        name: "Alice Smith",
+        timeFormat: 100,
+      };
+
+      await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(400);
+    });
+
     it(`/POST`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
