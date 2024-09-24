@@ -15,14 +15,12 @@ import {
   transformIntervalLimitsInternalToApi,
   transformFutureBookingLimitsInternalToApi,
   transformRecurrenceInternalToApi,
-} from "@calcom/platform-libraries";
-import {
   transformBookerLayoutsInternalToApi,
   transformRequiresConfirmationInternalToApi,
   transformEventTypeColorsInternalToApi,
   parseEventTypeColor,
   transformSeatsInternalToApi,
-} from "@calcom/platform-libraries-1.2.3";
+} from "@calcom/platform-libraries";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,

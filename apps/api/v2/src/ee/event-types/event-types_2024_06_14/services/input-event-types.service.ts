@@ -15,14 +15,12 @@ import {
   systemAfterFieldRescheduleReason,
   EventTypeMetaDataSchema,
   systemBeforeFieldLocation,
-} from "@calcom/platform-libraries";
-import {
   transformBookerLayoutsApiToInternal,
   transformConfirmationPolicyApiToInternal,
   transformEventColorsApiToInternal,
   validateCustomEventName,
   transformSeatsApiToInternal,
-} from "@calcom/platform-libraries-1.2.3";
+} from "@calcom/platform-libraries";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,

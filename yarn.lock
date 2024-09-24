@@ -3508,9 +3508,8 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.36"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.38"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
-    "@calcom/platform-libraries-1.2.3": "npm:@calcom/platform-libraries@1.2.3"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -4459,7 +4458,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries-1.2.3@npm:@calcom/platform-libraries@1.2.3, @calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.38, @calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
@@ -4474,17 +4473,6 @@ __metadata:
     vite-plugin-environment: ^1.1.3
   languageName: unknown
   linkType: soft
-
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.36":
-  version: 0.0.36
-  resolution: "@calcom/platform-libraries@npm:0.0.36"
-  dependencies:
-    "@calcom/core": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: 12147c9e10dda5c879d56d88ebc5a50a17e85b7ce683654af56c0eaafedb1167373bba3764c29c30e466ea7776bf96b7b191327703c125d22381b40802d09a02
-  languageName: node
-  linkType: hard
 
 "@calcom/platform-types@*, @calcom/platform-types@workspace:packages/platform/types":
   version: 0.0.0-use.local
