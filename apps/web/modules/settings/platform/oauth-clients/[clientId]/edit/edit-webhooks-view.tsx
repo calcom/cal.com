@@ -70,11 +70,11 @@ export default function EditOAuthClientWebhooks() {
                     label: "recording_transcription_generated",
                   },
                   {
-                    value: WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW,
+                    value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
                     label: "after_hosts_daily_no_show_trigger",
                   },
                   {
-                    value: WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW,
+                    value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
                     label: "after_guests_daily_no_show_trigger",
                   },
                 ]}

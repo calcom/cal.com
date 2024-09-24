@@ -33,7 +33,7 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
   const hostsNoShowPromises = hostsThatDidntJoinTheCall.map((host) => {
     return sendWebhookPayload(
       webhook,
-      WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW,
+      WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
       booking,
       maxStartTime,
       host.email

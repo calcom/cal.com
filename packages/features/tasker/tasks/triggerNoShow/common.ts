@@ -1,19 +1,20 @@
 import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { fetcher } from "@calcom/lib/dailyApiFetcher";
+import type { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { getBooking } from "./getBooking";
-import type { TSendNoShowWebhookPayloadSchema } from "./schema";
+import type { TWebhook } from "./schema";
 import { triggerNoShowPayloadSchema } from "./schema";
 
 type Host = {
-  id: string;
+  id: number;
   email: string;
 };
 
 type Booking = Awaited<ReturnType<typeof getBooking>>;
-type Webhook = TSendNoShowWebhookPayloadSchema["allNoShowWebhooks"][number];
+type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"]["participants"];
 
 export const getMeetingSessionsFromRoomName = async (roomName: string) => {
@@ -26,7 +27,7 @@ export function getHosts(booking: Booking): Host[] {
     ...(booking?.eventType?.users?.map((user) => ({ id: user.id, email: user.email })) ?? []),
   ];
 
-  if (booking?.user?.id && !hosts.some((host) => host.id === booking.user.id)) {
+  if (booking?.user?.id && !hosts.some((host) => host.id === booking?.user?.id)) {
     hosts.push({ id: booking.user.id, email: booking.user.email });
   }
 
@@ -54,7 +55,7 @@ export function sendWebhookPayload(
       endTime: booking.endTime,
       eventType: booking.eventType,
       message:
-        triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+        triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
           ? `Guest did't join the call or didn't joined before ${maxStartTimeHumanReadable}`
           : `Host with email ${hostEmail} did't join the call or didn't joined before ${maxStartTimeHumanReadable}`,
     },
@@ -67,6 +68,6 @@ export function sendWebhookPayload(
   });
 }
 
-export function calculateMaxStartTime(startTime: string, time: number, timeUnit: string): number {
+export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: TimeUnit): number {
   return dayjs(startTime).add(time, timeUnit.toLowerCase()).unix();
 }

@@ -1,4 +1,8 @@
+import { HttpError } from "@calcom/lib/http-error";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["trigger-no-show-handler"] });
 
 export const getBooking = async (bookingId: number) => {
   const booking = await prisma.booking.findUniqueOrThrow({

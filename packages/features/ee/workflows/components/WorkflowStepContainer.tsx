@@ -74,9 +74,9 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     return t("how_long_after");
   } else if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
     return t("how_long_before");
-  } else if (trigger === WorkflowTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW) {
+  } else if (trigger === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
     return t("how_long_after_hosts_no_show");
-  } else if (trigger === WorkflowTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW) {
+  } else if (trigger === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
     return t("how_long_after_guests_no_show");
   }
   return null;
@@ -348,8 +348,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         if (newTimeSectionText) {
                           setTimeSectionText(newTimeSectionText);
                           if (
-                            val.value === WorkflowTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW ||
-                            val.value === WorkflowTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+                            val.value === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                            val.value === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                           ) {
                             form.setValue("time", 5);
                             form.setValue("timeUnit", TimeUnit.MINUTE);

@@ -39,7 +39,6 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
-import { triggerGuestNoShow } from "@calcom/features/tasker/tasks/triggerNoShow/triggerGuestNoShow";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -1811,7 +1810,7 @@ async function handler(
   const subscriberHostsNoShowStarted = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW,
+    triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     teamId,
     orgId,
   };
@@ -1820,19 +1819,27 @@ async function handler(
 
   noShowPromises.push(
     ...subscribersHostsNoShowStarted.map((webhook) => {
-      const scheduledAt = dayjs(booking.startTime).add(webhook.time, webhook.timeUnit.toLowerCase()).toDate();
-      return tasker.create(
-        "triggerGuestNoShowWebhook",
-        JSON.stringify({ roomName: booking.uid, bookingId: booking.id, webhook }),
-        { scheduledAt }
-      );
+      if (booking?.startTime && webhook.time && webhook.timeUnit) {
+        const scheduledAt = dayjs(booking.startTime)
+          .add(webhook.time, webhook.timeUnit.toLowerCase())
+          .toDate();
+        return tasker.create(
+          "triggerGuestNoShowWebhook",
+          JSON.stringify({ bookingId: booking.id, webhook }),
+          {
+            scheduledAt,
+            maxAttempts: 1,
+          }
+        );
+      }
+      return Promise.resolve();
     })
   );
 
   const subscriberGuestsNoShowStarted = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW,
+    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
     teamId,
     orgId,
   };
@@ -1841,30 +1848,28 @@ async function handler(
 
   noShowPromises.push(
     ...subscribersGuestsNoShowStarted.map((webhook) => {
-      const scheduledAt = dayjs(booking.startTime).add(webhook.time, webhook.timeUnit.toLowerCase()).toDate();
-      return tasker.create(
-        "triggerHostNoShowWebhook",
-        JSON.stringify({ roomName: booking.uid, bookingId: booking.id, webhook }),
-        { scheduledAt }
-      );
-    })
-  );
+      if (booking?.startTime && webhook.time && webhook.timeUnit) {
+        const scheduledAt = dayjs(booking.startTime)
+          .add(webhook.time, webhook.timeUnit.toLowerCase())
+          .toDate();
+        return tasker.create("triggerHostNoShowWebhook", JSON.stringify({ bookingId: booking.id, webhook }), {
+          scheduledAt,
+        });
+      }
 
-  const workflowHostsNoShow = workflows.filter(
-    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW
-  );
-  const workflowGuestsNoShow = workflows.filter(
-    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+      return Promise.resolve();
+    })
   );
 
   await Promise.all(noShowPromises);
 
-  await triggerGuestNoShow(
-    JSON.stringify({
-      bookingId: booking.id,
-      webhook: subscribersGuestsNoShowStarted[0],
-    })
-  );
+  // TODO: Support no show workflows
+  // const workflowHostsNoShow = workflows.filter(
+  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+  // );
+  // const workflowGuestsNoShow = workflows.filter(
+  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  // );
 
   // booking successful
   req.statusCode = 201;

@@ -21,6 +21,8 @@ export type WebhookFormData = {
   eventTriggers: WebhookTriggerEvents[];
   secret: string | null;
   payloadTemplate: string | undefined | null;
+  time?: number;
+  timeUnit?: TimeUnit;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
@@ -49,8 +51,11 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
       value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
       label: "recording_transcription_generated",
     },
-    { value: WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW, label: "after_hosts_daily_no_show_trigger" },
-    { value: WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW, label: "after_guests_daily_no_show_trigger" },
+    { value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW, label: "after_hosts_daily_no_show_trigger" },
+    {
+      value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+      label: "after_guests_daily_no_show_trigger",
+    },
   ],
   "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;
@@ -110,8 +115,8 @@ const WebhookForm = (props: {
   const [showTimeSection, setShowTimeSection] = useState(
     !!triggerOptions.find(
       (trigger) =>
-        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW ||
-        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
     )
   );
 
@@ -183,20 +188,11 @@ const WebhookForm = (props: {
                   value={selectValue}
                   onChange={(event) => {
                     onChange(event.map((selection) => selection.value));
-                    console.log(
-                      "event",
-                      event,
-                      event.filter(
-                        (e) =>
-                          e.value === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW ||
-                          e.value === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
-                      )
-                    );
                     setShowTimeSection(
-                      event.find(
+                      !!event.find(
                         (trigger) =>
-                          trigger.value === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW ||
-                          trigger.value === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+                          trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                          trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                       )
                     );
                   }}

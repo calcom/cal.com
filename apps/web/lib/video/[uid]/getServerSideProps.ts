@@ -78,8 +78,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const oldVideoReference = getCalVideoReference(bookingObj.references);
 
-  console.log("bookingObj.references", bookingObj.references);
-
   // set meetingPassword for guests
   if (session?.user.id !== bookingObj.user?.id) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
