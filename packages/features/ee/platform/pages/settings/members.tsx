@@ -9,8 +9,6 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 const PlatformMembersView = () => {
   const { data: user } = useMeQuery();
 
-  console.log(user, "this is the user".toLocaleUpperCase());
-
   const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
 
   const isOrgAdminOrOwner =
