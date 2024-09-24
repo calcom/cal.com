@@ -83,6 +83,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { MembershipRole } from "@calcom/prisma/client";
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -488,7 +489,7 @@ async function handler(
     const isUserEventOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
     const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
     const isUserTeamAdminOrOwner = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-    if (isUserEventOwner || isUserTeamAdminOrOwner) {
+    if (isUserEventOwner || isUserTeamAdminOrOwner || (await isOrganisationAdmin(userId || 0, eventType?.team?.id || 0))) {
       const attendeesEmails = originalRescheduledBooking?.attendees?.map((a) => a.email);
       if (attendeesEmails?.length) {
         let attendees = await prisma.user.findMany({

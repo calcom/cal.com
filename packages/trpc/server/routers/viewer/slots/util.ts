@@ -1,7 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { countBy } from "lodash";
-import { v4 as uuid } from "uuid";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
@@ -9,12 +6,13 @@ import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { isUserReschedulingOwner } from "@calcom/features/bookings/lib/handleNewBooking/getRequiresConfirmationFlags";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { isUserReschedulingOwner } from "@calcom/features/bookings/lib/handleNewBooking/getRequiresConfirmationFlags";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -23,6 +21,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
@@ -31,6 +30,8 @@ import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import { countBy } from "lodash";
+import { v4 as uuid } from "uuid";
 
 import { TRPCError } from "@trpc/server";
 
@@ -445,8 +446,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     const isUserEventOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.userId || 0)
     const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
     const isUserTeamAdminOrOwner = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-    if (isUserEventOwner || isUserTeamAdminOrOwner) {
-      // Get attendees email ids
+    if (isUserEventOwner || isUserTeamAdminOrOwner || (await isOrganisationAdmin(userId || 0, eventType?.team?.id || 0))) {
       const attendeesEmails = originalRescheduledBooking?.attendees?.map((a) => a.email);
       if (attendeesEmails?.length) {
         attendeeUsers = await prisma.user.findMany({
