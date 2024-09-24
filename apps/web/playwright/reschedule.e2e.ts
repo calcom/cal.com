@@ -6,7 +6,6 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { apiLogin } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,

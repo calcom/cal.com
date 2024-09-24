@@ -100,12 +100,20 @@ export {
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
+  transformBookerLayoutsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformEventColorsApiToInternal,
+  transformSeatsApiToInternal,
   // note(Lauris): Internal to api
   transformBookingFieldsInternalToApi,
   transformLocationsInternalToApi,
   transformIntervalLimitsInternalToApi,
   transformFutureBookingLimitsInternalToApi,
   transformRecurrenceInternalToApi,
+  transformBookerLayoutsInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformSeatsInternalToApi,
   // note(Lauris): schemas
   TransformedLocationsSchema,
   BookingFieldsSchema,
@@ -118,7 +126,7 @@ export {
 
 export type { SystemField, CustomField } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit } from "@calcom/lib";
+export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
@@ -133,3 +141,4 @@ export { getTranslation };
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
+export { validateCustomEventName } from "@calcom/core/event";

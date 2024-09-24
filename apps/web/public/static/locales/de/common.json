@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Mit demselben Round-Robin-Gastgeber neu planen",
   "reschedule_with_same_round_robin_host_description": "Neu geplante Ereignisse werden demselben Gastgeber zugewiesen wie ursprünglich geplant",
   "disable_input_if_prefilled": "Eingabe deaktivieren, wenn die URL-Kennung vorausgefüllt ist",
+  "booking_limits": "Buchungslimits",
+  "booking_limits_team_description": "Buchungslimits für Teammitglieder über alle Team-Ereignistypen hinweg",
+  "limit_team_booking_frequency_description": "Begrenzen Sie, wie oft Mitglieder über alle Team-Ereignistypen hinweg (kollektiv und round-robin) gebucht werden können",
+  "booking_limits_updated_successfully": "Buchungslimits erfolgreich aktualisiert",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Sie sind nicht berechtigt, diese Änderung an der Buchung vorzunehmen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

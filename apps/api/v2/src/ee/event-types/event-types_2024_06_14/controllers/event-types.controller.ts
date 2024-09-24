@@ -3,7 +3,9 @@ import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
 import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
 import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/update-event-type.output";
+import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -23,14 +25,15 @@ import {
   HttpStatus,
   Delete,
   Query,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ApiHeader, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
-  CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
   GetEventTypesQuery_2024_06_14,
+  CreateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -45,7 +48,11 @@ import {
   required: true,
 })
 export class EventTypesController_2024_06_14 {
-  constructor(private readonly eventTypesService: EventTypesService_2024_06_14) {}
+  constructor(
+    private readonly eventTypesService: EventTypesService_2024_06_14,
+    private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
+    private readonly eventTypeResponseTransformPipe: EventTypeResponseTransformPipe
+  ) {}
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
@@ -60,11 +67,16 @@ export class EventTypesController_2024_06_14 {
     @Body() body: CreateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput_2024_06_14> {
-    const eventType = await this.eventTypesService.createUserEventType(user, body);
+    const transformedBody = await this.inputEventTypesService.transformAndValidateCreateEventTypeInput(
+      user.id,
+      body
+    );
+
+    const eventType = await this.eventTypesService.createUserEventType(user, transformedBody);
 
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
@@ -89,7 +101,7 @@ export class EventTypesController_2024_06_14 {
 
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
@@ -101,7 +113,7 @@ export class EventTypesController_2024_06_14 {
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypes,
+      data: this.eventTypeResponseTransformPipe.transform(eventTypes),
     };
   }
 
@@ -116,15 +128,21 @@ export class EventTypesController_2024_06_14 {
   })
   @HttpCode(HttpStatus.OK)
   async updateEventType(
-    @Param("eventTypeId") eventTypeId: number,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<UpdateEventTypeOutput_2024_06_14> {
-    const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
+    const transformedBody = await this.inputEventTypesService.transformAndValidateUpdateEventTypeInput(
+      body,
+      user.id,
+      eventTypeId
+    );
+
+    const eventType = await this.eventTypesService.updateEventType(eventTypeId, transformedBody, user);
 
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
