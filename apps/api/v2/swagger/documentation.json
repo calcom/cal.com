@@ -490,7 +490,7 @@
           }
         },
         "tags": [
-          "OAuth - development only"
+          "oauth"
         ]
       }
     },
@@ -543,7 +543,7 @@
           }
         },
         "tags": [
-          "OAuth - development only"
+          "oauth"
         ]
       }
     },
@@ -563,6 +563,7 @@
             "name": "x-cal-secret-key",
             "required": true,
             "in": "header",
+            "description": "OAuth client secret key.",
             "schema": {
               "type": "string"
             }
@@ -591,7 +592,8 @@
           }
         },
         "tags": [
-          "OAuth - development only"
+          "oauth",
+          "Managed users"
         ]
       }
     },
@@ -4223,11 +4225,26 @@
         },
         "responses": {
           "201": {
-            "description": "",
+            "description": "Successful response returning uid of reserved slot.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "uid": {
+                          "type": "string",
+                          "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4241,14 +4258,31 @@
     "/v2/slots/selected-slot": {
       "delete": {
         "operationId": "SlotsController_deleteSelectedSlot",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "query",
+            "description": "Unique identifier for the slot to be removed.",
+            "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Response deleting reserved slot by uid.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    }
+                  }
                 }
               }
             }
@@ -4262,7 +4296,68 @@
     "/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "startTime",
+            "required": true,
+            "in": "query",
+            "description": "Start date string starting from which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endTime",
+            "required": true,
+            "in": "query",
+            "description": "End date string until which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T23:59:59.999Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "query",
+            "description": "Event Type ID for which slots are being fetched.",
+            "example": 100,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of the event type for which slots are being fetched.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "usernameList",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "duration",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - length of returned slots.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -4923,6 +5018,11 @@
             "nullable": true,
             "example": "alice"
           },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "alice"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -4998,6 +5098,7 @@
           "id",
           "email",
           "username",
+          "name",
           "timeZone",
           "weekStart",
           "createdDate",
@@ -5513,7 +5614,8 @@
         "type": "object",
         "properties": {
           "refreshToken": {
-            "type": "string"
+            "type": "string",
+            "description": "Managed user's refresh token."
           }
         },
         "required": [
@@ -7938,6 +8040,9 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
+          },
+          "bookingLimits": {
+            "type": "string"
           }
         }
       },
@@ -11802,7 +11907,32 @@
       },
       "ReserveSlotInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event Type ID for which timeslot is being reserved.",
+            "example": 100
+          },
+          "slotUtcStartDate": {
+            "type": "string",
+            "description": "Start date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z"
+          },
+          "slotUtcEndDate": {
+            "type": "string",
+            "description": "End date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:30:00.000Z"
+          },
+          "bookingUid": {
+            "type": "string",
+            "description": "Optional but only for events with seats. Used to retrieve booking of a seated event."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotUtcStartDate",
+          "slotUtcEndDate"
+        ]
       },
       "UserWebhookOutputDto": {
         "type": "object",
