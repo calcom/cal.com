@@ -296,9 +296,9 @@ test.describe("Organization", () => {
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
+        await expect(page.locator("text=Create your account")).toBeVisible();
         await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
         await page.locator('[data-testid="continue-with-email-button"]').click();
-        await expect(page.locator("text=Create your account")).toBeVisible();
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
