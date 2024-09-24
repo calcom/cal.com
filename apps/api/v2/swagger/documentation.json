@@ -3622,6 +3622,58 @@
         ]
       }
     },
+    "/v2/calendars/ics-feed/save": {
+      "post": {
+        "operationId": "CalendarsController_createIcsFeed",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIcsFeedInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateIcsFeedOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
+    "/v2/calendars/ics-feed/check": {
+      "get": {
+        "operationId": "CalendarsController_checkIcsFeed",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
     "/v2/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
@@ -11010,6 +11062,99 @@
           },
           "data": {
             "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateIcsFeedInputDto": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "example": [
+              "https://cal.com/ics/feed.ics",
+              "http://cal.com/ics/feed.ics"
+            ],
+            "description": "An array of ICS URLs",
+            "items": {
+              "type": "string",
+              "example": "https://cal.com/ics/feed.ics"
+            }
+          },
+          "readOnly": {
+            "type": "boolean",
+            "default": true,
+            "example": false,
+            "description": "Whether to allowing writing to the calendar or not"
+          }
+        },
+        "required": [
+          "urls"
+        ]
+      },
+      "CreateIcsFeedOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1234567890,
+            "description": "The id of the calendar credential"
+          },
+          "type": {
+            "type": "string",
+            "example": "ics-feed_calendar",
+            "description": "The type of the calendar"
+          },
+          "userId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1234567890,
+            "description": "The user id of the user that created the calendar"
+          },
+          "teamId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1234567890,
+            "description": "The team id of the user that created the calendar"
+          },
+          "appId": {
+            "type": "string",
+            "nullable": true,
+            "example": "ics-feed",
+            "description": "The slug of the calendar"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": false,
+            "description": "Whether the calendar credentials are valid or not"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "userId",
+          "teamId",
+          "appId",
+          "invalid"
+        ]
+      },
+      "CreateIcsFeedOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateIcsFeedOutput"
           }
         },
         "required": [
