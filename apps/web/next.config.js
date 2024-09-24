@@ -440,6 +440,12 @@ const nextConfig = {
       },
       {
         source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "cal.com",
+          },
+        ],
         headers: [
           // make sure to pass full referer URL for booking pages
           {
