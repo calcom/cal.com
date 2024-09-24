@@ -6,7 +6,7 @@ export interface Tasker {
   create(
     type: TaskTypes,
     payload: string,
-    options: { scheduledAt?: Date; maxAttempts?: number }
+    options?: { scheduledAt?: Date; maxAttempts?: number }
   ): Promise<string>;
   processQueue(): Promise<void>;
   cleanup(): Promise<void>;

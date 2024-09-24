@@ -5,7 +5,7 @@ import type { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { getBooking } from "./getBooking";
-import type { TWebhook } from "./schema";
+import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
 import { triggerNoShowPayloadSchema } from "./schema";
 
 type Host = {
