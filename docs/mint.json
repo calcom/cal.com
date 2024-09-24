@@ -43,13 +43,15 @@
       "name": "API Reference",
       "openapi": "https://api-v2.cal.dev/docs-json",
       "url": "v2/api-reference",
-      "icon": "square-terminal"
+      "icon": "square-terminal",
+      "version": "v2"
     },
     {
       "name": "API Reference",
       "openapi": "/v1/api-reference/openapi.json",
       "url": "v1/api-reference",
-      "icon": "square-terminal"
+      "icon": "square-terminal",
+      "version": "v1"
     }
   ],
   "navigation": [
