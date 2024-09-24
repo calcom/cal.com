@@ -62,7 +62,7 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
    - Key: ooo_created
    - Name: Out Of Office Created
    - Noun: OOO Entry
-   - Description: Triggers when a new Out Of Office entry is created. 
+   - Description: Triggers when a new Out Of Office entry is created.
 2. API Configuration (apiKey is set automatically, leave it like it is):
    - Trigger Type: REST Hook
    - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
@@ -75,7 +75,6 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listOOOEntries
 3. Test your API request
 4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { oooEntry: { ... } } }
-
 
 ### Set ZAPIER_INVITE_LINK
 
