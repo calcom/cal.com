@@ -301,7 +301,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
-  const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
 
@@ -641,29 +640,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           />
         </div>
       </SettingsToggle>
-      <Controller
-        name="showOptimizedSlots"
-        render={({ field: { onChange, value } }) => {
-          const isChecked = value;
-          return (
-            <SettingsToggle
-              toggleSwitchAtTheEnd={true}
-              labelClassName="text-sm"
-              title={t("show_optimized_slots")}
-              description={t("show_optimized_slots_description")}
-              checked={isChecked}
-              {...showOptimizedSlotsLocked}
-              onCheckedChange={(active) => {
-                onChange(active ?? false);
-              }}
-              switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
-              )}
-            />
-          );
-        }}
-      />
     </div>
   );
 };
