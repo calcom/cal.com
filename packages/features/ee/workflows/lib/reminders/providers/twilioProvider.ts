@@ -40,14 +40,16 @@ function getSMSNumber(phone: string, whatsapp = false) {
   return whatsapp ? `whatsapp:${phone}` : phone;
 }
 
-export const sendSMS = async (
-  phoneNumber: string,
-  body: string,
-  sender: string,
-  userId?: number | null,
-  teamId?: number | null, // teamId of workflow
-  whatsapp = false
-) => {
+export const sendSMS = async (params: {
+  phoneNumber: string;
+  body: string;
+  sender: string;
+  userId?: number | null;
+  teamId?: number | null; // teamId of workflow
+  whatsapp?: boolean;
+}) => {
+  const { phoneNumber, body, sender, userId, teamId, whatsapp = false } = params;
+
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);

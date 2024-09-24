@@ -49,7 +49,6 @@ export async function getCreditsForNumber(phoneNumber: string) {
 
 export async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
   //todo: teamId should also be given for managed event types and user worklfows
-  //todo: orgs don't pay creditss
   const credits = await getCreditsForNumber(phoneNumber);
 
   if (!teamId && userId) {
