@@ -22,7 +22,7 @@ export type FormResponse = Record<
 export type Fields = z.infer<typeof zodFieldsView>;
 export type Field = NonNullable<Fields>[number];
 export type Routes = z.infer<typeof zodRoutesView>;
-export type Route = Routes[0];
+export type Route = NonNullable<Routes>[0];
 export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
 
 export type SerializableFormTeamMembers = {

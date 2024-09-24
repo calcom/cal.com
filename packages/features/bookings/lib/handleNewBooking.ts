@@ -250,6 +250,7 @@ async function handler(
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
+    teamMemberIds,
     ...reqBody
   } = bookingData;
 
@@ -354,7 +355,7 @@ async function handler(
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req);
+  })[] = await loadUsers(eventType, dynamicUserList, req, teamMemberIds);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {

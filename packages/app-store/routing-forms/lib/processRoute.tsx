@@ -22,7 +22,7 @@ export function processRoute({
 
   const routes = form.routes || [];
 
-  let decidedAction: Route["action"] | null = null;
+  let chosenRoute: Route | null = null;
 
   const fallbackRoute = routes.find(isFallbackRoute);
 
@@ -67,15 +67,14 @@ export function processRoute({
       result = true;
     }
     if (result) {
-      decidedAction = route.action;
+      chosenRoute = route;
       return true;
     }
   });
 
-  if (!decidedAction) {
+  if (!chosenRoute) {
     return null;
   }
 
-  // Without type assertion, it is never. See why https://github.com/microsoft/TypeScript/issues/16928
-  return decidedAction as Route["action"];
+  return chosenRoute;
 }

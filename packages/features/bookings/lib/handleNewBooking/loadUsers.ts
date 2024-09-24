@@ -14,10 +14,13 @@ const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 
-export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage) => {
+export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage, teamMemberIds: number[] | undefined) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);
 
+    if (teamMemberIds) {
+      return await loadUsersByTeamMemberIds(teamMemberIds);
+    }
     return eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
@@ -27,6 +30,25 @@ export const loadUsers = async (eventType: EventType, dynamicUserList: string[],
     }
     throw new HttpError({ statusCode: 500, message: "Unable to load users" });
   }
+};
+
+const loadUsersByTeamMemberIds = async (teamMemberIds: number[]): Promise<NewBookingEventType["users"]> => {
+  log.debug("called", { teamMemberIds });
+  const users = await prisma.user.findMany({
+    where: {
+      id: {
+        in: teamMemberIds,
+      },
+    },
+    select: {
+      ...userSelect.select,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
+      metadata: true,
+    },
+  });
+  return users;
 };
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {

@@ -1,4 +1,6 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
+import { Utils as QbUtils } from "react-awesome-query-builder";
+import jsonLogic from "../lib/jsonLogicOverrides";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -9,6 +11,10 @@ import type { Ensure } from "@calcom/types/utils";
 
 import type { OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
+import isRouter from "../lib/isRouter";
+import { getQueryBuilderConfigForTeamMembers } from "../lib/getQueryBuilderConfig";
+import { getAttributesMappedWithTeamMembers } from "../lib/getAttributes";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 type Field = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
 
@@ -77,12 +83,51 @@ type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   }
 >;
 
+export function findTeamMembersMatchingAttributeLogic({form, routeId}: {form: SerializableForm<App_RoutingForms_Form>, routeId: string}) {
+  const route = form.routes?.find((route) => route.id === routeId);
+  if (!route) {
+    return null
+  }
+  let teamMembersMatchingAttributeLogic: number[] = [];
+  if (!isRouter(route)) {
+    const teamMembersQueryValue = route.teamMembersQueryValue;
+    if (!teamMembersQueryValue) {
+      return null
+    }
+    const teamMembersQueryBuilderConfig = getQueryBuilderConfigForTeamMembers(form);
+    const state = {
+      tree: QbUtils.checkTree(QbUtils.loadTree(teamMembersQueryValue), teamMembersQueryBuilderConfig),
+      config: teamMembersQueryBuilderConfig,
+    };
+    const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
+    const logic = jsonLogicQuery.logic;
+    let result = false;
+    
+    const teamMembersWithAttributes = getAttributesMappedWithTeamMembers();
+    teamMembersWithAttributes.forEach((member) => {
+      if (logic) {
+        // Leave the logs for debugging of routing form logic test in production
+        console.log("Finding team members matching attributes logic", safeStringify({logic, member}));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        result = jsonLogic.apply(logic as any, member.attributes);
+        if (result) {
+          teamMembersMatchingAttributeLogic.push(member.userId);
+        } else {
+          console.log("Team member does not match attributes logic", safeStringify({logic, member}));
+        }
+      }
+    });
+  }
+
+  return teamMembersMatchingAttributeLogic;
+}
+
 export async function onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
-  response: FormResponse
+  response: FormResponse,
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 

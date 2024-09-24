@@ -9,6 +9,7 @@ export const ZResponseInputSchema = z.object({
       value: z.union([z.string(), z.number(), z.array(z.string())]),
     })
   ),
+  chosenRouteId: z.string(),
 });
 
 export type TResponseInputSchema = z.infer<typeof ZResponseInputSchema>;

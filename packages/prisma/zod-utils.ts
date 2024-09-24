@@ -294,6 +294,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
+    teamMemberIds: z.array(z.number()).optional(),
   })
 );
 

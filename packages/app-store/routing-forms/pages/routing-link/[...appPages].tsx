@@ -24,7 +24,7 @@ import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
-import type { NonRouterRoute, FormResponse } from "../../types/types";
+import type { NonRouterRoute, FormResponse, Route } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
@@ -60,16 +60,16 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionWithFormResponseRef = useRef<{
-    action: NonRouterRoute["action"];
+  const chosenRouteWithFormResponseRef = useRef<{
+    route: NonRouterRoute;
     response: FormResponse;
   }>();
   const router = useRouter();
 
   const onSubmit = (response: FormResponse) => {
-    const decidedAction = processRoute({ form, response });
+    const chosenRoute = processRoute({ form, response });
 
-    if (!decidedAction) {
+    if (!chosenRoute) {
       // FIXME: Make sure that when a form is created, there is always a fallback route and then remove this.
       alert("Define atleast 1 route");
       return;
@@ -79,9 +79,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       formId: form.id,
       formFillerId,
       response: response,
+      chosenRouteId: chosenRoute.id,
     });
-    decidedActionWithFormResponseRef.current = {
-      action: decidedAction,
+
+    chosenRouteWithFormResponseRef.current = {
+      route: chosenRoute,
       response,
     };
   };
@@ -92,9 +94,10 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   }, [customPageMessage]);
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
-    onSuccess: async () => {
-      const decidedActionWithFormResponse = decidedActionWithFormResponseRef.current;
-      if (!decidedActionWithFormResponse) {
+    onSuccess: async (data) => {
+      const {teamMembersMatchingAttributeLogic} = data;
+      const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;
+      if (!chosenRouteWithFormResponse) {
         return;
       }
       const fields = form.fields;
@@ -102,20 +105,21 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         throw new Error("Routing Form fields must exist here");
       }
       const allURLSearchParams = getUrlSearchParamsToForward({
-        formResponse: decidedActionWithFormResponse.response,
+        formResponse: chosenRouteWithFormResponse.response,
         fields,
         searchParams: new URLSearchParams(window.location.search),
+        teamMembersMatchingAttributeLogic
       });
-      const decidedAction = decidedActionWithFormResponse.action;
+      const chosenRoute = chosenRouteWithFormResponse.route;
       sdkActionManager?.fire("routed", {
-        actionType: decidedAction.type,
-        actionValue: decidedAction.value,
+        actionType: chosenRoute.action.type,
+        actionValue: chosenRoute.action.value,
       });
       //TODO: Maybe take action after successful mutation
-      if (decidedAction.type === "customPageMessage") {
-        setCustomPageMessage(decidedAction.value);
-      } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
+      if (chosenRoute.action.type === "customPageMessage") {
+        setCustomPageMessage(chosenRoute.action.value);
+      } else if (chosenRoute.action.type === "eventTypeRedirectUrl") {
+        const eventTypeUrlWithResolvedVariables = substituteVariables(chosenRoute.action.value, response, fields);
         router.push(
           getAbsoluteEventTypeRedirectUrl({
             form,
@@ -123,8 +127,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
             allURLSearchParams,
           })
         );
-      } else if (decidedAction.type === "externalRedirectUrl") {
-        navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
+      } else if (chosenRoute.action.type === "externalRedirectUrl") {
+        navigateInTopWindow(`${chosenRoute.action.value}?${allURLSearchParams}`);
       }
       // We don't want to show this message as it doesn't look good in Embed.
       // showToast("Form submitted successfully! Redirecting now ...", "success");

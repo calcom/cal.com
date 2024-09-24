@@ -2,7 +2,7 @@ import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
 import { FieldTypes } from "./FieldTypes";
 import { InitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
-
+import { getAttributes } from "./getAttributes";
 export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: Record<
     string,
@@ -96,33 +96,8 @@ function transformAttributesToCompatibleFormat(attributes: {
 }
 
 export function getQueryBuilderConfigForTeamMembers(form: Pick<RoutingForm, "teamMembers">, forReporting = false) {
- 
-  
-  const attributes = transformAttributesToCompatibleFormat([{
-    label: "Company Size",
-    id: '792ca2a2-df5c-4554-9fc4-c4abd06d4de9',
-    slug: "company-size",
-    type: 'SINGLE_SELECT',
-    options: [
-      {
-        title: "Enterprise",
-        value: "enterprise-1000-employees",
-      },
-      {
-        title: "Large",
-        value: "large-500-employeess",
-      },
-      {
-        title: "Medium",
-        value: "medium-200-employees",
-      },
-      {
-        title: "Small",
-        value: "small-200-employees",
-      },
-    ],
-  }]);
-  
+  const attributes = transformAttributesToCompatibleFormat(getAttributes());
+
   const fields: Record<
    string,
     {

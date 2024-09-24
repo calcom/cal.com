@@ -8,7 +8,7 @@ import { TRPCError } from "@calcom/trpc/server";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
-import { onFormSubmission } from "./utils";
+import { onFormSubmission, findTeamMembersMatchingAttributeLogic} from "./utils";
 
 interface ResponseHandlerOptions {
   ctx: {
@@ -19,7 +19,7 @@ interface ResponseHandlerOptions {
 export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
   const { prisma } = ctx;
   try {
-    const { response, formId } = input;
+    const { response, formId, chosenRouteId } = input;
     const form = await prisma.app_RoutingForms_Form.findFirst({
       where: {
         id: formId,
@@ -91,7 +91,10 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     }
 
     const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-      data: input,
+      data: {
+        formId,
+        response: response,
+      },
     });
 
     const settings = RoutingFormSettings.parse(form.settings);
@@ -115,11 +118,16 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
+    const teamMembersMatchingAttributeLogic = findTeamMembersMatchingAttributeLogic({routeId: chosenRouteId, form});
+    console.log("teamMembersMatchingAttributeLogic", teamMembersMatchingAttributeLogic);
+
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as FormResponse
+      dbFormResponse.response as FormResponse,
+      chosenRouteId
     );
-    return dbFormResponse;
+
+    return { form: dbFormResponse, teamMembersMatchingAttributeLogic };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {

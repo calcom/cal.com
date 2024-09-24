@@ -8,6 +8,7 @@ export function getUrlSearchParamsToForward({
   formResponse,
   fields,
   searchParams,
+  teamMembersMatchingAttributeLogic,
 }: {
   formResponse: Record<
     string,
@@ -20,6 +21,7 @@ export function getUrlSearchParamsToForward({
     "id" | "type" | "options" | "identifier" | "label"
   >[];
   searchParams: URLSearchParams;
+  teamMembersMatchingAttributeLogic: number[] | null;
 }) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
@@ -67,10 +69,12 @@ export function getUrlSearchParamsToForward({
     }
   }
 
+
   const allQueryParams: Params = {
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,
+    teamMemberIds: teamMembersMatchingAttributeLogic?.join(",") || "",
   };
 
   const allQueryURLSearchParams = new URLSearchParams();

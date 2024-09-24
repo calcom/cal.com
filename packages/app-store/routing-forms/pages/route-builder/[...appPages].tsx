@@ -167,7 +167,7 @@ const Route = ({
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
       teamMembersQueryBuilderState: { tree: immutableTree, config: config },
-      queryValue: jsonTree,
+      teamMembersQueryValue: jsonTree,
     });
   };
 
@@ -559,6 +559,7 @@ const Routes = ({
       action: route.action,
       isFallback: route.isFallback,
       queryValue: route.queryValue,
+      teamMembersQueryValue: route.teamMembersQueryValue,
     };
   });
 
@@ -623,7 +624,7 @@ const Routes = ({
                     config: formFieldsQueryBuilderConfig,
                   },
                   teamMembersQueryBuilderState: {
-                    tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
+                    tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), teamMembersQueryBuilderConfig),
                     config: teamMembersQueryBuilderConfig,
                   },
                 },
