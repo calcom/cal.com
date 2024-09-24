@@ -39,6 +39,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
+import { triggerGuestNoShow } from "@calcom/features/tasker/tasks/triggerNoShow/triggerGuestNoShow";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -1804,7 +1805,9 @@ async function handler(
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
   }
 
-  // Check for Guest No show and Host No show Webhook and Workflows
+  // Add task for automatic no show in cal video
+  const noShowPromises: Promise<any>[] = [];
+
   const subscriberHostsNoShowStarted = {
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
@@ -1814,36 +1817,6 @@ async function handler(
   };
 
   const subscribersHostsNoShowStarted = await getWebhooks(subscriberHostsNoShowStarted);
-
-  const subscriberGuestsNoShowStarted = {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW,
-    teamId,
-    orgId,
-  };
-
-  const subscribersGuestsNoShowStarted = await getWebhooks(subscriberGuestsNoShowStarted);
-
-  const workflowHostsNoShow = workflows.filter(
-    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW
-  );
-  const workflowGuestsNoShow = workflows.filter(
-    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
-  );
-
-  const noShowPromises: Promise<any>[] = [];
-
-  noShowPromises.push(
-    ...subscribersGuestsNoShowStarted.map((webhook) => {
-      const scheduledAt = dayjs(booking.startTime).add(webhook.time, webhook.timeUnit.toLowerCase()).toDate();
-      return tasker.create(
-        "triggerHostNoShowWebhook",
-        JSON.stringify({ roomName: booking.uid, bookingId: booking.id, webhook }),
-        { scheduledAt }
-      );
-    })
-  );
 
   noShowPromises.push(
     ...subscribersHostsNoShowStarted.map((webhook) => {
@@ -1856,9 +1829,42 @@ async function handler(
     })
   );
 
+  const subscriberGuestsNoShowStarted = {
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW,
+    teamId,
+    orgId,
+  };
+
+  const subscribersGuestsNoShowStarted = await getWebhooks(subscriberGuestsNoShowStarted);
+
+  noShowPromises.push(
+    ...subscribersGuestsNoShowStarted.map((webhook) => {
+      const scheduledAt = dayjs(booking.startTime).add(webhook.time, webhook.timeUnit.toLowerCase()).toDate();
+      return tasker.create(
+        "triggerHostNoShowWebhook",
+        JSON.stringify({ roomName: booking.uid, bookingId: booking.id, webhook }),
+        { scheduledAt }
+      );
+    })
+  );
+
+  const workflowHostsNoShow = workflows.filter(
+    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_DAILY_NO_SHOW
+  );
+  const workflowGuestsNoShow = workflows.filter(
+    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+  );
+
   await Promise.all(noShowPromises);
 
-  console.log("booking", booking);
+  await triggerGuestNoShow(
+    JSON.stringify({
+      bookingId: booking.id,
+      webhook: subscribersGuestsNoShowStarted[0],
+    })
+  );
 
   // booking successful
   req.statusCode = 201;

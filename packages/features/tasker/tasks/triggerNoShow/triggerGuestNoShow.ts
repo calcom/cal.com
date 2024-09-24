@@ -1,4 +1,4 @@
-import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import {
   calculateMaxStartTime,
@@ -6,6 +6,8 @@ import {
   getMeetingSessionsFromRoomName,
   sendWebhookPayload,
 } from "./common";
+import type { Participants } from "./common";
+import { getBooking } from "./getBooking";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 export async function triggerGuestNoShow(payload: string): Promise<void> {
@@ -30,13 +32,7 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
   );
 
   if (!didGuestJoinTheCall) {
-    await sendWebhookPayload(
-      webhook,
-      WEBHOOK_TRIGGER_EVENTS.AFTER_GUESTS_DAILY_NO_SHOW,
-      booking,
-      roomName,
-      maxStartTime
-    );
+    await sendWebhookPayload(webhook, WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW, booking, maxStartTime);
   }
 }
 

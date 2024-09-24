@@ -1,10 +1,9 @@
 import { z } from "zod";
 
-import { TIME_UNIT, WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
+import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES } from "@calcom/features/ee/workflows/lib/constants";
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 
 const commonSchema = z.object({
-  roomName: z.string(),
   bookingId: z.number(),
 });
 

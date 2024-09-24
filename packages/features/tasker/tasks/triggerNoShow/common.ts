@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { fetcher } from "@calcom/lib/dailyApiFetcher";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { getBooking } from "./getBooking";
 import type { TSendNoShowWebhookPayloadSchema } from "./schema";
@@ -13,15 +14,15 @@ type Host = {
 
 type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TSendNoShowWebhookPayloadSchema["allNoShowWebhooks"][number];
-type Participants = TTriggerNoShowPayloadSchema["data"]["participants"];
+export type Participants = TTriggerNoShowPayloadSchema["data"]["participants"];
 
-export const getMeetingSessionsFromRoomName = (roomName: string) => {
-  return fetcher(`meetings?room=${roomName}`).then(triggerNoShowPayloadSchema.parse);
+export const getMeetingSessionsFromRoomName = async (roomName: string) => {
+  return fetcher(`/meetings?room=${roomName}`).then(triggerNoShowPayloadSchema.parse);
 };
 
 export function getHosts(booking: Booking): Host[] {
   const hosts = [
-    ...(booking?.eventType?.hosts?.map((host) => ({ id: host.id, email: host.email })) ?? []),
+    ...(booking?.eventType?.hosts?.map((host) => ({ id: host.userId, email: host.user.email })) ?? []),
     ...(booking?.eventType?.users?.map((user) => ({ id: user.id, email: user.email })) ?? []),
   ];
 
@@ -34,12 +35,13 @@ export function getHosts(booking: Booking): Host[] {
 
 export function sendWebhookPayload(
   webhook: Webhook,
-  triggerEvent: WEBHOOK_TRIGGER_EVENTS,
+  triggerEvent: WebhookTriggerEvents,
   booking: Booking,
-  roomName: string,
   maxStartTime: number,
   hostEmail?: string
 ): Promise<any> {
+  const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
+
   return sendGenericWebhookPayload({
     secretKey: webhook.secret,
     triggerEvent,
@@ -47,13 +49,14 @@ export function sendWebhookPayload(
     webhook,
     data: {
       bookingId: booking.id,
-      roomName,
+      bookingUid: booking.uid,
       startTime: booking.startTime,
       endTime: booking.endTime,
       eventType: booking.eventType,
-      message: hostEmail
-        ? `Host with email ${hostEmail} did not join the call before ${maxStartTime}`
-        : `Guest did not join the call before ${maxStartTime}`,
+      message:
+        triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_DAILY_NO_SHOW
+          ? `Guest did't join the call or didn't joined before ${maxStartTimeHumanReadable}`
+          : `Host with email ${hostEmail} did't join the call or didn't joined before ${maxStartTimeHumanReadable}`,
     },
   }).catch((e) => {
     console.error(
