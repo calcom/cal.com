@@ -25,6 +25,12 @@ import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: (key: string) => key,
+  };
+});
+
 const workflowSelect = {
   id: true,
   userId: true,
