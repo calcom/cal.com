@@ -48,7 +48,7 @@ test.describe("Team", () => {
       const context = await browser.newContext();
       const newPage = await context.newPage();
       await newPage.goto(inviteLink);
-      await newPage.waitForLoadState("networkidle");
+      await expect(newPage.locator("text=Create your account")).toBeVisible();
 
       // Check required fields
       const button = newPage.locator("button[type=submit][disabled]");

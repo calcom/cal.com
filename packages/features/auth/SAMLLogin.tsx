@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 import z from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
+import { useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
@@ -36,10 +36,9 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
 
   return (
     <Button
-      StartIcon="lock"
-      color="secondary"
+      color="minimal"
       data-testid="saml"
-      className="flex w-full justify-center"
+      className="text-brand-500 h-auto p-0 font-medium"
       onClick={async (event) => {
         event.preventDefault();
 
@@ -65,8 +64,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
           email,
         });
       }}>
-      <span>{t("signin_with_saml_oidc")}</span>
-      {lastUsed === "saml" && <LastUsed />}
+      <span>{t("saml_sso")}</span>
     </Button>
   );
 }
