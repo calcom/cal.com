@@ -88,7 +88,7 @@ class EventType {
   timeZone!: string | null;
 }
 
-class GetBookingData {
+class GetBookingData_2024_04_15 {
   @IsString()
   title!: string;
 
@@ -159,15 +159,15 @@ class GetBookingData {
   eventType!: EventType | null;
 }
 
-export class GetBookingOutput {
+export class GetBookingOutput_2024_04_15 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: GetBookingData,
+    type: GetBookingData_2024_04_15,
   })
   @ValidateNested()
-  @Type(() => GetBookingData)
-  data!: GetBookingData;
+  @Type(() => GetBookingData_2024_04_15)
+  data!: GetBookingData_2024_04_15;
 }
