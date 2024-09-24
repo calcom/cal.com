@@ -4923,6 +4923,11 @@
             "nullable": true,
             "example": "alice"
           },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "alice"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -4998,6 +5003,7 @@
           "id",
           "email",
           "username",
+          "name",
           "timeZone",
           "weekStart",
           "createdDate",
@@ -7962,6 +7968,9 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
+          },
+          "bookingLimits": {
+            "type": "string"
           }
         }
       },
