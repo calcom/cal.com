@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* globals.css */
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    border: 1px solid rgb(231, 232, 229);
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background:rgb(231, 232, 229);
+    border-radius: 10px;
+  }
+
+  
