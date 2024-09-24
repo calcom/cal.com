@@ -1,0 +1,72 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Cal.com Docs",
+  "logo": {
+    "dark": "https://cal.com/logo-white.svg",
+    "light": "https://cal.com/logo.svg"
+  },
+  "favicon": "/favicon-32x32.png",
+  "colors": {
+    "primary": "#111827",
+    "light": "#d6d6d6",
+    "dark": "#111827",
+    "anchors": {
+      "from": "#111827",
+      "to": "#d6d6d6"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@cal.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.cal.com"
+  },
+  "versions": ["v2", "v1"],
+  "tabs": [
+    {
+      "name": "API Reference V2",
+      "url": "v2/api-reference",
+      "version": "v2"
+    },
+    {
+      "name": "API Reference V1",
+      "url": "v1/api-reference",
+      "version": "v1"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "API Reference",
+      "openapi": "/v2/api-reference/openapi.json",
+      "url": "v2/api-reference",
+      "icon": "square-terminal"
+    },
+    {
+      "name": "API Reference",
+      "openapi": "/v1/api-reference/openapi.json",
+      "url": "v1/api-reference",
+      "icon": "square-terminal"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting started",
+      "version": "v2",
+      "pages": ["v2/api-reference/introduction"]
+    },
+    {
+      "group": "Getting started",
+      "version": "v1",
+      "pages": ["v1/api-reference/introduction"]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/calcom",
+    "github": "https://github.com/calcom",
+    "linkedin": "https://www.linkedin.com/company/cal-com"
+  }
+}
