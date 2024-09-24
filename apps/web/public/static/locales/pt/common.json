@@ -1731,6 +1731,7 @@
   "already_have_account": "Já tem uma conta?",
   "already_have_key": "Eu já tenho uma chave:",
   "already_have_key_suggestion": "Por favor, copie a sua variável de ambiente CALCOM_LICENSE_KEY existente aqui.",
+  "create_license_key": "Criar Chave de Licença",
   "app_is_enabled": "{{appName}} foi ativada",
   "app_is_disabled": "{{appName}} foi desativada",
   "keys_have_been_saved": "As chaves foram guardadas",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Reagendar com o mesmo anfitrião Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Os eventos reagendados serão atribuídos ao mesmo anfitrião inicialmente agendado",
   "disable_input_if_prefilled": "Desativar entrada se o identificador de URL estiver pré-preenchido",
+  "booking_limits": "Limites de Reservas",
+  "booking_limits_team_description": "Limites de reservas para membros da equipa em todos os tipos de eventos da equipa",
+  "limit_team_booking_frequency_description": "Limite quantas vezes os membros podem ser reservados em todos os tipos de eventos da equipa (coletivo e round-robin)",
+  "booking_limits_updated_successfully": "Limites de reservas atualizados com sucesso",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Não tem autorização para fazer esta alteração na reserva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

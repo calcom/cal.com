@@ -444,6 +444,9 @@ model Team {
   smsCreditAllocationValue Int?                    @default(50)
   smsOveragesLimit         Int                     @default(0)
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -617,6 +620,7 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  oneTimePassword       String?                    @unique @default(uuid())
   /// @zod.email()
   cancelledBy           String?
   /// @zod.email()

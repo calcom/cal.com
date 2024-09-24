@@ -296,6 +296,8 @@ test.describe("Organization", () => {
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
+        await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+        await page.locator('[data-testid="continue-with-email-button"]').click();
         await expect(page.locator("text=Create your account")).toBeVisible();
         const usernameInput = page.locator('input[name="username"]');
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -558,7 +560,6 @@ function assertInviteLink(inviteLink: string | null | undefined): asserts invite
 
 async function copyInviteLink(page: Page) {
   await page.locator('button:text("Add")').click();
-  await page.locator(`[data-testid="copy-invite-link-button"]`).click();
   const inviteLink = await getInviteLink(page);
   return inviteLink;
 }

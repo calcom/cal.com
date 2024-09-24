@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -18,11 +19,8 @@ test.describe("Change Password Test", () => {
 
     const $newPasswordField = page.locator('[name="newPassword"]');
     $newPasswordField.fill(`${pro.username}Aa1111`);
-
-    await page.locator("text=Update").click();
-
-    const toast = await page.waitForSelector('[data-testid="toast-success"]');
-
-    expect(toast).toBeTruthy();
+    await submitAndWaitForResponse(page, "/api/trpc/auth/changePassword?batch=1", {
+      action: () => page.locator("text=Update").click(),
+    });
   });
 });

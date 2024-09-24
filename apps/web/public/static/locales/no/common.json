@@ -1731,6 +1731,7 @@
   "already_have_account": "Har du allerede en bruker?",
   "already_have_key": "Jeg har allerede en nøkkel:",
   "already_have_key_suggestion": "Vennligst kopier din eksisterende CALCOM_LICENSE_KEY miljøvariabel her.",
+  "create_license_key": "Opprett lisensnøkkel",
   "app_is_enabled": "{{appName}} er aktivert",
   "app_is_disabled": "{{appName}} er deaktivert",
   "keys_have_been_saved": "Nøkler har blitt lagret",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Omplanlegg med samme Round-Robin-vert",
   "reschedule_with_same_round_robin_host_description": "Omplanlagte hendelser vil bli tildelt samme vert som opprinnelig planlagt",
   "disable_input_if_prefilled": "Deaktiver inndata hvis URL-identifikatoren er forhåndsutfylt",
+  "booking_limits": "Bestillingsgrenser",
+  "booking_limits_team_description": "Bestillingsgrenser for teammedlemmer på tvers av alle teamhendelsestyper",
+  "limit_team_booking_frequency_description": "Begrens hvor mange ganger medlemmer kan bookes på tvers av alle teamhendelsestyper (kollektivt og round-robin)",
+  "booking_limits_updated_successfully": "Bestillingsgrenser oppdatert vellykket",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tillatelse til å gjøre denne endringen i bestillingen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
