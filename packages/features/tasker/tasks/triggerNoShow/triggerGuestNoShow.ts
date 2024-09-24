@@ -13,13 +13,13 @@ import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 export async function triggerGuestNoShow(payload: string): Promise<void> {
   const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
+  const booking = await getBooking(bookingId);
   const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
 
   if (!dailyVideoReference)
     throw new Error(`Daily video reference not found in triggerHostNoShow with bookingId ${bookingId}`);
 
   const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
-  const booking = await getBooking(bookingId);
 
   const hosts = getHosts(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
@@ -46,6 +46,6 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
   }
 }
 
-function checkIfUserJoinedTheCall(userId: string, allParticipants: Participants): boolean {
-  return allParticipants.some((participant) => participant.user_id === userId);
+function checkIfUserJoinedTheCall(userId: number, allParticipants: Participants): boolean {
+  return allParticipants.some((participant) => parseInt(participant.user_id) === userId);
 }

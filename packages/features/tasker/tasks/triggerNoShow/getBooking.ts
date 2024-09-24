@@ -1,4 +1,5 @@
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 

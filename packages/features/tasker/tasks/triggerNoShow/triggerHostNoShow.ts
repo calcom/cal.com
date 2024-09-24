@@ -43,6 +43,6 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
   await Promise.all(hostsNoShowPromises);
 }
 
-function checkIfUserJoinedTheCall(userId: string, allParticipants: Participants): boolean {
-  return allParticipants.some((participant) => participant.user_id === userId);
+function checkIfUserJoinedTheCall(userId: number, allParticipants: Participants): boolean {
+  return allParticipants.some((participant) => parseInt(participant.user_id) === userId);
 }

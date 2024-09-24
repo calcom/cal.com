@@ -16,7 +16,7 @@ export const ZWebhook = z.object({
   eventTriggers: z.array(z.string()),
 });
 
-export const TWebhook = z.infer<typeof ZWebhook>;
+export type TWebhook = z.infer<typeof ZWebhook>;
 
 export const triggerNoShowPayloadSchema = z.object({
   total_count: z.number(),
@@ -42,10 +42,10 @@ export const triggerNoShowPayloadSchema = z.object({
   ),
 });
 
-export const TTriggerNoShowPayloadSchema = z.infer<typeof triggerNoShowPayloadSchema>;
+export type TTriggerNoShowPayloadSchema = z.infer<typeof triggerNoShowPayloadSchema>;
 
 export const ZSendNoShowWebhookPayloadSchema = commonSchema.extend({
   webhook: ZWebhook,
 });
 
-export const TSendNoShowWebhookPayloadSchema = z.infer<typeof ZSendNoShowWebhookPayloadSchema>;
+export type TSendNoShowWebhookPayloadSchema = z.infer<typeof ZSendNoShowWebhookPayloadSchema>;

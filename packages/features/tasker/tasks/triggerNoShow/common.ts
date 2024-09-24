@@ -69,5 +69,7 @@ export function sendWebhookPayload(
 }
 
 export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: TimeUnit): number {
-  return dayjs(startTime).add(time, timeUnit.toLowerCase()).unix();
+  return dayjs(startTime)
+    .add(time, timeUnit.toLowerCase() as dayjs.ManipulateType)
+    .unix();
 }

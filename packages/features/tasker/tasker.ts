@@ -3,7 +3,11 @@ export type TaskTypes = "sendEmail" | "sendWebhook" | "sendSms" | "triggerHostNo
 export type TaskHandler = (payload: string) => Promise<void>;
 export interface Tasker {
   /** Create a new task with the given type and payload. */
-  create(type: TaskTypes, payload: string): Promise<string>;
+  create(
+    type: TaskTypes,
+    payload: string,
+    options: { scheduledAt?: Date; maxAttempts?: number }
+  ): Promise<string>;
   processQueue(): Promise<void>;
   cleanup(): Promise<void>;
 }

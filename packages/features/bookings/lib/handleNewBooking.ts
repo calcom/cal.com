@@ -1821,14 +1821,13 @@ async function handler(
     ...subscribersHostsNoShowStarted.map((webhook) => {
       if (booking?.startTime && webhook.time && webhook.timeUnit) {
         const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase())
+          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
         return tasker.create(
           "triggerGuestNoShowWebhook",
           JSON.stringify({ bookingId: booking.id, webhook }),
           {
             scheduledAt,
-            maxAttempts: 1,
           }
         );
       }
@@ -1850,7 +1849,7 @@ async function handler(
     ...subscribersGuestsNoShowStarted.map((webhook) => {
       if (booking?.startTime && webhook.time && webhook.timeUnit) {
         const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase())
+          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
         return tasker.create("triggerHostNoShowWebhook", JSON.stringify({ bookingId: booking.id, webhook }), {
           scheduledAt,
