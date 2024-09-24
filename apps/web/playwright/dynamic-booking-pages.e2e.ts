@@ -5,6 +5,7 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
+  confirmReschedule,
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
@@ -42,7 +43,7 @@ test("dynamic booking", async ({ page, users }) => {
     await selectSecondAvailableTimeSlotNextMonth(page);
 
     // No need to fill fields since they should be already filled
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
@@ -69,8 +70,6 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
   let duration = 15;
   const free = await users.create({ username: "free.example" });
   await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
-
-  // await page.waitForLoadState("networkidle");
 
   const listItemByDurationTestId = (duration: number) => `multiple-choice-${duration}mins`;
 

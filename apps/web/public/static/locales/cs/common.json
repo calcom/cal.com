@@ -1731,6 +1731,7 @@
   "already_have_account": "Už máte účet?",
   "already_have_key": "Klíč již mám:",
   "already_have_key_suggestion": "Zkopírujte sem svou stávající proměnnou prostředí CALCOM_LICENSE_KEY.",
+  "create_license_key": "Vytvořit licenční klíč",
   "app_is_enabled": "Aplikace {{appName}} je povolena",
   "app_is_disabled": "Aplikace {{appName}} je zakázána",
   "keys_have_been_saved": "Klíče byly uloženy",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Přeplánovat se stejným hostitelem Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Přeplánované události budou přiřazeny stejnému hostiteli jako původně",
   "disable_input_if_prefilled": "Zakázat vstup, pokud je identifikátor URL předvyplněn",
+  "booking_limits": "Limity rezervací",
+  "booking_limits_team_description": "Limity rezervací pro členy týmu napříč všemi typy týmových událostí",
+  "limit_team_booking_frequency_description": "Omezte, kolikrát mohou být členové rezervováni napříč všemi typy týmových událostí (kolektivní a round-robin)",
+  "booking_limits_updated_successfully": "Limity rezervací byly úspěšně aktualizovány",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemáte oprávnění provést tuto změnu v rezervaci",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1731,6 +1731,7 @@
   "already_have_account": "Artıq hesabınız var?",
   "already_have_key": "Artıq açarım var:",
   "already_have_key_suggestion": "Mövcud CALCOM_LICENSE_KEY mühit dəyişənini bura kopyalayın.",
+  "create_license_key": "Lisenziya Açarı Yarat",
   "app_is_enabled": "{{appName}} aktivdir",
   "app_is_disabled": "{{appName}} deaktivdir",
   "keys_have_been_saved": "Açarlar saxlanıldı",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Eyni Round-Robin ev sahibi ilə yenidən planlaşdır",
   "reschedule_with_same_round_robin_host_description": "Yenidən planlaşdırılan tədbirlər əvvəlcə təyin olunan ev sahibinə təyin ediləcək",
   "disable_input_if_prefilled": "URL identifikatoru əvvəlcədən doldurulubsa girişi deaktiv et",
+  "booking_limits": "Rezervasiya Məhdudiyyətləri",
+  "booking_limits_team_description": "Bütün komanda tədbir növləri üzrə komanda üzvləri üçün rezervasiya məhdudiyyətləri",
+  "limit_team_booking_frequency_description": "Komanda üzvlərinin bütün komanda tədbir növləri (kollektiv və round-robin) üzrə neçə dəfə rezervasiya edilə biləcəyini məhdudlaşdırın",
+  "booking_limits_updated_successfully": "Rezervasiya məhdudiyyətləri uğurla yeniləndi",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Bu dəyişikliyi etmək üçün səlahiyyətiniz yoxdur",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

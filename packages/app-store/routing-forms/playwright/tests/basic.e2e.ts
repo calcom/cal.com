@@ -28,8 +28,6 @@ const Identifiers = {
 test.describe("Routing Forms", () => {
   test.describe("Zero State Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
-      await page.waitForSelector('[data-testid="empty-screen"]');
-
       const formId = await addForm(page);
 
       await page.click('[href*="/forms"]');
@@ -81,6 +79,7 @@ test.describe("Routing Forms", () => {
     test.describe("F1<-F2 Relationship", () => {
       test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
+        await page.goto(`/routing-forms/forms`);
         const form2Id = await addForm(page, { name: "F2" });
 
         await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
@@ -198,7 +197,6 @@ test.describe("Routing Forms", () => {
         }
       );
       await user.apiLogin();
-      await page.goto(`/routing-forms/forms`);
     });
 
     test.afterEach(async ({ users }) => {
@@ -210,6 +208,9 @@ test.describe("Routing Forms", () => {
   todo("should be able to duplicate form");
 
   test.describe("Seeded Routing Form ", () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto(`/routing-forms/forms`);
+    });
     test.afterEach(async ({ users }) => {
       // This also delete forms on cascade
       await users.deleteAll();
@@ -365,7 +366,6 @@ test.describe("Routing Forms", () => {
       const routingForm = user.routingForms[0];
       await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
       await page.click('[data-testid="test-preview"]');
-      // await page.waitForLoadState("networkidle");
 
       //event redirect
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
