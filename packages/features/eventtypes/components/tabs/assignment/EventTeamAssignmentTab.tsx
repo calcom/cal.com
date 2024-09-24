@@ -422,7 +422,12 @@ export const EventTeamAssignmentTab = ({
     .map((member) => mapUserToValue(member, t("pending")));
   const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
     return mapMemberToChildrenOption(
-      { ...member, eventTypes: member.eventTypes.filter((et) => et !== eventType.slug) },
+      {
+        ...member,
+        eventTypes: member.eventTypes.filter(
+          (et) => et !== eventType.slug || !eventType.children.some((c) => c.owner.id === member.id)
+        ),
+      },
       eventType.slug,
       t("pending")
     );

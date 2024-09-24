@@ -1,11 +1,15 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { apiLogin } from "playwright/fixtures/users";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test, type Fixtures } from "./lib/fixtures";
-import { bookTimeSlot, localize, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  bookTimeSlot,
+  localize,
+  submitAndWaitForResponse,
+  selectFirstAvailableTimeSlotNextMonth,
+} from "./lib/testUtils";
 
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
@@ -98,7 +102,7 @@ test.describe("Managed Event Types", () => {
     const optionText = await getByKey(page, "organizer_default_conferencing_app");
     await expect(optionText).toBeVisible();
     await optionText.click();
-    await submitAndWaitForResponse(page);
+    await saveAndWaitForResponse(page);
 
     await page.getByTestId("vertical-tab-assignment").click();
     await gotoBookingPage(page);
@@ -177,18 +181,15 @@ test.describe("Managed Event Types", () => {
     await memberPage.waitForURL("event-types/**");
     await expect(memberPage.locator('input[name="title"]')).toBeEditable();
     await memberPage.locator('input[name="title"]').fill(`Managed Event Title`);
-    await submitAndWaitForResponse(memberPage);
+    await saveAndWaitForResponse(memberPage);
 
     // We edit the managed event as original owner
-    const adminContext = await browser.newContext();
-    const adminPage = await adminContext.newPage();
-    const adminUserSnapshot = await adminUser.self();
-    await apiLogin({ ...adminUserSnapshot, password: adminUserSnapshot.username }, adminPage);
+    const [adminContext, adminPage] = await adminUser.apiLoginOnNewBrowser(browser);
     await adminPage.goto("/event-types");
     await adminPage.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await adminPage.waitForURL("event-types/**");
     await adminPage.locator('input[name="length"]').fill(`45`);
-    await submitAndWaitForResponse(adminPage);
+    await saveAndWaitForResponse(adminPage);
     await adminContext.close();
 
     await memberPage.goto("/event-types");
@@ -200,7 +201,7 @@ test.describe("Managed Event Types", () => {
     expect(await memberPage.locator(`input[name="title"]`).getAttribute("value")).toBe(`Managed Event Title`);
     await memberPage.locator('input[name="title"]').fill(`managed`);
     // Save changes
-    await submitAndWaitForResponse(memberPage);
+    await saveAndWaitForResponse(memberPage);
   });
 
   const MANAGED_EVENT_TABS: { slug: string; locator: (page: Page) => Locator | Promise<Locator> }[] = [
@@ -252,9 +253,6 @@ async function gotoBookingPage(page: Page) {
   await page.goto(previewLink ?? "");
 }
 
-async function submitAndWaitForResponse(page: Page) {
-  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-  await page.locator('[type="submit"]').click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+async function saveAndWaitForResponse(page: Page) {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1");
 }
