@@ -39,7 +39,7 @@ const smsCreditAllocationSchema = z.object({
     SmsCreditAllocationType.SPECIFIC,
   ]),
   smsCreditAllocationValue: z.number().optional(),
-  smsOveragesLimit: z.number(),
+  smsOverageLimit: z.number(),
   smsOveragesEnabled: z.boolean(),
 });
 
@@ -74,8 +74,8 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
   const defaultValues: FormValues = {
     smsCreditAllocationType: team.smsCreditAllocationType ?? SmsCreditAllocationType.SPECIFIC,
     smsCreditAllocationValue: team.smsCreditAllocationValue ?? 50,
-    smsOveragesLimit: team.smsOveragesLimit ?? 0,
-    smsOveragesEnabled: team.smsOveragesLimit > 0,
+    smsOverageLimit: team.smsOverageLimit ?? 0,
+    smsOveragesEnabled: team.smsOverageLimit > 0,
   };
   const form = useForm({
     defaultValues,
@@ -92,9 +92,9 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
     name: "smsCreditAllocationValue",
   });
 
-  const smsOveragesLimit = useWatch({
+  const smsOverageLimit = useWatch({
     control: form.control,
-    name: "smsOveragesLimit",
+    name: "smsOverageLimit",
   });
 
   const smsOveragesEnabled = useWatch({
@@ -160,8 +160,8 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
           <Form
             form={form}
             handleSubmit={(values) => {
-              const { smsOveragesLimit } = values;
-              mutation.mutate({ id: team.id, smsOveragesLimit });
+              const { smsOverageLimit } = values;
+              mutation.mutate({ id: team.id, smsOverageLimit });
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
               <div>
@@ -200,7 +200,7 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                     <div className="mt-4 flex">
                       <div className="max-w-36">
                         <Controller
-                          name="smsOveragesLimit"
+                          name="smsOverageLimit"
                           control={form.control}
                           render={({ field: { value, onChange } }) => (
                             <TextField
@@ -227,7 +227,7 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
           <Form
             form={form}
             handleSubmit={(values) => {
-              const { smsOveragesLimit, ...creditAllocationValues } = values;
+              const { smsOverageLimit, ...creditAllocationValues } = values;
               mutation.mutate({ id: team.id, ...creditAllocationValues });
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">

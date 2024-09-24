@@ -94,7 +94,7 @@ export async function getTeamWithMembers(args: {
       metadata: true,
       smsCreditAllocationType: true,
       smsCreditAllocationValue: true,
-      smsOveragesLimit: true,
+      smsOverageLimit: true,
       parent: {
         select: {
           id: true,

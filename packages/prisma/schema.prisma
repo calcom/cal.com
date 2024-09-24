@@ -442,7 +442,7 @@ model Team {
   smsCreditCounts          SmsCreditCount[]
   smsCreditAllocationType  SmsCreditAllocationType @default(SPECIFIC)
   smsCreditAllocationValue Int?                    @default(50)
-  smsOveragesLimit         Int                     @default(0)
+  smsOverageLimit          Int                     @default(0)
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits Json?
@@ -1495,13 +1495,6 @@ model PlatformBilling {
   overdue           Boolean? @default(false)
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
-}
-
-model SmsCountryCredits {
-  id      String @id @unique @default(uuid())
-  iso     String
-  country String
-  credits Int    @default(0)
 }
 
 model SmsCreditCount {

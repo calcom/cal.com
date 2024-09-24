@@ -7,7 +7,7 @@ import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
-import { addCredits } from "../../smsCreditUtils";
+import { addCredits } from "../../smsCredits/smsCreditUtils";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 

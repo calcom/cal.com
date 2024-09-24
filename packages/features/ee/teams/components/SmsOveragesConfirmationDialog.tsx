@@ -29,11 +29,11 @@ export const SmsOveragesConfirmationDialog = (props: ISmsOveragesDialog) => {
             <div className="mb-8 mt-8">TODO: More information here</div>
             <div className="max-w-32">
               <Controller
-                name="smsOveragesLimit"
+                name="smsOverageLimit"
                 control={formMethods.control}
                 render={({ field: { value, onChange } }) => (
                   <TextField
-                    name="Monthly Limit"
+                    name={t("monthly_limit")}
                     min={1}
                     value={value || undefined}
                     onChange={onChange}
@@ -48,7 +48,7 @@ export const SmsOveragesConfirmationDialog = (props: ISmsOveragesDialog) => {
                 onClick={() => {
                   setIsOpenDialog(false);
                   formMethods.setValue("smsOveragesEnabled", false);
-                  formMethods.setValue("smsOveragesLimit", 0);
+                  formMethods.setValue("smsOverageLimit", 0);
                 }}
                 type="button"
                 color="secondary">

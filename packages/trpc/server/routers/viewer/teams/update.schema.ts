@@ -28,7 +28,7 @@ export const ZUpdateInputSchema = z.object({
     .enum([SmsCreditAllocationType.ALL, SmsCreditAllocationType.NONE, SmsCreditAllocationType.SPECIFIC])
     .optional(),
   smsCreditAllocationValue: z.number().optional(),
-  smsOveragesLimit: z.number().optional(),
+  smsOverageLimit: z.number().optional(),
   bookingLimits: intervalLimitsType.optional(),
 });
 

@@ -66,7 +66,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: input.theme,
     smsCreditAllocationType: input.smsCreditAllocationType,
     smsCreditAllocationValue: input.smsCreditAllocationValue,
-    smsOveragesLimit: input.smsOveragesLimit,
+    smsOverageLimit: input.smsOverageLimit,
     bookingLimits: input.bookingLimits ?? undefined,
   };
 

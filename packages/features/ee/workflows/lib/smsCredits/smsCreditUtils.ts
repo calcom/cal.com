@@ -5,7 +5,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SmsCreditAllocationType, WorkflowMethods } from "@calcom/prisma/enums";
 
-import * as twilio from "./reminders/providers/twilioProvider";
+import * as twilio from "../reminders/providers/twilioProvider";
+import { smsCountryCredits } from "./countryCredits";
 
 const smsCreditCountSelect = {
   id: true,
@@ -43,13 +44,7 @@ export async function getCreditsForNumber(phoneNumber: string) {
     return 0;
   }
 
-  const country = await prisma.smsCountryCredits.findFirst({
-    where: {
-      iso: countryCode,
-    },
-  });
-
-  return country?.credits || 3;
+  return smsCountryCredits[countryCode] || 3;
 }
 
 export async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
