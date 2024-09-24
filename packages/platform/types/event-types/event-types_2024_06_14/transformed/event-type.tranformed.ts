@@ -26,6 +26,7 @@ export type InputEventTransformed_2024_06_14 = Omit<
   | "color"
   | "seats"
   | "customName"
+  | "useDestinationCalendarEmail"
 > & {
   length: number;
   slug: string;
@@ -36,6 +37,7 @@ export type InputEventTransformed_2024_06_14 = Omit<
   durationLimits?: ReturnType<typeof transformIntervalLimitsApiToInternal>;
   recurringEvent?: ReturnType<typeof transformRecurrenceApiToInternal>;
   eventTypeColor?: ReturnType<typeof transformEventColorsApiToInternal>;
+  useEventTypeDestinationCalendarEmail?: boolean;
 } & Partial<
     Pick<ConfirmationPolicyTransformedSchema, "requiresConfirmation" | "requiresConfirmationWillBlockSlot">
   > &
