@@ -25,6 +25,7 @@
     "/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
+        "summary": "Get all managed users",
         "parameters": [
           {
             "name": "clientId",
@@ -58,11 +59,12 @@
           }
         },
         "tags": [
-          "Managed users"
+          "Platform / Managed Users"
         ]
       },
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
+        "summary": "Create a managed user",
         "parameters": [
           {
             "name": "clientId",
@@ -96,13 +98,14 @@
           }
         },
         "tags": [
-          "Managed users"
+          "Platform / Managed Users"
         ]
       }
     },
     "/v2/oauth-clients/{clientId}/users/{userId}": {
       "get": {
         "operationId": "OAuthClientUsersController_getUserById",
+        "summary": "Get a managed user",
         "parameters": [
           {
             "name": "clientId",
@@ -134,11 +137,12 @@
           }
         },
         "tags": [
-          "Managed users"
+          "Platform / Managed Users"
         ]
       },
       "patch": {
         "operationId": "OAuthClientUsersController_updateUser",
+        "summary": "Update a managed user",
         "parameters": [
           {
             "name": "clientId",
@@ -180,11 +184,12 @@
           }
         },
         "tags": [
-          "Managed users"
+          "Platform / Managed Users"
         ]
       },
       "delete": {
         "operationId": "OAuthClientUsersController_deleteUser",
+        "summary": "Delete a managed user",
         "parameters": [
           {
             "name": "clientId",
@@ -216,13 +221,14 @@
           }
         },
         "tags": [
-          "Managed users"
+          "Platform / Managed Users"
         ]
       }
     },
     "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
+        "summary": "Force refresh tokens",
         "parameters": [
           {
             "name": "userId",
@@ -254,7 +260,7 @@
           }
         },
         "tags": [
-          "Managed users"
+          "Platform / Managed Users"
         ]
       }
     },
@@ -598,6 +604,7 @@
     "/v2/event-types": {
       "post": {
         "operationId": "EventTypesController_2024_06_14_createEventType",
+        "summary": "Create an event type",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -641,11 +648,12 @@
           }
         },
         "tags": [
-          "Event types"
+          "Event Types"
         ]
       },
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypes",
+        "summary": "Get all event types",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -697,13 +705,14 @@
           }
         },
         "tags": [
-          "Event types"
+          "Event Types"
         ]
       }
     },
     "/v2/event-types/{eventTypeId}": {
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypeById",
+        "summary": "Get an event type",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -745,11 +754,12 @@
           }
         },
         "tags": [
-          "Event types"
+          "Event Types"
         ]
       },
       "patch": {
         "operationId": "EventTypesController_2024_06_14_updateEventType",
+        "summary": "Update an event type",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -801,11 +811,12 @@
           }
         },
         "tags": [
-          "Event types"
+          "Event Types"
         ]
       },
       "delete": {
         "operationId": "EventTypesController_2024_06_14_deleteEventType",
+        "summary": "Delete an event type",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -847,13 +858,14 @@
           }
         },
         "tags": [
-          "Event types"
+          "Event Types"
         ]
       }
     },
     "/v2/selected-calendars": {
       "post": {
         "operationId": "SelectedCalendarsController_addSelectedCalendar",
+        "summary": "Add a selected calendar",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -878,11 +890,12 @@
           }
         },
         "tags": [
-          "Selected-Calendars"
+          "Selected Calendars"
         ]
       },
       "delete": {
         "operationId": "SelectedCalendarsController_removeSelectedCalendar",
+        "summary": "Delete a selected calendar",
         "parameters": [
           {
             "name": "integration",
@@ -922,14 +935,14 @@
           }
         },
         "tags": [
-          "Selected-Calendars"
+          "Selected Calendars"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams": {
       "get": {
         "operationId": "OrganizationsTeamsController_getAllTeams",
-        "summary": "Get all the teams of an organization.",
+        "summary": "Get all teams",
         "parameters": [
           {
             "name": "orgId",
@@ -973,12 +986,13 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams",
+          "Teams"
         ]
       },
       "post": {
         "operationId": "OrganizationsTeamsController_createTeam",
-        "summary": "Create a team for an organization.",
+        "summary": "Create a team",
         "parameters": [
           {
             "name": "orgId",
@@ -1020,14 +1034,14 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/me": {
       "get": {
         "operationId": "OrganizationsTeamsController_getMyTeams",
-        "summary": "Get the organization's teams user is a member of",
+        "summary": "Get team membership for user",
         "parameters": [
           {
             "name": "orgId",
@@ -1071,14 +1085,14 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}": {
       "get": {
         "operationId": "OrganizationsTeamsController_getTeam",
-        "summary": "Get a team of the organization by ID.",
+        "summary": "Get a team",
         "parameters": [],
         "responses": {
           "200": {
@@ -1093,12 +1107,12 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams"
         ]
       },
       "delete": {
         "operationId": "OrganizationsTeamsController_deleteTeam",
-        "summary": "Delete a team of the organization by ID.",
+        "summary": "Delete a team",
         "parameters": [
           {
             "name": "orgId",
@@ -1130,12 +1144,12 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams"
         ]
       },
       "patch": {
         "operationId": "OrganizationsTeamsController_updateTeam",
-        "summary": "Update a team of the organization by ID.",
+        "summary": "Update a team",
         "parameters": [
           {
             "name": "orgId",
@@ -1177,13 +1191,14 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams"
         ]
       }
     },
     "/v2/organizations/{orgId}/schedules": {
       "get": {
         "operationId": "OrganizationsSchedulesController_getOrganizationSchedules",
+        "summary": "Get all schedules",
         "parameters": [
           {
             "name": "orgId",
@@ -1227,13 +1242,14 @@
           }
         },
         "tags": [
-          "Organizations Schedules"
+          "Orgs / Schedules"
         ]
       }
     },
     "/v2/organizations/{orgId}/users/{userId}/schedules": {
       "post": {
         "operationId": "OrganizationsSchedulesController_createUserSchedule",
+        "summary": "Create a schedule",
         "parameters": [
           {
             "name": "userId",
@@ -1267,11 +1283,13 @@
           }
         },
         "tags": [
-          "Organizations Schedules"
+          "Orgs / Schedules",
+          "Orgs / Users / Schedules"
         ]
       },
       "get": {
         "operationId": "OrganizationsSchedulesController_getUserSchedules",
+        "summary": "Get all schedules",
         "parameters": [
           {
             "name": "userId",
@@ -1295,13 +1313,15 @@
           }
         },
         "tags": [
-          "Organizations Schedules"
+          "Orgs / Schedules",
+          "Orgs / Users / Schedules"
         ]
       }
     },
     "/v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId}": {
       "get": {
         "operationId": "OrganizationsSchedulesController_getUserSchedule",
+        "summary": "Get a schedule",
         "parameters": [
           {
             "name": "userId",
@@ -1333,11 +1353,13 @@
           }
         },
         "tags": [
-          "Organizations Schedules"
+          "Orgs / Schedules",
+          "Orgs / Users / Schedules"
         ]
       },
       "patch": {
         "operationId": "OrganizationsSchedulesController_updateUserSchedule",
+        "summary": "Update a schedule",
         "parameters": [
           {
             "name": "userId",
@@ -1379,11 +1401,13 @@
           }
         },
         "tags": [
-          "Organizations Schedules"
+          "Orgs / Schedules",
+          "Orgs / Users / Schedules"
         ]
       },
       "delete": {
         "operationId": "OrganizationsSchedulesController_deleteUserSchedule",
+        "summary": "Delete a schedule",
         "parameters": [
           {
             "name": "userId",
@@ -1415,13 +1439,15 @@
           }
         },
         "tags": [
-          "Organizations Schedules"
+          "Orgs / Schedules",
+          "Orgs / Users / Schedules"
         ]
       }
     },
     "/v2/organizations/{orgId}/users": {
       "get": {
         "operationId": "OrganizationsUsersController_getOrganizationsUsers",
+        "summary": "Get all users",
         "parameters": [
           {
             "name": "orgId",
@@ -1477,11 +1503,12 @@
           }
         },
         "tags": [
-          "Organizations Users"
+          "Orgs / Users"
         ]
       },
       "post": {
         "operationId": "OrganizationsUsersController_createOrganizationUser",
+        "summary": "Create a user",
         "parameters": [
           {
             "name": "orgId",
@@ -1515,13 +1542,14 @@
           }
         },
         "tags": [
-          "Organizations Users"
+          "Orgs / Users"
         ]
       }
     },
     "/v2/organizations/{orgId}/users/{userId}": {
       "patch": {
         "operationId": "OrganizationsUsersController_updateOrganizationUser",
+        "summary": "Update a user",
         "parameters": [
           {
             "name": "orgId",
@@ -1563,11 +1591,12 @@
           }
         },
         "tags": [
-          "Organizations Users"
+          "Orgs / Users"
         ]
       },
       "delete": {
         "operationId": "OrganizationsUsersController_deleteOrganizationUser",
+        "summary": "Delete a user",
         "parameters": [
           {
             "name": "orgId",
@@ -1599,13 +1628,14 @@
           }
         },
         "tags": [
-          "Organizations Users"
+          "Orgs / Users"
         ]
       }
     },
     "/v2/organizations/{orgId}/memberships": {
       "get": {
         "operationId": "OrganizationsMembershipsController_getAllMemberships",
+        "summary": "Get all memberships",
         "parameters": [
           {
             "name": "orgId",
@@ -1649,11 +1679,12 @@
           }
         },
         "tags": [
-          "Organizations Memberships"
+          "Orgs / Memberships"
         ]
       },
       "post": {
         "operationId": "OrganizationsMembershipsController_createMembership",
+        "summary": "Create a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -1687,13 +1718,14 @@
           }
         },
         "tags": [
-          "Organizations Memberships"
+          "Orgs / Memberships"
         ]
       }
     },
     "/v2/organizations/{orgId}/memberships/{membershipId}": {
       "get": {
         "operationId": "OrganizationsMembershipsController_getOrgMembership",
+        "summary": "Get a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -1725,11 +1757,12 @@
           }
         },
         "tags": [
-          "Organizations Memberships"
+          "Orgs / Memberships"
         ]
       },
       "delete": {
         "operationId": "OrganizationsMembershipsController_deleteMembership",
+        "summary": "Delete a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -1761,11 +1794,12 @@
           }
         },
         "tags": [
-          "Organizations Memberships"
+          "Orgs / Memberships"
         ]
       },
       "patch": {
         "operationId": "OrganizationsMembershipsController_updateMembership",
+        "summary": "Update a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -1807,13 +1841,14 @@
           }
         },
         "tags": [
-          "Organizations Memberships"
+          "Orgs / Memberships"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
+        "summary": "Create an event type",
         "parameters": [
           {
             "name": "teamId",
@@ -1855,11 +1890,12 @@
           }
         },
         "tags": [
-          "Organizations Event Types"
+          "Orgs / Event Types"
         ]
       },
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamEventTypes",
+        "summary": "Get a team event type",
         "parameters": [
           {
             "name": "teamId",
@@ -1892,13 +1928,14 @@
           }
         },
         "tags": [
-          "Organizations Event Types"
+          "Orgs / Event Types"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}": {
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamEventType",
+        "summary": "Get an event type",
         "parameters": [
           {
             "name": "teamId",
@@ -1930,11 +1967,12 @@
           }
         },
         "tags": [
-          "Organizations Event Types"
+          "Orgs / Event Types"
         ]
       },
       "patch": {
         "operationId": "OrganizationsEventTypesController_updateTeamEventType",
+        "summary": "Update a team event type",
         "parameters": [
           {
             "name": "teamId",
@@ -1976,11 +2014,12 @@
           }
         },
         "tags": [
-          "Organizations Event Types"
+          "Orgs / Event Types"
         ]
       },
       "delete": {
         "operationId": "OrganizationsEventTypesController_deleteTeamEventType",
+        "summary": "Delete a team event type",
         "parameters": [
           {
             "name": "teamId",
@@ -2012,13 +2051,14 @@
           }
         },
         "tags": [
-          "Organizations Event Types"
+          "Orgs / Event Types"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/create-phone-call": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createPhoneCall",
+        "summary": "Create a phone call",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -2060,13 +2100,14 @@
           }
         },
         "tags": [
-          "Organizations Event Types"
+          "Orgs / Event Types"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/event-types": {
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamsEventTypes",
+        "summary": "Get all team event types",
         "parameters": [
           {
             "name": "orgId",
@@ -2110,14 +2151,14 @@
           }
         },
         "tags": [
-          "Organizations Event Types"
+          "Orgs / Event Types"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getAllOrgTeamMemberships",
-        "summary": "Get all the memberships of a team of an organization.",
+        "summary": "Get all memberships",
         "parameters": [
           {
             "name": "orgId",
@@ -2169,12 +2210,12 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams / Memberships"
         ]
       },
       "post": {
         "operationId": "OrganizationsTeamsMembershipsController_createOrgTeamMembership",
-        "summary": "Create a membership of an organization's team",
+        "summary": "Create a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -2216,14 +2257,14 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams / Memberships"
         ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}": {
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getOrgTeamMembership",
-        "summary": "Get the membership of an organization's team by ID",
+        "summary": "Get a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -2263,12 +2304,12 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams / Memberships"
         ]
       },
       "delete": {
         "operationId": "OrganizationsTeamsMembershipsController_deleteOrgTeamMembership",
-        "summary": "Delete the membership of an organization's team by ID",
+        "summary": "Delete a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -2308,12 +2349,12 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams / Memberships"
         ]
       },
       "patch": {
         "operationId": "OrganizationsTeamsMembershipsController_updateOrgTeamMembership",
-        "summary": "Update the membership of an organization's team by ID",
+        "summary": "Update a membership",
         "parameters": [
           {
             "name": "orgId",
@@ -2363,13 +2404,14 @@
           }
         },
         "tags": [
-          "Organizations Teams"
+          "Orgs / Teams / Memberships"
         ]
       }
     },
     "/v2/organizations/{orgId}/attributes": {
       "get": {
         "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
+        "summary": "Get all attributes",
         "parameters": [
           {
             "name": "orgId",
@@ -2411,10 +2453,14 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes"
+        ]
       },
       "post": {
         "operationId": "OrganizationsAttributesController_createOrganizationAttribute",
+        "summary": "Create an attribute",
         "parameters": [
           {
             "name": "orgId",
@@ -2446,12 +2492,16 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes"
+        ]
       }
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}": {
       "get": {
         "operationId": "OrganizationsAttributesController_getOrganizationAttribute",
+        "summary": "Get an attribute",
         "parameters": [
           {
             "name": "orgId",
@@ -2481,10 +2531,14 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes"
+        ]
       },
       "patch": {
         "operationId": "OrganizationsAttributesController_updateOrganizationAttribute",
+        "summary": "Update an attribute",
         "parameters": [
           {
             "name": "orgId",
@@ -2524,10 +2578,14 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes"
+        ]
       },
       "delete": {
         "operationId": "OrganizationsAttributesController_deleteOrganizationAttribute",
+        "summary": "Delete an attribute",
         "parameters": [
           {
             "name": "orgId",
@@ -2557,12 +2615,16 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes"
+        ]
       }
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options": {
       "post": {
         "operationId": "OrganizationsOptionsAttributesController_createOrganizationAttributeOption",
+        "summary": "Create an attribute option",
         "parameters": [
           {
             "name": "orgId",
@@ -2602,10 +2664,14 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
       },
       "get": {
         "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptions",
+        "summary": "Get all attribute options",
         "parameters": [
           {
             "name": "orgId",
@@ -2635,12 +2701,16 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
       }
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}": {
       "delete": {
         "operationId": "OrganizationsOptionsAttributesController_deleteOrganizationAttributeOption",
+        "summary": "Delete an attribute option",
         "parameters": [
           {
             "name": "orgId",
@@ -2678,10 +2748,14 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
       },
       "patch": {
         "operationId": "OrganizationsOptionsAttributesController_updateOrganizationAttributeOption",
+        "summary": "Update an attribute option",
         "parameters": [
           {
             "name": "orgId",
@@ -2729,12 +2803,16 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
       }
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}": {
       "post": {
         "operationId": "OrganizationsOptionsAttributesController_assignOrganizationAttributeOptionToUser",
+        "summary": "Assign an attribute to a user",
         "parameters": [
           {
             "name": "orgId",
@@ -2774,10 +2852,14 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
       },
       "get": {
         "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptionsForUser",
+        "summary": "Get all attribute options for a user",
         "parameters": [
           {
             "name": "orgId",
@@ -2807,12 +2889,16 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
       }
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}/{attributeOptionId}": {
       "delete": {
         "operationId": "OrganizationsOptionsAttributesController_unassignOrganizationAttributeOptionFromUser",
+        "summary": "Unassign an attribute from a user",
         "parameters": [
           {
             "name": "orgId",
@@ -2850,12 +2936,16 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Orgs / Attributes / Options"
+        ]
       }
     },
     "/v2/organizations/{orgId}/webhooks": {
       "get": {
         "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
+        "summary": "Get all webhooks",
         "parameters": [
           {
             "name": "orgId",
@@ -2899,11 +2989,12 @@
           }
         },
         "tags": [
-          "Organizations Webhooks"
+          "Orgs / Webhooks"
         ]
       },
       "post": {
         "operationId": "OrganizationsWebhooksController_createOrganizationWebhook",
+        "summary": "Create a webhook",
         "parameters": [
           {
             "name": "orgId",
@@ -2937,13 +3028,14 @@
           }
         },
         "tags": [
-          "Organizations Webhooks"
+          "Orgs / Webhooks"
         ]
       }
     },
     "/v2/organizations/{orgId}/webhooks/{webhookId}": {
       "get": {
         "operationId": "OrganizationsWebhooksController_getOrganizationWebhook",
+        "summary": "Get a webhook",
         "parameters": [
           {
             "name": "webhookId",
@@ -2967,11 +3059,12 @@
           }
         },
         "tags": [
-          "Organizations Webhooks"
+          "Orgs / Webhooks"
         ]
       },
       "delete": {
         "operationId": "OrganizationsWebhooksController_deleteWebhook",
+        "summary": "Delete a webhook",
         "parameters": [
           {
             "name": "webhookId",
@@ -2995,11 +3088,12 @@
           }
         },
         "tags": [
-          "Organizations Webhooks"
+          "Orgs / Webhooks"
         ]
       },
       "patch": {
         "operationId": "OrganizationsWebhooksController_updateOrgWebhook",
+        "summary": "Update a webhook",
         "parameters": [
           {
             "name": "webhookId",
@@ -3033,7 +3127,7 @@
           }
         },
         "tags": [
-          "Organizations Webhooks"
+          "Orgs / Webhooks"
         ]
       }
     },
@@ -3090,8 +3184,7 @@
       },
       "get": {
         "operationId": "SchedulesController_2024_06_11_getSchedules",
-        "summary": "",
-        "description": "Returns all schedules of the authenticated user",
+        "summary": "Get all schedules (of the authenticated user)",
         "parameters": [
           {
             "name": "Authorization",
@@ -3132,6 +3225,7 @@
     "/v2/schedules/default": {
       "get": {
         "operationId": "SchedulesController_2024_06_11_getDefaultSchedule",
+        "summary": "Get default schedule (of the authenticated user)",
         "parameters": [
           {
             "name": "Authorization",
@@ -3172,6 +3266,7 @@
     "/v2/schedules/{scheduleId}": {
       "get": {
         "operationId": "SchedulesController_2024_06_11_getSchedule",
+        "summary": "Get a schedule",
         "parameters": [
           {
             "name": "Authorization",
@@ -3218,6 +3313,7 @@
       },
       "patch": {
         "operationId": "SchedulesController_2024_06_11_updateSchedule",
+        "summary": "Update a schedule",
         "parameters": [
           {
             "name": "Authorization",
@@ -3274,6 +3370,7 @@
       },
       "delete": {
         "operationId": "SchedulesController_2024_06_11_deleteSchedule",
+        "summary": "Delete a schedule",
         "parameters": [
           {
             "name": "Authorization",
@@ -3322,6 +3419,7 @@
     "/v2/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
+        "summary": "Get auth URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -3345,13 +3443,14 @@
           }
         },
         "tags": [
-          "Google Calendar"
+          "Platform / Google Calendar"
         ]
       }
     },
     "/v2/gcal/oauth/save": {
       "get": {
         "operationId": "GcalController_save",
+        "summary": "Connect a calendar",
         "parameters": [
           {
             "name": "state",
@@ -3383,13 +3482,14 @@
           }
         },
         "tags": [
-          "Google Calendar"
+          "Platform / Google Calendar"
         ]
       }
     },
     "/v2/gcal/check": {
       "get": {
         "operationId": "GcalController_check",
+        "summary": "Check a calendar connection status",
         "parameters": [],
         "responses": {
           "200": {
@@ -3404,13 +3504,14 @@
           }
         },
         "tags": [
-          "Google Calendar"
+          "Platform / Google Calendar"
         ]
       }
     },
     "/v2/provider/{clientId}": {
       "get": {
         "operationId": "CalProviderController_verifyClientId",
+        "summary": "Get a provider",
         "parameters": [
           {
             "name": "clientId",
@@ -3434,13 +3535,14 @@
           }
         },
         "tags": [
-          "Cal provider"
+          "Platform / Cal Provider"
         ]
       }
     },
     "/v2/provider/{clientId}/access-token": {
       "get": {
         "operationId": "CalProviderController_verifyAccessToken",
+        "summary": "Verify an access token",
         "parameters": [
           {
             "name": "clientId",
@@ -3464,13 +3566,14 @@
           }
         },
         "tags": [
-          "Cal provider"
+          "Platform / Cal Provider"
         ]
       }
     },
     "/v2/me": {
       "get": {
         "operationId": "MeController_getMe",
+        "summary": "Get my profile",
         "parameters": [],
         "responses": {
           "200": {
@@ -3490,6 +3593,7 @@
       },
       "patch": {
         "operationId": "MeController_updateMe",
+        "summary": "Update my profile",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -3518,9 +3622,62 @@
         ]
       }
     },
+    "/v2/calendars/ics-feed/save": {
+      "post": {
+        "operationId": "CalendarsController_createIcsFeed",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIcsFeedInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateIcsFeedOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
+    "/v2/calendars/ics-feed/check": {
+      "get": {
+        "operationId": "CalendarsController_checkIcsFeed",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
     "/v2/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
+        "summary": "Get busy times",
         "parameters": [
           {
             "name": "loggedInUsersTz",
@@ -3566,6 +3723,7 @@
     "/v2/calendars": {
       "get": {
         "operationId": "CalendarsController_getCalendars",
+        "summary": "Get all calendars",
         "parameters": [],
         "responses": {
           "200": {
@@ -3587,6 +3745,7 @@
     "/v2/calendars/{calendar}/connect": {
       "get": {
         "operationId": "CalendarsController_redirect",
+        "summary": "Get connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -3625,6 +3784,7 @@
     "/v2/calendars/{calendar}/save": {
       "get": {
         "operationId": "CalendarsController_save",
+        "summary": "Save a calendar",
         "parameters": [
           {
             "name": "state",
@@ -3664,6 +3824,7 @@
     "/v2/calendars/{calendar}/credentials": {
       "post": {
         "operationId": "CalendarsController_syncCredentials",
+        "summary": "Sync credentials",
         "parameters": [
           {
             "name": "calendar",
@@ -3687,6 +3848,7 @@
     "/v2/calendars/{calendar}/check": {
       "get": {
         "operationId": "CalendarsController_check",
+        "summary": "Check a calendar connection",
         "parameters": [
           {
             "name": "calendar",
@@ -3717,6 +3879,7 @@
     "/v2/calendars/{calendar}/disconnect": {
       "post": {
         "operationId": "CalendarsController_deleteCalendarCredentials",
+        "summary": "Disconnect a calendar",
         "parameters": [
           {
             "name": "calendar",
@@ -3757,8 +3920,8 @@
     "/v2/bookings": {
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
-        "summary": "Create booking",
-        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n      \n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n      ",
+        "summary": "Create a booking",
+        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -3809,6 +3972,7 @@
       },
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookings",
+        "summary": "Get all bookings",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -4011,8 +4175,8 @@
     "/v2/bookings/{bookingUid}": {
       "get": {
         "operationId": "BookingsController_2024_08_13_getBooking",
-        "summary": "Get booking",
-        "description": "`:bookingUid` can be\n      \n      1. uid of a normal booking\n      \n      2. uid of one of the recurring booking recurrences\n      \n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).",
+        "summary": "Get a booking",
+        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -4052,7 +4216,7 @@
     "/v2/bookings/{bookingUid}/reschedule": {
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
-        "summary": "Reschedule booking",
+        "summary": "Reschedule a booking",
         "description": "Reschedule a booking by passing `:bookingUid` of the booking that should be rescheduled and pass request body with a new start time to create a new booking.",
         "parameters": [
           {
@@ -4103,6 +4267,7 @@
     "/v2/bookings/{bookingUid}/cancel": {
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
+        "summary": "Cancel a booking",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -4152,6 +4317,7 @@
     "/v2/bookings/{bookingUid}/mark-absent": {
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
+        "summary": "Mark a booking absence",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -4210,6 +4376,7 @@
     "/v2/slots/reserve": {
       "post": {
         "operationId": "SlotsController_reserveSlot",
+        "summary": "Reserve a slot",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -4241,6 +4408,7 @@
     "/v2/slots/selected-slot": {
       "delete": {
         "operationId": "SlotsController_deleteSelectedSlot",
+        "summary": "Delete a selected slot",
         "parameters": [],
         "responses": {
           "200": {
@@ -4262,6 +4430,7 @@
     "/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
+        "summary": "Get available slots",
         "parameters": [],
         "responses": {
           "200": {
@@ -4283,6 +4452,7 @@
     "/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",
+        "summary": "Get all timezones",
         "parameters": [],
         "responses": {
           "200": {
@@ -4329,12 +4499,12 @@
           }
         },
         "tags": [
-          "Users' Webhooks"
+          "Webhooks"
         ]
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
-        "summary": "Get all user webhooks paginated",
+        "summary": "Get all webooks (paginated)",
         "parameters": [
           {
             "name": "take",
@@ -4370,7 +4540,7 @@
           }
         },
         "tags": [
-          "Users' Webhooks"
+          "Webhooks"
         ]
       }
     },
@@ -4411,7 +4581,7 @@
           }
         },
         "tags": [
-          "Users' Webhooks"
+          "Webhooks"
         ]
       },
       "get": {
@@ -4431,7 +4601,7 @@
           }
         },
         "tags": [
-          "Users' Webhooks"
+          "Webhooks"
         ]
       },
       "delete": {
@@ -4460,14 +4630,14 @@
           }
         },
         "tags": [
-          "Users' Webhooks"
+          "Webhooks"
         ]
       }
     },
     "/v2/event-types/{eventTypeId}/webhooks": {
       "post": {
         "operationId": "EventTypeWebhooksController_createEventTypeWebhook",
-        "summary": "Create a webhook for an event-type",
+        "summary": "Create a webhook",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -4501,12 +4671,12 @@
           }
         },
         "tags": [
-          "Users' EventTypes Webhooks"
+          "Event Types / Webhooks"
         ]
       },
       "get": {
         "operationId": "EventTypeWebhooksController_getEventTypeWebhooks",
-        "summary": "Get all webhooks of an event-type",
+        "summary": "Get all webhooks",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -4550,12 +4720,12 @@
           }
         },
         "tags": [
-          "Users' EventTypes Webhooks"
+          "Event Types / Webhooks"
         ]
       },
       "delete": {
         "operationId": "EventTypeWebhooksController_deleteAllEventTypeWebhooks",
-        "summary": "Delete all webhooks of an event-type",
+        "summary": "Delete all webhooks",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -4579,14 +4749,14 @@
           }
         },
         "tags": [
-          "Users' EventTypes Webhooks"
+          "Event Types / Webhooks"
         ]
       }
     },
     "/v2/event-types/{eventTypeId}/webhooks/{webhookId}": {
       "patch": {
         "operationId": "EventTypeWebhooksController_updateEventTypeWebhook",
-        "summary": "Update a webhook of an event-type",
+        "summary": "Update a webhook",
         "parameters": [
           {
             "name": "webhookId",
@@ -4620,12 +4790,12 @@
           }
         },
         "tags": [
-          "Users' EventTypes Webhooks"
+          "Event Types / Webhooks"
         ]
       },
       "get": {
         "operationId": "EventTypeWebhooksController_getEventTypeWebhook",
-        "summary": "Get a webhook of an event-type",
+        "summary": "Get a webhook",
         "parameters": [],
         "responses": {
           "200": {
@@ -4640,12 +4810,12 @@
           }
         },
         "tags": [
-          "Users' EventTypes Webhooks"
+          "Event Types / Webhooks"
         ]
       },
       "delete": {
         "operationId": "EventTypeWebhooksController_deleteEventTypeWebhook",
-        "summary": "Delete a webhook of an event-type",
+        "summary": "Delete a webhook",
         "parameters": [],
         "responses": {
           "200": {
@@ -4660,14 +4830,14 @@
           }
         },
         "tags": [
-          "Users' EventTypes Webhooks"
+          "Event Types / Webhooks"
         ]
       }
     },
     "/v2/oauth-clients/{clientId}/webhooks": {
       "post": {
         "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
-        "summary": "Create a webhook for an oAuthClient",
+        "summary": "Create a webhook",
         "parameters": [
           {
             "name": "clientId",
@@ -4701,12 +4871,12 @@
           }
         },
         "tags": [
-          "OAuthClients Webhooks"
+          "Platform / Webhooks"
         ]
       },
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
-        "summary": "Get all webhooks of an oAuthClient",
+        "summary": "Get all webhooks",
         "parameters": [
           {
             "name": "clientId",
@@ -4750,12 +4920,12 @@
           }
         },
         "tags": [
-          "OAuthClients Webhooks"
+          "Platform / Webhooks"
         ]
       },
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
-        "summary": "Delete all webhooks of an oAuthClient",
+        "summary": "Delete all webhooks",
         "parameters": [
           {
             "name": "clientId",
@@ -4779,14 +4949,14 @@
           }
         },
         "tags": [
-          "OAuthClients Webhooks"
+          "Platform / Webhooks"
         ]
       }
     },
     "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
       "patch": {
         "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
-        "summary": "Update a webhook of an oAuthClient",
+        "summary": "Update a webhook",
         "parameters": [
           {
             "name": "webhookId",
@@ -4820,12 +4990,12 @@
           }
         },
         "tags": [
-          "OAuthClients Webhooks"
+          "Platform / Webhooks"
         ]
       },
       "get": {
         "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
-        "summary": "Get a webhook of an oAuthClient",
+        "summary": "Get a webhook",
         "parameters": [],
         "responses": {
           "200": {
@@ -4840,12 +5010,12 @@
           }
         },
         "tags": [
-          "OAuthClients Webhooks"
+          "Platform / Webhooks"
         ]
       },
       "delete": {
         "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
-        "summary": "Delete a webhook of an oAuthClient",
+        "summary": "Delete a webhook",
         "parameters": [],
         "responses": {
           "200": {
@@ -4860,13 +5030,14 @@
           }
         },
         "tags": [
-          "OAuthClients Webhooks"
+          "Platform / Webhooks"
         ]
       }
     },
     "/v2/destination-calendars": {
       "put": {
         "operationId": "DestinationCalendarsController_updateDestinationCalendars",
+        "summary": "Update destination calendars",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -4891,19 +5062,115 @@
           }
         },
         "tags": [
-          "Destination-Calendars",
-          "Select a third party destination calendar where events will be created"
+          "Destination Calendars"
         ]
       }
     }
   },
   "info": {
-    "title": "Cal.com v2 API",
+    "title": "Cal.com API v2",
     "description": "",
     "version": "1.0.0",
     "contact": {}
   },
-  "tags": [],
+  "tags": [
+    {
+      "name": "Bookings",
+      "description": ""
+    },
+    {
+      "name": "Calendars",
+      "description": ""
+    },
+    {
+      "name": "Destination Calendars",
+      "description": ""
+    },
+    {
+      "name": "Event Types",
+      "description": ""
+    },
+    {
+      "name": "Event Types / Webhooks",
+      "description": ""
+    },
+    {
+      "name": "Me",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Attributes",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Attributes / Options",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Event Types",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Memberships",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Teams",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Teams / Memberships",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Schedules",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Users",
+      "description": ""
+    },
+    {
+      "name": "Orgs / Webhooks",
+      "description": ""
+    },
+    {
+      "name": "Platform / Cal Provider",
+      "description": ""
+    },
+    {
+      "name": "Platform / Google Calendar",
+      "description": ""
+    },
+    {
+      "name": "Platform / Managed Users",
+      "description": ""
+    },
+    {
+      "name": "Platform / Webhooks",
+      "description": ""
+    },
+    {
+      "name": "Selected Calendars",
+      "description": ""
+    },
+    {
+      "name": "Schedules",
+      "description": ""
+    },
+    {
+      "name": "Slots",
+      "description": ""
+    },
+    {
+      "name": "Timezones",
+      "description": ""
+    },
+    {
+      "name": "Webhooks",
+      "description": ""
+    }
+  ],
   "servers": [],
   "components": {
     "schemas": {
@@ -4919,6 +5186,11 @@
             "example": "alice+cluo37fwd0001khkzqqynkpj3@example.com"
           },
           "username": {
+            "type": "string",
+            "nullable": true,
+            "example": "alice"
+          },
+          "name": {
             "type": "string",
             "nullable": true,
             "example": "alice"
@@ -4998,6 +5270,7 @@
           "id",
           "email",
           "username",
+          "name",
           "timeZone",
           "weekStart",
           "createdDate",
@@ -6079,94 +6352,6 @@
           "value"
         ]
       },
-      "BookingLimitsCount_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "day": {
-            "type": "number",
-            "description": "The number of bookings per day",
-            "example": 1
-          },
-          "week": {
-            "type": "number",
-            "description": "The number of bookings per week",
-            "example": 2
-          },
-          "month": {
-            "type": "number",
-            "description": "The number of bookings per month",
-            "example": 3
-          },
-          "year": {
-            "type": "number",
-            "description": "The number of bookings per year",
-            "example": 4
-          }
-        },
-        "required": [
-          "day",
-          "week",
-          "month",
-          "year"
-        ]
-      },
-      "BookingLimitsDuration_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "day": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per day (must be a multiple of 15)",
-            "example": 60
-          },
-          "week": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per week (must be a multiple of 15)",
-            "example": 120
-          },
-          "month": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per month (must be a multiple of 15)",
-            "example": 180
-          },
-          "year": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per year (must be a multiple of 15)",
-            "example": 240
-          }
-        }
-      },
-      "Recurrence_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "interval": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats every {count} week | month | year"
-          },
-          "occurrences": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats for a maximum of {count} events"
-          },
-          "frequency": {
-            "type": "string",
-            "enum": [
-              "yearly",
-              "monthly",
-              "weekly"
-            ]
-          }
-        },
-        "required": [
-          "interval",
-          "occurrences",
-          "frequency"
-        ]
-      },
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6272,24 +6457,16 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
             "type": "array",
@@ -6312,13 +6489,10 @@
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
           }
         },
         "required": [
@@ -6339,7 +6513,7 @@
           "bookingLimitsDuration",
           "bookingWindow",
           "offsetStart",
-          "recurrence"
+          "customName"
         ]
       },
       "EmailDefaultFieldOutput_2024_06_14": {
@@ -7136,6 +7310,104 @@
           "isDefault"
         ]
       },
+      "BaseBookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "BookerLayouts_2024_06_14": {
+        "type": "object",
+        "properties": {}
+      },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": [
+          "lightThemeHex",
+          "darkThemeHex"
+        ]
+      },
+      "Seats_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "description": "Number of seats available per time slot",
+            "example": 4
+          },
+          "showAttendeeInfo": {
+            "type": "boolean",
+            "description": "Show attendee information to other guests",
+            "example": true
+          },
+          "showAvailabilityCount": {
+            "type": "boolean",
+            "description": "Display the count of available seats",
+            "example": true
+          }
+        },
+        "required": [
+          "seatsPerTimeSlot",
+          "showAttendeeInfo",
+          "showAvailabilityCount"
+        ]
+      },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7157,7 +7429,7 @@
           },
           "description": {
             "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+            "example": "Discover the culinary wonders of Argentina by making the best flan ever!"
           },
           "locations": {
             "type": "array",
@@ -7264,9 +7536,6 @@
           "metadata": {
             "type": "object"
           },
-          "requiresConfirmation": {
-            "type": "boolean"
-          },
           "price": {
             "type": "number"
           },
@@ -7285,6 +7554,9 @@
           "successRedirectUrl": {
             "type": "object"
           },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
           "seatsShowAvailabilityCount": {
             "type": "object"
           },
@@ -7292,13 +7564,13 @@
             "type": "object"
           },
           "bookingLimitsCount": {
-            "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+            "type": "object"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
           },
           "bookingLimitsDuration": {
-            "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+            "type": "object"
           },
           "bookingWindow": {
             "type": "array",
@@ -7317,8 +7589,35 @@
               ]
             }
           },
+          "bookerLayouts": {
+            "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+          },
+          "confirmationPolicy": {
+            "type": "object"
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "$ref": "#/components/schemas/Seats_2024_06_14"
+          },
           "offsetStart": {
             "type": "number"
+          },
+          "customName": {
+            "type": "string"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
           },
           "ownerId": {
             "type": "number",
@@ -7346,20 +7645,29 @@
           "afterEventBuffer",
           "recurrence",
           "metadata",
-          "requiresConfirmation",
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
           "seatsPerTimeSlot",
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
+          "isInstantEvent",
           "seatsShowAvailabilityCount",
           "scheduleId",
           "bookingLimitsCount",
           "onlyShowFirstAvailableSlot",
           "bookingLimitsDuration",
           "bookingWindow",
+          "bookerLayouts",
+          "confirmationPolicy",
+          "requiresBookerEmailVerification",
+          "hideCalendarNotes",
+          "color",
+          "seats",
           "offsetStart",
+          "customName",
+          "destinationCalendar",
+          "useDestinationCalendarEmail",
           "ownerId",
           "users"
         ]
@@ -7537,24 +7845,16 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
             "type": "array",
@@ -7577,13 +7877,10 @@
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
           }
         },
         "required": [
@@ -7604,7 +7901,7 @@
           "bookingLimitsDuration",
           "bookingWindow",
           "offsetStart",
-          "recurrence"
+          "customName"
         ]
       },
       "UpdateEventTypeOutput_2024_06_14": {
@@ -7938,6 +8235,9 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
+          },
+          "bookingLimits": {
+            "type": "string"
           }
         }
       },
@@ -8930,24 +9230,16 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
             "type": "array",
@@ -8970,13 +9262,10 @@
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "schedulingType": {
             "type": "object"
@@ -9010,7 +9299,7 @@
           "bookingLimitsDuration",
           "bookingWindow",
           "offsetStart",
-          "recurrence",
+          "customName",
           "schedulingType",
           "hosts",
           "assignAllTeamMembers"
@@ -9044,6 +9333,38 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "Recurrence_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
+            "enum": [
+              "yearly",
+              "monthly",
+              "weekly"
+            ],
+            "type": "string"
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "interval",
+          "occurrences",
+          "frequency"
         ]
       },
       "TeamEventTypeResponseHost": {
@@ -9101,7 +9422,7 @@
           },
           "description": {
             "type": "string",
-            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+            "example": "Discover the culinary wonders of Argentina by making the best flan ever!"
           },
           "locations": {
             "type": "array",
@@ -9215,9 +9536,6 @@
           "metadata": {
             "type": "object"
           },
-          "requiresConfirmation": {
-            "type": "boolean"
-          },
           "price": {
             "type": "number"
           },
@@ -9239,6 +9557,9 @@
             "type": "string",
             "nullable": true
           },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
           "seatsShowAvailabilityCount": {
             "type": "boolean",
             "nullable": true
@@ -9248,13 +9569,13 @@
             "nullable": true
           },
           "bookingLimitsCount": {
-            "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
+            "type": "object"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
           },
           "bookingLimitsDuration": {
-            "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
+            "type": "object"
           },
           "bookingWindow": {
             "type": "array",
@@ -9273,18 +9594,36 @@
               ]
             }
           },
+          "bookerLayouts": {
+            "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+          },
+          "confirmationPolicy": {
+            "type": "object"
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "$ref": "#/components/schemas/Seats_2024_06_14"
+          },
           "offsetStart": {
             "type": "number",
             "minimum": 1
           },
-          "schedulingType": {
-            "type": "string",
-            "nullable": true,
-            "enum": [
-              "ROUND_ROBIN",
-              "COLLECTIVE",
-              "MANAGED"
-            ]
+          "customName": {
+            "type": "string"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
           },
           "teamId": {
             "type": "number",
@@ -9297,7 +9636,7 @@
           "parentEventTypeId": {
             "type": "number",
             "nullable": true,
-            "description": "For managed event types parent event type is the event type that this event type is based on"
+            "description": "For managed event types, parent event type is the event type that this event type is based on"
           },
           "hosts": {
             "type": "array",
@@ -9307,6 +9646,15 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean"
+          },
+          "schedulingType": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "ROUND_ROBIN",
+              "COLLECTIVE",
+              "MANAGED"
+            ]
           }
         },
         "required": [
@@ -9320,17 +9668,15 @@
           "disableGuests",
           "recurrence",
           "metadata",
-          "requiresConfirmation",
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
-          "seatsPerTimeSlot",
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
-          "seatsShowAvailabilityCount",
+          "isInstantEvent",
           "scheduleId",
-          "schedulingType",
-          "hosts"
+          "hosts",
+          "schedulingType"
         ]
       },
       "GetTeamEventTypeOutput": {
@@ -9580,24 +9926,16 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsCount_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookingLimitsDuration_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
             "type": "array",
@@ -9620,13 +9958,10 @@
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
-          "recurrence": {
-            "description": "Create a recurring event that can be booked once but will occur multiple times",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
+          "customName": {
+            "type": "string",
+            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "hosts": {
             "type": "array",
@@ -9657,7 +9992,7 @@
           "bookingLimitsDuration",
           "bookingWindow",
           "offsetStart",
-          "recurrence",
+          "customName",
           "hosts",
           "assignAllTeamMembers"
         ]
@@ -10727,6 +11062,99 @@
           },
           "data": {
             "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateIcsFeedInputDto": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "example": [
+              "https://cal.com/ics/feed.ics",
+              "http://cal.com/ics/feed.ics"
+            ],
+            "description": "An array of ICS URLs",
+            "items": {
+              "type": "string",
+              "example": "https://cal.com/ics/feed.ics"
+            }
+          },
+          "readOnly": {
+            "type": "boolean",
+            "default": true,
+            "example": false,
+            "description": "Whether to allowing writing to the calendar or not"
+          }
+        },
+        "required": [
+          "urls"
+        ]
+      },
+      "CreateIcsFeedOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1234567890,
+            "description": "The id of the calendar credential"
+          },
+          "type": {
+            "type": "string",
+            "example": "ics-feed_calendar",
+            "description": "The type of the calendar"
+          },
+          "userId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1234567890,
+            "description": "The user id of the user that created the calendar"
+          },
+          "teamId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1234567890,
+            "description": "The team id of the user that created the calendar"
+          },
+          "appId": {
+            "type": "string",
+            "nullable": true,
+            "example": "ics-feed",
+            "description": "The slug of the calendar"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": false,
+            "description": "Whether the calendar credentials are valid or not"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "userId",
+          "teamId",
+          "appId",
+          "invalid"
+        ]
+      },
+      "CreateIcsFeedOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateIcsFeedOutput"
           }
         },
         "required": [
