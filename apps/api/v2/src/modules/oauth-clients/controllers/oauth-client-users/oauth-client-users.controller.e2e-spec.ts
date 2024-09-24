@@ -162,7 +162,7 @@ describe("OAuth Client Users Endpoints", () => {
     it(`should fail /POST with incorrect timeFormat`, async () => {
       const requestBody = {
         email: userEmail,
-        timeZone: "incorrect-time-zone",
+        timeZone: userTimeZone,
         name: "Alice Smith",
         timeFormat: 100,
       };
