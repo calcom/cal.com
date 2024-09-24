@@ -2605,6 +2605,6 @@
   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
   "show_optimized_slots": "Optimized slots",
-  "show_optimized_slots_description": "Instead of limiting events to our predefined start times (example - on the hour for 60-minute events), we find the optimal slot positioning to maximize the number of available slots.",
+  "show_optimized_slots_description": "Find the optimal slot positioning to maximize the number of available slots.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
