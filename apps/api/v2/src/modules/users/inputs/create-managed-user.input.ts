@@ -15,8 +15,8 @@ export class CreateManagedUserInput {
   name!: string;
 
   @IsOptional()
-  @IsIn([12, 24], { message: "timeFormat must be either 12 or 24" })
-  @ApiProperty({ example: 12, enum: [12, 24], description: "Must be 12 or 24" })
+  @IsIn([12, 24], { message: "timeFormat must be a number either 12 or 24" })
+  @ApiProperty({ example: 12, enum: [12, 24], description: "Must be a number 12 or 24" })
   timeFormat?: TimeFormat;
 
   @IsOptional()
