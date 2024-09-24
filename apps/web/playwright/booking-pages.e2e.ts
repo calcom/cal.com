@@ -286,18 +286,13 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
   });
 
   test("Time slots should be reserved when selected", async ({ context, page }) => {
-    await page.click('[data-testid="event-type-link"]');
-
     const initialUrl = page.url();
+    await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
     const pageTwo = await context.newPage();
     await pageTwo.goto(initialUrl);
     await pageTwo.waitForURL(initialUrl);
-
-    await pageTwo.waitForSelector('[data-testid="event-type-link"]');
-    const eventTypeLink = pageTwo.locator('[data-testid="event-type-link"]').first();
-    await eventTypeLink.waitFor();
-    await eventTypeLink.click();
+    await pageTwo.locator('[data-testid="event-type-link"]').first().click();
 
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');

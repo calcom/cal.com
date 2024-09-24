@@ -299,9 +299,8 @@ test.describe("Organization", () => {
         await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
         await page.locator('[data-testid="continue-with-email-button"]').click();
         await expect(page.locator("text=Create your account")).toBeVisible();
-        const usernameInput = page.locator('input[name="username"]');
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await usernameInput.fill(existingUser.username!);
+        await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
