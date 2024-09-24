@@ -102,8 +102,9 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
   await frame.fill('[name="email"]', "embed-user@example.com");
+  const responsePromise = page.waitForResponse("**/api/book/event");
   await frame.press('[name="email"]', "Enter");
-  const response = await page.waitForResponse("**/api/book/event");
+  const response = await responsePromise;
   const booking = (await response.json()) as { uid: string; eventSlug: string };
   expect(response.status()).toBe(200);
   booking.eventSlug = eventSlug;
@@ -114,8 +115,9 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   // --- fill form
   await frame.press('[name="email"]', "Enter");
+  const responsePromise = page.waitForResponse("**/api/book/event");
   await frame.click("[data-testid=confirm-reschedule-button]");
-  const response = await page.waitForResponse("**/api/book/event");
+  const response = await responsePromise;
   expect(response.status()).toBe(200);
   const responseObj = await response.json();
   const booking = responseObj.uid;

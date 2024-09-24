@@ -439,6 +439,9 @@ model Team {
   smsLockReviewedByAdmin Boolean                 @default(false)
   features               TeamFeatures[]
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -612,6 +615,7 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  oneTimePassword       String?                    @unique @default(uuid())
   /// @zod.email()
   cancelledBy           String?
   /// @zod.email()
