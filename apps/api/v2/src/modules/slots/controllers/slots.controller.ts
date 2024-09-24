@@ -73,6 +73,45 @@ export class SlotsController {
   }
 
   @Get("/available")
+  @ApiOkResponse({
+    description: "Available time slots retrieved successfully",
+    schema: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "success" },
+        data: {
+          type: "object",
+          properties: {
+            slots: {
+              type: "object",
+              additionalProperties: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    time: { type: "string", format: "date-time", example: "2024-09-25T08:00:00.000Z" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      example: {
+        status: "success",
+        data: {
+          slots: {
+            "2024-09-25": [{ time: "2024-09-25T08:00:00.000Z" }, { time: "2024-09-25T08:15:00.000Z" }],
+            "2024-09-26": [
+              { time: "2024-09-26T08:00:00.000Z" },
+              { time: "2024-09-26T08:15:00.000Z" },
+              { time: "2024-09-26T08:30:00.000Z" },
+            ],
+          },
+        },
+      },
+    },
+  })
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput,
     @Req() req: ExpressRequest
