@@ -180,9 +180,9 @@ PageProps & WithNonceProps<{}>) {
           {t("sign_up")}
         </Link>
       </div>
-      {displaySSOLogin && (
+      {!twoFactorRequired && displaySSOLogin && (
         <div className="flex items-center gap-1">
-          <p className="text-subtle">Have a SAML account?</p>
+          <p className="text-subtle">{t("have_a_saml_account")}</p>
           <SAMLLogin
             samlTenantID={samlTenantID}
             samlProductID={samlProductID}
