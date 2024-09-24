@@ -315,8 +315,6 @@ export const roundRobinReassignment = async ({
       })
     : null;
 
-  const bookerUrl = await getBookerBaseUrl(orgId);
-
   const evt: CalendarEvent = {
     organizer: {
       name: organizer.name || "",
@@ -328,7 +326,6 @@ export const roundRobinReassignment = async ({
       timeZone: organizer.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
     },
-    bookerUrl,
     startTime: dayjs(booking.startTime).utc().format(),
     endTime: dayjs(booking.endTime).utc().format(),
     type: eventType.slug,
@@ -475,6 +472,8 @@ export const roundRobinReassignment = async ({
 
     const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
 
+    const bookerUrl = await getBookerBaseUrl(orgId);
+
     for (const workflowReminder of workflowReminders) {
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
@@ -485,6 +484,7 @@ export const roundRobinReassignment = async ({
             ...evt,
             metadata: workflowEventMetadata,
             eventType,
+            bookerUrl,
           },
           action: WorkflowActions.EMAIL_HOST,
           triggerEvent: workflow.trigger,
@@ -552,6 +552,7 @@ export const roundRobinReassignment = async ({
         ...evt,
         metadata: workflowEventMetadata,
         eventType: { slug: eventType.slug },
+        bookerUrl,
       },
       hideBranding: !!eventType?.owner?.hideBranding,
     });
