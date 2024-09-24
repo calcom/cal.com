@@ -4,7 +4,8 @@ import { Controller, useForm } from "react-hook-form";
 import { TimeTimeUnitInput } from "@calcom/features/ee/workflows/components/TimeTimeUnitInput";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { TimeUnit } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
 
@@ -21,8 +22,8 @@ export type WebhookFormData = {
   eventTriggers: WebhookTriggerEvents[];
   secret: string | null;
   payloadTemplate: string | undefined | null;
-  time?: number;
-  timeUnit?: TimeUnit;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
@@ -59,6 +60,16 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
   ],
   "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;
+
+export type WebhookFormValues = {
+  subscriberUrl: string;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  secret: string | null;
+  payloadTemplate: string | undefined | null;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
+};
 
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
@@ -102,8 +113,8 @@ const WebhookForm = (props: {
       eventTriggers: getEventTriggers(),
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
-      timeUnit: props?.webhook?.timeUnit || TimeUnit.MINUTE,
-      time: props?.webhook?.time || 5,
+      timeUnit: props?.webhook?.timeUnit || undefined,
+      time: props?.webhook?.time || undefined,
     },
   });
 
@@ -125,6 +136,16 @@ const WebhookForm = (props: {
       formMethods.unregister("secret", { keepDefaultValue: false });
     }
   }, [changeSecret, formMethods]);
+
+  useEffect(() => {
+    if (showTimeSection) {
+      formMethods.setValue("time", props.webhook?.time || 5, { shouldDirty: true });
+      formMethods.setValue("timeUnit", props.webhook?.timeUnit || TimeUnit.MINUTE, { shouldDirty: true });
+    } else {
+      formMethods.setValue("time", undefined, { shouldDirty: true });
+      formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
+    }
+  }, [showTimeSection]);
 
   return (
     <Form
@@ -205,7 +226,7 @@ const WebhookForm = (props: {
         {showTimeSection && (
           <div className="mt-5">
             <Label>{t("how_long_after_user_no_show_minutes")}</Label>
-            <TimeTimeUnitInput form={formMethods} />
+            <TimeTimeUnitInput disabled={false} />
           </div>
         )}
 

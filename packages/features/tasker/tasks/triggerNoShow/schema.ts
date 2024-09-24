@@ -14,6 +14,7 @@ export const ZWebhook = z.object({
   time: z.number(),
   timeUnit: z.enum(TIME_UNIT),
   eventTriggers: z.array(z.string()),
+  payloadTemplate: z.string().nullable(),
 });
 
 export type TWebhook = z.infer<typeof ZWebhook>;

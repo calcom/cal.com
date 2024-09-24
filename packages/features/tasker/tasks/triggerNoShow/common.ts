@@ -15,7 +15,7 @@ type Host = {
 
 type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
-export type Participants = TTriggerNoShowPayloadSchema["data"]["participants"];
+export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
 
 export const getMeetingSessionsFromRoomName = async (roomName: string) => {
   return fetcher(`/meetings?room=${roomName}`).then(triggerNoShowPayloadSchema.parse);

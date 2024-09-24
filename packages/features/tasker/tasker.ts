@@ -1,5 +1,10 @@
 export type TaskerTypes = "internal" | "redis";
-export type TaskTypes = "sendEmail" | "sendWebhook" | "sendSms" | "triggerHostNoShow" | "triggerGuestNoShow";
+export type TaskTypes =
+  | "sendEmail"
+  | "sendWebhook"
+  | "sendSms"
+  | "triggerHostNoShowWebhook"
+  | "triggerGuestNoShowWebhook";
 export type TaskHandler = (payload: string) => Promise<void>;
 export interface Tasker {
   /** Create a new task with the given type and payload. */

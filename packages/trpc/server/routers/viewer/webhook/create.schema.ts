@@ -15,8 +15,8 @@ export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
   secret: z.string().optional().nullable(),
   teamId: z.number().optional(),
   platform: z.boolean().optional(),
-  time: z.number().optional(),
-  timeUnit: z.enum(TIME_UNIT).optional(),
+  time: z.number().nullable().optional(),
+  timeUnit: z.enum(TIME_UNIT).nullable().optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

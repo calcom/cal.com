@@ -127,15 +127,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  // const [showTimeSection, setShowTimeSection] = useState(
-  //   form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
-  //     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  // );
-
-  // const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
-  //   form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  // );
-
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
