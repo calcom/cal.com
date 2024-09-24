@@ -89,6 +89,7 @@ export class SchedulesController_2024_06_11 {
     description: "Returns the default schedule of the authenticated user",
     type: GetDefaultScheduleOutput_2024_06_11,
   })
+  @ApiOperation({ summary: "Get default schedule (of the authenticated user)" })
   async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetScheduleOutput_2024_06_11> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
 
@@ -101,6 +102,7 @@ export class SchedulesController_2024_06_11 {
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // allow 10 requests per minute (for :scheduleId)
+  @ApiOperation({ summary: "Get a schedule" })
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number
@@ -115,9 +117,7 @@ export class SchedulesController_2024_06_11 {
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
-  @ApiOperation({
-    description: "Returns all schedules of the authenticated user",
-  })
+  @ApiOperation({ summary: "Get all schedules (of the authenticated user)" })
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput_2024_06_11> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
 
@@ -129,6 +129,7 @@ export class SchedulesController_2024_06_11 {
 
   @Patch("/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
+  @ApiOperation({ summary: "Update a schedule" })
   async updateSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput_2024_06_11,
@@ -149,6 +150,7 @@ export class SchedulesController_2024_06_11 {
   @Delete("/:scheduleId")
   @HttpCode(HttpStatus.OK)
   @Permissions([SCHEDULE_WRITE])
+  @ApiOperation({ summary: "Delete a schedule" })
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
