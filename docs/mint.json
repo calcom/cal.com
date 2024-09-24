@@ -58,12 +58,17 @@
     {
       "group": "Getting started",
       "version": "v2",
-      "pages": ["v2/api-reference/introduction"]
+      "pages": ["v2/api-reference/introduction", "v2/api-reference/v1-v2-differences"]
     },
     {
       "group": "Getting started",
       "version": "v1",
-      "pages": ["v1/api-reference/introduction", "v1/api-reference/errors", "v1/api-reference/rate-limit"]
+      "pages": [
+        "v1/api-reference/introduction",
+        "v1/api-reference/authentication",
+        "v1/api-reference/errors",
+        "v1/api-reference/rate-limit"
+      ]
     }
   ],
   "footerSocials": {
