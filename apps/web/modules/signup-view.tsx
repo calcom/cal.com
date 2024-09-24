@@ -456,14 +456,14 @@ export default function Signup({
                       usernameTaken
                     }>
                     {premiumUsername && !usernameTaken
-                      ? `Create Account for ${getPremiumPlanPriceValue()}`
+                      ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
                       : t("create_account")}
                   </Button>
                 </Form>
               </div>
             )}
             {!displayEmailForm && (
-              <div className="mt-12">
+              <div className="mt-24">
                 {/* Upper Row */}
                 <div className="mt-6 flex flex-col gap-2 md:flex-row">
                   {isGoogleLoginEnabled ? (
@@ -472,12 +472,9 @@ export default function Signup({
                       loading={isGoogleLoading}
                       CustomStartIcon={
                         <img
-                          className={classNames(
-                            "text-subtle  mr-2 h-4 w-4 dark:invert",
-                            premiumUsername && "opacity-50"
-                          )}
+                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
                           src="/google-icon-colored.svg"
-                          alt=""
+                          alt="Continue with Google Icon"
                         />
                       }
                       className={classNames("w-full justify-center rounded-md text-center")}
@@ -501,7 +498,7 @@ export default function Signup({
 
                         router.push(url);
                       }}>
-                      Continue with Google
+                      {t("signin_with_google")}
                     </Button>
                   ) : null}
                 </div>
@@ -528,7 +525,7 @@ export default function Signup({
                       setDisplayEmailForm(true);
                     }}
                     data-testid="continue-with-email-button">
-                    Continue with email
+                    {t("continue_with_email")}
                   </Button>
                   {isSAMLLoginEnabled ? (
                     <Button
