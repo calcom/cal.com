@@ -7,7 +7,6 @@ import { FUTURE_ROUTES_ENABLED_COOKIE_NAME, FUTURE_ROUTES_OVERRIDE_COOKIE_NAME }
 
 const ROUTES: [URLPattern, boolean][] = [
   ["/event-types", process.env.APP_ROUTER_EVENT_TYPES_ENABLED === "1"] as const,
-  ["/settings/admin/:path*", process.env.APP_ROUTER_SETTINGS_ADMIN_ENABLED === "1"] as const,
   ["/settings/platform/:path*", process.env.APP_ROUTER_SETTINGS_PLATFORM_ENABLED === "1"] as const,
   ["/settings/organizations/:path*", process.env.APP_ROUTER_SETTINGS_ORG_ENABLED === "1"] as const,
   ["/apps/installed/:category", process.env.APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED === "1"] as const,
