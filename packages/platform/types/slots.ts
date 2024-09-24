@@ -73,6 +73,7 @@ export class RemoveSelectedSlotInput {
 export class ReserveSlotInput {
   @IsInt()
   @ApiProperty({ description: "Event Type ID for which timeslot is being reserved.", example: 100 })
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
   eventTypeId!: number;
 
   @IsDateString()
