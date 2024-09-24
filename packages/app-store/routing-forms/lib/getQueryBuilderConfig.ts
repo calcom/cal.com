@@ -3,7 +3,7 @@ import { FieldTypes } from "./FieldTypes";
 import { InitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
 
-export function getQueryBuilderConfig(form: Pick<RoutingForm, "fields">, forReporting = false) {
+export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: Record<
     string,
     {
@@ -62,4 +62,105 @@ export function getQueryBuilderConfig(form: Pick<RoutingForm, "fields">, forRepo
     fields: fields,
   };
   return config;
+}
+
+
+function transformAttributesToCompatibleFormat(attributes: {
+  label: string;
+  slug: string;
+  type: string;
+  id: string;
+  options: {
+    title: string;
+    value: string;
+  }[];
+}[]) {
+  
+  const attributeTypesMap = new Map<string, string>([
+    ["SINGLE_SELECT", "select"],
+    ["MULTI_SELECT", "multiselect"],
+  ]);
+
+  return attributes.map((attribute) => {
+    const mappedType = attributeTypesMap.get(attribute.type);
+    if (!mappedType) {
+      throw new Error(`Unsupported attribute type:${attribute.type}`);
+    }
+    return {
+      label: attribute.label,
+      id: attribute.id,
+      type: mappedType,
+      options: attribute.options,
+    };
+  });
+}
+
+export function getQueryBuilderConfigForTeamMembers(form: Pick<RoutingForm, "teamMembers">, forReporting = false) {
+ 
+  
+  const attributes = transformAttributesToCompatibleFormat([{
+    label: "Company Size",
+    id: '792ca2a2-df5c-4554-9fc4-c4abd06d4de9',
+    slug: "company-size",
+    type: 'SINGLE_SELECT',
+    options: [
+      {
+        title: "Enterprise",
+        value: "enterprise-1000-employees",
+      },
+      {
+        title: "Large",
+        value: "large-500-employeess",
+      },
+      {
+        title: "Medium",
+        value: "medium-200-employees",
+      },
+      {
+        title: "Small",
+        value: "small-200-employees",
+      },
+    ],
+  }]);
+  
+  const fields: Record<
+   string,
+    {
+      label: string;
+      type: string;
+      valueSources: ["value"];
+      fieldSettings: {
+        listValues?: {
+          value: string;
+          title: string;
+        }[];
+      };
+    }
+  > = {};
+  attributes.forEach((attribute) => {
+    
+    const attributeType = attribute.type as (typeof FieldTypes)[number]["value"];
+    if (FieldTypes.map((f) => f.value).includes(attributeType)) {
+     // We can assert the type because otherwise we throw 'Unsupported field type' error
+      const widget = InitialConfig.widgets[attributeType];
+      const widgetType = widget.type;
+      fields[attribute.id] = {
+        label: attribute.label,
+        type: widgetType,
+          valueSources: ["value"],
+          fieldSettings: {
+            // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
+            listValues: attributeType === "select" || attributeType === "multiselect" ? attribute.options : undefined,
+        },
+      };
+    } else {
+      throw new Error(`Unsupported field type:${attribute.type}`);
+    }
+  });
+
+  const initialConfigCopy = { ...InitialConfig, operators: { ...InitialConfig.operators } };
+  return {
+    ...initialConfigCopy,
+    fields: fields,
+  };
 }

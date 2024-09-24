@@ -30,7 +30,7 @@ import SingleForm, {
 import "../../components/react-awesome-query-builder/styles.css";
 import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
-import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields, getQueryBuilderConfigForTeamMembers } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
 import type {
   GlobalRoute,
@@ -54,6 +54,7 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
       value: "",
     },
     queryValue: { id: uuid, type: "group" },
+    teamMembersQueryValue: { id: uuid, type: "group" },
   };
 };
 
@@ -62,7 +63,11 @@ type Route =
       // This is what's persisted
       queryValue: JsonTree;
       // `queryValue` is parsed to create state
-      state: {
+      formFieldsQueryBuilderState: {
+        tree: ImmutableTree;
+        config: QueryBuilderUpdatedConfig;
+      };
+      teamMembersQueryBuilderState: {
         tree: ImmutableTree;
         config: QueryBuilderUpdatedConfig;
       };
@@ -74,7 +79,8 @@ const Route = ({
   route,
   routes,
   setRoute,
-  config,
+  formFieldsQueryBuilderConfig,
+  teamMembersQueryBuilderConfig,
   setRoutes,
   moveUp,
   moveDown,
@@ -86,7 +92,8 @@ const Route = ({
   route: Route;
   routes: Route[];
   setRoute: (id: string, route: Partial<Route>) => void;
-  config: QueryBuilderUpdatedConfig;
+  formFieldsQueryBuilderConfig: QueryBuilderUpdatedConfig;
+  teamMembersQueryBuilderConfig: QueryBuilderUpdatedConfig;
   setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
   fieldIdentifiers: string[];
   moveUp?: { fn: () => void; check: () => boolean } | null;
@@ -148,10 +155,18 @@ const Route = ({
     }
   }, [isLoading]);
 
-  const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
+  const onChangeFormFieldsQuery = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
-      state: { tree: immutableTree, config: config },
+      formFieldsQueryBuilderState: { tree: immutableTree, config: config },
+      queryValue: jsonTree,
+    });
+  };
+
+  const onChangeTeamMembersQuery = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
+    const jsonTree = QbUtils.getTree(immutableTree);
+    setRoute(route.id, {
+      teamMembersQueryBuilderState: { tree: immutableTree, config: config },
       queryValue: jsonTree,
     });
   };
@@ -216,6 +231,19 @@ const Route = ({
       }}>
       <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
+        {((route.isFallback && hasRules(route)) || !route.isFallback) && (
+              <>
+                <Query
+                  {...formFieldsQueryBuilderConfig}
+                  value={route.formFieldsQueryBuilderState.tree}
+                  onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
+                    onChangeFormFieldsQuery(route, immutableTree, formFieldsQueryBuilderConfig as QueryBuilderUpdatedConfig);
+                  }}
+                  renderBuilder={renderBuilder}
+                />
+              </>
+            )}
+          <Divider className="mt-6 mb-6" />
           <div>
             <div className="text-emphasis flex w-full items-center text-sm">
               <div className="flex flex-grow-0 whitespace-nowrap">
@@ -343,20 +371,19 @@ const Route = ({
                 )
               ) : null}
             </div>
-
-            {((route.isFallback && hasRules(route)) || !route.isFallback) && (
-              <>
-                <Divider className="mb-6 mt-3" />
-                <Query
-                  {...config}
-                  value={route.state.tree}
-                  onChange={(immutableTree, config) => {
-                    onChange(route, immutableTree, config as QueryBuilderUpdatedConfig);
-                  }}
-                  renderBuilder={renderBuilder}
-                />
-              </>
-            )}
+            <div className="mt-4">
+              <span className="text-emphasis flex w-full items-center text-sm">with Team Members that match</span>
+              <div className="mt-2">
+              <Query
+                {...teamMembersQueryBuilderConfig}
+                value={route.teamMembersQueryBuilderState.tree}
+                onChange={(immutableTree, teamMembersQueryBuilderConfig) => {
+                  onChangeTeamMembersQuery(route, immutableTree, teamMembersQueryBuilderConfig as QueryBuilderUpdatedConfig);
+                }}
+                renderBuilder={renderBuilder}
+              />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -366,13 +393,18 @@ const Route = ({
 
 const deserializeRoute = (
   route: Exclude<SerializableRoute, GlobalRoute>,
-  config: QueryBuilderUpdatedConfig
+  formFieldsQueryBuilderConfig: QueryBuilderUpdatedConfig,
+  teamMembersQueryBuilderConfig: QueryBuilderUpdatedConfig
 ): Route => {
   return {
     ...route,
-    state: {
-      tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), config),
-      config: config,
+    formFieldsQueryBuilderState: {
+      tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), formFieldsQueryBuilderConfig),
+      config: formFieldsQueryBuilderConfig,
+    },
+    teamMembersQueryBuilderState: {
+      tree: QbUtils.checkTree(QbUtils.loadTree(route.teamMembersQueryValue || { id: QbUtils.uuid(), type: "group" }), teamMembersQueryBuilderConfig),
+      config: teamMembersQueryBuilderConfig,
     },
   };
 };
@@ -389,7 +421,9 @@ const Routes = ({
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
 
-  const config = getQueryBuilderConfig(hookForm.getValues());
+  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
+  const teamMembersQueryBuilderConfig = getQueryBuilderConfigForTeamMembers(hookForm.getValues());
+
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
@@ -404,7 +438,7 @@ const Routes = ({
 
     return transformRoutes().map((route) => {
       if (isRouter(route)) return route;
-      return deserializeRoute(route, config);
+      return deserializeRoute(route, formFieldsQueryBuilderConfig, teamMembersQueryBuilderConfig);
     });
   });
 
@@ -543,7 +577,8 @@ const Routes = ({
               form={form}
               appUrl={appUrl}
               key={route.id}
-              config={config}
+              formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
+              teamMembersQueryBuilderConfig={teamMembersQueryBuilderConfig}
               route={route}
               fieldIdentifiers={fieldIdentifiers}
               moveUp={{
@@ -583,9 +618,13 @@ const Routes = ({
                 ...routes,
                 {
                   ...newEmptyRoute,
-                  state: {
+                  formFieldsQueryBuilderState: {
+                    tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), formFieldsQueryBuilderConfig),
+                    config: formFieldsQueryBuilderConfig,
+                  },
+                  teamMembersQueryBuilderState: {
                     tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
-                    config,
+                    config: teamMembersQueryBuilderConfig,
                   },
                 },
               ];
@@ -612,7 +651,8 @@ const Routes = ({
         <div>
           <Route
             form={form}
-            config={config}
+            formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
+            teamMembersQueryBuilderConfig={teamMembersQueryBuilderConfig}
             route={fallbackRoute}
             routes={routes}
             setRoute={setRoute}

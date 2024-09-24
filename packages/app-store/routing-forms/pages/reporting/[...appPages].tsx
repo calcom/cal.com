@@ -25,7 +25,7 @@ import SingleForm, {
 import type QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import type { JsonLogicQuery } from "../../jsonLogicToPrisma";
-import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields } from "../../lib/getQueryBuilderConfig";
 
 export { getServerSideProps };
 
@@ -140,7 +140,7 @@ const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfig>) => {
 };
 
 const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["form"] }) => {
-  const config = getQueryBuilderConfig(form, true);
+  const config = getQueryBuilderConfigForFormFields(form, true);
   const [query, setQuery] = useState(getInitialQuery(config));
   const [jsonLogicQuery, setJsonLogicQuery] = useState<JsonLogicResult | null>(null);
   const onChange = (immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {

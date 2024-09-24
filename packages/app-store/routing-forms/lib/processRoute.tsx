@@ -6,7 +6,7 @@ import type { z } from "zod";
 
 import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";
-import { getQueryBuilderConfig } from "./getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";
 import jsonLogic from "./jsonLogicOverrides";
@@ -18,7 +18,7 @@ export function processRoute({
   form: SerializableForm<App_RoutingForms_Form>;
   response: Record<string, Pick<FormResponse[string], "value">>;
 }) {
-  const queryBuilderConfig = getQueryBuilderConfig(form);
+  const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
   const routes = form.routes || [];
 

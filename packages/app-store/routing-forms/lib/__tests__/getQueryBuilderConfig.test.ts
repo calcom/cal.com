@@ -3,7 +3,7 @@ import { vi } from "vitest";
 
 import type { RoutingForm } from "../../types/types";
 import { InitialConfig } from "../InitialConfig";
-import { getQueryBuilderConfig } from "../getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields } from "../getQueryBuilderConfig";
 
 type MockedForm = Pick<RoutingForm, "fields">;
 vi.mock("../InitialConfig", () => ({
@@ -46,7 +46,7 @@ describe("getQueryBuilderConfig", () => {
   };
 
   it("should generate correct config for all field types", () => {
-    const config = getQueryBuilderConfig(mockForm);
+    const config = getQueryBuilderConfigForFormFields(mockForm);
 
     expect(config.fields).toHaveProperty("field1");
     expect(config.fields).toHaveProperty("field2");
@@ -103,7 +103,7 @@ describe("getQueryBuilderConfig", () => {
       ],
     };
 
-    const config = getQueryBuilderConfig(formWithRouterField);
+    const config = getQueryBuilderConfigForFormFields(formWithRouterField);
 
     expect(config.fields).toHaveProperty("innerField");
     expect(config.fields.innerField).toEqual({
@@ -126,13 +126,13 @@ describe("getQueryBuilderConfig", () => {
       ],
     };
 
-    expect(() => getQueryBuilderConfig(formWithUnsupportedField)).toThrow(
+    expect(() => getQueryBuilderConfigForFormFields(formWithUnsupportedField)).toThrow(
       "Unsupported field type:unsupported"
     );
   });
 
   it("should remove specific operators when forReporting is true", () => {
-    const config = getQueryBuilderConfig(mockForm, true);
+    const config = getQueryBuilderConfigForFormFields(mockForm, true);
 
     expect(config.operators).not.toHaveProperty("is_empty");
     expect(config.operators).not.toHaveProperty("is_not_empty");
@@ -142,7 +142,7 @@ describe("getQueryBuilderConfig", () => {
   });
 
   it("should include all operators when forReporting is false", () => {
-    const config = getQueryBuilderConfig(mockForm, false);
+    const config = getQueryBuilderConfigForFormFields(mockForm, false);
 
     expect(config.operators).toHaveProperty("is_empty");
     expect(config.operators).toHaveProperty("is_not_empty");
@@ -152,7 +152,7 @@ describe("getQueryBuilderConfig", () => {
   });
 
   it("should use InitialConfig as base for the returned config", () => {
-    const config = getQueryBuilderConfig(mockForm);
+    const config = getQueryBuilderConfigForFormFields(mockForm);
 
     expect(config).toEqual(
       expect.objectContaining({

@@ -57,6 +57,12 @@ export const zodNonRouterRoute = z.object({
     children1: z.any(),
     properties: z.any(),
   }),
+  teamMembersQueryValue: z.object({
+    id: z.string().optional(),
+    type: z.union([z.literal("group"), z.literal("switch_group")]),
+    children1: z.any(),
+    properties: z.any(),
+  }).optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
     // TODO: Make it a union type of "customPageMessage" and ..
