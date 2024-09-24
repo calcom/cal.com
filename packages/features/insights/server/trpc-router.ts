@@ -63,9 +63,8 @@ const buildBaseWhereCondition = async ({
         id: true,
       },
     });
-    if (teamsFromOrg.length === 0) {
-      return { whereCondition, isEmptyResponse: true };
-    }
+    if (teamsFromOrg.length === 0) return { whereCondition, isEmptyResponse: true };
+
     const teamConditional = {
       id: {
         in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
@@ -271,100 +270,20 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
-      let teamConditional: Prisma.TeamWhereInput = {};
+      const r = await buildBaseWhereCondition({
+        teamId,
+        eventTypeId,
+        memberUserId,
+        userId,
+        isAll,
+        ctx: {
+          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+          userOrganizationId: ctx.user.organizationId,
+          insightsDb: ctx.insightsDb,
+        },
+      });
 
-      if (eventTypeId) {
-        whereConditional["OR"] = [
-          {
-            eventTypeId,
-          },
-          {
-            eventParentId: eventTypeId,
-          },
-        ];
-      }
-      if (memberUserId) {
-        whereConditional["userId"] = memberUserId;
-      }
-      if (userId) {
-        whereConditional["teamId"] = null;
-        whereConditional["userId"] = userId;
-      }
-
-      if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
-        const teamsFromOrg = await ctx.insightsDb.team.findMany({
-          where: {
-            parentId: ctx.user.organizationId,
-          },
-          select: {
-            id: true,
-          },
-        });
-        if (teamsFromOrg.length === 0) {
-          return emptyResponseEventsByStatus;
-        }
-        teamConditional = {
-          id: {
-            in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
-          },
-        };
-        const usersFromOrg = await ctx.insightsDb.membership.findMany({
-          where: {
-            team: teamConditional,
-            accepted: true,
-          },
-          select: {
-            userId: true,
-          },
-        });
-        const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
-        whereConditional = {
-          ...whereConditional,
-          OR: [
-            {
-              teamId: {
-                in: [ctx.user.organizationId, ...teamsFromOrg.map((t) => t.id)],
-              },
-              isTeamBooking: true,
-            },
-            {
-              userId: {
-                in: userIdsFromOrg,
-              },
-              isTeamBooking: false,
-            },
-          ],
-        };
-      }
-
-      if (teamId && !isAll && !eventTypeId) {
-        const usersFromTeam = await ctx.insightsDb.membership.findMany({
-          where: {
-            teamId: teamId,
-            accepted: true,
-          },
-          select: {
-            userId: true,
-          },
-        });
-        const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
-        whereConditional = {
-          ...whereConditional,
-          OR: [
-            {
-              teamId,
-              isTeamBooking: true,
-            },
-            {
-              userId: {
-                in: userIdsFromTeam,
-              },
-              isTeamBooking: false,
-            },
-          ],
-        };
-      }
+      const { whereCondition: whereConditional } = r;
 
       const baseWhereCondition = {
         ...whereConditional,
@@ -373,7 +292,6 @@ export const insightsRouter = router({
           lte: new Date(endDate),
         },
       };
-      console.log(JSON.stringify(baseWhereCondition));
 
       const startTimeEndTimeDiff = dayjs(endDate).diff(dayjs(startDate), "day");
 
