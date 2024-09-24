@@ -439,6 +439,9 @@ model Team {
   smsLockReviewedByAdmin Boolean                 @default(false)
   features               TeamFeatures[]
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
