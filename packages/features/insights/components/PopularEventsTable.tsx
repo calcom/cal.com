@@ -43,16 +43,19 @@ export const PopularEventsTable = () => {
       <Title className="text-emphasis">{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.eventTypeId}>
-              <TableCell className="text-default">{item.eventTypeName}</TableCell>
-              <TableCell>
-                <Text className="text-default text-right">
-                  <strong>{item.count}</strong>
-                </Text>
-              </TableCell>
-            </TableRow>
-          ))}
+          {data.map(
+            (item) =>
+              item.eventTypeId && (
+                <TableRow key={item.eventTypeId}>
+                  <TableCell className="text-default">{item.eventTypeName}</TableCell>
+                  <TableCell>
+                    <Text className="text-default text-right">
+                      <strong>{item.count}</strong>
+                    </Text>
+                  </TableCell>
+                </TableRow>
+              )
+          )}
         </TableBody>
       </Table>
       {data.length === 0 && (
