@@ -63,7 +63,7 @@
     {
       "group": "Getting started",
       "version": "v1",
-      "pages": ["v1/api-reference/introduction"]
+      "pages": ["v1/api-reference/introduction", "v1/api-reference/errors"]
     }
   ],
   "footerSocials": {
