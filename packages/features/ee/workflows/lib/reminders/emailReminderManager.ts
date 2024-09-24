@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
@@ -207,9 +208,30 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const batchId = await getBatchId();
 
-  function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
+  async function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
     const status: EventStatus =
       triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ? "CANCELLED" : "CONFIRMED";
+
+    const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
+
+    const attendeePromises = [];
+    for (const attendee of evt.attendees) {
+      attendeePromises.push(
+        getTranslation(attendee.language.locale ?? "en", "common").then((tAttendee) => ({
+          ...attendee,
+          language: { ...attendee.language, translate: tAttendee },
+        }))
+      );
+    }
+
+    const attendees = await Promise.all(attendeePromises);
+
+    const emailEvent = {
+      ...evt,
+      type: evt.eventType?.slug || "",
+      organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
+      attendees,
+    };
 
     return sendSendgridMail(
       {
@@ -223,7 +245,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
               {
                 content: Buffer.from(
                   generateIcsString({
-                    event: evt,
+                    event: emailEvent,
                     status,
                   }) || ""
                 ).toString("base64"),

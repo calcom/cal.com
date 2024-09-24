@@ -372,7 +372,7 @@ async function handler(req: CustomRequest) {
       metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
       ...{
         eventType: {
-          slug: bookingToDelete.eventType?.slug,
+          slug: bookingToDelete.eventType?.slug as string,
           schedulingType: bookingToDelete.eventType?.schedulingType,
           hosts: bookingToDelete.eventType?.hosts,
         },
