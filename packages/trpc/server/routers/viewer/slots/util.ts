@@ -181,6 +181,22 @@ export async function getEventType(
       rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
+      team: {
+        select: {
+          id: true,
+          bookingLimits: true,
+        },
+      },
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+            },
+          },
+        },
+      },
       schedule: {
         select: {
           id: true,

@@ -446,7 +446,12 @@ async function handler(
       );
     }
     if (eventType.durationLimits) {
-      await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
+      await checkDurationLimits(
+        eventType.durationLimits as IntervalLimit,
+        startAsDate,
+        eventType.id,
+        rescheduleUid
+      );
     }
   }
 
