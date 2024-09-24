@@ -122,7 +122,7 @@ export const EventMeta = ({
           )}
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
           {event.description && (
-            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] overflow-y-auto pr-4">
               <div dangerouslySetInnerHTML={{ __html: event.description }} />
             </EventMetaBlock>
           )}
