@@ -242,7 +242,7 @@ export class InputEventTypesService_2024_06_14 {
     return transformConfirmationPolicyApiToInternal(requiresConfirmation);
   }
   transformInputRecurrignEvent(recurrence: CreateEventTypeInput_2024_06_14["recurrence"]) {
-    if (!recurrence) {
+    if (!recurrence || recurrence.disabled) {
       return undefined;
     }
 
