@@ -36,7 +36,7 @@ import {
   NotFoundException,
   Query,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleCreatePhoneCall } from "@calcom/platform-libraries";
@@ -57,7 +57,7 @@ export type EventTypeHandlerResponse = {
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Organizations Event Types")
+@DocsTags("Orgs / Event Types")
 export class OrganizationsEventTypesController {
   constructor(
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
@@ -70,6 +70,7 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/teams/:teamId/event-types")
+  @ApiOperation({ summary: "Create an event type" })
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -99,6 +100,7 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types/:eventTypeId")
+  @ApiOperation({ summary: "Get an event type" })
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number
@@ -120,6 +122,7 @@ export class OrganizationsEventTypesController {
   @Roles("TEAM_ADMIN")
   @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
   @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
+  @ApiOperation({ summary: "Create a phone call" })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -143,6 +146,7 @@ export class OrganizationsEventTypesController {
 
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
+  @ApiOperation({ summary: "Get a team event type" })
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
@@ -170,6 +174,7 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/event-types")
+  @ApiOperation({ summary: "Get all team event types" })
   async getTeamsEventTypes(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -187,6 +192,7 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
+  @ApiOperation({ summary: "Update a team event type" })
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -218,6 +224,7 @@ export class OrganizationsEventTypesController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Delete("/teams/:teamId/event-types/:eventTypeId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete a team event type" })
   async deleteTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
