@@ -459,8 +459,8 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
       "2024-09-12T08:00:00-07:00",
       "2024-09-12T09:00:00-07:00",
-      "2024-09-12T10:30:00-07:00",
-      "2024-09-12T11:30:00-07:00",
+      "2024-09-12T10:15:00-07:00",
+      "2024-09-12T11:15:00-07:00",
     ]);
   });
 
@@ -907,9 +907,9 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
 
     expect(slots.length).toStrictEqual(3);
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
-      "2024-09-12T09:30:00-07:00",
-      "2024-09-12T10:30:00-07:00",
-      "2024-09-12T11:30:00-07:00",
+      "2024-09-12T09:15:00-07:00",
+      "2024-09-12T10:15:00-07:00",
+      "2024-09-12T11:15:00-07:00",
     ]);
   });
 });
