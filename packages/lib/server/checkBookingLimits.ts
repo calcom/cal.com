@@ -17,6 +17,7 @@ export async function checkBookingLimits(
   eventId: number,
   rescheduleUid?: string | undefined,
   timeZone?: string | null,
+  user?: { id: number; email: string },
   isGlobalBookingLimits?: boolean
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
@@ -31,6 +32,7 @@ export async function checkBookingLimits(
       eventId,
       timeZone,
       rescheduleUid,
+      user,
       isGlobalBookingLimits,
     })
   );

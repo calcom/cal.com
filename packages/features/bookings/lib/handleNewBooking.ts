@@ -457,6 +457,8 @@ async function handler(
         id: eventType.userId,
       },
       select: {
+        id: true,
+        email: true,
         bookingLimits: true,
       },
     });
@@ -467,6 +469,7 @@ async function handler(
         eventType.id,
         rescheduleUid,
         eventType.schedule?.timeZone,
+        { id: eventTypeUser.id, email: eventTypeUser.email },
         true
       );
     }
