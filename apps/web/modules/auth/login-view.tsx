@@ -39,7 +39,7 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon"/>
+  <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
@@ -218,6 +218,7 @@ PageProps & WithNonceProps<{}>) {
                 )}
                 {displaySSOLogin && (
                   <SAMLLogin
+                    disabled={formState.isSubmitting}
                     samlTenantID={samlTenantID}
                     samlProductID={samlProductID}
                     setErrorMessage={setErrorMessage}

@@ -7,6 +7,7 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { ButtonProps } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 
 interface Props {
@@ -19,7 +20,12 @@ const schema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
 });
 
-export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
+export function SAMLLogin({
+  samlTenantID,
+  samlProductID,
+  setErrorMessage,
+  ...buttonProps
+}: Props & ButtonProps) {
   const { t } = useLocale();
   const methods = useFormContext();
   const [lastUsed, setLastUsed] = useLastUsed();
@@ -64,7 +70,8 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
         mutation.mutate({
           email,
         });
-      }}>
+      }}
+      {...buttonProps}>
       <span>{t("signin_with_saml_oidc")}</span>
       {lastUsed === "saml" && <LastUsed />}
     </Button>
