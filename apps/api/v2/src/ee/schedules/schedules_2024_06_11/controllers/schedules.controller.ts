@@ -66,7 +66,7 @@ export class SchedulesController_2024_06_11 {
       2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying
       \`"isDefault": true\` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.
 
-      The second goal of schedules is to create other schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.
+      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.
       After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH \`event-types/{eventTypeId}\` endpoint.
 
       When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.
