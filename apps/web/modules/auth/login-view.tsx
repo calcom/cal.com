@@ -95,6 +95,12 @@ PageProps & WithNonceProps<{}>) {
 
   callbackUrl = safeCallbackUrl || "";
 
+  const LoginFooter = (
+    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+      {t("dont_have_an_account")}
+    </Link>
+  );
+
   const TwoFactorFooter = (
     <>
       <Button
@@ -172,27 +178,6 @@ PageProps & WithNonceProps<{}>) {
     ? true
     : isSAMLLoginEnabled && !isPending && data?.connectionExists;
 
-  const LoginFooter = (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex items-center gap-1">
-        <p className="text-subtle">{t("dont_have_an_account")}</p>
-        <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-          {t("sign_up")}
-        </Link>
-      </div>
-      {!twoFactorRequired && displaySSOLogin && (
-        <div className="flex items-center gap-1">
-          <p className="text-subtle">{t("have_a_saml_account")}</p>
-          <SAMLLogin
-            samlTenantID={samlTenantID}
-            samlProductID={samlProductID}
-            setErrorMessage={setErrorMessage}
-          />
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
@@ -231,8 +216,15 @@ PageProps & WithNonceProps<{}>) {
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
                 )}
+                {displaySSOLogin && (
+                  <SAMLLogin
+                    samlTenantID={samlTenantID}
+                    samlProductID={samlProductID}
+                    setErrorMessage={setErrorMessage}
+                  />
+                )}
               </div>
-              {isGoogleLoginEnabled && (
+              {(isGoogleLoginEnabled || displaySSOLogin) && (
                 <div className="my-8">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
