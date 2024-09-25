@@ -57,7 +57,12 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
     // user event types
     teamId = await getPayingTeamId(userId);
 
-    if (!teamId) return null;
+    // no more credits available for user
+    if (!teamId) {
+      // cancel all already scheduled sms
+      cancelAndMarkScheduledSms(userId);
+      return null;
+    }
 
     const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
       where: {
@@ -90,13 +95,6 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
         select: smsCreditCountSelect,
       });
     }
-  }
-
-  //if no team id was returned then there are no more credits open for user
-
-  if (userId && !teamId) {
-    //user doesn't have any credits available
-    cancelAndMarkScheduledSms(userId);
   }
 
   if (teamId) {
@@ -164,39 +162,46 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
               limitReached: true,
             },
           });
-          return { teamId, isFree: true }; // limit reached now, allow sending last sms
+          return { teamId, isFree: true }; // limit reached, allow sending last sms
         } else {
-          // free Credits are used, limit is not yet reached
+          // twilio statusCallback will check if sms costs are still within overage limit
+          // Now we don't know how much this SMS will cost and if it might make it reach the limit
           return { teamId, isFree: false };
         }
       }
       return null; // limit was already reached, don't send sms
-    } else if (smsCreditCountTeam.credits > freeCredits * 0.8) {
-      //todo: I need a different calculation here, maybe 80% or 80% what's above the limit
-      if (!smsCreditCountTeam.warningSent) {
-        const ownersAndAdmins = await Promise.all(
-          acceptedMembers
-            .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
-            .map(async (member) => {
-              return {
-                email: member.user.email,
-                name: member.user.name,
-                t: await getTranslation(member.user.locale ?? "es", "common"),
-              };
-            })
-        );
+    } else {
+      const warninigLimitReached =
+        smsCreditCountTeam.team.smsOverageLimit === 0
+          ? smsCreditCountTeam.credits > freeCredits * 0.8
+          : smsCreditCountTeam.overageCharges > smsCreditCountTeam.team.smsOverageLimit * 0.8;
 
-        // notification email to team owners when over 80% of credits used
-        await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
+      if (warninigLimitReached) {
+        if (!smsCreditCountTeam.warningSent) {
+          const ownersAndAdmins = await Promise.all(
+            acceptedMembers
+              .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
+              .map(async (member) => {
+                return {
+                  email: member.user.email,
+                  name: member.user.name,
+                  t: await getTranslation(member.user.locale ?? "es", "common"),
+                };
+              })
+          );
 
-        await prisma.smsCreditCount.update({
-          where: {
-            id: smsCreditCountTeam.id,
-          },
-          data: {
-            warningSent: true,
-          },
-        });
+          // notification email to team owners that limit is almost reached
+          await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
+
+          await prisma.smsCreditCount.update({
+            where: {
+              id: smsCreditCountTeam.id,
+            },
+            data: {
+              warningSent: true,
+            },
+          });
+        }
       }
     }
     return { teamId };
