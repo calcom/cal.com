@@ -1,22 +1,11 @@
 {
   "openapi": "3.0.3",
-  "servers": [
-    {
-      "url": "http://localhost:3002/v1"
-    },
-    {
-      "url": "https://api.cal.dev/v1"
-    },
-    {
-      "url": "https://api.cal.com/v1"
-    }
-  ],
   "externalDocs": {
     "url": "https://docs.cal.com",
     "description": "Find more info at our main docs: https://docs.cal.com/"
   },
   "info": {
-    "title": "@calcom/api: Public API for Cal.com",
+    "title": "Cal.com API v1",
     "version": "1.0.0"
   },
   "components": {
@@ -163,11 +152,6 @@
       }
     }
   },
-  "security": [
-    {
-      "ApiKeyAuth": []
-    }
-  ],
   "tags": [
     {
       "name": "Users"

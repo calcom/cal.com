@@ -5,6 +5,12 @@
     "dark": "https://cal.com/logo-white.svg",
     "light": "https://cal.com/logo.svg"
   },
+  "api": {
+    "baseUrl": "https://api.cal.com",
+    "auth": {
+      "method": "bearer"
+    }
+  },
   "favicon": "/favicon-32x32.png",
   "colors": {
     "primary": "#111827",
