@@ -7,6 +7,7 @@ import { OrganizationsOptionsAttributesController } from "@/modules/organization
 import { OrganizationsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes.controller";
 import { OrganizationsEventTypesController } from "@/modules/organizations/controllers/event-types/organizations-event-types.controller";
 import { OrganizationsMembershipsController } from "@/modules/organizations/controllers/memberships/organizations-membership.controller";
+import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/controllers/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
@@ -79,6 +80,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksService,
     WebhooksRepository,
     WebhooksService,
+    OutputTeamEventTypesResponsePipe,
   ],
   exports: [
     OrganizationsService,

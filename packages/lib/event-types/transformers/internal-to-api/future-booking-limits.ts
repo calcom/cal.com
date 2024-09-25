@@ -8,6 +8,7 @@ import type {
   RangeWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   BusinessDaysWindow_2024_06_14,
+  Disabled_2024_06_14,
 } from "@calcom/platform-types";
 
 export function transformFutureBookingLimitsInternalToApi(
@@ -38,6 +39,11 @@ export function transformFutureBookingLimitsInternalToApi(
         value: transformedFutureBookingsLimitsFields.periodDays,
         rolling: false,
       } as CalendarDaysWindow_2024_06_14 | BusinessDaysWindow_2024_06_14;
+
+    case BookingWindowPeriodOutputTypeEnum_2024_06_14.UNLIMITED:
+      return {
+        disabled: true,
+      } as Disabled_2024_06_14;
     default:
       return undefined;
   }
