@@ -11,7 +11,7 @@ import { KPICard } from "./KPICard";
 export const BookingKPICards = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  console.log({ filter });
+
   const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId, isAll, initialConfig } =
     filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
