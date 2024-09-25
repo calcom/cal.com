@@ -9,7 +9,6 @@ const metadataSchema = z.object({
 
 const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) => {
   const subscription = data.object;
-  console.log("subscription", subscription);
   try {
     const { teamId } = metadataSchema.parse(subscription.metadata);
     const teamBilling = await TeamBilling.findAndInit(teamId);
