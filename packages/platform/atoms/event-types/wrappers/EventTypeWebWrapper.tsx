@@ -37,9 +37,7 @@ const EventSetupTab = dynamic(() =>
 
 const EventAvailabilityTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab").then(
-    (mod) => mod.EventAvailabilityTab
-  )
+  import("./EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
 const EventTeamAssignmentTab = dynamic(() =>

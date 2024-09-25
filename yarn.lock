@@ -25,7 +25,6 @@ __metadata:
     "@stablelib/base64": ^1.0.1
     "@stablelib/hex": ^1.0.1
     "@stablelib/utf8": ^1.0.1
-    chalk: ^4.1.2
     commander: ^8.3.0
     dotenv: ^10.0.0
     s-ago: ^2.2.0
