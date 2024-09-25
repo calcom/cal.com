@@ -455,7 +455,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     let isTeamOrOrgOwnerOrAdmin = false;
     const orgId = user?.id && (await getOrgIdFromMemberOrTeamId({ memberId: user?.id }));
     if ((input?.isTeamEvent && originalRescheduledBooking?.eventType?.teamId) || orgId) {
-      const teamIdFilter = [originalRescheduledBooking?.eventType?.teamId, orgId].filter(Boolean);
+      const teamIdFilter = [originalRescheduledBooking?.eventType?.teamId, orgId].filter(Boolean) as number[];
       const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
         where: {
           teamId: {

@@ -494,7 +494,7 @@ async function handler(
     let isTeamOrOrgOwnerOrAdmin = false;
     const orgId = userId && (await getOrgIdFromMemberOrTeamId({ memberId: userId }));
     if ((isTeamEventType && eventType?.teamId) || orgId) {
-      const teamIdFilter = [eventType?.teamId, orgId].filter(Boolean);
+      const teamIdFilter = [eventType?.teamId, orgId].filter(Boolean) as number[];
       const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
         where: {
           teamId: {
