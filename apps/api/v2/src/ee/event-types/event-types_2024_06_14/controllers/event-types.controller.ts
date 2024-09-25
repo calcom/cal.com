@@ -27,7 +27,7 @@ import {
   Query,
   ParseIntPipe,
 } from "@nestjs/common";
-import { ApiHeader, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -41,7 +41,7 @@ import {
   version: VERSION_2024_06_14_VALUE,
 })
 @UseGuards(PermissionsGuard)
-@DocsTags("Event types")
+@DocsTags("Event Types")
 @ApiHeader({
   name: "cal-api-version",
   description: `Must be set to \`2024-06-14\``,
@@ -63,6 +63,7 @@ export class EventTypesController_2024_06_14 {
       "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
     required: true,
   })
+  @ApiOperation({ summary: "Create an event type" })
   async createEventType(
     @Body() body: CreateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
@@ -89,6 +90,7 @@ export class EventTypesController_2024_06_14 {
       "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
     required: true,
   })
+  @ApiOperation({ summary: "Get an event type" })
   async getEventTypeById(
     @Param("eventTypeId") eventTypeId: string,
     @GetUser() user: UserWithProfile
@@ -106,6 +108,7 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/")
+  @ApiOperation({ summary: "Get all event types" })
   async getEventTypes(
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
@@ -127,6 +130,7 @@ export class EventTypesController_2024_06_14 {
     required: true,
   })
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update an event type" })
   async updateEventType(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeInput_2024_06_14,
@@ -155,6 +159,7 @@ export class EventTypesController_2024_06_14 {
       "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
     required: true,
   })
+  @ApiOperation({ summary: "Delete an event type" })
   async deleteEventType(
     @Param("eventTypeId") eventTypeId: number,
     @GetUser("id") userId: number

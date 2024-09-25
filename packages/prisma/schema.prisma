@@ -183,6 +183,7 @@ model Credential {
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
+  references           BookingReference[]
 
   @@index([userId])
   @@index([appId])
@@ -533,10 +534,11 @@ model BookingReference {
   bookingId                  Int?
   externalCalendarId         String?
   deleted                    Boolean?
-  credentialId               Int?
+
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId Int?
 
   @@index([bookingId])
-  @@index([credentialId])
   @@index([type])
   @@index([uid])
 }

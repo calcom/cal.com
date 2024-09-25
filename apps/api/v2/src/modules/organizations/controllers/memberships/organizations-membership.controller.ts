@@ -30,7 +30,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -41,7 +41,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Organizations Memberships")
+@DocsTags("Orgs / Memberships")
 export class OrganizationsMembershipsController {
   constructor(private organizationsMembershipService: OrganizationsMembershipService) {}
 
@@ -49,6 +49,7 @@ export class OrganizationsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get all memberships" })
   async getAllMemberships(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -71,6 +72,7 @@ export class OrganizationsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create a membership" })
   async createMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgMembershipDto
@@ -87,6 +89,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get a membership" })
   async getOrgMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number
@@ -103,6 +106,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete a membership" })
   async deleteMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number
@@ -119,6 +123,7 @@ export class OrganizationsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update a membership" })
   async updateMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
