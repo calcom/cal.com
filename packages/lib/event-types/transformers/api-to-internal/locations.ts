@@ -71,7 +71,7 @@ const UserPhoneSchema = z.object({
 
 type InPersonLocation = z.infer<typeof InPersonSchema>;
 type LinkLocation = z.infer<typeof LinkSchema>;
-type IntegrationLocation = z.infer<typeof IntegrationSchema>;
+export type IntegrationLocation = z.infer<typeof IntegrationSchema>;
 type UserPhoneLocation = z.infer<typeof UserPhoneSchema>;
 
 const TransformedLocationSchema = z.union([InPersonSchema, LinkSchema, IntegrationSchema, UserPhoneSchema]);
