@@ -7,7 +7,7 @@ import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/pris
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -20,6 +20,7 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+export type EventTypeApps = RouterOutputs["viewer"]["integrations"];
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -137,3 +138,17 @@ export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingF
 
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
+export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypes"]["update"];
+export type TabMap = {
+  advanced: React.ReactNode;
+  ai?: React.ReactNode;
+  apps?: React.ReactNode;
+  availability: React.ReactNode;
+  instant?: React.ReactNode;
+  limits: React.ReactNode;
+  recurring: React.ReactNode;
+  setup: React.ReactNode;
+  team?: React.ReactNode;
+  webhooks?: React.ReactNode;
+  workflows?: React.ReactNode;
+};

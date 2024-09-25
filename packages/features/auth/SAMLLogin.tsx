@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 import z from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
@@ -26,10 +26,8 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
 
   const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
-      const res = await signIn("saml", {}, { tenant: data.tenant, product: data.product });
-      if (res && !res.error) {
-        setLastUsed("saml");
-      }
+      setLastUsed("saml");
+      await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },
     onError: (err) => {
       setErrorMessage(t(err.message));

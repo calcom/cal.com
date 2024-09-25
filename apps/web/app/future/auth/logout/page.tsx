@@ -1,10 +1,9 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import PageWrapper from "@components/PageWrapperAppDir";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -20,7 +19,6 @@ export const generateMetadata = async () => {
 const Page = async ({ params, searchParams }: PageProps) => {
   // cookie will be cleared in `/apps/web/middleware.ts`
   const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
   const context = buildLegacyCtx(h, cookies(), params, searchParams);
   const ssr = await ssrInit(context);
   const props = {
@@ -28,11 +26,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
     query: context.query,
   };
 
-  return (
-    <PageWrapper requiresLicense={false} getLayout={null} nonce={nonce} themeBasis={null}>
-      <Logout {...props} />
-    </PageWrapper>
-  );
+  return <Logout {...props} />;
 };
 
-export default Page;
+export default WithLayout({ getLayout: null, ServerPage: Page })<"P">;

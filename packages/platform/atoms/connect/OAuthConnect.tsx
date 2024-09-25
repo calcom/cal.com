@@ -1,3 +1,5 @@
+"use client";
+
 import type { FC } from "react";
 
 import type { CALENDARS } from "@calcom/platform-constants";
