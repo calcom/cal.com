@@ -364,7 +364,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             {!!timeSectionText && (
               <div className="mt-5">
                 <Label>{timeSectionText}</Label>
-                <TimeTimeUnitInput form={form} disabled={props.readOnly} />
+                <TimeTimeUnitInput disabled={props.readOnly} />
                 {!props.readOnly && (
                   <div className="mt-1 flex text-gray-500">
                     <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />

@@ -100,7 +100,7 @@ async function processTranscriptsInBatches(transcriptIds: Array<string>) {
 
 export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
   meetingToken: string | null,
-  userId?: string
+  userId?: number
 ) => {
   if (!meetingToken) return null;
 
