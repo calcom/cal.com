@@ -121,7 +121,7 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
 export const setEnableRecordingUIForOrganizer = async (
   bookingReferenceId: number,
   meetingToken: string | null,
-  userId?: string
+  userId?: number
 ) => {
   if (!meetingToken) return null;
 
