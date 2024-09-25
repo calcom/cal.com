@@ -39,7 +39,7 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon-colored.svg" alt="" />
+  <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon"/>
 );
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
