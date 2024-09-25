@@ -17,7 +17,6 @@ export type SmsLimitReachedData = {
 };
 
 export const SmsLimitReachedEmail = (props: SmsLimitReachedData) => {
-  //todo
   return (
     <BaseEmailHtml subject={props.user.t("sms_limit_almost_reached_subject", { appName: APP_NAME })}>
       <div>
@@ -25,10 +24,10 @@ export const SmsLimitReachedEmail = (props: SmsLimitReachedData) => {
           {props.user.t("hi_user_name", { name: props.user.name })}!
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_reached_first_part", { teamName: props.team.name })}
+          {props.user.t("sms_limit_reached_email", { teamName: props.team.name })}
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_reached_second_part", {
+          {props.user.t("sms_limit_avoid_interruptions", {
             url: `${WEBAPP_URL}/settings/team/${props.team.id}/smsCredits`,
           })}
         </p>
