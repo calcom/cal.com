@@ -44,7 +44,7 @@ export function SAMLLogin({
     <Button
       StartIcon="lock"
       color="secondary"
-      data-testid="saml"
+      data-testid="samlAndOidc"
       className="flex w-full justify-center"
       onClick={async (event) => {
         event.preventDefault();
