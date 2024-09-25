@@ -56,7 +56,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
       const credential = {
-        id: 0,
+        id: null,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
