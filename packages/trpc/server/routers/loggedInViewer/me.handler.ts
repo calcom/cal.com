@@ -4,7 +4,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -89,6 +89,8 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
               eventTypes: true,
             },
           },
+          role: true,
+          accepted: true,
         },
       },
       eventTypes: {
@@ -102,6 +104,12 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
       sumOfTeamEventTypes++;
     }
   }
+  const myOwnedTeams =
+    additionalUserInfo?.teams?.filter(
+      (team) =>
+        (team.role === MembershipRole.ADMIN || team.role === MembershipRole.OWNER) && team.accepted === true
+    ) ?? [];
+  const isTeamAdminOrOwner = myOwnedTeams.length > 0;
   const userMetadataPrased = userMetadata.parse(user.metadata);
 
   // Destructuring here only makes it more illegible
@@ -166,5 +174,6 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     isPremium: userMetadataPrased?.isPremium,
     sumOfTeamEventTypes,
     ...(passwordAdded ? { passwordAdded } : {}),
+    isTeamAdminOrOwner,
   };
 };
