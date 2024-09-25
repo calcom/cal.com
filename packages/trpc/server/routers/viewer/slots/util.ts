@@ -341,7 +341,7 @@ export interface IGetAvailableSlots {
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
-  const orgDetails = input?.orgSlug
+  const orgDetails = input.orgSlug !== undefined
     ? {
         currentOrgDomain: input.orgSlug,
         isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
