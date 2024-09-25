@@ -53,9 +53,16 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
 }
 
 export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: string | string[]) {
+  const forPlatform = isPlatformRequest(req);
   const forcedSlugHeader = req?.headers?.["x-cal-force-slug"];
-
   const forcedSlug = forcedSlugHeader instanceof Array ? forcedSlugHeader[0] : forcedSlugHeader;
+
+  if (forPlatform && forcedSlug) {
+    return {
+      isValidOrgDomain: true,
+      currentOrgDomain: forcedSlug,
+    };
+  }
 
   const hostname = req?.headers?.host || "";
   return getOrgDomainConfigFromHostname({
@@ -63,6 +70,10 @@ export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: str
     fallback,
     forcedSlug,
   });
+}
+
+function isPlatformRequest(req: IncomingMessage | undefined) {
+  return !!req?.headers?.["x-cal-client-id"];
 }
 
 export function getOrgDomainConfigFromHostname({
@@ -99,9 +110,10 @@ export function subdomainSuffix() {
   return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
 }
 
-export function getOrgFullOrigin(slug: string, options: { protocol: boolean } = { protocol: true }) {
+export function getOrgFullOrigin(slug: string | null, options: { protocol: boolean } = { protocol: true }) {
   if (!slug)
     return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
+
   const orgFullOrigin = `${
     options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""
   }${slug}.${subdomainSuffix()}`;

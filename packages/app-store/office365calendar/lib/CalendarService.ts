@@ -174,10 +174,13 @@ export default class Office365CalendarService implements Calendar {
     const calendarSelectParams = "$select=showAs,start,end";
 
     try {
-      const selectedCalendarIds = selectedCalendars
-        .filter((e) => e.integration === this.integrationName)
-        .map((e) => e.externalId)
-        .filter(Boolean);
+      const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
+        if (calendar.integration === this.integrationName && calendar.externalId)
+          calendarIds.push(calendar.externalId);
+
+        return calendarIds;
+      }, [] as string[]);
+
       if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
         // Only calendars of other integrations selected
         return Promise.resolve([]);
@@ -266,7 +269,7 @@ export default class Office365CalendarService implements Calendar {
     return {
       subject: event.title,
       body: {
-        contentType: "HTML",
+        contentType: "text",
         content: getRichDescription(event),
       },
       start: {
@@ -277,17 +280,16 @@ export default class Office365CalendarService implements Calendar {
         dateTime: dayjs(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
-      attendees: [
-        // Add the calEvent organizer
-        {
-          emailAddress: {
-            address: event.destinationCalendar
-              ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
-                event.organizer.email
-              : event.organizer.email,
-            name: event.organizer.name,
-          },
+      organizer: {
+        emailAddress: {
+          address: event.destinationCalendar
+            ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
+              event.organizer.email
+            : event.organizer.email,
+          name: event.organizer.name,
         },
+      },
+      attendees: [
         ...event.attendees.map((attendee) => ({
           emailAddress: {
             address: attendee.email,
@@ -374,6 +376,7 @@ export default class Office365CalendarService implements Calendar {
     maxRetries: number,
     retryCount = 0
   ): Promise<IBatchResponse> => {
+    const getRandomness = () => Number(Math.random().toFixed(3));
     let retryAfterTimeout = 0;
     if (retryCount >= maxRetries) {
       return { responses: settledPromises };
@@ -395,7 +398,7 @@ export default class Office365CalendarService implements Calendar {
     }
 
     // Await certain time from retry-after header
-    await new Promise((r) => setTimeout(r, retryAfterTimeout));
+    await new Promise((r) => setTimeout(r, retryAfterTimeout + getRandomness()));
 
     const newResponses = await this.apiGraphBatchCall(failedRequest);
     let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponses);

@@ -43,7 +43,6 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       language: data.language,
       teamId: data.teamId,
       usernameOrEmail: data.usernameOrEmail,
-      isOrg: data.isOrg,
     });
 
     return { success: true, message: `${data.usernameOrEmail} has been invited.` };
@@ -58,10 +57,10 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: TInviteMemberInputSchema) {
-  const { userId, isAdmin } = req;
-  if (isAdmin) return;
+  const { userId, isSystemWideAdmin } = req;
+  if (isSystemWideAdmin) return;
   // To prevent auto-accepted invites, limit it to ADMIN users
-  if (!isAdmin && "accepted" in body)
+  if (!isSystemWideAdmin && "accepted" in body)
     throw new HttpError({ statusCode: 403, message: "ADMIN needed for `accepted`" });
   // Only team OWNERS and ADMINS can add other members
   const membership = await prisma.membership.findFirst({

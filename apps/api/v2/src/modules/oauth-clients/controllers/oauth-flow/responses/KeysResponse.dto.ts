@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ValidateNested, IsEnum, IsString, IsNotEmptyObject } from "class-validator";
+import { ValidateNested, IsEnum, IsString, IsNotEmptyObject, IsNumber } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
@@ -16,6 +16,9 @@ class KeysDto {
   })
   @IsString()
   refreshToken!: string;
+
+  @IsNumber()
+  accessTokenExpiresAt!: number;
 }
 
 export class KeysResponseDto {

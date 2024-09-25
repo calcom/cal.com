@@ -1,9 +1,12 @@
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { Locales } from "@/lib/enums/locales";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -21,7 +24,6 @@ import {
   HttpStatus,
   Param,
   Patch,
-  BadRequestException,
   Delete,
   Query,
   NotFoundException,
@@ -33,10 +35,10 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Pagination } from "@calcom/platform-types";
 
 @Controller({
-  path: "oauth-clients/:clientId/users",
-  version: "2",
+  path: "/v2/oauth-clients/:clientId/users",
+  version: API_VERSIONS_VALUES,
 })
-@UseGuards(OAuthClientCredentialsGuard)
+@UseGuards(ApiAuthGuard, OAuthClientGuard)
 @DocsTags("Managed users")
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
@@ -91,6 +93,7 @@ export class OAuthClientUsersController {
       data: {
         user: this.getResponseUser(user),
         accessToken: tokens.accessToken,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
         refreshToken: tokens.refreshToken,
       },
     };
@@ -155,7 +158,7 @@ export class OAuthClientUsersController {
 
     const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       id,
       true
@@ -166,6 +169,7 @@ export class OAuthClientUsersController {
       data: {
         accessToken,
         refreshToken,
+        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
       },
     };
   }
@@ -184,15 +188,13 @@ export class OAuthClientUsersController {
       id: user.id,
       email: user.email,
       username: user.username,
+      name: user.name,
       timeZone: user.timeZone,
       weekStart: user.weekStart,
       createdDate: user.createdDate,
       timeFormat: user.timeFormat,
       defaultScheduleId: user.defaultScheduleId,
+      locale: user.locale as Locales,
     };
   }
 }
-
-export type UserReturned = Pick<User, "id" | "email" | "username">;
-
-export type CreateUserResponse = { user: UserReturned; accessToken: string; refreshToken: string };

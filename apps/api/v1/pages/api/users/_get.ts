@@ -45,12 +45,12 @@ import { schemaUsersReadPublic } from "~/lib/validations/user";
 export async function getHandler(req: NextApiRequest) {
   const {
     userId,
-    isAdmin,
+    isSystemWideAdmin,
     pagination: { take, skip },
   } = req;
   const where: Prisma.UserWhereInput = {};
   // If user is not ADMIN, return only his data.
-  if (!isAdmin) where.id = userId;
+  if (!isSystemWideAdmin) where.id = userId;
 
   if (req.query.email) {
     const validationResult = schemaQuerySingleOrMultipleUserEmails.parse(req.query);

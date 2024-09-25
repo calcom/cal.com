@@ -40,18 +40,28 @@ const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 export default class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
+  private skipWriting = false;
   protected integrationName = "ics-feed_calendar";
 
   constructor(credential: CredentialPayload) {
-    const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+    const { urls, skipWriting } = JSON.parse(
+      symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY)
+    );
     this.urls = urls;
+    this.skipWriting = skipWriting;
   }
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
+    if (this.skipWriting) {
+      return Promise.reject(new Error("Event creation is disabled for this calendar."));
+    }
     throw new Error("createEvent called on read-only ICS feed");
   }
 
   deleteEvent(_uid: string, _event: CalendarEvent, _externalCalendarId?: string): Promise<unknown> {
+    if (this.skipWriting) {
+      return Promise.reject(new Error("Event creation is disabled for this calendar."));
+    }
     throw new Error("deleteEvent called on read-only ICS feed");
   }
 
@@ -60,6 +70,9 @@ export default class ICSFeedCalendarService implements Calendar {
     _event: CalendarEvent,
     _externalCalendarId?: string
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
+    if (this.skipWriting) {
+      return Promise.reject(new Error("Event creation is disabled for this calendar."));
+    }
     throw new Error("updateEvent called on read-only ICS feed");
   }
 

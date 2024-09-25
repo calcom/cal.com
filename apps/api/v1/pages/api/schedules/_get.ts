@@ -77,17 +77,17 @@ export const schemaUserIds = z
  */
 
 async function handler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-  const args: Prisma.ScheduleFindManyArgs = isAdmin ? {} : { where: { userId } };
+  const { userId, isSystemWideAdmin } = req;
+  const args: Prisma.ScheduleFindManyArgs = isSystemWideAdmin ? {} : { where: { userId } };
   args.include = { availability: true };
 
-  if (!isAdmin && req.query.userId)
+  if (!isSystemWideAdmin && req.query.userId)
     throw new HttpError({
       statusCode: 401,
       message: "Unauthorized: Only admins can query other users",
     });
 
-  if (isAdmin && req.query.userId) {
+  if (isSystemWideAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     args.where = { userId: { in: userIds } };

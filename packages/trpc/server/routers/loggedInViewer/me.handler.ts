@@ -5,6 +5,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TMeInputSchema } from "./me.schema";
@@ -101,9 +102,27 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
       sumOfTeamEventTypes++;
     }
   }
+  const userMetadataPrased = userMetadata.parse(user.metadata);
 
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
+
+  const profileData = user.organization?.isPlatform
+    ? {
+        organizationId: null,
+        organization: { id: -1, isPlatform: true, slug: "", isOrgAdmin: false },
+        username: user.username ?? null,
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+        profiles: [],
+      }
+    : {
+        organizationId: user.profile?.organizationId ?? null,
+        organization: user.organization,
+        username: user.profile?.username ?? user.username ?? null,
+        profile: user.profile ?? null,
+        profiles: allUserEnrichedProfiles,
+      };
+
   return {
     id: user.id,
     name: user.name,
@@ -138,17 +157,14 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
-    organizationId: user.profile?.organizationId ?? null,
-    organization: user.organization,
-    username: user.profile?.username ?? user.username ?? null,
-    profile: user.profile ?? null,
-    profiles: allUserEnrichedProfiles,
+    ...profileData,
     bookingLimits: user.bookingLimits,
     secondaryEmails,
     sumOfBookings: additionalUserInfo?.bookings.length,
     sumOfCalendars: additionalUserInfo?.selectedCalendars.length,
     sumOfTeams: additionalUserInfo?.teams.length,
     sumOfEventTypes: additionalUserInfo?.eventTypes.length,
+    isPremium: userMetadataPrased?.isPremium,
     sumOfTeamEventTypes,
     ...(passwordAdded ? { passwordAdded } : {}),
   };

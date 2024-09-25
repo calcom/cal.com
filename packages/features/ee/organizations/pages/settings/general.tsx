@@ -7,7 +7,6 @@ import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -27,11 +26,20 @@ import {
 } from "@calcom/ui";
 
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
+import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = ({
+  title,
+  description,
+  isAppDir,
+}: {
+  title: string;
+  description: string;
+  isAppDir?: boolean;
+}) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
+      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
       <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -50,7 +58,7 @@ interface GeneralViewProps {
   localeProp: string;
 }
 
-const OrgGeneralView = () => {
+const OrgGeneralView = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
@@ -66,7 +74,7 @@ const OrgGeneralView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [error]
@@ -84,14 +92,21 @@ const OrgGeneralView = () => {
         currentOrg={currentOrg}
         isAdminOrOwner={isAdminOrOwner}
         localeProp={user?.locale ?? "en"}
+        isAppDir={isAppDir}
       />
 
       <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
+      <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
   );
 };
 
-const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProps) => {
+const GeneralView = ({
+  currentOrg,
+  isAdminOrOwner,
+  localeProp,
+  isAppDir,
+}: GeneralViewProps & { isAppDir?: boolean }) => {
   const { t } = useLocale();
 
   const mutation = trpc.viewer.organizations.update.useMutation({
@@ -150,11 +165,13 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
           weekStart: values.weekStart.value,
         });
       }}>
-      <Meta
-        title={t("general")}
-        description={t("organization_general_description")}
-        borderInShellHeader={true}
-      />
+      {!isAppDir ? (
+        <Meta
+          title={t("general")}
+          description={t("organization_general_description")}
+          borderInShellHeader={true}
+        />
+      ) : null}
       <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
         <Controller
           name="timeZone"
@@ -224,5 +241,4 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
   );
 };
 
-OrgGeneralView.getLayout = getLayout;
 export default OrgGeneralView;

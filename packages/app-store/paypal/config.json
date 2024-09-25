@@ -14,5 +14,6 @@
   "__createdUsingCli": true,
   "imageSrc": "icon.svg",
   "__template": "event-type-app-card",
-  "dirName": "paypal"
+  "dirName": "paypal",
+  "isOAuth": true
 }

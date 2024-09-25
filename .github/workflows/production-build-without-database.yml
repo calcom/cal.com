@@ -1,7 +1,9 @@
-name: Production Build (without database)
-
+name: Production Builds
 on:
   workflow_call:
+
+permissions:
+  contents: read
 
 env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
@@ -37,11 +39,11 @@ env:
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-latest
+    name: Web App
+    runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build

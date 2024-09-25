@@ -1,11 +1,3 @@
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import dayjs from "@calcom/dayjs";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getGoogleCalendarCredential,
@@ -27,6 +19,15 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { describe, expect } from "vitest";
+
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import dayjs from "@calcom/dayjs";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 export const Timezones = {
   "-05:00": "America/New_York",
@@ -147,14 +148,18 @@ describe("handleNewBooking", () => {
         });
 
         const createdBooking = await handleNewBooking(req);
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
-        expect(createdBooking).toContain({
-          location: BookingLocations.CalVideo,
-        });
+        expect(createdBooking).toEqual(
+          expect.objectContaining({
+            location: BookingLocations.CalVideo,
+          })
+        );
 
         await expectBookingToBeInDatabase({
           description: "",
@@ -307,14 +312,18 @@ describe("handleNewBooking", () => {
         });
 
         const createdBooking = await handleNewBooking(req);
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
-        expect(createdBooking).toContain({
-          location: BookingLocations.CalVideo,
-        });
+        expect(createdBooking).toEqual(
+          expect.objectContaining({
+            location: BookingLocations.CalVideo,
+          })
+        );
 
         await expectBookingToBeInDatabase({
           description: "",

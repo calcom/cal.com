@@ -38,7 +38,6 @@ import {
   TextField,
 } from "@calcom/ui";
 
-import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
@@ -55,7 +54,7 @@ const teamProfileFormSchema = z.object({
   bio: z.string(),
 });
 
-const OtherTeamProfileView = () => {
+const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -94,7 +93,7 @@ const OtherTeamProfileView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [teamError]
@@ -161,8 +160,8 @@ const OtherTeamProfileView = () => {
   function leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
-        teamId: team.id,
-        memberId: session.data.user.id,
+        teamIds: [team.id],
+        memberIds: [session.data.user.id],
       });
   }
 
@@ -170,7 +169,7 @@ const OtherTeamProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} />
+      {!isAppDir ? <Meta title={t("profile")} description={t("profile_team_description")} /> : null}
       {!isPending ? (
         <>
           {isAdmin ? (
@@ -256,6 +255,7 @@ const OtherTeamProfileView = () => {
                   disableLists
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
+                  height="80px"
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>
@@ -367,7 +367,5 @@ const OtherTeamProfileView = () => {
     </>
   );
 };
-
-OtherTeamProfileView.getLayout = getLayout;
 
 export default OtherTeamProfileView;

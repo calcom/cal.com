@@ -19,6 +19,7 @@ export class GetAvailableSlotsInput {
 
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
   usernameList?: string[];
 
   @IsBoolean()
@@ -37,6 +38,10 @@ export class GetAvailableSlotsInput {
   @IsString()
   @IsOptional()
   timeZone?: string;
+
+  @IsString()
+  @IsOptional()
+  orgSlug?: string;
 }
 
 export class RemoveSelectedSlotInput {

@@ -6,7 +6,6 @@ import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, Divider, FilterSearchField, Icon } from "@calcom/ui";
@@ -70,17 +69,7 @@ export const PeopleFilter = () => {
                 removeItemByKeyAndValue("userIds", member.id);
               }
             }}
-            icon={
-              <Avatar
-                alt={`${member?.id} avatar`}
-                imageSrc={
-                  member.username
-                    ? `${orgBranding?.fullDomain ?? WEBAPP_URL}/${member.username}/avatar.png`
-                    : undefined
-                }
-                size="xs"
-              />
-            }
+            icon={<Avatar alt={`${member?.id} avatar`} imageSrc={member.avatarUrl} size="xs" />}
           />
         ))}
         {filteredMembers?.length === 0 && (

@@ -1,7 +1,8 @@
-import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
+import type { EventTypeCustomInput, EventType } from "@prisma/client";
 import type { z } from "zod";
 
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -16,7 +17,7 @@ import {
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && !process.env.INTEGRATION_TEST_MODE) {
   // This file imports some costly dependencies, so we want to make sure it's not imported on the client side.
   throw new Error("`getBookingFields` must not be imported on the client side.");
 }
@@ -57,6 +58,7 @@ export const getSmsReminderNumberSource = ({
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
+  isOrgTeamEvent = false,
   disableBookingTitle,
   customInputs,
   metadata,
@@ -64,23 +66,13 @@ export const getBookingFieldsWithSystemFields = ({
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
+  isOrgTeamEvent?: boolean;
   disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
-  workflows: Prisma.EventTypeGetPayload<{
-    select: {
-      workflows: {
-        select: {
-          workflow: {
-            select: {
-              id: true;
-              steps: true;
-            };
-          };
-        };
-      };
-    };
-  }>["workflows"];
+  workflows: {
+    workflow: Workflow;
+  }[];
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.parse(metadata || {});
   const parsedBookingFields = eventTypeBookingFields.parse(bookingFields || []);
@@ -89,6 +81,7 @@ export const getBookingFieldsWithSystemFields = ({
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
+    isOrgTeamEvent,
     disableBookingTitle,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
@@ -99,6 +92,7 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
+  isOrgTeamEvent,
   disableBookingTitle,
   additionalNotesRequired,
   customInputs,
@@ -106,23 +100,13 @@ export const ensureBookingInputsHaveSystemFields = ({
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
+  isOrgTeamEvent: boolean;
   disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
-  workflows: Prisma.EventTypeGetPayload<{
-    select: {
-      workflows: {
-        select: {
-          workflow: {
-            select: {
-              id: true;
-              steps: true;
-            };
-          };
-        };
-      };
-    };
-  }>["workflows"];
+  workflows: {
+    workflow: Workflow;
+  }[];
 }) => {
   // If bookingFields is set already, the migration is done.
   const hideBookingTitle = disableBookingTitle ?? true;
@@ -151,6 +135,8 @@ export const ensureBookingInputsHaveSystemFields = ({
     });
   });
 
+  const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
+
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
     {
@@ -173,8 +159,8 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "email_address",
       type: "email",
       name: "email",
-      required: true,
-      editable: "system",
+      required: !isEmailFieldOptional,
+      editable: isOrgTeamEvent ? "system-but-optional" : "system",
       sources: [
         {
           label: "Default",
@@ -183,6 +169,7 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
+
     {
       defaultLabel: "location",
       type: "radioInput",
@@ -194,6 +181,11 @@ export const ensureBookingInputsHaveSystemFields = ({
       optionsInputs: {
         attendeeInPerson: {
           type: "address",
+          required: true,
+          placeholder: "",
+        },
+        somewhereElse: {
+          type: "text",
           required: true,
           placeholder: "",
         },
@@ -212,6 +204,23 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
   ];
+  if (isOrgTeamEvent) {
+    systemBeforeFields.splice(2, 0, {
+      defaultLabel: "phone_number",
+      type: "phone",
+      name: "attendeePhoneNumber",
+      required: false,
+      hidden: true,
+      editable: "system-but-optional",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    });
+  }
 
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [

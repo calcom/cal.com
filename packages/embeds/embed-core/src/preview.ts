@@ -47,9 +47,10 @@ if (!bookerUrl || !embedLibUrl) {
       }
       p(cal, ar);
     };
-})(window, "//localhost:3000/embed/embed.js", "init");
+})(window, embedLibUrl, "init");
 const previewWindow = window;
 previewWindow.Cal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
+previewWindow.Cal.version = process.env.EMBED_PUBLIC_EMBED_VERSION as string;
 
 previewWindow.Cal("init", {
   origin: bookerUrl,

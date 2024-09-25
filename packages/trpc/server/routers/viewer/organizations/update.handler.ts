@@ -2,9 +2,9 @@ import type { Prisma } from "@prisma/client";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
+import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
-import { uploadLogo } from "@calcom/lib/server/uploadLogo";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
@@ -32,17 +32,24 @@ const updateOrganizationSettings = async ({
   input: TUpdateInputSchema;
   tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
 }) => {
-  // if lockEventTypeCreation isn't given we don't do anything.
-  if (typeof input.lockEventTypeCreation === "undefined") {
-    return;
+  const data: Prisma.OrganizationSettingsUpdateInput = {};
+
+  if (input.hasOwnProperty("lockEventTypeCreation")) {
+    data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
+
+  if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
+    data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
+  }
+
+  // If no settings values have changed lets skip this update
+  if (Object.keys(data).length === 0) return;
+
   await tx.organizationSettings.update({
     where: {
       organizationId,
     },
-    data: {
-      lockEventTypeCreationForUsers: !!input.lockEventTypeCreation,
-    },
+    data,
   });
 
   if (input.lockEventTypeCreation) {

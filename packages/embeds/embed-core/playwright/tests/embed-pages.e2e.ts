@@ -10,14 +10,19 @@ test.describe("Embed Pages", () => {
     await page.goto("http://localhost:3000/free/30min/embed");
     // Checks the margin from top by checking the distance between the div inside main from the viewport
     const marginFromTop = await page.evaluate(async () => {
-      return await new Promise((resolve) => {
+      return await new Promise<{
+        bookerContainer: number;
+        mainEl: number;
+      }>((resolve) => {
         (function tryGettingBoundingRect() {
           const mainElement = document.querySelector(".main");
+          const bookerContainer = document.querySelector('[data-testid="booker-container"]');
 
-          if (mainElement) {
+          if (mainElement && bookerContainer) {
             // This returns the distance of the div element from the viewport
             const mainElBoundingRect = mainElement.getBoundingClientRect();
-            resolve(mainElBoundingRect.top);
+            const bookerContainerBoundingRect = bookerContainer.getBoundingClientRect();
+            resolve({ bookerContainer: bookerContainerBoundingRect.top, mainEl: mainElBoundingRect.top });
           } else {
             setTimeout(tryGettingBoundingRect, 500);
           }
@@ -25,7 +30,8 @@ test.describe("Embed Pages", () => {
       });
     });
 
-    expect(marginFromTop).toBe(0);
+    expect(marginFromTop.bookerContainer).toBe(0);
+    expect(marginFromTop.mainEl).toBe(0);
   });
 
   test("Event Type Page: should have margin top on non embed page", async ({ page }) => {

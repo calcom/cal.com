@@ -22,7 +22,7 @@ export type ButtonBaseProps = {
   EndIcon?: IconName;
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
-  tooltip?: string;
+  tooltip?: string | React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
   disabled?: boolean;
@@ -240,7 +240,7 @@ const Wrapper = ({
   tooltipSide,
   tooltipOffset,
 }: {
-  tooltip?: string;
+  tooltip?: string | React.ReactNode;
   children: React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;

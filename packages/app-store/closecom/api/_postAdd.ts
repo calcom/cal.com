@@ -28,13 +28,18 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     await prisma.credential.create({
       data,
+      select: {
+        id: true,
+      },
     });
   } catch (reason) {
     logger.error("Could not add Close.com app", reason);
     return res.status(500).json({ message: "Could not add Close.com app" });
   }
 
-  return res.status(200).json({ url: getInstalledAppPath({ variant: "other", slug: "closecom" }) });
+  return res.status(200).json({
+    url: req.query.returnTo ? req.query.returnTo : getInstalledAppPath({ variant: "crm", slug: "closecom" }),
+  });
 }
 
 export default defaultResponder(getHandler);

@@ -1,17 +1,17 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 
+import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { validateIntervalLimitOrder, parseBookingLimit } from "@calcom/lib";
+import { validateIntervalLimitOrder, parseBookingLimit, classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, Form, Meta, SkeletonContainer, SkeletonText, showToast } from "@calcom/ui";
+import { Button, Form, Meta, SkeletonContainer, SkeletonText, showToast, SettingsToggle } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-import { BookingLimits } from "@components/eventtype/EventLimitsTab";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -64,26 +64,48 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["me"] }) => {
         borderInShellHeader={false}
       />
       <Form form={bookingsLimitFormMethods} handleSubmit={handleSubmit}>
-        <BookingLimits
-          sectionDescription="global_limit_booking_frequency_description"
-          settingsToggleClass="rounded-b-none"
-          onCheckedChange={(key: string, value: IntervalLimit, shouldDirty: boolean) => {
-            bookingsLimitFormMethods.setValue(key as "bookingLimits", value, { shouldDirty });
-            if (!Object.keys(value).length) {
-              handleSubmit(bookingsLimitFormMethods.getValues());
-            }
+        <Controller
+          name="bookingLimits"
+          render={({ field: { value } }) => {
+            const isChecked = Object.keys(value ?? {}).length > 0;
+            return (
+              <SettingsToggle
+                toggleSwitchAtTheEnd={true}
+                labelClassName="text-sm"
+                title={t("limit_booking_frequency")}
+                description={t("global_limit_booking_frequency_description")}
+                checked={isChecked}
+                onCheckedChange={(active) => {
+                  if (active) {
+                    bookingsLimitFormMethods.setValue("bookingLimits", {
+                      PER_DAY: 1,
+                    });
+                  } else {
+                    bookingsLimitFormMethods.setValue("bookingLimits", {});
+                  }
+                  handleSubmit(bookingsLimitFormMethods.getValues());
+                }}
+                switchContainerClassName={classNames(
+                  "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                  isChecked && "rounded-b-none"
+                )}
+                childrenClassName="lg:ml-0">
+                <div className="border-subtle border border-y-0 p-6">
+                  <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+                </div>
+                <SectionBottomActions align="end">
+                  <Button
+                    color="primary"
+                    type="submit"
+                    loading={updateProfileMutation.isPending}
+                    disabled={!bookingsLimitFormMethods.formState.dirtyFields.bookingLimits}>
+                    {t("update")}
+                  </Button>
+                </SectionBottomActions>
+              </SettingsToggle>
+            );
           }}
-          childrenContainerClassName="rounded-none border-b-0">
-          <SectionBottomActions align="end">
-            <Button
-              color="primary"
-              type="submit"
-              loading={updateProfileMutation.isPending}
-              disabled={!bookingsLimitFormMethods.formState.dirtyFields.bookingLimits}>
-              {t("update")}
-            </Button>
-          </SectionBottomActions>
-        </BookingLimits>
+        />
       </Form>
     </div>
   );

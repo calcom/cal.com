@@ -828,6 +828,38 @@ describe("Credential Sync Disabled", () => {
       );
     });
   });
+
+  // Credentials might have no userId attached in production. They could instead have teamId
+  test("OAuthManager without resourceOwner.id is okay", async () => {
+    const userId = null;
+    const invalidateTokenObject = vi.fn();
+    const expireAccessToken = vi.fn();
+    const updateTokenObject = vi.fn();
+    const fetchNewTokenObject = vi.fn().mockResolvedValue(successResponse({ json: getDummyTokenObject() }));
+
+    expect(
+      () =>
+        new OAuthManager({
+          credentialSyncVariables: useCredentialSyncVariables,
+          resourceOwner: {
+            type: "user",
+            id: userId,
+          },
+          appSlug: "demo-app",
+          currentTokenObject: getDummyTokenObject(),
+          fetchNewTokenObject,
+          isTokenObjectUnusable: async () => {
+            return null;
+          },
+          isAccessTokenUnusable: async () => {
+            return null;
+          },
+          invalidateTokenObject: invalidateTokenObject,
+          updateTokenObject: updateTokenObject,
+          expireAccessToken: expireAccessToken,
+        })
+    ).not.toThrowError();
+  });
 });
 
 describe("Credential Sync Enabled", () => {
@@ -961,6 +993,37 @@ describe("Credential Sync Enabled", () => {
         });
         expect(fetchNewTokenObject).not.toHaveBeenCalled();
       });
+    });
+
+    test("OAuthManager without resourceOwner.id should throw error as it is a requirement", async () => {
+      const userId = null;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+      const fetchNewTokenObject = vi.fn().mockResolvedValue(successResponse({ json: getDummyTokenObject() }));
+
+      expect(
+        () =>
+          new OAuthManager({
+            credentialSyncVariables: useCredentialSyncVariables,
+            resourceOwner: {
+              type: "user",
+              id: userId,
+            },
+            appSlug: "demo-app",
+            currentTokenObject: getDummyTokenObject(),
+            fetchNewTokenObject,
+            isTokenObjectUnusable: async () => {
+              return null;
+            },
+            isAccessTokenUnusable: async () => {
+              return null;
+            },
+            invalidateTokenObject: invalidateTokenObject,
+            updateTokenObject: updateTokenObject,
+            expireAccessToken: expireAccessToken,
+          })
+      ).toThrowError("resourceOwner should have id set");
     });
   });
 

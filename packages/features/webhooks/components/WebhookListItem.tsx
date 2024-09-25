@@ -103,6 +103,7 @@ export default function WebhookListItem(props: {
         <div className="ml-2 flex items-center space-x-4">
           <Switch
             defaultChecked={webhook.active}
+            data-testid="webhook-switch"
             disabled={!canEditWebhook}
             onCheckedChange={() =>
               toggleWebhook.mutate({
@@ -114,7 +115,11 @@ export default function WebhookListItem(props: {
             }
           />
 
-          <Button className="hidden lg:flex" color="secondary" onClick={props.onEditWebhook}>
+          <Button
+            className="hidden lg:flex"
+            color="secondary"
+            onClick={props.onEditWebhook}
+            data-testid="webhook-edit-button">
             {t("edit")}
           </Button>
 

@@ -17,16 +17,15 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 type BrandColorsFormValues = {
   brandColor: string;
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] } & { isAppDir?: boolean };
 
-const ProfileView = ({ team }: ProfileViewProps) => {
+const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -80,11 +79,13 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
   return (
     <>
-      <Meta
-        title={t("booking_appearance")}
-        description={t("appearance_team_description")}
-        borderInShellHeader={false}
-      />
+      {!isAppDir ? (
+        <Meta
+          title={t("booking_appearance")}
+          description={t("appearance_team_description")}
+          borderInShellHeader={false}
+        />
+      ) : null}
       {isAdmin ? (
         <>
           <Form
@@ -92,7 +93,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             handleSubmit={(values) => {
               mutation.mutate({
                 id: team.id,
-                theme: values.theme || null,
+                theme: values.theme === "" ? null : values.theme,
               });
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
@@ -182,18 +183,27 @@ const ProfileView = ({ team }: ProfileViewProps) => {
   );
 };
 
-const ProfileViewWrapper = () => {
+const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
   const { t } = useLocale();
 
-  const { data: team, isPending, error } = trpc.viewer.teams.get.useQuery({ teamId: Number(params.id) });
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.getMinimal.useQuery(
+    { teamId: Number(params.id) },
+    {
+      enabled: !!Number(params.id),
+    }
+  );
 
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/teams");
       }
     },
     [error]
@@ -201,14 +211,16 @@ const ProfileViewWrapper = () => {
 
   if (isPending)
     return (
-      <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_team_description")} />
+      <AppearanceSkeletonLoader
+        isAppDir={isAppDir}
+        title={t("appearance")}
+        description={t("appearance_team_description")}
+      />
     );
 
   if (!team) return null;
 
-  return <ProfileView team={team} />;
+  return <ProfileView team={team} isAppDir={isAppDir} />;
 };
-
-ProfileViewWrapper.getLayout = getLayout;
 
 export default ProfileViewWrapper;

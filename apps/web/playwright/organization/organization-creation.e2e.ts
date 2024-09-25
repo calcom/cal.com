@@ -1,13 +1,96 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
+import type { Messages } from "mailhog";
 import path from "path";
 import { uuid } from "short-uuid";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
+import type { createEmailsFixture } from "../fixtures/emails";
 import { test } from "../lib/fixtures";
 import { fillStripeTestCheckout } from "../lib/testUtils";
+import { getEmailsReceivedByUser } from "../lib/testUtils";
+import { gotoPathAndExpectRedirectToOrgDomain } from "./lib/gotoPathAndExpectRedirectToOrgDomain";
 
-test.afterAll(({ users, orgs }) => {
+async function expectEmailWithSubject(
+  page: Page,
+  emails: ReturnType<typeof createEmailsFixture>,
+  userEmail: string,
+  subject: string
+) {
+  if (!emails) return null;
+
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(2000);
+  const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
+
+  const allEmails = (receivedEmails as Messages).items;
+  const email = allEmails.find((email) => email.subject === subject);
+  if (!email) {
+    throw new Error(`Email with subject ${subject} not found`);
+  }
+  const dom = new JSDOM(email.html);
+  return dom;
+}
+
+export async function expectOrganizationCreationEmailToBeSent({
+  page,
+  emails,
+  userEmail,
+  orgSlug,
+}: {
+  page: Page;
+  emails: ReturnType<typeof createEmailsFixture>;
+  userEmail: string;
+  orgSlug: string;
+}) {
+  const dom = await expectEmailWithSubject(page, emails, userEmail, "Your organization has been created");
+  const document = dom?.window?.document;
+  expect(document?.querySelector(`[href*=${orgSlug}]`)).toBeTruthy();
+  return dom;
+}
+
+async function expectOrganizationCreationEmailToBeSentWithLinks({
+  page,
+  emails,
+  userEmail,
+  oldUsername,
+  newUsername,
+  orgSlug,
+}: {
+  page: Page;
+  emails: ReturnType<typeof createEmailsFixture>;
+  userEmail: string;
+  oldUsername: string;
+  newUsername: string;
+  orgSlug: string;
+}) {
+  const dom = await expectOrganizationCreationEmailToBeSent({
+    page,
+    emails,
+    userEmail,
+    orgSlug,
+  });
+  const document = dom?.window.document;
+  const links = document?.querySelectorAll(`[data-testid="organization-link-info"] [href]`);
+  if (!links) {
+    throw new Error(`data-testid="organization-link-info doesn't have links`);
+  }
+  expect((links[0] as unknown as HTMLAnchorElement).href).toContain(oldUsername);
+  expect((links[1] as unknown as HTMLAnchorElement).href).toContain(newUsername);
+}
+
+export async function expectEmailVerificationEmailToBeSent(
+  page: Page,
+  emails: ReturnType<typeof createEmailsFixture>,
+  userEmail: string
+) {
+  const subject = "Cal.com: Verify your account";
+  return expectEmailWithSubject(page, emails, userEmail, subject);
+}
+
+test.afterEach(({ users, orgs }) => {
   users.deleteAll();
   orgs.deleteAll();
 });
@@ -20,28 +103,34 @@ function capitalize(text: string) {
 }
 
 test.describe("Organization", () => {
-  test("Admin should be able to create an org for a target user", async ({ page, users, emails }) => {
+  test("Admin should be able to create an org where an existing user is made an owner", async ({
+    page,
+    users,
+    emails,
+  }) => {
     const appLevelAdmin = await users.create({
       role: "ADMIN",
     });
     await appLevelAdmin.apiLogin();
-    const stringUUID = uuid();
 
-    const orgOwnerUsername = `owner-${stringUUID}`;
+    const orgOwnerUsernamePrefix = "owner";
 
-    const targetOrgEmail = users.trackEmail({
-      username: orgOwnerUsername,
+    const orgOwnerEmail = users.trackEmail({
+      username: orgOwnerUsernamePrefix,
       domain: `example.com`,
     });
+
     const orgOwnerUser = await users.create({
-      username: orgOwnerUsername,
-      email: targetOrgEmail,
+      username: orgOwnerUsernamePrefix,
+      email: orgOwnerEmail,
       role: "ADMIN",
     });
 
-    const orgName = capitalize(`${orgOwnerUsername}`);
+    const orgOwnerUsernameOutsideOrg = orgOwnerUser.username;
+    const orgOwnerUsernameInOrg = orgOwnerEmail.split("@")[0];
+    const orgName = capitalize(`${orgOwnerUser.username}`);
+    const orgSlug = `myOrg-${uuid()}`.toLowerCase();
     await page.goto("/settings/organizations/new");
-    await page.waitForLoadState("networkidle");
 
     await test.step("Basic info", async () => {
       // Check required fields
@@ -49,17 +138,16 @@ test.describe("Organization", () => {
       await expect(page.locator(".text-red-700")).toHaveCount(3);
 
       // Happy path
-      await page.locator("input[name=orgOwnerEmail]").fill(targetOrgEmail);
-      // Since we are admin fill in this infomation instead of deriving it
-      await page.locator("input[name=name]").fill(orgName);
-      await page.locator("input[name=slug]").fill(orgOwnerUsername);
+      await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
+    });
 
-      // Fill in seat infomation
-      await page.locator("input[name=seats]").fill("30");
-      await page.locator("input[name=pricePerSeat]").fill("30");
-
-      await page.locator("button[type=submit]").click();
-      await page.waitForLoadState("networkidle");
+    await expectOrganizationCreationEmailToBeSentWithLinks({
+      page,
+      emails,
+      userEmail: orgOwnerEmail,
+      oldUsername: orgOwnerUsernameOutsideOrg || "",
+      newUsername: orgOwnerUsernameInOrg,
+      orgSlug,
     });
 
     await test.step("About the organization", async () => {
@@ -81,7 +169,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -103,7 +191,6 @@ test.describe("Organization", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
       await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
@@ -143,12 +230,60 @@ test.describe("Organization", () => {
       expect(url).toContain(expectedUrl);
 
       await fillStripeTestCheckout(page);
-      await page.waitForLoadState("networkidle");
 
       const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
 
       await expect(upgradeButtonHidden).toBeHidden();
     });
+
+    // Verify that the owner's old username redirect is properly set
+    await gotoPathAndExpectRedirectToOrgDomain({
+      page,
+      org: {
+        slug: orgSlug,
+      },
+      path: `/${orgOwnerUsernameOutsideOrg}`,
+      expectedPath: `/${orgOwnerUsernameInOrg}`,
+    });
+  });
+
+  test("Admin should be able to create an org where the owner doesn't exist yet", async ({
+    page,
+    users,
+    emails,
+  }) => {
+    const appLevelAdmin = await users.create({
+      role: "ADMIN",
+    });
+    await appLevelAdmin.apiLogin();
+    const orgOwnerUsername = `owner`;
+    const orgName = capitalize(`${orgOwnerUsername}`);
+    const orgSlug = `myOrg-${uuid()}`.toLowerCase();
+    const orgOwnerEmail = users.trackEmail({
+      username: orgOwnerUsername,
+      domain: `example.com`,
+    });
+
+    await page.goto("/settings/organizations/new");
+
+    await test.step("Basic info", async () => {
+      // Check required fields
+      await page.locator("button[type=submit]").click();
+      await expect(page.locator(".text-red-700")).toHaveCount(3);
+
+      // Happy path
+      await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
+    });
+
+    const dom = await expectOrganizationCreationEmailToBeSent({
+      page,
+      emails,
+      userEmail: orgOwnerEmail,
+      orgSlug,
+    });
+    expect(dom?.window.document.querySelector(`[href*=${orgSlug}]`)).toBeTruthy();
+    await expectEmailVerificationEmailToBeSent(page, emails, orgOwnerEmail);
+    // Rest of the steps remain same as org creation with existing user as owner. So skipping them
   });
 
   test("User can create and upgrade a org", async ({ page, users, emails }) => {
@@ -170,7 +305,6 @@ test.describe("Organization", () => {
     await orgOwnerUser.apiLogin();
     const orgName = capitalize(`${orgOwnerUsername}`);
     await page.goto("/settings/organizations/new");
-    await page.waitForLoadState("networkidle");
 
     await test.step("Basic info", async () => {
       // These values are infered due to an existing user being signed
@@ -181,7 +315,6 @@ test.describe("Organization", () => {
       await page.locator("input[name=slug]").fill(orgOwnerUsername);
 
       await page.locator("button[type=submit]").click();
-      await page.waitForLoadState("networkidle");
     });
 
     await test.step("About the organization", async () => {
@@ -203,7 +336,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -225,7 +358,6 @@ test.describe("Organization", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
       await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
@@ -263,7 +395,6 @@ test.describe("Organization", () => {
       expect(url).toContain(expectedUrl);
 
       await fillStripeTestCheckout(page);
-      await page.waitForLoadState("networkidle");
 
       const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
 
@@ -316,7 +447,6 @@ test.describe("Organization", () => {
       await slugLocator.fill(`example-${stringUUID}`);
 
       await page.locator("button[type=submit]").click();
-      await page.waitForLoadState("networkidle");
     });
 
     await test.step("About the organization", async () => {
@@ -338,7 +468,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -360,7 +490,6 @@ test.describe("Organization", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
       await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
@@ -408,7 +537,6 @@ test.describe("Organization", () => {
       expect(url).toContain(expectedUrl);
 
       await fillStripeTestCheckout(page);
-      await page.waitForLoadState("networkidle");
 
       const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
 
@@ -418,7 +546,6 @@ test.describe("Organization", () => {
     await test.step("Ensure correctnumberOfTeams are migrated", async () => {
       // eslint-disable-next-line playwright/no-skipped-test
       await page.goto("/teams");
-      await page.waitForLoadState("networkidle");
       const teamListItems = await page.getByTestId("team-list-item-link").all();
 
       // Number of teams migrated + the two created in the create teams step
@@ -426,3 +553,24 @@ test.describe("Organization", () => {
     });
   });
 });
+
+async function fillAndSubmitFirstStepAsAdmin(
+  page: Page,
+  targetOrgEmail: string,
+  orgName: string,
+  orgSlug: string
+) {
+  await page.locator("input[name=orgOwnerEmail]").fill(targetOrgEmail);
+  // Since we are admin fill in this infomation instead of deriving it
+  await page.locator("input[name=name]").fill(orgName);
+  await page.locator("input[name=slug]").fill(orgSlug);
+
+  // Fill in seat infomation
+  await page.locator("input[name=seats]").fill("30");
+  await page.locator("input[name=pricePerSeat]").fill("30");
+
+  await Promise.all([
+    page.waitForResponse("**/api/trpc/organizations/create**"),
+    page.locator("button[type=submit]").click(),
+  ]);
+}

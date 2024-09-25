@@ -1,8 +1,8 @@
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Icon, TextArea } from "@calcom/ui";
@@ -23,6 +23,7 @@ type Props = {
   theme: string | null;
   allRemainingBookings: boolean;
   seatReferenceUid?: string;
+  currentUserEmail?: string;
   bookingCancelledEventProps: {
     booking: unknown;
     organizer: {
@@ -37,8 +38,9 @@ type Props = {
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
-  const router = useRouter();
-  const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps } = props;
+  const refreshData = useRefreshData();
+  const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
+    props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
@@ -99,6 +101,7 @@ export default function CancelBooking(props: Props) {
                       allRemainingBookings,
                       // @NOTE: very important this shouldn't cancel with number ID use uid instead
                       seatReferenceUid,
+                      cancelledBy: currentUserEmail,
                     }),
                     headers: {
                       "Content-Type": "application/json",
@@ -117,7 +120,7 @@ export default function CancelBooking(props: Props) {
                       ...bookingCancelledEventProps,
                       booking: bookingWithCancellationReason,
                     });
-                    router.refresh();
+                    refreshData();
                   } else {
                     setLoading(false);
                     setError(

@@ -9,19 +9,19 @@ type BaseEndpointDeclaration = {
 // Define a type for static URIs
 type StaticUriEndpoint = BaseEndpointDeclaration & {
   uri: string;
-  constructUri?: never; // Ensure constructUri is not used here
+  constructUriFromObject?: never;
+  constructUriFromArray?: never;
 };
 
 // Introduce a generic type for dynamic URIs, allowing for explicit parameter type declaration
-type DynamicUriEndpoint<ParamsType extends Record<string, string> | string[]> = BaseEndpointDeclaration & {
+type DynamicUriEndpoint = BaseEndpointDeclaration & {
   uri?: never; // Ensure uri is not used here
-  constructUri: (params: ParamsType) => string;
+  constructUriFromArray?: (params: string[]) => string;
+  constructUriFromObject?: (params: Record<string, string>) => string;
 };
 
 // Create a discriminated union of the two types, incorporating generics
-type EndpointDeclaration<ParamsType extends Record<string, string> | string[] = string[]> =
-  | StaticUriEndpoint
-  | DynamicUriEndpoint<ParamsType>;
+type EndpointDeclaration = StaticUriEndpoint | DynamicUriEndpoint;
 
 export enum Endpoints {
   RESERVE_SLOT = "RESERVE_SLOT",
@@ -50,29 +50,37 @@ const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDecl
   apiVersion: version,
 });
 
-// Adjust the constructor to use generics for flexible parameter typing
-const publicEndpointConstructor = <ParamsType extends Record<string, string> | string[]>(
-  constructUri: (params: ParamsType) => string,
-  version = ApiVersion.NEUTRAL
-): EndpointDeclaration<ParamsType> => ({
-  constructUri,
-  auth: "public",
-  apiVersion: version,
-});
+const constructUri = (
+  endpointData: {
+    constructUriFromArray?: (params: string[]) => string;
+    constructUriFromObject?: (params: Record<string, string>) => string;
+  },
+  params: string[] | Record<string, string>
+) => {
+  if (endpointData.constructUriFromObject && isParamsRecord(params)) {
+    return endpointData.constructUriFromObject(params);
+  }
+  if (endpointData.constructUriFromArray && Array.isArray(params)) {
+    return endpointData.constructUriFromArray(params);
+  }
+  throw new Error("Invalid parameter type for dynamic endpoint.");
+};
 
 const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
   RESERVE_SLOT: publicEndpoint("slots/reserve", ApiVersion.V2),
   AVAILABLE_SLOTS: publicEndpoint("slots/available", ApiVersion.V2),
   DELETE_SELECTED_SLOT: publicEndpoint("slots/delete", ApiVersion.V2),
   GET_PUBLIC_EVENT: publicEndpoint("events/"),
-  EXCHANGE_OAUTH_AUTH_TOKEN: publicEndpointConstructor<string[]>(
-    ([clientId]) => `oauth/${clientId}/exchange`,
-    ApiVersion.V2
-  ),
-  REFRESH_OAUTH_TOKEN: publicEndpointConstructor<string[]>(
-    ([clientId]) => `oauth/${clientId}/refresh`,
-    ApiVersion.V2
-  ),
+  EXCHANGE_OAUTH_AUTH_TOKEN: {
+    auth: "public",
+    constructUriFromArray: ([clientId]) => `oauth/${clientId}/exchange`,
+    apiVersion: ApiVersion.V2,
+  },
+  REFRESH_OAUTH_TOKEN: {
+    auth: "public",
+    constructUriFromArray: ([clientId]) => `oauth/${clientId}/refresh`,
+    apiVersion: ApiVersion.V2,
+  },
   CREATE_EVENT_TYPE: {
     apiVersion: ApiVersion.V2,
     auth: "access_token",
@@ -81,9 +89,7 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
   GET_EVENT_TYPE_BY_ID: {
     apiVersion: ApiVersion.V2,
     auth: "access_token",
-    constructUri([eventTypeId]) {
-      return `event-types/${eventTypeId}`;
-    },
+    constructUriFromArray: ([eventTypeId]) => `event-types/${eventTypeId}`,
   },
   CREATE_SCHEDULE: {
     apiVersion: ApiVersion.V2,
@@ -103,45 +109,33 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
   GET_SCHEDULE_BY_ID: {
     apiVersion: ApiVersion.V2,
     auth: "access_token",
-    constructUri([scheduleId]) {
-      return `schedules/${scheduleId}`;
-    },
+    constructUriFromArray: ([scheduleId]) => `schedules/${scheduleId}`,
   },
   GET_SUPPORTED_TIMEZONES: publicEndpoint("schedules/time-zones", ApiVersion.V2),
   UPDATE_SCHEDULE_BY_ID: {
     apiVersion: ApiVersion.V2,
     auth: "access_token",
-    constructUri([scheduleId]) {
-      return `schedules/${scheduleId}`;
-    },
+    constructUriFromArray: ([scheduleId]) => `schedules/${scheduleId}`,
   },
   DELETE_SCHEDULE_BY_ID: {
     apiVersion: ApiVersion.V2,
     auth: "access_token",
-    constructUri([scheduleId]) {
-      return `schedules/${scheduleId}`;
-    },
+    constructUriFromArray: ([scheduleId]) => `schedules/${scheduleId}`,
   },
   GET_MANAGED_USERS_BY_CLIENT_ID: {
     apiVersion: ApiVersion.V2,
     auth: "secret",
-    constructUri([clientId]) {
-      return `oauth-clients/${clientId}/users`;
-    },
+    constructUriFromArray: ([clientId]) => `oauth-clients/${clientId}/users`,
   },
   CREATE_MANAGED_USER: {
     apiVersion: ApiVersion.V2,
     auth: "secret",
-    constructUri([clientId]) {
-      return `oauth-clients/${clientId}/users`;
-    },
+    constructUriFromArray: ([clientId]) => `oauth-clients/${clientId}/users`,
   },
   GET_MANAGED_USER_BY_ID: {
     apiVersion: ApiVersion.V2,
     auth: "secret",
-    constructUri([clientId, userId]) {
-      return `oauth-clients/${clientId}/users/${userId}`;
-    },
+    constructUriFromArray: ([clientId, userId]) => `oauth-clients/${clientId}/users/${userId}`,
   },
 } as const;
 
@@ -163,38 +157,28 @@ export const getEndpointData = (
 } => {
   const endpointData = ENDPOINTS[endpoint];
 
-  // Determine if the endpoint expects a dynamic URI construction
-  if (typeof endpointData.constructUri === "function") {
-    if (!params) {
-      throw new Error(`Parameters are required for dynamic ${endpoint} endpoint.`);
-    }
-
-    // Here, we need to determine the correct type of params at runtime
-    let constructedUri: string;
-    if (isParamsRecord(params)) {
-      // Params is a Record<string, string>, handle accordingly
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      constructedUri = endpointData.constructUri(params as Record<string, string>);
-    } else if (Array.isArray(params)) {
-      // Params is string[], handle accordingly
-      constructedUri = endpointData.constructUri(params as string[]);
-    } else {
-      throw new Error("Invalid parameter type for dynamic endpoint.");
-    }
-
-    return {
-      version: endpointData.apiVersion,
-      uri: constructedUri,
-      auth: endpointData.auth,
-    };
-  } else if (endpointData.uri) {
+  if (endpointData.uri) {
     return {
       version: endpointData.apiVersion,
       uri: endpointData.uri,
       auth: endpointData.auth,
     };
-  } else {
+  }
+
+  if (!params) {
+    throw new Error(`Parameters are required for dynamic ${endpoint} endpoint.`);
+  }
+
+  if (
+    typeof endpointData.constructUriFromArray !== "function" &&
+    typeof endpointData.constructUriFromObject !== "function"
+  ) {
     throw new Error(`Endpoint configuration error for ${endpoint}`);
   }
+
+  return {
+    version: endpointData.apiVersion,
+    uri: constructUri(endpointData, params),
+    auth: endpointData.auth,
+  };
 };

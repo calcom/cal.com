@@ -5,6 +5,7 @@ import type { getBookingForReschedule } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
+import { useAtomsContext } from "./useAtomsContext";
 
 export const QUERY_KEY = "user-booking";
 
@@ -24,8 +25,8 @@ export const useGetBookingForReschedule = (
     uid: "",
   }
 ) => {
+  const { isInit } = useAtomsContext();
   const pathname = `/${V2_ENDPOINTS.bookings}/${props.uid}/reschedule`;
-
   const bookingQuery = useQuery({
     queryKey: [QUERY_KEY, props.uid],
     queryFn: () => {
@@ -46,7 +47,7 @@ export const useGetBookingForReschedule = (
           props.onError?.(err);
         });
     },
-    enabled: !!props?.uid,
+    enabled: isInit && !!props?.uid,
   });
 
   return bookingQuery;

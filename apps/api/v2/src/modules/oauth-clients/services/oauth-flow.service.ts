@@ -1,4 +1,4 @@
-import { TokenExpiredException } from "@/modules/auth/guards/access-token/token-expired.exception";
+import { TokenExpiredException } from "@/modules/auth/guards/api-auth/token-expired.exception";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -40,7 +40,7 @@ export class OAuthFlowService {
   }
 
   async getOwnerId(accessToken: string) {
-    const cacheKey = this._generateActKey(accessToken);
+    const cacheKey = this._generateOwnerIdKey(accessToken);
 
     try {
       const ownerId = await this.redisService.redis.get(cacheKey);
@@ -103,7 +103,7 @@ export class OAuthFlowService {
     tokenId: string,
     clientId: string,
     clientSecret: string
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string; accessTokenExpiresAt: Date }> {
     const oauthClient = await this.oAuthClientRepository.getOAuthClientWithAuthTokens(
       tokenId,
       clientId,
@@ -120,7 +120,7 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid Authorization Token.");
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       clientId,
       authorizationToken.owner.id
     );
@@ -129,6 +129,7 @@ export class OAuthFlowService {
 
     return {
       accessToken,
+      accessTokenExpiresAt,
       refreshToken,
     };
   }
@@ -158,11 +159,16 @@ export class OAuthFlowService {
 
     return {
       accessToken: accessToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt,
       refreshToken: refreshToken.secret,
     };
   }
 
   private _generateActKey(accessToken: string) {
     return `act_${accessToken}`;
+  }
+
+  private _generateOwnerIdKey(accessToken: string) {
+    return `owner_${accessToken}`;
   }
 }

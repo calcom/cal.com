@@ -143,7 +143,6 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
-                  isOrg: !!isOrg,
                 },
                 {
                   onSuccess: async (data) => {
@@ -153,7 +152,7 @@ export const AddNewTeamMembersForm = ({
                     if (Array.isArray(data.usernameOrEmail)) {
                       showToast(
                         t("email_invite_team_bulk", {
-                          userCount: data.usernameOrEmail.length,
+                          userCount: data.numUsersInvited,
                         }),
                         "success"
                       );
@@ -200,13 +199,13 @@ export const AddNewTeamMembersForm = ({
         className="w-full justify-center"
         disabled={publishTeamMutation.isPending}
         onClick={() => {
-          let uri = `/settings/teams/${teamId}/profile`;
+          let uri = `/settings/teams/${teamId}/event-type`;
           if (isOrg) {
             uri = `/settings/organizations/${teamId}/add-teams`;
           }
           router.push(uri);
         }}>
-        {isOrg ? t("continue") : t("finish")}
+        {t("continue")}
       </Button>
     </>
   );
@@ -288,8 +287,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           className="h-[36px] w-[36px]"
           onClick={() => {
             removeMemberMutation.mutate({
-              teamId: teamId,
-              memberId: member.id,
+              teamIds: [teamId],
+              memberIds: [member.id],
               isOrg: !!props.isOrg,
             });
           }}

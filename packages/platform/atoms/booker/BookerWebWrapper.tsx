@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,7 +20,7 @@ import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hook
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -36,11 +38,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const rescheduledBy =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   useEffect(() => {
+    // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
 
@@ -48,6 +53,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     ...props,
     eventId: event?.data?.id,
     rescheduleUid,
+    rescheduledBy,
     bookingUid: bookingUid,
     layout: bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
@@ -55,6 +61,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
@@ -86,12 +93,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
-  });
-  const bookings = useBookings({
-    event,
-    hashedLink: props.hashedLink,
-    bookingForm: bookerForm.bookingForm,
-    metadata: metadata ?? {},
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
@@ -129,10 +130,20 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     month: props.month,
     duration: props.duration,
     selectedDate,
+    teamMemberEmail: props.teamMemberEmail,
+  });
+  const bookings = useBookings({
+    event,
+    hashedLink: props.hashedLink,
+    bookingForm: bookerForm.bookingForm,
+    metadata: metadata ?? {},
+    teamMemberEmail: props.teamMemberEmail,
   });
 
   const verifyCode = useVerifyCode({
     onSuccess: () => {
+      if (!bookerForm.formEmail) return;
+
       verifyEmail.setVerifiedEmail(bookerForm.formEmail);
       verifyEmail.setEmailVerificationModalVisible(false);
       bookings.handleBookEvent();
@@ -177,17 +188,17 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         router.push("/apps/categories/calendar");
       }}
       onClickOverlayContinue={() => {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.pathname = "/login/";
-        currentUrl.searchParams.set("callbackUrl", window.location.pathname);
-        currentUrl.searchParams.set("overlayCalendar", "true");
-        router.push(currentUrl.toString());
+        const newUrl = new URL(`${WEBAPP_URL}/login`);
+        newUrl.searchParams.set("callbackUrl", window.location.pathname);
+        newUrl.searchParams.set("overlayCalendar", "true");
+        router.push(newUrl.toString());
       }}
       onOverlaySwitchStateChange={onOverlaySwitchStateChange}
       sessionUsername={session?.user.username}
       isRedirect={isRedirect}
       fromUserNameRedirected={fromUserNameRedirected}
       rescheduleUid={rescheduleUid}
+      rescheduledBy={rescheduledBy}
       bookingUid={bookingUid}
       hasSession={hasSession}
       extraOptions={routerQuery}

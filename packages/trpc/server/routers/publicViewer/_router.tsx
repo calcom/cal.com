@@ -1,8 +1,9 @@
 import publicProcedure from "../../procedures/publicProcedure";
 import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
+import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 import { i18nInputSchema } from "./i18n.schema";
-import { ZNoShowInputSchema } from "./noShow.schema";
+import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
@@ -28,8 +29,11 @@ export const publicViewerRouter = router({
     const handler = await importHandler(namespaced("submitRating"), () => import("./submitRating.handler"));
     return handler(opts);
   }),
-  noShow: publicProcedure.input(ZNoShowInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("noShow"), () => import("./noShow.handler"));
+  markHostAsNoShow: publicProcedure.input(ZMarkHostAsNoShowInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("markHostAsNoShow"),
+      () => import("./markHostAsNoShow.handler")
+    );
     return handler(opts);
   }),
   samlTenantProduct: publicProcedure.input(ZSamlTenantProductInputSchema).mutation(async (opts) => {
@@ -56,4 +60,14 @@ export const publicViewerRouter = router({
     );
     return handler();
   }),
+
+  checkIfUserEmailVerificationRequired: publicProcedure
+    .input(ZUserEmailVerificationRequiredSchema)
+    .query(async (opts) => {
+      const handler = await importHandler(
+        namespaced("checkIfUserEmailVerificationRequired"),
+        () => import("./checkIfUserEmailVerificationRequired.handler")
+      );
+      return handler(opts);
+    }),
 });

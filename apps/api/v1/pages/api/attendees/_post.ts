@@ -52,10 +52,10 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const body = schemaAttendeeCreateBodyParams.parse(req.body);
 
-  if (!isAdmin) {
+  if (!isSystemWideAdmin) {
     const userBooking = await prisma.booking.findFirst({
       where: { userId, id: body.bookingId },
       select: { id: true },

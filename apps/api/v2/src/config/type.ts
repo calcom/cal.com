@@ -6,6 +6,9 @@ export type AppConfig = {
     port: number;
     path: string;
     url: string;
+    keyPrefix: string;
+    licenseKey: string;
+    licenseKeyUrl: string;
   };
   db: {
     readUrl: string;
@@ -15,4 +18,12 @@ export type AppConfig = {
   next: {
     authSecret: string;
   };
+  stripe: {
+    apiKey: string;
+    webhookSecret: string;
+  };
+  app: {
+    baseUrl: string;
+  };
+  e2e: boolean;
 };

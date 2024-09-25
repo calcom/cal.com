@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 
 import { test } from "../../lib/fixtures";
 
-test.afterAll(({ users }) => {
+test.afterEach(({ users }) => {
   users.deleteAll();
 });
 
@@ -47,14 +47,12 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
 
     await user1NotMemberOfOrg1.apiLogin();
     await page.goto("/event-types");
-    await page.waitForLoadState("networkidle");
+    const userEventLinksSelector = `[data-testid=slug-${user1NotMemberOfOrg1.username}] [data-testid="preview-link-button"]`;
+    await page.waitForSelector(userEventLinksSelector);
 
-    const userEventLinksLocators = await page
-      .locator(`[data-testid=slug-${user1NotMemberOfOrg1.username}] [data-testid="preview-link-button"]`)
-      .all();
-
+    // Get all the event links
+    const userEventLinksLocators = await page.locator(userEventLinksSelector).all();
     expect(userEventLinksLocators.length).toBeGreaterThan(0);
-
     for (const userEventLinkLocator of userEventLinksLocators) {
       const href = await userEventLinkLocator.getAttribute("href");
       expect(href).toContain(WEBAPP_URL);

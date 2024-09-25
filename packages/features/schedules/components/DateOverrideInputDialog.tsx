@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { classNames as cs } from "@calcom/lib";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
@@ -28,6 +29,7 @@ const DateOverrideForm = ({
   excludedDates,
   onChange,
   userTimeFormat,
+  weekStart,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
@@ -35,6 +37,7 @@ const DateOverrideForm = ({
   value?: TimeRange[];
   onClose?: () => void;
   userTimeFormat: number | null;
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
@@ -106,11 +109,18 @@ const DateOverrideForm = ({
     <Form
       form={form}
       handleSubmit={(values) => {
-        if (selectedDates.length === 0) return;
-
         const datesInRanges: TimeRange[] = [];
 
-        if (!datesUnavailable) {
+        if (selectedDates.length === 0) return;
+
+        if (datesUnavailable) {
+          selectedDates.map((date) => {
+            datesInRanges.push({
+              start: date.utc(true).startOf("day").toDate(),
+              end: date.utc(true).startOf("day").toDate(),
+            });
+          });
+        } else {
           selectedDates.map((date) => {
             values.range.map((item) => {
               datesInRanges.push({
@@ -125,24 +135,15 @@ const DateOverrideForm = ({
           });
         }
 
-        onChange(
-          datesUnavailable
-            ? selectedDates.map((date) => {
-                return {
-                  start: date.utc(true).startOf("day").toDate(),
-                  end: date.utc(true).startOf("day").toDate(),
-                };
-              })
-            : datesInRanges
-        );
+        onChange(datesInRanges);
         setSelectedDates([]);
       }}
-      className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
+      className="p-6 sm:flex sm:p-0 xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
-          weekStart={0}
+          weekStart={weekStart}
           selected={selectedDates}
           onChange={(day) => {
             if (day) onDateChange(day);
@@ -204,6 +205,8 @@ const DateOverrideInputDialog = ({
   Trigger,
   excludedDates = [],
   userTimeFormat,
+  weekStart = 0,
+  className,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
@@ -212,15 +215,18 @@ const DateOverrideInputDialog = ({
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
   userTimeFormat: number | null;
+  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  className?: string;
 }) => {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={true} size="md" className="p-0">
+      <DialogContent enableOverflow={true} size="md" className={cs("p-0", className)}>
         <DateOverrideForm
           excludedDates={excludedDates}
+          weekStart={weekStart}
           {...passThroughProps}
           onClose={() => setOpen(false)}
           userTimeFormat={userTimeFormat}

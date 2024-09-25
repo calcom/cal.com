@@ -10,6 +10,10 @@ import allCss from "./tailwind.generated.css?inline";
 import type { UiConfig } from "./types";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
+
+// Exporting for consumption by @calcom/embed-core user
+export type { EmbedEvent } from "./sdk-action-manager";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[]> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -52,6 +56,7 @@ if (!globalCal || !globalCal.q) {
 // TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
 // But because it is built on local machine right now, it is much more reliable to have the commit hash.
 globalCal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
+globalCal.version = process.env.EMBED_PUBLIC_EMBED_VERSION as string;
 globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
@@ -140,10 +145,20 @@ function withColorScheme(
   return queryObject;
 }
 
+type allPossibleCallbacksAndActions = {
+  [K in keyof EventDataMap]: {
+    action: K;
+    callback: (arg0: CustomEvent<EventData<K>>) => void;
+  };
+}[keyof EventDataMap];
+
 type SingleInstructionMap = {
-  // TODO: This makes api("on", {}) loose it's generic type. Find a way to fix it.
-  // e.g. api("on", { action: "__dimensionChanged", callback: (e) => { /* `e.detail.data` has all possible values for all events/actions */} });
-  [K in keyof CalApi]: CalApi[K] extends (...args: never[]) => void ? [K, ...Parameters<CalApi[K]>] : never;
+  on: ["on", allPossibleCallbacksAndActions];
+  off: ["off", allPossibleCallbacksAndActions];
+} & {
+  [K in Exclude<keyof CalApi, "on" | "off">]: CalApi[K] extends (...args: never[]) => void
+    ? [K, ...Parameters<CalApi[K]>]
+    : never;
 };
 
 type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
@@ -240,6 +255,7 @@ export class Cal {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
     iframe.name = `cal-embed=${this.namespace}`;
+    iframe.title = `Book a call`;
     const config = this.getConfig();
     const { iframeAttrs, ...restQueryObject } = queryObject;
 
@@ -270,6 +286,13 @@ export class Cal {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
     }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (window.ENABLE_FUTURE_ROUTES) {
+      urlInstance.pathname = `/future${urlInstance.pathname}`;
+    }
+
     urlInstance.searchParams.set("embed", this.namespace);
 
     if (config.debug) {
@@ -809,6 +832,7 @@ export interface GlobalCalWithoutNs {
   instance?: Cal;
   __css?: string;
   fingerprint?: string;
+  version?: string;
   __logQueue?: unknown[];
 }
 

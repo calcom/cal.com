@@ -1,9 +1,12 @@
+"use client";
+
 import type {
   ColumnDef,
   ColumnFiltersState,
   Row,
   SortingState,
   VisibilityState,
+  Table as TableType,
 } from "@tanstack/react-table";
 import {
   flexRender,
@@ -33,6 +36,7 @@ export interface DataTableProps<TData, TValue> {
   onSearch?: (value: string) => void;
   filterableItems?: FilterableItems;
   selectionOptions?: ActionItem<TData>[];
+  renderAboveSelection?: (table: TableType<TData>) => React.ReactNode;
   tableCTA?: React.ReactNode;
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
@@ -40,7 +44,7 @@ export interface DataTableProps<TData, TValue> {
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
-  "data-testId"?: string;
+  "data-testid"?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -54,6 +58,7 @@ export function DataTable<TData, TValue>({
   isPending,
   tableOverlay,
   variant,
+  renderAboveSelection,
   /** This should only really be used if you dont have actions in a row. */
   onSearch,
   onRowMouseclick,
@@ -101,7 +106,7 @@ export function DataTable<TData, TValue>({
     virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
       <DataTableToolbar
         table={table}
         filterableItems={filterableItems}
@@ -109,8 +114,8 @@ export function DataTable<TData, TValue>({
         onSearch={onSearch}
         tableCTA={tableCTA}
       />
-      <div ref={tableContainerRef} onScroll={onScroll} data-testId={rest["data-testId"] ?? "data-table"}>
-        <Table data-testId="">
+      <div ref={tableContainerRef} onScroll={onScroll} data-testid={rest["data-testid"] ?? "data-table"}>
+        <Table data-testid="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -171,7 +176,11 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       {/* <DataTablePagination table={table} /> */}
-      <DataTableSelectionBar table={table} actions={selectionOptions} />
+      <DataTableSelectionBar
+        table={table}
+        actions={selectionOptions}
+        renderAboveSelection={renderAboveSelection}
+      />
     </div>
   );
 }

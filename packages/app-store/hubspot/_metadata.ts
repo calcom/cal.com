@@ -14,9 +14,11 @@ export const metadata = {
   categories: ["crm"],
   label: "HubSpot CRM",
   slug: "hubspot",
+  extendsFeature: "EventType",
   title: "HubSpot CRM",
   email: "help@cal.com",
   dirName: "hubspot",
+  isOAuth: true,
 } as AppMeta;
 
 export default metadata;

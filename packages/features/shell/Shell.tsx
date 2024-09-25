@@ -34,7 +34,6 @@ import {
   InvalidAppCredentialBanners,
   type InvalidAppCredentialBannersProps,
 } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
@@ -43,8 +42,9 @@ import {
   APP_NAME,
   DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
+  IS_CALCOM,
   IS_VISUAL_REGRESSION_TESTING,
-  JOIN_DISCORD,
+  JOIN_COMMUNITY,
   ROADMAP,
   TOP_BANNER_HEIGHT,
   WEBAPP_URL,
@@ -53,7 +53,10 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
+import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -83,7 +86,7 @@ import {
   useCalcomTheme,
   type IconName,
 } from "@calcom/ui";
-import { Discord } from "@calcom/ui/components/icon/Discord";
+import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -215,7 +218,8 @@ const useBanners = () => {
 
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
-
+  const pathname = usePathname();
+  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
@@ -251,13 +255,11 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && (
+        {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
-            <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
@@ -289,7 +291,7 @@ const Layout = (props: LayoutProps) => {
           {props.SidebarContainer ? (
             cloneElement(props.SidebarContainer, { bannersHeight })
           ) : (
-            <SideBarContainer bannersHeight={bannersHeight} />
+            <SideBarContainer isPlatformUser={props.isPlatformUser} bannersHeight={bannersHeight} />
           )}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
@@ -330,6 +332,7 @@ export type LayoutProps = {
   afterHeading?: ReactNode;
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
+  isPlatformUser?: boolean;
 };
 
 const useAppTheme = () => {
@@ -381,11 +384,13 @@ interface UserDropdownProps {
 }
 
 function UserDropdown({ small }: UserDropdownProps) {
+  const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const utils = trpc.useUtils();
   const bookerUrl = useBookerUrl();
-
+  const pathname = usePathname();
+  const isPlatformPages = pathname?.startsWith("/settings/platform");
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -448,7 +453,7 @@ function UserDropdown({ small }: UserDropdownProps) {
               </span>
               <Icon
                 name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
                 aria-hidden="true"
               />
             </span>
@@ -469,40 +474,49 @@ function UserDropdown({ small }: UserDropdownProps) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
+                {!isPlatformPages && (
+                  <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/profile">
+                        {t("my_profile")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/general">
+                        {t("my_settings")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/out-of-office">
+                        {t("out_of_office")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+
                 <DropdownMenuItem>
                   <DropdownItem
-                    type="button"
-                    CustomStartIcon={<Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />}
-                    href="/settings/my-account/profile">
-                    {t("my_profile")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={
-                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                    }
-                    href="/settings/my-account/general">
-                    {t("my_settings")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={<Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />}
-                    href="/settings/my-account/out-of-office">
-                    {t("out_of_office")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <DropdownItem
-                    CustomStartIcon={<Discord className="text-default h-4 w-4" />}
+                    StartIcon="messages-square"
                     target="_blank"
                     rel="noreferrer"
-                    href={JOIN_DISCORD}>
-                    {t("join_our_discord")}
+                    href={JOIN_COMMUNITY}>
+                    {t("join_our_community")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -519,12 +533,29 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
-                    {t("download_desktop_app")}
-                  </DropdownItem>
-                </DropdownMenuItem>
+                {!isPlatformPages && (
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownItem
+                      StartIcon="download"
+                      target="_blank"
+                      rel="noreferrer"
+                      href={DESKTOP_APP_LINK}>
+                      {t("download_desktop_app")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
 
+                {!isPlatformPages && isPlatformUser && (
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownItem
+                      StartIcon="blocks"
+                      target="_blank"
+                      rel="noreferrer"
+                      href="/settings/platform">
+                      Platform
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
@@ -548,6 +579,7 @@ function UserDropdown({ small }: UserDropdownProps) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  isLoading?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
@@ -644,31 +676,75 @@ const navigation: NavigationItemType[] = [
   {
     name: "insights",
     href: "/insights",
-    icon: "bar-chart",
+    icon: "chart-bar",
   },
 ];
 
-const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
-// We create all needed navigation items for the different use cases
-const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
-  Record<string, NavigationItemType[]>
->(
-  (items, item, index) => {
-    // We filter out the "more" separator in` desktop navigation
-    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-    // Items for mobile bottom navigation
-    if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-      items.mobileNavigationBottomItems.push(item);
-    } // Items for the "more" menu in mobile navigation
-    else {
-      items.mobileNavigationMoreItems.push(item);
-    }
-    return items;
+const platformNavigation: NavigationItemType[] = [
+  {
+    name: "Dashboard",
+    href: "/settings/platform/",
+    icon: "layout-dashboard",
   },
-  { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
-);
+  {
+    name: "Documentation",
+    href: "https://docs.cal.com/docs/platform",
+    icon: "chart-bar",
+    target: "_blank",
+  },
+  {
+    name: "API reference",
+    href: "https://api.cal.com/v2/docs#/",
+    icon: "terminal",
+    target: "_blank",
+  },
+  {
+    name: "Atoms",
+    href: "https://docs.cal.com/docs/platform#atoms",
+    icon: "atom",
+    target: "_blank",
+  },
+  {
+    name: MORE_SEPARATOR_NAME,
+    href: "https://docs.cal.com/docs/platform/faq",
+    icon: "ellipsis",
+    target: "_blank",
+  },
+  {
+    name: "Billing",
+    href: "/settings/platform/billing",
+    icon: "chart-bar",
+  },
+];
 
-const Navigation = () => {
+const getDesktopNavigationItems = (isPlatformNavigation = false) => {
+  const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
+  const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+
+  const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
+    !isPlatformNavigation ? navigation : platformNavigation
+  ).reduce<Record<string, NavigationItemType[]>>(
+    (items, item, index) => {
+      // We filter out the "more" separator in` desktop navigation
+      if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+      // Items for mobile bottom navigation
+      if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
+        items.mobileNavigationBottomItems.push(item);
+      } // Items for the "more" menu in mobile navigation
+      else {
+        items.mobileNavigationMoreItems.push(item);
+      }
+      return items;
+    },
+    { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+  );
+
+  return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+};
+
+const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
+  const { desktopNavigationItems } = getDesktopNavigationItems(isPlatformNavigation);
+
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
       {desktopNavigationItems.map((item) => (
@@ -712,6 +788,7 @@ const NavigationItem: React.FC<{
           data-test-id={item.name}
           href={item.href}
           aria-label={t(item.name)}
+          target={item.target}
           className={classNames(
             "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
             item.child ? `[&[aria-current='page']]:!bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
@@ -727,8 +804,11 @@ const NavigationItem: React.FC<{
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <Icon
-              name={item.icon}
-              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
+              name={item.isLoading ? "rotate-cw" : item.icon}
+              className={classNames(
+                "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                item.isLoading && "animate-spin"
+              )}
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -752,14 +832,15 @@ const NavigationItem: React.FC<{
   );
 };
 
-function MobileNavigationContainer() {
+function MobileNavigationContainer({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) {
   const { status } = useSession();
   if (status !== "authenticated") return null;
-  return <MobileNavigation />;
+  return <MobileNavigation isPlatformNavigation={isPlatformNavigation} />;
 }
 
-const MobileNavigation = () => {
+const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const isEmbed = useIsEmbed();
+  const { mobileNavigationBottomItems } = getDesktopNavigationItems(isPlatformNavigation);
 
   return (
     <>
@@ -794,6 +875,7 @@ const MobileNavigationItem: React.FC<{
     <Link
       key={item.name}
       href={item.href}
+      target={item.target}
       className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
@@ -837,32 +919,43 @@ const MobileNavigationMoreItem: React.FC<{
 
 type SideBarContainerProps = {
   bannersHeight: number;
+  isPlatformUser?: boolean;
 };
 
 type SideBarProps = {
   bannersHeight: number;
   user?: UserAuth | null;
+  isPlatformUser?: boolean;
 };
 
-function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
+function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarContainerProps) {
   const { status, data } = useSession();
 
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
-  return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
+  return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
 }
 
 function SideBar({ bannersHeight, user }: SideBarProps) {
+  const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
+  const pathname = usePathname();
+  const isPlatformPages = pathname?.startsWith("/settings/platform");
+  const [isReferalLoading, setIsReferalLoading] = useState(false);
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
     const publicPageUrl = orgBranding?.slug ? getOrgFullOrigin(orgBranding.slug) : "";
     return publicPageUrl;
   }, [orgBranding?.slug, user?.username, user?.org?.id]);
+
+  const sidebarStylingAttributes = {
+    maxHeight: `calc(100vh - ${bannersHeight}px)`,
+    top: `${bannersHeight}px`,
+  };
 
   const bottomNavItems: NavigationItemType[] = [
     {
@@ -881,17 +974,48 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
       },
       icon: "copy",
     },
+    IS_CALCOM
+      ? {
+          name: "copy_referral_link",
+          href: "",
+          onClick: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            setIsReferalLoading(true);
+            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
+            setTimeout(() => {
+              fetchAndCopyToClipboard(
+                fetch("/api/generate-referral-link", {
+                  method: "POST",
+                })
+                  .then((res) => res.json())
+                  .then((res) => res.shortLink),
+                {
+                  onSuccess: () => showToast(t("link_copied"), "success"),
+                  onFailure: () => showToast("Copy to clipboard failed", "error"),
+                }
+              );
+              setIsReferalLoading(false);
+            }, 1000);
+          },
+          icon: "gift",
+          isLoading: isReferalLoading,
+        }
+      : null,
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: "settings",
     },
-  ];
+  ].filter(Boolean) as NavigationItemType[];
+
   return (
     <div className="relative">
       <aside
-        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
-        className="todesktop:!bg-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3">
+        style={!isPlatformPages ? sidebarStylingAttributes : {}}
+        className={classNames(
+          "bg-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
+          !isPlatformPages && "max-h-screen"
+        )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
@@ -921,7 +1045,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex justify-end rtl:space-x-reverse">
+            <div className="flex w-full justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -948,54 +1072,55 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               <KBarTrigger />
             </div>
           </header>
-
           {/* logo icon for tablet */}
           <Link href="/event-types" className="text-center md:inline lg:hidden">
             <Logo small icon />
           </Link>
-
-          <Navigation />
+          <Navigation isPlatformNavigation={isPlatformPages} />
         </div>
 
-        <div>
-          <Tips />
-          {bottomNavItems.map((item, index) => (
-            <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
-              <ButtonOrLink
-                id={item.name}
-                href={item.href || undefined}
-                aria-label={t(item.name)}
-                target={item.target}
-                className={classNames(
-                  "text-left",
-                  "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-                  "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
-                  isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
-                  index === 0 && "mt-3"
-                )}
-                onClick={item.onClick}>
-                {!!item.icon && (
-                  <Icon
-                    name={item.icon}
-                    className={classNames(
-                      "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                      "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
-                    )}
-                    aria-hidden="true"
-                  />
-                )}
-                {isLocaleReady ? (
-                  <span className="hidden w-full justify-between lg:flex">
-                    <div className="flex">{t(item.name)}</div>
-                  </span>
-                ) : (
-                  <SkeletonText className="h-[20px] w-full" />
-                )}
-              </ButtonOrLink>
-            </Tooltip>
-          ))}
-          {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
-        </div>
+        {!isPlatformPages && (
+          <div>
+            <Tips />
+            {bottomNavItems.map((item, index) => (
+              <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
+                <ButtonOrLink
+                  id={item.name}
+                  href={item.href || undefined}
+                  aria-label={t(item.name)}
+                  target={item.target}
+                  className={classNames(
+                    "text-left",
+                    "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+                    "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
+                    isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
+                    index === 0 && "mt-3"
+                  )}
+                  onClick={item.onClick}>
+                  {!!item.icon && (
+                    <Icon
+                      name={item.isLoading ? "rotate-cw" : item.icon}
+                      className={classNames(
+                        "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
+                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                        item.isLoading && "animate-spin"
+                      )}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {isLocaleReady ? (
+                    <span className="hidden w-full justify-between lg:flex">
+                      <div className="flex">{t(item.name)}</div>
+                    </span>
+                  ) : (
+                    <SkeletonText className="h-[20px] w-full" />
+                  )}
+                </ButtonOrLink>
+              </Tooltip>
+            ))}
+            {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
+          </div>
+        )}
       </aside>
     </div>
   );
@@ -1003,7 +1128,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady } = useLocale();
+  const { isLocaleReady, t } = useLocale();
+
+  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
   return (
     <>
@@ -1025,6 +1152,7 @@ export function ShellMain(props: LayoutProps) {
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
+              data-testid="go-back-button"
             />
           )}
           {props.heading && (
@@ -1062,6 +1190,23 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" && buttonToShow && (
+                <Button
+                  color="primary"
+                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
+                  loading={isLoading}
+                  disabled={buttonToShow === ButtonState.DENIED}
+                  tooltipSide="bottom"
+                  tooltip={
+                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
+                  }>
+                  {t(
+                    buttonToShow === ButtonState.DISABLE
+                      ? "disable_browser_notifications"
+                      : "allow_browser_notifications"
+                  )}
+                </Button>
+              )}
             </header>
           )}
         </div>
@@ -1075,7 +1220,10 @@ export function ShellMain(props: LayoutProps) {
 }
 
 function MainContainer({
-  MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
+  isPlatformUser,
+  MobileNavigationContainer: MobileNavigationContainerProp = (
+    <MobileNavigationContainer isPlatformNavigation={isPlatformUser} />
+  ),
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {
@@ -1112,10 +1260,10 @@ function TopNav() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
+          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium transition lg:hidden">
             <KBarTrigger />
           </span>
-          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 transition focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
               <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
@@ -1128,18 +1276,23 @@ function TopNav() {
   );
 }
 
-export const MobileNavigationMoreItems = () => (
-  <ul className="border-subtle mt-2 rounded-md border">
-    {mobileNavigationMoreItems.map((item) => (
-      <MobileNavigationMoreItem key={item.name} item={item} />
-    ))}
-  </ul>
-);
+export const MobileNavigationMoreItems = () => {
+  const { mobileNavigationMoreItems } = getDesktopNavigationItems();
+
+  return (
+    <ul className="border-subtle mt-2 rounded-md border">
+      {mobileNavigationMoreItems.map((item) => (
+        <MobileNavigationMoreItem key={item.name} item={item} />
+      ))}
+    </ul>
+  );
+};
 
 function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
   const { data } = trpc.viewer.me.useQuery();
   const [menuOpen, setMenuOpen] = useState(false);
+  const refreshData = useRefreshData();
 
   if (!data || !ENABLE_PROFILE_SWITCHER || !sessionData) {
     return null;
@@ -1175,7 +1328,7 @@ function ProfileDropdown() {
             </span>
             <Icon
               name="chevron-down"
-              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
               aria-hidden="true"
             />
           </span>
@@ -1203,7 +1356,7 @@ function ProfileDropdown() {
                   update({
                     upId: option.value,
                   }).then(() => {
-                    window.location.reload();
+                    refreshData();
                   });
                 }}
                 className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}>

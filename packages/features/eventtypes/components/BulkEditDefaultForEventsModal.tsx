@@ -15,6 +15,7 @@ export function BulkEditDefaultForEventsModal(props: {
   setOpen: (open: boolean) => void;
   bulkUpdateFunction: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
   isPending: boolean;
+  description: string;
 }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -27,6 +28,7 @@ export function BulkEditDefaultForEventsModal(props: {
   });
 
   const eventTypesSelected = form.watch("eventTypeIds");
+  const isButtonDisabled = eventTypesSelected.length === 0;
 
   if (isFetching || !open || !data?.eventTypes) return null;
 
@@ -35,7 +37,7 @@ export function BulkEditDefaultForEventsModal(props: {
       <DialogContent
         type="creation"
         title={t("default_conferencing_bulk_title")}
-        description={t("default_conferencing_bulk_description")}
+        description={props.description}
         enableOverflow>
         <Form
           form={form}
@@ -79,7 +81,7 @@ export function BulkEditDefaultForEventsModal(props: {
                 utils.viewer.getUsersDefaultConferencingApp.invalidate();
               }}
             />
-            <Button type="submit" color="primary" loading={props.isPending}>
+            <Button type="submit" color="primary" loading={props.isPending} disabled={isButtonDisabled}>
               {t("update")}
             </Button>
           </DialogFooter>

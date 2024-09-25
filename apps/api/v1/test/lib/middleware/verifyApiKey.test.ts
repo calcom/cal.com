@@ -1,13 +1,17 @@
+import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, vi, it, expect, afterEach } from "vitest";
+import { describe, vi, it, expect, afterEach, beforeEach } from "vitest";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
+import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "~/lib/utils/isAdmin";
 
 import { verifyApiKey } from "../../../lib/helpers/verifyApiKey";
+import { ScopeOfAdmin } from "../../../lib/utils/scopeOfAdmin";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
@@ -16,20 +20,21 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-vi.mock("@calcom/features/ee/common/server/checkLicense", () => {
-  return {
-    default: vi.fn(),
-  };
-});
-
-vi.mock("~/lib/utils/isAdmin", () => {
-  return {
-    isAdminGuard: vi.fn(),
-  };
-});
+vi.mock("@calcom/prisma");
+vi.mock("~/lib/utils/isAdmin", () => ({
+  isAdminGuard: vi.fn(),
+}));
 
 describe("Verify API key", () => {
-  it("It should throw an error if the api key is not valid", async () => {
+  let service: LicenseKeyService;
+
+  beforeEach(async () => {
+    service = await LicenseKeyService.create();
+
+    vi.spyOn(service, "checkLicense");
+  });
+
+  it("should throw an error if the api key is not valid", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {},
@@ -39,8 +44,8 @@ describe("Verify API key", () => {
       fn: verifyApiKey,
     };
 
-    vi.mocked(checkLicense).mockResolvedValue(false);
-    vi.mocked(isAdminGuard).mockResolvedValue(false);
+    vi.mocked(service.checkLicense).mockResolvedValue(false);
+    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: false, scope: null });
 
     const serverNext = vi.fn((next: void) => Promise.resolve(next));
 
@@ -49,9 +54,11 @@ describe("Verify API key", () => {
     await middleware.fn(req, res, serverNext);
 
     expect(middlewareSpy).toBeCalled();
+
     expect(res.statusCode).toBe(401);
   });
-  it("It should thow an error if no api key is provided", async () => {
+
+  it("should throw an error if no api key is provided", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {},
@@ -61,8 +68,8 @@ describe("Verify API key", () => {
       fn: verifyApiKey,
     };
 
-    vi.mocked(checkLicense).mockResolvedValue(true);
-    vi.mocked(isAdminGuard).mockResolvedValue(false);
+    vi.mocked(service.checkLicense).mockResolvedValue(true);
+    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: false, scope: null });
 
     const serverNext = vi.fn((next: void) => Promise.resolve(next));
 
@@ -71,6 +78,75 @@ describe("Verify API key", () => {
     await middleware.fn(req, res, serverNext);
 
     expect(middlewareSpy).toBeCalled();
+
     expect(res.statusCode).toBe(401);
+  });
+
+  it("should set correct permissions for system-wide admin", async () => {
+    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {},
+      query: {
+        apiKey: "cal_test_key",
+      },
+      prisma,
+    });
+
+    prismaMock.apiKey.findUnique.mockResolvedValue({
+      id: 1,
+      userId: 2,
+    });
+
+    const middleware = {
+      fn: verifyApiKey,
+    };
+
+    vi.mocked(service.checkLicense).mockResolvedValue(true);
+    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: true, scope: ScopeOfAdmin.SystemWide });
+
+    const serverNext = vi.fn((next: void) => Promise.resolve(next));
+
+    const middlewareSpy = vi.spyOn(middleware, "fn");
+
+    await middleware.fn(req, res, serverNext);
+
+    expect(middlewareSpy).toBeCalled();
+
+    expect(req.isSystemWideAdmin).toBe(true);
+    expect(req.isOrganizationOwnerOrAdmin).toBe(false);
+  });
+
+  it("should set correct permissions for org-level admin", async () => {
+    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {},
+      query: {
+        apiKey: "cal_test_key",
+      },
+      prisma,
+    });
+
+    prismaMock.apiKey.findUnique.mockResolvedValue({
+      id: 1,
+      userId: 2,
+    });
+
+    const middleware = {
+      fn: verifyApiKey,
+    };
+
+    vi.mocked(service.checkLicense).mockResolvedValue(true);
+    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin });
+
+    const serverNext = vi.fn((next: void) => Promise.resolve(next));
+
+    const middlewareSpy = vi.spyOn(middleware, "fn");
+
+    await middleware.fn(req, res, serverNext);
+
+    expect(middlewareSpy).toBeCalled();
+
+    expect(req.isSystemWideAdmin).toBe(false);
+    expect(req.isOrganizationOwnerOrAdmin).toBe(true);
   });
 });
