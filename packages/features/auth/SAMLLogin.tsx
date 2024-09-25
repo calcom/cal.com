@@ -36,9 +36,10 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
 
   return (
     <Button
-      color="minimal"
+      StartIcon="lock"
+      color="secondary"
       data-testid="saml"
-      className="text-brand-500 font-medium p-0 h-auto"
+      className="flex w-full justify-center"
       onClick={async (event) => {
         event.preventDefault();
 
@@ -64,7 +65,8 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
           email,
         });
       }}>
-      <span>{t("saml_sso")}</span>
+      <span>{t("signin_with_saml_oidc")}</span>
+      {lastUsed === "saml" && <LastUsed />}
     </Button>
   );
 }
