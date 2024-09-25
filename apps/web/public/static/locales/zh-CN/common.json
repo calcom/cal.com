@@ -1731,6 +1731,7 @@
   "already_have_account": "已经有帐号？",
   "already_have_key": "我已经有密钥：",
   "already_have_key_suggestion": "请将您现有的 CALCOM_LICENSE_KEY 环境变量复制到此处。",
+  "create_license_key": "创建许可证密钥",
   "app_is_enabled": "{{appName}} 已启用",
   "app_is_disabled": "{{appName}} 已禁用",
   "keys_have_been_saved": "密钥已保存",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "与同一轮询主持人重新安排",
   "reschedule_with_same_round_robin_host_description": "重新安排的事件将分配给最初安排的同一主持人",
   "disable_input_if_prefilled": "如果 URL 标识符已预填，则禁用输入",
+  "booking_limits": "预订限制",
+  "booking_limits_team_description": "所有团队活动类型的团队成员预订限制",
+  "limit_team_booking_frequency_description": "限制团队成员在所有团队活动类型（集体和round-robin）中的预订次数",
+  "booking_limits_updated_successfully": "预订限制更新成功",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您无权对此预订进行更改",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

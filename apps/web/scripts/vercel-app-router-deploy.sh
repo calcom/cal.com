@@ -8,6 +8,8 @@ checkRoute () {
 # This is to reduce the size of the build and prevent OOM errors
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
 checkRoute "$APP_ROUTER_AVAILABILITY_ENABLED" app/future/availability
+checkRoute "$APP_ROUTER_SETTINGS_DEVELOPER_ENABLED" app/future/settings/developer
+checkRoute "$APP_ROUTER_SETTINGS_SECURITY_ENABLED" app/future/settings/security
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
 checkRoute "$APP_ROUTER_SETTINGS_PLATFORM_ENABLED" app/future/settings/platform
 checkRoute "$APP_ROUTER_SETTINGS_ORG_ENABLED" app/future/settings/organizations
@@ -29,7 +31,9 @@ checkRoute "$APP_ROUTER_SETTINGS_TEAMS_ENABLED" app/future/settings/teams
 checkRoute "$APP_ROUTER_GETTING_STARTED_STEP_ENABLED" app/future/getting-started
 checkRoute "$APP_ROUTER_APPS_ENABLED" app/future/apps
 checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
+checkRoute "$APP_ROUTER_BOOKING_ENABLED" app/future/booking
 checkRoute "$APP_ROUTER_VIDEO_ENABLED" app/future/video
+checkRoute "$APP_ROUTER_TEAM_ENABLED" app/future/team
 checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
 checkRoute "$APP_ROUTER_MORE_ENABLED" app/future/more
 checkRoute "$APP_ROUTER_MAINTENANCE_ENABLED" app/future/maintenance
@@ -48,6 +52,5 @@ rm -rf \
    app/future/reschedule\
    app/future/routing-forms\
    app/future/signup\
-   app/future/team
 
 exit 1

@@ -1731,6 +1731,7 @@
   "already_have_account": "Već imate nalog?",
   "already_have_key": "Već imam ključ:",
   "already_have_key_suggestion": "Kopirajte ovde postojeću CALCOM_LICENSE_KEY promenljivu okruženja.",
+  "create_license_key": "Kreiraj licencni ključ",
   "app_is_enabled": "Aplikacija {{appName}} je omogućena",
   "app_is_disabled": "Aplikacija {{appName}} je onemogućena",
   "keys_have_been_saved": "Ključevi su sačuvani",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Ponovo zakaži sa istim Round-Robin domaćinom",
   "reschedule_with_same_round_robin_host_description": "Ponovo zakazani događaji će biti dodeljeni istom domaćinu kao i prvobitno zakazani",
   "disable_input_if_prefilled": "Onemogući unos ako je URL identifikator unapred popunjen",
+  "booking_limits": "Ograničenja zakazivanja",
+  "booking_limits_team_description": "Ograničenja zakazivanja za članove tima za sve vrste timskih događaja",
+  "limit_team_booking_frequency_description": "Ograničite koliko puta članovi mogu biti zakazani za sve vrste timskih događaja (kolektivne i round-robin)",
+  "booking_limits_updated_successfully": "Ograničenja zakazivanja su uspešno ažurirana",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemate ovlašćenje da izvršite ovu promenu u rezervaciji",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

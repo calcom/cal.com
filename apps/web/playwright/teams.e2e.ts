@@ -8,6 +8,7 @@ import { test, todo } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookTimeSlot,
+  confirmReschedule,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
@@ -300,7 +301,7 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     const booking = await bookings.create(owner.id, owner.username, eventType.id);
     await page.goto(`/reschedule/${booking.uid}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
-    await page.locator("[data-testid=confirm-reschedule-button]").click();
+    await confirmReschedule(page);
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
   todo("Reschedule a Round Robin EventType booking");

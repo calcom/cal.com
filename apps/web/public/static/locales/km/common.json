@@ -1731,6 +1731,7 @@
   "already_have_account": "មានគណនីរួចហើយ?",
   "already_have_key": "ខ្ញុំមានកូនសោរួចហើយ:",
   "already_have_key_suggestion": "សូមចម្លងអថេរបរិស្ថាន CALCOM_LICENSE_KEY របស់អ្នកនៅទីនេះ។",
+  "create_license_key": "បង្កើតកូនសោអាជ្ញាប័ណ្ណ",
   "app_is_enabled": "{{appName}} ត្រូវបានបើក",
   "app_is_disabled": "{{appName}} ត្រូវបានបិទ",
   "keys_have_been_saved": "កូនសោរត្រូវបានរក្សាទុក",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "កំណត់ពេលថ្មីជាមួយម្ចាស់ Round-Robin ដដែល",
   "reschedule_with_same_round_robin_host_description": "ព្រឹត្តិការណ៍ដែលបានកំណត់ពេលថ្មីនឹងត្រូវចាត់ចែងទៅម្ចាស់ដដែលដូចពេលដំបូង",
   "disable_input_if_prefilled": "បិទការបញ្ចូលប្រសិនបើ URL identifier ត្រូវបានបំពេញរួចហើយ",
+  "booking_limits": "ដែនកំណត់ការកក់",
+  "booking_limits_team_description": "ដែនកំណត់ការកក់សម្រាប់សមាជិកក្រុមទាំងអស់ក្នុងប្រភេទព្រឹត្តិការណ៍ក្រុមទាំងអស់",
+  "limit_team_booking_frequency_description": "ដែនកំណត់ចំនួនដងដែលសមាជិកអាចត្រូវបានកក់ក្នុងប្រភេទព្រឹត្តិការណ៍ក្រុមទាំងអស់ (សហគមន៍ និង round-robin)",
+  "booking_limits_updated_successfully": "ដែនកំណត់ការកក់ត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "អ្នកមិនមានសិទ្ធិធ្វើការផ្លាស់ប្តូរនេះលើការកក់ទេ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
