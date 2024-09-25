@@ -39,7 +39,7 @@ import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
   path: "/v2/oauth/:clientId",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("oauth")
+@DocsTags("OAuth")
 export class OAuthFlowController {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
