@@ -442,6 +442,7 @@ export default function Signup({
                   )}
                   <Button
                     type="submit"
+                    data-testid="signup-submit-button"
                     className="my-2 w-full justify-center"
                     loading={loadingSubmitState}
                     disabled={
