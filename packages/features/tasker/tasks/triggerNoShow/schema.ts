@@ -10,7 +10,7 @@ export const ZWebhook = z.object({
   id: z.string(),
   subscriberUrl: z.string().url(),
   appId: z.string().nullable(),
-  secret: z.string(),
+  secret: z.string().optional(),
   time: z.number(),
   timeUnit: z.enum(TIME_UNIT),
   eventTriggers: z.array(z.string()),
