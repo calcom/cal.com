@@ -70,7 +70,7 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
-        await page.click('[href$="tabName=advanced"]');
+        await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
 
       await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
@@ -116,7 +116,7 @@ test.describe("Manage Booking Questions", () => {
       });
 
       await test.step("Open the 'Name' field dialog", async () => {
-        await page.click('[href$="tabName=advanced"]');
+        await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
         await page.locator('[data-testid="field-name"] [data-testid="edit-field-action"]').click();
       });
 
@@ -742,17 +742,10 @@ test.describe("Text area min and max characters text", () => {
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
     await createNewEventType(page, { eventTitle });
-    await page.waitForSelector(`text=${eventTitle}`);
-
-    // Click on the event type
-    await page.click(`text=${eventTitle}`);
-    await page.waitForSelector(`text=${eventTitle}`);
-
-    // goto the advanced tab
-    await page.click('[href$="tabName=advanced"]');
+    await page.waitForSelector('[data-testid="event-title"]');
+    await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     const insertQuestion = async (questionName: string) => {
       const element = page.locator('[data-testid="add-field"]');
-      await element.scrollIntoViewIfNeeded();
       await element.click();
       const locatorForSelect = page.locator("[id=test-field-type]").nth(0);
       await locatorForSelect.click();

@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Reagendar com o mesmo anfitrião Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Eventos reagendados serão atribuídos ao mesmo anfitrião inicialmente agendado",
   "disable_input_if_prefilled": "Desativar entrada se o identificador da URL estiver preenchido",
+  "booking_limits": "Limites de Agendamento",
+  "booking_limits_team_description": "Limites de agendamento para membros da equipe em todos os tipos de eventos da equipe",
+  "limit_team_booking_frequency_description": "Limite quantas vezes os membros podem ser agendados em todos os tipos de eventos da equipe (coletivo e round-robin)",
+  "booking_limits_updated_successfully": "Limites de agendamento atualizados com sucesso",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Você não tem autorização para fazer essa alteração na reserva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

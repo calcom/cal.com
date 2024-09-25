@@ -1,4 +1,4 @@
-import type { Page, WorkerInfo } from "@playwright/test";
+import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
@@ -372,7 +372,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://google.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -732,6 +732,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     self,
     apiLogin: async (password?: string) =>
       apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    /** Don't forget to close context at the end */
+    apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
+      const newContext = await browser.newContext();
+      const newPage = await newContext.newPage();
+      await apiLogin({ ...(await self()), password: password || user.username }, newPage);
+      // Don't forget to: newContext.close();
+      return [newContext, newPage] as const;
+    },
     /**
      * @deprecated use apiLogin instead
      */

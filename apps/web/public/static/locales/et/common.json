@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Planeeri ümber sama Round-Robin hostiga",
   "reschedule_with_same_round_robin_host_description": "Ümberplaneeritud sündmused määratakse samale hostile, kellele need algselt määrati",
   "disable_input_if_prefilled": "Keela sisend, kui URL-i identifikaator on eeltäidetud",
+  "booking_limits": "Broneerimispiirangud",
+  "booking_limits_team_description": "Meeskonnaliikmete broneerimispiirangud kõigi meeskonna sündmusetüüpide lõikes",
+  "limit_team_booking_frequency_description": "Piirake, mitu korda saab liikmeid broneerida kõigi meeskonna sündmusetüüpide lõikes (ühised ja round-robin)",
+  "booking_limits_updated_successfully": "Broneerimispiirangud on edukalt uuendatud",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Teil puuduvad õigused selle broneeringu muutmiseks",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
