@@ -1731,6 +1731,7 @@
   "already_have_account": "Masz już konto?",
   "already_have_key": "Mam już klucz:",
   "already_have_key_suggestion": "Skopiuj istniejącą zmienną środowiskową CALCOM_LICENSE_KEY tutaj.",
+  "create_license_key": "Utwórz klucz licencyjny",
   "app_is_enabled": "Aplikacja {{appName}} jest włączona",
   "app_is_disabled": "Aplikacja {{appName}} jest wyłączona",
   "keys_have_been_saved": "Klucze zostały zapisane",
@@ -2603,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Przełóż z tym samym gospodarzem Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Przełożone wydarzenia zostaną przypisane do tego samego gospodarza, co pierwotnie zaplanowane",
   "disable_input_if_prefilled": "Wyłącz wprowadzanie, jeśli identyfikator URL jest wypełniony",
+  "booking_limits": "Limity rezerwacji",
+  "booking_limits_team_description": "Limity rezerwacji dla członków zespołu we wszystkich typach wydarzeń zespołowych",
+  "limit_team_booking_frequency_description": "Ogranicz, ile razy członkowie mogą być rezerwowani we wszystkich typach wydarzeń zespołowych (zbiorowe i round-robin)",
+  "booking_limits_updated_successfully": "Limity rezerwacji zostały pomyślnie zaktualizowane",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nie masz uprawnień do wprowadzenia tej zmiany w rezerwacji",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
