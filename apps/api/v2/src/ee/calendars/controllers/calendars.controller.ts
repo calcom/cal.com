@@ -68,6 +68,7 @@ export class CalendarsController {
 
   @Post("/ics-feed/save")
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Save an ICS feed" })
   async createIcsFeed(
     @GetUser("id") userId: number,
     @GetUser("email") userEmail: string,
@@ -78,6 +79,7 @@ export class CalendarsController {
 
   @Get("/ics-feed/check")
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Check ICS feed" })
   async checkIcsFeed(@GetUser("id") userId: number): Promise<ApiResponse> {
     return await this.icsFeedService.check(userId);
   }

@@ -57,11 +57,6 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
-  @ApiResponse({
-    status: 200,
-    description: "Returns the default schedule",
-    type: GetDefaultScheduleOutput_2024_04_15,
-  })
   async getDefaultSchedule(
     @GetUser() user: UserWithProfile
   ): Promise<GetDefaultScheduleOutput_2024_04_15 | null> {
