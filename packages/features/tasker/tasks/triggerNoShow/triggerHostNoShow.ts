@@ -1,32 +1,12 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import {
-  calculateMaxStartTime,
-  getHosts,
-  getMeetingSessionsFromRoomName,
-  sendWebhookPayload,
-} from "./common";
-import type { Participants } from "./common";
-import { getBooking } from "./getBooking";
-import { ZSendNoShowWebhookPayloadSchema } from "./schema";
+import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger } from "./common";
 
 export async function triggerHostNoShow(payload: string): Promise<void> {
-  const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
+  const result = await prepareNoShowTrigger(payload);
+  if (!result) return;
 
-  const booking = await getBooking(bookingId);
-  const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
-
-  if (!dailyVideoReference)
-    throw new Error(`Daily video reference not found in triggerHostNoShow with bookingId ${bookingId}`);
-
-  const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
-
-  const hosts = getHosts(booking);
-  const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
-
-  const hostsThatDidntJoinTheCall = hosts.filter(
-    (host) => !checkIfUserJoinedTheCall(host.id, allParticipants)
-  );
+  const { booking, webhook, hostsThatDidntJoinTheCall } = result;
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
@@ -41,8 +21,4 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
   });
 
   await Promise.all(hostsNoShowPromises);
-}
-
-function checkIfUserJoinedTheCall(userId: number, allParticipants: Participants): boolean {
-  return allParticipants.some((participant) => parseInt(participant.user_id) === userId);
 }

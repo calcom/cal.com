@@ -14,6 +14,7 @@ import {
   OrganizerDefaultConferencingAppType,
   getLocationValueForDB,
 } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -38,7 +39,6 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import tasker from "@calcom/features/tasker";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -99,6 +99,7 @@ import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRes
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadUsers } from "./handleNewBooking/loadUsers";
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type {
   Invitee,
   IEventTypePaymentCredentialType,
@@ -1804,71 +1805,20 @@ async function handler(
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
   }
 
-  // Add task for automatic no show in cal video
-  const noShowPromises: Promise<any>[] = [];
-
-  const subscriberHostsNoShowStarted = {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-    teamId,
-    orgId,
-  };
-
-  const subscribersHostsNoShowStarted = await getWebhooks(subscriberHostsNoShowStarted);
-
-  noShowPromises.push(
-    ...subscribersHostsNoShowStarted.map((webhook) => {
-      if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-          .toDate();
-        return tasker.create(
-          "triggerGuestNoShowWebhook",
-          JSON.stringify({ bookingId: booking.id, webhook }),
-          {
-            scheduledAt,
-          }
-        );
-      }
-      return Promise.resolve();
-    })
-  );
-
-  const subscriberGuestsNoShowStarted = {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-    teamId,
-    orgId,
-  };
-
-  const subscribersGuestsNoShowStarted = await getWebhooks(subscriberGuestsNoShowStarted);
-
-  noShowPromises.push(
-    ...subscribersGuestsNoShowStarted.map((webhook) => {
-      if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-          .toDate();
-        return tasker.create("triggerHostNoShowWebhook", JSON.stringify({ bookingId: booking.id, webhook }), {
-          scheduledAt,
-        });
-      }
-
-      return Promise.resolve();
-    })
-  );
-
-  await Promise.all(noShowPromises);
-
-  // TODO: Support no show workflows
-  // const workflowHostsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
-  // );
-  // const workflowGuestsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-  // );
+  try {
+    if (isConfirmedByDefault && booking.location === DailyLocationType) {
+      await scheduleNoShowTriggers({
+        booking: { startTime: booking.startTime, id: booking.id },
+        triggerForUser,
+        organizerUser: { id: organizerUser.id },
+        eventTypeId,
+        teamId,
+        orgId,
+      });
+    }
+  } catch (error) {
+    loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+  }
 
   // booking successful
   req.statusCode = 201;

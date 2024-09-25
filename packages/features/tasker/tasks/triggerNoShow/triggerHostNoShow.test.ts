@@ -248,6 +248,7 @@ describe("Trigger Host No Show:", () => {
         total_count: 1,
         data: [
           {
+            id: "MOCK_ID",
             room: "MOCK_ROOM",
             start_time: "MOCK_START_TIME",
             duration: 15,
@@ -285,7 +286,7 @@ describe("Trigger Host No Show:", () => {
 
       await triggerHostNoShow(payload);
 
-      const maxStartTime = calculateMaxStartTime(bookingStartTime, 5, TimeUnit.MINUTE);
+      const maxStartTime = calculateMaxStartTime(bookingStartTime as unknown as Date, 5, TimeUnit.MINUTE);
       const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
       await expectWebhookToHaveBeenCalledWith(subscriberUrl, {

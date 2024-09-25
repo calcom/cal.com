@@ -31,7 +31,7 @@ export const triggerNoShowPayloadSchema = z.object({
         max_participants: z.number(),
         participants: z.array(
           z.object({
-            user_id: z.string(),
+            user_id: z.string().nullable(),
             participant_id: z.string(),
             user_name: z.string(),
             join_time: z.number(),

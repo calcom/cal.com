@@ -14,6 +14,7 @@ export const getBooking = async (bookingId: number) => {
       ...bookingMinimalSelect,
       uid: true,
       location: true,
+      status: true,
       isRecorded: true,
       eventTypeId: true,
       references: true,
