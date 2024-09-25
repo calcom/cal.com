@@ -493,11 +493,13 @@ async function handler(
     const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
     let isTeamOrOrgOwnerOrAdmin = false;
     const orgId = userId && (await getOrgIdFromMemberOrTeamId({ memberId: userId }));
-    if (isTeamEventType && eventType?.teamId) {
-      const teamIdFilter = orgId ? { in: [eventType?.teamId, orgId] } : eventType?.teamId;
+    if ((isTeamEventType && eventType?.teamId) || orgId) {
+      const teamIdFilter = [eventType?.teamId, orgId].filter(Boolean);
       const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
         where: {
-          teamId: teamIdFilter,
+          teamId: {
+            in: teamIdFilter,
+          },
           userId,
           role: {
             in: [MembershipRole.ADMIN, MembershipRole.OWNER],
