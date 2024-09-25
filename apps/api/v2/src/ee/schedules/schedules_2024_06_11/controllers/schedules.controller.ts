@@ -92,7 +92,7 @@ export class SchedulesController_2024_06_11 {
   })
   @ApiOperation({
     summary: "Get default schedule",
-    description: "Get the default schedule of the authenticated user",
+    description: "Get the default schedule of the authenticated user.",
   })
   async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetScheduleOutput_2024_06_11> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
@@ -123,7 +123,7 @@ export class SchedulesController_2024_06_11 {
   @Permissions([SCHEDULE_READ])
   @ApiOperation({
     summary: "Get all schedules",
-    description: "Get all schedules of the authenticated user",
+    description: "Get all schedules of the authenticated user.",
   })
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput_2024_06_11> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
