@@ -16,16 +16,20 @@ import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { getMeetingSessionsFromRoomName, calculateMaxStartTime } from "./common";
+import { calculateMaxStartTime } from "./common";
+import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
 import { triggerHostNoShow } from "./triggerHostNoShow";
 
-vi.mock("@calcom/features/tasker/tasks/triggerNoShow/common", async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    getMeetingSessionsFromRoomName: vi.fn(),
-  };
-});
+vi.mock(
+  "@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName",
+  async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+      ...actual,
+      getMeetingSessionsFromRoomName: vi.fn(),
+    };
+  }
+);
 
 const timeout = process.env.CI ? 5000 : 20000;
 

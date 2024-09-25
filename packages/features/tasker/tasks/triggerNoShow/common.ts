@@ -1,14 +1,14 @@
 import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
-import { fetcher } from "@calcom/lib/dailyApiFetcher";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { getBooking } from "./getBooking";
+import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
 import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
-import { triggerNoShowPayloadSchema, ZSendNoShowWebhookPayloadSchema } from "./schema";
+import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 type Host = {
   id: number;
@@ -18,10 +18,6 @@ type Host = {
 type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
-
-export const getMeetingSessionsFromRoomName = async (roomName: string) => {
-  return fetcher(`/meetings?room=${roomName}`).then(triggerNoShowPayloadSchema.parse);
-};
 
 export function getHosts(booking: Booking): Host[] {
   const hosts = [
