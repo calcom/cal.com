@@ -38,6 +38,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["me"] }) => {
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
       bookingsLimitFormMethods.reset(bookingsLimitFormMethods.getValues());
+      showToast(t("booking_limits_updated_successfully"), "success");
     },
     onError: () => {
       showToast(t("failed_to_save_global_settings"), "error");
@@ -59,7 +60,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["me"] }) => {
   return (
     <div>
       <Meta
-        title={t("bookings")}
+        title={t("booking_limits")}
         description={t("bookings_settings_description", { appName: APP_NAME })}
         borderInShellHeader={false}
       />

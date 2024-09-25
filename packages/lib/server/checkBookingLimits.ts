@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -8,14 +10,14 @@ import { HttpError } from "../http-error";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import { parseBookingLimit } from "../isBookingLimits";
 import { BookingRepository } from "./repository/booking";
-import type { Prisma } from ".prisma/client";
 
 export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
   eventId: number,
   rescheduleUid?: string | undefined,
-  timeZone?: string | null
+  timeZone?: string | null,
+  isGlobalBookingLimits?: boolean
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
   if (!parsedBookingLimits) return false;
@@ -29,6 +31,7 @@ export async function checkBookingLimits(
       eventId,
       timeZone,
       rescheduleUid,
+      isGlobalBookingLimits,
     })
   );
 
@@ -75,22 +78,13 @@ export async function checkBookingLimit({
     let whereInput: Prisma.BookingWhereInput = {
       eventTypeId: eventId,
     };
-    if (user?.id) {
-      if (isGlobalBookingLimits) {
-        whereInput = {
-          userId: user.id,
-          eventType: {
-            schedulingType: null,
-          },
-        };
-      } else {
-        whereInput = {
-          ...whereInput,
-          eventType: {
-            userId: user.id,
-          },
-        };
-      }
+    if (user?.id && isGlobalBookingLimits) {
+      whereInput = {
+        userId: user.id,
+        eventType: {
+          schedulingType: null,
+        },
+      };
     }
 
     if (teamId && user) {

@@ -16,8 +16,8 @@ import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
-import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
+import { EventTypeMetaDataSchema, intervalLimitsType, stringToDayjsZod } from "@calcom/prisma/zod-utils";
+import type { EventBusyDetails, IntervalLimit, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import {
@@ -41,6 +41,7 @@ const availabilitySchema = z
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
+    userBookingLimits: intervalLimitsType.optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -125,7 +126,6 @@ const _getUser = async (where: Prisma.UserWhereInput) => {
       credentials: {
         select: credentialForCalendarServiceSelect,
       },
-      bookingLimits: true,
     },
   });
 };
@@ -214,6 +214,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer?: number;
     duration?: number;
     returnDateOverrides: boolean;
+    userBookingLimits?: IntervalLimit | null;
   },
   initialData?: {
     user?: User;
@@ -242,6 +243,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer,
     duration,
     returnDateOverrides,
+    userBookingLimits,
   } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -312,7 +314,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   let busyTimesFromGlobalBookingLimits: EventBusyDetails[] = [];
   // We are only interested in global booking limits for individual and managed events for which schedulingType is null
   if (eventType && !eventType.schedulingType) {
-    const globalBookingLimits = parseBookingLimit(user.bookingLimits);
+    const globalBookingLimits = parseBookingLimit(userBookingLimits);
     if (globalBookingLimits) {
       busyTimesFromGlobalBookingLimits = await getBusyTimesFromGlobalBookingLimits(
         user.id,
@@ -640,6 +642,7 @@ const _getUsersAvailability = async ({
 }: {
   users: (GetAvailabilityUser & {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
+    bookingLimits?: IntervalLimit | null;
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
@@ -651,6 +654,7 @@ const _getUsersAvailability = async ({
           ...query,
           userId: user.id,
           username: user.username || "",
+          userBookingLimits: user.bookingLimits,
         },
         initialData
           ? {

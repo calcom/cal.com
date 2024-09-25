@@ -451,24 +451,25 @@ async function handler(
     }
   }
 
-  const currentUser = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      bookingLimits: true,
-    },
-  });
-
-  if (currentUser?.bookingLimits && Object.keys(currentUser.bookingLimits).length > 0) {
-    await checkBookingLimits(
-      currentUser.bookingLimits as IntervalLimit,
-      startAsDate,
-      undefined,
-      rescheduleUid,
-      eventType.schedule?.timeZone,
-      userId
-    );
+  if (eventType.userId && !eventType.schedulingType) {
+    const eventTypeUser = await prisma.user.findUnique({
+      where: {
+        id: eventType.userId,
+      },
+      select: {
+        bookingLimits: true,
+      },
+    });
+    if (eventTypeUser?.bookingLimits && Object.keys(eventTypeUser.bookingLimits).length > 0) {
+      await checkBookingLimits(
+        eventTypeUser.bookingLimits as IntervalLimit,
+        startAsDate,
+        eventType.id,
+        rescheduleUid,
+        eventType.schedule?.timeZone,
+        true
+      );
+    }
   }
 
   let bookingSeat: BookingSeat = null;

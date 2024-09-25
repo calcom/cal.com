@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
@@ -6,6 +8,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getStartEndDateforLimitCheck } from "../getBusyTimes";
@@ -13,8 +16,6 @@ import type { EventType } from "../getUserAvailability";
 import { getPeriodStartDatesBetween } from "../getUserAvailability";
 import monitorCallbackAsync from "../sentryWrapper";
 import LimitManager from "./limitManager";
-import type { Prisma } from ".prisma/client";
-import { BookingStatus } from ".prisma/client";
 
 export const getBusyTimesFromLimits = async (
   ...args: Parameters<typeof _getBusyTimesFromLimits>
