@@ -322,6 +322,7 @@ test.describe("Email Signup Flow Test", async () => {
       expect(url.pathname).toBe("/signup");
       await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
       await page.locator('[data-testid="continue-with-email-button"]').click();
+      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
       // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
