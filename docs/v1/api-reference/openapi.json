@@ -20,13 +20,128 @@
       "ArrayOfBookings": {
         "type": "array",
         "items": {
-          "$ref": "#/components/schemas/Booking"
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "description": {
+              "type": "string"
+            },
+            "eventTypeId": {
+              "type": "number"
+            },
+            "uid": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string"
+            },
+            "startTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "endTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "timeZone": {
+              "type": "string",
+              "example": "Europe/London"
+            },
+            "fromReschedule": {
+              "type": "string",
+              "nullable": true,
+              "format": "uuid"
+            },
+            "attendees": {
+              "type": "array",
+              "items": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "example@cal.com"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "timeZone": {
+                    "type": "string",
+                    "example": "Europe/London"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "example": "en"
+                  }
+                }
+              }
+            },
+            "user": {
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "example@cal.com"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "timeZone": {
+                  "type": "string",
+                  "example": "Europe/London"
+                },
+                "locale": {
+                  "type": "string",
+                  "example": "en"
+                }
+              }
+            },
+            "payment": {
+              "items": {
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "paymentOption": {
+                    "type": "string",
+                    "example": "ON_BOOKING"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "ArrayOfRecordings": {
         "type": "array",
         "items": {
-          "$ref": "#/components/schemas/Recording"
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "room_name": {
+              "type": "string"
+            },
+            "start_ts": {
+              "type": "number"
+            },
+            "status": {
+              "type": "string"
+            },
+            "max_participants": {
+              "type": "number"
+            },
+            "duration": {
+              "type": "number"
+            },
+            "download_link": {
+              "type": "string"
+            }
+          }
         }
       },
       "Recording": {
@@ -1332,7 +1447,7 @@
             }
           },
           "400": {
-            "description": "Bad request\n\u003Ctable\u003E\n  \u003Ctr\u003E\n    \u003Ctd\u003EMessage\u003C/td\u003E\n    \u003Ctd\u003ECause\u003C/td\u003E\n  \u003C/tr\u003E\n  \u003Ctr\u003E\n    \u003Ctd\u003EBooking body is invalid\u003C/td\u003E\n    \u003Ctd\u003EMissing property on booking entity.\u003C/td\u003E\n  \u003C/tr\u003E\n  \u003Ctr\u003E\n    \u003Ctd\u003EInvalid eventTypeId\u003C/td\u003E\n    \u003Ctd\u003EThe provided eventTypeId does not exist.\u003C/td\u003E\n  \u003C/tr\u003E\n  \u003Ctr\u003E\n    \u003Ctd\u003EMissing recurringCount\u003C/td\u003E\n    \u003Ctd\u003EThe eventType is recurring, and no recurringCount was passed.\u003C/td\u003E\n  \u003C/tr\u003E\n  \u003Ctr\u003E\n    \u003Ctd\u003EInvalid recurringCount\u003C/td\u003E\n    \u003Ctd\u003EThe provided recurringCount is greater than the eventType recurring config\u003C/td\u003E\n  \u003C/tr\u003E\n\u003C/table\u003E\n"
+            "description": "Bad request\n<table>\n  <tr>\n    <td>Message</td>\n    <td>Cause</td>\n  </tr>\n  <tr>\n    <td>Booking body is invalid</td>\n    <td>Missing property on booking entity.</td>\n  </tr>\n  <tr>\n    <td>Invalid eventTypeId</td>\n    <td>The provided eventTypeId does not exist.</td>\n  </tr>\n  <tr>\n    <td>Missing recurringCount</td>\n    <td>The eventType is recurring, and no recurringCount was passed.</td>\n  </tr>\n  <tr>\n    <td>Invalid recurringCount</td>\n    <td>The provided recurringCount is greater than the eventType recurring config</td>\n  </tr>\n</table>\n"
           },
           "401": {
             "description": "Authorization information is missing or invalid."
@@ -1388,7 +1503,7 @@
             "description": "OK, booking cancelled successfully"
           },
           "400": {
-            "description": "Bad request\n \u003Ctable\u003E\n   \u003Ctr\u003E\n     \u003Ctd\u003EMessage\u003C/td\u003E\n     \u003Ctd\u003ECause\u003C/td\u003E\n   \u003C/tr\u003E\n   \u003Ctr\u003E\n     \u003Ctd\u003EBooking not found\u003C/td\u003E\n     \u003Ctd\u003EThe provided id didn't correspond to any existing booking.\u003C/td\u003E\n   \u003C/tr\u003E\n   \u003Ctr\u003E\n     \u003Ctd\u003EUser not found\u003C/td\u003E\n     \u003Ctd\u003EThe userId did not matched an existing user.\u003C/td\u003E\n   \u003C/tr\u003E\n \u003C/table\u003E\n"
+            "description": "Bad request\n <table>\n   <tr>\n     <td>Message</td>\n     <td>Cause</td>\n   </tr>\n   <tr>\n     <td>Booking not found</td>\n     <td>The provided id didn't correspond to any existing booking.</td>\n   </tr>\n   <tr>\n     <td>User not found</td>\n     <td>The userId did not matched an existing user.</td>\n   </tr>\n </table>\n"
           },
           "404": {
             "description": "User not found"
@@ -1427,7 +1542,100 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Booking"
+                  "properties": {
+                    "id": {
+                      "type": "number"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "eventTypeId": {
+                      "type": "number"
+                    },
+                    "uid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "startTime": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endTime": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "timeZone": {
+                      "type": "string",
+                      "example": "Europe/London"
+                    },
+                    "fromReschedule": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid"
+                    },
+                    "attendees": {
+                      "type": "array",
+                      "items": {
+                        "properties": {
+                          "email": {
+                            "type": "string",
+                            "example": "example@cal.com"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "timeZone": {
+                            "type": "string",
+                            "example": "Europe/London"
+                          },
+                          "locale": {
+                            "type": "string",
+                            "example": "en"
+                          }
+                        }
+                      }
+                    },
+                    "user": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                          "example": "example@cal.com"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "timeZone": {
+                          "type": "string",
+                          "example": "Europe/London"
+                        },
+                        "locale": {
+                          "type": "string",
+                          "example": "en"
+                        }
+                      }
+                    },
+                    "payment": {
+                      "items": {
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "example": 1
+                          },
+                          "success": {
+                            "type": "boolean",
+                            "example": true
+                          },
+                          "paymentOption": {
+                            "type": "string",
+                            "example": "ON_BOOKING"
+                          }
+                        }
+                      }
+                    }
+                  }
                 },
                 "examples": {
                   "booking": {
@@ -1630,7 +1838,32 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ArrayOfRecordings"
+                  "type": "array",
+                  "items": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "room_name": {
+                        "type": "string"
+                      },
+                      "start_ts": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "max_participants": {
+                        "type": "number"
+                      },
+                      "duration": {
+                        "type": "number"
+                      },
+                      "download_link": {
+                        "type": "string"
+                      }
+                    }
+                  }
                 },
                 "examples": {
                   "recordings": {
