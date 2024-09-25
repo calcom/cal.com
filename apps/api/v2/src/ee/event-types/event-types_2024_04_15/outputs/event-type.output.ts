@@ -145,6 +145,10 @@ export class EventTypeOutput {
   @ApiHideProperty()
   hideCalendarNotes!: boolean;
 
+  @IsBoolean()
+  @ApiHideProperty()
+  hideCalendarEventDetails!: boolean;
+
   @IsInt()
   @ApiHideProperty()
   minimumBookingNotice!: number;
