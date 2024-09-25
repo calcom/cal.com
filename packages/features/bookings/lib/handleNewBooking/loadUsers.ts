@@ -14,7 +14,7 @@ const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 
-export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage, teamMemberIds: number[] | undefined) => {
+export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage, teamMemberIds: number[] | undefined | null) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);
 
@@ -48,6 +48,14 @@ const loadUsersByTeamMemberIds = async (teamMemberIds: number[]): Promise<NewBoo
       metadata: true,
     },
   });
+  
+  // FIXME: It could be better instead to not let such an event be booked in the first place. Routing form can send the user to some other page
+  if(!users.length) {
+    throw new HttpError({
+      message: "There is no team member to book this event",
+      statusCode: 400,
+    });
+  }
   return users;
 };
 

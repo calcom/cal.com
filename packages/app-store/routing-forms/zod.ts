@@ -57,7 +57,7 @@ export const zodNonRouterRoute = z.object({
     children1: z.any(),
     properties: z.any(),
   }),
-  teamMembersQueryValue: z.object({
+  attributesQueryValue: z.object({
     id: z.string().optional(),
     type: z.union([z.literal("group"), z.literal("switch_group")]),
     children1: z.any(),

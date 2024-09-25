@@ -8,7 +8,7 @@ import { TRPCError } from "@calcom/trpc/server";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
-import { onFormSubmission, findTeamMembersMatchingAttributeLogic} from "./utils";
+import { onFormSubmission, findTeamMembersMatchingAttributeLogic } from "./utils";
 
 interface ResponseHandlerOptions {
   ctx: {
@@ -118,13 +118,19 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
-    const teamMembersMatchingAttributeLogic = findTeamMembersMatchingAttributeLogic({routeId: chosenRouteId, form});
+    const teamMembersMatchingAttributeLogic = form.teamId
+      ? await findTeamMembersMatchingAttributeLogic({
+          response,
+          routeId: chosenRouteId,
+          form: serializableForm,
+          teamId: form.teamId,
+        })
+      : null;
     console.log("teamMembersMatchingAttributeLogic", teamMembersMatchingAttributeLogic);
 
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as FormResponse,
-      chosenRouteId
+      dbFormResponse.response as FormResponse
     );
 
     return { form: dbFormResponse, teamMembersMatchingAttributeLogic };

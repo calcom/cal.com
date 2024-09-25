@@ -4,7 +4,6 @@ import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-b
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import BasicConfig from "react-awesome-query-builder/lib/config/basic";
-
 import { EmailField } from "@calcom/ui";
 
 import widgetsComponents from "../widgets";
@@ -127,7 +126,9 @@ const types = {
   },
 };
 
-const operators = BasicConfig.operators;
+const operators = {
+  ...BasicConfig.operators,
+};
 operators.equal.label = operators.select_equals.label = "Equals";
 operators.greater_or_equal.label = "Greater than or equal to";
 operators.greater.label = "Greater than";
@@ -147,10 +148,13 @@ delete operators.starts_with;
 delete operators.ends_with;
 
 const config = {
-  conjunctions: BasicConfig.conjunctions,
+  conjunctions: {
+    ...BasicConfig.conjunctions,
+  },
   operators,
   types,
   widgets,
   settings,
 };
 export default config;
+export {BasicConfig};

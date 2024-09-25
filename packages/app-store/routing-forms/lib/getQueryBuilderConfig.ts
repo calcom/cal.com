@@ -1,8 +1,9 @@
+import { AttributeType } from "@calcom/prisma/client";
 import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
 import { FieldTypes } from "./FieldTypes";
-import { InitialConfig } from "./InitialConfig";
+import { AttributesInitialConfig, InitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
-import { getAttributes } from "./getAttributes";
+
 export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: Record<
     string,
@@ -66,16 +67,16 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
 
 
 function transformAttributesToCompatibleFormat(attributes: {
-  label: string;
+  name: string;
   slug: string;
-  type: string;
+  type: AttributeType;
   id: string;
   options: {
-    title: string;
     value: string;
+    slug: string;
   }[];
 }[]) {
-  
+
   const attributeTypesMap = new Map<string, string>([
     ["SINGLE_SELECT", "select"],
     ["MULTI_SELECT", "multiselect"],
@@ -87,19 +88,37 @@ function transformAttributesToCompatibleFormat(attributes: {
       throw new Error(`Unsupported attribute type:${attribute.type}`);
     }
     return {
-      label: attribute.label,
+      label: attribute.name,
       id: attribute.id,
       type: mappedType,
-      options: attribute.options,
+      options: attribute.options.map((option) => ({
+        title: option.value,
+        value: option.slug,
+      })),
     };
   });
 }
 
-export function getQueryBuilderConfigForTeamMembers(form: Pick<RoutingForm, "teamMembers">, forReporting = false) {
-  const attributes = transformAttributesToCompatibleFormat(getAttributes());
-
+export function getQueryBuilderConfigForAttributes({
+  attributes,
+  form,
+}: {
+  attributes: {
+    name: string;
+    slug: string;
+    type: AttributeType;
+    id: string;
+    options: {
+      value: string;
+      slug: string;
+    }[];
+  }[];
+  form: Pick<RoutingForm, "fields">
+}
+) {
+  const transformedAttributes = transformAttributesToCompatibleFormat(attributes);
   const fields: Record<
-   string,
+    string,
     {
       label: string;
       type: string;
@@ -112,20 +131,28 @@ export function getQueryBuilderConfigForTeamMembers(form: Pick<RoutingForm, "tea
       };
     }
   > = {};
-  attributes.forEach((attribute) => {
-    
+  transformedAttributes.forEach((attribute) => {
     const attributeType = attribute.type as (typeof FieldTypes)[number]["value"];
     if (FieldTypes.map((f) => f.value).includes(attributeType)) {
-     // We can assert the type because otherwise we throw 'Unsupported field type' error
+      // We can assert the type because otherwise we throw 'Unsupported field type' error
       const widget = InitialConfig.widgets[attributeType];
       const widgetType = widget.type;
+      const attributeOptions = attribute.options.concat((() => {
+        const formFields = form.fields || []
+        const formFieldsOptions = formFields.map((field) => ({
+          title: `Value of field '${field.label}'`,
+          value: `{field:${field.id}}`,
+        }))
+        return formFieldsOptions
+      })())
+
       fields[attribute.id] = {
         label: attribute.label,
         type: widgetType,
-          valueSources: ["value"],
-          fieldSettings: {
-            // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-            listValues: attributeType === "select" || attributeType === "multiselect" ? attribute.options : undefined,
+        valueSources: ["value"],
+        fieldSettings: {
+          // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
+          listValues: attributeType === "select" || attributeType === "multiselect" ? attributeOptions : undefined,
         },
       };
     } else {
@@ -133,7 +160,7 @@ export function getQueryBuilderConfigForTeamMembers(form: Pick<RoutingForm, "tea
     }
   });
 
-  const initialConfigCopy = { ...InitialConfig, operators: { ...InitialConfig.operators } };
+  const initialConfigCopy = { ...AttributesInitialConfig, operators: { ...AttributesInitialConfig.operators } };
   return {
     ...initialConfigCopy,
     fields: fields,

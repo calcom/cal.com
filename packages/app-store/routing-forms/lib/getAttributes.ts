@@ -1,47 +1,83 @@
-import { RoutingForm } from "routing-forms/types/types";
+import prisma from "@calcom/prisma";
 
-export function getAttributes() {
-    return [{
-        label: "Company Size",
-        id: '792ca2a2-df5c-4554-9fc4-c4abd06d4de9',
-        slug: "company-size",
-        type: 'SINGLE_SELECT',
-        options: [
-            {
-                title: "Enterprise",
-                value: "enterprise-1000-employees",
+export async function getAttributesForTeam({ teamId }: { teamId: number }) {
+    const allOrganizationAttributes = await prisma.attribute.findMany({
+        where: {
+            team: {
+                // The team here is the organization and not the team
+                children: {
+                    some: {
+                        id: teamId
+                    }
+                }
             },
-            {
-                title: "Large",
-                value: "large-500-employeess",
-            },
-            {
-                title: "Medium",
-                value: "medium-200-employees",
-            },
-            {
-                title: "Small",
-                value: "small-200-employees",
-            },
-        ],
-    }]
-}
-
-export function getAttributesMappedWithTeamMembers() {
-    const teamMembers = [
-        {
-            userId: 17,
-            attributes: {
-                '792ca2a2-df5c-4554-9fc4-c4abd06d4de9': "enterprise-1000-employees"
-            }
+            enabled: true
         },
-        {
-            userId: 18,
-            attributes: {
-                '792ca2a2-df5c-4554-9fc4-c4abd06d4de9': "large-500-employeess"
+        select: {
+            id: true,
+            name: true,
+            slug: true,
+            type: true,
+            options: {
+                select: {
+                    id: true,
+                    assignedUsers: true,
+                    value: true,
+                    slug: true
+                }
             }
         }
-    ]
+    });
+    //FIXME: Filter just the team's attributes here
+    const teamAttributes = allOrganizationAttributes;
+    return teamAttributes;
+}
 
+export async function getAttributesMappedWithTeamMembers({  teamId }: { teamId: number }) {
+    const attributesToUser = await prisma.attributeToUser.findMany({
+        where: {
+            member: {
+                // The membership here is of the organization, not the team
+                team: {
+                    children: {
+                        some: {
+                            id: teamId
+                        }
+                    }
+                }
+            }
+        },
+        select: {
+            member: {
+                select: {
+                    userId: true
+                }
+            },
+            attributeOption: {
+                select: {
+                    id: true,
+                    value: true,
+                    slug: true,
+                    attribute:{
+                        select: {id:true}
+                    }
+                }
+            }
+        }
+    });
+    console.log("attributesToUser", {attributesToUser, where: {
+        member: {
+            teamId
+        }
+    }});
+
+    const teamMembers = attributesToUser.map((attributeToUser) => {
+        return {
+            userId: attributeToUser.member.userId,
+            attributes: {
+                [attributeToUser.attributeOption.attribute.id]: attributeToUser.attributeOption.slug
+            }
+        }
+    })
     return teamMembers;
 }

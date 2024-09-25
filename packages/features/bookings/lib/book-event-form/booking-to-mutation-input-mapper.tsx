@@ -42,7 +42,8 @@ export const mapBookingToMutationInput = ({
   orgSlug,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(window.location.search);
-  const teamMemberIds = (searchParams.get("teamMemberIds") || "").split(",");
+  const teamMemberIdsParam = searchParams.get("teamMemberIds");
+  const teamMemberIds = (typeof teamMemberIdsParam === "string" ? (teamMemberIdsParam.split(",").filter(Boolean).map((id) => parseInt(id, 10))) : null)
   return {
     ...values,
     user: username,
@@ -64,7 +65,7 @@ export const mapBookingToMutationInput = ({
     hashedLink,
     teamMemberEmail,
     orgSlug,
-    teamMemberIds: (teamMemberIds || []).map((id) => parseInt(id, 10))
+    teamMemberIds
   };
 };
 

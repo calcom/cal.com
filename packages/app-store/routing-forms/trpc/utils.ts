@@ -1,20 +1,22 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 import { Utils as QbUtils } from "react-awesome-query-builder";
-import jsonLogic from "../lib/jsonLogicOverrides";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import slugify from "@calcom/lib/slugify";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
+import { getAttributesMappedWithTeamMembers } from "../lib/getAttributes";
+import { getAttributesForTeam } from "../lib/getAttributes";
+import { getQueryBuilderConfigForAttributes } from "../lib/getQueryBuilderConfig";
+import isRouter from "../lib/isRouter";
+import jsonLogic from "../lib/jsonLogicOverrides";
 import type { OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
-import isRouter from "../lib/isRouter";
-import { getQueryBuilderConfigForTeamMembers } from "../lib/getQueryBuilderConfig";
-import { getAttributesMappedWithTeamMembers } from "../lib/getAttributes";
-import { safeStringify } from "@calcom/lib/safeStringify";
 
 type Field = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
 
@@ -83,37 +85,71 @@ type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   }
 >;
 
-export function findTeamMembersMatchingAttributeLogic({form, routeId}: {form: SerializableForm<App_RoutingForms_Form>, routeId: string}) {
+export async function findTeamMembersMatchingAttributeLogic({
+  form,
+  response,
+  routeId,
+  teamId,
+}: {
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes">;
+  response: FormResponse
+  routeId: string;
+  teamId: number;
+}) {
   const route = form.routes?.find((route) => route.id === routeId);
   if (!route) {
-    return null
+    return null;
   }
   let teamMembersMatchingAttributeLogic: number[] = [];
   if (!isRouter(route)) {
-    const teamMembersQueryValue = route.teamMembersQueryValue;
-    if (!teamMembersQueryValue) {
-      return null
+    const attributesQueryValue = route.attributesQueryValue;
+    if (!attributesQueryValue) {
+      return null;
     }
-    const teamMembersQueryBuilderConfig = getQueryBuilderConfigForTeamMembers(form);
+    const attributes = await getAttributesForTeam({ teamId: teamId });
+    const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({ attributes, form });
     const state = {
-      tree: QbUtils.checkTree(QbUtils.loadTree(teamMembersQueryValue), teamMembersQueryBuilderConfig),
-      config: teamMembersQueryBuilderConfig,
+      tree: QbUtils.checkTree(QbUtils.loadTree(attributesQueryValue), attributesQueryBuilderConfig),
+      config: attributesQueryBuilderConfig,
     };
     const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
     const logic = jsonLogicQuery.logic;
     let result = false;
-    
-    const teamMembersWithAttributes = getAttributesMappedWithTeamMembers();
+
+    const teamMembersWithAttributes = await getAttributesMappedWithTeamMembers({ teamId: teamId });
+
+    console.log("teamMembersWithAttributes", teamMembersWithAttributes);
+    const logicWithFieldValues = JSON.parse(
+      JSON.stringify(logic).replace(/{field:([\w-]+)}/g, (match, fieldId) => {
+        const field = form.fields.find((f) => f.id === fieldId);
+        if (!field) {
+          console.log("field not found", fieldId);
+          return match;
+        }
+        const matchingOptionLabel = field.options?.find(
+          (option) => option.id === response[fieldId]?.value
+        )?.label;
+        console.log("matchingOptionLabel", { matchingOptionLabel, response, fieldId });
+        const fieldValue = slugify(matchingOptionLabel || "");
+        return fieldValue ? fieldValue : match;
+      })
+    );
     teamMembersWithAttributes.forEach((member) => {
-      if (logic) {
+      if (logicWithFieldValues) {
         // Leave the logs for debugging of routing form logic test in production
-        console.log("Finding team members matching attributes logic", safeStringify({logic, member}));
+        console.log(
+          "Finding team members matching attributes logic",
+          safeStringify({ logic, logicWithFieldValues, member })
+        );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result = jsonLogic.apply(logic as any, member.attributes);
+        result = jsonLogic.apply(logicWithFieldValues as any, member.attributes);
         if (result) {
           teamMembersMatchingAttributeLogic.push(member.userId);
         } else {
-          console.log("Team member does not match attributes logic", safeStringify({logic, member}));
+          console.log(
+            "Team member does not match attributes logic",
+            safeStringify({ logic, logicWithFieldValues, member })
+          );
         }
       }
     });
@@ -127,7 +163,7 @@ export async function onFormSubmission(
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
-  response: FormResponse,
+  response: FormResponse
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 

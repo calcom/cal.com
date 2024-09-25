@@ -21,6 +21,7 @@ import {
   TextField,
   Badge,
   Divider,
+  Meta
 } from "@calcom/ui";
 
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
@@ -30,7 +31,7 @@ import SingleForm, {
 import "../../components/react-awesome-query-builder/styles.css";
 import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
-import { getQueryBuilderConfigForFormFields, getQueryBuilderConfigForTeamMembers } from "../../lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields, getQueryBuilderConfigForAttributes } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
 import type {
   GlobalRoute,
@@ -54,7 +55,7 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
       value: "",
     },
     queryValue: { id: uuid, type: "group" },
-    teamMembersQueryValue: { id: uuid, type: "group" },
+    attributesQueryValue: { id: uuid, type: "group" },
   };
 };
 
@@ -67,10 +68,10 @@ type Route =
         tree: ImmutableTree;
         config: QueryBuilderUpdatedConfig;
       };
-      teamMembersQueryBuilderState: {
+      attributesQueryBuilderState: {
         tree: ImmutableTree;
         config: QueryBuilderUpdatedConfig;
-      };
+      } | null;
     })
   | GlobalRoute;
 
@@ -80,7 +81,7 @@ const Route = ({
   routes,
   setRoute,
   formFieldsQueryBuilderConfig,
-  teamMembersQueryBuilderConfig,
+  attributesQueryBuilderConfig,
   setRoutes,
   moveUp,
   moveDown,
@@ -93,7 +94,7 @@ const Route = ({
   routes: Route[];
   setRoute: (id: string, route: Partial<Route>) => void;
   formFieldsQueryBuilderConfig: QueryBuilderUpdatedConfig;
-  teamMembersQueryBuilderConfig: QueryBuilderUpdatedConfig;
+  attributesQueryBuilderConfig: QueryBuilderUpdatedConfig | undefined | null;
   setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
   fieldIdentifiers: string[];
   moveUp?: { fn: () => void; check: () => boolean } | null;
@@ -166,8 +167,8 @@ const Route = ({
   const onChangeTeamMembersQuery = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
-      teamMembersQueryBuilderState: { tree: immutableTree, config: config },
-      teamMembersQueryValue: jsonTree,
+      attributesQueryBuilderState: { tree: immutableTree, config: config },
+      attributesQueryValue: jsonTree,
     });
   };
 
@@ -231,6 +232,7 @@ const Route = ({
       }}>
       <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
+        <span className="text-emphasis flex w-full items-center text-sm">For responses matching the following criteria(by default matches all responses)</span>
         {((route.isFallback && hasRules(route)) || !route.isFallback) && (
               <>
                 <Query
@@ -371,19 +373,19 @@ const Route = ({
                 )
               ) : null}
             </div>
-            <div className="mt-4">
-              <span className="text-emphasis flex w-full items-center text-sm">with Team Members that match</span>
+            {route.action?.type === "eventTypeRedirectUrl" && <div className="mt-4">
+              <span className="text-emphasis flex w-full items-center text-sm">and use only the Team Members that match the following criteria(matches all by default)</span>
               <div className="mt-2">
-              <Query
-                {...teamMembersQueryBuilderConfig}
-                value={route.teamMembersQueryBuilderState.tree}
-                onChange={(immutableTree, teamMembersQueryBuilderConfig) => {
-                  onChangeTeamMembersQuery(route, immutableTree, teamMembersQueryBuilderConfig as QueryBuilderUpdatedConfig);
-                }}
-                renderBuilder={renderBuilder}
-              />
+                {attributesQueryBuilderConfig && route.attributesQueryBuilderState && <Query
+                  {...attributesQueryBuilderConfig}
+                  value={route.attributesQueryBuilderState.tree}
+                  onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                    onChangeTeamMembersQuery(route, immutableTree, attributesQueryBuilderConfig as QueryBuilderUpdatedConfig);
+                  }}
+                  renderBuilder={renderBuilder}
+                />}
               </div>
-            </div>
+            </div>}
           </div>
         </div>
       </div>
@@ -394,7 +396,7 @@ const Route = ({
 const deserializeRoute = (
   route: Exclude<SerializableRoute, GlobalRoute>,
   formFieldsQueryBuilderConfig: QueryBuilderUpdatedConfig,
-  teamMembersQueryBuilderConfig: QueryBuilderUpdatedConfig
+  attributesQueryBuilderConfig: QueryBuilderUpdatedConfig | undefined | null
 ): Route => {
   return {
     ...route,
@@ -402,10 +404,10 @@ const deserializeRoute = (
       tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), formFieldsQueryBuilderConfig),
       config: formFieldsQueryBuilderConfig,
     },
-    teamMembersQueryBuilderState: {
-      tree: QbUtils.checkTree(QbUtils.loadTree(route.teamMembersQueryValue || { id: QbUtils.uuid(), type: "group" }), teamMembersQueryBuilderConfig),
-      config: teamMembersQueryBuilderConfig,
-    },
+    attributesQueryBuilderState: attributesQueryBuilderConfig ? {
+      tree: QbUtils.checkTree(QbUtils.loadTree(route.attributesQueryValue || { id: QbUtils.uuid(), type: "group" }), attributesQueryBuilderConfig),
+      config: attributesQueryBuilderConfig,
+    }: null,
   };
 };
 
@@ -413,16 +415,27 @@ const Routes = ({
   form,
   hookForm,
   appUrl,
+  attributes
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   appUrl: string;
+  attributes: {
+    name: string;
+    slug: string;
+    type: AttributeType;
+    id: string;
+    options: {
+      value: string;
+      slug: string;
+    }[];
+  }[];
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
 
   const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
-  const teamMembersQueryBuilderConfig = getQueryBuilderConfigForTeamMembers(hookForm.getValues());
+  const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({attributes, form: hookForm.getValues()});
 
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
@@ -438,7 +451,7 @@ const Routes = ({
 
     return transformRoutes().map((route) => {
       if (isRouter(route)) return route;
-      return deserializeRoute(route, formFieldsQueryBuilderConfig, teamMembersQueryBuilderConfig);
+      return deserializeRoute(route, formFieldsQueryBuilderConfig, attributesQueryBuilderConfig);
     });
   });
 
@@ -517,7 +530,7 @@ const Routes = ({
   });
 
   if (!fallbackRoute) {
-    fallbackRoute = deserializeRoute(createFallbackRoute(), config);
+    fallbackRoute = deserializeRoute(createFallbackRoute(), formFieldsQueryBuilderConfig, attributesQueryBuilderConfig);
     setRoutes((routes) => {
       // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -559,7 +572,7 @@ const Routes = ({
       action: route.action,
       isFallback: route.isFallback,
       queryValue: route.queryValue,
-      teamMembersQueryValue: route.teamMembersQueryValue,
+      attributesQueryValue: route.attributesQueryValue,
     };
   });
 
@@ -579,7 +592,7 @@ const Routes = ({
               appUrl={appUrl}
               key={route.id}
               formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
-              teamMembersQueryBuilderConfig={teamMembersQueryBuilderConfig}
+              attributesQueryBuilderConfig={attributesQueryBuilderConfig}
               route={route}
               fieldIdentifiers={fieldIdentifiers}
               moveUp={{
@@ -623,10 +636,10 @@ const Routes = ({
                     tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), formFieldsQueryBuilderConfig),
                     config: formFieldsQueryBuilderConfig,
                   },
-                  teamMembersQueryBuilderState: {
-                    tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), teamMembersQueryBuilderConfig),
-                    config: teamMembersQueryBuilderConfig,
-                  },
+                  attributesQueryBuilderState: attributesQueryBuilderConfig ? {
+                    tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), attributesQueryBuilderConfig),
+                    config: attributesQueryBuilderConfig,
+                  } : null,
                 },
               ];
 
@@ -653,7 +666,7 @@ const Routes = ({
           <Route
             form={form}
             formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
-            teamMembersQueryBuilderConfig={teamMembersQueryBuilderConfig}
+            attributesQueryBuilderConfig={attributesQueryBuilderConfig}
             route={fallbackRoute}
             routes={routes}
             setRoute={setRoute}
@@ -672,24 +685,33 @@ export default function RouteBuilder({
   appUrl,
   enrichedWithUserProfileForm,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  
   return (
     <SingleForm
       form={form}
       appUrl={appUrl}
       enrichedWithUserProfileForm={enrichedWithUserProfileForm}
       Page={({ hookForm, form }) => {
+        const values = hookForm.getValues();
+        const { data: attributes } = trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery(
+          { teamId: values.teamId!},
+          { enabled: !!values.teamId }
+        );
         // If hookForm hasn't been initialized, don't render anything
         // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values
         if (!hookForm.getValues().id) {
           return null;
         }
+        if (values.teamId && !attributes) {
+          return <div>Loading...</div>;
+        }
         return (
           <div className="route-config">
-            <Routes hookForm={hookForm} appUrl={appUrl} form={form} />
+            <Routes hookForm={hookForm} appUrl={appUrl} form={form} attributes={attributes} />
           </div>
         );
       }}
-    />
+      />
   );
 }
 

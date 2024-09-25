@@ -8,6 +8,7 @@ import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
 import { ZResponseInputSchema } from "./response.schema";
+import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
@@ -68,6 +69,16 @@ const appRoutingForms = router({
     const handler = await getHandler("report", () => import("./report.handler"));
     return handler({ ctx, input });
   }),
+
+  getAttributesForTeam: authedProcedure
+    .input(ZGetAttributesForTeamInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "getAttributesForTeam",
+        () => import("./getAttributesForTeam.hander")
+      );
+      return handler({ ctx, input });
+    }),
 });
 
 export default appRoutingForms;

@@ -7,6 +7,7 @@
 2. Routing Logic would now have 'Pick the Team Members' section along with 'Send to Booking Page' section
     1. 'Pick the Team members' would allow configuring logic with Attributes to identify the team(on which the Routing Form is created) members matching the logic. Let's call it 'Routed Team Members'
         1. It would also allow "Attribute 'Company Size'" to equal "User Field 'Company Size'"
+            Problem: How do we estabilish a connection b/w Attribute option and Field Option. Attribute generates slug automatically which should be allowed to be changed and can match identifier of field option
     2. 'Send to Booking Page' would allow choosing a Team Event Type that would use the 'Routed Team Members' as the team members for the event type.
 3. Attributes configuration
     1. through DB initially for POC
@@ -16,3 +17,7 @@
 
 ## Use Cases
 1. 
+
+
+TODO:
+- Use teamMemberIds to caluclate availabilithy as well in addition to doing it in handleNewBooking
