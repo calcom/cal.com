@@ -40,6 +40,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     await ssr.viewer.eventTypes.get.prefetch({ id: eventTypeId });
     try {
       const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: eventTypeId });
+      console.log("🚀 ~ getEventTypeById ~ eventType:", eventType);
       return eventType;
     } catch (e: unknown) {
       logger.error(safeStringify(e));
