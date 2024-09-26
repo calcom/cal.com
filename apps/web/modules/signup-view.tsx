@@ -180,6 +180,7 @@ export default function Signup({
   emailVerificationEnabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
+  const [isSamlSignup, setIsSamlSignup] = useState(false);
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -343,6 +344,7 @@ export default function Signup({
                   StartIcon="arrow-left"
                   onClick={() => {
                     setDisplayEmailForm(false);
+                    setIsSamlSignup(false);
                   }}>
                   {t("back")}
                 </Button>
@@ -439,64 +441,24 @@ export default function Signup({
                       data-testid="signup-error-message"
                     />
                   )}
-                  <Button
-                    type="submit"
-                    data-testid="signup-submit-button"
-                    className="my-2 w-full justify-center"
-                    loading={loadingSubmitState}
-                    disabled={
-                      !!formMethods.formState.errors.username ||
-                      !!formMethods.formState.errors.email ||
-                      !formMethods.getValues("email") ||
-                      !formMethods.getValues("password") ||
-                      (CLOUDFLARE_SITE_ID &&
-                        !process.env.NEXT_PUBLIC_IS_E2E &&
-                        !formMethods.getValues("cfToken")) ||
-                      isSubmitting ||
-                      usernameTaken
-                    }>
-                    {premiumUsername && !usernameTaken
-                      ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
-                      : t("create_account")}
-                  </Button>
-                </Form>
-                {isSAMLLoginEnabled ? (
-                  <div className="mt-6">
-                    <div className="relative flex items-center">
-                      <div className="border-subtle flex-grow border-t" />
-                      <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
-                        {t("or").toLocaleLowerCase()}
-                      </span>
-                      <div className="border-subtle flex-grow border-t" />
-                    </div>
-                  </div>
-                ) : null}
-                {isSAMLLoginEnabled ? (
-                  <div className="mt-6">
+                  {isSamlSignup ? (
                     <Button
-                      color="secondary"
+                      color="primary"
                       disabled={
                         !!formMethods.formState.errors.username ||
                         !!formMethods.formState.errors.email ||
+                        !formMethods.getValues("email") ||
+                        !formMethods.getValues("password") ||
                         premiumUsername ||
-                        isSubmitting ||
-                        isGoogleLoading
+                        isSubmitting
                       }
                       className={classNames(
-                        "w-full justify-center rounded-md text-center",
+                        "my-2 w-full justify-center rounded-md text-center",
                         formMethods.formState.errors.username && formMethods.formState.errors.email
                           ? "opacity-50"
                           : ""
                       )}
                       onClick={() => {
-                        if (!formMethods.getValues("username")) {
-                          formMethods.trigger("username");
-                        }
-                        if (!formMethods.getValues("email")) {
-                          formMethods.trigger("email");
-
-                          return;
-                        }
                         const username = formMethods.getValues("username");
                         if (!username) {
                           showToast("error", t("username_required"));
@@ -512,10 +474,31 @@ export default function Signup({
                         );
                       }}>
                       <Icon name="shield-check" className="mr-2 h-5 w-5" />
-                      {t("create_account_via_saml")}
+                      {t("create_account_with_saml")}
                     </Button>
-                  </div>
-                ) : null}
+                  ) : (
+                    <Button
+                      type="submit"
+                      data-testid="signup-submit-button"
+                      className="my-2 w-full justify-center"
+                      loading={loadingSubmitState}
+                      disabled={
+                        !!formMethods.formState.errors.username ||
+                        !!formMethods.formState.errors.email ||
+                        !formMethods.getValues("email") ||
+                        !formMethods.getValues("password") ||
+                        (CLOUDFLARE_SITE_ID &&
+                          !process.env.NEXT_PUBLIC_IS_E2E &&
+                          !formMethods.getValues("cfToken")) ||
+                        isSubmitting ||
+                        usernameTaken
+                      }>
+                      {premiumUsername && !usernameTaken
+                        ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
+                        : t("create_account")}
+                    </Button>
+                  )}
+                </Form>
               </div>
             )}
             {!displayEmailForm && (
@@ -536,6 +519,7 @@ export default function Signup({
                       className={classNames("w-full justify-center rounded-md text-center")}
                       data-testid="continue-with-google-button"
                       onClick={async () => {
+                        setIsSamlSignup(false);
                         setIsGoogleLoading(true);
                         const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
                         const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
@@ -572,17 +556,30 @@ export default function Signup({
                 )}
 
                 {/* Lower Row */}
-                <div className="mt-6 flex flex-col gap-2 md:flex-row">
+                <div className="mt-6 flex flex-col gap-2">
                   <Button
                     color="secondary"
                     disabled={isGoogleLoading}
                     className={classNames("w-full justify-center rounded-md text-center")}
                     onClick={() => {
                       setDisplayEmailForm(true);
+                      setIsSamlSignup(false);
                     }}
                     data-testid="continue-with-email-button">
-                    {isSAMLLoginEnabled ? t("continue_with_email_or_saml") : t("continue_with_email")}
+                    {t("continue_with_email")}
                   </Button>
+                  {isSAMLLoginEnabled && (
+                    <Button
+                      color="minimal"
+                      disabled={isGoogleLoading}
+                      className={classNames("w-full justify-center rounded-md text-center")}
+                      onClick={() => {
+                        setDisplayEmailForm(true);
+                        setIsSamlSignup(true);
+                      }}>
+                      {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
