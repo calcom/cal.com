@@ -465,7 +465,7 @@ export default function Signup({
                     <div className="relative flex items-center">
                       <div className="border-subtle flex-grow border-t" />
                       <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
-                        {t("or_continue_with")}
+                        {t("or").toLocaleLowerCase()}
                       </span>
                       <div className="border-subtle flex-grow border-t" />
                     </div>
@@ -512,7 +512,7 @@ export default function Signup({
                         );
                       }}>
                       <Icon name="shield-check" className="mr-2 h-5 w-5" />
-                      {t("saml_sso")}
+                      {t("create_account_via_saml")}
                     </Button>
                   </div>
                 ) : null}

@@ -2487,6 +2487,7 @@
   "lock_org_users_eventtypes_description": "Prevent members from creating their own event types.",
   "add_to_event_type": "Add to event type",
   "create_account_password": "Create account password",
+  "create_account_via_saml": "Create Account via SAML",
   "error_creating_account_password": "Failed to create account password",
   "cannot_create_account_password_cal_provider": "Cannot create account password for cal accounts",
   "cannot_create_account_password_already_existing": "Cannot create account password for already created ones",
