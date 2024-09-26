@@ -1029,9 +1029,9 @@ checksums:
     installed_other: 25f19e5931e29ffdbf4cec6ea0db8b93
     verify_wallet: ba0dac35dde0024fdf54f4db82b818a3
     create_events_on: eaa763ea656b9e7f8290bc5ed0984ab4
-    enterprise_license: 45f91fd21b7f938a3c591775512f024f
+    enterprise_license: b3d02910f01b8483595644c29ea8c026
     enterprise_license_locally: 327a7ba96a6aa5638278b66dc945d060
-    enterprise_license_sales: c3050be48188a2a066114fd8c89be77a
+    enterprise_license_sales: 6ddc24566e6ce9799886389110639d65
     missing_license: 9ae9ce7650395265fe358b8209eae43c
     next_steps: 12392fe73ae60b6e5a9d851256b8477e
     acquire_commercial_license: cba688b700ac5f3d9eef805fc6fac0fc
