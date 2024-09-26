@@ -340,7 +340,7 @@ export default function Signup({
               <div className="flex w-fit lg:-mt-12">
                 <Button
                   color="minimal"
-                  className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group mb-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
+                  className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
                   StartIcon="arrow-left"
                   onClick={() => {
                     setDisplayEmailForm(false);
