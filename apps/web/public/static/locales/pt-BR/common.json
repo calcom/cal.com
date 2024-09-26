@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Limite quantas vezes os membros podem ser agendados em todos os tipos de eventos da equipe (coletivo e round-robin)",
   "booking_limits_updated_successfully": "Limites de agendamento atualizados com sucesso",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Você não tem autorização para fazer essa alteração na reserva",
+  "hide_calendar_event_details": "Ocultar detalhes dos eventos do calendário em calendários compartilhados",
+  "description_hide_calendar_event_details": "Quando um calendário é compartilhado, os eventos são visíveis para os leitores, mas seus detalhes são ocultados para aqueles que não têm acesso de escrita.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

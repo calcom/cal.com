@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Piirake, mitu korda saab liikmeid broneerida kõigi meeskonna sündmusetüüpide lõikes (ühised ja round-robin)",
   "booking_limits_updated_successfully": "Broneerimispiirangud on edukalt uuendatud",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Teil puuduvad õigused selle broneeringu muutmiseks",
+  "hide_calendar_event_details": "Peida kalendrisündmuste üksikasjad jagatud kalendrites",
+  "description_hide_calendar_event_details": "Kui kalender on jagatud, on sündmused lugejatele nähtavad, kuid nende üksikasjad on peidetud nende eest, kellel puudub kirjutamisõigus.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
