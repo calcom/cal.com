@@ -296,7 +296,7 @@ export default class Office365CalendarService implements Calendar {
             address: attendee.email,
             name: attendee.name,
           },
-          type: "required",
+          type: "required" as const,
         })),
         ...(event.team?.members
           ? event.team?.members
@@ -310,7 +310,7 @@ export default class Office365CalendarService implements Calendar {
                     address: destinationCalendar?.externalId ?? member.email,
                     name: member.name,
                   },
-                  type: "required",
+                  type: "required" as const,
                 };
               })
           : []),
