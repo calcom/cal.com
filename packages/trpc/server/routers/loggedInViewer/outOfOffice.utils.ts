@@ -2,40 +2,33 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export const isAdminForUser = async (adminUserId: number, memberUserId: number) => {
-  const user = await prisma.user.findUnique({
+  const adminTeams = await prisma.membership.findMany({
     where: {
-      id: memberUserId,
-      teams: {
-        some: {
-          team: {
-            AND: [
-              {
-                members: {
-                  some: {
-                    userId: adminUserId,
-                    role: {
-                      in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-                    },
-                    accepted: true,
-                  },
-                },
-              },
-              {
-                members: {
-                  some: {
-                    userId: memberUserId,
-                    accepted: true,
-                  },
-                },
-              },
-            ],
-          },
-        },
+      userId: adminUserId,
+      accepted: true,
+      role: {
+        in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
+  const adminTeamIds = adminTeams?.map((team) => team.teamId);
+
+  const member = await prisma.membership.findFirst({
+    where: {
+      userId: memberUserId,
+      accepted: true,
+      teamId: {
+        in: adminTeamIds,
       },
     },
     select: {
       id: true,
     },
   });
-  return !!user;
+
+  return !!member?.id;
 };
