@@ -44,11 +44,12 @@ export const sendSMS = async (params: {
   phoneNumber: string;
   body: string;
   sender: string;
+  teamIdToCharge: number;
   userId?: number | null;
   teamId?: number | null; // teamId of workflow
   whatsapp?: boolean;
 }) => {
-  const { phoneNumber, body, sender, userId, teamId, whatsapp = false } = params;
+  const { phoneNumber, body, sender, userId, teamId, whatsapp = false, teamIdToCharge } = params;
 
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
 
@@ -81,23 +82,19 @@ export const sendSMS = async (params: {
     });
   }
 
-  const payingTeam = await addCredits(phoneNumber, userId, teamId);
+  const { isFree } = await addCredits(phoneNumber, teamIdToCharge, userId);
 
-  if (!!payingTeam) {
-    const statusCallback = !payingTeam.isFree
-      ? `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?teamToCharge={payingTeam.teamId}`
-      : undefined;
-    const response = await twilio.messages.create({
-      body: body,
-      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-      to: getSMSNumber(phoneNumber, whatsapp),
-      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-      ...(statusCallback ? { statusCallback } : {}),
-    });
-    return { ...response, teamId: payingTeam.teamId };
-  } else {
-    // todo: send sms as email instead
-  }
+  const statusCallback = !isFree
+    ? `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?teamToCharge={payingTeam.teamId}`
+    : undefined;
+  const response = await twilio.messages.create({
+    body: body,
+    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+    to: getSMSNumber(phoneNumber, whatsapp),
+    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+    ...(statusCallback ? { statusCallback } : {}),
+  });
+  return { ...response };
 };
 
 export const scheduleSMS = async (
@@ -106,7 +103,7 @@ export const scheduleSMS = async (
   scheduledDate: Date,
   sender: string,
   userId?: number | null,
-  teamId?: number | null, // teamId of workflow
+  teamId?: number | null, // teamId of workflow --> what about a user workflow on a managed event type, this needs to work too
   whatsapp = false
 ) => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);

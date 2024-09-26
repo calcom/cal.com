@@ -4,7 +4,10 @@ import twilio from "twilio";
 
 import dayjs from "@calcom/dayjs";
 import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
-import { addCredits } from "@calcom/features/ee/workflows/lib/smsCredits/smsCreditsUtils";
+import {
+  addCredits,
+  getTeamIdToBeCharged,
+} from "@calcom/features/ee/workflows/lib/smsCredits/smsCreditsUtils";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
@@ -27,13 +30,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const parsedUserId = userId ? (Array.isArray(userId) ? Number(userId[0]) : Number(userId)) : null;
         const parsedTeamId = teamId ? (Array.isArray(teamId) ? Number(teamId[0]) : Number(teamId)) : null;
 
-        const payingTeam = await addCredits(req.body.To, parsedUserId, parsedTeamId); //todo: test if to phone number is in body
-        if (payingTeam) {
+        //at this point of time I don't know the paying team yet
+        let teamIdToCharge = parsedTeamId;
+        if (!teamIdToCharge && userId) {
+          teamIdToCharge = await getTeamIdToBeCharged(parsedUserId, teamIdToCharge);
+        }
+
+        if (teamIdToCharge) {
+          const payingTeam = await addCredits(req.body.To, teamIdToCharge, parsedUserId); //todo: test if to phone number is in body
+        } else {
+          //cancel all already scheduled sms with existing function (adapt function send emails right away)
+        }
+
+        if (teamIdToCharge) {
           return res
             .status(200)
-            .send(`Credits added to teamId: ${payingTeam.teamId} (userId: ${req.body.userId}) `);
+            .send(`Credits added to teamId: ${teamIdToCharge} (userId: ${parsedUserId}) `);
         } else {
-          return res.status(200).send(`Credit limit was already reached`);
+          return res.status(200).send(`SMS limit reached`);
         }
       }
       if (messageStatus === "delivered") {

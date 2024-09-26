@@ -8,7 +8,7 @@ import { SmsCreditAllocationType, WorkflowMethods } from "@calcom/prisma/enums";
 import * as twilio from "../reminders/providers/twilioProvider";
 import { smsCountryCredits } from "./countryCredits";
 
-const smsCreditCountSelect = {
+export const smsCreditCountSelect = {
   id: true,
   limitReached: true,
   warningSent: true,
@@ -49,21 +49,35 @@ export async function getCreditsForNumber(phoneNumber: string) {
   return smsCountryCredits[countryCode] || 3;
 }
 
-export async function addCredits(phoneNumber: string, userId?: number | null, teamId?: number | null) {
+export async function getTeamIdToBeCharged(userId?: number | null, teamId?: number | null) {
+  if (teamId) {
+    const smsCreditCountTeam = await prisma.smsCreditCount.findFirst({
+      where: {
+        teamId,
+        userId: null,
+        month: dayjs().utc().startOf("month").toDate(),
+      },
+      select: smsCreditCountSelect,
+    });
+    if (!smsCreditCountTeam?.limitReached) {
+      return teamId;
+    }
+  } else if (userId) {
+    // I also need to cancelAndMarkScheduledSms user sms sometimes
+    // but I probably don't want to do that here but instead when sms is actually sent
+
+    const teamIdChargedForSMS = await getPayingTeamId(userId);
+    return teamIdChargedForSMS ?? null;
+  }
+  return null;
+}
+
+export async function addCredits(phoneNumber: string, teamId: number, userId?: number | null) {
   //todo: teamId should also be given for managed event types and user worklfows
   const credits = await getCreditsForNumber(phoneNumber);
 
   if (!teamId && userId) {
     // user event types
-    teamId = await getPayingTeamId(userId);
-
-    // no more credits available for user
-    if (!teamId) {
-      // cancel all already scheduled sms
-      cancelAndMarkScheduledSms(userId);
-      return null;
-    }
-
     const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
       where: {
         teamId,
@@ -97,119 +111,117 @@ export async function addCredits(phoneNumber: string, userId?: number | null, te
     }
   }
 
-  if (teamId) {
-    const existingSMSCreditCountTeam = await prisma.smsCreditCount.findFirst({
+  const existingSMSCreditCountTeam = await prisma.smsCreditCount.findFirst({
+    where: {
+      teamId,
+      userId: null,
+      month: dayjs().utc().startOf("month").toDate(),
+    },
+  });
+
+  let smsCreditCountTeam;
+
+  if (existingSMSCreditCountTeam) {
+    smsCreditCountTeam = await prisma.smsCreditCount.update({
       where: {
+        id: existingSMSCreditCountTeam.id,
+      },
+      data: {
+        credits: {
+          increment: credits,
+        },
+      },
+      select: smsCreditCountSelect,
+    });
+  } else {
+    smsCreditCountTeam = await prisma.smsCreditCount.create({
+      data: {
         teamId,
-        userId: null,
+        credits,
         month: dayjs().utc().startOf("month").toDate(),
       },
+      select: smsCreditCountSelect,
     });
-
-    let smsCreditCountTeam;
-
-    if (existingSMSCreditCountTeam) {
-      smsCreditCountTeam = await prisma.smsCreditCount.update({
-        where: {
-          id: existingSMSCreditCountTeam.id,
-        },
-        data: {
-          credits: {
-            increment: credits,
-          },
-        },
-        select: smsCreditCountSelect,
-      });
-    } else {
-      smsCreditCountTeam = await prisma.smsCreditCount.create({
-        data: {
-          teamId,
-          credits,
-          month: dayjs().utc().startOf("month").toDate(),
-        },
-        select: smsCreditCountSelect,
-      });
-    }
-
-    const team = smsCreditCountTeam.team;
-
-    const acceptedMembers = team.members.filter((member) => member.accepted);
-
-    const freeCredits = acceptedMembers.length * SMS_CREDITS_PER_MEMBER;
-
-    if (smsCreditCountTeam.credits > freeCredits) {
-      if (!smsCreditCountTeam.limitReached) {
-        if (smsCreditCountTeam.team.smsOverageLimit === 0) {
-          const ownersAndAdmins = await Promise.all(
-            acceptedMembers
-              .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
-              .map(async (member) => {
-                return {
-                  email: member.user.email,
-                  name: member.user.name,
-                  t: await getTranslation(member.user.locale ?? "en", "common"),
-                };
-              })
-          );
-
-          await sendSmsLimitReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
-
-          await prisma.smsCreditCount.update({
-            where: {
-              id: smsCreditCountTeam.id,
-            },
-            data: {
-              limitReached: true,
-            },
-          });
-          return { teamId, isFree: true }; // limit reached, allow sending last sms
-        } else {
-          // twilio statusCallback will check if sms costs are still within overage limit
-          // Now we don't know how much this SMS will cost and if it might make it reach the limit
-          return { teamId, isFree: false };
-        }
-      }
-      return null; // limit was already reached, don't send sms
-    } else {
-      const warninigLimitReached =
-        smsCreditCountTeam.team.smsOverageLimit === 0
-          ? smsCreditCountTeam.credits > freeCredits * 0.8
-          : smsCreditCountTeam.overageCharges > smsCreditCountTeam.team.smsOverageLimit * 0.8;
-
-      if (warninigLimitReached) {
-        if (!smsCreditCountTeam.warningSent) {
-          const ownersAndAdmins = await Promise.all(
-            acceptedMembers
-              .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
-              .map(async (member) => {
-                return {
-                  email: member.user.email,
-                  name: member.user.name,
-                  t: await getTranslation(member.user.locale ?? "es", "common"),
-                };
-              })
-          );
-
-          // notification email to team owners that limit is almost reached
-          await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
-
-          await prisma.smsCreditCount.update({
-            where: {
-              id: smsCreditCountTeam.id,
-            },
-            data: {
-              warningSent: true,
-            },
-          });
-        }
-      }
-    }
-    return { teamId };
   }
-  return null;
+
+  const team = smsCreditCountTeam.team;
+
+  const acceptedMembers = team.members.filter((member) => member.accepted);
+
+  const freeCredits = acceptedMembers.length * SMS_CREDITS_PER_MEMBER;
+
+  if (smsCreditCountTeam.credits > freeCredits) {
+    if (smsCreditCountTeam.team.smsOverageLimit === 0) {
+      const ownersAndAdmins = await Promise.all(
+        acceptedMembers
+          .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
+          .map(async (member) => {
+            return {
+              email: member.user.email,
+              name: member.user.name,
+              t: await getTranslation(member.user.locale ?? "en", "common"),
+            };
+          })
+      );
+
+      await sendSmsLimitReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
+
+      await prisma.smsCreditCount.update({
+        where: {
+          id: smsCreditCountTeam.id,
+        },
+        data: {
+          limitReached: true,
+        },
+      });
+
+      // no more credits available for team, cancel all already scheduled sms
+      cancelAndMarkScheduledSms(teamId); // todo: if I can cancel then, then I also need to send them as email instead
+
+      return { isFree: true }; // still allow sending last sms
+    } else {
+      // twilio statusCallback will check if sms costs are still within overage limit
+      // Now we don't know how much this SMS will cost and if it might make it reach the limit
+      return { isFree: false };
+    }
+  } else {
+    const warninigLimitReached =
+      smsCreditCountTeam.team.smsOverageLimit === 0
+        ? smsCreditCountTeam.credits > freeCredits * 0.8
+        : smsCreditCountTeam.overageCharges > smsCreditCountTeam.team.smsOverageLimit * 0.8;
+
+    if (warninigLimitReached) {
+      if (!smsCreditCountTeam.warningSent) {
+        const ownersAndAdmins = await Promise.all(
+          acceptedMembers
+            .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
+            .map(async (member) => {
+              return {
+                email: member.user.email,
+                name: member.user.name,
+                t: await getTranslation(member.user.locale ?? "es", "common"),
+              };
+            })
+        );
+
+        // notification email to team owners that limit is almost reached
+        await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
+
+        await prisma.smsCreditCount.update({
+          where: {
+            id: smsCreditCountTeam.id,
+          },
+          data: {
+            warningSent: true,
+          },
+        });
+      }
+    }
+  }
+  return { isFree: true };
 }
 
-async function getPayingTeamId(userId: number) {
+export async function getPayingTeamId(userId: number) {
   let teamMembershipsWithAvailableCredits = await prisma.membership.findMany({
     where: {
       userId,

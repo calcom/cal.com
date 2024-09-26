@@ -103,6 +103,14 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   isMandatoryReminder?: boolean;
 }
 
+export const scheduleSMSFallbackEmail = async (args: {
+  scheduledDate: Date;
+  sendTo: MailData[""];
+  body: string;
+}) => {
+  //todo: implement function
+};
+
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
   const {
     evt,

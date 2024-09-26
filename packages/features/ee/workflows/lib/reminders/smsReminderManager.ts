@@ -67,6 +67,7 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   reminderPhone: string | null;
   message: string;
   action: ScheduleTextReminderAction;
+  teamIdToCharge: number;
   userId?: number | null;
   teamId?: number | null;
   isVerificationPending?: boolean;
@@ -88,6 +89,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
+    teamIdToCharge,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -192,6 +194,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
           phoneNumber: reminderPhone,
           body: smsMessage,
           sender: senderID,
+          teamIdToCharge,
           userId,
           teamId,
         });
