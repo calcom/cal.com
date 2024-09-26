@@ -1,10 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { v4 as uuidv4 } from "uuid";
 
 import { Webhook } from "@calcom/prisma/client";
-
-import { PrismaReadService } from "../prisma/prisma-read.service";
-import { PrismaWriteService } from "../prisma/prisma-write.service";
 
 type WebhookInputData = Pick<
   Webhook,
@@ -13,99 +9,98 @@ type WebhookInputData = Pick<
 
 @Injectable()
 export class WebhooksRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
-
+  // TODO: PrismaWriteService
   async createUserWebhook(userId: number, data: WebhookInputData) {
-    const id = uuidv4();
-    return this.dbWrite.prisma.webhook.create({
-      data: { ...data, id, userId },
-    });
+    // const id = uuidv4();
+    // return this.dbWrite.prisma.webhook.create({
+    //   data: { ...data, id, userId },
+    // });
   }
-
+  // TODO: PrismaWriteService
   async createEventTypeWebhook(eventTypeId: number, data: WebhookInputData) {
-    const id = uuidv4();
-    return this.dbWrite.prisma.webhook.create({
-      data: { ...data, id, eventTypeId },
-    });
+    // const id = uuidv4();
+    // return this.dbWrite.prisma.webhook.create({
+    //   data: { ...data, id, eventTypeId },
+    // });
   }
-
+  // TODO: PrismaWriteService
   async createOAuthClientWebhook(platformOAuthClientId: string, data: WebhookInputData) {
-    const id = uuidv4();
-    return this.dbWrite.prisma.webhook.create({
-      data: { ...data, id, platformOAuthClientId },
-    });
+    // const id = uuidv4();
+    // return this.dbWrite.prisma.webhook.create({
+    //   data: { ...data, id, platformOAuthClientId },
+    // });
   }
-
+  // TODO: PrismaWriteService
   async updateWebhook(webhookId: string, data: Partial<WebhookInputData>) {
-    return this.dbWrite.prisma.webhook.update({
-      where: { id: webhookId },
-      data,
-    });
+    // return this.dbWrite.prisma.webhook.update({
+    //   where: { id: webhookId },
+    //   data,
+    // });
   }
-
+  // TODO: PrismaReadService
   async getWebhookById(webhookId: string) {
-    return this.dbRead.prisma.webhook.findFirst({
-      where: { id: webhookId },
-    });
+    // return this.dbRead.prisma.webhook.findFirst({
+    //   where: { id: webhookId },
+    // });
   }
-
+  // TODO: PrismaReadService
   async getUserWebhooksPaginated(userId: number, skip: number, take: number) {
-    return this.dbRead.prisma.webhook.findMany({
-      where: { userId },
-      skip,
-      take,
-    });
+    // return this.dbRead.prisma.webhook.findMany({
+    //   where: { userId },
+    //   skip,
+    //   take,
+    // });
   }
-
+  // TODO: PrismaReadService
   async getEventTypeWebhooksPaginated(eventTypeId: number, skip: number, take: number) {
-    return this.dbRead.prisma.webhook.findMany({
-      where: { eventTypeId },
-      skip,
-      take,
-    });
+    // return this.dbRead.prisma.webhook.findMany({
+    //   where: { eventTypeId },
+    //   skip,
+    //   take,
+    // });
   }
-
+  // TODO: PrismaReadService
   async getOAuthClientWebhooksPaginated(platformOAuthClientId: string, skip: number, take: number) {
-    return this.dbRead.prisma.webhook.findMany({
-      where: { platformOAuthClientId },
-      skip,
-      take,
-    });
+    // return this.dbRead.prisma.webhook.findMany({
+    //   where: { platformOAuthClientId },
+    //   skip,
+    //   take,
+    // });
   }
-
+  // TODO: PrismaReadService
   async getUserWebhookByUrl(userId: number, subscriberUrl: string) {
-    return this.dbRead.prisma.webhook.findFirst({
-      where: { userId, subscriberUrl },
-    });
+    // return this.dbRead.prisma.webhook.findFirst({
+    //   where: { userId, subscriberUrl },
+    // });
   }
-
+  // TODO: PrismaReadService
   async getOAuthClientWebhookByUrl(platformOAuthClientId: string, subscriberUrl: string) {
-    return this.dbRead.prisma.webhook.findFirst({
-      where: { platformOAuthClientId, subscriberUrl },
-    });
+    // return this.dbRead.prisma.webhook.findFirst({
+    //   where: { platformOAuthClientId, subscriberUrl },
+    // });
   }
-
+  // TODO: PrismaReadService
   async getEventTypeWebhookByUrl(eventTypeId: number, subscriberUrl: string) {
-    return this.dbRead.prisma.webhook.findFirst({
-      where: { eventTypeId, subscriberUrl },
-    });
+    // return this.dbRead.prisma.webhook.findFirst({
+    //   where: { eventTypeId, subscriberUrl },
+    // });
   }
-
+  // TODO: PrismaWriteService
   async deleteWebhook(webhookId: string) {
-    return this.dbWrite.prisma.webhook.delete({
-      where: { id: webhookId },
-    });
+    // return this.dbWrite.prisma.webhook.delete({
+    //   where: { id: webhookId },
+    // });
   }
-
+  // TODO: PrismaWriteService
   async deleteAllEventTypeWebhooks(eventTypeId: number) {
-    return this.dbWrite.prisma.webhook.deleteMany({
-      where: { eventTypeId },
-    });
+    // return this.dbWrite.prisma.webhook.deleteMany({
+    //   where: { eventTypeId },
+    // });
   }
-
+  // TODO: PrismaWriteService
   async deleteAllOAuthClientWebhooks(oAuthClientId: string) {
-    return this.dbWrite.prisma.webhook.deleteMany({
-      where: { platformOAuthClientId: oAuthClientId },
-    });
+    // return this.dbWrite.prisma.webhook.deleteMany({
+    //   where: { platformOAuthClientId: oAuthClientId },
+    // });
   }
 }

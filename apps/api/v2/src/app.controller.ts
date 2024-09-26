@@ -12,4 +12,10 @@ export class AppController {
   getHealth(): "OK" {
     return "OK";
   }
+
+  @Get()
+  @Version(VERSION_NEUTRAL)
+  getRoot(): string {
+    return `{"message":"Welcome to Cal.com API V2 - docs are at https://developer.cal.com/api}`;
+  }
 }

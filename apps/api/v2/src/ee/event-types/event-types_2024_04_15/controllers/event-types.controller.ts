@@ -25,7 +25,6 @@ import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.d
 import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
-import { PrismaReadService } from "../../../../modules/prisma/prisma-read.service";
 import { UserWithProfile } from "../../../../modules/users/users.repository";
 import { CreateEventTypeInput_2024_04_15 } from "../inputs/create-event-type.input";
 import { EventTypeIdParams_2024_04_15 } from "../inputs/event-type-id.input";
@@ -47,10 +46,7 @@ import { EventTypesService_2024_04_15 } from "../services/event-types.service";
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")
 export class EventTypesController_2024_04_15 {
-  constructor(
-    private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly prismaReadService: PrismaReadService
-  ) {}
+  constructor(private readonly eventTypesService: EventTypesService_2024_04_15) {}
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
@@ -102,33 +98,33 @@ export class EventTypesController_2024_04_15 {
       data: eventTypes as GetEventTypesData,
     };
   }
-
+  // TODO: PrismaReadService
   @Get("/:username/:eventSlug/public")
   async getPublicEventType(
     @Param("username") username: string,
     @Param("eventSlug") eventSlug: string,
     @Query() queryParams: GetPublicEventTypeQueryParams_2024_04_15
   ): Promise<GetEventTypePublicOutput> {
-    try {
-      const event = await getPublicEvent(
-        username.toLowerCase(),
-        eventSlug,
-        queryParams.isTeamEvent,
-        queryParams.org || null,
-        this.prismaReadService.prisma as unknown as PrismaClient,
-        // We should be fine allowing unpublished orgs events to be servable through platform because Platform access is behind license
-        // If there is ever a need to restrict this, we can introduce a new query param `fromRedirectOfNonOrgLink`
-        true
-      );
-      return {
-        data: event,
-        status: SUCCESS_STATUS,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        throw new NotFoundException(err.message);
-      }
-    }
+    // try {
+    //   const event = await getPublicEvent(
+    //     username.toLowerCase(),
+    //     eventSlug,
+    //     queryParams.isTeamEvent,
+    //     queryParams.org || null,
+    //     this.prismaReadService.prisma as unknown as PrismaClient,
+    //     // We should be fine allowing unpublished orgs events to be servable through platform because Platform access is behind license
+    //     // If there is ever a need to restrict this, we can introduce a new query param `fromRedirectOfNonOrgLink`
+    //     true
+    //   );
+    //   return {
+    //     data: event,
+    //     status: SUCCESS_STATUS,
+    //   };
+    // } catch (err) {
+    //   if (err instanceof Error) {
+    //     throw new NotFoundException(err.message);
+    //   }
+    // }
     throw new InternalServerErrorException("Could not find public event.");
   }
 

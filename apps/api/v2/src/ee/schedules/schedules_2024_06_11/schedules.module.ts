@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 
-import { PrismaModule } from "../../../modules/prisma/prisma.module";
 import { TokensModule } from "../../../modules/tokens/tokens.module";
 import { UsersModule } from "../../../modules/users/users.module";
 import { SchedulesController_2024_06_11 } from "./controllers/schedules.controller";
@@ -10,7 +9,7 @@ import { OutputSchedulesService_2024_06_11 } from "./services/output-schedules.s
 import { SchedulesService_2024_06_11 } from "./services/schedules.service";
 
 @Module({
-  imports: [PrismaModule, UsersModule, TokensModule],
+  imports: [UsersModule, TokensModule],
   providers: [
     SchedulesRepository_2024_06_11,
     SchedulesService_2024_06_11,

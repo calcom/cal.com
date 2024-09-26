@@ -6,7 +6,6 @@ import { MembershipsModule } from "../memberships/memberships.module";
 import { OAuthClientWebhooksController } from "../oauth-clients/controllers/oauth-client-webhooks/oauth-client-webhooks.controller";
 import { OAuthClientModule } from "../oauth-clients/oauth-client.module";
 import { OrganizationsModule } from "../organizations/organizations.module";
-import { PrismaModule } from "../prisma/prisma.module";
 import { UsersModule } from "../users/users.module";
 import { WebhooksController } from "./controllers/webhooks.controller";
 import { EventTypeWebhooksService } from "./services/event-type-webhooks.service";
@@ -17,7 +16,6 @@ import { WebhooksRepository } from "./webhooks.repository";
 
 @Module({
   imports: [
-    PrismaModule,
     UsersModule,
     EventTypesModule_2024_06_14,
     OAuthClientModule,

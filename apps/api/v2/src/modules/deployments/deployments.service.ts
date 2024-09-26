@@ -23,7 +23,7 @@ export class DeploymentsService {
     if (!licenseKey) {
       /** We try to check on DB only if env is undefined */
       const deployment = await this.deploymentsRepository.getDeployment();
-      licenseKey = deployment?.licenseKey ?? undefined;
+      licenseKey = deployment?.licenseKey || "";
     }
 
     if (!licenseKey) {

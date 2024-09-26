@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 
 import { AppsRepository } from "../../modules/apps/apps.repository";
 import { CredentialsRepository } from "../../modules/credentials/credentials.repository";
-import { PrismaModule } from "../../modules/prisma/prisma.module";
 import { SelectedCalendarsRepository } from "../../modules/selected-calendars/selected-calendars.repository";
 import { TokensModule } from "../../modules/tokens/tokens.module";
 import { UsersModule } from "../../modules/users/users.module";
@@ -14,7 +13,7 @@ import { GoogleCalendarService } from "../calendars/services/gcal.service";
 import { OutlookService } from "../calendars/services/outlook.service";
 
 @Module({
-  imports: [PrismaModule, UsersModule, TokensModule],
+  imports: [UsersModule, TokensModule],
   providers: [
     CredentialsRepository,
     CalendarsService,

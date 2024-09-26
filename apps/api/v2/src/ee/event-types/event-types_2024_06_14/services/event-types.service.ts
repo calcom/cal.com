@@ -12,7 +12,6 @@ import {
 import { EventType } from "@calcom/prisma/client";
 
 import { MembershipsRepository } from "../../../../modules/memberships/memberships.repository";
-import { PrismaWriteService } from "../../../../modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "../../../../modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "../../../../modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "../../../../modules/users/users.repository";
@@ -32,62 +31,57 @@ export class EventTypesService_2024_06_14 {
     private readonly usersRepository: UsersRepository,
     private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly dbWrite: PrismaWriteService,
     private readonly schedulesRepository: SchedulesRepository_2024_06_11
   ) {}
-
+  // TODO: PrismaWriteService
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
-    await this.checkCanCreateEventType(user.id, body);
-    const eventTypeUser = await this.getUserToCreateEvent(user);
-    const {
-      bookingLimits,
-      durationLimits,
-      periodType = undefined,
-      periodDays = undefined,
-      periodCountCalendarDays = undefined,
-      periodStartDate = undefined,
-      periodEndDate = undefined,
-      recurrence = undefined,
-      ...bodyTransformed
-    } = this.inputEventTypesService.transformInputCreateEventType(body);
-    const { eventType: eventTypeCreated } = await createEventType({
-      input: bodyTransformed,
-      ctx: {
-        user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
-      },
-    });
-
-    await updateEventType({
-      input: {
-        id: eventTypeCreated.id,
-        bookingLimits,
-        durationLimits,
-        periodType,
-        periodDays,
-        periodCountCalendarDays,
-        periodStartDate,
-        periodEndDate,
-        recurrence,
-        ...bodyTransformed,
-      },
-      ctx: {
-        user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
-      },
-    });
-
-    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeCreated.id);
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
-    }
-
-    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
+    // await this.checkCanCreateEventType(user.id, body);
+    // const eventTypeUser = await this.getUserToCreateEvent(user);
+    // const {
+    //   bookingLimits,
+    //   durationLimits,
+    //   periodType = undefined,
+    //   periodDays = undefined,
+    //   periodCountCalendarDays = undefined,
+    //   periodStartDate = undefined,
+    //   periodEndDate = undefined,
+    //   recurrence = undefined,
+    //   ...bodyTransformed
+    // } = this.inputEventTypesService.transformInputCreateEventType(body);
+    // const { eventType: eventTypeCreated } = await createEventType({
+    //   input: bodyTransformed,
+    //   ctx: {
+    //     user: eventTypeUser,
+    //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //     // @ts-ignore
+    //     prisma: this.dbWrite.prisma,
+    //   },
+    // });
+    // await updateEventType({
+    //   input: {
+    //     id: eventTypeCreated.id,
+    //     bookingLimits,
+    //     durationLimits,
+    //     periodType,
+    //     periodDays,
+    //     periodCountCalendarDays,
+    //     periodStartDate,
+    //     periodEndDate,
+    //     recurrence,
+    //     ...bodyTransformed,
+    //   },
+    //   ctx: {
+    //     user: eventTypeUser,
+    //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //     // @ts-ignore
+    //     prisma: this.dbWrite.prisma,
+    //   },
+    // });
+    // const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeCreated.id);
+    // if (!eventType) {
+    //   throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
+    // }
+    // return this.outputEventTypesService.getResponseEventType(user.id, eventType);
   }
 
   async checkCanCreateEventType(userId: number, body: CreateEventTypeInput_2024_06_14) {
@@ -239,28 +233,25 @@ export class EventTypesService_2024_06_14 {
 
     return defaultEventTypes;
   }
-
+  // TODO: PrismaWriteService
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_06_14, user: UserWithProfile) {
-    await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
-    const eventTypeUser = await this.getUserToUpdateEvent(user);
-    const bodyTransformed = this.inputEventTypesService.transformInputUpdateEventType(body);
-    await updateEventType({
-      input: { id: eventTypeId, ...bodyTransformed },
-      ctx: {
-        user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
-      },
-    });
-
-    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
-    }
-
-    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
+    // await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
+    // const eventTypeUser = await this.getUserToUpdateEvent(user);
+    // const bodyTransformed = this.inputEventTypesService.transformInputUpdateEventType(body);
+    // await updateEventType({
+    //   input: { id: eventTypeId, ...bodyTransformed },
+    //   ctx: {
+    //     user: eventTypeUser,
+    //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //     // @ts-ignore
+    //     prisma: this.dbWrite.prisma,
+    //   },
+    // });
+    // const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    // if (!eventType) {
+    //   throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    // }
+    // return this.outputEventTypesService.getResponseEventType(user.id, eventType);
   }
 
   async checkCanUpdateEventType(userId: number, eventTypeId: number, scheduleId: number | undefined) {

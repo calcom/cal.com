@@ -17,7 +17,6 @@ import {
   CredentialsRepository,
   CredentialsWithUserEmail,
 } from "../../../modules/credentials/credentials.repository";
-import { PrismaWriteService } from "../../../modules/prisma/prisma-write.service";
 import { UsersRepository } from "../../../modules/users/users.repository";
 import { CalendarsRepository } from "../../calendars/calendars.repository";
 
@@ -29,21 +28,19 @@ export class CalendarsService {
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly appsRepository: AppsRepository,
-    private readonly calendarsRepository: CalendarsRepository,
-    private readonly dbWrite: PrismaWriteService
+    private readonly calendarsRepository: CalendarsRepository
   ) {}
-
+  // TODO: PrismaWriteService
   async getCalendars(userId: number) {
-    const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
-    if (!userWithCalendars) {
-      throw new NotFoundException("User not found");
-    }
-
-    return getConnectedDestinationCalendars(
-      userWithCalendars,
-      false,
-      this.dbWrite.prisma as unknown as PrismaClient
-    );
+    // const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
+    // if (!userWithCalendars) {
+    //   throw new NotFoundException("User not found");
+    // }
+    // return getConnectedDestinationCalendars(
+    //   userWithCalendars,
+    //   false,
+    //   this.dbWrite.prisma as unknown as PrismaClient
+    // );
   }
 
   async getBusyTimes(

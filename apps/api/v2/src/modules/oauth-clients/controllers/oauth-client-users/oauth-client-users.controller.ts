@@ -1,17 +1,16 @@
 import {
   Body,
   Controller,
-  Post,
-  Logger,
-  UseGuards,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
+  NotFoundException,
   Param,
   Patch,
-  Delete,
+  Post,
   Query,
-  NotFoundException,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
@@ -21,13 +20,11 @@ import { Pagination } from "@calcom/platform-types";
 
 import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
 import { Locales } from "../../../../lib/enums/locales";
-import { ApiAuthGuard } from "../../../auth/guards/api-auth/api-auth.guard";
 import { CreateManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { ManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { KeysResponseDto } from "../../../oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthClientGuard } from "../../../oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "../../../oauth-clients/services/oauth-clients-users.service";
 import { TokensRepository } from "../../../tokens/tokens.repository";
@@ -39,7 +36,7 @@ import { UsersRepository } from "../../../users/users.repository";
   path: "/v2/oauth-clients/:clientId/users",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, OAuthClientGuard)
+// @UseGuards(ApiAuthGuard, OAuthClientGuard)
 @DocsTags("Managed users")
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
@@ -67,7 +64,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: existingUsers.map((user) => this.getResponseUser(user)),
+      data: existingUsers as GetManagedUsersOutput["data"],
     };
   }
 
@@ -79,7 +76,7 @@ export class OAuthClientUsersController {
     this.logger.log(
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
-    const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
+    const client = (await this.oauthRepository.getOAuthClient(oAuthClientId)) as any;
     console.log("asap createUser client", JSON.stringify(client, null, 2));
 
     const isPlatformManaged = true;
@@ -92,12 +89,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        user: this.getResponseUser(user),
-        accessToken: tokens.accessToken,
-        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
-        refreshToken: tokens.refreshToken,
-      },
+      data: { user, ...tokens },
     };
   }
 

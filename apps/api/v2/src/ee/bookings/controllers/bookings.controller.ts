@@ -15,25 +15,30 @@ import {
 } from "@nestjs/common";
 import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
+import { randomBytes } from "crypto";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
+import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
   BookingResponse,
   HttpError,
   getAllUserBookings,
   getBookingForReschedule,
-  getBookingInfo,
   handleCancelBooking,
   handleInstantMeeting,
   handleMarkNoShow,
   handleNewBooking,
   handleNewRecurringBooking,
+  slugify,
 } from "@calcom/platform-libraries";
 import { ApiResponse, CancelBookingInput, GetBookingsInput, Status } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
+import { supabase } from "../../../config/supabase";
 import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
 import { GetUser } from "../../../modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "../../../modules/auth/decorators/permissions/permissions.decorator";
@@ -42,7 +47,6 @@ import { PermissionsGuard } from "../../../modules/auth/guards/permissions/permi
 import { BillingService } from "../../../modules/billing/services/billing.service";
 import { OAuthClientRepository } from "../../../modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "../../../modules/oauth-clients/services/oauth-flow.service";
-import { PrismaReadService } from "../../../modules/prisma/prisma-read.service";
 import { CreateBookingInput } from "../inputs/create-booking.input";
 import { CreateRecurringBookingInput } from "../inputs/create-recurring-booking.input";
 import { MarkNoShowInput } from "../inputs/mark-no-show.input";
@@ -83,42 +87,30 @@ export class BookingsController {
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
-    private readonly prismaReadService: PrismaReadService,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly billingService: BillingService
   ) {}
 
   @Get("/")
-  @UseGuards(ApiAuthGuard)
-  @Permissions([BOOKING_READ])
+  // @UseGuards(ApiAuthGuard)
+  // @Permissions([BOOKING_READ])
   @ApiQuery({ name: "filters[status]", enum: Status, required: true })
   @ApiQuery({ name: "limit", type: "number", required: false })
   @ApiQuery({ name: "cursor", type: "number", required: false })
-  async getBookings(
-    @GetUser() user: User,
-    @Query() queryParams: GetBookingsInput
-  ): Promise<GetBookingsOutput> {
+  async getBookings(@Query() queryParams: GetBookingsInput): Promise<GetBookingsOutput> {
     const { filters, cursor, limit } = queryParams;
-    const bookings = await getAllUserBookings({
-      bookingListingByStatus: filters.status,
-      skip: cursor ?? 0,
-      take: limit ?? 10,
-      filters,
-      ctx: {
-        user: { email: user.email, id: user.id },
-        prisma: this.prismaReadService.prisma as unknown as PrismaClient,
-      },
-    });
+    const bookings = await this.getAllUserBookings({ filters, cursor, limit });
+    const nextCursor = (cursor ?? 0) + (limit ?? 10);
 
     return {
       status: SUCCESS_STATUS,
-      data: bookings,
+      data: { bookings, nextCursor, recurringInfo: [] },
     };
   }
 
   @Get("/:bookingUid")
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput> {
-    const { bookingInfo } = await getBookingInfo(bookingUid);
+    const bookingInfo = await this.getBookingInfo(bookingUid);
 
     if (!bookingInfo) {
       throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
@@ -132,7 +124,7 @@ export class BookingsController {
 
   @Get("/:bookingUid/reschedule")
   async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
-    const booking = await getBookingForReschedule(bookingUid);
+    const booking = await this.getBookingReschedule(bookingUid);
 
     if (!booking) {
       throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
@@ -153,20 +145,47 @@ export class BookingsController {
     const oAuthClientId = clientId?.toString();
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
+    const {
+      bookingUid,
+      end,
+      start,
+      eventTypeSlug,
+      user,
+      responses,
+      hashedLink,
+      language,
+      metadata,
+      timeZone,
+      ...otherParams
+    } = body;
     try {
-      const booking = await handleNewBooking(
-        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
-      );
-      if (booking.userId && booking.uid && booking.startTime) {
-        void (await this.billingService.increaseUsageByUserId(booking.userId, {
-          uid: booking.uid,
-          startTime: booking.startTime,
-          fromReschedule: booking.fromReschedule,
-        }));
-      }
+      const { data: eventType } = await supabase
+        .from("EventType")
+        .select("title")
+        .eq("id", req.body.eventTypeId)
+        .single();
+
+      if (!eventType) throw new NotFoundException("Event type not found.");
+
+      const { data: booking, error } = await supabase
+        .from("Booking")
+        .insert({
+          ...otherParams,
+          uid: bookingUid,
+          endTime: end,
+          userId: 44,
+          title: eventType.title,
+          startTime: start,
+          user: JSON.stringify(user),
+          responses: JSON.stringify(responses),
+          metadata: JSON.stringify(metadata),
+        })
+        .select("*")
+        .single();
+
       return {
         status: SUCCESS_STATUS,
-        data: booking,
+        data: booking || error,
       };
     } catch (err) {
       this.handleBookingErrors(err);
@@ -181,28 +200,19 @@ export class BookingsController {
     @Body() _: CancelBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
-    const oAuthClientId = clientId?.toString();
-    if (bookingId) {
-      try {
-        req.body.id = parseInt(bookingId);
-        const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
-        if (!res.onlyRemovedAttendee) {
-          void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
-        }
-        return {
-          status: SUCCESS_STATUS,
-          data: {
-            bookingId: res.bookingId,
-            bookingUid: res.bookingUid,
-            onlyRemovedAttendee: res.onlyRemovedAttendee,
-          },
-        };
-      } catch (err) {
-        this.handleBookingErrors(err);
-      }
-    } else {
-      throw new NotFoundException("Booking ID is required.");
+    // const oAuthClientId = clientId?.toString();
+    if (!bookingId) throw new NotFoundException("Booking ID is required.");
+
+    try {
+      const data = await this.cancelUsageByBookingUid(req, bookingId);
+      return {
+        status: SUCCESS_STATUS,
+        data,
+      };
+    } catch (err) {
+      this.handleBookingErrors(err);
     }
+
     throw new InternalServerErrorException("Could not cancel booking.");
   }
 
@@ -241,15 +251,6 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      createdBookings.forEach(async (booking) => {
-        if (booking.userId && booking.uid && booking.startTime) {
-          void (await this.billingService.increaseUsageByUserId(booking.userId, {
-            uid: booking.uid,
-            startTime: booking.startTime,
-          }));
-        }
-      });
-
       return {
         status: SUCCESS_STATUS,
         data: createdBookings,
@@ -268,21 +269,112 @@ export class BookingsController {
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
-    try {
-      const instantMeeting = await handleInstantMeeting(
-        await this.createNextApiBookingRequest(req, oAuthClientId)
-      );
+    const reqBody = req.body as any;
+    const { bookingUid: uid, name, email, timeZone, language } = reqBody;
 
-      if (instantMeeting.userId && instantMeeting.bookingUid) {
-        const now = new Date();
-        // add a 10 secondes delay to the usage incrementation to give some time to cancel the booking if needed
-        now.setSeconds(now.getSeconds() + 10);
-        void (await this.billingService.increaseUsageByUserId(instantMeeting.userId, {
-          uid: instantMeeting.bookingUid,
-          startTime: now,
-        }));
+    const token = randomBytes(32).toString("hex");
+
+    const invitee = [
+      {
+        email,
+        name,
+        timeZone: timeZone,
+        locale: language ?? "en",
+      },
+    ];
+
+    const guests = (reqBody.guests || []).reduce((guestArray: any, guest: any) => {
+      guestArray.push({
+        email: guest,
+        name: "",
+        timeZone,
+        locale: "en",
+      });
+      return guestArray;
+    }, [] as any[]);
+
+    const attendeesList = [...invitee, ...guests];
+
+    const customInputsResponses = {} as any;
+
+    const { data: eventType } = await supabase
+      .from("EventType")
+      .select("*")
+      .eq("id", reqBody.eventTypeId)
+      .single();
+
+    if (reqBody.customInputs && (reqBody.customInputs.length || 0) > 0) {
+      reqBody.customInputs.forEach(({ label, value }: any) => {
+        customInputsResponses[label] = value;
+      });
+    } else {
+      const responses = reqBody.responses || {};
+      for (const [fieldName, fieldValue] of Object.entries(responses)) {
+        const foundACustomInputForTheResponse = (eventType.customInputs as any).find(
+          (input: { label: any }) => slugify(input.label) === fieldName
+        );
+        if (foundACustomInputForTheResponse) {
+          customInputsResponses[foundACustomInputForTheResponse.label] = fieldValue;
+        }
+      }
+    }
+
+    try {
+      const newBookingData: any = {
+        uid,
+        responses: reqBody.responses === null ? Prisma.JsonNull : reqBody.responses,
+        title: `Reunião instantânea com ${invitee[0].name}`,
+        startTime: dayjs.utc(reqBody.start).toDate(),
+        endTime: dayjs.utc(reqBody.end).toDate(),
+        description: reqBody.notes,
+        customInputs: JSON.stringify(customInputsResponses),
+        status: BookingStatus.AWAITING_HOST,
+        location: "integrations:daily",
+        eventTypeId: reqBody.eventTypeId,
+        metadata: { ...reqBody.metadata, videoCallUrl: `${WEBAPP_URL}/video/${uid}` },
+      };
+
+      const { data: newBooking } = await supabase.from("Booking").insert(newBookingData).select("*").single();
+
+      for (const attendee of attendeesList) {
+        await supabase.from("Attendee").insert(attendee);
       }
 
+      await supabase.from("Booking").insert(newBookingData).select("*").single();
+
+      const { data: eventType } = (await supabase
+        .from("EventType")
+        .select("*")
+        .eq("id", req.body.eventTypeId)
+        .single()) ?? { data: 90 };
+
+      if (eventType === null || eventType.teamId === null)
+        throw new HttpError(400, "Event type is not associated with a team.");
+
+      const instantMeetingExpiryTimeOffsetInSeconds = eventType.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
+
+      const { data: instantMeetingToken } = await supabase
+        .from("InstantMeetingToken")
+        .insert({
+          token,
+          expires: new Date(
+            (new Date().getTime() + 1000 * instantMeetingExpiryTimeOffsetInSeconds) as number
+          ),
+          teamId: eventType.teamId,
+          bookingId: newBooking.id,
+          updatedAt: new Date().toISOString(),
+        })
+        .select("*")
+        .single();
+
+      const instantMeeting = {
+        message: "Success",
+        meetingTokenId: instantMeetingToken.id,
+        bookingId: newBooking.id,
+        bookingUid: newBooking.uid,
+        expires: instantMeetingToken.expires,
+        userId: newBooking.userId,
+      };
       return {
         status: SUCCESS_STATUS,
         data: instantMeeting,
@@ -291,6 +383,126 @@ export class BookingsController {
       this.handleBookingErrors(err, "instant");
     }
     throw new InternalServerErrorException("Could not create instant booking.");
+  }
+
+  private async getAllUserBookings({
+    cursor,
+    filters,
+    limit,
+  }: GetBookingsInput): Promise<GetBookingsOutput["data"]["bookings"]> {
+    const range = (cursor ?? 0) + (limit ?? 10) - 1;
+    const { data: bookings, error } = await supabase
+      .from("Booking")
+      .select("*")
+      .eq("status", filters.status)
+      .range(cursor ?? 0, range)
+      .limit(limit ?? 10);
+
+    if (error || !bookings) return null;
+
+    return bookings as GetBookingsOutput["data"]["bookings"];
+  }
+
+  private async getBookingInfo(bookingUid: string): Promise<GetBookingOutput["data"] | null> {
+    const { data: bookingInfo, error } = await supabase
+      .from("Booking")
+      .select("*")
+      .eq("uid", bookingUid)
+      .limit(1)
+      .single();
+
+    if (error || !bookingInfo) return null;
+
+    return bookingInfo;
+  }
+
+  private async getBookingReschedule(uid: string, userId?: number): Promise<any> {
+    let rescheduleUid: string | null = null;
+
+    const theBooking = this.getBookingInfo(uid) as any;
+
+    let bookingSeatReferenceUid: number | null = null;
+    let attendeeEmail: string | null = null;
+    let hasOwnershipOnBooking = false;
+    let bookingSeatData: { description?: string; responses: Prisma.JsonValue } | null = null;
+
+    if (!theBooking) {
+      const { data: bookingSeat, error } = await supabase
+        .from("BookingSeat")
+        .select("*")
+        .eq("referenceUid", uid)
+        .limit(1)
+        .single();
+
+      if (bookingSeat && !error) {
+        bookingSeatData = bookingSeat.data as any;
+        bookingSeatReferenceUid = bookingSeat.id;
+        rescheduleUid = bookingSeat.booking.uid;
+        attendeeEmail = bookingSeat.attendee.email;
+      }
+    }
+
+    if (theBooking && theBooking?.eventType?.seatsPerTimeSlot && bookingSeatReferenceUid === null) {
+      const isOwnerOfBooking = theBooking.userId === userId;
+
+      const isHostOfEventType = theBooking?.eventType?.hosts.some(
+        (host: { userId?: number }) => host.userId === userId
+      );
+
+      const isUserIdInBooking = theBooking.userId === userId;
+
+      if (!isOwnerOfBooking && !isHostOfEventType && !isUserIdInBooking) return null;
+      hasOwnershipOnBooking = true;
+    }
+
+    if (!theBooking && !rescheduleUid) return null;
+
+    const booking = await this.getBookingInfo(rescheduleUid || uid);
+
+    if (!booking) return null;
+
+    if (bookingSeatReferenceUid) booking["description"] = bookingSeatData?.description ?? null;
+
+    return {
+      ...booking,
+      attendees: rescheduleUid
+        ? booking.attendees.filter((attendee: any) => attendee.email === attendeeEmail)
+        : hasOwnershipOnBooking
+        ? []
+        : booking.attendees,
+    };
+  }
+
+  private async cancelUsageByBookingUid(req: BookingRequest, bookingId: string): Promise<any> {
+    const { cancellationReason } = req.body;
+    const { data: bookingToDelete, error } = await supabase
+      .from("Booking")
+      .update({
+        status: BookingStatus.CANCELLED.toLowerCase(),
+        cancellationReason,
+      })
+      .eq("uid", bookingId)
+      .select("*")
+      .single();
+
+    if (bookingToDelete?.eventType?.seatsPerTimeSlot)
+      await supabase.from("Attendee").delete().eq("bookingId", bookingId).select("*");
+
+    await supabase
+      .from("Booking")
+      .update({
+        status: BookingStatus.CANCELLED.toLowerCase(),
+        cancellationReason,
+        iCalSequence: bookingToDelete.iCalSequence ? bookingToDelete.iCalSequence : 100,
+      })
+      .eq("uid", bookingToDelete!.recurringEventId as string)
+      .select("*");
+
+    return {
+      onlyRemovedAttendee: false,
+      bookingId: bookingToDelete.id,
+      bookingUid: bookingToDelete.uid,
+    };
   }
 
   private async getOwnerId(req: Request): Promise<number | undefined> {

@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 
 import { MembershipsModule } from "../../../modules/memberships/memberships.module";
-import { PrismaModule } from "../../../modules/prisma/prisma.module";
 import { SelectedCalendarsModule } from "../../../modules/selected-calendars/selected-calendars.module";
 import { TokensModule } from "../../../modules/tokens/tokens.module";
 import { UsersService } from "../../../modules/users/services/users.service";
@@ -14,7 +13,7 @@ import { InputEventTypesService_2024_06_14 } from "./services/input-event-types.
 import { OutputEventTypesService_2024_06_14 } from "./services/output-event-types.service";
 
 @Module({
-  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule],
+  imports: [MembershipsModule, TokensModule, SelectedCalendarsModule],
   providers: [
     EventTypesRepository_2024_06_14,
     EventTypesService_2024_06_14,

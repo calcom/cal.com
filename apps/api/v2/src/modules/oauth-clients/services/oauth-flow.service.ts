@@ -31,15 +31,11 @@ export class OAuthFlowService {
   }
 
   async getOwnerId(accessToken: string) {
-    const cacheKey = this._generateOwnerIdKey(accessToken);
-
     const ownerIdFromDb = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 
     if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
 
-    // await in case of race conditions, but void it's return since cache writes shouldn't halt execution.
-
-    return ownerIdFromDb;
+    return ownerIdFromDb.userId;
   }
 
   async validateAccessToken(secret: string) {

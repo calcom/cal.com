@@ -13,7 +13,6 @@ import { OAuthClientUsersService } from "../oauth-clients/services/oauth-clients
 import { OAuthFlowService } from "../oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "../organizations/organizations.module";
 import { OrganizationsTeamsService } from "../organizations/services/organizations-teams.service";
-import { PrismaModule } from "../prisma/prisma.module";
 import { StripeModule } from "../stripe/stripe.module";
 import { TokensModule } from "../tokens/tokens.module";
 import { TokensRepository } from "../tokens/tokens.repository";
@@ -22,7 +21,6 @@ import { UsersModule } from "../users/users.module";
 @Global()
 @Module({
   imports: [
-    PrismaModule,
     AuthModule,
     UsersModule,
     TokensModule,

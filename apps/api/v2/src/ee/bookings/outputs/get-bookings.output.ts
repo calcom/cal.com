@@ -206,7 +206,7 @@ class GetBookingsData {
   @ValidateNested()
   @Type(() => GetBookingsDataEntry)
   @IsArray()
-  bookings!: GetBookingsDataEntry[];
+  bookings!: GetBookingsDataEntry[] | null;
 
   @IsArray()
   recurringInfo!: any[];

@@ -8,13 +8,11 @@ import { BillingConfigService } from "../billing/services/billing.config.service
 import { BillingService } from "../billing/services/billing.service";
 import { MembershipsModule } from "../memberships/memberships.module";
 import { OrganizationsModule } from "../organizations/organizations.module";
-import { PrismaModule } from "../prisma/prisma.module";
 import { StripeModule } from "../stripe/stripe.module";
 import { UsersModule } from "../users/users.module";
 
 @Module({
   imports: [
-    PrismaModule,
     StripeModule,
     MembershipsModule,
     OrganizationsModule,

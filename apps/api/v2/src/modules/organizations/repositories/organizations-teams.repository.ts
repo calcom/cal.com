@@ -1,114 +1,112 @@
 import { Injectable } from "@nestjs/common";
 
-import { PrismaReadService } from "../../prisma/prisma-read.service";
+import { supabase } from "../../../config/supabase";
 import { CreateOrgTeamDto } from "../inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "../inputs/update-organization-team.input";
 
 @Injectable()
 export class OrganizationsTeamsRepository {
-  constructor(private readonly dbRead: PrismaReadService) {}
-
+  // TODO: PrismaReadService
   async findOrgTeam(organizationId: number, teamId: number) {
-    return this.dbRead.prisma.team.findUnique({
-      where: {
-        id: teamId,
-        isOrganization: false,
-        parentId: organizationId,
-      },
-    });
+    // return this.dbRead.prisma.team.findUnique({
+    //   where: {
+    //     id: teamId,
+    //     isOrganization: false,
+    //     parentId: organizationId,
+    //   },
+    // });
   }
-
+  // TODO: PrismaReadService
   async findOrgTeams(organizationId: number) {
-    return this.dbRead.prisma.team.findMany({
-      where: {
-        parentId: organizationId,
-      },
-    });
+    // return this.dbRead.prisma.team.findMany({
+    //   where: {
+    //     parentId: organizationId,
+    //   },
+    // });
   }
-
+  // TODO: PrismaReadService
   async deleteOrgTeam(organizationId: number, teamId: number) {
-    return this.dbRead.prisma.team.delete({
-      where: {
-        id: teamId,
-        isOrganization: false,
-        parentId: organizationId,
-      },
-    });
+    // return this.dbRead.prisma.team.delete({
+    //   where: {
+    //     id: teamId,
+    //     isOrganization: false,
+    //     parentId: organizationId,
+    //   },
+    // });
   }
-
+  // TODO: PrismaReadService
   async createOrgTeam(organizationId: number, data: CreateOrgTeamDto) {
-    return this.dbRead.prisma.team.create({
-      data: { ...data, parentId: organizationId },
-    });
+    // return this.dbRead.prisma.team.create({
+    //   data: { ...data, parentId: organizationId },
+    // });
   }
-
+  // TODO: PrismaReadService
   async createPlatformOrgTeam(organizationId: number, oAuthClientId: string, data: CreateOrgTeamDto) {
-    return this.dbRead.prisma.team.create({
-      data: {
-        ...data,
-        parentId: organizationId,
-        createdByOAuthClientId: oAuthClientId,
-      },
-    });
+    // return this.dbRead.prisma.team.create({
+    //   data: {
+    //     ...data,
+    //     parentId: organizationId,
+    //     createdByOAuthClientId: oAuthClientId,
+    //   },
+    // });
   }
-
   async getPlatformOrgTeams(organizationId: number, oAuthClientId: string) {
-    return this.dbRead.prisma.team.findMany({
-      where: {
-        parentId: organizationId,
-        createdByOAuthClientId: oAuthClientId,
-      },
-    });
-  }
+    const { data } = await supabase
+      .from("Team")
+      .select("*")
+      .eq("parentId", organizationId)
+      .eq("createdByOAuthClientId", oAuthClientId);
 
+    return data;
+  }
+  // TODO: PrismaReadService
   async updateOrgTeam(organizationId: number, teamId: number, data: UpdateOrgTeamDto) {
-    return this.dbRead.prisma.team.update({
-      data: { ...data },
-      where: { id: teamId, parentId: organizationId, isOrganization: false },
-    });
+    // return this.dbRead.prisma.team.update({
+    //   data: { ...data },
+    //   where: { id: teamId, parentId: organizationId, isOrganization: false },
+    // });
   }
-
+  // TODO: PrismaReadService
   async findOrgTeamsPaginated(organizationId: number, skip: number, take: number) {
-    return this.dbRead.prisma.team.findMany({
-      where: {
-        parentId: organizationId,
-      },
-      skip,
-      take,
-    });
+    // return this.dbRead.prisma.team.findMany({
+    //   where: {
+    //     parentId: organizationId,
+    //   },
+    //   skip,
+    //   take,
+    // });
   }
-
+  // TODO: PrismaReadService
   async findOrgUserTeamsPaginated(organizationId: number, userId: number, skip: number, take: number) {
-    return this.dbRead.prisma.team.findMany({
-      where: {
-        parentId: organizationId,
-        members: {
-          some: {
-            userId,
-          },
-        },
-      },
-      include: {
-        members: { select: { accepted: true, userId: true } },
-      },
-      skip,
-      take,
-    });
+    // return this.dbRead.prisma.team.findMany({
+    //   where: {
+    //     parentId: organizationId,
+    //     members: {
+    //       some: {
+    //         userId,
+    //       },
+    //     },
+    //   },
+    //   include: {
+    //     members: { select: { accepted: true, userId: true } },
+    //   },
+    //   skip,
+    //   take,
+    // });
   }
-
+  // TODO: PrismaReadService
   async getTeamMembersIds(teamId: number) {
-    const team = await this.dbRead.prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      include: {
-        members: true,
-      },
-    });
-    if (!team) {
-      return [];
-    }
-
-    return team.members.map((member) => member.userId);
+    // const team = await this.dbRead.prisma.team.findUnique({
+    //   where: {
+    //     id: teamId,
+    //   },
+    //   include: {
+    //     members: true,
+    //   },
+    // });
+    // if (!team) {
+    //   return [];
+    // }
+    // return team.members.map((member) => member.userId);
   }
 }

@@ -27,19 +27,11 @@ import { OrganizationsTeamsMembershipsService } from "../organizations/services/
 import { OrganizationsTeamsService } from "../organizations/services/organizations-teams.service";
 import { OrganizationsUsersService } from "../organizations/services/organizations-users-service";
 import { OrganizationsService } from "../organizations/services/organizations.service";
-import { PrismaModule } from "../prisma/prisma.module";
 import { StripeModule } from "../stripe/stripe.module";
 import { UsersModule } from "../users/users.module";
 
 @Module({
-  imports: [
-    PrismaModule,
-    StripeModule,
-    SchedulesModule_2024_06_11,
-    UsersModule,
-    EmailModule,
-    EventTypesModule_2024_06_14,
-  ],
+  imports: [StripeModule, SchedulesModule_2024_06_11, UsersModule, EmailModule, EventTypesModule_2024_06_14],
   providers: [
     OrganizationsRepository,
     OrganizationsTeamsRepository,

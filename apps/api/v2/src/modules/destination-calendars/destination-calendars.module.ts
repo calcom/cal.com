@@ -7,11 +7,9 @@ import { CredentialsRepository } from "../credentials/credentials.repository";
 import { DestinationCalendarsController } from "../destination-calendars/controllers/destination-calendars.controller";
 import { DestinationCalendarsRepository } from "../destination-calendars/destination-calendars.repository";
 import { DestinationCalendarsService } from "../destination-calendars/services/destination-calendars.service";
-import { PrismaModule } from "../prisma/prisma.module";
 import { UsersRepository } from "../users/users.repository";
 
 @Module({
-  imports: [PrismaModule],
   providers: [
     CalendarsRepository,
     CalendarsService,
