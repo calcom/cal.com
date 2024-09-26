@@ -282,6 +282,10 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   useDestinationCalendarEmail?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideCalendarEventDetails?: boolean;
 }
 
 @ApiExtraModels(
