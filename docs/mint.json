@@ -49,7 +49,7 @@
       "icon": "square-terminal"
     },
     {
-      "name": "API v2 Reference",
+      "name": "API v1 Reference",
       "openapi": "/api-reference/v1/openapi.json",
       "url": "api-reference/v1",
       "icon": "square-terminal"
