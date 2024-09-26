@@ -181,6 +181,7 @@ export default function Signup({
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isSamlSignup, setIsSamlSignup] = useState(false);
+  const [isSubmittingSaml, setIsSubmittingSaml] = useState(false);
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -452,12 +453,16 @@ export default function Signup({
                         !formMethods.getValues("email") ||
                         !formMethods.getValues("username") ||
                         premiumUsername ||
-                        isSubmitting
+                        isSubmitting ||
+                        isSubmittingSaml
                       }
+                      loading={isSubmittingSaml}
                       onClick={() => {
+                        setIsSubmittingSaml(true);
                         const username = formMethods.getValues("username");
                         if (!username) {
                           showToast("error", t("username_required"));
+                          setIsSubmittingSaml(false);
                           return;
                         }
                         localStorage.setItem("username", username);
