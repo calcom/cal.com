@@ -2640,5 +2640,9 @@
   "pay_sms_over_limit_description": " Allow getting charged for extra SMS beyond your limit. You will be charged at the end of every month. Pricing details are available <1>here</1>",
   "allow_charging_for_sms": "Allow charging for SMS beyond limit",
   "monthly_limit": "Monthly limit",
+  "members_reached_limit": "Team members that reached limit",
+  "used_credits": "Used credits",
+  "sms_limit_reached_stop_sending_description": "After your limit is reached we will stop sending SMS. If an associated email is available, the SMS will be sent as an email instead.",
+  "allow_getting_charged_for_sms": "Allow getting charged for extra SMS beyond your limit. You will be charged at the end of every month. Pricing details are available <1>here</1>.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑,↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

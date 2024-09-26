@@ -182,14 +182,11 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
                 }}>
                 <RadioArea.Item className="bg-default w-full text-sm" value="disabled">
                   <strong className="mb-1 block">{t("Stop SMS sending")}</strong>
-                  <p>
-                    After your limit is reached we will stop sending SMS. If an associated email is available,
-                    the SMS will be sent as an email instead.
-                  </p>
+                  <p>{t("sms_limit_reached_stop_sending_description")}</p>
                 </RadioArea.Item>
                 <RadioArea.Item className="bg-default w-full text-sm" value="enabled">
                   <strong className="mb-1 block">{t("pay_sms_over_limit")}</strong>
-                  <Trans i18nKey="pay_sms_over_limit_description">
+                  <Trans i18nKey="allow_getting_charged_for_sms">
                     Allow getting charged for extra SMS beyond your limit. You will be charged at the end of
                     every month. Pricing details are available
                     <a href="https://www.example.com" className="underline" target="_blank">
@@ -277,13 +274,13 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
               </div>
               {smsLimitForMembers > 0 && smsCreditAllocationType !== SmsCreditAllocationType.ALL ? (
                 <div className="mt-5 border-t text-sm">
-                  <Label className="mt-5">Team members that reached limit:</Label>
+                  <Label className="mt-5">{t("members_reached_limit")}</Label>
                   {membersAboveLimit.length > 0 ? (
                     <ul className="divide-subtle border-subtle mt-4 divide-y rounded-md border">
                       <li>
                         <div className="bg-subtle flex">
-                          <div className="flex-1 border-r p-2 ">Username</div>
-                          <div className="flex-1 p-2">Used credits</div>
+                          <div className="flex-1 border-r p-2 ">{t("username")}</div>
+                          <div className="flex-1 p-2">{t("used_credits")}</div>
                         </div>
                       </li>
 
