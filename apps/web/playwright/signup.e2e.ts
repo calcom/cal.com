@@ -49,12 +49,13 @@ test.describe("Email Signup Flow Test", async () => {
       await users.create({
         username: "pro",
       });
+      const submitButton = page.locator('[data-testid="signup-submit-button"]');
 
       await page.goto("/signup");
       await expect(page.locator("text=Create your account")).toBeVisible();
       await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
       await page.locator('[data-testid="continue-with-email-button"]').click();
-      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+      await expect(submitButton).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
 
@@ -64,7 +65,7 @@ test.describe("Email Signup Flow Test", async () => {
       await page.locator('input[name="password"]').fill("Password99!");
 
       // Submit form
-      await page.click('button[type="submit"]');
+      await submitButton.click();
 
       const alert = await page.waitForSelector('[data-testid="alert"]');
       const alertMessageInner = await alert.innerText();
@@ -79,12 +80,13 @@ test.describe("Email Signup Flow Test", async () => {
       const user = await users.create({
         username: "pro",
       });
+      const submitButton = page.locator('[data-testid="signup-submit-button"]');
 
       await page.goto("/signup");
       await expect(page.locator("text=Create your account")).toBeVisible();
       await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
       await page.locator('[data-testid="continue-with-email-button"]').click();
-      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+      await expect(submitButton).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
 
@@ -95,7 +97,7 @@ test.describe("Email Signup Flow Test", async () => {
 
       // Submit form
 
-      await page.click('button[type="submit"]');
+      await submitButton.click();
       const alert = await page.waitForSelector('[data-testid="alert"]');
       const alertMessageInner = await alert.innerText();
 
@@ -110,6 +112,7 @@ test.describe("Email Signup Flow Test", async () => {
       username: "rock",
       password: "Password99!",
     });
+    const submitButton = page.locator('[data-testid="signup-submit-button"]');
     // Ensure the premium username is available
     await prisma.user.deleteMany({ where: { username: "rock" } });
 
@@ -118,14 +121,14 @@ test.describe("Email Signup Flow Test", async () => {
     await expect(page.locator("text=Create your account")).toBeVisible();
     await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
     await page.locator('[data-testid="continue-with-email-button"]').click();
-    await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+    await expect(submitButton).toBeVisible();
 
     // Fill form
     await page.locator('input[name="username"]').fill("rock");
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
-    await page.click('button[type="submit"]');
+    await submitButton.click();
 
     // Check that stripe checkout is present
     const expectedUrl = "https://checkout.stripe.com";
@@ -144,19 +147,20 @@ test.describe("Email Signup Flow Test", async () => {
       // Email intentonally kept as different from username
       email: `rickjones${Math.random()}-${Date.now()}@example.com`,
     });
+    const submitButton = page.locator('[data-testid="signup-submit-button"]');
 
     await page.goto("/signup");
     await expect(page.locator("text=Create your account")).toBeVisible();
     await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
     await page.locator('[data-testid="continue-with-email-button"]').click();
-    await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+    await expect(submitButton).toBeVisible();
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
-    await page.click('button[type="submit"]');
+    await submitButton.click();
     await page.waitForURL("/auth/verify-email**");
 
     // Check that the URL matches the expected URL
@@ -251,19 +255,19 @@ test.describe("Email Signup Flow Test", async () => {
       username: "email-verify",
       password: "Password99!",
     });
+    const submitButton = page.locator('[data-testid="signup-submit-button"]');
 
     await page.goto("/signup");
     await expect(page.locator("text=Create your account")).toBeVisible();
     await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
     await page.locator('[data-testid="continue-with-email-button"]').click();
-    await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+    await expect(submitButton).toBeVisible();
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
-    const submitButton = page.locator('button[type="submit"]');
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
@@ -342,6 +346,7 @@ test.describe("Email Signup Flow Test", async () => {
   test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
     // log in trail user
     await test.step("Sign up", async () => {
+      const submitButton = page.locator('[data-testid="signup-submit-button"]');
       await page.goto("/signup");
 
       // Navigate to email form
@@ -353,11 +358,11 @@ test.describe("Email Signup Flow Test", async () => {
       await page.locator('input[name="password"]').fill("Password99!");
 
       await page.locator('[data-testid="signup-cookie-content-checkbox"]').check();
-      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeEnabled();
+      await expect(submitButton).toBeEnabled();
 
       // the cookie consent checkbox does not need to be checked for user to proceed
       await page.locator('[data-testid="signup-cookie-content-checkbox"]').uncheck();
-      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeEnabled();
+      await expect(submitButton).toBeEnabled();
     });
   });
 });
