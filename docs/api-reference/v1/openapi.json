@@ -9,13 +9,6 @@
     "version": "1.0.0"
   },
   "components": {
-    "securitySchemes": {
-      "ApiKeyAuth": {
-        "type": "apiKey",
-        "in": "query",
-        "name": "apiKey"
-      }
-    },
     "schemas": {
       "ArrayOfBookings": {
         "type": "array",
