@@ -31,9 +31,9 @@ export const SmsLimitReachedEmail = (props: SmsLimitReachedData) => {
           })}
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          <Trans i18nKey="sms_limit_avoid_interruptions" t={props.user.t}>
-            To avoid any interruptions in your SMS services, you can pay for any additional SMS above the
-            limit, you can adjust your settings{" "}
+          <Trans i18nKey="sms_limit_prevent_interruptions" t={props.user.t}>
+            To prevent any interruptions in your SMS service, you can enable payment for SMS that exceed your
+            limit. Adjust your settings{" "}
             <a href={`${WEBAPP_URL}/settings/teams/${props.team.id}/smsCredits`} className="underline">
               here
             </a>

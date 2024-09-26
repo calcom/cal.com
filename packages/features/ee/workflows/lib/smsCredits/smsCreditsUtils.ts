@@ -42,10 +42,6 @@ export async function getCreditsForNumber(phoneNumber: string) {
 
   const countryCode = await twilio.getCountryCode(phoneNumber);
 
-  if (countryCode === "US" || countryCode === "CA") {
-    return 0;
-  }
-
   return smsCountryCredits[countryCode] || 3;
 }
 
@@ -76,7 +72,7 @@ export async function addCredits(phoneNumber: string, teamId: number, userId?: n
   //todo: teamId should also be given for managed event types and user worklfows
   const credits = await getCreditsForNumber(phoneNumber);
 
-  if (!teamId && userId) {
+  if (userId) {
     // user event types
     const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
       where: {

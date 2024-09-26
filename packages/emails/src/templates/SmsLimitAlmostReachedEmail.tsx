@@ -1,3 +1,5 @@
+import { Trans } from "next-i18next";
+
 import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml } from "../components";
@@ -12,9 +14,14 @@ export const SmsLimitAlmostReachedEmail = (props: SmsLimitReachedData) => {
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
           {props.user.t("sms_limit_almost_reached_email", { teamName: props.team.name })}
-          {props.user.t("sms_limit_avoid_interruptions", {
-            url: `${WEBAPP_URL}/settings/team${props.team.id}/smsCredits`,
-          })}
+          <Trans i18nKey="sms_limit_prevent_interruptions" t={props.user.t}>
+            To prevent any interruptions in your SMS service, you can enable payment for SMS that exceed your
+            limit. Adjust your settings{" "}
+            <a href={`${WEBAPP_URL}/settings/teams/${props.team.id}/smsCredits`} className="underline">
+              here
+            </a>
+            .
+          </Trans>
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
           {props.user.t("limit_reached_send_sms_as_email")}
