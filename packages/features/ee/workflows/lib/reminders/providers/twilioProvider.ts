@@ -82,7 +82,7 @@ export const sendSMS = async (params: {
     });
   }
 
-  const { isFree } = await addCredits(phoneNumber, teamIdToCharge, userId);
+  const { isFree } = await addCredits(phoneNumber, teamIdToCharge, !teamId ? userId : null);
 
   const statusCallback = !isFree
     ? `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?teamToCharge={payingTeam.teamId}`

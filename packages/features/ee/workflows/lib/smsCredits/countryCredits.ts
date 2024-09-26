@@ -1,4 +1,4 @@
 export const smsCountryCredits: Record<string, number> = {
-  US: 0,
+  US: 2,
   AT: 3,
 };
