@@ -101,6 +101,7 @@ const generateIcsString = ({
     location: location ?? undefined,
     method: "REQUEST",
     status,
+    ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
   });
   if (icsEvent.error) {
     throw icsEvent.error;
