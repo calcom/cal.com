@@ -1,310 +1,5 @@
 {
-  "openapi": "3.0.3",
-  "externalDocs": {
-    "url": "https://docs.cal.com",
-    "description": "Find more info at our main docs: https://docs.cal.com/"
-  },
-  "info": {
-    "title": "Cal.com API v1",
-    "version": "1.0.0"
-  },
-  "components": {
-    "schemas": {
-      "ArrayOfBookings": {
-        "type": "array",
-        "items": {
-          "properties": {
-            "id": {
-              "type": "number"
-            },
-            "description": {
-              "type": "string"
-            },
-            "eventTypeId": {
-              "type": "number"
-            },
-            "uid": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "title": {
-              "type": "string"
-            },
-            "startTime": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "endTime": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "timeZone": {
-              "type": "string",
-              "example": "Europe/London"
-            },
-            "fromReschedule": {
-              "type": "string",
-              "nullable": true,
-              "format": "uuid"
-            },
-            "attendees": {
-              "type": "array",
-              "items": {
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "example": "example@cal.com"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "timeZone": {
-                    "type": "string",
-                    "example": "Europe/London"
-                  },
-                  "locale": {
-                    "type": "string",
-                    "example": "en"
-                  }
-                }
-              }
-            },
-            "user": {
-              "properties": {
-                "email": {
-                  "type": "string",
-                  "example": "example@cal.com"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "timeZone": {
-                  "type": "string",
-                  "example": "Europe/London"
-                },
-                "locale": {
-                  "type": "string",
-                  "example": "en"
-                }
-              }
-            },
-            "payment": {
-              "items": {
-                "properties": {
-                  "id": {
-                    "type": "number",
-                    "example": 1
-                  },
-                  "success": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "paymentOption": {
-                    "type": "string",
-                    "example": "ON_BOOKING"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "ArrayOfRecordings": {
-        "type": "array",
-        "items": {
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "room_name": {
-              "type": "string"
-            },
-            "start_ts": {
-              "type": "number"
-            },
-            "status": {
-              "type": "string"
-            },
-            "max_participants": {
-              "type": "number"
-            },
-            "duration": {
-              "type": "number"
-            },
-            "download_link": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "Recording": {
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "room_name": {
-            "type": "string"
-          },
-          "start_ts": {
-            "type": "number"
-          },
-          "status": {
-            "type": "string"
-          },
-          "max_participants": {
-            "type": "number"
-          },
-          "duration": {
-            "type": "number"
-          },
-          "download_link": {
-            "type": "string"
-          }
-        }
-      },
-      "Booking": {
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "description": {
-            "type": "string"
-          },
-          "eventTypeId": {
-            "type": "number"
-          },
-          "uid": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "startTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/London"
-          },
-          "fromReschedule": {
-            "type": "string",
-            "nullable": true,
-            "format": "uuid"
-          },
-          "attendees": {
-            "type": "array",
-            "items": {
-              "properties": {
-                "email": {
-                  "type": "string",
-                  "example": "example@cal.com"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "timeZone": {
-                  "type": "string",
-                  "example": "Europe/London"
-                },
-                "locale": {
-                  "type": "string",
-                  "example": "en"
-                }
-              }
-            }
-          },
-          "user": {
-            "properties": {
-              "email": {
-                "type": "string",
-                "example": "example@cal.com"
-              },
-              "name": {
-                "type": "string"
-              },
-              "timeZone": {
-                "type": "string",
-                "example": "Europe/London"
-              },
-              "locale": {
-                "type": "string",
-                "example": "en"
-              }
-            }
-          },
-          "payment": {
-            "items": {
-              "properties": {
-                "id": {
-                  "type": "number",
-                  "example": 1
-                },
-                "success": {
-                  "type": "boolean",
-                  "example": true
-                },
-                "paymentOption": {
-                  "type": "string",
-                  "example": "ON_BOOKING"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "tags": [
-    {
-      "name": "Users"
-    },
-    {
-      "name": "Event Types"
-    },
-    {
-      "name": "Bookings"
-    },
-    {
-      "name": "Attendees"
-    },
-    {
-      "name": "Payments"
-    },
-    {
-      "name": "Schedules"
-    },
-    {
-      "name": "Teams"
-    },
-    {
-      "name": "Memberships"
-    },
-    {
-      "name": "Availabilities",
-      "description": "Allows modifying unique availabilities tied to a schedule."
-    },
-    {
-      "name": "Custom Inputs"
-    },
-    {
-      "name": "Event References"
-    },
-    {
-      "name": "Booking References"
-    },
-    {
-      "name": "Destination Calendars"
-    },
-    {
-      "name": "Selected Calendars"
-    }
-  ],
+  "openapi": "3.0.0",
   "paths": {
     "/v1/attendees": {
       "get": {
@@ -4618,5 +4313,306 @@
         }
       }
     }
-  }
+  },
+  "info": {
+    "title": "Cal.com API v1",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "ArrayOfBookings": {
+        "type": "array",
+        "items": {
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "description": {
+              "type": "string"
+            },
+            "eventTypeId": {
+              "type": "number"
+            },
+            "uid": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string"
+            },
+            "startTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "endTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "timeZone": {
+              "type": "string",
+              "example": "Europe/London"
+            },
+            "fromReschedule": {
+              "type": "string",
+              "nullable": true,
+              "format": "uuid"
+            },
+            "attendees": {
+              "type": "array",
+              "items": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "example@cal.com"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "timeZone": {
+                    "type": "string",
+                    "example": "Europe/London"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "example": "en"
+                  }
+                }
+              }
+            },
+            "user": {
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "example@cal.com"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "timeZone": {
+                  "type": "string",
+                  "example": "Europe/London"
+                },
+                "locale": {
+                  "type": "string",
+                  "example": "en"
+                }
+              }
+            },
+            "payment": {
+              "items": {
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "paymentOption": {
+                    "type": "string",
+                    "example": "ON_BOOKING"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ArrayOfRecordings": {
+        "type": "array",
+        "items": {
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "room_name": {
+              "type": "string"
+            },
+            "start_ts": {
+              "type": "number"
+            },
+            "status": {
+              "type": "string"
+            },
+            "max_participants": {
+              "type": "number"
+            },
+            "duration": {
+              "type": "number"
+            },
+            "download_link": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Recording": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "room_name": {
+            "type": "string"
+          },
+          "start_ts": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "max_participants": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "download_link": {
+            "type": "string"
+          }
+        }
+      },
+      "Booking": {
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "eventTypeId": {
+            "type": "number"
+          },
+          "uid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/London"
+          },
+          "fromReschedule": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "example@cal.com"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "timeZone": {
+                  "type": "string",
+                  "example": "Europe/London"
+                },
+                "locale": {
+                  "type": "string",
+                  "example": "en"
+                }
+              }
+            }
+          },
+          "user": {
+            "properties": {
+              "email": {
+                "type": "string",
+                "example": "example@cal.com"
+              },
+              "name": {
+                "type": "string"
+              },
+              "timeZone": {
+                "type": "string",
+                "example": "Europe/London"
+              },
+              "locale": {
+                "type": "string",
+                "example": "en"
+              }
+            }
+          },
+          "payment": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "number",
+                  "example": 1
+                },
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "paymentOption": {
+                  "type": "string",
+                  "example": "ON_BOOKING"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Users"
+    },
+    {
+      "name": "Event Types"
+    },
+    {
+      "name": "Bookings"
+    },
+    {
+      "name": "Attendees"
+    },
+    {
+      "name": "Payments"
+    },
+    {
+      "name": "Schedules"
+    },
+    {
+      "name": "Teams"
+    },
+    {
+      "name": "Memberships"
+    },
+    {
+      "name": "Availabilities",
+      "description": "Allows modifying unique availabilities tied to a schedule."
+    },
+    {
+      "name": "Custom Inputs"
+    },
+    {
+      "name": "Event References"
+    },
+    {
+      "name": "Booking References"
+    },
+    {
+      "name": "Destination Calendars"
+    },
+    {
+      "name": "Selected Calendars"
+    }
+  ]
 }
