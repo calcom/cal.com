@@ -499,7 +499,7 @@ export default function Signup({
 
                         router.push(url);
                       }}>
-                      {t("signin_with_google")}
+                      {t("continue_with_google")}
                     </Button>
                   ) : null}
                 </div>
