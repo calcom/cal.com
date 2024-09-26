@@ -467,6 +467,7 @@ export default function Signup({
                         !!formMethods.formState.errors.username ||
                         !!formMethods.formState.errors.email ||
                         !formMethods.getValues("email") ||
+                        !formMethods.getValues("username") ||
                         premiumUsername ||
                         isSubmitting
                       }
