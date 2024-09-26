@@ -367,12 +367,6 @@ test.describe("Email Signup Flow Test", async () => {
 });
 
 test.describe("SAML Signup Flow Test", async () => {
-  test.beforeEach(async ({ features }) => {
-    features.reset(); // This resets to the inital state not an empt yarray
-  });
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
-  });
   test("Password input should not exist", async ({ page }) => {
     await page.goto("/signup");
     await page.locator('[data-testid="continue-with-saml-button"]').click();
@@ -380,7 +374,7 @@ test.describe("SAML Signup Flow Test", async () => {
     await expect(page.locator('input[name="password"]')).not.toBeVisible();
   });
 
-  test("Premium Username Flow - creates stripe checkout", async ({ page, users, prisma }) => {
+  test("Premium Username Flow - creates stripe checkout", async ({ page }) => {
     const submitButton = page.locator('[data-testid="saml-submit-button"]');
     await page.goto("/signup");
 
@@ -395,7 +389,7 @@ test.describe("SAML Signup Flow Test", async () => {
     await page.waitForURL("/auth/sso/saml");
   });
 
-  test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
+  test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
     // log in trail user
     await test.step("Sign up", async () => {
       const submitButton = page.locator('[data-testid="saml-submit-button"]');
