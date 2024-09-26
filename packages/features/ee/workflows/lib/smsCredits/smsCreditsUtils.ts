@@ -4,6 +4,7 @@ import { IS_SELF_HOSTED, SMS_CREDITS_PER_MEMBER } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SmsCreditAllocationType, WorkflowMethods } from "@calcom/prisma/enums";
+import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import * as twilio from "../reminders/providers/twilioProvider";
 import { smsCountryCredits } from "./countryCredits";
@@ -59,9 +60,6 @@ export async function getTeamIdToBeCharged(userId?: number | null, teamId?: numb
       return teamId;
     }
   } else if (userId) {
-    // I also need to cancelAndMarkScheduledSms user sms sometimes
-    // but I probably don't want to do that here but instead when sms is actually sent
-
     const teamIdChargedForSMS = await getPayingTeamId(userId);
     return teamIdChargedForSMS ?? null;
   }
@@ -171,13 +169,11 @@ export async function addCredits(phoneNumber: string, teamId: number, userId?: n
         },
       });
 
-      // no more credits available for team, cancel all already scheduled sms
-      cancelAndMarkScheduledSms(teamId); // todo: if I can cancel then, then I also need to send them as email instead
+      // no more credits available for team, cancel all already scheduled sms and schedule emails instead
+      cancelScheduledSmsAndScheduleEmails({ teamId });
 
       return { isFree: true }; // still allow sending last sms
     } else {
-      // twilio statusCallback will check if sms costs are still within overage limit
-      // Now we don't know how much this SMS will cost and if it might make it reach the limit
       return { isFree: false };
     }
   } else {
@@ -278,10 +274,16 @@ export async function getPayingTeamId(userId: number) {
   return teamToPay?.id;
 }
 
-async function cancelAndMarkScheduledSms(teamId?: number | null, userId?: number | null) {
+export async function cancelScheduledSmsAndScheduleEmails({
+  teamId,
+  userId,
+}: {
+  teamId?: number | null;
+  userId?: number | null;
+}) {
   const smsRemindersToCancel = await prisma.workflowReminder.findMany({
     where: {
-      method: WorkflowMethods.SMS,
+      OR: [{ method: WorkflowMethods.SMS }, { method: WorkflowMethods.WHATSAPP }],
       scheduledDate: {
         gte: dayjs().utc().startOf("month").toDate(),
         lt: dayjs().utc().endOf("month").toDate(),
@@ -295,26 +297,12 @@ async function cancelAndMarkScheduledSms(teamId?: number | null, userId?: number
     },
     select: {
       id: true,
-      scheduledDate: true,
-      workflowStepId: true,
       referenceId: true,
+      method: true,
     },
   });
 
-  await prisma.workflowReminder.updateMany({
-    where: {
-      id: {
-        in: smsRemindersToCancel.map((reminder) => reminder.id),
-      },
-    },
-    data: {
-      cancelled: true,
-    },
-  });
+  deleteAllWorkflowReminders(smsRemindersToCancel);
 
-  for (const reminder of smsRemindersToCancel.filter((reminder) => !reminder.referenceId)) {
-    if (reminder.referenceId) {
-      await twilio.cancelSMS(reminder.referenceId); // todo: resend in case user will get new credits by adding new member
-    }
-  }
+  // todo: schedule as emails instead
 }
