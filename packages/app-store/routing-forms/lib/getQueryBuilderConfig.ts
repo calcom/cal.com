@@ -1,24 +1,35 @@
 import { AttributeType } from "@calcom/prisma/client";
-import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
+
+import type { RoutingForm, Attribute } from "../types/types";
 import { FieldTypes } from "./FieldTypes";
-import { AttributesInitialConfig, InitialConfig } from "./InitialConfig";
+import { AttributesInitialConfig, FormFieldsInitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
 
+type RaqbConfigFields = Record<
+  string,
+  {
+    label: string;
+    type: string;
+    valueSources: ["value"];
+    fieldSettings: {
+      listValues?: {
+        value: string;
+        title: string;
+      }[];
+    };
+  }
+>;
+
+export type FormFieldsQueryBuilderConfigWithRaqbFields = typeof FormFieldsInitialConfig & {
+  fields: RaqbConfigFields
+};
+
+export type AttributesQueryBuilderConfigWithRaqbFields = typeof AttributesInitialConfig & {
+  fields: RaqbConfigFields
+};
+
 export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
-  const fields: Record<
-    string,
-    {
-      label: string;
-      type: string;
-      valueSources: ["value"];
-      fieldSettings: {
-        listValues?: {
-          value: string;
-          title: string;
-        }[];
-      };
-    }
-  > = {};
+  const fields: RaqbConfigFields = {};
   form.fields?.forEach((field) => {
     if ("routerField" in field) {
       field = field.routerField;
@@ -28,7 +39,7 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     if (FieldTypes.map((f) => f.value).includes(fieldType)) {
       const options = getUIOptionsForSelect(field);
 
-      const widget = InitialConfig.widgets[fieldType];
+      const widget = FormFieldsInitialConfig.widgets[fieldType];
       const widgetType = widget.type;
 
       fields[field.id] = {
@@ -45,7 +56,10 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     }
   });
 
-  const initialConfigCopy = { ...InitialConfig, operators: { ...InitialConfig.operators } };
+  const initialConfigCopy = {
+    ...FormFieldsInitialConfig,
+    operators: { ...FormFieldsInitialConfig.operators },
+  };
   if (forReporting) {
     // Empty and Not empty doesn't work well with JSON querying in prisma. Try to implement these when we desperately need these operators.
     delete initialConfigCopy.operators.is_empty;
@@ -58,25 +72,25 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     initialConfigCopy.operators.__calReporting = true;
   }
   // You need to provide your own config. See below 'Config format'
-  const config: QueryBuilderUpdatedConfig = {
+  const config = {
     ...initialConfigCopy,
     fields: fields,
   };
   return config;
 }
 
-
-function transformAttributesToCompatibleFormat(attributes: {
-  name: string;
-  slug: string;
-  type: AttributeType;
-  id: string;
-  options: {
-    value: string;
+function transformAttributesToCompatibleFormat(
+  attributes: {
+    name: string;
     slug: string;
-  }[];
-}[]) {
-
+    type: AttributeType;
+    id: string;
+    options: {
+      value: string;
+      slug: string;
+    }[];
+  }[]
+) {
   const attributeTypesMap = new Map<string, string>([
     ["SINGLE_SELECT", "select"],
     ["MULTI_SELECT", "multiselect"],
@@ -103,48 +117,27 @@ export function getQueryBuilderConfigForAttributes({
   attributes,
   form,
 }: {
-  attributes: {
-    name: string;
-    slug: string;
-    type: AttributeType;
-    id: string;
-    options: {
-      value: string;
-      slug: string;
-    }[];
-  }[];
-  form: Pick<RoutingForm, "fields">
-}
-) {
+  attributes: Attribute[]
+  form: Pick<RoutingForm, "fields">;
+}) {
   const transformedAttributes = transformAttributesToCompatibleFormat(attributes);
-  const fields: Record<
-    string,
-    {
-      label: string;
-      type: string;
-      valueSources: ["value"];
-      fieldSettings: {
-        listValues?: {
-          value: string;
-          title: string;
-        }[];
-      };
-    }
-  > = {};
+  const fields: RaqbConfigFields = {};
   transformedAttributes.forEach((attribute) => {
     const attributeType = attribute.type as (typeof FieldTypes)[number]["value"];
     if (FieldTypes.map((f) => f.value).includes(attributeType)) {
       // We can assert the type because otherwise we throw 'Unsupported field type' error
-      const widget = InitialConfig.widgets[attributeType];
+      const widget = FormFieldsInitialConfig.widgets[attributeType];
       const widgetType = widget.type;
-      const attributeOptions = attribute.options.concat((() => {
-        const formFields = form.fields || []
-        const formFieldsOptions = formFields.map((field) => ({
-          title: `Value of field '${field.label}'`,
-          value: `{field:${field.id}}`,
-        }))
-        return formFieldsOptions
-      })())
+      const attributeOptions = attribute.options.concat(
+        (() => {
+          const formFields = form.fields || [];
+          const formFieldsOptions = formFields.map((field) => ({
+            title: `Value of field '${field.label}'`,
+            value: `{field:${field.id}}`,
+          }));
+          return formFieldsOptions;
+        })()
+      );
 
       fields[attribute.id] = {
         label: attribute.label,
@@ -152,7 +145,8 @@ export function getQueryBuilderConfigForAttributes({
         valueSources: ["value"],
         fieldSettings: {
           // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: attributeType === "select" || attributeType === "multiselect" ? attributeOptions : undefined,
+          listValues:
+            attributeType === "select" || attributeType === "multiselect" ? attributeOptions : undefined,
         },
       };
     } else {
@@ -160,7 +154,10 @@ export function getQueryBuilderConfigForAttributes({
     }
   });
 
-  const initialConfigCopy = { ...AttributesInitialConfig, operators: { ...AttributesInitialConfig.operators } };
+  const initialConfigCopy = {
+    ...AttributesInitialConfig,
+    operators: { ...AttributesInitialConfig.operators },
+  };
   return {
     ...initialConfigCopy,
     fields: fields,

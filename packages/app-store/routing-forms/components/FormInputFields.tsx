@@ -17,7 +17,7 @@ type Props = {
 export default function FormInputFields(props: Props) {
   const { form, response, setResponse } = props;
 
-  const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);
+  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
   return (
     <>
@@ -26,7 +26,7 @@ export default function FormInputFields(props: Props) {
           // @ts-expect-error FIXME @hariombalhara
           field = field.routerField;
         }
-        const widget = queryBuilderConfig.widgets[field.type];
+        const widget = formFieldsQueryBuilderConfig.widgets[field.type];
         if (!("factory" in widget)) {
           return null;
         }

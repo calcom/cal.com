@@ -1,5 +1,6 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type z from "zod";
+import { AttributeType } from "@calcom/prisma/client";
 
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
@@ -56,3 +57,14 @@ export type SerializableRoute =
   | GlobalRoute;
 
 export type OrderedResponses = FormResponse[string][];
+
+export type Attribute = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    value: string;
+    slug: string;
+  }[];
+};

@@ -2,8 +2,10 @@ import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getUsersMatchingTeamMemberIdsIncludingFixed } from "@calcom/lib/bookings/getHostsMatchingTeamMemberIds";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -14,49 +16,25 @@ const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 
-export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage, teamMemberIds: number[] | undefined | null) => {
+export const loadUsers = async (
+  eventType: EventType,
+  dynamicUserList: string[],
+  req: IncomingMessage,
+  teamMemberIds?: number[] | undefined | null
+) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);
-
-    if (teamMemberIds) {
-      return await loadUsersByTeamMemberIds(teamMemberIds);
-    }
-    return eventType.id
+    const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
+    return getUsersMatchingTeamMemberIdsIncludingFixed({ users, teamMemberIds });
   } catch (error) {
+    log.error("Unable to load users", safeStringify(error));
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
       throw new HttpError({ statusCode: 400, message: error.message });
     }
     throw new HttpError({ statusCode: 500, message: "Unable to load users" });
   }
-};
-
-const loadUsersByTeamMemberIds = async (teamMemberIds: number[]): Promise<NewBookingEventType["users"]> => {
-  log.debug("called", { teamMemberIds });
-  const users = await prisma.user.findMany({
-    where: {
-      id: {
-        in: teamMemberIds,
-      },
-    },
-    select: {
-      ...userSelect.select,
-      credentials: {
-        select: credentialForCalendarServiceSelect,
-      },
-      metadata: true,
-    },
-  });
-  
-  // FIXME: It could be better instead to not let such an event be booked in the first place. Routing form can send the user to some other page
-  if(!users.length) {
-    throw new HttpError({
-      message: "There is no team member to book this event",
-      statusCode: 400,
-    });
-  }
-  return users;
 };
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {

@@ -48,21 +48,24 @@ export const zodRouterFieldView = zodRouterField.extend({
 export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView]);
 
 export const zodFieldsView = z.array(zodFieldView).optional();
+const queryValueSchema = z.object({
+  id: z.string().optional(),
+  type: z.union([z.literal("group"), z.literal("switch_group")]),
+  children1: z.any(),
+  properties: z.any(),
+});
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),
-  queryValue: z.object({
-    id: z.string().optional(),
-    type: z.union([z.literal("group"), z.literal("switch_group")]),
-    children1: z.any(),
-    properties: z.any(),
-  }),
-  attributesQueryValue: z.object({
-    id: z.string().optional(),
-    type: z.union([z.literal("group"), z.literal("switch_group")]),
-    children1: z.any(),
-    properties: z.any(),
-  }).optional(),
+  // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
+  /**
+   * RAQB query value for form fields
+   */
+  queryValue: queryValueSchema,
+  /**
+   * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
+   */
+  attributesQueryValue: queryValueSchema.optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
     // TODO: Make it a union type of "customPageMessage" and ..

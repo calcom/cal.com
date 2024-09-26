@@ -13,7 +13,7 @@ import isRouterLinkedField from "./isRouterLinkedField";
 import { getFieldWithOptions } from "./selectOptions";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
+const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
 /**
  * Doesn't have deleted fields by default
  */
@@ -27,7 +27,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
-    logger.error("Error parsing routes", safeStringify(routesParsed.error));
+    log.error("Error parsing routes", safeStringify(routesParsed.error));
     throw new Error("Error parsing routes");
   }
 

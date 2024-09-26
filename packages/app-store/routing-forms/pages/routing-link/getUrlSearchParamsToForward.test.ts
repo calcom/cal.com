@@ -63,6 +63,7 @@ describe("getUrlSearchParamsToForward", () => {
       formResponse,
       fields,
       searchParams,
+      teamMembersMatchingAttributeLogic: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -93,6 +94,7 @@ describe("getUrlSearchParamsToForward", () => {
       formResponse,
       fields,
       searchParams,
+      teamMembersMatchingAttributeLogic: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -140,6 +142,7 @@ describe("getUrlSearchParamsToForward", () => {
       formResponse,
       fields,
       searchParams,
+      teamMembersMatchingAttributeLogic: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -187,6 +190,7 @@ describe("getUrlSearchParamsToForward", () => {
       formResponse,
       fields,
       searchParams,
+      teamMembersMatchingAttributeLogic: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -210,6 +214,7 @@ describe("getUrlSearchParamsToForward", () => {
       formResponse: response,
       fields,
       searchParams,
+      teamMembersMatchingAttributeLogic: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });

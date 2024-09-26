@@ -22,14 +22,13 @@ import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import type QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
+import type {FormFieldsConfig} from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import type { JsonLogicQuery } from "../../jsonLogicToPrisma";
-import { getQueryBuilderConfigForFormFields } from "../../lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields,type FormFieldsQueryBuilderConfigWithRaqbFields } from "../../lib/getQueryBuilderConfig";
 
 export { getServerSideProps };
 
-type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 
 const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: JsonLogicQuery | null }) => {
   const { t } = useLocale();
@@ -129,7 +128,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
   );
 };
 
-const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfig>) => {
+const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfigForFormFields>) => {
   const uuid = QbUtils.uuid();
   const queryValue: JsonTree = { id: uuid, type: "group" } as JsonTree;
   const tree = QbUtils.checkTree(QbUtils.loadTree(queryValue), config);
@@ -143,7 +142,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   const config = getQueryBuilderConfigForFormFields(form, true);
   const [query, setQuery] = useState(getInitialQuery(config));
   const [jsonLogicQuery, setJsonLogicQuery] = useState<JsonLogicResult | null>(null);
-  const onChange = (immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
+  const onChange = (immutableTree: ImmutableTree, config: FormFieldsQueryBuilderConfigWithRaqbFields) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setQuery(() => {
       const newValue = {
@@ -171,7 +170,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
         {...config}
         value={query.state.tree}
         onChange={(immutableTree, config) => {
-          onChange(immutableTree, config as QueryBuilderUpdatedConfig);
+          onChange(immutableTree, config as FormFieldsQueryBuilderConfigWithRaqbFields);
         }}
         renderBuilder={renderBuilder}
       />

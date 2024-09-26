@@ -1,26 +1,21 @@
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TGetTeamMembersQueryBuilderConfigInputSchema } from "./getAttributesForTeam.schema";
+import type { TGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 import {  getAttributesForTeam } from "../lib/getAttributes";
 
-type GetTeamMembersQueryBuilderConfigOptions = {
+type GetAttributesForTeamHandlerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TGetTeamMembersQueryBuilderConfigInputSchema;
+  input: TGetAttributesForTeamInputSchema;
 };
 
 export default async function getAttributesForTeamHandler({
   ctx,
   input,
-}: GetTeamMembersQueryBuilderConfigOptions) {
-  const { user } = ctx;
+}: GetAttributesForTeamHandlerOptions) {
   const { teamId } = input;
-
-  if (!user.id) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
 
   return getAttributesForTeam({ teamId });
 }

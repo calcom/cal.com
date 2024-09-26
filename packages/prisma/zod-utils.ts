@@ -248,6 +248,7 @@ export const bookingCreateBodySchema = z.object({
   seatReferenceUid: z.string().optional(),
   orgSlug: z.string().optional(),
   teamMemberEmail: z.string().nullish(),
+  teamMemberIds: z.array(z.number()).nullish(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -294,7 +295,6 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
-    teamMemberIds: z.array(z.number()).optional(),
   })
 );
 

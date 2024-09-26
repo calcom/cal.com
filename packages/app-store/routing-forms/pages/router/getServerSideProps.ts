@@ -10,7 +10,7 @@ import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import { processRoute } from "../../lib/processRoute";
+import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { FormResponse } from "../../types/types";
@@ -109,11 +109,13 @@ export const getServerSideProps = async function getServerSideProps(
     };
   });
 
-  const decidedAction = processRoute({ form: serializableForm, response });
+  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
 
-  if (!decidedAction) {
+  if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
+
+  const decidedAction = matchingRoute.action;
 
   const { createContext } = await import("@calcom/trpc/server/createContext");
   const ctx = await createContext(context);
@@ -126,6 +128,7 @@ export const getServerSideProps = async function getServerSideProps(
       formId: form.id,
       formFillerId: uuidv4(),
       response: response,
+      chosenRouteId: matchingRoute.id,
     });
   } catch (e) {
     if (e instanceof TRPCError) {

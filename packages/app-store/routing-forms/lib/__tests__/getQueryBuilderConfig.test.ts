@@ -2,12 +2,12 @@ import { describe, it, expect } from "vitest";
 import { vi } from "vitest";
 
 import type { RoutingForm } from "../../types/types";
-import { InitialConfig } from "../InitialConfig";
+import { FormFieldsInitialConfig } from "../InitialConfig";
 import { getQueryBuilderConfigForFormFields } from "../getQueryBuilderConfig";
 
 type MockedForm = Pick<RoutingForm, "fields">;
 vi.mock("../InitialConfig", () => ({
-  InitialConfig: {
+  FormFieldsInitialConfig: {
     widgets: {
       text: { type: "text" },
       select: { type: "select" },
@@ -156,7 +156,7 @@ describe("getQueryBuilderConfig", () => {
 
     expect(config).toEqual(
       expect.objectContaining({
-        ...InitialConfig,
+        ...FormFieldsInitialConfig,
         fields: expect.any(Object),
       })
     );

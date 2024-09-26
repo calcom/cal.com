@@ -21,7 +21,7 @@ import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 import FormInputFields from "../../components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import { processRoute } from "../../lib/processRoute";
+import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse, Route } from "../../types/types";
@@ -67,12 +67,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const router = useRouter();
 
   const onSubmit = (response: FormResponse) => {
-    const chosenRoute = processRoute({ form, response });
+    const chosenRoute = findMatchingRoute({ form, response });
 
     if (!chosenRoute) {
-      // FIXME: Make sure that when a form is created, there is always a fallback route and then remove this.
-      alert("Define atleast 1 route");
-      return;
+      // This error should never happen has we ensure that fallback route is always there that matches always
+      throw new Error("No matching route found");
     }
 
     responseMutation.mutate({
