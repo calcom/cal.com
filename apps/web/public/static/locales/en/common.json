@@ -973,7 +973,7 @@
   "signin_with_saml": "Sign in with SAML",
   "signin_with_saml_oidc": "Sign in with SAML/OIDC",
   "continue_with_email": "Continue with email",
-  "continue_with_email_or_saml": "Continue with email / SAML",
+  "continue_with_email_or_saml": "Continue with email or SAML",
   "continue_with_google": "Continue with Google",
   "last_used": "Last used",
   "you_will_need_to_generate": "You will need to generate an access token from your old scheduling tool.",
