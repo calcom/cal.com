@@ -573,6 +573,7 @@ export default function Signup({
                   </Button>
                   {isSAMLLoginEnabled && (
                     <Button
+                      data-testid="continue-with-saml-button"
                       color="minimal"
                       disabled={isGoogleLoading}
                       className={classNames("w-full justify-center rounded-md text-center")}

@@ -27,6 +27,13 @@ test.describe("Signup Main Page Test", async () => {
     await page.locator('[data-testid="continue-with-google-button"]').click();
     await page.waitForURL("/auth/sso/google");
   });
+
+  test("Continue with SAML button must exist / work", async ({ page }) => {
+    await page.goto("/signup");
+    await expect(page.locator('[data-testid="continue-with-saml-button"]')).toBeVisible();
+    await page.locator('[data-testid="continue-with-saml-button"]').click();
+    await page.waitForURL("/auth/sso/saml");
+  });
 });
 
 test.describe("Email Signup Flow Test", async () => {
