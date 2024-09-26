@@ -3,32 +3,31 @@
   "paths": {
     "/v1/attendees": {
       "get": {
-        "operationId": "listAttendees",
-        "summary": "Find all attendees",
+        "operationId": "CalProviderController_verifyClientId",
+        "summary": "Get a provider",
         "parameters": [
           {
-            "in": "query",
-            "name": "apiKey",
+            "name": "clientId",
             "required": true,
+            "in": "path",
             "schema": {
               "type": "string"
-            },
-            "description": "Your API key"
+            }
           }
         ],
-        "tags": ["Attendees"],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProviderVerifyClientOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": ["Platform / Cal Provider"]
       }
     }
   },
@@ -285,52 +284,26 @@
             }
           }
         }
+      },
+      "ProviderVerifyClientOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProviderVerifyClientData"
+          }
+        },
+        "required": ["status", "data"]
       }
     }
   },
   "tags": [
     {
-      "name": "Users"
-    },
-    {
-      "name": "Event Types"
-    },
-    {
-      "name": "Bookings"
-    },
-    {
-      "name": "Attendees"
-    },
-    {
-      "name": "Payments"
-    },
-    {
-      "name": "Schedules"
-    },
-    {
-      "name": "Teams"
-    },
-    {
-      "name": "Memberships"
-    },
-    {
-      "name": "Availabilities",
-      "description": "Allows modifying unique availabilities tied to a schedule."
-    },
-    {
-      "name": "Custom Inputs"
-    },
-    {
-      "name": "Event References"
-    },
-    {
-      "name": "Booking References"
-    },
-    {
-      "name": "Destination Calendars"
-    },
-    {
-      "name": "Selected Calendars"
+      "name": "Platform / Cal Provider"
     }
   ]
 }
