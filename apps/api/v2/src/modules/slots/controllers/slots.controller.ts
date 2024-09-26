@@ -2,7 +2,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
+import { Throttle, seconds } from "@nestjs/throttler";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -52,7 +52,7 @@ export class SlotsController {
 
   @Get("/available")
   @ApiOperation({ summary: "Get available slots" })
-  @Throttle({ default: { limit: 300, ttl: 60000 } }) // allow 300 requests per minute (for :scheduleId)
+  @Throttle({ default: { limit: 300, ttl: seconds(60) } }) // allow 300 requests per minute
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput,
     @Req() req: ExpressRequest
