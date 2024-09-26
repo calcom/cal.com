@@ -111,9 +111,6 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *               hideCalendarNotes:
  *                 type: boolean
  *                 description: If the calendar notes should be hidden from the booking
- *               hideCalendarEventDetails:
- *                 type: boolean
- *                 description: When true, the event is private and only event attendees may view event details.
  *               minimumBookingNotice:
  *                 type: integer
  *                 description: Minimum time in minutes before the event is bookable
@@ -202,7 +199,6 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                  recurringEvent: null
  *                  disableGuests: false
  *                  hideCalendarNotes: false
- *                  hideCalendarEventDetails: false
  *                  minimumBookingNotice: 120
  *                  beforeEventBuffer: 0
  *                  afterEventBuffer: 0
@@ -243,7 +239,6 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                    freq: 2
  *                  disableGuests: false
  *                  hideCalendarNotes: false
- *                  hideCalendarEventDetails: false
  *                  minimumBookingNotice: 120
  *                  beforeEventBuffer: 0
  *                  afterEventBuffer: 0
