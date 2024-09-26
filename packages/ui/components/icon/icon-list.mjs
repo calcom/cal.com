@@ -132,6 +132,7 @@ export const lucideIconList = new Set([
   "users",
   "venetian-mask",
   "video",
+  "volume-off",
   "webhook",
   "x",
   "zap",

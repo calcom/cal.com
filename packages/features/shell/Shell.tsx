@@ -88,6 +88,8 @@ import {
 } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
+import { InstantCallDialog } from "@components/dialog/InstantCallDialog";
+
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
@@ -1229,6 +1231,7 @@ function MainContainer({
 }: LayoutProps) {
   return (
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
+      <InstantCallDialog open={true} />
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full px-2 py-4 lg:px-6">

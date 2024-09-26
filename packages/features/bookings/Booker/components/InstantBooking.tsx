@@ -26,7 +26,7 @@ export const InstantBooking = ({ onConnectNow, event }: IInstantBookingProps) =>
               name: event.entity.name || "",
             }}
             users={
-              event.schedulingType !== SchedulingType.ROUND_ROBIN ? event.users : event.users.slice(0, 3)
+              event.schedulingType !== SchedulingType.ROUND_ROBIN ? event.users : event.users.slice(1, 3)
             }
           />
           <div className="border-muted absolute -bottom-0.5 -right-1 h-2 w-2 rounded-full border bg-green-500" />
