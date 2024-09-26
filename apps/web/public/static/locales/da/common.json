@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} installeret",
   "verify_wallet": "Verificér Wallet",
   "create_events_on": "Opret begivenheder på",
-  "enterprise_license": "Dette er en virksomhedsfunktion",
+  "enterprise_license": "Dette er en kommerciel funktion",
   "enterprise_license_locally": "Du kan teste denne funktion lokalt, men ikke i produktion.",
-  "enterprise_license_sales": "For at opgradere til enterprise-udgaven, kontakt vores salgsteam. Hvis en licensnøgle allerede er på plads, kontakt support@cal.com for hjælp.",
+  "enterprise_license_sales": "For at købe en kommerciel licens, kontakt venligst vores salgsteam. Hvis du allerede har en licensnøgle, kontakt venligst support@cal.com for hjælp.",
   "missing_license": "Manglende Licens",
   "next_steps": "Næste Trin",
   "acquire_commercial_license": "Erhverv en kommerciel licens",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Omlæg med samme Round-Robin vært",
   "reschedule_with_same_round_robin_host_description": "Omlagte begivenheder vil blive tildelt den samme vært som oprindeligt planlagt",
   "disable_input_if_prefilled": "Deaktiver input, hvis URL-identifikatoren er udfyldt på forhånd",
+  "booking_limits": "Bookinggrænser",
+  "booking_limits_team_description": "Bookinggrænser for teammedlemmer på tværs af alle teambegivenhedstyper",
+  "limit_team_booking_frequency_description": "Begræns, hvor mange gange medlemmer kan bookes på tværs af alle teambegivenhedstyper (kollektiv og round-robin)",
+  "booking_limits_updated_successfully": "Bookinggrænser opdateret med succes",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tilladelse til at foretage denne ændring i bookingen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1027,9 +1027,9 @@
   "installed_other": "Nainstalováno: {{count}}",
   "verify_wallet": "Ověřit peněženku",
   "create_events_on": "Vytvořit události v:",
-  "enterprise_license": "Jedná se o firemní funkci",
+  "enterprise_license": "Toto je komerční funkce",
   "enterprise_license_locally": "Tuto funkci můžete testovat lokálně, ale ne v produkčním prostředí.",
-  "enterprise_license_sales": "Pro upgrade na enterprise edici kontaktujte náš prodejní tým. Pokud již máte licenční klíč, kontaktujte prosím support@cal.com pro pomoc.",
+  "enterprise_license_sales": "Pro zakoupení komerční licence se obraťte na náš prodejní tým. Pokud již máte licenční klíč, kontaktujte prosím podporu na adrese support@cal.com pro pomoc.",
   "missing_license": "Chybějící licence",
   "next_steps": "Další kroky",
   "acquire_commercial_license": "Získat komerční licenci",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Přeplánovat se stejným hostitelem Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Přeplánované události budou přiřazeny stejnému hostiteli jako původně",
   "disable_input_if_prefilled": "Zakázat vstup, pokud je identifikátor URL předvyplněn",
+  "booking_limits": "Limity rezervací",
+  "booking_limits_team_description": "Limity rezervací pro členy týmu napříč všemi typy týmových událostí",
+  "limit_team_booking_frequency_description": "Omezte, kolikrát mohou být členové rezervováni napříč všemi typy týmových událostí (kolektivní a round-robin)",
+  "booking_limits_updated_successfully": "Limity rezervací byly úspěšně aktualizovány",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemáte oprávnění provést tuto změnu v rezervaci",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
