@@ -19,13 +19,14 @@
         "tags": ["Attendees"],
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "Authorization information is missing or invalid."
-          },
-          "404": {
-            "description": "No attendees were found"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
