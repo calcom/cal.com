@@ -13,19 +13,15 @@ export const defaultLocaleOption = localeOptions.find(
   (locale) => locale.value === i18n.defaultLocale
 ) as (typeof localeOptions)[number];
 
-interface ExtendedLocale extends Intl.Locale {
-  getTextInfo?: () => { direction: "ltr" | "rtl" };
-}
-
 export function getTextDirection(locale: string): "ltr" | "rtl" {
   try {
-    if (typeof Intl.Locale !== "undefined" && "getTextInfo" in Intl.Locale.prototype) {
-      const extendedLocale = new Intl.Locale(locale) as ExtendedLocale;
-      if (extendedLocale.getTextInfo) {
-        return extendedLocale.getTextInfo().direction;
-      }
+    const localeObj = new Intl.Locale(locale);
+    const direction = (localeObj as Intl.Locale & { textInfo?: { direction?: string } }).textInfo?.direction;
+    if (direction === "rtl" || direction === "ltr") {
+      return direction;
     }
-    // Fallback for gbrowsers that don't support Intl.Locale.prototype.getTextInfo
+
+    // fallback
     const rtlLocales = ["ar", "he"];
     return rtlLocales.some((lang) => locale.toLowerCase().startsWith(lang)) ? "rtl" : "ltr";
   } catch (error) {
