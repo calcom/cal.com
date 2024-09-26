@@ -457,6 +457,7 @@ export default function Signup({
                       onClick={() => {
                         const username = formMethods.getValues("username");
                         if (!username) {
+                          // should not be reached but needed to bypass type errors
                           showToast("error", t("username_required"));
                           return;
                         }
