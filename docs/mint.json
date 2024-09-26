@@ -33,23 +33,23 @@
   },
   "tabs": [
     {
-      "name": "API Reference V2",
+      "name": "API v2 Reference",
       "url": "api-reference/v2"
     },
     {
-      "name": "API Reference V1",
+      "name": "API v1 Reference",
       "url": "api-reference/v1"
     }
   ],
   "anchors": [
     {
-      "name": "API Reference v2",
+      "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2",
       "icon": "square-terminal"
     },
     {
-      "name": "API Reference v1",
+      "name": "API v2 Reference",
       "openapi": "/api-reference/v1/openapi.json",
       "url": "api-reference/v1",
       "icon": "square-terminal"
