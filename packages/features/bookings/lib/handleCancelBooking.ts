@@ -9,6 +9,7 @@ import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -207,13 +208,15 @@ async function handler(req: CustomRequest) {
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
-  const subscriberOptions = {
+  const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUserId,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
+
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: bookingToDelete?.eventType?.title || null,
     eventDescription: bookingToDelete?.eventType?.description || null,
