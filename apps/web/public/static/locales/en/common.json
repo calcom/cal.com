@@ -2614,6 +2614,6 @@
   "booking_limits_updated_successfully": "Booking limits updated successfully",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
   "hide_calendar_event_details": "Hide calendar event details",
-  "description_hide_calendar_event_details": "Depending on your calendar, will set calendar event details to private",
+  "description_hide_calendar_event_details": "When a calendar is shared, events are visible to readers but their details are hidden from those without write access.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

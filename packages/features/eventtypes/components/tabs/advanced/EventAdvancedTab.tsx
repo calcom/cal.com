@@ -333,7 +333,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("hide_calendar_event_details")}
             {...hideCalendarEventDetailsLocked}
-            description={t("description_hide_calendar_events_details")}
+            description={t("description_hide_calendar_event_details")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
