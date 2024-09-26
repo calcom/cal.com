@@ -1,5 +1,6 @@
-import { type TFunction } from "next-i18next";
+import { Trans, type TFunction } from "next-i18next";
 
+import dayjs from "@calcom/dayjs";
 import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml } from "../components";
@@ -24,12 +25,20 @@ export const SmsLimitReachedEmail = (props: SmsLimitReachedData) => {
           {props.user.t("hi_user_name", { name: props.user.name })}!
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_reached_email", { teamName: props.team.name })}
+          {props.user.t("sms_limit_reached_email", {
+            teamName: props.team.name,
+            month: dayjs().format("MMMM"),
+          })}
         </p>
         <p style={{ fontWeight: "normal", fontSize: "16px", lineHeight: "24px" }}>
-          {props.user.t("sms_limit_avoid_interruptions", {
-            url: `${WEBAPP_URL}/settings/team/${props.team.id}/smsCredits`,
-          })}
+          <Trans i18nKey="sms_limit_avoid_interruptions" t={props.user.t}>
+            To avoid any interruptions in your SMS services, you can pay for any additional SMS above the
+            limit, you can adjust your settings{" "}
+            <a href={`${WEBAPP_URL}/settings/teams/${props.team.id}/smsCredits`} className="underline">
+              here
+            </a>
+            .
+          </Trans>
         </p>
       </div>
       <div style={{ lineHeight: "6px" }}>
