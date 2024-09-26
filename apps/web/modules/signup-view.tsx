@@ -180,7 +180,6 @@ export default function Signup({
   emailVerificationEnabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
-  const displayMiddleDivider = isGoogleLoginEnabled; // Add the isOutlookLoginEnabled flag here when Outlook login is added
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -461,6 +460,62 @@ export default function Signup({
                       : t("create_account")}
                   </Button>
                 </Form>
+                {isSAMLLoginEnabled ? (
+                  <div className="mt-6">
+                    <div className="relative flex items-center">
+                      <div className="border-subtle flex-grow border-t" />
+                      <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                        {t("or_continue_with")}
+                      </span>
+                      <div className="border-subtle flex-grow border-t" />
+                    </div>
+                  </div>
+                ) : null}
+                {isSAMLLoginEnabled ? (
+                  <div className="mt-6">
+                    <Button
+                      color="secondary"
+                      disabled={
+                        !!formMethods.formState.errors.username ||
+                        !!formMethods.formState.errors.email ||
+                        premiumUsername ||
+                        isSubmitting ||
+                        isGoogleLoading
+                      }
+                      className={classNames(
+                        "w-full justify-center rounded-md text-center",
+                        formMethods.formState.errors.username && formMethods.formState.errors.email
+                          ? "opacity-50"
+                          : ""
+                      )}
+                      onClick={() => {
+                        if (!formMethods.getValues("username")) {
+                          formMethods.trigger("username");
+                        }
+                        if (!formMethods.getValues("email")) {
+                          formMethods.trigger("email");
+
+                          return;
+                        }
+                        const username = formMethods.getValues("username");
+                        if (!username) {
+                          showToast("error", t("username_required"));
+                          return;
+                        }
+                        localStorage.setItem("username", username);
+                        const sp = new URLSearchParams();
+                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                        sp.set("username", username);
+                        sp.set("email", formMethods.getValues("email"));
+                        router.push(
+                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                        );
+                      }}>
+                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
+                      {t("saml_sso")}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             )}
             {!displayEmailForm && (
@@ -504,7 +559,7 @@ export default function Signup({
                   ) : null}
                 </div>
 
-                {displayMiddleDivider && (
+                {isGoogleLoginEnabled && (
                   <div className="mt-6">
                     <div className="relative flex items-center">
                       <div className="border-subtle flex-grow border-t" />
@@ -526,51 +581,8 @@ export default function Signup({
                       setDisplayEmailForm(true);
                     }}
                     data-testid="continue-with-email-button">
-                    {t("continue_with_email")}
+                    {isSAMLLoginEnabled ? t("continue_with_email_or_saml") : t("continue_with_email")}
                   </Button>
-                  {isSAMLLoginEnabled ? (
-                    <Button
-                      color="secondary"
-                      disabled={
-                        !!formMethods.formState.errors.username ||
-                        !!formMethods.formState.errors.email ||
-                        premiumUsername ||
-                        isSubmitting ||
-                        isGoogleLoading
-                      }
-                      className={classNames(
-                        "w-full justify-center rounded-md text-center",
-                        formMethods.formState.errors.username && formMethods.formState.errors.email
-                          ? "opacity-50"
-                          : ""
-                      )}
-                      onClick={() => {
-                        if (!formMethods.getValues("username")) {
-                          formMethods.trigger("username");
-                        }
-                        if (!formMethods.getValues("email")) {
-                          formMethods.trigger("email");
-
-                          return;
-                        }
-                        const username = formMethods.getValues("username");
-                        if (!username) {
-                          showToast("error", t("username_required"));
-                          return;
-                        }
-                        localStorage.setItem("username", username);
-                        const sp = new URLSearchParams();
-                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                        sp.set("username", username);
-                        sp.set("email", formMethods.getValues("email"));
-                        router.push(
-                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
-                        );
-                      }}>
-                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
-                      {t("saml_sso")}
-                    </Button>
-                  ) : null}
                 </div>
               </div>
             )}
