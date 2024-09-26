@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Ekip üyelerinin tüm ekip etkinlik türlerinde (kolektif ve round-robin) kaç kez rezerve edilebileceğini sınırlayın",
   "booking_limits_updated_successfully": "Rezervasyon sınırları başarıyla güncellendi",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Bu rezervasyonda değişiklik yapma yetkiniz yok",
+  "hide_calendar_event_details": "Paylaşılan takvimlerde etkinlik ayrıntılarını gizle",
+  "description_hide_calendar_event_details": "Bir takvim paylaşıldığında, etkinlikler okuyuculara görünür ancak yazma erişimi olmayanlar için ayrıntılar gizlenir.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

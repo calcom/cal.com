@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Ogranicz, ile razy członkowie mogą być rezerwowani we wszystkich typach wydarzeń zespołowych (zbiorowe i round-robin)",
   "booking_limits_updated_successfully": "Limity rezerwacji zostały pomyślnie zaktualizowane",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nie masz uprawnień do wprowadzenia tej zmiany w rezerwacji",
+  "hide_calendar_event_details": "Ukryj szczegóły wydarzeń w kalendarzu na udostępnionych kalendarzach",
+  "description_hide_calendar_event_details": "Gdy kalendarz jest udostępniony, wydarzenia są widoczne dla czytelników, ale ich szczegóły są ukryte dla osób bez dostępu do edycji.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

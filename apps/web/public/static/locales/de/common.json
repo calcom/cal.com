@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Begrenzen Sie, wie oft Mitglieder über alle Team-Ereignistypen hinweg (kollektiv und round-robin) gebucht werden können",
   "booking_limits_updated_successfully": "Buchungslimits erfolgreich aktualisiert",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Sie sind nicht berechtigt, diese Änderung an der Buchung vorzunehmen",
+  "hide_calendar_event_details": "Kalenderereignisdetails in geteilten Kalendern verbergen",
+  "description_hide_calendar_event_details": "Wenn ein Kalender geteilt wird, sind Ereignisse für Leser sichtbar, aber ihre Details bleiben für Personen ohne Schreibzugriff verborgen.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

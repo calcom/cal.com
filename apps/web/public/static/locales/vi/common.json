@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Giới hạn số lần các thành viên có thể được đặt lịch trên tất cả các loại sự kiện của nhóm (tập thể và round-robin)",
   "booking_limits_updated_successfully": "Giới hạn đặt lịch đã được cập nhật thành công",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Bạn không có quyền thực hiện thay đổi này đối với đặt chỗ",
+  "hide_calendar_event_details": "Ẩn chi tiết sự kiện trên lịch chia sẻ",
+  "description_hide_calendar_event_details": "Khi một lịch được chia sẻ, các sự kiện sẽ hiển thị cho người xem nhưng chi tiết của chúng sẽ bị ẩn đối với những người không có quyền chỉnh sửa.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

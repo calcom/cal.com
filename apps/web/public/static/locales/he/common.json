@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "הגבל כמה פעמים ניתן להזמין חברי צוות בכל סוגי האירועים של הצוות (קולקטיבי ו-round robin)",
   "booking_limits_updated_successfully": "מגבלות ההזמנה עודכנו בהצלחה",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "אין לך הרשאה לבצע שינוי זה בהזמנה",
+  "hide_calendar_event_details": "הסתר פרטי אירועי לוח שנה בלוחות שנה משותפים",
+  "description_hide_calendar_event_details": "כאשר לוח שנה משותף, האירועים נראים לקוראים אך פרטיהם מוסתרים מאלו שאין להם גישת כתיבה.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

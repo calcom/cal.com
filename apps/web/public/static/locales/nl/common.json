@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Beperk hoe vaak teamleden geboekt kunnen worden voor alle soorten teamevenementen (collectief en round-robin)",
   "booking_limits_updated_successfully": "Boekingslimieten succesvol bijgewerkt",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "U bent niet gemachtigd om deze wijziging in de boeking aan te brengen",
+  "hide_calendar_event_details": "Verberg details van kalendergebeurtenissen op gedeelde kalenders",
+  "description_hide_calendar_event_details": "Wanneer een kalender wordt gedeeld, zijn gebeurtenissen zichtbaar voor lezers, maar hun details zijn verborgen voor degenen zonder schrijfrechten.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

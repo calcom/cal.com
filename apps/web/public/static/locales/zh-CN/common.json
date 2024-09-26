@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "限制团队成员在所有团队活动类型（集体和round-robin）中的预订次数",
   "booking_limits_updated_successfully": "预订限制更新成功",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您无权对此预订进行更改",
+  "hide_calendar_event_details": "隐藏共享日历中的事件详情",
+  "description_hide_calendar_event_details": "当日历被共享时，事件对读者可见，但其详情对没有写入权限的人隐藏。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
