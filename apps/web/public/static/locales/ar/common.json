@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "حدد عدد المرات التي يمكن فيها حجز الأعضاء عبر جميع أنواع فعاليات الفريق (الجماعية وround-robin)",
   "booking_limits_updated_successfully": "تم تحديث حدود الحجز بنجاح",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "أنت غير مخول لإجراء هذا التغيير على الحجز",
+  "hide_calendar_event_details": "إخفاء تفاصيل الأحداث في التقويمات المشتركة",
+  "description_hide_calendar_event_details": "عند مشاركة التقويم، تكون الأحداث مرئية للقراء ولكن تفاصيلها تكون مخفية عن أولئك الذين ليس لديهم صلاحية الكتابة.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

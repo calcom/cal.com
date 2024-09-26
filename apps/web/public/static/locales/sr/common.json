@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Ograničite koliko puta članovi mogu biti zakazani za sve vrste timskih događaja (kolektivne i round-robin)",
   "booking_limits_updated_successfully": "Ograničenja zakazivanja su uspešno ažurirana",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemate ovlašćenje da izvršite ovu promenu u rezervaciji",
+  "hide_calendar_event_details": "Sakrij detalje događaja u deljenim kalendarima",
+  "description_hide_calendar_event_details": "Kada je kalendar podeljen, događaji su vidljivi čitaocima, ali su njihovi detalji skriveni od onih koji nemaju pravo izmene.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

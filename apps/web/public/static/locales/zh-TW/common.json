@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "限制團隊成員在所有活動類型（集體和round-robin）中的預約次數",
   "booking_limits_updated_successfully": "預約限制更新成功",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您無權更改此預訂",
+  "hide_calendar_event_details": "隱藏共享行事曆中的事件詳情",
+  "description_hide_calendar_event_details": "當行事曆被共享時，事件對讀者可見，但其詳情對沒有寫入權限的人隱藏。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

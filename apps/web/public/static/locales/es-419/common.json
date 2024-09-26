@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Limita cuántas veces se pueden reservar los miembros en todos los tipos de eventos del equipo (colectivos y round-robin)",
   "booking_limits_updated_successfully": "Límites de reservas actualizados con éxito",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "No tienes autorización para realizar este cambio en la reserva",
+  "hide_calendar_event_details": "Ocultar detalles de eventos del calendario en calendarios compartidos",
+  "description_hide_calendar_event_details": "Cuando se comparte un calendario, los eventos son visibles para los lectores, pero sus detalles están ocultos para aquellos sin acceso de escritura.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

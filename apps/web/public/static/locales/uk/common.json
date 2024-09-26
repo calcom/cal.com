@@ -2609,5 +2609,7 @@
   "limit_team_booking_frequency_description": "Обмежте кількість разів, коли члени можуть бути заброньовані для всіх типів командних подій (колективних та round-robin)",
   "booking_limits_updated_successfully": "Обмеження бронювання успішно оновлено",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Ви не маєте дозволу на внесення цієї зміни до бронювання",
+  "hide_calendar_event_details": "Приховати деталі подій календаря у спільних календарях",
+  "description_hide_calendar_event_details": "Коли календар спільний, події видимі для читачів, але їхні деталі приховані для тих, хто не має прав на редагування.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
