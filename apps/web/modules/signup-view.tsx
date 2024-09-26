@@ -206,7 +206,7 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
-  const [COOKIE_CONSENT, setCOOKIE_CONSENT] = useState(false);
+  const [COOKIE_CONSENT, setCOOKIE_CONSENT] = useState(false); // No need to be checked for user to proceed
 
   function handleConsentChange(consent: boolean) {
     setCOOKIE_CONSENT(!consent);
@@ -432,6 +432,7 @@ export default function Signup({
                   ) : null}
 
                   <CheckboxField
+                    data-testid="signup-cookie-content-checkbox"
                     onChange={() => handleConsentChange(COOKIE_CONSENT)}
                     description={t("cookie_consent_checkbox")}
                   />

@@ -338,4 +338,26 @@ test.describe("Email Signup Flow Test", async () => {
       await context.close();
     });
   });
+
+  test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
+    // log in trail user
+    await test.step("Sign up", async () => {
+      await page.goto("/signup");
+
+      // Navigate to email form
+      await page.locator('[data-testid="continue-with-email-button"]').click();
+
+      // Fill form
+      await page.locator('input[name="username"]').fill("pro");
+      await page.locator('input[name="email"]').fill("pro@example.com");
+      await page.locator('input[name="password"]').fill("Password99!");
+
+      await page.locator('[data-testid="signup-cookie-content-checkbox"]').check();
+      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeEnabled();
+
+      // the cookie consent checkbox does not need to be checked for user to proceed
+      await page.locator('[data-testid="signup-cookie-content-checkbox"]').uncheck();
+      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeEnabled();
+    });
+  });
 });
