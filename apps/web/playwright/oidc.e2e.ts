@@ -49,7 +49,7 @@ test.describe("OIDC", () => {
       // Login a user using the OIDC provider.
       // The credentials are handled by the provider, so we don't need to create a user in the db.
       await page.goto("/auth/login");
-      await page.click('[data-testid="saml"]');
+      await page.click('[data-testid="samlAndOidc"]');
       // Redirected outide of the app, the user would be redirected to the OIDC provider.
       await page.waitForURL(/https:\/\/[^/]+\/oauth2\/v1\/authorize\?.*/);
       await page.getByRole("textbox", { name: "Username" }).fill(OIDC_USER_EMAIL);
