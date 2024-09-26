@@ -1,10 +1,11 @@
+import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
+import usePlatformMe from "@calcom/web/components/settings/platform/hooks/usePlatformMe";
 
 import type { Action } from "./UserListTable";
 
@@ -13,9 +14,10 @@ interface Props {
 }
 
 export function InviteMemberModal(props: Props) {
+  const { data: session } = useSession();
+  const { data: platformUser } = usePlatformMe();
   const utils = trpc.useUtils();
   const { t, i18n } = useLocale();
-  const { data: userData } = useMeQuery();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
       props.dispatch({ type: "CLOSE_MODAL" });
@@ -45,7 +47,7 @@ export function InviteMemberModal(props: Props) {
     },
   });
 
-  const orgId = userData?.organizationId ?? userData?.profiles[0].organizationId;
+  const orgId = session?.user.org?.id ?? platformUser?.organizationId;
 
   if (!orgId) return null;
 
