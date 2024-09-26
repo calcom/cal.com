@@ -41,7 +41,6 @@ const handleSendingSMS = ({
         body: smsMessage,
         sender: senderID,
         teamId,
-        isOrg: team?.parent?.isOrganization,
       });
       resolve(sms);
     } catch (e) {

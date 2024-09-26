@@ -10,6 +10,7 @@ import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getTeamIdToBeCharged } from "../smsCredits/smsCreditsUtils";
+import type { ScheduleEmailReminderAction } from "./emailReminderManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
@@ -126,10 +127,14 @@ const processWorkflowStep = async (
       sendTo = [fallbackEmail];
     }
 
+    const action = (
+      !isSMSOrWhatsappAction(step.action) ? step.action : WorkflowActions.EMAIL_ATTENDEE
+    ) as ScheduleEmailReminderAction;
+
     await scheduleEmailReminder({
       evt,
       triggerEvent: workflow.trigger,
-      action: !isSMSOrWhatsappAction(step.action) ? step.action : WorkflowActions.EMAIL_ATTENDEE,
+      action,
       timeSpan: {
         time: workflow.time,
         timeUnit: workflow.timeUnit,

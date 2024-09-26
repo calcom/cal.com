@@ -75,7 +75,7 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   return icsEvent.value;
 }
 
-type ScheduleEmailReminderAction = Extract<
+export type ScheduleEmailReminderAction = Extract<
   WorkflowActions,
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
@@ -105,7 +105,7 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
 
 export const scheduleSMSFallbackEmail = async (args: {
   scheduledDate: Date;
-  sendTo: MailData[""];
+  sendTo: MailData["to"];
   body: string;
 }) => {
   //todo: implement function

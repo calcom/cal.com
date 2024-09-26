@@ -42,10 +42,10 @@ export const sendSMS = async (params: {
   phoneNumber: string;
   body: string;
   sender: string;
-  teamIdToCharge: number;
   userId?: number | null;
   teamId?: number | null; // teamId of workflow
   whatsapp?: boolean;
+  teamIdToCharge?: number; //orgs don't need that
 }) => {
   const { phoneNumber, body, sender, userId, teamId, whatsapp = false, teamIdToCharge } = params;
 

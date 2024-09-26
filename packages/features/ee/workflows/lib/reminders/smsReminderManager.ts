@@ -262,7 +262,6 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
       },
       select: {
         smsCredits: true,
-        teamId: true,
         workflowStep: {
           select: {
             workflow: {
@@ -280,7 +279,7 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
     const teamId = workflowReminder?.workflowStep?.workflow.teamId ?? workflowReminder?.teamId ?? undefined;
 
     if (referenceId) {
-      await twilio.cancelSMS(referenceId, workflowReminder?.smsCredits || 0, userId, teamId);
+      await twilio.cancelSMS(referenceId);
     }
 
     await prisma.workflowReminder.delete({
