@@ -306,7 +306,7 @@
     }
   ],
   "paths": {
-    "/attendees": {
+    "/v1/attendees": {
       "get": {
         "operationId": "listAttendees",
         "summary": "Find all attendees",
