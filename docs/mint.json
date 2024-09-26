@@ -45,13 +45,13 @@
     {
       "name": "API Reference v2",
       "openapi": "/api-reference/v2/openapi.json",
-      "url": "/api-reference/v2",
+      "url": "api-reference/v2",
       "icon": "square-terminal"
     },
     {
       "name": "API Reference v1",
       "openapi": "/api-reference/v1/openapi.json",
-      "url": "/api-reference/v1",
+      "url": "api-reference/v1",
       "icon": "square-terminal"
     }
   ],
