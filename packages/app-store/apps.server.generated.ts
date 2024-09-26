@@ -11,7 +11,6 @@ export const apiHandlers = {
   "baa-for-hipaa": import("./baa-for-hipaa/api"),
   basecamp3: import("./basecamp3/api"),
   bolna: import("./bolna/api"),
-  "cal-ai": import("./cal-ai/api"),
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
   campsite: import("./campsite/api"),
