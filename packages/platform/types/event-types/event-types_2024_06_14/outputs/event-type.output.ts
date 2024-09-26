@@ -333,6 +333,11 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   useDestinationCalendarEmail?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hideCalendarEventDetails?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -385,4 +390,9 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsEnum(SchedulingTypeEnum)
   @DocsProperty({ enum: SchedulingTypeEnum })
   schedulingType!: EventTypesOutputSchedulingType | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hideCalendarEventDetails?: boolean;
 }
