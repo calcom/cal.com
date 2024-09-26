@@ -123,6 +123,7 @@ export const useEventTypeForm = ({
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+      showOptimizedSlots: eventType.showOptimizedSlots || undefined,
     };
   }, [eventType, periodDates]);
 

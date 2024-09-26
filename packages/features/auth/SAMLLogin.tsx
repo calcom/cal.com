@@ -39,7 +39,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
       StartIcon="lock"
       color="secondary"
       data-testid="saml"
-      className="flex w-full justify-center"
+      className="text-brand-500 h-auto p-0 font-medium"
       onClick={async (event) => {
         event.preventDefault();
 
