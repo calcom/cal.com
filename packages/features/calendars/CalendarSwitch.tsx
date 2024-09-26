@@ -17,9 +17,10 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
+  domainWideDelegationCredentialId: string;
 };
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId } = props;
+  const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId, domainWideDelegationCredentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -28,6 +29,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
+        domainWideDelegationCredentialId: domainWideDelegationCredentialId ?? null
       };
 
       if (isOn) {
@@ -36,7 +38,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ ...body, credentialId }),
+          body: JSON.stringify({ ...body, credentialId, domainWideDelegationCredentialId: domainWideDelegationCredentialId ?? null }),
         });
 
         if (!res.ok) {

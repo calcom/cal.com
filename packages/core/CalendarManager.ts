@@ -6,6 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { CalendarAppDomainWideDelegationClientIdNotAuthorizedError, CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -48,13 +49,16 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { integration, credential } = item;
+        console.log("credential", credential);
         const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
+        const domainWideDelegationCredentialId = credential.delegatedToId;
         if (!calendar) {
           return {
             integration,
             credentialId,
+            domainWideDelegationCredentialId,
           };
         }
         const cals = await calendar.listCalendars();
@@ -67,6 +71,7 @@ export const getConnectedCalendars = async (
               primary: cal.primary || null,
               isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               credentialId,
+              domainWideDelegationCredentialId,
             };
           }),
           ["primary"]
@@ -91,6 +96,7 @@ export const getConnectedCalendars = async (
         return {
           integration: cleanIntegrationKeys(integration),
           credentialId,
+          domainWideDelegationCredentialId,
           primary,
           calendars,
         };
@@ -104,11 +110,16 @@ export const getConnectedCalendars = async (
           }
         }
 
+        if (error instanceof CalendarAppDomainWideDelegationError) {
+          errorMessage = error.message;
+        }
+
         log.error("getConnectedCalendars failed", safeStringify(error), safeStringify({ item }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
           credentialId: item.credential.id,
+          domainWideDelegationCredentialId: item.credential.delegatedToId,
           error: {
             message: errorMessage,
           },
@@ -258,7 +269,8 @@ export const createEvent = async (
           }
           log.error(
             "createEvent failed",
-            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            safeStringify(error),
+            safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
           );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949

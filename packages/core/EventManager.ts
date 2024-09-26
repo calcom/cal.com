@@ -3,7 +3,6 @@ import type { DestinationCalendar, BookingReference } from "@prisma/client";
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
@@ -56,6 +55,10 @@ const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
 };
 
+const delegatedCredentialFirst = <T extends {delegatedToId: string | null}>(a: T, b: T) => {
+  return (b.delegatedToId ? 1: 0) - (a.delegatedToId ? 1: 0);
+};
+
 export const getLocationRequestFromIntegration = (location: string) => {
   const eventLocationType = getLocationFromApp(location);
   if (eventLocationType) {
@@ -101,7 +104,6 @@ export default class EventManager {
   videoCredentials: CredentialPayload[];
   crmCredentials: CredentialPayload[];
   appOptions: AppOptions;
-
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -121,7 +123,8 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       //see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      .sort(latestCredentialFirst);
+      .sort(latestCredentialFirst).sort(delegatedCredentialFirst)
+      
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
@@ -630,7 +633,7 @@ export default class EventManager {
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
-        log.silly("Created Calendar event", safeStringify({ createdEvent }));
+        log.silly("Created Calendar event using credential", safeStringify({ credentialId:credential.id, createdEvent }));
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
@@ -680,6 +683,7 @@ export default class EventManager {
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
                 user: credentialFromDB.user,
+                delegatedToId: credentialFromDB.delegatedToId,
               };
             }
           }
@@ -870,6 +874,7 @@ export default class EventManager {
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
                 user: credentialFromDB.user,
+                delegatedToId: credentialFromDB.delegatedToId,
               };
             }
           }
