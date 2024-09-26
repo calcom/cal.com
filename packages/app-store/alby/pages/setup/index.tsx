@@ -141,7 +141,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
     <div className="bg-default flex h-screen">
       {showContent ? (
         <div className="flex w-full items-center justify-center p-4">
-          <div className="bg-default border-subtle m-auto flex max-w-[43em] flex-col items-center justify-center gap-4 overflow-auto rounded border p-4 md:p-10">
+          <div className="bg-default border-subtle m-auto flex w-full max-w-[43em] flex-col items-center justify-center gap-4 overflow-auto rounded border p-4 md:p-10">
             {!props.lightningAddress ? (
               <>
                 <p className="text-default">
