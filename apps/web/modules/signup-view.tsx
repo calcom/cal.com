@@ -413,12 +413,14 @@ export default function Signup({
                   />
 
                   {/* Password */}
-                  <PasswordField
-                    data-testid="signup-passwordfield"
-                    label={t("password")}
-                    {...register("password")}
-                    hintErrors={["caplow", "min", "num"]}
-                  />
+                  {!isSamlSignup && (
+                    <PasswordField
+                      data-testid="signup-passwordfield"
+                      label={t("password")}
+                      {...register("password")}
+                      hintErrors={["caplow", "min", "num"]}
+                    />
+                  )}
                   {/* Cloudflare Turnstile Captcha */}
                   {CLOUDFLARE_SITE_ID ? (
                     <TurnstileCaptcha
@@ -448,7 +450,6 @@ export default function Signup({
                         !!formMethods.formState.errors.username ||
                         !!formMethods.formState.errors.email ||
                         !formMethods.getValues("email") ||
-                        !formMethods.getValues("password") ||
                         premiumUsername ||
                         isSubmitting
                       }
