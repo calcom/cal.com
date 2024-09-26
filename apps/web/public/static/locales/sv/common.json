@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} installerade",
   "verify_wallet": "Verifiera plånbok",
   "create_events_on": "Skapa händelser i",
-  "enterprise_license": "Det här är en företagsfunktion",
+  "enterprise_license": "Detta är en kommersiell funktion",
   "enterprise_license_locally": "Du kan testa denna funktion lokalt men inte i produktion.",
-  "enterprise_license_sales": "För att uppgradera till företagsversionen, kontakta vårt säljteam. Om en licensnyckel redan är på plats, kontakta support@cal.com för hjälp.",
+  "enterprise_license_sales": "För att köpa en kommersiell licens, vänligen kontakta vårt säljteam. Om en licensnyckel redan är på plats, vänligen kontakta support@cal.com för hjälp.",
   "missing_license": "Licens saknas",
   "next_steps": "Kommande steg",
   "acquire_commercial_license": "Skaffa en kommersiell licens",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Boka om med samma Round-Robin värd",
   "reschedule_with_same_round_robin_host_description": "Ombokade händelser kommer att tilldelas samma värd som ursprungligen bokades",
   "disable_input_if_prefilled": "Inaktivera inmatning om URL-identifieraren är förifylld",
+  "booking_limits": "Bokningsgränser",
+  "booking_limits_team_description": "Bokningsgränser för teammedlemmar för alla typer av teamhändelser",
+  "limit_team_booking_frequency_description": "Begränsa hur många gånger medlemmar kan bokas för alla typer av teamhändelser (kollektivt och round-robin)",
+  "booking_limits_updated_successfully": "Bokningsgränser uppdaterades framgångsrikt",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har inte behörighet att göra denna ändring i bokningen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

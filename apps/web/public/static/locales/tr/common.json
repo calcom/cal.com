@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} yüklü",
   "verify_wallet": "Cüzdanı Doğrula",
   "create_events_on": "Şurada etkinlik oluşturun:",
-  "enterprise_license": "Bu bir kurumsal özelliktir",
+  "enterprise_license": "Bu ticari bir özelliktir",
   "enterprise_license_locally": "Bu özelliği yerel olarak test edebilirsiniz ama üretim ortamında değil.",
-  "enterprise_license_sales": "Kurumsal sürüme yükseltmek için satış ekibimize ulaşın. Lisans anahtarı zaten varsa support@cal.com adresine başvurun.",
+  "enterprise_license_sales": "Ticari lisans satın almak için satış ekibimizle iletişime geçin. Zaten bir lisans anahtarınız varsa, yardım için lütfen support@cal.com adresine başvurun.",
   "missing_license": "Eksik Lisans",
   "next_steps": "Sonraki Adımlar",
   "acquire_commercial_license": "Ticari bir lisans edinin",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Aynı Round-Robin ev sahibi ile yeniden planla",
   "reschedule_with_same_round_robin_host_description": "Yeniden planlanan etkinlikler, başlangıçta planlandığı gibi aynı ev sahibine atanacaktır",
   "disable_input_if_prefilled": "URL tanımlayıcısı önceden doldurulmuşsa girişi devre dışı bırak",
+  "booking_limits": "Rezervasyon Sınırları",
+  "booking_limits_team_description": "Tüm ekip etkinlik türleri için ekip üyeleri için rezervasyon sınırları",
+  "limit_team_booking_frequency_description": "Ekip üyelerinin tüm ekip etkinlik türlerinde (kolektif ve round-robin) kaç kez rezerve edilebileceğini sınırlayın",
+  "booking_limits_updated_successfully": "Rezervasyon sınırları başarıyla güncellendi",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Bu rezervasyonda değişiklik yapma yetkiniz yok",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

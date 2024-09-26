@@ -1027,9 +1027,9 @@
   "installed_other": "已安装 {{count}} 次",
   "verify_wallet": "验证钱包",
   "create_events_on": "活动创建于：",
-  "enterprise_license": "这是企业版功能",
+  "enterprise_license": "这是一个商业功能",
   "enterprise_license_locally": "您可以在本地测试此功能，但不能在生产环境中。",
-  "enterprise_license_sales": "要升级到企业版，请联系我们的销售团队。如果您已经有许可证密钥，请联系 support@cal.com 获取帮助。",
+  "enterprise_license_sales": "如需购买商业许可证，请联系我们的销售团队。如果您已经有许可证密钥，请联系 support@cal.com 获取帮助。",
   "missing_license": "缺少许可证",
   "next_steps": "下一步",
   "acquire_commercial_license": "获取商业许可证",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "与同一轮询主持人重新安排",
   "reschedule_with_same_round_robin_host_description": "重新安排的事件将分配给最初安排的同一主持人",
   "disable_input_if_prefilled": "如果 URL 标识符已预填，则禁用输入",
+  "booking_limits": "预订限制",
+  "booking_limits_team_description": "所有团队活动类型的团队成员预订限制",
+  "limit_team_booking_frequency_description": "限制团队成员在所有团队活动类型（集体和round-robin）中的预订次数",
+  "booking_limits_updated_successfully": "预订限制更新成功",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您无权对此预订进行更改",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "同じRound-Robinホストで再スケジュール",
   "reschedule_with_same_round_robin_host_description": "再スケジュールされたイベントは、最初にスケジュールされたのと同じホストに割り当てられます",
   "disable_input_if_prefilled": "URL識別子が事前入力されている場合は入力を無効にする",
+  "booking_limits": "予約制限",
+  "booking_limits_team_description": "チームメンバーの全てのチームイベントタイプに対する予約制限",
+  "limit_team_booking_frequency_description": "チームメンバーが全てのチームイベントタイプ（集団およびround-robin）で予約される回数を制限",
+  "booking_limits_updated_successfully": "予約制限が正常に更新されました",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "この予約の変更を行う権限がありません",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

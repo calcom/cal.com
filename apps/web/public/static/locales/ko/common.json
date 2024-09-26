@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}}개 설치됨",
   "verify_wallet": "지갑 인증",
   "create_events_on": "이벤트 생성일:",
-  "enterprise_license": "엔터프라이즈 기능입니다",
+  "enterprise_license": "이것은 상업용 기능입니다",
   "enterprise_license_locally": "이 기능은 로컬에서 테스트할 수 있지만 실제 운영 환경에서는 할 수 없습니다.",
-  "enterprise_license_sales": "기업용 버전으로 업그레이드하려면 영업팀에 문의하세요. 라이센스 키가 이미 있는 경우 support@cal.com에 문의하여 도움을 받으세요.",
+  "enterprise_license_sales": "상업용 라이선스를 구매하려면 영업팀에 문의하십시오. 이미 라이선스 키가 있는 경우, 지원이 필요하면 support@cal.com으로 연락해 주십시오.",
   "missing_license": "라이선스 없음",
   "next_steps": "다음 단계",
   "acquire_commercial_license": "상용 라이선스 취득하기",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "동일한 Round-Robin 호스트와 다시 예약",
   "reschedule_with_same_round_robin_host_description": "다시 예약된 이벤트는 처음 예약된 동일한 호스트에게 할당됩니다",
   "disable_input_if_prefilled": "URL 식별자가 미리 채워진 경우 입력 비활성화",
+  "booking_limits": "예약 제한",
+  "booking_limits_team_description": "모든 팀 이벤트 유형에 대한 팀원들의 예약 제한",
+  "limit_team_booking_frequency_description": "모든 팀 이벤트 유형(집단 및 round-robin)에서 팀원들이 예약될 수 있는 횟수를 제한합니다",
+  "booking_limits_updated_successfully": "예약 제한이 성공적으로 업데이트되었습니다",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "이 예약을 변경할 권한이 없습니다",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

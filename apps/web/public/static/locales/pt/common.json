@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} instaladas",
   "verify_wallet": "Verificar carteira",
   "create_events_on": "Criar eventos em:",
-  "enterprise_license": "Esta é uma funcionalidade empresarial",
+  "enterprise_license": "Esta é uma funcionalidade comercial",
   "enterprise_license_locally": "Pode testar esta funcionalidade localmente, mas não em produção.",
-  "enterprise_license_sales": "Para atualizar para a edição enterprise, entre em contacto com a nossa equipa de vendas. Se já tiver uma chave de licença, contacte support@cal.com para obter ajuda.",
+  "enterprise_license_sales": "Para adquirir uma licença comercial, por favor contacte a nossa equipa de vendas. Se já tiver uma chave de licença, por favor contacte support@cal.com para obter ajuda.",
   "missing_license": "Licença em falta",
   "next_steps": "Passos seguintes",
   "acquire_commercial_license": "Adquira uma licença comercial",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Reagendar com o mesmo anfitrião Round-Robin",
   "reschedule_with_same_round_robin_host_description": "Os eventos reagendados serão atribuídos ao mesmo anfitrião inicialmente agendado",
   "disable_input_if_prefilled": "Desativar entrada se o identificador de URL estiver pré-preenchido",
+  "booking_limits": "Limites de Reservas",
+  "booking_limits_team_description": "Limites de reservas para membros da equipa em todos os tipos de eventos da equipa",
+  "limit_team_booking_frequency_description": "Limite quantas vezes os membros podem ser reservados em todos os tipos de eventos da equipa (coletivo e round-robin)",
+  "booking_limits_updated_successfully": "Limites de reservas atualizados com sucesso",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Não tem autorização para fazer esta alteração na reserva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

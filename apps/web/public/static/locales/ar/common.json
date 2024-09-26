@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} مثبت",
   "verify_wallet": "تأكيد المحفظة",
   "create_events_on": "إنشاء أحداث في",
-  "enterprise_license": "هذه هي ميزة للمؤسسات",
+  "enterprise_license": "هذه ميزة تجارية",
   "enterprise_license_locally": "يمكنك تجرِبة هذه المِيزة على جهازك وليس على البيئة الإنتاجية.",
-  "enterprise_license_sales": "للترقية إلى الإصدار المؤسسي، يرجى الاتصال بفريق المبيعات. إذا كان مفتاح الترخيص موجوداً بالفعل، يرجى الاتصال بـ support@cal.com للحصول على المساعدة.",
+  "enterprise_license_sales": "لشراء ترخيص تجاري، يرجى التواصل مع فريق المبيعات لدينا. إذا كان لديك مفتاح ترخيص بالفعل، يرجى الاتصال بـ support@cal.com للحصول على المساعدة.",
   "missing_license": "الترخيص مفقود",
   "next_steps": "الخطوات التالية",
   "acquire_commercial_license": "الحصول على ترخيص تجاري",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "إعادة الجدولة مع نفس مضيف round-robin",
   "reschedule_with_same_round_robin_host_description": "سيتم تعيين الأحداث المعاد جدولتها لنفس المضيف كما تم جدولتها في البداية",
   "disable_input_if_prefilled": "تعطيل الإدخال إذا كان معرف URL مملوء مسبقًا",
+  "booking_limits": "حدود الحجز",
+  "booking_limits_team_description": "حدود الحجز لأعضاء الفريق عبر جميع أنواع فعاليات الفريق",
+  "limit_team_booking_frequency_description": "حدد عدد المرات التي يمكن فيها حجز الأعضاء عبر جميع أنواع فعاليات الفريق (الجماعية وround-robin)",
+  "booking_limits_updated_successfully": "تم تحديث حدود الحجز بنجاح",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "أنت غير مخول لإجراء هذا التغيير على الحجز",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
