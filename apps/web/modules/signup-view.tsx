@@ -372,22 +372,6 @@ export default function Signup({
                   className="flex flex-col gap-4"
                   form={formMethods}
                   handleSubmit={async (values) => {
-                    if (isSamlSignup) {
-                      const username = formMethods.getValues("username");
-                      if (!username) {
-                        showToast("error", t("username_required"));
-                        return;
-                      }
-                      localStorage.setItem("username", username);
-                      const sp = new URLSearchParams();
-                      // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                      sp.set("username", username);
-                      sp.set("email", formMethods.getValues("email"));
-                      router.push(
-                        `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
-                      );
-                      return;
-                    }
                     let updatedValues = values;
                     if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
                       updatedValues = {
@@ -461,7 +445,6 @@ export default function Signup({
                   )}
                   {isSamlSignup ? (
                     <Button
-                      type="submit"
                       color="primary"
                       disabled={
                         !!formMethods.formState.errors.username ||
@@ -471,6 +454,21 @@ export default function Signup({
                         premiumUsername ||
                         isSubmitting
                       }
+                      onClick={() => {
+                        const username = formMethods.getValues("username");
+                        if (!username) {
+                          showToast("error", t("username_required"));
+                          return;
+                        }
+                        localStorage.setItem("username", username);
+                        const sp = new URLSearchParams();
+                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                        sp.set("username", username);
+                        sp.set("email", formMethods.getValues("email"));
+                        router.push(
+                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                        );
+                      }}
                       className={classNames(
                         "my-2 w-full justify-center rounded-md text-center",
                         formMethods.formState.errors.username && formMethods.formState.errors.email
