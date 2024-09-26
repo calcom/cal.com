@@ -1,5 +1,6 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 import { scheduleRouter } from "./schedule/_router";
 import { ZListTeamAvailaiblityScheme } from "./team/listTeamAvailability.schema";
 import { ZUserInputSchema } from "./user.schema";
@@ -7,6 +8,7 @@ import { ZUserInputSchema } from "./user.schema";
 type AvailabilityRouterHandlerCache = {
   list?: typeof import("./list.handler").listHandler;
   user?: typeof import("./user.handler").userHandler;
+  calendarOverlay?: typeof import("./calendarOverlay.handler").calendarOverlayHandler;
   listTeamAvailability?: typeof import("./team/listTeamAvailability.handler").listTeamAvailabilityHandler;
 };
 
@@ -60,6 +62,22 @@ export const availabilityRouter = router({
       input,
     });
   }),
-
   schedule: scheduleRouter,
+  calendarOverlay: authedProcedure.input(ZCalendarOverlayInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
+      UNSTABLE_HANDLER_CACHE.calendarOverlay = await import("./calendarOverlay.handler").then(
+        (mod) => mod.calendarOverlayHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calendarOverlay({
+      ctx,
+      input,
+    });
+  }),
 });

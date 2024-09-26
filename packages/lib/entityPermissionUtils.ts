@@ -1,6 +1,5 @@
-import type { Membership, Team } from "@calcom/prisma/client";
+import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const enum ENTITY_PERMISSION_LEVEL {
   NONE,
@@ -18,10 +17,6 @@ export function canEditEntity(
     permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_WRITE ||
     permissionLevel === ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE
   );
-}
-
-export function isOrganization({ team }: { team: { metadata: Team["metadata"] } }) {
-  return teamMetadataSchema.parse(team.metadata)?.isOrganization;
 }
 
 export function getEntityPermissionLevel(
@@ -69,7 +64,12 @@ async function getMembership(teamId: number | null, userId: number) {
           },
         },
         include: {
-          members: true,
+          members: {
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
         },
       })
     : null;
@@ -86,8 +86,7 @@ export async function canCreateEntity({
   if (targetTeamId) {
     // If it doesn't exist and it is being created for a team. Check if user is the member of the team
     const membership = await getMembership(targetTeamId, userId);
-    const creationAllowed = membership ? withRoleCanCreateEntity(membership.role) : false;
-    return creationAllowed;
+    return membership ? withRoleCanCreateEntity(membership.role) : false;
   }
   return true;
 }

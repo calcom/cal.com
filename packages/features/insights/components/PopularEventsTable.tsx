@@ -14,7 +14,7 @@ export const PopularEventsTable = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.popularEventTypes.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.popularEventTypes.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -32,7 +32,7 @@ export const PopularEventsTable = () => {
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
 

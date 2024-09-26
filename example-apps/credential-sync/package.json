@@ -1,0 +1,31 @@
+{
+  "name": "@calcom/example-app-credential-sync",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "PORT=5100 next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@calcom/atoms": "*",
+    "@prisma/client": "5.4.2",
+    "next": "14.0.4",
+    "prisma": "^5.7.1",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "dotenv": "^16.3.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^4.9.4"
+  }
+}

@@ -8,6 +8,31 @@ interface EventFromToTime {
   language: string;
 }
 
+interface EventFromTime {
+  date: string;
+  timeFormat: TimeFormat;
+  timeZone: string;
+  language: string;
+}
+
+export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: EventFromTime) => {
+  const startDate = new Date(date);
+  const formattedDate = new Intl.DateTimeFormat(language, {
+    timeZone,
+    dateStyle: "full",
+  }).format(startDate);
+
+  const formattedTime = new Intl.DateTimeFormat(language, {
+    timeZone,
+    timeStyle: "short",
+    hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
+  })
+    .format(startDate)
+    .toLowerCase();
+
+  return { date: formattedDate, time: formattedTime };
+};
+
 export const formatEventFromToTime = ({
   date,
   duration,
@@ -43,6 +68,15 @@ export const FromToTime = (props: EventFromToTime) => {
       {formatted.date}
       <br />
       {formatted.time}
+    </>
+  );
+};
+
+export const FromTime = (props: EventFromTime) => {
+  const formatted = formatEventFromTime(props);
+  return (
+    <>
+      {formatted.date}, {formatted.time}
     </>
   );
 };

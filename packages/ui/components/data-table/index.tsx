@@ -1,9 +1,12 @@
+"use client";
+
 import type {
   ColumnDef,
   ColumnFiltersState,
   Row,
   SortingState,
   VisibilityState,
+  Table as TableType,
 } from "@tanstack/react-table";
 import {
   flexRender,
@@ -30,14 +33,18 @@ export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  onSearch?: (value: string) => void;
   filterableItems?: FilterableItems;
   selectionOptions?: ActionItem<TData>[];
+  renderAboveSelection?: (table: TableType<TData>) => React.ReactNode;
   tableCTA?: React.ReactNode;
-  isLoading?: boolean;
+  isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
+  variant?: "default" | "compact";
+  "data-testid"?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -48,11 +55,15 @@ export function DataTable<TData, TValue>({
   searchKey,
   selectionOptions,
   tableContainerRef,
-  isLoading,
+  isPending,
   tableOverlay,
+  variant,
+  renderAboveSelection,
   /** This should only really be used if you dont have actions in a row. */
+  onSearch,
   onRowMouseclick,
   onScroll,
+  ...rest
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -100,10 +111,11 @@ export function DataTable<TData, TValue>({
         table={table}
         filterableItems={filterableItems}
         searchKey={searchKey}
+        onSearch={onSearch}
         tableCTA={tableCTA}
       />
-      <div className="border-subtle border" ref={tableContainerRef} onScroll={onScroll}>
-        <Table>
+      <div ref={tableContainerRef} onScroll={onScroll} data-testid={rest["data-testid"] ?? "data-table"}>
+        <Table data-testid="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -125,19 +137,21 @@ export function DataTable<TData, TValue>({
                 <td style={{ height: `${paddingTop}px` }} />
               </tr>
             )}
-            {virtualRows && !isLoading ? (
+            {virtualRows && !isPending ? (
               virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<TData>;
-
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                    className={classNames(onRowMouseclick && "hover:cursor-pointer")}>
+                    className={classNames(
+                      onRowMouseclick && "hover:cursor-pointer",
+                      variant === "compact" && "!border-0"
+                    )}>
                     {row.getVisibleCells().map((cell) => {
                       return (
-                        <TableCell key={cell.id}>
+                        <TableCell key={cell.id} className={classNames(variant === "compact" && "p-1.5")}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       );
@@ -162,7 +176,11 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       {/* <DataTablePagination table={table} /> */}
-      <DataTableSelectionBar table={table} actions={selectionOptions} />
+      <DataTableSelectionBar
+        table={table}
+        actions={selectionOptions}
+        renderAboveSelection={renderAboveSelection}
+      />
     </div>
   );
 }

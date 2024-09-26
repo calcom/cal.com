@@ -1,18 +1,23 @@
-import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
+
+import type { TTeamsAndUserProfilesQueryInputSchema } from "./teamsAndUserProfilesQuery.schema";
 
 type TeamsAndUserProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
+  input: TTeamsAndUserProfilesQueryInputSchema;
 };
 
-export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOptions) => {
+export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProfileOptions) => {
   const { prisma } = ctx;
 
   const user = await prisma.user.findUnique({
@@ -20,10 +25,10 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       id: ctx.user.id,
     },
     select: {
+      avatarUrl: true,
       id: true,
       username: true,
       name: true,
-      avatar: true,
       teams: {
         where: {
           accepted: true,
@@ -33,9 +38,12 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           team: {
             select: {
               id: true,
+              isOrganization: true,
+              logoUrl: true,
               name: true,
               slug: true,
               metadata: true,
+              parentId: true,
               members: {
                 select: {
                   userId: true,
@@ -45,30 +53,49 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           },
         },
       },
-      organizationId: true,
     },
   });
   if (!user) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
-  const bookerUrl = await getBookerUrl(user);
 
-  const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
-  const nonOrgTeams = user.teams.filter((membership) => !isOrganization({ team: membership.team }));
+  let teamsData;
+
+  if (input?.includeOrg) {
+    teamsData = user.teams.map((membership) => ({
+      ...membership,
+      team: {
+        ...membership.team,
+        metadata: teamMetadataSchema.parse(membership.team.metadata),
+      },
+    }));
+  } else {
+    teamsData = user.teams
+      .filter((membership) => !membership.team.isOrganization)
+      .map((membership) => ({
+        ...membership,
+        team: {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        },
+      }));
+  }
 
   return [
     {
       teamId: null,
       name: user.name,
       slug: user.username,
-      image,
+      image: getUserAvatarUrl({
+        avatarUrl: user.avatarUrl,
+      }),
       readOnly: false,
     },
-    ...nonOrgTeams.map((membership) => ({
+    ...teamsData.map((membership) => ({
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? `team/${membership.team.slug}` : null,
-      image: `${bookerUrl}${membership.team.slug ? "/team" : ""}/${membership.team.slug}/avatar.png`,
+      image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
       role: membership.role,
       readOnly: !withRoleCanCreateEntity(membership.role),
     })),

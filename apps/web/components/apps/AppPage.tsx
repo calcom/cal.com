@@ -1,17 +1,21 @@
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
+import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
-import { Badge, Button, showToast, SkeletonButton, SkeletonText } from "@calcom/ui";
-import { BookOpen, Check, ExternalLink, File, Flag, Mail, Shield } from "@calcom/ui/components/icon";
+import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 
@@ -42,6 +46,7 @@ export type AppPageProps = {
   disableInstall?: boolean;
   dependencies?: string[];
   concurrentMeetings: AppType["concurrentMeetings"];
+  paid?: AppType["paid"];
 };
 
 export const AppPage = ({
@@ -67,19 +72,59 @@ export const AppPage = ({
   isTemplate,
   dependencies,
   concurrentMeetings,
+  paid,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
+  const router = useRouter();
+  const searchParams = useCompatSearchParams();
+
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
+      setIsLoading(false);
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      setIsLoading(false);
     },
   });
+
+  /**
+   * @todo Refactor to eliminate the isLoading state by using mutation.isPending directly.
+   * Currently, the isLoading state is used to manage the loading indicator due to the delay in loading the next page,
+   * which is caused by heavy queries in getServersideProps. This causes the loader to turn off before the page changes.
+   */
+  const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
+
+  const handleAppInstall = () => {
+    setIsLoading(true);
+    if (isConferencing(categories)) {
+      mutation.mutate({
+        type,
+        variant,
+        slug,
+        returnTo:
+          WEBAPP_URL +
+          getAppOnboardingUrl({
+            slug,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+          }),
+      });
+    } else if (
+      !doesAppSupportTeamInstall({
+        appCategories: categories,
+        concurrentMeetings: concurrentMeetings,
+        isPaid: !!paid,
+      })
+    ) {
+      mutation.mutate({ type });
+    } else {
+      router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+    }
+  };
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -90,17 +135,19 @@ export const AppPage = ({
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
   const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
 
-  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
-    { appType: type },
-    {
-      onSettled(data) {
-        const credentialsCount = data?.credentials.length || 0;
-        setShowDisconnectIntegration(
-          data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
-        );
-        setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
-      },
-    }
+  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery({ appType: type });
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      const data = appDbQuery.data;
+
+      const credentialsCount = data?.credentials.length || 0;
+      setShowDisconnectIntegration(
+        data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
+      );
+      setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
+    },
+    [appDbQuery.data]
   );
 
   const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
@@ -115,6 +162,11 @@ export const AppPage = ({
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
+  useEffect(() => {
+    if (searchParams?.get("defaultInstall") === "true") {
+      mutation.mutate({ type, variant, slug, defaultInstall: true });
+    }
+  }, []);
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
@@ -125,7 +177,7 @@ export const AppPage = ({
               typeof descriptionItem === "object" ? (
                 <div
                   key={`iframe-${index}`}
-                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
+                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center overflow-hidden rounded-md last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
@@ -163,6 +215,19 @@ export const AppPage = ({
                 className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
                 {categories[0]}
               </Link>{" "}
+              {paid && (
+                <>
+                  <Badge className="mr-1">
+                    {Intl.NumberFormat(i18n.language, {
+                      style: "currency",
+                      currency: "USD",
+                      useGrouping: false,
+                      maximumFractionDigits: 0,
+                    }).format(paid.priceInUsd)}
+                    /{t("month")}
+                  </Badge>
+                </>
+              )}
               •{" "}
               <a target="_blank" rel="noreferrer" href={website}>
                 {t("published_by", { author })}
@@ -175,11 +240,11 @@ export const AppPage = ({
             )}
           </header>
         </div>
-        {!appDbQuery.isLoading ? (
+        {!appDbQuery.isPending ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
-              <Button StartIcon={Check} color="secondary" disabled>
+              <Button StartIcon="check" color="secondary" disabled>
                 {existingCredentials.length > 0
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}
@@ -194,21 +259,12 @@ export const AppPage = ({
                       props = {
                         ...props,
                         onClick: () => {
-                          mutation.mutate({ type, variant, slug });
+                          handleAppInstall();
                         },
-                        loading: mutation.isLoading,
+                        loading: isLoading,
                       };
                     }
-                    return (
-                      <InstallAppButtonChild
-                        appCategories={categories}
-                        userAdminTeams={appDbQuery.data?.userAdminTeams}
-                        addAppMutationInput={{ type, variant, slug }}
-                        multiInstall
-                        concurrentMeetings={concurrentMeetings}
-                        {...props}
-                      />
-                    );
+                    return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
                   }}
                 />
               )}
@@ -232,20 +288,13 @@ export const AppPage = ({
                   props = {
                     ...props,
                     onClick: () => {
-                      mutation.mutate({ type, variant, slug });
+                      handleAppInstall();
                     },
-                    loading: mutation.isLoading,
+                    loading: isLoading,
                   };
                 }
                 return (
-                  <InstallAppButtonChild
-                    appCategories={categories}
-                    userAdminTeams={appDbQuery.data?.userAdminTeams}
-                    addAppMutationInput={{ type, variant, slug }}
-                    credentials={appDbQuery.data?.credentials}
-                    concurrentMeetings={concurrentMeetings}
-                    {...props}
-                  />
+                  <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />
                 );
               }}
             />
@@ -255,7 +304,7 @@ export const AppPage = ({
         )}
 
         {dependencies &&
-          (!dependencyData.isLoading ? (
+          (!dependencyData.isPending ? (
             <div className="mt-6">
               <AppDependencyComponent appName={name} dependencyData={dependencyData.data} />
             </div>
@@ -263,7 +312,7 @@ export const AppPage = ({
             <SkeletonButton className="mt-6 h-20 grow" />
           ))}
 
-        {price !== 0 && (
+        {price !== 0 && !paid && (
           <span className="block text-right">
             {feeType === "usage-based" ? `${commission}% + ${priceInDollar}/booking` : priceInDollar}
             {feeType === "monthly" && `/${t("month")}`}
@@ -273,23 +322,27 @@ export const AppPage = ({
         <div className="prose-sm prose prose-a:text-default prose-headings:text-emphasis prose-code:text-default prose-strong:text-default text-default mt-8">
           {body}
         </div>
-        <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
-        <span className="text-default">
-          {teamsPlanRequired ? (
-            t("teams_plan_required")
-          ) : price === 0 ? (
-            t("free_to_use_apps")
-          ) : (
-            <>
-              {Intl.NumberFormat(i18n.language, {
-                style: "currency",
-                currency: "USD",
-                useGrouping: false,
-              }).format(price)}
-              {feeType === "monthly" && `/${t("month")}`}
-            </>
-          )}
-        </span>
+        {!paid && (
+          <>
+            <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
+            <span className="text-default">
+              {teamsPlanRequired ? (
+                t("teams_plan_required")
+              ) : price === 0 ? (
+                t("free_to_use_apps")
+              ) : (
+                <>
+                  {Intl.NumberFormat(i18n.language, {
+                    style: "currency",
+                    currency: "USD",
+                    useGrouping: false,
+                  }).format(price)}
+                  {feeType === "monthly" && `/${t("month")}`}
+                </>
+              )}
+            </span>
+          </>
+        )}
 
         <h4 className="text-emphasis mb-2 mt-8 font-semibold ">{t("contact")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">
@@ -300,7 +353,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis text-sm font-normal no-underline hover:underline"
                 href={docs}>
-                <BookOpen className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
+                <Icon name="book-open" className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
                 {t("documentation")}
               </a>
             </li>
@@ -312,7 +365,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={website}>
-                <ExternalLink className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="external-link" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -324,7 +377,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={`mailto:${email}`}>
-                <Mail className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="mail" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}
               </a>
@@ -337,7 +390,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={tos}>
-                <File className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="file" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -349,7 +402,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={privacy}>
-                <Shield className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="shield" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>
             </li>
@@ -360,7 +413,7 @@ export const AppPage = ({
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
-          <Flag className="inline h-3 w-3" /> {t("report_app")}
+          <Icon name="flag" className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
     </div>

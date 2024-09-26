@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
@@ -26,7 +28,7 @@ export default function AdminLayout({
   const isAppsPage = pathname?.startsWith("/settings/admin/apps");
   return (
     <SettingsLayout {...rest}>
-      <div className="divide-subtle mx-auto flex max-w-4xl flex-row divide-y">
+      <div className="divide-subtle bg-default mx-auto flex max-w-4xl flex-row divide-y">
         <div className={isAppsPage ? "min-w-0" : "flex flex-1 [&>*]:flex-1"}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>

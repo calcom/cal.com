@@ -1,11 +1,13 @@
-import type { GlobalCal } from "./src/embed";
+import type { GlobalCal, EmbedEvent } from "./src/embed";
 
 const Cal = window.Cal as GlobalCal;
-const callback = function (e) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const callback = function (e: any) {
   const detail = e.detail;
   console.log("Event: ", e.type, detail);
 };
 
+const origin = `${new URL(document.URL).protocol}localhost:3000`;
 document.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
   if ("href" in target && typeof target.href === "string") {
@@ -24,6 +26,10 @@ document.addEventListener("click", (e) => {
 const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
 const colorScheme = searchParams.get("color-scheme");
+const prerender = searchParams.get("prerender");
+
+// @ts-expect-error We haven't defined ENABLE_FUTURE_ROUTES as it is a playground specific variable.
+window.ENABLE_FUTURE_ROUTES = searchParams.get("future-routes") === "true";
 
 if (colorScheme) {
   document.documentElement.style.colorScheme = colorScheme;
@@ -42,7 +48,7 @@ const calLink = searchParams.get("cal-link");
 if (only === "all" || only === "ns:default") {
   Cal("init", {
     debug: true,
-    calOrigin: "http://localhost:3000",
+    calOrigin: origin,
   });
 
   Cal("inline", {
@@ -57,6 +63,7 @@ if (only === "all" || only === "ns:default") {
       notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
       theme: "dark",
+      "flag.coep": "true",
     },
   });
   Cal("on", {
@@ -68,7 +75,7 @@ if (only === "all" || only === "ns:second") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "second", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
 
   Cal.ns.second(
@@ -83,6 +90,7 @@ if (only === "all" || only === "ns:second") {
           id: "cal-booking-place-second-iframe",
         },
         theme: "auto",
+        "flag.coep": "true",
       },
     }
   );
@@ -95,7 +103,7 @@ if (only === "all" || only === "ns:third") {
   // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "third", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
 
   Cal.ns.third(
@@ -110,6 +118,7 @@ if (only === "all" || only === "ns:third") {
           iframeAttrs: {
             id: "cal-booking-place-third-iframe",
           },
+          "flag.coep": "true",
         },
       },
     ],
@@ -146,7 +155,7 @@ if (only === "all" || only === "ns:third") {
 if (only === "all" || only === "ns:fourth") {
   Cal("init", "fourth", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
   Cal.ns.fourth(
     [
@@ -160,6 +169,7 @@ if (only === "all" || only === "ns:fourth") {
           iframeAttrs: {
             id: "cal-booking-place-fourth-iframe",
           },
+          "flag.coep": "true",
         },
       },
     ],
@@ -187,10 +197,32 @@ if (only === "all" || only === "ns:fourth") {
     callback,
   });
 }
+
+if (only === "all" || only === "ns:corpTest") {
+  Cal("init", "corpTest", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+  Cal.ns.corpTest([
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-corpTest .place",
+      calLink: "pro",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-corpTest-iframe",
+        },
+        "flag.coep": "false",
+      },
+    },
+  ]);
+}
 if (only === "all" || only === "ns:fifth") {
   Cal("init", "fifth", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
   Cal.ns.fifth([
     "inline",
@@ -203,6 +235,7 @@ if (only === "all" || only === "ns:fifth") {
         iframeAttrs: {
           id: "cal-booking-place-fifth-iframe",
         },
+        "flag.coep": "true",
       },
     },
   ]);
@@ -211,20 +244,32 @@ if (only === "all" || only === "ns:fifth") {
     callback,
   });
 }
+
 if (only === "all" || only === "prerender-test") {
-  Cal("init", "prerendertestLightTheme", {
+  Cal("init", "e2ePrerenderLightTheme", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
-  Cal.ns.prerendertestLightTheme("preload", {
-    calLink: "free",
+  Cal.ns.e2ePrerenderLightTheme("prerender", {
+    calLink: "free/30min?flag.coep=true",
+    type: "modal",
+  });
+}
+
+if (only === "all" || only === "preload-test") {
+  Cal("init", "preloadTest", {
+    debug: true,
+    origin: origin,
+  });
+  Cal.ns.preloadTest("preload", {
+    calLink: "free/30min",
   });
 }
 
 if (only === "all" || only === "inline-routing-form") {
   Cal("init", "inline-routing-form", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
   Cal.ns["inline-routing-form"]([
     "inline",
@@ -237,6 +282,7 @@ if (only === "all" || only === "inline-routing-form") {
         iframeAttrs: {
           id: "cal-booking-place-inline-routing-form-iframe",
         },
+        "flag.coep": "true",
       },
     },
   ]);
@@ -246,7 +292,7 @@ if (only === "all" || only === "hideEventTypeDetails") {
   const identifier = "hideEventTypeDetails";
   Cal("init", identifier, {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
 
   Cal.ns.hideEventTypeDetails(
@@ -261,6 +307,7 @@ if (only === "all" || only === "hideEventTypeDetails") {
           iframeAttrs: {
             id: `cal-booking-place-${identifier}-iframe`,
           },
+          "flag.coep": "true",
         },
       },
     ],
@@ -276,7 +323,7 @@ if (only === "all" || only === "hideEventTypeDetails") {
 if (only === "conflicting-theme") {
   Cal("init", "conflictingTheme", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
 
   Cal.ns.conflictingTheme("inline", {
@@ -297,12 +344,17 @@ if (only === "conflicting-theme") {
 
 Cal("init", "popupDarkTheme", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
+});
+
+Cal("init", "e2ePopupLightTheme", {
+  debug: true,
+  origin: origin,
 });
 
 Cal("init", "popupHideEventTypeDetails", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal.ns.popupHideEventTypeDetails("ui", {
@@ -311,61 +363,82 @@ Cal.ns.popupHideEventTypeDetails("ui", {
 
 Cal("init", "popupReschedule", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal("init", "popupAutoTheme", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal("init", "popupTeamLinkLightTheme", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal("init", "popupTeamLinkDarkTheme", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal("init", "popupTeamLinkDarkTheme", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal("init", "popupTeamLinksList", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal("init", "popupPaidEvent", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
+});
+
+Cal("init", "childElementTarget", {
+  debug: true,
+  origin: origin,
 });
 
 Cal("init", "floatingButton", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 Cal("init", "routingFormAuto", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
+});
+
+Cal.ns.routingFormAuto("on", {
+  action: "routed",
+  callback: (e) => {
+    const detail = e.detail;
+    console.log("`routed` event data:", detail.data);
+    alert(`Routing Done - Check console for 'routed' event data`);
+  },
 });
 
 Cal("init", "routingFormDark", {
   debug: true,
-  origin: "http://localhost:3000",
+  origin: origin,
 });
 
 if (only === "all" || only == "ns:floatingButton") {
+  if (prerender == "true") {
+    Cal.ns.floatingButton("prerender", {
+      calLink: calLink || "pro",
+      type: "floatingButton",
+    });
+  }
   Cal.ns.floatingButton("floatingButton", {
     calLink: calLink || "pro",
     config: {
       iframeAttrs: {
         id: "floatingtest",
       },
+      "flag.coep": "true",
       name: "John",
       email: "johndoe@gmail.com",
       notes: "Test Meeting",
@@ -379,7 +452,7 @@ if (only === "all" || only == "ns:monthView") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "monthView", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
 
   Cal.ns.monthView(
@@ -393,21 +466,18 @@ if (only === "all" || only == "ns:monthView") {
         iframeAttrs: {
           id: "cal-booking-place-monthView-iframe",
         },
+        "flag.coep": "true",
         layout: "month_view",
       },
     }
   );
-  Cal.ns.monthView("on", {
-    action: "*",
-    callback,
-  });
 }
 
 if (only === "all" || only == "ns:weekView") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "weekView", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
 
   Cal.ns.weekView(
@@ -421,6 +491,7 @@ if (only === "all" || only == "ns:weekView") {
         iframeAttrs: {
           id: "cal-booking-place-weekView-iframe",
         },
+        "flag.coep": "true",
         layout: "week_view",
       },
     }
@@ -435,7 +506,7 @@ if (only === "all" || only == "ns:columnView") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "columnView", {
     debug: true,
-    origin: "http://localhost:3000",
+    origin: origin,
   });
 
   Cal.ns.columnView(
@@ -449,6 +520,7 @@ if (only === "all" || only == "ns:columnView") {
         iframeAttrs: {
           id: "cal-booking-place-columnView-iframe",
         },
+        "flag.coep": "true",
         layout: "column_view",
       },
     }
@@ -458,3 +530,24 @@ if (only === "all" || only == "ns:columnView") {
     callback,
   });
 }
+
+// Verifies that the type of e.detail.data is valid. type-check will fail if we accidentally break it.
+const bookingSuccessfulV2Callback = (e: EmbedEvent<"bookingSuccessfulV2">) => {
+  const data = e.detail.data;
+  console.log("bookingSuccessfulV2", {
+    endTime: data.endTime,
+    startTime: data.startTime,
+    title: data.title,
+  });
+
+  // Remove the event listener after it is fired once
+  Cal("off", {
+    action: "bookingSuccessfulV2",
+    callback: bookingSuccessfulV2Callback,
+  });
+};
+
+Cal("on", {
+  action: "bookingSuccessfulV2",
+  callback: bookingSuccessfulV2Callback,
+});

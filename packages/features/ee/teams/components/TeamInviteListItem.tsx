@@ -1,5 +1,5 @@
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -7,13 +7,12 @@ import {
   Avatar,
   Button,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
-import { Ban, Check, MoreHorizontal, X } from "@calcom/ui/components/icon";
 
 interface Props {
   team: {
@@ -21,20 +20,21 @@ interface Props {
     name?: string | null;
     slug?: string | null;
     bio?: string | null;
+    logoUrl?: string | null;
     hideBranding?: boolean | undefined;
     role: MembershipRole;
     accepted: boolean;
   };
   key: number;
   onActionSelect: (text: string) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hideDropdown: boolean;
   setHideDropdown: (value: boolean) => void;
 }
 
 export default function TeamInviteListItem(props: Props) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const team = props.team;
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
@@ -65,7 +65,7 @@ export default function TeamInviteListItem(props: Props) {
     <div className="flex">
       <Avatar
         size="mdLg"
-        imageSrc={`${WEBAPP_URL}/team/${team.slug}/avatar.png`}
+        imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
         alt="Team Logo"
         className=""
       />
@@ -95,7 +95,7 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
-                StartIcon={Ban}
+                StartIcon="ban"
               />
               <Button
                 type="button"
@@ -103,22 +103,22 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={acceptInvite}
-                StartIcon={Check}
+                StartIcon="check"
               />
             </div>
             <div className="block sm:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
+                  <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <DropdownItem type="button" StartIcon={Check} onClick={acceptInvite}>
+                    <DropdownItem type="button" StartIcon="check" onClick={acceptInvite}>
                       {t("accept")}
                     </DropdownItem>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <DropdownItem color="destructive" type="button" StartIcon={X} onClick={declineInvite}>
+                    <DropdownItem color="destructive" type="button" StartIcon="x" onClick={declineInvite}>
                       {t("reject")}
                     </DropdownItem>
                   </DropdownMenuItem>

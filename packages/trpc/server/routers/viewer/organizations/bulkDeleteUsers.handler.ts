@@ -1,4 +1,6 @@
+import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -46,7 +48,6 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       },
     },
     data: {
-      // Remove organization relation
       organizationId: null,
       // Set username to null - to make sure there is no conflicts
       username: null,
@@ -54,10 +55,15 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       completedOnboarding: false,
     },
   });
+
+  const removeProfiles = ProfileRepository.deleteMany({
+    userIds: input.userIds,
+  });
+
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
-  await prisma.$transaction([deleteMany, removeOrgrelation]);
-
+  await prisma.$transaction([removeProfiles, deleteMany, removeOrgrelation]);
+  await updateQuantitySubscriptionFromStripe(currentUser.organizationId);
   return {
     success: true,
     usersDeleted: input.userIds.length,

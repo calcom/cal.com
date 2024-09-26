@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Tooltip, showToast } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
+import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
 
 import type { getServerSideProps } from "./_getServerSideProps";
 
@@ -17,7 +17,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
 
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: MAKE });
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
@@ -59,7 +59,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
     setNewApiKeys({ ...newApiKeys, [teamId || ""]: apiKey });
   }
 
-  if (integrations.isLoading) {
+  if (integrations.isPending) {
     return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
   }
 
@@ -134,14 +134,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
           </div>
         </div>
       ) : (
-        <div className="ml-5 mt-5">
-          <div>{t("install_make_app")}</div>
-          <div className="mt-3">
-            <Link href="/apps/make" passHref={true} legacyBehavior>
-              <Button>{t("go_to_app_store")}</Button>
-            </Link>
-          </div>
-        </div>
+        <AppNotInstalledMessage appName="make" />
       )}
       <Toaster position="bottom-right" />
     </div>
@@ -164,7 +157,7 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
             }}
             type="button"
             className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-            <Clipboard className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            <Icon name="clipboard" className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
             {t("copy")}
           </Button>
         </Tooltip>

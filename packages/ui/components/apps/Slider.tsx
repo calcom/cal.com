@@ -1,3 +1,5 @@
+"use client";
+
 import type { Options } from "@glidejs/glide";
 import Glide from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
@@ -7,13 +9,13 @@ import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { ArrowLeft, ArrowRight } from "../icon";
+import { Icon } from "../..";
 import { SkeletonText } from "../skeleton";
 
 const SliderButton: FC<ComponentProps<"button">> = (props) => {
   const { children, ...rest } = props;
   return (
-    <button className="hover:bg-subtle text-default rounded p-2.5" {...rest}>
+    <button className="hover:bg-subtle text-default rounded p-2.5 transition" {...rest}>
       {children}
     </button>
   );
@@ -63,10 +65,10 @@ export const Slider = <T extends string | unknown>({
           )}
           <div className="glide__arrows ml-auto flex items-center gap-x-1" data-glide-el="controls">
             <SliderButton data-glide-dir="<">
-              <ArrowLeft className="h-5 w-5" />
+              <Icon name="arrow-left" className="h-5 w-5" />
             </SliderButton>
             <SliderButton data-glide-dir=">">
-              <ArrowRight className="h-5 w-5" />
+              <Icon name="arrow-right" className="h-5 w-5" />
             </SliderButton>
           </div>
         </div>

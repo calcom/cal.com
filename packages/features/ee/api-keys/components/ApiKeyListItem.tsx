@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
-import { MoreHorizontal, Edit2, Trash } from "@calcom/ui/components/icon";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
@@ -27,7 +26,7 @@ const ApiKeyListItem = ({
   onEditClick: () => void;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const isExpired = apiKey?.expiresAt ? apiKey.expiresAt < new Date() : null;
   const neverExpires = apiKey?.expiresAt === null;
@@ -69,12 +68,12 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
+            <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem type="button" onClick={onEditClick} StartIcon={Edit2}>
+              <DropdownItem type="button" onClick={onEditClick} StartIcon="pencil">
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
@@ -82,13 +81,13 @@ const ApiKeyListItem = ({
               <DropdownItem
                 type="button"
                 color="destructive"
-                disabled={deleteApiKey.isLoading}
+                disabled={deleteApiKey.isPending}
                 onClick={() =>
                   deleteApiKey.mutate({
                     id: apiKey.id,
                   })
                 }
-                StartIcon={Trash}>
+                StartIcon="trash">
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

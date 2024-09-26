@@ -10,12 +10,15 @@ const config = {
       "da",
       "de",
       "en",
-      // "es-419", // Disabled until Crowdin reaches at least 80% completion
+      "es-419",
       "es",
+      "et",
       "fr",
       "he",
+      "hu",
       "it",
       "ja",
+      "km",
       "ko",
       "nl",
       "no",
@@ -32,6 +35,10 @@ const config = {
       "zh-CN",
       "zh-TW",
     ],
+  },
+  fallbackLng: {
+    default: ["en"],
+    zh: ["zh-CN"],
   },
   reloadOnPrerender: process.env.NODE_ENV !== "production",
 };

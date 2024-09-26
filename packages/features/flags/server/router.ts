@@ -1,7 +1,7 @@
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
-import { getFeatureFlagMap } from "./utils";
+import { map } from "./procedures/map";
 
 export const featureFlagRouter = router({
   list: publicProcedure.query(async ({ ctx }) => {
@@ -11,8 +11,5 @@ export const featureFlagRouter = router({
       cacheStrategy: { swr: 300, ttl: 300 },
     });
   }),
-  map: publicProcedure.query(async ({ ctx }) => {
-    const { prisma } = ctx;
-    return getFeatureFlagMap(prisma);
-  }),
+  map,
 });

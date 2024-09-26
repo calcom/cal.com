@@ -1,28 +1,33 @@
-import { randomBytes } from "crypto";
+import { type TFunction } from "i18next";
 
-import { sendTeamInviteEmail } from "@calcom/emails";
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
+import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { isEmail } from "../util";
+import { TRPCError } from "@trpc/server";
+
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
+import type { TeamWithParent } from "./types";
+import type { Invitation } from "./utils";
 import {
-  checkPermissions,
+  ensureAtleastAdminPermissions,
   getTeamOrThrow,
-  getEmailsToInvite,
-  getUserToInviteOrThrowIfExists,
-  checkInputEmailIsValid,
+  getUniqueInvitationsOrThrowIfEmpty,
   getOrgConnectionInfo,
-  createNewUserConnectToOrgIfExists,
-  throwIfInviteIsToOrgAndUserExists,
-  createProvisionalMembership,
-  getIsOrgVerified,
-  sendVerificationEmail,
-  createAndAutoJoinIfInOrg,
+  getOrgState,
+  findUsersWithInviteStatus,
+  INVITE_STATUS,
+  handleExistingUsersInvites,
+  handleNewUsersInvites,
 } from "./utils";
+
+const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
 
 type InviteMemberOptions = {
   ctx: {
@@ -31,114 +36,248 @@ type InviteMemberOptions = {
   input: TInviteMemberInputSchema;
 };
 
-export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
-  const team = await getTeamOrThrow(input.teamId, input.isOrg);
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
+function getOrgConnectionInfoGroupedByUsernameOrEmail({
+  uniqueInvitations,
+  orgState,
+  team,
+  isOrg,
+}: {
+  uniqueInvitations: { usernameOrEmail: string; role: MembershipRole }[];
+  orgState: ReturnType<typeof getOrgState>;
+  team: Pick<TeamWithParent, "parentId" | "id">;
+  isOrg: boolean;
+}) {
+  return uniqueInvitations.reduce((acc, invitation) => {
+    return {
+      ...acc,
+      [invitation.usernameOrEmail]: getOrgConnectionInfo({
+        orgVerified: orgState.orgVerified,
+        orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
+        email: invitation.usernameOrEmail,
+        team,
+        isOrg: isOrg,
+      }),
+    };
+  }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
+}
 
-  await checkPermissions({
-    userId: ctx.user.id,
-    teamId:
-      ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
-    isOrg: input.isOrg,
+function getInvitationsForNewUsers({
+  existingUsersToBeInvited,
+  uniqueInvitations,
+}: {
+  existingUsersToBeInvited: Awaited<ReturnType<typeof findUsersWithInviteStatus>>;
+  uniqueInvitations: { usernameOrEmail: string; role: MembershipRole }[];
+}) {
+  const existingUsersEmailsAndUsernames = existingUsersToBeInvited.reduce(
+    (acc, user) => ({
+      emails: user.email ? [...acc.emails, user.email] : acc.emails,
+      usernames: user.username ? [...acc.usernames, user.username] : acc.usernames,
+    }),
+    { emails: [], usernames: [] } as { emails: string[]; usernames: string[] }
+  );
+  return uniqueInvitations.filter(
+    (invitation) =>
+      !existingUsersEmailsAndUsernames.emails.includes(invitation.usernameOrEmail) &&
+      !existingUsersEmailsAndUsernames.usernames.includes(invitation.usernameOrEmail)
+  );
+}
+
+function throwIfInvalidInvitationStatus({
+  firstExistingUser,
+  translation,
+}: {
+  firstExistingUser: Awaited<ReturnType<typeof findUsersWithInviteStatus>>[number] | undefined;
+  translation: TFunction;
+}) {
+  if (firstExistingUser && firstExistingUser.canBeInvited !== INVITE_STATUS.CAN_BE_INVITED) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: translation(firstExistingUser.canBeInvited),
+    });
+  }
+}
+
+function shouldBeSilentAboutErrors(invitations: Invitation[]) {
+  const isBulkInvite = invitations.length > 1;
+  return isBulkInvite;
+}
+
+function buildInvitationsFromInput({
+  usernameOrEmail,
+  roleForAllInvitees,
+}: {
+  usernameOrEmail: TInviteMemberInputSchema["usernameOrEmail"];
+  roleForAllInvitees: MembershipRole | undefined;
+}) {
+  const usernameOrEmailList = typeof usernameOrEmail === "string" ? [usernameOrEmail] : usernameOrEmail;
+
+  return usernameOrEmailList.map((usernameOrEmail) => {
+    if (typeof usernameOrEmail === "string")
+      return { usernameOrEmail: usernameOrEmail, role: roleForAllInvitees ?? MembershipRole.MEMBER };
+    return {
+      usernameOrEmail: usernameOrEmail.email,
+      role: usernameOrEmail.role,
+    };
+  });
+}
+
+type TargetTeam =
+  | {
+      teamId: number;
+    }
+  | {
+      team: TeamWithParent;
+    };
+
+export const inviteMembersWithNoInviterPermissionCheck = async (
+  data: {
+    // TODO: Remove `input` and instead pass the required fields directly
+    language: string;
+    inviterName: string | null;
+    orgSlug: string | null;
+    invitations: {
+      usernameOrEmail: string;
+      role: MembershipRole;
+    }[];
+  } & TargetTeam
+) => {
+  const { inviterName, orgSlug, invitations, language } = data;
+  const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
+  const translation = await getTranslation(language ?? "en", "common");
+  const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
+  const isTeamAnOrg = team.isOrganization;
+
+  const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
+  const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations);
+  const existingUsersToBeInvited = await findUsersWithInviteStatus({
+    invitations: uniqueInvitations,
+    team,
   });
 
-  const translation = await getTranslation(input.language ?? "en", "common");
+  if (!beSilentAboutErrors) {
+    // beSilentAboutErrors is false only when there is a single user being invited, so we just check the first user status here
+    throwIfInvalidInvitationStatus({ firstExistingUser: existingUsersToBeInvited[0], translation });
+  }
 
-  const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
+  const orgState = getOrgState(isTeamAnOrg, team);
 
-  for (const usernameOrEmail of emailsToInvite) {
-    const connectionInfo = getOrgConnectionInfo({
-      orgVerified,
-      orgAutoAcceptDomain: autoAcceptEmailDomain,
-      usersEmail: usernameOrEmail,
+  const orgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
+    uniqueInvitations,
+    orgState,
+    team: {
+      parentId: team.parentId,
+      id: team.id,
+    },
+    isOrg: isTeamAnOrg,
+  });
+
+  const invitationsForNewUsers = getInvitationsForNewUsers({
+    existingUsersToBeInvited,
+    uniqueInvitations,
+  });
+
+  const inviter = { name: inviterName };
+
+  if (invitationsForNewUsers.length) {
+    await handleNewUsersInvites({
+      invitationsForNewUsers,
       team,
-      isOrg: input.isOrg,
+      orgConnectInfoByUsernameOrEmail,
+      teamId: team.id,
+      language,
+      isOrg: isTeamAnOrg,
+      inviter,
+      autoAcceptEmailDomain: orgState.autoAcceptEmailDomain,
     });
-    const invitee = await getUserToInviteOrThrowIfExists({
-      usernameOrEmail,
-      teamId: input.teamId,
-      isOrg: input.isOrg,
+  }
+
+  // Existing users have a criteria to be invited
+  const invitableExistingUsers = existingUsersToBeInvited.filter(
+    (invitee) => invitee.canBeInvited === INVITE_STATUS.CAN_BE_INVITED
+  );
+
+  myLog.debug(
+    "Notable variables:",
+    safeStringify({
+      uniqueInvitations,
+      orgConnectInfoByUsernameOrEmail,
+      invitableExistingUsers,
+      existingUsersToBeInvited,
+      invitationsForNewUsers,
+    })
+  );
+
+  if (invitableExistingUsers.length) {
+    await handleExistingUsersInvites({
+      invitableExistingUsers,
+      team,
+      orgConnectInfoByUsernameOrEmail,
+      teamId: team.id,
+      language,
+      isOrg: isTeamAnOrg,
+      inviter,
+      orgSlug,
     });
-
-    if (!invitee) {
-      checkInputEmailIsValid(usernameOrEmail);
-
-      // valid email given, create User and add to team
-      await createNewUserConnectToOrgIfExists({
-        usernameOrEmail,
-        input,
-        connectionInfo,
-        autoAcceptEmailDomain,
-        parentId: team.parentId,
-      });
-
-      await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input, connectionInfo });
-    } else {
-      throwIfInviteIsToOrgAndUserExists(invitee, team, input.isOrg);
-
-      const shouldAutoJoinOrgTeam = await createAndAutoJoinIfInOrg({
-        invitee,
-        role: input.role,
-        team,
-      });
-      if (shouldAutoJoinOrgTeam.autoJoined) {
-        // Continue here because if this is true we dont need to send an email to the user
-        // we also dont need to update stripe as thats handled on an ORG level and not a team level.
-        continue;
-      }
-
-      // create provisional membership
-      await createProvisionalMembership({
-        input,
-        invitee,
-      });
-
-      let sendTo = usernameOrEmail;
-      if (!isEmail(usernameOrEmail)) {
-        sendTo = invitee.email;
-      }
-      // inform user of membership by email
-      if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
-        const inviteTeamOptions = {
-          joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
-          isCalcomMember: true,
-        };
-        /**
-         * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
-         * This only changes if the user is a CAL user and has not completed onboarding and has no password
-         */
-        if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {
-          const token = randomBytes(32).toString("hex");
-          await prisma.verificationToken.create({
-            data: {
-              identifier: usernameOrEmail,
-              token,
-              expires: new Date(new Date().setHours(168)), // +1 week
-            },
-          });
-
-          inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-          inviteTeamOptions.isCalcomMember = false;
-        }
-
-        await sendTeamInviteEmail({
-          language: translation,
-          from: ctx.user.name,
-          to: sendTo,
-          teamName: team.name,
-          ...inviteTeamOptions,
-          isOrg: input.isOrg,
-        });
-      }
-    }
   }
 
   if (IS_TEAM_BILLING_ENABLED) {
-    if (team.parentId) {
-      await updateQuantitySubscriptionFromStripe(team.parentId);
-    } else {
-      await updateQuantitySubscriptionFromStripe(input.teamId);
-    }
+    await updateQuantitySubscriptionFromStripe(team.parentId ?? team.id);
   }
-  return input;
+
+  return {
+    // TODO: Better rename it to invitations only maybe?
+    usernameOrEmail:
+      invitations.length == 1
+        ? invitations[0].usernameOrEmail
+        : invitations.map((invitation) => invitation.usernameOrEmail),
+    numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
+  };
 };
+
+const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
+  const { user: inviter } = ctx;
+
+  const inviterOrg = inviter.organization;
+  const team = await getTeamOrThrow(input.teamId);
+  const isTeamAnOrg = team.isOrganization;
+
+  const invitations = buildInvitationsFromInput({
+    usernameOrEmail: input.usernameOrEmail,
+    roleForAllInvitees: input.role,
+  });
+  const isAddingNewOwner = !!invitations.find((invitation) => invitation.role === MembershipRole.OWNER);
+
+  if (isTeamAnOrg) {
+    await throwIfInviterCantAddOwnerToOrg();
+  }
+
+  await ensureAtleastAdminPermissions({
+    userId: inviter.id,
+    teamId: inviterOrg.id && inviterOrg.isOrgAdmin ? inviterOrg.id : input.teamId,
+    isOrg: isTeamAnOrg,
+  });
+
+  const organization = inviter.profile.organization;
+  const orgSlug = organization ? organization.slug || organization.requestedSlug : null;
+  const result = await inviteMembersWithNoInviterPermissionCheck({
+    inviterName: inviter.name,
+    team,
+    language: input.language,
+    orgSlug,
+    invitations,
+  });
+  return result;
+
+  async function throwIfInviterCantAddOwnerToOrg() {
+    const isInviterOrgOwner = await isOrganisationOwner(inviter.id, input.teamId);
+    if (isAddingNewOwner && !isInviterOrgOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+};
+
+export default async function inviteMemberHandler({ ctx, input }: InviteMemberOptions) {
+  const { user: inviter } = ctx;
+  await checkRateLimitAndThrowError({
+    identifier: `invitedBy:${inviter.id}`,
+  });
+  return await inviteMembers({ ctx, input });
+}

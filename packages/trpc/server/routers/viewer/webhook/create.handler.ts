@@ -1,7 +1,12 @@
+import type { Webhook } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 
+import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TCreateInputSchema } from "./create.schema";
 
@@ -13,20 +18,32 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  if (input.eventTypeId || input.teamId) {
-    return await prisma.webhook.create({
-      data: {
-        id: v4(),
-        ...input,
-      },
-    });
+  const { user } = ctx;
+
+  const webhookData: Prisma.WebhookCreateInput = {
+    id: v4(),
+    ...input,
+  };
+  if (input.platform && user.role !== "ADMIN") {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  return await prisma.webhook.create({
-    data: {
-      id: v4(),
-      userId: ctx.user.id,
-      ...input,
-    },
-  });
+  // Add userId if platform, eventTypeId, and teamId are not provided
+  if (!input.platform && !input.eventTypeId && !input.teamId) {
+    webhookData.user = { connect: { id: user.id } };
+  }
+
+  let newWebhook: Webhook;
+  try {
+    newWebhook = await prisma.webhook.create({
+      data: webhookData,
+    });
+  } catch (error) {
+    // Avoid printing raw prisma error on frontend
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create webhook" });
+  }
+
+  await updateTriggerForExistingBookings(newWebhook, [], newWebhook.eventTriggers);
+
+  return newWebhook;
 };

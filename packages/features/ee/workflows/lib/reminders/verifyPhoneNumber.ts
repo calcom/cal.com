@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
-import * as twilio from "./smsProviders/twilioProvider";
+import * as twilio from "./providers/twilioProvider";
 
 export const sendVerificationCode = async (phoneNumber: string) => {
   return twilio.sendVerificationCode(phoneNumber);

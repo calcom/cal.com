@@ -1,4 +1,3 @@
-import { ExternalLink, MoreHorizontal, Edit2, UserX, Lock, SendIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { classNames } from "@calcom/lib";
@@ -63,7 +62,7 @@ export function TableActions({
             color="secondary"
             className={classNames(!permissionsForUser.canEdit ? "rounded-r-md" : "")}
             variant="icon"
-            StartIcon={ExternalLink}
+            StartIcon="external-link"
           />
         </Tooltip>
         {(permissionsForUser.canEdit || permissionsForUser.canRemove) && (
@@ -73,7 +72,7 @@ export function TableActions({
                 className="radix-state-open:rounded-r-md"
                 color="secondary"
                 variant="icon"
-                StartIcon={MoreHorizontal}
+                StartIcon="ellipsis"
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -90,7 +89,7 @@ export function TableActions({
                         },
                       })
                     }
-                    StartIcon={Edit2}>
+                    StartIcon="pencil">
                     {t("edit")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -109,7 +108,7 @@ export function TableActions({
                           },
                         })
                       }
-                      StartIcon={Lock}>
+                      StartIcon="lock">
                       {t("impersonate")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -130,7 +129,7 @@ export function TableActions({
                       })
                     }
                     color="destructive"
-                    StartIcon={UserX}>
+                    StartIcon="user-x">
                     {t("remove")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -147,7 +146,7 @@ export function TableActions({
                         isOrg: true,
                       });
                     }}
-                    StartIcon={SendIcon}>
+                    StartIcon="send">
                     {t("resend_invitation")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -159,11 +158,11 @@ export function TableActions({
       <div className="flex md:hidden">
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
+            <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem className="outline-none">
-              <DropdownItem type="button" StartIcon={ExternalLink}>
+              <DropdownItem type="button" StartIcon="external-link">
                 {t("view_public_page")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -181,7 +180,7 @@ export function TableActions({
                         },
                       })
                     }
-                    StartIcon={Edit2}>
+                    StartIcon="pencil">
                     {t("edit")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -201,7 +200,7 @@ export function TableActions({
                       },
                     })
                   }
-                  StartIcon={UserX}>
+                  StartIcon="user-x">
                   {t("remove")}
                 </DropdownItem>
               </DropdownMenuItem>

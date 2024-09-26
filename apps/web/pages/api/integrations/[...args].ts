@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
@@ -62,7 +61,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
     if (!handlers) throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
-    let redirectUrl = "/apps/installed";
     if (typeof handler === "undefined")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 
@@ -70,10 +68,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await handler(req, res);
     } else {
       await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
-      redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
+      const redirectUrl = handler.redirect?.url ?? undefined;
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
-    return res.status(200);
+    if (!res.writableEnded) return res.status(200);
+    return res;
   } catch (error) {
     console.error(error);
     if (error instanceof HttpError) {

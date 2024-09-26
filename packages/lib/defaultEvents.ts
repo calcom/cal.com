@@ -49,7 +49,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
-  organizationId: null,
+  travelSchedules: [],
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -72,6 +72,7 @@ const commons = {
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  forwardParamsSuccessRedirect: true,
   teamId: null,
   scheduleId: null,
   availability: [],
@@ -81,11 +82,13 @@ const commons = {
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
+  onlyShowFirstAvailableSlot: false,
   id: 0,
   hideCalendarNotes: false,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,
+  lockTimeZoneToggleOnBookingPage: false,
   requiresConfirmation: false,
   requiresBookerEmailVerification: false,
   bookingLimits: null,
@@ -93,26 +96,34 @@ const commons = {
   hidden: false,
   userId: 0,
   parentId: null,
+  parent: null,
   owner: null,
   workflows: [],
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
+  assignAllTeamMembers: false,
+  isRRWeightsEnabled: false,
+  rescheduleWithSameRoundRobinHost: false,
+  useEventTypeDestinationCalendarEmail: false,
+  secondaryEmailId: null,
+  secondaryEmail: null,
 };
 
-const dynamicEvent = {
+export const dynamicEvent = {
   length: 30,
   slug: "dynamic",
-  title: "Dynamic",
-  eventName: "Dynamic Event",
-  description: "",
+  title: "Group Meeting",
+  eventName: "Group Meeting",
+  description: "Join us for a meeting with multiple people",
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
+  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
 };
 
-const defaultEvents = [dynamicEvent];
+export const defaultEvents = [dynamicEvent];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
@@ -159,3 +170,5 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
 };
 
 export default defaultEvents;
+
+export type AwaitedGetDefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;

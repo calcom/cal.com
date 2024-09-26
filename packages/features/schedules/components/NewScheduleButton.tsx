@@ -15,7 +15,6 @@ import {
   InputField,
   showToast,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 export function NewScheduleButton({
   name = "new-schedule",
@@ -31,7 +30,7 @@ export function NewScheduleButton({
     name: string;
   }>();
   const { register } = form;
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const createMutation = trpc.viewer.availability.schedule.create.useMutation({
     onSuccess: async ({ schedule }) => {
@@ -65,7 +64,7 @@ export function NewScheduleButton({
   return (
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button variant="fab" data-testid={name} StartIcon={Plus}>
+        <Button variant="fab" data-testid={name} StartIcon="plus">
           {t("new")}
         </Button>
       </DialogTrigger>
@@ -85,7 +84,7 @@ export function NewScheduleButton({
           />
           <DialogFooter>
             <DialogClose />
-            <Button type="submit" loading={createMutation.isLoading}>
+            <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}
             </Button>
           </DialogFooter>

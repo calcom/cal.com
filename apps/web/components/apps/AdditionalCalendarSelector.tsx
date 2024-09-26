@@ -2,24 +2,22 @@ import type { FunctionComponent, SVGProps } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Dropdown,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
   DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
-
-import { QueryCell } from "@lib/QueryCell";
 
 interface AdditionalCalendarSelectorProps {
-  isLoading?: boolean;
+  isPending?: boolean;
 }
 
-const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorProps): JSX.Element | null => {
+const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
 
@@ -42,7 +40,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
         return (
           <Dropdown modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button StartIcon={Plus} color="secondary" {...(isLoading && { loading: isLoading })}>
+              <Button StartIcon="plus" color="secondary" {...(isPending && { loading: isPending })}>
                 {t("add")}
               </Button>
             </DropdownMenuTrigger>
@@ -50,7 +48,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
               {options.map((data) => (
                 <DropdownMenuItem key={data.slug} className="focus:outline-none">
                   {data.slug === "add-new" ? (
-                    <DropdownItem StartIcon={Plus} color="minimal" href="/apps/categories/calendar">
+                    <DropdownItem StartIcon="plus" color="minimal" href="/apps/categories/calendar">
                       {t("install_new_calendar_app")}
                     </DropdownItem>
                   ) : (

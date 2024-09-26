@@ -87,7 +87,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!session) return { message: "Team upgraded successfully" };
 
-  const redirectUrl = metadata?.data?.isOrganization
+  const redirectUrl = team?.isOrganization
     ? `${WEBAPP_URL}/settings/organizations/profile?upgraded=true`
     : `${WEBAPP_URL}/settings/teams/${team.id}/profile?upgraded=true`;
 

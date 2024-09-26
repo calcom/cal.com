@@ -1,16 +1,18 @@
-import type { Booking } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getRescheduleLink } from "@calcom/lib/CalEventParser";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { CalendarEventClass } from "./class";
 
+const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "builder"] });
 const translator = short();
 const userSelect = Prisma.validator<Prisma.UserArgs>()({
   select: {
@@ -149,6 +151,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     } catch (error) {
       throw new Error("Error while getting eventType");
     }
+    log.debug("getEventFromEventId.resultEventType", safeStringify(resultEventType));
     return resultEventType;
   }
 
@@ -234,29 +237,16 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     }
   }
 
-  public buildRescheduleLink(booking: Partial<Booking>, eventType?: CalendarEventBuilder["eventType"]) {
+  public buildRescheduleLink({
+    allowRescheduleForCancelledBooking = false,
+  }: {
+    allowRescheduleForCancelledBooking?: boolean;
+  } = {}) {
     try {
-      if (!booking) {
-        throw new Error("Parameter booking is required to build reschedule link");
-      }
-      const isTeam = !!eventType && !!eventType.teamId;
-      const isDynamic = booking?.dynamicEventSlugRef && booking?.dynamicGroupSlugRef;
-
-      let slug = "";
-      if (isTeam && eventType?.team?.slug) {
-        slug = `/team/${eventType.team?.slug}`;
-      } else if (isDynamic) {
-        const dynamicSlug = isDynamic ? `${booking.dynamicGroupSlugRef}/${booking.dynamicEventSlugRef}` : "";
-        slug = dynamicSlug;
-      } else if (eventType?.slug) {
-        slug = `${this.users[0].username}/${eventType.slug}`;
-      }
-
-      const queryParams = new URLSearchParams();
-      queryParams.set("rescheduleUid", `${booking.uid}`);
-      slug = `${slug}`;
-      const rescheduleLink = `${WEBAPP_URL}/${slug}?${queryParams.toString()}`;
-      this.rescheduleLink = rescheduleLink;
+      this.rescheduleLink = getRescheduleLink({
+        calEvent: this.calendarEvent,
+        allowRescheduleForCancelledBooking,
+      });
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`buildRescheduleLink.error: ${error.message}`);

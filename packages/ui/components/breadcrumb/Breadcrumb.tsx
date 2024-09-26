@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Children, Fragment, useEffect, useState } from "react";
@@ -50,7 +52,7 @@ export const BreadcrumbContainer = () => {
   useEffect(() => {
     const rawPath = pathname; // Pathname doesn't include search params anymore
 
-    let pathArray = rawPath.split("/");
+    let pathArray = rawPath?.split("/") ?? [];
     pathArray.shift();
 
     pathArray = pathArray.filter((path) => path !== "");

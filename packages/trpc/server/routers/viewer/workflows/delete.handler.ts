@@ -1,13 +1,10 @@
-import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { prisma } from "@calcom/prisma";
-import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import { isAuthorized, removeSmsReminderFieldForBooking } from "./util";
+import { deleteAllWorkflowReminders, isAuthorized, removeSmsReminderFieldForEventTypes } from "./util";
 
 type DeleteOptions = {
   ctx: {
@@ -25,10 +22,16 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     },
     include: {
       activeOn: true,
+      activeOnTeams: true,
+      team: {
+        select: {
+          isOrganization: true,
+        },
+      },
     },
   });
 
-  const isUserAuthorized = await isAuthorized(workflowToDelete, prisma, ctx.user.id, true);
+  const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.user.id, true);
 
   if (!isUserAuthorized || !workflowToDelete) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -47,18 +50,17 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   });
 
   //cancel workflow reminders of deleted workflow
-  scheduledReminders.forEach((reminder) => {
-    if (reminder.method === WorkflowMethods.EMAIL) {
-      deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
-    } else if (reminder.method === WorkflowMethods.SMS) {
-      deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
-    }
-  });
+  await deleteAllWorkflowReminders(scheduledReminders);
 
-  for (const activeOn of workflowToDelete.activeOn) {
-    await removeSmsReminderFieldForBooking({ workflowId: id, eventTypeId: activeOn.eventTypeId });
-  }
+  const isOrg = workflowToDelete.team?.isOrganization ?? false;
 
+  const activeOnToRemove = isOrg
+    ? workflowToDelete.activeOnTeams.map((activeOn) => activeOn.teamId)
+    : workflowToDelete.activeOn.map((activeOn) => activeOn.eventTypeId);
+
+  await removeSmsReminderFieldForEventTypes({ activeOnToRemove, workflowId: workflowToDelete.id, isOrg });
+
+  // automatically deletes all steps and reminders connected to this workflow
   await prisma.workflow.deleteMany({
     where: {
       id,

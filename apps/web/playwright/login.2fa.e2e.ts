@@ -15,7 +15,7 @@ test.describe.configure({ mode: "parallel" });
 // a test to logout requires both a succesfull login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
 test.describe("2FA Tests", async () => {
-  test.afterAll(async ({ users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
   test("should allow a user to enable 2FA and login using 2FA", async ({ page, users }) => {
@@ -24,7 +24,7 @@ test.describe("2FA Tests", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const userPassword = user.username!;
-      await user.login();
+      await user.apiLogin();
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
@@ -41,6 +41,8 @@ test.describe("2FA Tests", async () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await fillOtp({ page, secret: "123456", noRetry: true });
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
+
+      await removeOtpInput(page);
 
       await fillOtp({
         page,
@@ -81,9 +83,6 @@ test.describe("2FA Tests", async () => {
         page.waitForResponse("**/api/auth/callback/credentials**"),
       ]);
       const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
-
-      // expects the home page for an authorized user
-      await page.goto("/");
       await expect(shellLocator).toBeVisible();
     });
   });
@@ -94,7 +93,7 @@ test.describe("2FA Tests", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const userPassword = user.username!;
-      await user.login();
+      await user.apiLogin();
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
@@ -162,6 +161,14 @@ test.describe("2FA Tests", async () => {
   });
 });
 
+async function removeOtpInput(page: Page) {
+  await page.locator('input[name="2fa6"]').waitFor({ state: "visible", timeout: 30_000 });
+
+  // Remove one OTP input
+  await page.locator('input[name="2fa6"]').focus();
+  await page.keyboard.press("Backspace");
+}
+
 async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; noRetry?: boolean }) {
   let token = authenticator.generate(secret);
   if (!noRetry && !totpAuthenticatorCheck(token, secret)) {
@@ -169,6 +176,7 @@ async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; 
     // Maybe token was just about to expire, try again just once more
     token = authenticator.generate(secret);
   }
+  await page.locator('input[name="2fa1"]').waitFor({ state: "visible", timeout: 60_000 });
   await page.fill('input[name="2fa1"]', token[0]);
   await page.fill('input[name="2fa2"]', token[1]);
   await page.fill('input[name="2fa3"]', token[2]);

@@ -1,0 +1,15 @@
+diff --git a/index.cjs b/index.cjs
+index c83f700ae9998cd87b4c2d66ecbb2ad3d7b4603c..76a2200b57f0b9243e2c61464d578b67746ad5a4 100644
+--- a/index.cjs
++++ b/index.cjs
+@@ -13,8 +13,8 @@ function withMetadataArgument(func, _arguments) {
+ // https://github.com/babel/babel/issues/2212#issuecomment-131827986
+ // An alternative approach:
+ // https://www.npmjs.com/package/babel-plugin-add-module-exports
+-exports = module.exports = min.parsePhoneNumberFromString
+-exports['default'] = min.parsePhoneNumberFromString
++// exports = module.exports = min.parsePhoneNumberFromString
++// exports['default'] = min.parsePhoneNumberFromString
+ 
+ // `parsePhoneNumberFromString()` named export is now considered legacy:
+ // it has been promoted to a default export due to being too verbose.

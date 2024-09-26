@@ -3,9 +3,10 @@ import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
-import { ExternalLink, AlertTriangle } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
@@ -18,12 +19,20 @@ interface HelpMenuItemProps {
 
 export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
-  const { open } = useIntercom();
+  const [showIntercom, setShowIntercom] = useState<boolean>(
+    localStorage.getItem("showIntercom") === "false" ? false : true
+  );
+  const { open, shutdown } = useIntercom();
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [active, setActive] = useState(false);
   const [, loadChat] = useChat();
   const { t } = useLocale();
+
+  const toggleIntercom = (value: boolean) => {
+    setShowIntercom(value);
+    localStorage.setItem("showIntercom", String(value));
+  };
 
   const { setActive: setFreshChat } = useFreshChat();
 
@@ -52,10 +61,11 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           onClick={() => onHelpItemSelect()}
           href="https://cal.com/docs/"
           target="_blank"
-          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
+          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition"
           rel="noreferrer">
           {t("documentation")}
-          <ExternalLink
+          <Icon
+            name="external-link"
             className={classNames(
               "group-hover:text-subtle text-muted",
               "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
@@ -66,7 +76,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           <ContactMenuItem onHelpItemSelect={onHelpItemSelect} />
         </div>
       </div>
-
       <hr className="border-muted" />
       <div className="w-full p-5">
         <p className="text-subtle mb-1">{t("feedback").toUpperCase()}</p>
@@ -162,7 +171,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <div className="my-2 flex justify-end">
           <Button
             disabled={disableSubmit}
-            loading={mutation.isLoading}
+            loading={mutation.isPending}
             onClick={async () => {
               if (rating && comment) {
                 await sendFeedback(rating, comment);
@@ -174,7 +183,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         {mutation.isError && (
           <div className="bg-error mb-4 flex p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
-              <AlertTriangle className="h-5 w-5" />
+              <Icon name="triangle-alert" className="h-5 w-5" />
             </div>
             <div className="ml-3 flex-grow">
               <p className="font-medium">{t("feedback_error")}</p>
@@ -183,7 +192,47 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           </div>
         )}
       </div>
-      <div className="text-subtle bg-muted w-full p-5">
+      {/* visible on desktop */}
+      <div className="text-subtle bg-muted hidden w-full flex-col p-5 md:block">
+        <p className="">{showIntercom ? t("no_support_needed") : t("specific_issue")}</p>
+        <button
+          className="hover:text-emphasis text-defualt font-medium underline"
+          onClick={async () => {
+            setActive(true);
+            if (showIntercom) {
+              if (isFreshChatEnabled) {
+                setFreshChat(false);
+              } else if (isInterComEnabled) {
+                shutdown();
+                toggleIntercom(false);
+              }
+            } else {
+              if (isFreshChatEnabled) {
+                setFreshChat(true);
+              } else if (isInterComEnabled) {
+                await open();
+                toggleIntercom(true);
+              } else {
+                loadChat({ open: true });
+              }
+            }
+            onHelpItemSelect();
+          }}>
+          {showIntercom ? t("hide_support") : t("contact_support")}
+        </button>
+        <span> {t("or").toLowerCase()} </span>
+        <a
+          onClick={() => onHelpItemSelect()}
+          className="hover:text-emphasis text-defualt font-medium underline"
+          href="https://cal.com/docs"
+          target="_blank"
+          rel="noreferrer">
+          {t("browse_our_docs")}
+        </a>
+        .
+      </div>
+      {/* visible on mobile */}
+      <div className="text-subtle bg-muted w-full p-5 md:hidden">
         <p className="">{t("specific_issue")}</p>
         <button
           className="hover:text-emphasis text-defualt font-medium underline"

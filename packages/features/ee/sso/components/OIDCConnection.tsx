@@ -54,7 +54,7 @@ const CreateConnectionDialog = ({
   setOpenModal: (open: boolean) => void;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const form = useForm<FormValues>();
 
   const mutation = trpc.viewer.saml.updateOIDC.useMutation({

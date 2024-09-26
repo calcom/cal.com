@@ -2,7 +2,7 @@ import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class NoShowFeeChargedEmail extends AttendeeScheduledEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     if (!this.calEvent.paymentInfo?.amount) throw new Error("No payment into");
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
@@ -14,7 +14,7 @@ export default class NoShowFeeChargedEmail extends AttendeeScheduledEmail {
         amount: this.calEvent.paymentInfo.amount / 100,
         formatParams: { amount: { currency: this.calEvent.paymentInfo?.currency } },
       })}`,
-      html: renderEmail("NoShowFeeChargedEmail", {
+      html: await renderEmail("NoShowFeeChargedEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
       }),

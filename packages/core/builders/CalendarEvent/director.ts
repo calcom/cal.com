@@ -1,7 +1,11 @@
-import { Booking } from "@prisma/client";
+import type { Booking } from "@prisma/client";
 
-import { CalendarEventBuilder } from "./builder";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
+import type { CalendarEventBuilder } from "./builder";
+
+const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "director"] });
 export class CalendarEventDirector {
   private builder!: CalendarEventBuilder;
   private existingBooking!: Partial<Booking>;
@@ -33,7 +37,14 @@ export class CalendarEventDirector {
     this.cancellationReason = reason;
   }
 
-  public async buildForRescheduleEmail(): Promise<void> {
+  public async buildForRescheduleEmail({
+    allowRescheduleForCancelledBooking = false,
+  }: {
+    /**
+     * By default we don't want to allow reschedule for cancelled bookings.
+     */
+    allowRescheduleForCancelledBooking?: boolean;
+  } = {}): Promise<void> {
     if (this.existingBooking && this.existingBooking.eventTypeId && this.existingBooking.uid) {
       await this.builder.buildEventObjectFromInnerClass(this.existingBooking.eventTypeId);
       await this.builder.buildUsersFromInnerClass();
@@ -43,7 +54,11 @@ export class CalendarEventDirector {
       this.builder.setCancellationReason(this.cancellationReason);
       this.builder.setDescription(this.builder.eventType.description);
       this.builder.setNotes(this.existingBooking.description);
-      this.builder.buildRescheduleLink(this.existingBooking, this.builder.eventType);
+      this.builder.buildRescheduleLink({ allowRescheduleForCancelledBooking });
+      log.debug(
+        "buildForRescheduleEmail",
+        safeStringify({ existingBooking: this.existingBooking, builder: this.builder })
+      );
     } else {
       throw new Error("buildForRescheduleEmail.missing.params.required");
     }
@@ -57,7 +72,7 @@ export class CalendarEventDirector {
       this.builder.setUId(this.existingBooking.uid);
       this.builder.setCancellationReason(this.cancellationReason);
       this.builder.setDescription(this.existingBooking.description);
-      await this.builder.buildRescheduleLink(this.existingBooking);
+      await this.builder.buildRescheduleLink();
     } else {
       throw new Error("buildWithoutEventTypeForRescheduleEmail.missing.params.required");
     }

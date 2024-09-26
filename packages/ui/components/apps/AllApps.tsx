@@ -1,17 +1,20 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { AppCategories } from "@prisma/client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
-import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { classNames } from "@calcom/lib";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
+import { Icon } from "../..";
 import { EmptyScreen } from "../empty-screen";
-import { ChevronLeft, ChevronRight, Search } from "../icon";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
@@ -23,8 +26,13 @@ export function useShouldShowArrows() {
 
   useEffect(() => {
     const appCategoryList = ref.current;
-    if (appCategoryList && appCategoryList.scrollWidth > appCategoryList.clientWidth) {
-      setShowArrowScroll({ left: false, right: true });
+    if (appCategoryList) {
+      const isAtStart = appCategoryList.scrollLeft <= 0;
+      const isAtEnd = appCategoryList.scrollWidth <= appCategoryList.clientWidth + appCategoryList.scrollLeft;
+      setShowArrowScroll({
+        left: !isAtStart,
+        right: !isAtEnd,
+      });
     }
   }, []);
 
@@ -55,7 +63,7 @@ interface CategoryTabProps {
 
 function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
@@ -84,7 +92,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 flex md:-top-1 md:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <ChevronLeft className="text-subtle h-4 w-4" />
+            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
           </div>
           <div className="to-default flex h-12 w-5 bg-gradient-to-l from-transparent" />
         </button>
@@ -95,11 +103,13 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ref={ref}>
         <li
           onClick={() => {
-            router.replace(pathname);
+            if (pathname !== null) {
+              router.replace(pathname);
+            }
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-            "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer"
+            "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
           )}>
           {t("all")}
         </li>
@@ -108,16 +118,18 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             key={pos}
             onClick={() => {
               if (selectedCategory === cat) {
-                router.replace(pathname);
+                if (pathname !== null) {
+                  router.replace(pathname);
+                }
               } else {
-                const _searchParams = new URLSearchParams(searchParams);
+                const _searchParams = new URLSearchParams(searchParams ?? undefined);
                 _searchParams.set("category", cat);
                 router.replace(`${pathname}?${_searchParams.toString()}`);
               }
             }}
             className={classNames(
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-              "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer"
+              "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
             )}>
             {cat[0].toUpperCase() + cat.slice(1)}
           </li>
@@ -127,7 +139,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex md:-top-1">
           <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <ChevronRight className="text-subtle h-4 w-4" />
+            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}
@@ -136,7 +148,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
 }
 
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
@@ -187,7 +199,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         </div>
       ) : (
         <EmptyScreen
-          Icon={Search}
+          Icon="search"
           headline={t("no_results")}
           description={searchText ? searchText?.toString() : ""}
         />

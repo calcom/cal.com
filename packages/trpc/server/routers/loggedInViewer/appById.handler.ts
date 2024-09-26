@@ -16,7 +16,7 @@ type AppByIdOptions = {
 export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
   const { user } = ctx;
   const appId = input.appId;
-  const credentials = await getUsersCredentials(user.id);
+  const credentials = await getUsersCredentials(user);
   const apps = getApps(credentials);
   const appFromDb = apps.find((app) => app.slug === appId);
   if (!appFromDb) {

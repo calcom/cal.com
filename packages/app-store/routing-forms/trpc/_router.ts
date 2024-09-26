@@ -5,7 +5,7 @@ import { router } from "@calcom/trpc/server/trpc";
 import { ZDeleteFormInputSchema } from "./deleteForm.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
-import { ZFormsInputSchema } from "./forms.schema";
+import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
 import { ZResponseInputSchema } from "./response.schema";
 
@@ -50,10 +50,7 @@ const appRoutingForms = router({
       return handler({ ctx, input });
     }),
   }),
-  forms: authedProcedure.input(ZFormsInputSchema).query(async ({ ctx, input }) => {
-    const handler = await getHandler("forms", () => import("./forms.handler"));
-    return handler({ ctx, input });
-  }),
+  forms,
   formQuery: authedProcedure.input(ZFormQueryInputSchema).query(async ({ ctx, input }) => {
     const handler = await getHandler("formQuery", () => import("./formQuery.handler"));
     return handler({ ctx, input });

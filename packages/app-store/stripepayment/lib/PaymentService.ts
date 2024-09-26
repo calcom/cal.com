@@ -3,9 +3,13 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmail } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -13,6 +17,8 @@ import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
 import type { StripePaymentData, StripeSetupIntentData } from "./server";
+
+const log = logger.getSubLogger({ prefix: ["payment-service:stripe"] });
 
 export const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -56,8 +62,9 @@ export class PaymentService implements IAbstractPaymentService {
     userId: Booking["userId"],
     username: string | null,
     bookerName: string,
-    bookerEmail: string,
     paymentOption: PaymentOption,
+    bookerEmail: string,
+    bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string
   ) {
@@ -72,8 +79,9 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
+        this.credentials.stripe_user_id,
         bookerEmail,
-        this.credentials.stripe_user_id
+        bookerPhoneNumber
       );
 
       const params: Stripe.PaymentIntentCreateParams = {
@@ -87,7 +95,8 @@ export class PaymentService implements IAbstractPaymentService {
           calAccountId: userId,
           calUsername: username,
           bookerName,
-          bookerEmail,
+          bookerEmail: bookerEmail,
+          bookerPhoneNumber: bookerPhoneNumber ?? null,
           eventTitle: eventTitle || "",
           bookingTitle: bookingTitle || "",
         },
@@ -128,16 +137,17 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(`Payment could not be created for bookingId ${bookingId}`, error);
-      throw new Error("Payment could not be created");
+      log.error("Stripe: Payment could not be created", bookingId, safeStringify(error));
+      throw new Error("payment_not_created_error");
     }
   }
 
   async collectCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    paymentOption: PaymentOption,
     bookerEmail: string,
-    paymentOption: PaymentOption
+    bookerPhoneNumber?: string | null
   ): Promise<Payment> {
     try {
       if (!this.credentials) {
@@ -150,8 +160,9 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
+        this.credentials.stripe_user_id,
         bookerEmail,
-        this.credentials.stripe_user_id
+        bookerPhoneNumber
       );
 
       const params = {
@@ -159,6 +170,7 @@ export class PaymentService implements IAbstractPaymentService {
         payment_method_types: ["card"],
         metadata: {
           bookingId,
+          bookerPhoneNumber: bookerPhoneNumber ?? null,
         },
       };
 
@@ -199,8 +211,12 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      console.error(`Payment method could not be collected for bookingId ${bookingId}`, error);
-      throw new Error("Payment could not be created");
+      log.error(
+        "Stripe: Payment method could not be collected for bookingId",
+        bookingId,
+        safeStringify(error)
+      );
+      throw new Error("Stripe: Payment method could not be collected");
     }
   }
 
@@ -277,8 +293,8 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      console.error(`Could not charge card for payment ${payment.id}`, error);
-      throw new Error("Payment could not be created");
+      log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
+      throw new Error(ErrorCode.ChargeCardFailure);
     }
   }
 
@@ -327,22 +343,26 @@ export class PaymentService implements IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
-    paymentData: Payment
+    paymentData: Payment,
+    eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    await sendAwaitingPaymentEmail({
-      ...event,
-      paymentInfo: {
-        link: createPaymentLink({
-          paymentUid: paymentData.uid,
-          name: booking.user?.name,
-          email: booking.user?.email,
-          date: booking.startTime.toISOString(),
-        }),
-        paymentOption: paymentData.paymentOption || "ON_BOOKING",
-        amount: paymentData.amount,
-        currency: paymentData.currency,
+    await sendAwaitingPaymentEmailAndSMS(
+      {
+        ...event,
+        paymentInfo: {
+          link: createPaymentLink({
+            paymentUid: paymentData.uid,
+            name: booking.user?.name,
+            email: booking.user?.email,
+            date: booking.startTime.toISOString(),
+          }),
+          paymentOption: paymentData.paymentOption || "ON_BOOKING",
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+        },
       },
-    });
+      eventTypeMetadata
+    );
   }
 
   async deletePayment(paymentId: Payment["id"]): Promise<boolean> {
@@ -369,7 +389,7 @@ export class PaymentService implements IAbstractPaymentService {
       await this.stripe.paymentIntents.cancel(payment.externalId, { stripeAccount });
       return true;
     } catch (e) {
-      console.error(e);
+      log.error("Stripe: Unable to delete Payment in stripe of paymentId", paymentId, safeStringify(e));
       return false;
     }
   }

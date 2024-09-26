@@ -1,3 +1,4 @@
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -14,9 +15,20 @@ type GetOptions = {
 
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId;
+  const searchTerm = input.searchTerm;
 
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
+  }
+
+  if (ctx.user.organization.isPrivate && !ctx.user.organization.isOrgAdmin) {
+    return {
+      canUserGetMembers: false,
+      rows: [],
+      meta: {
+        totalRowCount: 0,
+      },
+    };
   }
 
   const { cursor, limit } = input;
@@ -31,6 +43,22 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const teamMembers = await prisma.membership.findMany({
     where: {
       teamId: organizationId,
+      ...(searchTerm && {
+        user: {
+          OR: [
+            {
+              email: {
+                contains: searchTerm,
+              },
+            },
+            {
+              username: {
+                contains: searchTerm,
+              },
+            },
+          ],
+        },
+      }),
     },
     select: {
       id: true,
@@ -41,6 +69,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           id: true,
           username: true,
           email: true,
+          avatarUrl: true,
           timeZone: true,
           disableImpersonation: true,
           completedOnboarding: true,
@@ -71,28 +100,32 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     nextCursor = nextItem?.id;
   }
 
-  const members = teamMembers?.map((member) => {
-    return {
-      id: member.user.id,
-      username: member.user.username,
-      email: member.user.email,
-      timeZone: member.user.timeZone,
-      role: member.role,
-      accepted: member.accepted,
-      disableImpersonation: member.user.disableImpersonation,
-      completedOnboarding: member.user.completedOnboarding,
-      teams: member.user.teams
-        .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
-        .map((team) => {
-          if (team.team.id === organizationId) return;
-          return {
-            id: team.team.id,
-            name: team.team.name,
-            slug: team.team.slug,
-          };
-        }),
-    };
-  });
+  const members = await Promise.all(
+    teamMembers?.map(async (membership) => {
+      const user = await UserRepository.enrichUserWithItsProfile({ user: membership.user });
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        timeZone: user.timeZone,
+        role: membership.role,
+        accepted: membership.accepted,
+        disableImpersonation: user.disableImpersonation,
+        completedOnboarding: user.completedOnboarding,
+        avatarUrl: user.avatarUrl,
+        teams: user.teams
+          .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
+          .map((team) => {
+            if (team.team.id === organizationId) return;
+            return {
+              id: team.team.id,
+              name: team.team.name,
+              slug: team.team.slug,
+            };
+          }),
+      };
+    }) || []
+  );
 
   return {
     rows: members || [],

@@ -7,95 +7,97 @@
 :root {
   /* background */
 
-  --cal-bg-emphasis: #e5e7eb;
-  --cal-bg: white;
-  --cal-bg-subtle: #f3f4f6;
-  --cal-bg-muted: #f9fafb;
-  --cal-bg-inverted: #111827;
+  --cal-bg-emphasis: hsla(220,13%,91%,1);
+  --cal-bg: hsla(0,0%,100%,1);
+  --cal-bg-subtle: hsla(220, 14%, 96%,1);
+  --cal-bg-muted: hsla(210,20%,98%,1);
+  --cal-bg-inverted: hsla(0,0%,6%,1);
 
   /* background -> components*/
-  --cal-bg-info: #dee9fc;
-  --cal-bg-success: #e2fbe8;
-  --cal-bg-attention: #fceed8;
-  --cal-bg-error: #f9e3e2;
-  --cal-bg-dark-error: #752522;
+  --cal-bg-info: hsla(218,83%,98%,1);
+  --cal-bg-success: hsla(134,76%,94%,1);
+  --cal-bg-attention: hsla(37, 86%, 92%, 1);
+  --cal-bg-error: hsla(3,66%,93%,1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
 
   /* Borders */
-  --cal-border-emphasis: #9ca3af;
-  --cal-border: #d1d5db;
-  --cal-border-subtle: #e5e7eb;
+  --cal-border-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-border: hsla(216, 12%, 84%, 1);
+  --cal-border-subtle: hsla(220, 13%, 91%, 1);
   --cal-border-booker: #e5e7eb;
-  --cal-border-muted: #f3f4f6;
-  --cal-border-error: #aa2e26;
+  --cal-border-muted: hsla(220, 14%, 96%, 1);
+  --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 10%, 1);
 
   /* Content/Text */
-  --cal-text-emphasis: #111827;
-  --cal-text: #374151;
-  --cal-text-subtle: #6b7280;
-  --cal-text-muted: #9ca3af;
-  --cal-text-inverted: white;
+  --cal-text-emphasis: hsla(217, 19%, 27%, 1);
+  --cal-text: hsla(217, 19%, 27%, 1);
+  --cal-text-subtle: hsla(220, 9%, 46%, 1);
+  --cal-text-muted: hsla(218, 11%, 65%, 1);
+  --cal-text-inverted: hsla(0, 0%, 100%, 1);
 
   /* Content/Text -> components */
-  --cal-text-info: #253985;
-  --cal-text-success: #285231;
-  --cal-text-attention: #73321b;
-  --cal-text-error: #752522;
+  --cal-text-info: hsla(228, 56%, 33%, 1);
+  --cal-text-success: hsla(133, 34%, 24%, 1);
+  --cal-text-attention: hsla(16, 62%, 28%, 1);
+  --cal-text-error: hsla(2, 55%, 30%, 1);
 
   /* Brand shinanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: #111827;
-  --cal-brand-emphasis: #101010;
-  --cal-brand-text: white;
+  --cal-brand: hsla(221, 39%, 11%, 1);
+  --cal-brand-emphasis: hsla(0, 0%, 6%, 1);
+  --cal-brand-text: hsla(0, 0%, 100%, 1);
 }
 .dark {
   /* background */
 
-  --cal-bg-emphasis: #2b2b2b;
-  --cal-bg: #101010;
-  --cal-bg-subtle: #2b2b2b;
-  --cal-bg-muted: #1c1c1c;
-  --cal-bg-inverted: #f3f4f6;
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1);
+  --cal-bg: hsla(0, 0%, 10%, 1);
+  --cal-bg-subtle: hsla(0, 0%, 18%, 1);
+  --cal-bg-muted: hsla(0, 0%, 12%, 1);
+  --cal-bg-inverted: hsla(220, 14%, 96%, 1);
 
   /* background -> components*/
-  --cal-bg-info: #263fa9;
-  --cal-bg-success: #306339;
-  --cal-bg-attention: #8e3b1f;
-  --cal-bg-error: #8c2822;
-  --cal-bg-dark-error: #752522;
+  --cal-bg-info: hsla(228, 56%, 33%, 1);
+  --cal-bg-success: hsla(133, 34%, 24%, 1);
+  --cal-bg-attention: hsla(16, 62%, 28%, 1);
+  --cal-bg-error: hsla(2, 55%, 30%, 1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
 
   /* Borders */
-  --cal-border-emphasis: #575757;
-  --cal-border: #444444;
-  --cal-border-subtle: #2b2b2b;
-  --cal-border-booker: #2b2b2b;
-  --cal-border-muted: #1c1c1c;
-  --cal-border-error: #aa2e26;
+  --cal-border-emphasis: hsla(0, 0%, 46%, 1);
+  --cal-border: hsla(0, 0%, 34%, 1);
+  --cal-border-subtle: hsla(0, 0%, 22%, 1);
+  --cal-border-booker: hsla(0, 0%, 22%, 1);
+  --cal-border-muted: hsla(0, 0%, 18%, 1);
+  --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 100%, 1);
 
   /* Content/Text */
-  --cal-text-emphasis: #f3f4f6;
-  --cal-text: #d6d6d6;
-  --cal-text-subtle: #a5a5a5;
-  --cal-text-muted: #575757;
-  --cal-text-inverted: #101010;
+  --cal-text-emphasis: hsla(240, 20%, 99%, 1);
+  --cal-text: hsla(0, 0%, 84%, 1);
+  --cal-text-subtle: hsla(0, 0%, 65%, 1);
+  --cal-text-muted: hsla(0, 0%, 34%, 1);
+  --cal-text-inverted: hsla(0, 0%, 10%, 1);
 
   /* Content/Text -> components */
-  --cal-text-info: #dee9fc;
-  --cal-text-success: #e2fbe8;
-  --cal-text-attention: #fceed8;
-  --cal-text-error: #f9e3e2;
+  --cal-text-info: hsla(218, 83%, 93%, 1);
+  --cal-text-success: hsla(134, 76%, 94%, 1);
+  --cal-text-attention: hsla(37, 86%, 92%, 1);
+  --cal-text-error: hsla(3, 66%, 93%, 1);
 
   /* Brand shenanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: white;
-  --cal-brand-emphasis: #e1e1e1;
-  --cal-brand-text: black;
+  --cal-brand: hsla(0, 0%, 100%, 1);
+  --cal-brand-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-brand-text: hsla(0, 0%, 0%,1);
 }
 
 @layer base {
   * {
-    @apply border-default 
+    @apply border-default
   }
 }
 
@@ -109,10 +111,6 @@
   background: var(--cal-brand);
 }
 
-html {
-  scrollbar-gutter: stable;
-}
-
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -122,6 +120,10 @@ body  {
   Desktop App specific CSS
     https://docs.todesktop.com/
 */
+
+html.todesktop-platform-win32 .todesktop\:\!bg-transparent{
+  background: inherit !important;
+}
 
 /* disable user selection on buttons, links and images on desktop app */
 html.todesktop button,
@@ -146,41 +148,14 @@ html.todesktop div {
 html.todesktop header {
   -webkit-app-region: drag;
 }
-html.todesktop header button {
+
+html.todesktop header button,
+html.todesktop header a {
   -webkit-app-region: no-drag;
 }
 
-html.todesktop .logo {
-  display: none;
-}
-
-.desktop-only {
-  display: none;
-}
-
-html.todesktop .desktop-only {
-  display: block;
-}
-
-html.todesktop .desktop-hidden {
-  display: none;
-}
-
-html.todesktop header {
-  margin-top: -14px;
-}
-
-html.todesktop header nav {
-  margin-top: 8px;
-}
-
-html.todesktop aside {
-  margin: 0px -6px;
-}
-
-html.todesktop-platform-darwin .desktop-transparent {
+html.todesktop-platform-darwin body, html.todesktop-platform-darwin aside {
   background: transparent !important;
-  border: none !important;
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {
@@ -191,25 +166,13 @@ html.todesktop-platform-darwin.light main.bg-default {
   background: rgba(255, 255, 255, 0.8) !important;
 }
 
-/*
-html.todesktop aside a {
-  height: 28px;
-  padding: 0px 8px;
-  font-size: 12px;
-  color: #383438 !important
+html.todesktop.light {
+  --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
 }
 
-html.todesktop nav a:hover{
-  background-color: inherit !important
+html.todesktop.dark {
+  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
 }
-
-html.todesktop nav a[aria-current="page"]{
-  background: rgba(0, 0, 0, 0.1) !important;
-}
-
-html.todesktop nav a svg{
-  color: #0272F7 !important
-} */
 
 /*
   Adds Utility to hide scrollbar to tailwind
@@ -515,4 +478,8 @@ select:focus {
 
 .react-tel-input .flag-dropdown {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
+}
+
+.intercom-lightweight-app  {
+  @apply z-40 !important;
 }

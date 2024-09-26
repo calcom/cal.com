@@ -299,4 +299,95 @@ describe("Tests the slot logic", () => {
     expect(slots).toHaveLength(1);
     expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
   });
+
+  it("tests slots for 5 minute events", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),
+      frequency: 5,
+      minimumBookingNotice: 0,
+      eventLength: 5,
+      organizerTimeZone: "Europe/London",
+      dateRanges: [
+        // fits 1 slot
+        {
+          start: dayjs.tz("2023-07-13T07:00:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T07:05:00.000", "Europe/London"),
+        },
+        // fits 4 slots
+        {
+          start: dayjs.tz("2023-07-13T07:10:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T07:30:00.000", "Europe/London"),
+        },
+      ],
+    });
+
+    expect(slots).toHaveLength(5);
+  });
+
+  it("tests slots for events with an event length that is not divisible by 5", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),
+      frequency: 8,
+      minimumBookingNotice: 0,
+      eventLength: 8,
+      organizerTimeZone: "Europe/London",
+      dateRanges: [
+        {
+          start: dayjs.tz("2023-07-13T07:22:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T08:00:00.000", "Europe/London"),
+        },
+      ],
+    });
+
+    /*
+      2023-07-13T06:22:00.000Z
+      2023-07-13T06:30:00.000Z
+      2023-07-13T06:38:00.000Z
+      2023-07-13T06:46:00.000Z
+   */
+    expect(slots).toHaveLength(4);
+  });
+});
+
+describe("Tests the date-range slot logic with custom env variable", () => {
+  beforeAll(() => {
+    vi.stubEnv("NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL", "10");
+  });
+
+  it("can fit 11 10 minute slots within a 2 hour window using a 10 mintue availabilty option with a starting time of 10 past the hour", async () => {
+    expect(Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL)).toBe(10);
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 10,
+        minimumBookingNotice: 0,
+        workingHours: [
+          {
+            userId: 1,
+            days: Array.from(Array(7).keys()),
+            startTime: 10,
+            endTime: 120,
+          },
+        ],
+        eventLength: 10,
+        offsetStart: 0,
+        organizerTimeZone: "America/Toronto",
+      })
+    ).toHaveLength(11);
+  });
+
+  it("test buildSlotsWithDateRanges using a 10 mintue interval", async () => {
+    expect(Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL)).toBe(10);
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 10,
+        minimumBookingNotice: 0,
+        eventLength: 10,
+        offsetStart: 0,
+        organizerTimeZone: "America/Toronto",
+        dateRanges: [{ start: dayjs("2023-07-13T00:10:00.000Z"), end: dayjs("2023-07-13T02:00:00.000Z") }],
+      })
+    ).toHaveLength(11);
+  });
 });

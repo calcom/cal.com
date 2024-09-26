@@ -1,7 +1,44 @@
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export const validateUsername = async (username: string, email: string, organizationId?: number) => {
+export const getUsernameForOrgMember = async ({
+  email,
+  orgAutoAcceptEmail,
+  isSignup,
+  username,
+}: {
+  username?: string;
+  email: string;
+  orgAutoAcceptEmail?: string;
+  isSignup: boolean;
+}) => {
+  if (isSignup) {
+    // We ensure that the username is always derived from the email during signup.
+    return getOrgUsernameFromEmail(email, orgAutoAcceptEmail || "");
+  }
+  if (!username) {
+    throw new Error("Username is required");
+  }
+  // Right now it's not possible to change username in an org by the user but when that's allowed we would simply accept the provided username
+  return username;
+};
+
+export const validateAndGetCorrectedUsernameAndEmail = async ({
+  username,
+  email,
+  organizationId,
+  orgAutoAcceptEmail,
+  isSignup,
+}: {
+  username: string;
+  email: string;
+  organizationId?: number;
+  orgAutoAcceptEmail?: string;
+  isSignup: boolean;
+}) => {
+  if (username.includes("+")) {
+    return { isValid: false, username: undefined, email };
+  }
   // There is an existingUser if, within an org context or not, the username matches
   // OR if the email matches AND either the email is verified
   // or both username and password are set
@@ -18,9 +55,7 @@ export const validateUsername = async (username: string, email: string, organiza
             {
               OR: [
                 { emailVerified: { not: null } },
-                {
-                  AND: [{ password: { not: null } }, { username: { not: null } }],
-                },
+                { AND: [{ password: { isNot: null } }, { username: { not: null } }] },
               ],
             },
           ],
@@ -31,10 +66,24 @@ export const validateUsername = async (username: string, email: string, organiza
       email: true,
     },
   });
-  return { isValid: !existingUser, email: existingUser?.email };
+  let validatedUsername = username;
+  if (organizationId) {
+    validatedUsername = await getUsernameForOrgMember({
+      email,
+      orgAutoAcceptEmail,
+      isSignup,
+    });
+  }
+
+  return { isValid: !existingUser, username: validatedUsername, email: existingUser?.email };
 };
 
-export const validateUsernameInTeam = async (username: string, email: string, teamId: number) => {
+export const validateAndGetCorrectedUsernameInTeam = async (
+  username: string,
+  email: string,
+  teamId: number,
+  isSignup: boolean
+) => {
   try {
     const team = await prisma.team.findFirst({
       where: {
@@ -42,22 +91,38 @@ export const validateUsernameInTeam = async (username: string, email: string, te
       },
       select: {
         metadata: true,
+        isOrganization: true,
         parentId: true,
+        organizationSettings: true,
+        parent: {
+          select: {
+            organizationSettings: true,
+          },
+        },
       },
     });
 
-    const teamData = { ...team, metadata: teamMetadataSchema.parse(team?.metadata) };
-
-    if (teamData.metadata?.isOrganization || teamData.parentId) {
+    console.log("validateAndGetCorrectedUsernameInTeam", {
+      teamId,
+      team,
+    });
+    const organization = team?.isOrganization ? team : team?.parent;
+    if (organization) {
       // Organization context -> org-context username check
-      const orgId = teamData.parentId || teamId;
-      return validateUsername(username, email, orgId);
+      const orgId = team?.parentId || teamId;
+      return validateAndGetCorrectedUsernameAndEmail({
+        username,
+        email,
+        organizationId: orgId,
+        orgAutoAcceptEmail: organization?.organizationSettings?.orgAutoAcceptEmail || "",
+        isSignup,
+      });
     } else {
       // Regular team context -> regular username check
-      return validateUsername(username, email);
+      return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
     }
   } catch (error) {
     console.error(error);
-    return { isValid: false, email: undefined };
+    return { isValid: false, username: undefined, email: undefined };
   }
 };

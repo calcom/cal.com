@@ -13,7 +13,7 @@ export const ZUpdateProfileInputSchema = z.object({
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),
   bio: z.string().optional(),
-  avatar: z.string().nullable().optional(),
+  avatarUrl: z.string().nullable().optional(),
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
   hideBranding: z.boolean().optional(),
@@ -23,11 +23,31 @@ export const ZUpdateProfileInputSchema = z.object({
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),
+  appTheme: z.string().optional().nullable(),
   completedOnboarding: z.boolean().optional(),
   locale: z.string().optional(),
   timeFormat: z.number().optional(),
   disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
+  travelSchedules: z
+    .array(
+      z.object({
+        id: z.number().optional(),
+        timeZone: z.string(),
+        endDate: z.date().optional(),
+        startDate: z.date(),
+      })
+    )
+    .optional(),
+  secondaryEmails: z
+    .array(
+      z.object({
+        id: z.number(),
+        email: z.string(),
+        isDeleted: z.boolean().default(false),
+      })
+    )
+    .optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

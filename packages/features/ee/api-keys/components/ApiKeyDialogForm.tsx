@@ -6,8 +6,7 @@ import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DialogFooter, Form, showToast, Switch, TextField, Tooltip, SelectField } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
+import { Button, DialogFooter, Form, SelectField, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
 
 export default function ApiKeyDialogForm({
   defaultValues,
@@ -17,7 +16,7 @@ export default function ApiKeyDialogForm({
   handleClose: () => void;
 }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
     onSuccess() {
@@ -96,7 +95,7 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none text-base"
-                  StartIcon={Clipboard}>
+                  StartIcon="clipboard">
                   {t("copy")}
                 </Button>
               </Tooltip>
@@ -202,10 +201,12 @@ export default function ApiKeyDialogForm({
                   );
                 }}
               />
-              <span className="text-subtle mt-2 text-xs">
-                {t("api_key_expires_on")}
-                <span className="font-bold"> {dayjs(expiryDate).format("DD-MM-YYYY")}</span>
-              </span>
+              {!watchNeverExpires && (
+                <span className="text-subtle mt-2 text-xs">
+                  {t("api_key_expires_on")}
+                  <span className="font-bold"> {dayjs(expiryDate).format("DD-MM-YYYY")}</span>
+                </span>
+              )}
             </div>
           )}
 

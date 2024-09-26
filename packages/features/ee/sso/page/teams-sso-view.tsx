@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -17,12 +19,14 @@ const SAMLSSO = () => {
 
   const teamId = Number(params.id);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.getMinimal.useQuery(
     { teamId },
     {
-      onError: () => {
-        router.push("/settings");
-      },
+      enabled: !!teamId,
     }
   );
 
@@ -32,7 +36,15 @@ const SAMLSSO = () => {
     }
   }, []);
 
-  if (isLoading) {
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.replace("/teams");
+      }
+    },
+    [error]
+  );
+  if (isPending) {
     return <SkeletonLoader />;
   }
 

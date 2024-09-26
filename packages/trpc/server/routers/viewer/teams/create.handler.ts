@@ -1,3 +1,8 @@
+import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { uploadLogo } from "@calcom/lib/server/avatar";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -14,13 +19,41 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
+const generateCheckoutSession = async ({
+  teamSlug,
+  teamName,
+  userId,
+}: {
+  teamSlug: string;
+  teamName: string;
+  userId: number;
+}) => {
+  if (!IS_TEAM_BILLING_ENABLED) {
+    console.info("Team billing is disabled, not generating a checkout session.");
+    return;
+  }
+
+  const checkoutSession = await generateTeamCheckoutSession({
+    teamSlug,
+    teamName,
+    userId,
+  });
+
+  if (!checkoutSession.url)
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed retrieving a checkout session URL.",
+    });
+  return { url: checkoutSession.url, message: "Payment required to publish team" };
+};
+
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug, name, logo } = input;
-  const isOrgChildTeam = !!user.organizationId;
+  const { slug, name } = input;
+  const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
-  if (user.organizationId && !user.organization.isOrgAdmin) {
+  if (user.profile?.organizationId && !user.organization.isOrgAdmin) {
     throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
   }
 
@@ -28,47 +61,42 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     where: {
       slug: slug,
       // If this is under an org, check that the team doesn't already exist
-      parentId: isOrgChildTeam ? user.organizationId : null,
+      parentId: isOrgChildTeam ? user.profile?.organizationId : null,
     },
   });
 
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
 
-  if (user.organizationId) {
-    const nameCollisions = await prisma.user.findFirst({
-      where: {
-        organizationId: user.organization.id,
-        username: slug,
-      },
+  if (user.profile?.organizationId) {
+    const nameCollisions = await isSlugTakenBySomeUserInTheOrganization({
+      organizationId: user.profile?.organizationId,
+      slug: slug,
     });
 
     if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_slug_exists_as_user" });
   }
 
-  // Ensure that the user is not duplicating a requested team
-  const duplicatedRequest = await prisma.team.findFirst({
-    where: {
-      members: {
-        some: {
-          userId: ctx.user.id,
-        },
-      },
-      metadata: {
-        path: ["requestedSlug"],
-        equals: slug,
-      },
-    },
-  });
+  // If the user is not a part of an org, then make them pay before creating the team
+  if (!isOrgChildTeam) {
+    const checkoutSession = await generateCheckoutSession({
+      teamSlug: slug,
+      teamName: name,
+      userId: user.id,
+    });
 
-  if (duplicatedRequest) {
-    return duplicatedRequest;
+    // If there is a checkout session, return it. Otherwise, it means it's disabled.
+    if (checkoutSession)
+      return {
+        url: checkoutSession.url,
+        message: checkoutSession.message,
+        team: null,
+      };
   }
 
-  const createTeam = await prisma.team.create({
+  const createdTeam = await prisma.team.create({
     data: {
-      ...(isOrgChildTeam ? { slug } : {}),
+      slug,
       name,
-      logo,
       members: {
         create: {
           userId: ctx.user.id,
@@ -76,17 +104,45 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           accepted: true,
         },
       },
-      metadata: !isOrgChildTeam
-        ? {
-            requestedSlug: slug,
-          }
-        : undefined,
-      ...(isOrgChildTeam && { parentId: user.organizationId }),
+      ...(isOrgChildTeam && { parentId: user.profile?.organizationId }),
     },
   });
-
+  // Upload logo, create doesn't allow logo removal
+  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+    const logoUrl = await uploadLogo({
+      logo: await resizeBase64Image(input.logo),
+      teamId: createdTeam.id,
+    });
+    await prisma.team.update({
+      where: {
+        id: createdTeam.id,
+      },
+      data: {
+        logoUrl,
+      },
+    });
+  }
   // Sync Services: Close.com
-  closeComUpsertTeamUser(createTeam, ctx.user, MembershipRole.OWNER);
+  closeComUpsertTeamUser(createdTeam, ctx.user, MembershipRole.OWNER);
 
-  return createTeam;
+  return {
+    url: `${WEBAPP_URL}/settings/teams/${createdTeam.id}/onboard-members`,
+    message: "Team billing is disabled, not generating a checkout session.",
+    team: createdTeam,
+  };
 };
+
+async function isSlugTakenBySomeUserInTheOrganization({
+  organizationId,
+  slug,
+}: {
+  organizationId: number;
+  slug: string;
+}) {
+  return await ProfileRepository.findByOrgIdAndUsername({
+    organizationId: organizationId,
+    username: slug,
+  });
+}
+
+export default createHandler;

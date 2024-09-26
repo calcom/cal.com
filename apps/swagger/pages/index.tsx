@@ -1,9 +1,8 @@
 import dynamic from "next/dynamic";
-import type { SwaggerUI } from "swagger-ui-react";
 
 import { SnippedGenerator, requestSnippets } from "@lib/snippets";
 
-const SwaggerUIDynamic: SwaggerUI & { url: string } = dynamic(() => import("swagger-ui-react"), {
+const SwaggerUIDynamic = dynamic(() => import("swagger-ui-react"), {
   ssr: false,
 });
 
@@ -17,8 +16,6 @@ export default function APIDocs() {
       requestSnippets={requestSnippets}
       plugins={[SnippedGenerator]}
       tryItOutEnabled={true}
-      syntaxHighlight={true}
-      enableCORS={false} // Doesn't seem to work either
       docExpansion="list"
       filter={true}
     />

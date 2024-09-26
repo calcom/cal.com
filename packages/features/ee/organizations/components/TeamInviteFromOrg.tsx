@@ -2,7 +2,6 @@ import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import type { RouterOutputs } from "@calcom/trpc";
 import { Avatar, TextField } from "@calcom/ui";
 
@@ -65,22 +64,16 @@ function UserToInviteItem({
   isSelected: boolean;
   onChange: () => void;
 }) {
-  const bookerUrl = useBookerUrl();
   return (
     <div
       key={member.userId}
       onClick={() => onChange()} // We handle this on click on the div also - for a11y we handle it with label and checkbox below
       className={classNames(
-        "flex cursor-pointer items-center rounded-md px-2 py-1",
+        "flex cursor-pointer items-center rounded-md px-2 py-1 transition",
         isSelected ? "bg-emphasis" : "hover:bg-subtle "
       )}>
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
-        <Avatar
-          size="sm"
-          alt="Users avatar"
-          asChild
-          imageSrc={`${bookerUrl}/${member.user.username}/avatar.png`}
-        />
+        <Avatar size="sm" alt="Users avatar" asChild imageSrc={member.user.avatarUrl} />
         <label
           htmlFor={`${member.user.id}`}
           className="text-emphasis cursor-pointer text-sm font-medium leading-none">
@@ -92,7 +85,7 @@ function UserToInviteItem({
           id={`${member.user.id}`}
           checked={isSelected}
           type="checkbox"
-          className="text-primary-600 focus:ring-primary-500 border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded checked:bg-gray-800"
+          className="text-emphasis focus:ring-emphasis dark:text-muted border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded transition checked:bg-gray-800"
           onChange={() => {
             onChange();
           }}

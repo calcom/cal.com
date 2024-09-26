@@ -17,3 +17,5 @@ export const hasEditPermissionForUser = async ({ ctx, input }: HasEditPermission
     input,
   });
 };
+
+export default hasEditPermissionForUser;

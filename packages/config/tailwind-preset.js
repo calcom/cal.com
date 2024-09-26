@@ -6,11 +6,12 @@ const subtleColor = "#E5E7EB";
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
+    "./modules/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
     "../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
-    "../../packages/atoms/**/*.{js,ts,jsx,tsx}",
+    "../../packages/platform/atoms/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
@@ -65,6 +66,9 @@ module.exports = {
         muted: "var(--cal-border-muted, #F3F4F6)",
         booker: `var(--cal-border-booker, ${subtleColor})`,
         error: "var(--cal-border-error, #AA2E26)",
+        focus: "var(--cal-border-focus, #1A1A1A)",
+        "cal-bg": "var(--cal-bg, white)",
+        "cal-bg-muted": "var(--cal-bg-muted)",
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",
@@ -101,10 +105,21 @@ module.exports = {
         spinning: {
           "100%": { transform: "rotate(360deg)" },
         },
+        drawerSlideLeftAndFade: {
+          from: { opacity: "0", transform: "translateX(100%)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        drawerSlideRightAndFade: {
+          from: { opacity: "1", transform: "translateX(0)" },
+          to: { opacity: "0", transform: "translateX(100%)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
+        "fade-in-bottom": "fade-in-bottom cubic-bezier(.21,1.02,.73,1) forwards",
         spinning: "spinning 0.75s linear infinite",
+        drawerSlideLeftAndFade: "drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+        drawerSlideRightAndFade: "drawerSlideRightAndFade 150ms ease-in",
       },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
@@ -149,6 +164,7 @@ module.exports = {
     },
   },
   plugins: [
+    require("@todesktop/tailwind-variants"),
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("tailwind-scrollbar")({ nocompatible: true }),

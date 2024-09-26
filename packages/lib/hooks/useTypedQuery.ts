@@ -1,5 +1,7 @@
+"use client";
+
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import { z } from "zod";
 
 import { useRouterQuery } from "./useRouterQuery";
@@ -41,10 +43,20 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   const unparsedQuery = useRouterQuery();
   const pathname = usePathname();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
-
   let parsedQuery: Output = useMemo(() => {
     return {} as Output;
   }, []);
+
+  useEffect(() => {
+    if (parsedQuerySchema.success && parsedQuerySchema.data) {
+      Object.entries(parsedQuerySchema.data).forEach(([key, value]) => {
+        if (key in unparsedQuery || !value) return;
+        const search = new URLSearchParams(parsedQuery);
+        search.set(String(key), String(value));
+        router.replace(`${pathname}?${search.toString()}`);
+      });
+    }
+  }, [parsedQuerySchema, schema, router, pathname, unparsedQuery, parsedQuery]);
 
   if (parsedQuerySchema.success) parsedQuery = parsedQuerySchema.data;
   else if (!parsedQuerySchema.success) console.error(parsedQuerySchema.error);
@@ -96,7 +108,9 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
 
   // Remove all query params from the URL
   function removeAllQueryParams() {
-    router.replace(pathname);
+    if (pathname !== null) {
+      router.replace(pathname);
+    }
   }
 
   return {

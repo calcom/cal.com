@@ -1,8 +1,9 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { List } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Icon, List } from "@calcom/ui";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
@@ -13,20 +14,24 @@ interface ConnectedAppStepProps {
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { nextStep } = props;
-  const { data: queryConnectedVideoApps, isLoading } = trpc.viewer.integrations.useQuery({
+  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
     sortByMostPopular: true,
   });
+  const { data } = useMeQuery();
   const { t } = useLocale();
+
+  const metadata = userMetadata.parse(data?.metadata);
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
   );
 
+  const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
   return (
     <>
-      {!isLoading && (
+      {!isPending && (
         <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
           {queryConnectedVideoApps?.items &&
             queryConnectedVideoApps?.items.map((item) => {
@@ -37,9 +42,15 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                     <AppConnectionItem
                       type={item.type}
                       title={item.name}
+                      isDefault={item.slug === defaultConferencingApp}
                       description={item.description}
+                      dependencyData={item.dependencyData}
                       logo={item.logo}
+                      slug={item.slug}
                       installed={item.userCredentialIds.length > 0}
+                      defaultInstall={
+                        !defaultConferencingApp && item.appData?.location?.linkType === "dynamic"
+                      }
                     />
                   )}
                 </li>
@@ -48,18 +59,18 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         </List>
       )}
 
-      {isLoading && <StepConnectionLoader />}
+      {isPending && <StepConnectionLoader />}
       <button
         type="button"
         data-testid="save-video-button"
         className={classNames(
-          "text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm",
+          "text-inverted border-inverted bg-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
         disabled={!hasAnyInstalledVideoApps}
         onClick={() => nextStep()}>
         {t("next_step_text")}
-        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </>
   );

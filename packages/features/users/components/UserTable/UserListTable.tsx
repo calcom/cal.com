@@ -1,16 +1,20 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
+import type { ColumnDef, Table } from "@tanstack/react-table";
+import { m } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, DataTable, Checkbox } from "@calcom/ui";
+import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
+import { EventTypesList } from "./BulkActions/EventTypesList";
 import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -25,6 +29,7 @@ export interface User {
   email: string;
   timeZone: string;
   role: MembershipRole;
+  avatarUrl: string | null;
   accepted: boolean;
   disableImpersonation: boolean;
   completedOnboarding: boolean;
@@ -45,7 +50,7 @@ export type State = {
   deleteMember: Payload;
   impersonateMember: Payload;
   inviteMember: Payload;
-  editSheet: Payload;
+  editSheet: Payload & { user?: User };
 };
 
 export type Action =
@@ -108,24 +113,28 @@ function reducer(state: State, action: Action): State {
 
 export function UserListTable() {
   const { data: session } = useSession();
-  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { copyToClipboard, isCopied } = useCopy();
+  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
-
-  const { data, isLoading, fetchNextPage, isFetching } =
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useState(false);
+  const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
+        searchTerm: debouncedSearchTerm,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-        keepPreviousData: true,
+        placeholderData: keepPreviousData,
       }
     );
-
-  const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
+  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
   const memorisedColumns = useMemo(() => {
@@ -159,17 +168,29 @@ export function UserListTable() {
       {
         id: "member",
         accessorFn: (data) => data.email,
-        header: "Member",
+        header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
-          const { username, email } = row.original;
+          const { username, email, avatarUrl } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl,
+                })}
+              />
               <div className="">
-                <div className="text-emphasis text-sm font-medium leading-none">
+                <div
+                  data-testid={`member-${username}-username`}
+                  className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
                 </div>
-                <div className="text-subtle mt-1 text-sm leading-none">{email}</div>
+                <div
+                  data-testid={`member-${username}-email`}
+                  className="text-subtle mt-1 text-sm leading-none">
+                  {email}
+                </div>
               </div>
             </div>
           );
@@ -185,9 +206,10 @@ export function UserListTable() {
         accessorFn: (data) => data.role,
         header: "Role",
         cell: ({ row, table }) => {
-          const { role } = row.original;
+          const { role, username } = row.original;
           return (
             <Badge
+              data-testid={`member-${username}-role`}
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
@@ -197,29 +219,52 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
+          if (filterValue.includes("PENDING")) {
+            if (filterValue.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
+          }
+
+          // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
         },
       },
       {
         id: "teams",
+        accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
-        cell: ({ row }) => {
-          const { teams, accepted } = row.original;
+        cell: ({ row, table }) => {
+          const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {accepted ? null : (
-                <Badge variant="red" className="text-xs">
+                <Badge
+                  data-testid2={`member-${username}-pending`}
+                  variant="red"
+                  className="text-xs"
+                  data-testid={`email-${email.replace("@", "")}-pending`}
+                  onClick={() => {
+                    table.getColumn("role")?.setFilterValue(["PENDING"]);
+                  }}>
                   Pending
                 </Badge>
               )}
               {teams.map((team) => (
-                <Badge key={team.id} variant="gray">
+                <Badge
+                  key={team.id}
+                  variant="gray"
+                  onClick={() => {
+                    table.getColumn("teams")?.setFilterValue([team.name]);
+                  }}>
                   {team.name}
                 </Badge>
               ))}
             </div>
           );
+        },
+        filterFn: (rows, _, filterValue: string[]) => {
+          const teamNames = rows.original.teams.map((team) => team.name);
+          return filterValue.some((value: string) => teamNames.includes(value));
         },
       },
       {
@@ -232,7 +277,8 @@ export function UserListTable() {
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
-            canImpersonate: user.accepted && !user.disableImpersonation && !isSelf,
+            canImpersonate:
+              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -250,11 +296,10 @@ export function UserListTable() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -278,26 +323,100 @@ export function UserListTable() {
   return (
     <>
       <DataTable
-        searchKey="member"
+        onRowMouseclick={(row) => {
+          const user = row.original;
+          const canEdit = adminOrOwner;
+          if (canEdit) {
+            // dispatch({
+            //   type: "EDIT_USER_SHEET",
+            //   payload: {
+            //     showModal: true,
+            //     user,
+            //   },
+            // });
+          }
+        }}
+        data-testid="user-list-data-table"
+        onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
             type: "render",
             render: (table) => <TeamListBulkAction table={table} />,
           },
           {
+            type: "action",
+            icon: "handshake",
+            label: "Group Meeting",
+            needsXSelected: 2,
+            onClick: () => {
+              setDynamicLinkVisible((old) => !old);
+            },
+          },
+          {
+            type: "render",
+            render: (table) => <EventTypesList table={table} orgTeams={teams} />,
+          },
+          {
             type: "render",
             render: (table) => (
-              <DeleteBulkUsers users={table.getSelectedRowModel().flatRows.map((row) => row.original)} />
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
             ),
           },
         ]}
+        renderAboveSelection={(table: Table<User>) => {
+          const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
+          const isVisible = numberOfSelectedRows >= 2 && dynamicLinkVisible;
+
+          const users = table
+            .getSelectedRowModel()
+            .flatRows.map((row) => row.original.username)
+            .filter((u) => u !== null);
+
+          const usersNameAsString = users.join("+");
+
+          const dynamicLinkOfSelectedUsers = `${domain}/${usersNameAsString}`;
+          const domainWithoutHttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
+
+          return (
+            <>
+              {isVisible ? (
+                <m.div
+                  layout
+                  className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
+                  <div className="w-[300px] items-center truncate p-2">
+                    <p>{domainWithoutHttps}</p>
+                  </div>
+                  <div className="ml-auto flex items-center">
+                    <Button
+                      StartIcon="copy"
+                      size="sm"
+                      onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
+                      {!isCopied ? t("copy") : t("copied")}
+                    </Button>
+                    <Button
+                      EndIcon="external-link"
+                      size="sm"
+                      href={dynamicLinkOfSelectedUsers}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      Open
+                    </Button>
+                  </div>
+                </m.div>
+              ) : null}
+            </>
+          );
+        }}
         tableContainerRef={tableContainerRef}
         tableCTA={
           adminOrOwner && (
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon="plus"
               size="sm"
               className="rounded-md"
               onClick={() =>
@@ -315,7 +434,7 @@ export function UserListTable() {
         }
         columns={memorisedColumns}
         data={flatData}
-        isLoading={isLoading}
+        isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         filterableItems={[
           {
@@ -325,7 +444,13 @@ export function UserListTable() {
               { label: "Owner", value: "OWNER" },
               { label: "Admin", value: "ADMIN" },
               { label: "Member", value: "MEMBER" },
+              { label: "Pending", value: "PENDING" },
             ],
+          },
+          {
+            tableAccessor: "teams",
+            title: "Teams",
+            options: teams ? teams.map((team) => ({ label: team.name, value: team.name })) : [],
           },
         ]}
       />

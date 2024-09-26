@@ -10,13 +10,21 @@ export type CloseComLead = {
 
 export type CloseComFieldOptions = [string, string, boolean, boolean][];
 
+type CloseComContactEmail = {
+  email: string;
+  type: string;
+};
+
 export type CloseComLeadCreateResult = {
   status_id: string;
   status_label: string;
   display_name: string;
   addresses: { [key: string]: string }[];
   name: string;
-  contacts: { [key: string]: string }[];
+  contacts: {
+    id: string;
+    emails: CloseComContactEmail[];
+  }[];
   [key: CloseComCustomActivityCustomField<string>]: string;
   id: string;
 };
@@ -35,10 +43,7 @@ export type CloseComCustomActivityTypeCreate = {
 export type CloseComContactSearch = {
   data: {
     __object_type: "contact";
-    emails: {
-      email: string;
-      type: string;
-    }[];
+    emails: CloseComContactEmail[];
     id: string;
     lead_id: string;
     name: string;
@@ -193,7 +198,7 @@ export default class CloseCom {
   private log: typeof logger;
 
   constructor(providedApiKey = "") {
-    this.log = logger.getChildLogger({ prefix: [`[[lib] close.com`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] close.com`] });
     if (!providedApiKey && !environmentApiKey) throw Error("Close.com Api Key not present");
     this.apiKey = providedApiKey || environmentApiKey;
   }

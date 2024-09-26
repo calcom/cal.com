@@ -7,12 +7,12 @@
   <h3 align="center">Cal.com (formerly Calendso)</h3>
 
   <p align="center">
-    The open-source Calendly alternative.
+    The open-source Calendly successor.
     <br />
     <a href="https://cal.com"><strong>Learn more »</strong></a>
     <br />
     <br />
-    <a href="https://go.cal.com/discord">Discord</a>
+    <a href="https://github.com/calcom/cal.com/discussions">Discussions</a>
     ·
     <a href="https://cal.com">Website</a>
     ·
@@ -23,8 +23,7 @@
 </p>
 
 <p align="center">
-   <a href="https://go.cal.com/discord"><img src="https://img.shields.io/badge/Discord-go.cal.com%2Fdiscord-%234A154B" alt="Join Cal.com Discord"></a>
-   <a href="https://producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
+   <a href="https://www.producthunt.com/products/cal-com"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
    <a href="https://status.cal.com"><img height="20px" src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=34507672"><img src="https://img.shields.io/badge/Hacker%20News-%231-%23FF6600" alt="Hacker News"></a>
@@ -33,11 +32,10 @@
    <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-Free-brightgreen" alt="Pricing"></a>
    <a href="https://jitsu.com?utm_source=github/calcom/cal.com"><img src="https://img.shields.io/badge/Metrics_tracked_by-JITSU-AA00FF?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACKSURBVHgBrZDRCYAwDEQv6gCOoKO4hOCXI9QVnEZwiY5iF5GaVClaBNtioCSUvCR3tMJaxIfZgW4AGUoEPVwgPZoS0Dmgg3NBVDFNbMIsmYCak3J1jDk9iCQvsKJvkzr71N81Gj6vDT/LU2P6RhY63jcafk3YJEbgeZpiFyc/5HJKv8Ef273NSfABGbQfUZhnOSAAAAAASUVORK5CYII=" alt="Jitsu Tracked"></a>
    <img src="https://api.checklyhq.com/v1/badges/checks/5e048048-1b51-47ba-9209-60607507622e?responseTime=true" alt="Checkly Availability" />
-   <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
+   <a href="https://hub.docker.com/r/calcom/cal.com"><img src="https://img.shields.io/docker/pulls/calcom/cal.com"></a>
    <a href="https://twitch.tv/calcomtv"><img src="https://img.shields.io/twitch/status/calcomtv?style=flat"></a>
    <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
    <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
-   <a href="https://discord.com/channels/1125390093386010654/1125398231585661040"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
    <a href="https://contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
    <a href="https://console.algora.io/org/cal/bounties?status=open"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fcal%2Fbounties%3Fstatus%3Dopen" /></a>
 </p>
@@ -50,7 +48,7 @@
 
 # Scheduling infrastructure for absolutely everyone
 
-The open source Calendly alternative. You are in charge
+The open source Calendly successor. You are in charge
 of your own data, workflow, and appearance.
 
 Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes, and even calls with our families. However, most tools are very limited in terms of control and customization.
@@ -113,7 +111,7 @@ To get a local copy up and running, please follow these simple steps.
 Here is what you need to be able to run Cal.com.
 
 - Node.js (Version: >=18.x)
-- PostgreSQL
+- PostgreSQL (Version: >=13.x)
 - Yarn _(recommended)_
 
 > If you want to enable any of the available integrations, you may want to obtain additional credentials for each one. More details on this can be found below under the [integrations section](#integrations).
@@ -122,7 +120,7 @@ Here is what you need to be able to run Cal.com.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
+1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales)
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -147,7 +145,7 @@ Here is what you need to be able to run Cal.com.
 
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Use `openssl rand -base64 32` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -175,11 +173,29 @@ yarn dx
 
 #### Development tip
 
-> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **tRPC**.
+Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
+Where {level} can be one of the following:
+
+`0` for silly \
+`1` for trace \
+`2` for debug \
+`3` for info \
+`4` for warn \
+`5` for error \
+`6` for fatal
+
+When you set `NEXT_PUBLIC_LOGGER_LEVEL={level}` in your .env file, it enables logging at that level and higher. Here's how it works:
+
+The logger will include all logs that are at the specified level or higher. For example: \
+
+- If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
+- If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
 
 ```sh
-echo 'NEXT_PUBLIC_DEBUG=1' >> .env
+echo 'NEXT_PUBLIC_LOGGER_LEVEL=3' >> .env
 ```
+
+for Logger level to be set at info, for example.
 
 #### Gitpod Setup
 
@@ -210,18 +226,17 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
       ![image](https://user-images.githubusercontent.com/39329182/236612291-51d87f69-6dc1-4a23-bf4d-1ca1754e0a35.png)
 
    5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this
-      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
+      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`. The port is configurable and does not have to be 5432.
 
    </details>
 
    If you don't want to create a local DB. Then you can also consider using services like railway.app or render.
 
-   - [Setup postgres DB with railway.app](https://arctype.com/postgres/setup/railway-postgres)
+   - [Setup postgres DB with railway.app](https://docs.railway.app/guides/postgresql)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
-1. Set a 32 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    In a development environment, run:
@@ -253,6 +268,8 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Setting up your first user
 
+##### Approach 1
+
 1. Open [Prisma Studio](https://prisma.io/studio) to look at or modify the database content:
 
    ```sh
@@ -263,6 +280,17 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
    > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `packages/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
+
+##### Approach 2
+
+Seed the local db by running
+
+```sh
+cd packages/prisma
+yarn db-seed
+```
+
+The above command will populate the local db with dummy users.
 
 ### E2E-Testing
 
@@ -368,6 +396,10 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
 
+### Elestio
+
+[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/cal.com)
+
 <!-- ROADMAP -->
 
 ## Roadmap
@@ -376,7 +408,37 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
-<!-- RORADMAP -->
+<!-- LICENSE -->
+
+## License
+
+Cal.com, Inc. is a commercial open source company, which means some parts of this open source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](https://github.com/calcom/cal.com/tree/main/packages/features/ee)) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Cal.com, Inc. which is hired in full-time. Find their compensation on https://cal.com/open.
+
+> [!NOTE]  
+> Our philosophy is simple, all "Singleplayer APIs" are open-source under AGPLv3. All commercial "Multiplayer APIs" are under a commercial license.
+
+|                                   | AGPLv3 | EE  |
+| --------------------------------- | ------ | --- |
+| Self-host for commercial purposes | ✅     | ✅  |
+| Clone privately                   | ✅     | ✅  |
+| Fork publicly                     | ✅     | ✅  |
+| Requires CLA                      | ✅     | ✅  |
+|  Official Support                 | ❌     | ✅  |
+| Derivative work privately         | ❌     | ✅  |
+|  SSO                              | ❌     | ✅  |
+| Admin Panel                       | ❌     | ✅  |
+| Impersonation                     | ❌     | ✅  |
+| Managed Event Types               | ❌     | ✅  |
+| Organizations                     | ❌     | ✅  |
+| Payments                          | ❌     | ✅  |
+| Platform                          | ❌     | ✅  |
+| Teams                             | ❌     | ✅  |
+| Users                             | ❌     | ✅  |
+| Video                             | ❌     | ✅  |
+| Workflows                         | ❌     | ✅  |
+
+> [!TIP]
+> We work closely with the community and always invite feedback about what should be open and what is fine to be commercial. This list is not set and stone and we have moved things from commercial to open in the past. Please open a [discussion](https://github.com/calcom/cal.com/discussions) if you feel like something is wrong.
 
 ## Repo Activity
 
@@ -415,7 +477,7 @@ We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:is
 
 ### Translations
 
-Don't code but still want to contribute? Join our [discord](https://go.cal.com/discord) and join the [#Translate channel](https://discord.com/channels/1125390093386010654/1125398231585661040) and let us know what language you want to translate.
+Don't code but still want to contribute? Join our [Discussions](https://github.com/calcom/cal.com/discussions) and join the [#Translate channel](https://github.com/calcom/cal.com/discussions/categories/translations) and let us know what language you want to translate.
 
 ![ar translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ar&style=flat&logo=crowdin&query=%24.progress.0.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![bg translation](https://img.shields.io/badge/dynamic/json?color=blue&label=bg&style=flat&logo=crowdin&query=%24.progress.1.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![cs translation](https://img.shields.io/badge/dynamic/json?color=blue&label=cs&style=flat&logo=crowdin&query=%24.progress.2.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![de translation](https://img.shields.io/badge/dynamic/json?color=blue&label=de&style=flat&logo=crowdin&query=%24.progress.3.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![el translation](https://img.shields.io/badge/dynamic/json?color=blue&label=el&style=flat&logo=crowdin&query=%24.progress.4.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![en translation](https://img.shields.io/badge/dynamic/json?color=blue&label=en&style=flat&logo=crowdin&query=%24.progress.5.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![es translation](https://img.shields.io/badge/dynamic/json?color=blue&label=es&style=flat&logo=crowdin&query=%24.progress.6.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![es-419 translation](https://img.shields.io/badge/dynamic/json?color=blue&label=es-419&style=flat&logo=crowdin&query=%24.progress.7.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![fr translation](https://img.shields.io/badge/dynamic/json?color=blue&label=fr&style=flat&logo=crowdin&query=%24.progress.8.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![he translation](https://img.shields.io/badge/dynamic/json?color=blue&label=he&style=flat&logo=crowdin&query=%24.progress.9.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![hu translation](https://img.shields.io/badge/dynamic/json?color=blue&label=hu&style=flat&logo=crowdin&query=%24.progress.10.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![it translation](https://img.shields.io/badge/dynamic/json?color=blue&label=it&style=flat&logo=crowdin&query=%24.progress.11.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ja translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ja&style=flat&logo=crowdin&query=%24.progress.12.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ko translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ko&style=flat&logo=crowdin&query=%24.progress.13.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![nl translation](https://img.shields.io/badge/dynamic/json?color=blue&label=nl&style=flat&logo=crowdin&query=%24.progress.14.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![no translation](https://img.shields.io/badge/dynamic/json?color=blue&label=no&style=flat&logo=crowdin&query=%24.progress.15.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![pl translation](https://img.shields.io/badge/dynamic/json?color=blue&label=pl&style=flat&logo=crowdin&query=%24.progress.16.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![pt translation](https://img.shields.io/badge/dynamic/json?color=blue&label=pt&style=flat&logo=crowdin&query=%24.progress.17.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![pt-BR translation](https://img.shields.io/badge/dynamic/json?color=blue&label=pt-BR&style=flat&logo=crowdin&query=%24.progress.18.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ro translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ro&style=flat&logo=crowdin&query=%24.progress.19.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ru translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ru&style=flat&logo=crowdin&query=%24.progress.20.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![sr translation](https://img.shields.io/badge/dynamic/json?color=blue&label=sr&style=flat&logo=crowdin&query=%24.progress.21.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![sv translation](https://img.shields.io/badge/dynamic/json?color=blue&label=sv&style=flat&logo=crowdin&query=%24.progress.22.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![tr translation](https://img.shields.io/badge/dynamic/json?color=blue&label=tr&style=flat&logo=crowdin&query=%24.progress.23.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![uk translation](https://img.shields.io/badge/dynamic/json?color=blue&label=uk&style=flat&logo=crowdin&query=%24.progress.24.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![vi translation](https://img.shields.io/badge/dynamic/json?color=blue&label=vi&style=flat&logo=crowdin&query=%24.progress.25.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![zh-CN translation](https://img.shields.io/badge/dynamic/json?color=blue&label=zh-CN&style=flat&logo=crowdin&query=%24.progress.26.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![zh-TW translation](https://img.shields.io/badge/dynamic/json?color=blue&label=zh-TW&style=flat&logo=crowdin&query=%24.progress.27.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json)
 
@@ -432,7 +494,7 @@ Don't code but still want to contribute? Join our [discord](https://go.cal.com/d
 3. Enable the selected API.
 4. Next, go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) from the side pane. Select the app type (Internal or External) and enter the basic app details on the first page.
 5. In the second page on Scopes, select Add or Remove Scopes. Search for Calendar.event and select the scope with scope value `.../auth/calendar.events`, `.../auth/calendar.readonly` and select Update.
-6. In the third page (Test Users), add the Google account(s) you'll using. Make sure the details are correct on the last page of the wizard and your consent screen will be configured.
+6. In the third page (Test Users), add the Google account(s) you'll be using. Make sure the details are correct on the last page of the wizard and your consent screen will be configured.
 7. Now select [Credentials](https://console.cloud.google.com/apis/credentials) from the side pane and then select Create Credentials. Select the OAuth Client ID option.
 8. Select Web Application as the Application Type.
 9. Under Authorized redirect URI's, select Add URI and then add the URI `<Cal.com URL>/api/integrations/googlecalendar/callback` and `<Cal.com URL>/api/auth/callback/google` replacing Cal.com URL with the URI at which your application runs.
@@ -469,17 +531,18 @@ following
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
 2. On the upper right, click "Develop" => "Build App".
-3. On "OAuth", select "Create".
+3. Select "General App" , click "Create".
 4. Name your App.
-5. Choose "User-managed app" as the app type.
-6. De-select the option to publish the app on the Zoom App Marketplace.
-7. Click "Create".
-8. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
-9. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
-10. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
-11. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
-12. Click "Done".
-13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
+5. Choose "User-managed app" for "Select how the app is managed".
+6. De-select the option to publish the app on the Zoom App Marketplace, if asked.
+7. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
+8. Set the "OAuth Redirect URL" under "OAuth Information" as `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
+9. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
+10. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left,
+    1. click the category "Meeting" and check the scope `meeting:write:meeting`.
+    2. click the category "User" and check the scope `user:read:settings`.
+11. Click "Done".
+12. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
 ### Obtaining Daily API Credentials
 
@@ -538,6 +601,10 @@ following
 
 [Follow these steps](./packages/app-store/zoho-bigin/)
 
+### Obtaining Pipedrive Client ID and Secret
+
+[Follow these steps](./packages/app-store/pipedrive-crm/)
+
 ## Workflows
 
 ### Setting up SendGrid for Email reminders
@@ -579,8 +646,6 @@ Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/ma
 ## Acknowledgements
 
 Special thanks to these amazing projects which help power Cal.com:
-
-[<img src="https://cal.com/powered-by-vercel.svg">](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 
 - [Vercel](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 - [Next.js](https://nextjs.org/)

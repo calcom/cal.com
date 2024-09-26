@@ -1,52 +1,26 @@
-import type { GetServerSidePropsContext } from "next";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { CreateANewOrganizationForm } from "@calcom/features/ee/organizations/components";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WizardLayout, Meta } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-const CreateNewOrganizationPage = ({ querySlug }: inferSSRProps<typeof getServerSideProps>) => {
+import CreateANewOrganizationForm, { LayoutWrapper } from "~/settings/organizations/new/create-new-view";
+
+const Page = () => {
   const { t } = useLocale();
   return (
     <LicenseRequired>
       <Meta title={t("set_up_your_organization")} description={t("organizations_description")} />
-      <CreateANewOrganizationForm slug={querySlug} />
+      <CreateANewOrganizationForm />
     </LicenseRequired>
   );
 };
-const LayoutWrapper = (page: React.ReactElement) => {
-  return (
-    <WizardLayout currentStep={1} maxSteps={5}>
-      {page}
-    </WizardLayout>
-  );
-};
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-  // Check if organizations are enabled
-  if (flags["organizations"] !== true) {
-    return {
-      notFound: true,
-    };
-  }
+Page.getLayout = LayoutWrapper;
+Page.PageWrapper = PageWrapper;
 
-  const querySlug = context.query.slug as string;
+export default Page;
 
-  return {
-    props: {
-      querySlug: querySlug ?? null,
-    },
-  };
-};
-
-CreateNewOrganizationPage.getLayout = LayoutWrapper;
-CreateNewOrganizationPage.PageWrapper = PageWrapper;
-
-export default CreateNewOrganizationPage;
+export { getServerSideProps };

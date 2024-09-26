@@ -12,5 +12,6 @@
   "description": "The joyful productivity app\r\r",
   "__createdUsingCli": true,
   "dependencies": ["google-calendar"],
-  "dirName": "amie"
+  "dirName": "amie",
+  "isOAuth": false
 }

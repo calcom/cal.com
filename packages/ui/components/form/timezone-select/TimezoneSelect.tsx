@@ -1,8 +1,11 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
 import { classNames } from "@calcom/lib";
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 
@@ -13,18 +16,41 @@ export interface ICity {
   timezone: string;
 }
 
-export function TimezoneSelect({
+export type TimezoneSelectProps = SelectProps & {
+  variant?: "default" | "minimal";
+  timezoneSelectCustomClassname?: string;
+};
+export function TimezoneSelect(props: TimezoneSelectProps) {
+  const { data, isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
+    {
+      CalComVersion: CALCOM_VERSION,
+    },
+    {
+      trpc: { context: { skipBatch: true } },
+    }
+  );
+
+  return <TimezoneSelectComponent data={data} isPending={isPending} {...props} />;
+}
+
+export type TimezoneSelectComponentProps = SelectProps & {
+  variant?: "default" | "minimal";
+  isPending: boolean;
+  data: ICity[] | undefined;
+  timezoneSelectCustomClassname?: string;
+};
+export function TimezoneSelectComponent({
   className,
   classNames: timezoneClassNames,
+  timezoneSelectCustomClassname,
   components,
   variant = "default",
+  data,
+  isPending,
   value,
   ...props
-}: SelectProps & { variant?: "default" | "minimal" }) {
+}: TimezoneSelectComponentProps) {
   const [cities, setCities] = useState<ICity[]>([]);
-  const { data, isLoading } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
-    trpc: { context: { skipBatch: true } },
-  });
   const handleInputChange = (tz: string) => {
     if (data) setCities(filterByCities(tz, data));
   };
@@ -38,9 +64,9 @@ export function TimezoneSelect({
   return (
     <BaseSelect
       value={value}
-      className={className}
-      isLoading={isLoading}
-      isDisabled={isLoading}
+      className={`${className} ${timezoneSelectCustomClassname}`}
+      isLoading={isPending}
+      isDisabled={isPending}
       {...reactSelectProps}
       timezones={{
         ...(data ? addCitiesToDropdown(data) : {}),

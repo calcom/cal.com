@@ -14,7 +14,7 @@ type OAuthRouterHandlerCache = {
 const UNSTABLE_HANDLER_CACHE: OAuthRouterHandlerCache = {};
 
 export const oAuthRouter = router({
-  getClient: authedProcedure.input(ZGetClientInputSchema).query(async ({ ctx, input }) => {
+  getClient: authedProcedure.input(ZGetClientInputSchema).query(async ({ input }) => {
     if (!UNSTABLE_HANDLER_CACHE.getClient) {
       UNSTABLE_HANDLER_CACHE.getClient = await import("./getClient.handler").then(
         (mod) => mod.getClientHandler

@@ -5,14 +5,17 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
+import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig } from "./utils";
+import {
+  useShouldBeDisabledDueToPrefill,
+  getFieldNameFromErrorMessage,
+} from "./useShouldBeDisabledDueToPrefill";
+import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/variantsConfig";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -55,8 +58,12 @@ export const FormBuilderField = ({
   const { t } = useLocale();
   const { control, formState } = useFormContext();
 
-  const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
+  const { hidden, placeholder, label, noLabel, translatedDefaultLabel } = getAndUpdateNormalizedValues(
+    field,
+    t
+  );
 
+  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
       <Controller
@@ -69,10 +76,12 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly}
+                readOnly={readOnly || shouldBeDisabled}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
+                noLabel={noLabel}
+                translatedDefaultLabel={translatedDefaultLabel}
               />
               <ErrorMessage
                 name="responses"
@@ -80,7 +89,7 @@ export const FormBuilderField = ({
                 render={({ message }: { message: string | undefined }) => {
                   message = message || "";
                   // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
-                  const name = message.replace(/\{([^}]+)\}.*/, "$1");
+                  const name = getFieldNameFromErrorMessage(message);
                   const isResponsesErrorForThisField = name === field.name;
                   // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
                   if (!isResponsesErrorForThisField && !error) {
@@ -97,7 +106,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );
@@ -121,26 +130,37 @@ const WithLabel = ({
   field,
   children,
   readOnly,
+  htmlFor,
+  noLabel = false,
 }: {
   field: Partial<RhfFormField>;
   readOnly: boolean;
   children: React.ReactNode;
+  noLabel?: boolean;
+  htmlFor: string;
 }) => {
+  const { t } = useLocale();
+
   return (
     <div>
       {/* multiemail doesnt show label initially. It is shown on clicking CTA */}
       {/* boolean type doesn't have a label overall, the radio has it's own label */}
       {/* Component itself managing it's label should remove these checks */}
-      {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
-        <div className="mb-2 flex items-center">
-          <Label className="!mb-0">
-            <span>{field.label}</span>
-            <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
-              {!readOnly && field.required ? "*" : ""}
-            </span>
-          </Label>
-        </div>
-      )}
+      {noLabel
+        ? null
+        : field.type !== "boolean" &&
+          field.type !== "multiemail" &&
+          field.label && (
+            <div className="mb-2 flex items-center">
+              <Label className="!mb-0 flex" htmlFor={htmlFor}>
+                <span>{field.label}</span>
+                <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
+                  {!readOnly && field.required ? "*" : ""}
+                </span>
+                {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
+              </Label>
+            </div>
+          )}
       {children}
     </div>
   );
@@ -162,6 +182,7 @@ function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction
         throw new Error("radioInput must have optionsInputs");
       }
       if (field.optionsInputs[options[0].value]) {
+        // We don't show the label in this case because the optionInput itself will decide what label to show
         noLabel = true;
       } else {
         // If there's only one option and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
@@ -177,7 +198,8 @@ function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction
     throw new Error(`${field.name}:${field.type} type must have labelAsSafeHtml set`);
   }
 
-  const label = noLabel ? "" : field.labelAsSafeHtml || field.label || t(field.defaultLabel || "");
+  const translatedDefaultLabel = t(field.defaultLabel || "");
+  const label = field.labelAsSafeHtml || field.label || translatedDefaultLabel;
   const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
   if (field.variantsConfig?.variants) {
@@ -192,7 +214,7 @@ function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction
     });
   }
 
-  return { hidden, placeholder, label };
+  return { hidden, placeholder, label, noLabel, translatedDefaultLabel };
 }
 
 export const ComponentForField = ({
@@ -200,15 +222,20 @@ export const ComponentForField = ({
   value,
   setValue,
   readOnly,
+  noLabel,
+  translatedDefaultLabel,
 }: {
   field: Omit<RhfFormField, "editable" | "label"> & {
     // Label is optional because radioInput doesn't have a label
     label?: string;
   };
   readOnly: boolean;
+  noLabel?: boolean;
+  translatedDefaultLabel?: string;
 } & ValueProps) => {
   const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
+  const { t } = useLocale();
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
     const isValid = isValidValueProp[propsType](val);
@@ -224,9 +251,11 @@ export const ComponentForField = ({
   }
   if (componentConfig.propsType === "text") {
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          minLength={field.minLength}
+          maxLength={field.maxLength}
           name={field.name}
           label={field.label}
           readOnly={readOnly}
@@ -239,7 +268,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "boolean") {
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           name={field.name}
           label={field.label}
@@ -254,7 +283,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "textList") {
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -273,7 +302,7 @@ export const ComponentForField = ({
     }
 
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
@@ -291,7 +320,7 @@ export const ComponentForField = ({
       throw new Error("Field options is not defined");
     }
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -311,29 +340,30 @@ export const ComponentForField = ({
     if (!field.optionsInputs) {
       throw new Error("Field optionsInputs is not defined");
     }
-    const options = field.options.map((field) => {
-      return { ...field, value: field.value === "inPerson" ? field.label : field.value };
-    });
+
+    const options = field.options;
 
     return field.options.length ? (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           readOnly={readOnly}
           name={field.name}
+          label={field.label}
           value={value as { value: string; optionValue: string }}
           setValue={setValue as (arg: typeof value) => void}
           optionsInputs={field.optionsInputs}
           options={options}
           required={field.required}
+          translatedDefaultLabel={translatedDefaultLabel}
         />
       </WithLabel>
     ) : null;
   }
 
   if (componentConfig.propsType === "variants") {
-    const variantsConfig = getVariantsConfig(field);
-    if (!variantsConfig) {
+    const translatedVariantsConfig = getTranslatedVariantsConfig(field, t);
+    if (!translatedVariantsConfig) {
       return null;
     }
 
@@ -345,7 +375,7 @@ export const ComponentForField = ({
         variant={field.variant}
         value={value as { value: string; optionValue: string }}
         setValue={setValue as (arg: Record<string, string> | string) => void}
-        variants={variantsConfig.variants}
+        variants={translatedVariantsConfig.variants}
       />
     );
   }

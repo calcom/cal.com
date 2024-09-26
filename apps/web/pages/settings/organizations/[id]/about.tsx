@@ -1,12 +1,12 @@
-import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
+import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-export { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+import AboutOrganizationForm, { LayoutWrapper } from "~/settings/organizations/[id]/about-view";
 
-const AboutOrganizationPage = () => {
+const Page = () => {
   const { t } = useLocale();
   return (
     <>
@@ -15,15 +15,9 @@ const AboutOrganizationPage = () => {
     </>
   );
 };
-const LayoutWrapper = (page: React.ReactElement) => {
-  return (
-    <WizardLayout currentStep={3} maxSteps={5}>
-      {page}
-    </WizardLayout>
-  );
-};
 
-AboutOrganizationPage.getLayout = LayoutWrapper;
-AboutOrganizationPage.PageWrapper = PageWrapper;
+Page.getLayout = LayoutWrapper;
+Page.PageWrapper = PageWrapper;
 
-export default AboutOrganizationPage;
+export default Page;
+export { getServerSideProps };

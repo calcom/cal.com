@@ -3,11 +3,16 @@ import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import type z from "zod";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { albyCredentialKeysSchema } from "./albyCredentialKeysSchema";
+
+const log = logger.getSubLogger({ prefix: ["payment-service:alby"] });
 
 export class PaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof albyCredentialKeysSchema> | null;
@@ -36,7 +41,7 @@ export class PaymentService implements IAbstractPaymentService {
         },
       });
       if (!booking || !this.credentials?.account_lightning_address) {
-        throw new Error();
+        throw new Error("Alby: Booking or Lightning address not found");
       }
 
       const uid = uuidv4();
@@ -68,7 +73,10 @@ export class PaymentService implements IAbstractPaymentService {
           amount: payment.amount,
           externalId: invoice.paymentRequest,
           currency: payment.currency,
-          data: Object.assign({}, { invoice }) as unknown as Prisma.InputJsonValue,
+          data: Object.assign(
+            {},
+            { invoice: { ...invoice, isPaid: false } }
+          ) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
           success: false,
@@ -80,8 +88,8 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(error);
-      throw new Error("Payment could not be created");
+      log.error("Alby: Payment could not be created", bookingId, safeStringify(error));
+      throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
   async update(): Promise<Payment> {

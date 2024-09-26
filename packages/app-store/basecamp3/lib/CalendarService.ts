@@ -59,11 +59,12 @@ export default class BasecampCalendarService implements Calendar {
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "basecamp3";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getAppKeysFromSlug("basecamp3").then(({ user_agent }: any) => {
       this.userAgent = user_agent as string;
     });
     this.auth = this.basecampAuth(credential).then((c) => c);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private basecampAuth = async (credential: CredentialPayload) => {

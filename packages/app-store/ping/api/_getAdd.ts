@@ -11,16 +11,17 @@ export async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);
   const slug = appConfig.slug;
   const appType = appConfig.type;
+  const returnTo = req.query?.returnTo;
 
   await checkInstalled(slug, session.user.id);
   await createDefaultInstallation({
     appType,
-    userId: session.user.id,
+    user: session.user,
     slug,
     key: {},
   });
 
-  return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "ping" }) };
+  return { url: returnTo ?? getInstalledAppPath({ variant: appConfig.variant, slug: "ping" }) };
 }
 
 export default defaultResponder(getHandler);

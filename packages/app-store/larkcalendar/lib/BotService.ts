@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "./AppAccessToken";
 
-const log = logger.getChildLogger({ prefix: [`[[LarkTenantCredential]`] });
+const log = logger.getSubLogger({ prefix: [`[[LarkTenantCredential]`] });
 
 const msg = {
   en_us: {

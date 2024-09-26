@@ -3,6 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -67,7 +68,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     startTime: dayjs(booking.startTime).format(),
     endTime: dayjs(booking.endTime).format(),
     organizer: {
-      email: booking.user?.email || "",
+      email: booking?.userPrimaryEmail ?? booking.user?.email ?? "",
       name: booking.user?.name || "Nameless",
       timeZone: booking.user?.timeZone || "",
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
@@ -96,7 +97,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
 
   const paymentApp = (await appStore[
     paymentCredential?.app?.dirName as keyof typeof appStore
-  ]()) as PaymentApp;
+  ]?.()) as PaymentApp;
 
   if (!paymentApp?.lib?.PaymentService) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
@@ -112,7 +113,11 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
     }
 
-    await sendNoShowFeeChargedEmail(attendeesListPromises[0], evt);
+    await sendNoShowFeeChargedEmail(
+      attendeesListPromises[0],
+      evt,
+      booking?.eventType?.metadata as EventTypeMetadata
+    );
 
     return paymentData;
   } catch (err) {

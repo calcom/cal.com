@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui";
 
@@ -7,21 +8,28 @@ export const TotalBookingUsersTable = ({
   data,
 }: {
   data:
-    | { userId: number | null; user: User; emailMd5?: string; count: number; Username?: string }[]
+    | {
+        userId: number | null;
+        user: Pick<User, "avatarUrl" | "name">;
+        emailMd5?: string;
+        count: number;
+        username?: string;
+      }[]
     | undefined;
 }) => {
+  const filteredData = data && data?.length > 0 ? data?.filter((item) => !!item.user) : [];
   return (
     <Table>
       <TableBody>
         <>
-          {data && data?.length > 0 ? (
-            data?.map((item) => (
+          {filteredData.length > 0 ? (
+            filteredData.map((item) => (
               <TableRow key={item.userId}>
                 <TableCell className="flex flex-row">
                   <Avatar
                     alt={item.user.name || ""}
                     size="sm"
-                    imageSrc={`/${item.user.username}/avatar.png`}
+                    imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
                     title={item.user.name || ""}
                     className="m-2"
                   />

@@ -7,19 +7,23 @@ import { getAlbyKeys } from "../../lib/getAlbyKeys";
 import type { IAlbySetupProps } from "./index";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
+  const notFound = { notFound: true } as const;
+
+  if (typeof ctx.params?.slug !== "string") return notFound;
 
   const { req, res } = ctx;
   const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {
-    return res.writeHead(401).end();
+    const redirect = { redirect: { permanent: false, destination: "/auth/login" } } as const;
+
+    return redirect;
   }
 
   const credentials = await prisma.credential.findFirst({
     where: {
       type: "alby_payment",
-      userId: session.user.id,
+      userId: session?.user.id,
     },
   });
 

@@ -25,7 +25,7 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
   protected declare service: CloseCom;
 
   constructor() {
-    super(serviceName, CloseCom, logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
+    super(serviceName, CloseCom, logger.getSubLogger({ prefix: [`[[sync] ${serviceName}`] }));
   }
 
   upsertAnyUser = async (

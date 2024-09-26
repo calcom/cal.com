@@ -38,8 +38,16 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, label: "booking_payment_initiated" },
     { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
     { value: WebhookTriggerEvents.BOOKING_PAID, label: "booking_paid" },
+    { value: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, label: "booking_no_show_updated" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
+    { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
     { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
+    { value: WebhookTriggerEvents.INSTANT_MEETING, label: "instant_meeting" },
+    { value: WebhookTriggerEvents.OOO_CREATED, label: "ooo_created" },
+    {
+      value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+      label: "recording_transcription_generated",
+    },
   ],
   "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;
@@ -47,14 +55,18 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
+  overrideTriggerOptions?: (typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)["core"];
   onSubmit: (event: WebhookFormSubmitData) => void;
   onCancel?: () => void;
   noRoutingFormTriggers: boolean;
+  selectOnlyInstantMeetingOption?: boolean;
 }) => {
-  const { apps = [] } = props;
+  const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
   const { t } = useLocale();
 
-  const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
+  const triggerOptions = overrideTriggerOptions
+    ? [...overrideTriggerOptions]
+    : [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
   if (apps) {
     for (const app of apps) {
       if (app === "routing-forms" && props.noRoutingFormTriggers) continue;
@@ -65,13 +77,21 @@ const WebhookForm = (props: {
   }
   const translatedTriggerOptions = triggerOptions.map((option) => ({ ...option, label: t(option.label) }));
 
+  const getEventTriggers = () => {
+    if (props.webhook) return props.webhook.eventTriggers;
+
+    return (
+      selectOnlyInstantMeetingOption
+        ? translatedTriggerOptions.filter((option) => option.value === WebhookTriggerEvents.INSTANT_MEETING)
+        : translatedTriggerOptions.filter((option) => option.value !== WebhookTriggerEvents.INSTANT_MEETING)
+    ).map((option) => option.value);
+  };
+
   const formMethods = useForm({
     defaultValues: {
       subscriberUrl: props.webhook?.subscriberUrl || "",
       active: props.webhook ? props.webhook.active : true,
-      eventTriggers: !props.webhook
-        ? translatedTriggerOptions.map((option) => option.value)
-        : props.webhook.eventTriggers,
+      eventTriggers: getEventTriggers(),
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
     },
@@ -81,7 +101,6 @@ const WebhookForm = (props: {
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
-  // const currentSecret = props?.webhook?.secret;
 
   useEffect(() => {
     if (changeSecret) {
@@ -271,7 +290,7 @@ const WebhookForm = (props: {
         <Button
           type="submit"
           disabled={!formMethods.formState.isDirty && !changeSecret}
-          loading={formMethods.formState.isSubmitting || formMethods.formState.isSubmitted}>
+          loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}
         </Button>
       </SectionBottomActions>

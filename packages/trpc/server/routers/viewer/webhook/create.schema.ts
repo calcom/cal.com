@@ -13,6 +13,7 @@ export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
   appId: z.string().optional().nullable(),
   secret: z.string().optional().nullable(),
   teamId: z.number().optional(),
+  platform: z.boolean().optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

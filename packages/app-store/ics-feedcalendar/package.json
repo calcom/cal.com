@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/ics-feed",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/core": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/ui": "*",
+    "react-hook-form": "^7.43.3"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Import events from an ICS Feed into Cal.com."
+}

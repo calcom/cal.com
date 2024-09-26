@@ -15,7 +15,7 @@ export const MostBookedTeamMembersTable = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithMostBookings.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostBookings.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -32,7 +32,7 @@ export const MostBookedTeamMembersTable = () => {
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || !teamId) return null;
 

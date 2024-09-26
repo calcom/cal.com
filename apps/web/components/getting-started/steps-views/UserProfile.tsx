@@ -3,14 +3,13 @@ import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { UserAvatar } from "@calcom/ui";
 
 type FormData = {
   bio: string;
@@ -26,7 +25,7 @@ const UserProfile = () => {
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
@@ -34,10 +33,10 @@ const UserProfile = () => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
-      if (context.avatar) {
+      if (context.avatarUrl) {
         showToast(t("your_user_profile_updated_successfully"), "success");
         await utils.viewer.me.refetch();
-      } else {
+      } else
         try {
           if (eventTypes?.length === 0) {
             await Promise.all(
@@ -50,9 +49,11 @@ const UserProfile = () => {
           console.error(error);
         }
 
-        await utils.viewer.me.refetch();
-        router.push("/");
-      }
+      await utils.viewer.me.refetch();
+      const redirectUrl = localStorage.getItem("onBoardingRedirect");
+      localStorage.removeItem("onBoardingRedirect");
+
+      redirectUrl ? router.push(redirectUrl) : router.push("/");
     },
     onError: () => {
       showToast(t("problem_saving_user_profile"), "error");
@@ -73,7 +74,7 @@ const UserProfile = () => {
     event.preventDefault();
     const enteredAvatar = avatarRef.current?.value;
     mutation.mutate({
-      avatar: enteredAvatar,
+      avatarUrl: enteredAvatar,
     });
   }
 
@@ -99,14 +100,7 @@ const UserProfile = () => {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && (
-          <OrganizationAvatar
-            alt={user.username || "user avatar"}
-            size="lg"
-            imageSrc={imageSrc}
-            organizationSlug={user.organization?.slug}
-          />
-        )}
+        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} />}
         <input
           ref={avatarRef}
           type="hidden"
@@ -148,15 +142,14 @@ const UserProfile = () => {
           firstRender={firstRender}
           setFirstRender={setFirstRender}
         />
-        <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
-          {t("few_sentences_about_yourself")}
-        </p>
+        <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
       <Button
+        loading={mutation.isPending}
+        EndIcon="arrow-right"
         type="submit"
-        className="text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm">
+        className="mt-8 w-full items-center justify-center">
         {t("finish")}
-        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

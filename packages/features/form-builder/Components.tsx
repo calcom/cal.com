@@ -1,29 +1,30 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
-import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import type {
-  TextLikeComponentProps,
   SelectLikeComponentProps,
+  TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
+import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  PhoneInput,
   AddressInput,
   Button,
-  Label,
-  Group,
-  RadioField,
-  EmailField,
-  Tooltip,
-  InputField,
   CheckboxField,
+  EmailField,
+  Group,
+  Icon,
+  InfoBadge,
+  InputField,
+  Label,
+  PhoneInput,
+  RadioField,
+  Tooltip,
 } from "@calcom/ui";
-import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
-import type { FieldType, variantsConfigSchema, fieldSchema } from "./schema";
+import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
@@ -70,6 +71,7 @@ type Component =
         } & {
           name?: string;
           required?: boolean;
+          translatedDefaultLabel?: string;
         }
       >(
         props: TProps
@@ -95,16 +97,16 @@ type Component =
 export const Components: Record<FieldType, Component> = {
   text: {
     propsType: propsTypes.text,
-    factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
+    factory: (props) => <Widgets.TextWidget id={props.name} noLabel={true} {...props} />,
   },
   textarea: {
     propsType: propsTypes.textarea,
     // TODO: Make rows configurable in the form builder
-    factory: (props) => <Widgets.TextAreaWidget rows={3} {...props} />,
+    factory: (props) => <Widgets.TextAreaWidget id={props.name} rows={3} {...props} />,
   },
   number: {
     propsType: propsTypes.number,
-    factory: (props) => <Widgets.NumberWidget noLabel={true} {...props} />,
+    factory: (props) => <Widgets.NumberWidget id={props.name} noLabel={true} {...props} />,
   },
   name: {
     propsType: propsTypes.name,
@@ -209,7 +211,7 @@ export const Components: Record<FieldType, Component> = {
       if (!props) {
         return <div />;
       }
-      return <Widgets.TextWidget type="email" noLabel={true} {...props} />;
+      return <Widgets.TextWidget type="email" id={props.name} noLabel={true} {...props} />;
     },
   },
   address: {
@@ -217,10 +219,12 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       return (
         <AddressInput
+          id={props.name}
           onChange={(val) => {
             props.setValue(val);
           }}
           {...props}
+          disabled={props.readOnly}
         />
       );
     },
@@ -245,6 +249,7 @@ export const Components: Record<FieldType, Component> = {
                 {value.map((field, index) => (
                   <li key={index}>
                     <EmailField
+                      id={`${props.name}.${index}`}
                       disabled={readOnly}
                       value={value[index]}
                       className={inputClassName}
@@ -263,7 +268,7 @@ export const Components: Record<FieldType, Component> = {
                         !readOnly ? (
                           <Tooltip content="Remove email">
                             <button className="m-1" type="button">
-                              <X width={12} className="text-default" />
+                              <Icon name="x" width={12} className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null
@@ -277,7 +282,7 @@ export const Components: Record<FieldType, Component> = {
                   data-testid="add-another-guest"
                   type="button"
                   color="minimal"
-                  StartIcon={UserPlus}
+                  StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
                     value.push("");
@@ -296,7 +301,7 @@ export const Components: Record<FieldType, Component> = {
               data-testid="add-guests"
               color="minimal"
               variant="button"
-              StartIcon={UserPlus}
+              StartIcon="user-plus"
               onClick={() => {
                 value.push("");
                 setValue(value);
@@ -316,7 +321,7 @@ export const Components: Record<FieldType, Component> = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
-      return <Widgets.MultiSelectWidget {...newProps} />;
+      return <Widgets.MultiSelectWidget id={props.name} {...newProps} />;
     },
   },
   select: {
@@ -326,7 +331,7 @@ export const Components: Record<FieldType, Component> = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
-      return <Widgets.SelectWidget {...newProps} />;
+      return <Widgets.SelectWidget id={props.name} {...newProps} />;
     },
   },
   checkbox: {
@@ -348,7 +353,7 @@ export const Components: Record<FieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded ltr:mr-2 rtl:ml-2"
+                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -362,9 +367,10 @@ export const Components: Record<FieldType, Component> = {
   },
   radio: {
     propsType: propsTypes.radio,
-    factory: ({ setValue, name, value, options }) => {
+    factory: ({ setValue, name, value, options, readOnly }) => {
       return (
         <Group
+          disabled={readOnly}
           value={value}
           onValueChange={(e) => {
             setValue(e);
@@ -385,7 +391,16 @@ export const Components: Record<FieldType, Component> = {
   },
   radioInput: {
     propsType: propsTypes.radioInput,
-    factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
+    factory: function RadioInputWithLabel({
+      name,
+      label,
+      options,
+      optionsInputs,
+      value,
+      setValue,
+      readOnly,
+      translatedDefaultLabel,
+    }) {
       useEffect(() => {
         if (!value) {
           setValue({
@@ -394,6 +409,29 @@ export const Components: Record<FieldType, Component> = {
           });
         }
       }, [options, setValue, value]);
+
+      const { t } = useLocale();
+
+      const didUserProvideLabel = (
+        label: string | undefined,
+        translatedDefaultLabel: string | undefined
+      ): label is string => {
+        return label && translatedDefaultLabel ? translatedDefaultLabel !== label : false;
+      };
+
+      const getCleanLabel = (label: string): string | JSX.Element => {
+        if (!label) {
+          return "";
+        }
+
+        return label.search(/^https?:\/\//) !== -1 ? (
+          <a href={label} target="_blank">
+            <span className="underline">{label}</span>
+          </a>
+        ) : (
+          label
+        );
+      };
 
       return (
         <div>
@@ -407,7 +445,7 @@ export const Components: Record<FieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
+                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] transition after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -417,18 +455,35 @@ export const Components: Record<FieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                      <span className="text-emphasis me-2 ms-2 text-sm">
+                        {option.value === "somewhereElse"
+                          ? t("somewhere_else")
+                          : getCleanLabel(option.label) ?? ""}
+                      </span>
+                      <span>
+                        {option.value === "phone" && (
+                          <InfoBadge content={t("number_in_international_format")} />
+                        )}
+                      </span>
                     </label>
                   );
                 })
               ) : (
-                // Show option itself as label because there is just one option
+                // Use the only option itself to determine if the field is required or not.
                 <>
-                  <Label>
-                    {options[0].label}
+                  <Label className="flex items-center">
+                    {/* We still want to show the label of the field if it is changed by the user otherwise the best label would be the option label */}
+                    {options[0].value === "somewhereElse"
+                      ? translatedDefaultLabel
+                      : getCleanLabel(
+                          didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                        )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
+                      <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
                     ) : null}
+                    {options[0].value === "phone" && (
+                      <InfoBadge content={t("number_in_international_format")} />
+                    )}
                   </Label>
                 </>
               )}
@@ -464,10 +519,11 @@ export const Components: Record<FieldType, Component> = {
   },
   boolean: {
     propsType: propsTypes.boolean,
-    factory: ({ readOnly, label, value, setValue }) => {
+    factory: ({ readOnly, name, label, value, setValue }) => {
       return (
         <div className="flex">
           <CheckboxField
+            name={name}
             onChange={(e) => {
               if (e.target.checked) {
                 setValue(true);
@@ -484,6 +540,12 @@ export const Components: Record<FieldType, Component> = {
           />
         </div>
       );
+    },
+  },
+  url: {
+    propsType: propsTypes.url,
+    factory: (props) => {
+      return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
     },
   },
 } as const;

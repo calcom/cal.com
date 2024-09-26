@@ -1,32 +1,30 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Workflow, WorkflowStep, Membership } from "@prisma/client";
+import type { Membership, Workflow } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  ArrowButton,
+  Avatar,
+  Badge,
   Button,
   ButtonGroup,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
+  Icon,
   Tooltip,
-  Badge,
-  Avatar,
-  ArrowButton,
 } from "@calcom/ui";
-import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../organizations/context/provider";
-import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import { getActionIcon } from "../lib/getActionIcon";
+import type { WorkflowStep } from "../lib/types";
 import { DeleteDialog } from "./DeleteDialog";
 
 export type WorkflowType = Workflow & {
@@ -38,7 +36,13 @@ export type WorkflowType = Workflow & {
     logo?: string | null;
   } | null;
   steps: WorkflowStep[];
-  activeOn: {
+  activeOnTeams?: {
+    team: {
+      id: number;
+      name?: string | null;
+    };
+  }[];
+  activeOn?: {
     eventType: {
       id: number;
       title: string;
@@ -49,20 +53,18 @@ export type WorkflowType = Workflow & {
     };
   }[];
   readOnly?: boolean;
+  isOrg?: boolean;
 };
 interface Props {
   workflows: WorkflowType[] | undefined;
 }
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const router = useRouter();
-
-  const orgBranding = useOrgBranding();
-  const urlPrefix = orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL;
 
   const mutation = trpc.viewer.workflowOrder.useMutation({
     onError: async (err) => {
@@ -102,9 +104,11 @@ export default function WorkflowListPage({ workflows }: Props) {
             {workflows.map((workflow, index) => {
               const firstItem = workflows[0];
               const lastItem = workflows[workflows.length - 1];
+              const dataTestId = `workflow-${workflow.name.toLowerCase().replaceAll(" ", "-")}`;
               return (
                 <li
                   key={workflow.id}
+                  data-testid={dataTestId}
                   className="group flex w-full max-w-full items-center justify-between overflow-hidden">
                   {!(firstItem && firstItem.id === workflow.id) && (
                     <ArrowButton onClick={() => moveWorkflow(index, -1)} arrowDirection="up" />
@@ -112,7 +116,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                   {!(lastItem && lastItem.id === workflow.id) && (
                     <ArrowButton onClick={() => moveWorkflow(index, 1)} arrowDirection="down" />
                   )}
-                  <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 sm:px-6">
+                  <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 transition sm:px-6">
                     <Link href={`/workflows/${workflow.id}`} className="flex-grow cursor-pointer">
                       <div className="rtl:space-x-reverse">
                         <div className="flex">
@@ -158,7 +162,14 @@ export default function WorkflowListPage({ workflows }: Props) {
                           </li>
                           <li>
                             <Badge variant="gray">
-                              {workflow.activeOn && workflow.activeOn.length > 0 ? (
+                              {/*active on all badge */}
+                              {workflow.isActiveOnAll ? (
+                                <div>
+                                  <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  {workflow.isOrg ? t("active_on_all_teams") : t("active_on_all_event_types")}
+                                </div>
+                              ) : workflow.activeOn && workflow.activeOn.length > 0 ? (
+                                //active on event types badge
                                 <Tooltip
                                   content={workflow.activeOn
                                     .filter((wf) => (workflow.teamId ? wf.eventType.parentId === null : true))
@@ -171,7 +182,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                       </p>
                                     ))}>
                                   <div>
-                                    <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_event_types", {
                                       count: workflow.activeOn.filter((wf) =>
                                         workflow.teamId ? wf.eventType.parentId === null : true
@@ -179,10 +190,24 @@ export default function WorkflowListPage({ workflows }: Props) {
                                     })}
                                   </div>
                                 </Tooltip>
+                              ) : workflow.activeOnTeams && workflow.activeOnTeams.length > 0 ? (
+                                //active on teams badge
+                                <Tooltip
+                                  content={workflow.activeOnTeams.map((activeOn, key) => (
+                                    <p key={key}>{activeOn.team.name}</p>
+                                  ))}>
+                                  <div>
+                                    <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    {t("active_on_teams", {
+                                      count: workflow.activeOnTeams?.length,
+                                    })}
+                                  </div>
+                                </Tooltip>
                               ) : (
+                                // active on no teams or event types
                                 <div>
-                                  <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                  {t("no_active_event_types")}
+                                  <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  {workflow.isOrg ? t("no_active_teams") : t("no_active_event_types")}
                                 </div>
                               )}
                             </Badge>
@@ -231,9 +256,10 @@ export default function WorkflowListPage({ workflows }: Props) {
                               type="button"
                               color="secondary"
                               variant="icon"
-                              StartIcon={Edit2}
+                              StartIcon="pencil"
                               disabled={workflow.readOnly}
                               onClick={async () => await router.replace(`/workflows/${workflow.id}`)}
+                              data-testid="edit-button"
                             />
                           </Tooltip>
                           <Tooltip content={t("delete") as string}>
@@ -245,7 +271,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                               color="secondary"
                               variant="icon"
                               disabled={workflow.readOnly}
-                              StartIcon={Trash2}
+                              StartIcon="trash-2"
+                              data-testid="delete-button"
                             />
                           </Tooltip>
                         </ButtonGroup>
@@ -254,18 +281,13 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
-                              <Button
-                                type="button"
-                                color="minimal"
-                                variant="icon"
-                                StartIcon={MoreHorizontal}
-                              />
+                              <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
-                                  StartIcon={Edit2}
+                                  StartIcon="pencil"
                                   onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
                                   {t("edit")}
                                 </DropdownItem>
@@ -274,7 +296,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <DropdownItem
                                   type="button"
                                   color="destructive"
-                                  StartIcon={Trash2}
+                                  StartIcon="trash-2"
                                   onClick={() => {
                                     setDeleteDialogOpen(true);
                                     setwWorkflowToDeleteId(workflow.id);

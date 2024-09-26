@@ -1,3 +1,5 @@
+import type { IncomingMessage } from "http";
+import { dir } from "i18next";
 import type { NextPageContext } from "next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
@@ -7,7 +9,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { csp } from "@lib/csp";
 
-type Props = Record<string, unknown> & DocumentProps;
+type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 function setHeader(ctx: NextPageContext, name: string, value: string) {
   try {
     ctx.res?.setHeader(name, value);
@@ -26,6 +28,14 @@ class MyDocument extends Document<Props> {
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
 
+    const getLocaleModule = ctx.req ? await import("@calcom/features/auth/lib/getLocale") : null;
+
+    const newLocale =
+      ctx.req && getLocaleModule
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+        : "en";
+
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
@@ -36,25 +46,38 @@ class MyDocument extends Document<Props> {
       !isEmbedSnippetGeneratorPath;
     const embedColorScheme = parsedUrl.searchParams.get("ui.color-scheme");
     const initialProps = await Document.getInitialProps(ctx);
-    return { isEmbed, embedColorScheme, nonce, ...initialProps };
+    return { isEmbed, embedColorScheme, nonce, ...initialProps, newLocale };
   }
 
   render() {
-    const { locale } = this.props.__NEXT_DATA__;
     const { isEmbed, embedColorScheme } = this.props;
+    const newLocale = this.props.newLocale || "en";
+    const newDir = dir(newLocale);
+
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
+
     return (
-      <Html lang={locale} style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
+      <Html
+        lang={newLocale}
+        dir={newDir}
+        style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
+          <script
+            nonce={nonce}
+            id="newLocale"
+            dangerouslySetInnerHTML={{
+              __html: `window.calNewLocale = "${newLocale}";`,
+            }}
+          />
           <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
           <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
           <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb" />
-          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1C1C" />
+          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />
+          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1F1F" />
           {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
             // eslint-disable-next-line @next/next/no-sync-scripts
             <script
@@ -65,7 +88,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className="dark:bg-darkgray-50 desktop-transparent bg-subtle antialiased"
+          className="dark:bg-darkgray-50 bg-subtle antialiased"
           style={
             isEmbed
               ? {

@@ -43,7 +43,7 @@ DatePicker component offers a complete and customizable element for the user to 
       minDate: dayjs("2023-07-23").utc(),
       maxDate: dayjs("2023-08-30").utc(),
       selected: dayjs("2023-08-30").utc(),
-      isLoading: false,
+      isPending: false,
       onChange: (newDate) => console.log(newDate),
       onMonthChange: (newMonth) => console.log(newMonth),
     }}
@@ -58,7 +58,7 @@ DatePicker component offers a complete and customizable element for the user to 
         control: "date"
       }
     }}>
-    {({ weekStart, excludedDates, onChange, onMonthChange, minDate, maxDate, selected, isLoading }) => (
+    {({ weekStart, excludedDates, onChange, onMonthChange, minDate, maxDate, selected, isPending }) => (
       <VariantsTable titles={["Default"]} columnMinWidth={150}>
         <VariantRow variant="Default">
           <DatePicker
@@ -69,7 +69,7 @@ DatePicker component offers a complete and customizable element for the user to 
             onChange={onChange}
             onMonthChange={onMonthChange}
             selected={dayjs(selected)}
-            isLoading={isLoading}
+            isPending={isPending}
           />
         </VariantRow>
       </VariantsTable>

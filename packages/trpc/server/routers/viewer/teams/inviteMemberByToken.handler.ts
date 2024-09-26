@@ -64,3 +64,5 @@ export const inviteMemberByTokenHandler = async ({ ctx, input }: InviteMemberByT
 
   return verificationToken.team.name;
 };
+
+export default inviteMemberByTokenHandler;

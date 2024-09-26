@@ -1,4 +1,5 @@
 /* eslint-disable playwright/missing-playwright-await */
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -22,9 +23,14 @@ describe("Tests for AppCard component", () => {
   };
 
   // Abstracted render function
-  const renderAppCard = (appProps = {}) => {
+  const renderAppCard = (appProps = {}, appCardProps = {}) => {
     const appData = { ...mockApp, ...appProps };
-    render(<AppCard app={appData} />);
+    const queryClient = new QueryClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AppCard app={appData} {...appCardProps} />;
+      </QueryClientProvider>
+    );
   };
 
   describe("Tests for app description", () => {
@@ -45,7 +51,7 @@ describe("Tests for AppCard component", () => {
     });
 
     test("Should highlight the app name based on searchText", () => {
-      render(<AppCard app={mockApp} searchText="test" />);
+      renderAppCard({}, { searchText: "test" });
       const highlightedText = screen.getByTestId("highlighted-text");
       expect(highlightedText).toBeInTheDocument();
     });

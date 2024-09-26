@@ -19,13 +19,14 @@ export interface LinkSettingsForm {
 
 export default function InviteLinkSettingsModal(props: InvitationLinkSettingsModalProps) {
   const { t } = useLocale();
-  const trpcContext = trpc.useContext();
+  const trpcContext = trpc.useUtils();
 
   const deleteInviteMutation = trpc.viewer.teams.deleteInvite.useMutation({
     onSuccess: () => {
       showToast(t("invite_link_deleted"), "success");
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
+      trpcContext.viewer.teams.getMinimal.invalidate();
       props.onExit();
     },
     onError: (e) => {
@@ -38,6 +39,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       showToast(t("invite_link_updated"), "success");
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
+      trpcContext.viewer.teams.getMinimal.invalidate();
     },
     onError: (e) => {
       showToast(e.message, "error");
@@ -53,7 +55,11 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
     ];
   }, [t]);
 
-  const linkSettingsFormMethods = useForm<LinkSettingsForm>();
+  const linkSettingsFormMethods = useForm<LinkSettingsForm>({
+    defaultValues: {
+      expiresInDays: props.expiresInDays,
+    },
+  });
 
   const handleSubmit = (values: LinkSettingsForm) => {
     setInviteExpirationMutation.mutate({

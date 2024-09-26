@@ -12,12 +12,12 @@ import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: RouterOutputs["viewer"]["teams"]["get"];
-  member?: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  team?: RouterOutputs["viewer"]["teams"]["getMinimal"];
+  member?: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(
     localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London"
@@ -86,7 +86,7 @@ export default function TeamAvailabilityModal(props: Props) {
           </div>
 
           <div className="col-span-1 max-h-[500px]">
-            {props.team && props.member && (
+            {props.team?.id && props.member && (
               <TeamAvailabilityTimes
                 teamId={props.team.id}
                 memberId={props.member.id}

@@ -1,18 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { CAL_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { AlertCircle, ArrowRight, Check } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
@@ -20,9 +22,10 @@ import type { InstallAppButtonProps } from "./types";
 export const InstallAppButtonWithoutPlanCheck = (
   props: {
     type: App["type"];
+    options?: UseAddAppMutationOptions;
   } & InstallAppButtonProps
 ) => {
-  const mutation = useAddAppMutation(null);
+  const mutation = useAddAppMutation(null, props.options);
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)
@@ -34,7 +37,7 @@ export const InstallAppButtonWithoutPlanCheck = (
           onClick: () => {
             mutation.mutate({ type: props.type });
           },
-          isLoading: mutation.isLoading,
+          loading: mutation.isPending,
         })}
       </>
     );
@@ -56,10 +59,10 @@ export const InstallAppButton = (
     disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
-  const { isLoading: isUserLoading, data: user } = trpc.viewer.me.useQuery();
+  const { isPending: isUserLoading, data: user } = trpc.viewer.me.useQuery();
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
-  const { isLoading: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
+  const { isPending: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
 
   useEffect(() => {
     const el = proProtectionElementRef.current;
@@ -122,7 +125,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="flex items-start">
                 <div>
-                  <Check className="mr-2 mt-1 font-semibold" />
+                  <Icon name="check" className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -145,7 +148,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="text-info flex items-start">
                 <div>
-                  <AlertCircle className="mr-2 mt-1 font-semibold" />
+                  <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -156,12 +159,12 @@ export const AppDependencyComponent = ({
                     <div>
                       <>
                         <Link
-                          href={`${CAL_URL}/apps/${dependency.slug}`}
+                          href={`${WEBAPP_URL}/apps/${dependency.slug}`}
                           className="text-info flex items-center underline">
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
                           </span>
-                          <ArrowRight />
+                          <Icon name="arrow-right" />
                         </Link>
                       </>
                     </div>

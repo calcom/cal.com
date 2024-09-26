@@ -1,8 +1,10 @@
+"use client";
+
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 import type { z } from "zod";
 
-import type { Response, Route, SerializableForm } from "../types/types";
+import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";
 import { getQueryBuilderConfig } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
@@ -14,7 +16,7 @@ export function processRoute({
   response,
 }: {
   form: SerializableForm<App_RoutingForms_Form>;
-  response: Record<string, Pick<Response[string], "value">>;
+  response: Record<string, Pick<FormResponse[string], "value">>;
 }) {
   const queryBuilderConfig = getQueryBuilderConfig(form);
 
@@ -50,7 +52,7 @@ export function processRoute({
     const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
     const logic = jsonLogicQuery.logic;
     let result = false;
-    const responseValues: Record<string, Response[string]["value"]> = {};
+    const responseValues: Record<string, FormResponse[string]["value"]> = {};
     for (const [uuid, { value }] of Object.entries(response)) {
       responseValues[uuid] = value;
     }

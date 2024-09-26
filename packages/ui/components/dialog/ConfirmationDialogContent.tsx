@@ -4,7 +4,7 @@ import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { AlertCircle, Check } from "../icon";
+import { Icon } from "../..";
 import { DialogClose, DialogContent } from "./Dialog";
 
 type ConfirmBtnType =
@@ -13,7 +13,7 @@ type ConfirmBtnType =
 
 export type ConfirmationDialogContentProps = {
   cancelBtnText?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
   loadingText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
@@ -21,6 +21,14 @@ export type ConfirmationDialogContentProps = {
 } & ConfirmBtnType;
 
 export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
+  return (
+    <DialogContent type="creation">
+      <ConfirmationContent {...props} />
+    </DialogContent>
+  );
+}
+
+export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogContentProps>) => {
   const { t } = useLocale();
   const {
     title,
@@ -29,29 +37,29 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
     confirmBtnText = t("confirm"),
     cancelBtnText = t("cancel"),
     loadingText = t("loading"),
-    isLoading = false,
+    isPending = false,
     onConfirm,
     children,
   } = props;
 
   return (
-    <DialogContent type="creation">
+    <>
       <div className="flex">
         {variety && (
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="bg-error mx-auto rounded-full p-2 text-center">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-100" />
+                <Icon name="circle-alert" className="h-5 w-5 text-red-600 dark:text-red-100" />
               </div>
             )}
             {variety === "warning" && (
               <div className="bg-attention mx-auto rounded-full p-2 text-center">
-                <AlertCircle className="h-5 w-5 text-orange-600" />
+                <Icon name="circle-alert" className="h-5 w-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (
               <div className="bg-success mx-auto rounded-full p-2 text-center">
-                <Check className="h-5 w-5 text-green-600" />
+                <Icon name="check" className="h-5 w-5 text-green-600" />
               </div>
             )}
           </div>
@@ -69,12 +77,16 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
         {confirmBtn ? (
           confirmBtn
         ) : (
-          <DialogClose color="primary" loading={isLoading} onClick={(e) => onConfirm && onConfirm(e)}>
-            {isLoading ? loadingText : confirmBtnText}
+          <DialogClose
+            color="primary"
+            loading={isPending}
+            onClick={(e) => onConfirm && onConfirm(e)}
+            data-testid="dialog-confirmation">
+            {isPending ? loadingText : confirmBtnText}
           </DialogClose>
         )}
-        <DialogClose disabled={isLoading}>{cancelBtnText}</DialogClose>
+        <DialogClose disabled={isPending}>{cancelBtnText}</DialogClose>
       </div>
-    </DialogContent>
+    </>
   );
-}
+};

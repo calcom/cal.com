@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { ArrowRight } from "../icon";
+import { Icon } from "../..";
 import { SkeletonText } from "../skeleton";
 import { Slider } from "./Slider";
 
@@ -52,7 +52,7 @@ export function AppStoreCategories({
               )}
               <p className="text-subtle pt-2 text-sm font-medium">
                 {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
-                <ArrowRight className="inline-block h-4 w-4" />
+                <Icon name="arrow-right" className="inline-block h-4 w-4" />
               </p>
             </div>
           </Link>

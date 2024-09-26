@@ -11,11 +11,13 @@ export const ZUpdateInputSchema = z.object({
     .or(z.number())
     .optional(),
   bio: z.string().optional(),
-  logo: z
+  logoUrl: z.string().optional().nullable(),
+  calVideoLogo: z
     .string()
     .optional()
     .nullable()
     .transform((v) => v || null),
+  banner: z.string().nullable().optional(),
   slug: z.string().optional(),
   hideBranding: z.boolean().optional(),
   hideBookATeamMember: z.boolean().optional(),
@@ -25,7 +27,10 @@ export const ZUpdateInputSchema = z.object({
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
-  metadata: teamMetadataSchema.unwrap().pick({ isOrganizationConfigured: true }).optional(),
+  metadata: teamMetadataSchema.unwrap().optional(),
+  lockEventTypeCreation: z.boolean().optional(),
+  lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
+  adminGetsNoSlotsNotification: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

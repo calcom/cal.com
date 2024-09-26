@@ -36,12 +36,14 @@ export type Person = {
   locale?: string | null;
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
+  phoneNumber?: string | null;
 };
 
 export type TeamMember = {
   id?: number;
   name: string;
   email: string;
+  phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
 };
@@ -55,6 +57,7 @@ export type EventBusyDate = {
 export type EventBusyDetails = EventBusyDate & {
   title?: string;
   source?: string | null;
+  userId?: number | null;
 };
 
 export type CalendarServiceType = typeof Calendar;
@@ -63,11 +66,15 @@ export type AdditionalInfo = Record<string, unknown> & { calWarnings?: string[] 
 export type NewCalendarEventType = {
   uid: string;
   id: string;
+  thirdPartyRecurringEventId?: string | null;
   type: string;
   password: string;
   url: string;
   additionalInfo: AdditionalInfo;
   iCalUID?: string | null;
+  location?: string | null;
+  hangoutLink?: string | null;
+  conferenceData?: ConferenceData;
 };
 
 export type CalendarEventType = {
@@ -140,8 +147,13 @@ export type CalEventResponses = Record<
   {
     label: string;
     value: z.infer<typeof bookingResponse>;
+    isHidden?: boolean;
   }
 >;
+
+export interface ExistingRecurringEvent {
+  recurringEventId: string;
+}
 
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
@@ -154,18 +166,22 @@ export interface CalendarEvent {
   endTime: string;
   organizer: Person;
   attendees: Person[];
+  length?: number | null;
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonObject | null;
   description?: string | null;
   team?: {
     name: string;
     members: TeamMember[];
+    id: number;
   };
   location?: string | null;
   conferenceCredentialId?: number;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
+  existingRecurringEvent?: ExistingRecurringEvent | null;
+  bookingId?: number;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
   requiresConfirmation?: boolean | null;
@@ -183,12 +199,18 @@ export interface CalendarEvent {
   seatsPerTimeSlot?: number | null;
   schedulingType?: SchedulingType | null;
   iCalUID?: string | null;
+  iCalSequence?: number | null;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
 
   // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
   userFieldsResponses?: CalEventResponses | null;
+  platformClientId?: string | null;
+  platformRescheduleUrl?: string | null;
+  platformCancelUrl?: string | null;
+  platformBookingUrl?: string | null;
+  oneTimePassword?: string | null;
 }
 
 export interface EntryPoint {

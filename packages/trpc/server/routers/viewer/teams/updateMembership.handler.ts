@@ -32,3 +32,5 @@ export const updateMembershipHandler = async ({ ctx, input }: UpdateMembershipOp
     },
   });
 };
+
+export default updateMembershipHandler;

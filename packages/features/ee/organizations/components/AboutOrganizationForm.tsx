@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -6,8 +8,7 @@ import z from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Avatar, Button, Form, ImageUploader, Label, TextAreaField } from "@calcom/ui";
-import { ArrowRight, Plus } from "@calcom/ui/components/icon";
+import { Alert, Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
 
 const querySchema = z.object({
   id: z.string(),
@@ -29,7 +30,7 @@ export const AboutOrganizationForm = () => {
   const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: (data) => {
       if (data.update) {
-        router.push(`/settings/organizations/${orgId}/onboard-admins`);
+        router.push(`/settings/organizations/${orgId}/onboard-members`);
       }
     },
     onError: (err) => {
@@ -43,7 +44,7 @@ export const AboutOrganizationForm = () => {
         form={aboutOrganizationFormMethods}
         className="space-y-5"
         handleSubmit={(v) => {
-          if (!updateOrganizationMutation.isLoading) {
+          if (!updateOrganizationMutation.isPending) {
             setServerErrorMessage(null);
             updateOrganizationMutation.mutate({ ...v, orgId });
           }
@@ -64,7 +65,7 @@ export const AboutOrganizationForm = () => {
                 <div className="flex items-center">
                   <Avatar
                     alt=""
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
+                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                     className="items-center"
                     imageSrc={image}
                     size="lg"
@@ -109,10 +110,10 @@ export const AboutOrganizationForm = () => {
         <div className="flex">
           <Button
             disabled={
-              aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isLoading
+              aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isPending
             }
             color="primary"
-            EndIcon={ArrowRight}
+            EndIcon="arrow-right"
             type="submit"
             className="w-full justify-center">
             {t("continue")}

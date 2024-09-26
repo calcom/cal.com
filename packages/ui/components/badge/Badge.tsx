@@ -1,10 +1,10 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import React from "react";
-import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
+
+import { Icon, type IconName } from "../..";
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {
@@ -14,7 +14,7 @@ export const badgeStyles = cva("font-medium inline-flex items-center justify-cen
       orange: "bg-attention text-attention",
       success: "bg-success text-success",
       green: "bg-success text-success",
-      gray: "bg-subtle text-emphasis",
+      gray: "bg-emphasis text-emphasis",
       blue: "bg-info text-info",
       red: "bg-error text-error",
       error: "bg-error text-error",
@@ -36,14 +36,15 @@ type InferredBadgeStyles = VariantProps<typeof badgeStyles>;
 
 type IconOrDot =
   | {
-      startIcon?: SVGComponent;
-      withDot?: unknown;
+      startIcon?: IconName;
+      withDot?: never;
     }
-  | { startIcon?: unknown; withDot?: boolean };
+  | { startIcon?: never; withDot?: true };
 
 export type BadgeBaseProps = InferredBadgeStyles & {
   children: React.ReactNode;
   rounded?: boolean;
+  customStartIcon?: React.ReactNode;
 } & IconOrDot;
 
 export type BadgeProps =
@@ -57,9 +58,19 @@ export type BadgeProps =
   | (BadgeBaseProps & Omit<React.HTMLAttributes<HTMLButtonElement>, "onClick"> & { onClick: () => void });
 
 export const Badge = function Badge(props: BadgeProps) {
-  const { variant, className, size, startIcon, withDot, children, rounded, ...passThroughProps } = props;
+  const {
+    customStartIcon,
+    variant,
+    className,
+    size,
+    startIcon,
+    withDot,
+    children,
+    rounded,
+    ...passThroughProps
+  } = props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
-  const StartIcon = startIcon ? (startIcon as SVGComponent) : undefined;
+  const StartIcon = startIcon;
   const classes = classNames(
     badgeStyles({ variant, size }),
     rounded && "h-5 w-5 rounded-full p-0",
@@ -68,8 +79,11 @@ export const Badge = function Badge(props: BadgeProps) {
 
   const Children = () => (
     <>
-      {withDot ? <GoPrimitiveDot data-testid="go-primitive-dot" className="h-3 w-3 stroke-[3px]" /> : null}
-      {StartIcon ? <StartIcon data-testid="start-icon" className="h-3 w-3 stroke-[3px]" /> : null}
+      {withDot ? <Icon name="dot" data-testid="go-primitive-dot" className="h-3 w-3 stroke-[3px]" /> : null}
+      {customStartIcon ||
+        (StartIcon ? (
+          <Icon name={StartIcon} data-testid="start-icon" className="h-3 w-3 stroke-[3px]" />
+        ) : null)}
       {children}
     </>
   );

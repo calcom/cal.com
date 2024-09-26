@@ -1,0 +1,84 @@
+name: All checks
+
+on:
+  merge_group:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  type-check:
+    name: Type check
+    uses: ./.github/workflows/check-types.yml
+    secrets: inherit
+
+  lint:
+    name: Linters
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  unit-test:
+    name: Tests
+    uses: ./.github/workflows/unit-tests.yml
+    secrets: inherit
+
+  build-api-v1:
+    name: Production builds
+    uses: ./.github/workflows/api-v1-production-build.yml
+    secrets: inherit
+
+  build-api-v2:
+    name: Production builds
+    uses: ./.github/workflows/api-v2-production-build.yml
+    secrets: inherit
+
+  build-atoms:
+    name: Production builds
+    uses: ./.github/workflows/atoms-production-build.yml
+    secrets: inherit
+
+  build:
+    name: Production builds
+    uses: ./.github/workflows/production-build-without-database.yml
+    secrets: inherit
+
+  integration-test:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    uses: ./.github/workflows/integration-tests.yml
+    secrets: inherit
+
+  e2e:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+
+  e2e-app-store:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    uses: ./.github/workflows/e2e-app-store.yml
+    secrets: inherit
+
+  e2e-embed:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    uses: ./.github/workflows/e2e-embed.yml
+    secrets: inherit
+
+  e2e-embed-react:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    uses: ./.github/workflows/e2e-embed-react.yml
+    secrets: inherit
+
+  required:
+    needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    if: always()
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    steps:
+      - name: fail if conditional jobs failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        run: exit 1

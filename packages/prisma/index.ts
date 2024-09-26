@@ -2,21 +2,51 @@ import type { Prisma } from "@prisma/client";
 import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
+import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
+import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
+import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
+import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "./middleware";
-
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: typeof prismaWithClientExtensions;
-}
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
-if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
+const globalForPrisma = global as unknown as {
+  prismaWithoutClientExtensions: PrismaClientWithoutExtension;
+  prismaWithClientExtensions: PrismaClientWithExtensions;
+};
 
-const prismaWithoutClientExtensions = new PrismaClientWithoutExtension(prismaOptions);
+const loggerLevel = parseInt(process.env.NEXT_PUBLIC_LOGGER_LEVEL ?? "", 10);
+
+if (!isNaN(loggerLevel)) {
+  switch (loggerLevel) {
+    case 5:
+    case 6:
+      prismaOptions.log = ["error"];
+      break;
+    case 4:
+      prismaOptions.log = ["warn", "error"];
+      break;
+    case 3:
+      prismaOptions.log = ["info", "error", "warn"];
+      break;
+    default:
+      // For values 0, 1, 2 (or anything else below 3)
+      prismaOptions.log = ["query", "info", "error", "warn"];
+      break;
+  }
+}
+
+// Prevents flooding with idle connections
+const prismaWithoutClientExtensions =
+  globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtension(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClientWithoutExtension({ ...prismaOptions, ...options }).$extends(withAccelerate());
+  new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
+    .$extends(usageTrackingExtention())
+    .$extends(excludePendingPaymentsExtension())
+    .$extends(bookingIdempotencyKeyExtension())
+    .$extends(disallowUndefinedDeleteUpdateManyExtension())
+    .$extends(withAccelerate());
 
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
@@ -25,45 +55,29 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
 const prismaWithClientExtensions = prismaWithoutClientExtensions
-  //
+  .$extends(usageTrackingExtention())
+  .$extends(excludePendingPaymentsExtension())
+  .$extends(bookingIdempotencyKeyExtension())
+  .$extends(disallowUndefinedDeleteUpdateManyExtension())
   .$extends(withAccelerate());
-// .$extends({
-//   query: {
-//     $allModels: {
-//       async $allOperations({ model, operation, args, query }) {
-//         const start = performance.now();
-//         /* your custom logic here */
-//         const res = await query(args);
-//         const end = performance.now();
-//         logger.debug("Query Perf: ", `${model}.${operation} took ${(end - start).toFixed(2)}ms\n`);
-//         return res;
-//       },
-//     },
-//   },
-// });
-// .$extends({
-//   name: "teamUpdateWithMetadata",
-//   query: {
-//     team: {
-//       async update({ model, operation, args, query }) {
-//         if (args.data.metadata) {
-//          // Prepare args.data with merged metadata
-//         }
-//         return query(args);
-//       },
-//     },
-//   },
-// })
 
-// const prismaWithClientExtensions = prismaWithoutClientExtensions;
+export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
-export const prisma = (globalThis.prisma as typeof prismaWithClientExtensions) || prismaWithClientExtensions;
+// This prisma instance is meant to be used only for READ operations.
+// If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.
+export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
+  ? customPrisma({
+      datasources: { db: { url: process.env.INSIGHTS_DATABASE_URL } },
+    })
+  : prisma;
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
+  globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;
+  globalForPrisma.prismaWithClientExtensions = prisma;
 }
 
-export type PrismaClient = typeof prismaWithClientExtensions;
+type PrismaClientWithExtensions = typeof prismaWithClientExtensions;
+export type PrismaClient = PrismaClientWithExtensions;
 export default prisma;
 
 export * from "./selects";

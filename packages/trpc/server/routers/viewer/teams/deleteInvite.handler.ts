@@ -31,3 +31,5 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
 
   await prisma.verificationToken.delete({ where: { id: verificationToken.id } });
 };
+
+export default deleteInviteHandler;

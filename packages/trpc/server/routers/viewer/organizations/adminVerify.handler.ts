@@ -1,5 +1,5 @@
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -17,10 +17,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
   const foundOrg = await prisma.team.findFirst({
     where: {
       id: input.orgId,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      isOrganization: true,
     },
     include: {
       members: {
@@ -42,18 +39,12 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
 
-  const metaDataParsed = teamMetadataSchema.parse(foundOrg.metadata);
-
-  await prisma.team.update({
+  await prisma.organizationSettings.update({
     where: {
-      id: input.orgId,
+      organizationId: input.orgId,
     },
     data: {
-      metadata: {
-        ...metaDataParsed,
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: acceptedEmailDomain,
-      },
+      isOrganizationVerified: true,
     },
   });
 
@@ -70,12 +61,20 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     },
     select: {
       id: true,
+      username: true,
       email: true,
+      profiles: {
+        where: {
+          organizationId: foundOrg.id,
+        },
+      },
     },
   });
 
-  const userIds = foundUsersWithMatchingEmailDomain.map((user) => user.id);
+  const users = foundUsersWithMatchingEmailDomain;
+  const userIds = users.map((user) => user.id);
 
+  const usersNotHavingProfileWithTheOrg = users.filter((user) => user.profiles.length === 0);
   await prisma.$transaction([
     prisma.membership.updateMany({
       where: {
@@ -97,6 +96,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         accepted: true,
       },
     }),
+
     prisma.user.updateMany({
       where: {
         id: {
@@ -106,6 +106,17 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       data: {
         organizationId: input.orgId,
       },
+    }),
+
+    ProfileRepository.createMany({
+      users: usersNotHavingProfileWithTheOrg.map((user) => {
+        return {
+          id: user.id,
+          username: user.username || user.email.split("@")[0],
+          email: user.email,
+        };
+      }),
+      organizationId: input.orgId,
     }),
   ]);
 

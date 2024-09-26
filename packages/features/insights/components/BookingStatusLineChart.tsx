@@ -29,7 +29,7 @@ export const BookingStatusLineChart = () => {
   const {
     data: eventsTimeLine,
     isSuccess,
-    isLoading,
+    isPending,
   } = trpc.viewer.insights.eventsTimeline.useQuery(
     {
       timeView: selectedTimeView,
@@ -49,7 +49,7 @@ export const BookingStatusLineChart = () => {
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess) return null;
 
@@ -59,9 +59,9 @@ export const BookingStatusLineChart = () => {
       <LineChart
         className="linechart mt-4 h-80"
         data={eventsTimeLine ?? []}
-        categories={["Created", "Completed", "Rescheduled", "Cancelled"]}
+        categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)"]}
         index="Month"
-        colors={["purple", "green", "blue", "red"]}
+        colors={["purple", "green", "blue", "red", "slate"]}
         valueFormatter={valueFormatter}
       />
     </CardInsights>

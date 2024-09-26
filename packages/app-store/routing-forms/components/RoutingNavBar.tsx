@@ -21,6 +21,7 @@ export default function RoutingNavBar({
     },
     {
       name: "Reporting",
+      target: "_blank",
       href: `${appUrl}/reporting/${form?.id}`,
       className: "pointer-events-none opacity-30 lg:pointer-events-auto lg:opacity-100",
     },

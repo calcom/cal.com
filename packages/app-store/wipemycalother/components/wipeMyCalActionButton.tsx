@@ -13,7 +13,7 @@ interface IWipeMyCalActionButtonProps {
 const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
   const { bookingsEmpty, bookingStatus } = props;
   const [openDialog, setOpenDialog] = useState(false);
-  const { isSuccess, isLoading, data } = trpc.viewer.integrations.useQuery({
+  const { isSuccess, isPending, data } = trpc.viewer.integrations.useQuery({
     variant: "other",
     onlyInstalled: undefined,
   });
@@ -27,7 +27,7 @@ const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
 
   return (
     <>
-      {data && isSuccess && !isLoading && credentialId && (
+      {data && isSuccess && !isPending && credentialId && (
         <div className="mb-4">
           <ConfirmDialog isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
           <Button color="primary" onClick={() => setOpenDialog(true)} data-testid="wipe-today-button">

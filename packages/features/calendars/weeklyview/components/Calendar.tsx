@@ -15,14 +15,14 @@ import { SchedulerColumns } from "./grid";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { Spinner } from "./spinner/Spinner";
-import { VeritcalLines } from "./verticalLines";
+import { VerticalLines } from "./verticalLines";
 
 export function Calendar(props: CalendarComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
-  const initalState = useCalendarStore((state) => state.initState);
+  const initialState = useCalendarStore((state) => state.initState);
   const { timezone } = useTimePreferences();
 
   const startDate = useCalendarStore((state) => state.startDate);
@@ -42,10 +42,10 @@ export function Calendar(props: CalendarComponentProps) {
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
 
-  // Initalise State on inital mount
+  // Initalise State on initial mount
   useEffect(() => {
-    initalState(props);
-  }, [props, initalState]);
+    initialState(props);
+  }, [props, initialState]);
 
   return (
     <MobileNotSupported>
@@ -58,7 +58,7 @@ export function Calendar(props: CalendarComponentProps) {
           } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
         }>
         {hideHeader !== true && <SchedulerHeading />}
-        {props.isLoading && <Spinner />}
+        {props.isPending && <Spinner />}
         <div
           ref={container}
           className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">
@@ -81,7 +81,7 @@ export function Calendar(props: CalendarComponentProps) {
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
                   containerOffsetRef={containerOffset}
                 />
-                <VeritcalLines days={days} />
+                <VerticalLines days={days} />
 
                 <SchedulerColumns
                   offsetHeight={containerOffset.current?.offsetHeight}

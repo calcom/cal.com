@@ -1,8 +1,9 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
+import type { ClipboardEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { useWatch } from "react-hook-form";
-import { Controller, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -13,12 +14,12 @@ import {
   Button,
   EmptyScreen,
   FormCard,
+  Icon,
   Label,
   SelectField,
   Skeleton,
   TextField,
 } from "@calcom/ui";
-import { Plus, FileText, X, ArrowUp, ArrowDown } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -26,41 +27,29 @@ import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
+import { FieldTypes } from "../../lib/FieldTypes";
 
 export { getServerSideProps };
+type SelectOption = { label: string; id: string | null };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
-type SelectOption = { placeholder: string; value: string; id: string };
 
-export const FieldTypes = [
-  {
-    label: "Short Text",
-    value: "text",
-  },
-  {
-    label: "Number",
-    value: "number",
-  },
-  {
-    label: "Long Text",
-    value: "textarea",
-  },
-  {
-    label: "Single Selection",
-    value: "select",
-  },
-  {
-    label: "Multiple Selection",
-    value: "multiselect",
-  },
-  {
-    label: "Phone",
-    value: "phone",
-  },
-  {
-    label: "Email",
-    value: "email",
-  },
-];
+const appendArray = <T,>({
+  target,
+  arrayToAppend,
+  appendAt,
+}: {
+  arrayToAppend: T[];
+  target: T[];
+  appendAt: number;
+}) => {
+  // Avoid mutating the original array
+  const copyOfTarget = [...target];
+  const numItemsToRemove = arrayToAppend.length;
+  copyOfTarget.splice(appendAt, numItemsToRemove, ...arrayToAppend);
+  return copyOfTarget;
+};
+
+const PASTE_OPTIONS_SEPARATOR_REGEX = /\n+/;
 
 function Field({
   hookForm,
@@ -89,65 +78,51 @@ function Field({
 }) {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
+  const watchedOptions =
+    useWatch({
+      control: hookForm.control,
+      name: `${hookFieldNamespace}.options`,
+      defaultValue: [
+        { label: "", id: uuidv4() },
+        { label: "", id: uuidv4() },
+        { label: "", id: uuidv4() },
+        { label: "", id: uuidv4() },
+      ],
+    }) || [];
 
-  const [options, setOptions] = useState<SelectOption[]>([
-    { placeholder: "< 10", value: "", id: uuidv4() },
-    { placeholder: "10-100", value: "", id: uuidv4() },
-    { placeholder: "100-500", value: "", id: uuidv4() },
-    { placeholder: "> 500", value: "", id: uuidv4() },
-  ]);
-
-  const handleRemoveOptions = (index: number) => {
-    const updatedOptions = options.filter((_, i) => i !== index);
-    setOptions(updatedOptions);
-    updateSelectText(updatedOptions);
+  const setOptions = (updatedOptions: SelectOption[]) => {
+    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
   };
 
-  const handleAddOptions = () => {
-    setOptions((prevState) => [
-      ...prevState,
+  const handleRemoveOptions = (index: number) => {
+    const updatedOptions = watchedOptions.filter((_, i) => i !== index);
+    // We can't let the user remove the last option
+    if (updatedOptions.length === 0) {
+      return;
+    }
+    setOptions(updatedOptions);
+  };
+
+  const addOption = () => {
+    setOptions([
+      ...watchedOptions,
       {
-        placeholder: "New Option",
-        value: "",
+        label: "",
         id: uuidv4(),
       },
     ]);
   };
 
-  useEffect(() => {
-    const originalValues = hookForm.getValues(`${hookFieldNamespace}.selectText`);
-    if (originalValues) {
-      const values: SelectOption[] = originalValues.split("\n").map((fieldValue) => ({
-        value: fieldValue,
-        placeholder: "",
-        id: uuidv4(),
-      }));
-      setOptions(values);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, optionIndex: number) => {
-    const updatedOptions = options.map((opt, index) => ({
+  const updateLabelAtIndex = ({ label, optionIndex }: { label: string; optionIndex: number }) => {
+    const updatedOptions = watchedOptions.map((opt, index) => ({
       ...opt,
-      ...(index === optionIndex ? { value: e.target.value } : {}),
+      ...(index === optionIndex ? { label } : {}),
     }));
 
     setOptions(updatedOptions);
-    updateSelectText(updatedOptions);
-  };
-
-  const updateSelectText = (updatedOptions: SelectOption[]) => {
-    hookForm.setValue(
-      `${hookFieldNamespace}.selectText`,
-      updatedOptions
-        .filter((opt) => opt.value)
-        .map((opt) => opt.value)
-        .join("\n")
-    );
   };
 
   const label = useWatch({
@@ -161,17 +136,48 @@ function Field({
   });
 
   function move(index: number, increment: 1 | -1) {
-    const newList = [...options];
+    const newList = [...watchedOptions];
 
-    const type = options[index];
-    const tmp = options[index + increment];
+    const type = watchedOptions[index];
+    const tmp = watchedOptions[index + increment];
     if (tmp) {
       newList[index] = tmp;
       newList[index + increment] = type;
     }
     setOptions(newList);
-    updateSelectText(newList);
   }
+
+  const handlePasteInOptionAtIndex = ({
+    event,
+    optionIndex,
+  }: {
+    event: ClipboardEvent;
+    optionIndex: number;
+  }) => {
+    const paste = event.clipboardData.getData("text");
+    // The value being pasted could be a list of options
+    const optionsBeingPasted = paste
+      .split(PASTE_OPTIONS_SEPARATOR_REGEX)
+      .map((optionLabel) => optionLabel.trim())
+      .filter((optionLabel) => optionLabel)
+      .map((optionLabel) => ({ label: optionLabel.trim(), id: uuidv4() }));
+    if (optionsBeingPasted.length === 1) {
+      // If there is only one option, we would just let that option be pasted
+      return;
+    }
+
+    // Don't allow pasting that value, as we would update the options through state update
+    event.preventDefault();
+
+    const updatedOptions = appendArray({
+      target: watchedOptions,
+      arrayToAppend: optionsBeingPasted,
+      appendAt: optionIndex,
+    });
+    setOptions(updatedOptions);
+  };
+
+  const optionsPlaceholders = ["< 10", "10 - 100", "100 - 500", "> 500"];
 
   return (
     <div
@@ -260,23 +266,29 @@ function Field({
                 {t("options")}
               </Skeleton>
               <ul ref={animationRef}>
-                {options.map((field, index) => (
-                  <li key={`select-option-${field.id}`} className="group mt-2 flex items-center gap-2">
+                {watchedOptions.map((option, index) => (
+                  <li
+                    // We can't use option.id here as it is undefined and would make keys non-unique causing duplicate items
+                    key={`select-option-${index}`}
+                    className="group mt-2 flex items-center gap-2"
+                    onPaste={(event: ClipboardEvent) =>
+                      handlePasteInOptionAtIndex({ event, optionIndex: index })
+                    }>
                     <div className="flex flex-col gap-2">
-                      {options.length && index !== 0 ? (
+                      {watchedOptions.length && index !== 0 ? (
                         <button
                           type="button"
                           onClick={() => move(index, -1)}
                           className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
-                          <ArrowUp />
+                          <Icon name="arrow-up" />
                         </button>
                       ) : null}
-                      {options.length && index !== options.length - 1 ? (
+                      {watchedOptions.length && index !== watchedOptions.length - 1 ? (
                         <button
                           type="button"
                           onClick={() => move(index, 1)}
                           className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
-                          <ArrowDown />
+                          <Icon name="arrow-down" />
                         </button>
                       ) : null}
                     </div>
@@ -286,18 +298,22 @@ function Field({
                         containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
                         className="border-0 focus:ring-0 focus:ring-offset-0"
                         labelSrOnly
-                        placeholder={field.placeholder.toString()}
-                        value={field.value}
+                        placeholder={optionsPlaceholders[index] ?? "New Option"}
+                        value={option.label}
                         type="text"
+                        required
                         addOnClassname="bg-transparent border-0"
-                        onChange={(e) => handleChange(e, index)}
+                        onChange={(e) => updateLabelAtIndex({ label: e.target.value, optionIndex: index })}
+                        dataTestid={`${hookFieldNamespace}.options.${index}`}
                         addOnSuffix={
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveOptions(index)}
-                            aria-label={t("remove")}>
-                            <X className="h-4 w-4" />
-                          </button>
+                          watchedOptions.length > 1 ? (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveOptions(index)}
+                              aria-label={t("remove")}>
+                              <Icon name="x" className="h-4 w-4" />
+                            </button>
+                          ) : null
                         }
                       />
                     </div>
@@ -309,9 +325,9 @@ function Field({
                   data-testid="add-attribute"
                   className="border-none"
                   type="button"
-                  StartIcon={Plus}
+                  StartIcon="plus"
                   color="secondary"
-                  onClick={handleAddOptions}>
+                  onClick={addOption}>
                   Add an option
                 </Button>
               </div>
@@ -423,7 +439,7 @@ const FormEdit = ({
             <Button
               data-testid="add-field"
               type="button"
-              StartIcon={Plus}
+              StartIcon="plus"
               color="secondary"
               onClick={addField}>
               Add field
@@ -435,7 +451,7 @@ const FormEdit = ({
   ) : (
     <div className="bg-default w-full">
       <EmptyScreen
-        Icon={FileText}
+        Icon="file-text"
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
         buttonRaw={

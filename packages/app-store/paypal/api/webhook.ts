@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
-import * as z from "zod";
+import { z } from "zod";
 
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
