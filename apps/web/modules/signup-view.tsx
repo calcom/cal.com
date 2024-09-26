@@ -446,7 +446,7 @@ export default function Signup({
                   )}
                   {isSamlSignup ? (
                     <Button
-                      data-testid="saml-signup-button"
+                      data-testid="saml-submit-button"
                       color="primary"
                       disabled={
                         !!formMethods.formState.errors.username ||
