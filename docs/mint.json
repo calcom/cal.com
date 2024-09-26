@@ -35,12 +35,12 @@
   "tabs": [
     {
       "name": "API Reference V2",
-      "url": "api/v2",
+      "url": "api-reference/v2",
       "version": "v2"
     },
     {
       "name": "API Reference V1",
-      "url": "api/v1",
+      "url": "api-reference/v1",
       "version": "v1"
     }
   ],
@@ -48,14 +48,14 @@
     {
       "name": "API Reference",
       "openapi": "https://api-v2.cal.dev/docs-json",
-      "url": "/api/v2",
+      "url": "/api-reference/v2",
       "icon": "square-terminal",
       "version": "v2"
     },
     {
       "name": "API Reference",
-      "openapi": "/api/v1/openapi.json",
-      "url": "/api/v1",
+      "openapi": "/api-reference/v1/openapi.json",
+      "url": "/api-reference/v1",
       "icon": "square-terminal",
       "version": "v1"
     }
@@ -64,12 +64,17 @@
     {
       "group": "Getting started",
       "version": "v2",
-      "pages": ["api/v2/introduction", "api/v2/v1-v2-differences"]
+      "pages": ["api-reference/v2/introduction", "api-reference/v2/v1-v2-differences"]
     },
     {
       "group": "Getting started",
       "version": "v1",
-      "pages": ["api/v1/introduction", "api/v1/authentication", "api/v1/errors", "api/v1/rate-limit"]
+      "pages": [
+        "api-reference/v1/introduction",
+        "api-reference/v1/authentication",
+        "api-reference/v1/errors",
+        "api-reference/v1/rate-limit"
+      ]
     }
   ],
   "footerSocials": {
