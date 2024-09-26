@@ -316,9 +316,5 @@
       }
     }
   },
-  "tags": [
-    {
-      "name": "Platform / Cal Provider"
-    }
-  ]
+  "tags": []
 }
