@@ -11,7 +11,7 @@ const CampsiteVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter
     createMeeting: async (_event: CalendarEvent): Promise<VideoCallData> => {
       const keys = credential.key as CampsiteToken;
       const { access_token } = keys;
-      const response = await fetch("https://api.campsite.co/v1/integrations/cal_dot_com/call_rooms", {
+      const response = await fetch("https://api.campsite.com/v1/integrations/cal_dot_com/call_rooms", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${access_token}`,

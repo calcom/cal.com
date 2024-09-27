@@ -47,7 +47,7 @@ export interface IUseBookings {
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
-  teamMemberEmail?: string;
+  teamMemberEmail?: string | null;
 }
 
 const getBookingSuccessfulEventPayload = (booking: {
@@ -231,6 +231,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       });
     },
     onError: (err, _, ctx) => {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
@@ -243,7 +244,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     },
     onError: (err, _, ctx) => {
       console.error("Error creating instant booking", err);
-
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
@@ -310,7 +311,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     bookingForm,
     hashedLink,
     metadata,
-    teamMemberEmail,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,

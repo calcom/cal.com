@@ -148,6 +148,7 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
     email: attendee.email,
     timeZone: attendee.timeZone,
     locale: attendee.language.locale,
+    phoneNumber: attendee.phoneNumber,
   }));
 
   if (evt.team?.members) {
@@ -157,6 +158,7 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
         name: member.name,
         timeZone: member.timeZone,
         locale: member.language.locale,
+        phoneNumber: member.phoneNumber,
       }))
     );
   }
@@ -212,6 +214,7 @@ function buildNewBookingData(params: {
     description: evt.seatsPerTimeSlot ? null : evt.additionalNotes,
     customInputs: isPrismaObjOrUndefined(evt.customInputs),
     status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
+    oneTimePassword: evt.oneTimePassword,
     location: evt.location,
     eventType: eventTypeRel,
     smsReminderNumber,

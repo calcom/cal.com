@@ -4,9 +4,10 @@ import { useFormContext } from "react-hook-form";
 import z from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { ButtonProps } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 
 interface Props {
@@ -19,17 +20,20 @@ const schema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
 });
 
-export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
+export function SAMLLogin({
+  samlTenantID,
+  samlProductID,
+  setErrorMessage,
+  ...buttonProps
+}: Props & ButtonProps) {
   const { t } = useLocale();
   const methods = useFormContext();
   const [lastUsed, setLastUsed] = useLastUsed();
 
   const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
-      const res = await signIn("saml", {}, { tenant: data.tenant, product: data.product });
-      if (res && !res.error) {
-        setLastUsed("saml");
-      }
+      setLastUsed("saml");
+      await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },
     onError: (err) => {
       setErrorMessage(t(err.message));
@@ -40,7 +44,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
     <Button
       StartIcon="lock"
       color="secondary"
-      data-testid="saml"
+      data-testid="samlAndOidc"
       className="flex w-full justify-center"
       onClick={async (event) => {
         event.preventDefault();
@@ -66,7 +70,8 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
         mutation.mutate({
           email,
         });
-      }}>
+      }}
+      {...buttonProps}>
       <span>{t("signin_with_saml_oidc")}</span>
       {lastUsed === "saml" && <LastUsed />}
     </Button>

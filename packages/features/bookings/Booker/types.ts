@@ -85,6 +85,7 @@ export interface BookerProps {
    */
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
+  teamMemberEmail?: string | null;
 }
 
 export type WrappedBookerPropsMain = {

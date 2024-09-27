@@ -1,6 +1,6 @@
 import MembersView from "@calcom/features/ee/organizations/pages/settings/members";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 
-import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";
 
 export {
@@ -8,7 +8,9 @@ export {
   type PageProps,
 } from "@calcom/features/ee/organizations/pages/settings/getServerSidePropsMembers";
 
-const Page = MembersView as unknown as CalPageWrapper;
+const Page = () => <MembersView />;
+
+Page.getLayout = getLayout;
 Page.PageWrapper = PageWrapper;
 
 export default Page;

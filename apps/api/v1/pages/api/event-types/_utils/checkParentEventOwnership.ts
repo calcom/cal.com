@@ -18,12 +18,8 @@ export default async function checkParentEventOwnership(req: NextApiRequest) {
   /** These are already parsed upstream, we can assume they're good here. */
   const parentId = Number(body.parentId);
   const parentEventType = await prisma.eventType.findUnique({
-    where: {
-      id: parentId,
-    },
-    select: {
-      teamId: true,
-    },
+    where: { id: parentId },
+    select: { teamId: true },
   });
 
   if (!parentEventType) {
@@ -44,7 +40,8 @@ export default async function checkParentEventOwnership(req: NextApiRequest) {
     where: {
       teamId: parentEventType.teamId,
       userId: userId,
-      OR: [{ role: "OWNER" }, { role: "ADMIN" }],
+      role: { in: ["ADMIN", "OWNER"] },
+      accepted: true,
     },
   });
 
