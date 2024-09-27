@@ -117,6 +117,8 @@ export type EventData<T extends keyof EventDataMap> = {
   };
 }[T];
 
+export type EmbedEvent<T extends keyof EventDataMap> = CustomEvent<EventData<T>>;
+
 export class SdkActionManager {
   namespace: Namespace;
 

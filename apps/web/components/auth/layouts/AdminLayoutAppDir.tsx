@@ -1,40 +1,23 @@
-"use client";
+import dynamic from "next/dynamic";
+import React from "react";
 
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import type { ComponentProps } from "react";
-import React, { useEffect } from "react";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
+import SettingsLayoutAppDir from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
 
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
-import type Shell from "@calcom/features/shell/Shell";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { ErrorBoundary } from "@calcom/ui";
+import type { AdminLayoutProps } from "./AdminLayoutAppDirClient";
 
-export default function AdminLayout({
-  children,
-  ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const pathname = usePathname();
-  const session = useSession();
-  const router = useRouter();
+const AdminLayoutAppDirClient = dynamic(() => import("./AdminLayoutAppDirClient"), {
+  ssr: false,
+});
 
-  // Force redirect on component level
-  useEffect(() => {
-    if (session.data && session.data.user.role !== UserPermissionRole.ADMIN) {
-      router.replace("/settings/my-account/profile");
-    }
-  }, [session, router]);
+type AdminLayoutAppDirProps = Omit<AdminLayoutProps, "userRole">;
 
-  const isAppsPage = pathname?.startsWith("/settings/admin/apps");
-  return (
-    <SettingsLayout {...rest}>
-      <div className="divide-subtle mx-auto flex max-w-4xl flex-row divide-y">
-        <div className={isAppsPage ? "min-w-0" : "flex flex-1 [&>*]:flex-1"}>
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </div>
-      </div>
-    </SettingsLayout>
-  );
+export default async function AdminLayoutAppDir(props: AdminLayoutAppDirProps) {
+  // FIXME: Refactor me once next-auth endpoint is migrated to App Router
+  const session = await getServerSessionForAppDir();
+  const userRole = session?.user?.role;
+
+  return await SettingsLayoutAppDir({ children: <AdminLayoutAppDirClient {...props} userRole={userRole} /> });
 }
 
-export const getLayout = (page: React.ReactElement) => <AdminLayout>{page}</AdminLayout>;
+export const getLayout = async (page: React.ReactElement) => await AdminLayoutAppDir({ children: page });

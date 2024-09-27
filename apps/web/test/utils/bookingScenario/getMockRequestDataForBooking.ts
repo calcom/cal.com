@@ -26,11 +26,14 @@ export function getMockRequestDataForBooking({
     bookingUid?: string;
     recurringEventId?: string;
     recurringCount?: number;
+    rescheduledBy?: string;
+    cancelledBy?: string;
     schedulingType?: SchedulingType;
     responses: {
       email: string;
       name: string;
       location?: { optionValue: ""; value: string };
+      attendeePhoneNumber?: string;
       smsReminderNumber?: string;
     };
   };

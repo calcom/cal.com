@@ -36,12 +36,14 @@ export type Person = {
   locale?: string | null;
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
+  phoneNumber?: string | null;
 };
 
 export type TeamMember = {
   id?: number;
   name: string;
   email: string;
+  phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
 };
@@ -187,6 +189,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  hideCalendarEventDetails?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
@@ -208,6 +211,7 @@ export interface CalendarEvent {
   platformRescheduleUrl?: string | null;
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
+  oneTimePassword?: string | null;
 }
 
 export interface EntryPoint {

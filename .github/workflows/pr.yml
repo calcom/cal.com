@@ -131,7 +131,7 @@ jobs:
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
-  
+
   build-atoms:
     name: Production builds
     needs: [changes, check-label, deps]
@@ -224,6 +224,7 @@ jobs:
         build,
         build-api-v1,
         build-api-v2,
+        build-atoms,
         e2e,
         e2e-api-v2,
         e2e-embed,

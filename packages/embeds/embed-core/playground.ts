@@ -1,10 +1,11 @@
-import type { GlobalCal } from "./src/embed";
+import type { GlobalCal, EmbedEvent } from "./src/embed";
 
 const Cal = window.Cal as GlobalCal;
 Cal.config = Cal.config || {};
 Cal.config.forwardQueryParams = true;
 
-const callback = function (e) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const callback = function (e: any) {
   const detail = e.detail;
   console.log("Event: ", e.type, detail);
 };
@@ -29,6 +30,10 @@ const searchParams = new URL(document.URL).searchParams;
 const only = searchParams.get("only");
 const colorScheme = searchParams.get("color-scheme");
 const prerender = searchParams.get("prerender");
+
+// @ts-expect-error We haven't defined ENABLE_FUTURE_ROUTES as it is a playground specific variable.
+window.ENABLE_FUTURE_ROUTES = searchParams.get("future-routes") === "true";
+
 if (colorScheme) {
   document.documentElement.style.colorScheme = colorScheme;
 }
@@ -469,10 +474,6 @@ if (only === "all" || only == "ns:monthView") {
       },
     }
   );
-  Cal.ns.monthView("on", {
-    action: "*",
-    callback,
-  });
 }
 
 if (only === "all" || only == "ns:weekView") {
@@ -533,6 +534,23 @@ if (only === "all" || only == "ns:columnView") {
   });
 }
 
+if (only === "all" || only == "ns:autoScrollTest") {
+  if (!calLink) {
+    throw new Error("cal-link parameter is required for autoScrollTest");
+  }
+  Cal("init", "autoScrollTest", {
+    debug: true,
+    origin: origin,
+  });
+  Cal.ns.autoScrollTest("inline", {
+    elementOrSelector: "#cal-booking-place-autoScrollTest .place",
+    calLink: calLink,
+    config: {
+      "flag.coep": "true",
+    },
+  });
+}
+
 if (only === "all" || only == "ns:pageParamsForwarding") {
   Cal("init", "pageParamsForwarding", {
     debug: true,
@@ -550,3 +568,24 @@ if (only === "all" || only == "ns:pageParamsForwarding") {
     },
   });
 }
+
+// Verifies that the type of e.detail.data is valid. type-check will fail if we accidentally break it.
+const bookingSuccessfulV2Callback = (e: EmbedEvent<"bookingSuccessfulV2">) => {
+  const data = e.detail.data;
+  console.log("bookingSuccessfulV2", {
+    endTime: data.endTime,
+    startTime: data.startTime,
+    title: data.title,
+  });
+
+  // Remove the event listener after it is fired once
+  Cal("off", {
+    action: "bookingSuccessfulV2",
+    callback: bookingSuccessfulV2Callback,
+  });
+};
+
+Cal("on", {
+  action: "bookingSuccessfulV2",
+  callback: bookingSuccessfulV2Callback,
+});
