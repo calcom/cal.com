@@ -1,7 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { Throttle, seconds } from "@nestjs/throttler";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -19,6 +20,7 @@ export class SlotsController {
   constructor(private readonly slotsService: SlotsService) {}
 
   @Post("/reserve")
+  @ApiOperation({ summary: "Reserve a slot" })
   async reserveSlot(
     @Body() body: ReserveSlotInput,
     @Res({ passthrough: true }) res: ExpressResponse,
@@ -34,6 +36,7 @@ export class SlotsController {
   }
 
   @Delete("/selected-slot")
+  @ApiOperation({ summary: "Delete a selected slot" })
   async deleteSelectedSlot(
     @Query() params: RemoveSelectedSlotInput,
     @Req() req: ExpressRequest
@@ -48,6 +51,8 @@ export class SlotsController {
   }
 
   @Get("/available")
+  @ApiOperation({ summary: "Get available slots" })
+  @Throttle({ default: { limit: 300, ttl: seconds(60) } }) // allow 300 requests per minute
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput,
     @Req() req: ExpressRequest

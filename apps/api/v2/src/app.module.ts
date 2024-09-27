@@ -1,5 +1,7 @@
 import appConfig from "@/config/app";
+import { CustomThrottlerGuard } from "@/lib/throttler-guard";
 import { AppLoggerMiddleware } from "@/middleware/app.logger.middleware";
+import { RedirectsMiddleware } from "@/middleware/app.redirects.middleware";
 import { RewriterMiddleware } from "@/middleware/app.rewrites.middleware";
 import { JsonBodyMiddleware } from "@/middleware/body/json.body.middleware";
 import { RawBodyMiddleware } from "@/middleware/body/raw.body.middleware";
@@ -15,7 +17,7 @@ import { BullModule } from "@nestjs/bull";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
-import { seconds, ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { seconds, ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerStorageRedisService } from "nestjs-throttler-storage-redis";
 
 import { AppController } from "./app.controller";
@@ -32,6 +34,7 @@ import { AppController } from "./app.controller";
     BullModule.forRoot({
       redis: `${process.env.REDIS_URL}${process.env.NODE_ENV === "production" ? "?tls=true" : ""}`,
     }),
+    // Rate limiting here is handled by the CustomThrottlerGuard
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
       inject: [RedisService],
@@ -59,7 +62,7 @@ import { AppController } from "./app.controller";
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: CustomThrottlerGuard,
     },
   ],
 })
@@ -77,6 +80,8 @@ export class AppModule implements NestModule {
       .forRoutes("*")
       .apply(AppLoggerMiddleware)
       .forRoutes("*")
+      .apply(RedirectsMiddleware)
+      .forRoutes("/")
       .apply(RewriterMiddleware)
       .forRoutes("/");
   }

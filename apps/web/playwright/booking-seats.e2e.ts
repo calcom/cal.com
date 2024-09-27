@@ -7,9 +7,11 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
+  confirmReschedule,
   createNewSeatedEventType,
-  selectFirstAvailableTimeSlotNextMonth,
   createUserWithSeatedEventAndAttendees,
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -160,9 +162,9 @@ test.describe("Reschedule for booking with seats", () => {
       `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
     );
 
-    await page.locator('[data-testid="confirm_cancel"]').click();
-
-    await page.waitForResponse((res) => res.url().includes("api/cancel") && res.status() === 200);
+    await submitAndWaitForResponse(page, "/api/cancel", {
+      action: () => page.locator('[data-testid="confirm_cancel"]').click(),
+    });
 
     const oldBooking = await prisma.booking.findFirst({
       where: { uid: booking.uid },
@@ -396,7 +398,7 @@ test.describe("Reschedule for booking with seats", () => {
     await expect(reasonElement).toBeVisible();
 
     // expect to be redirected to reschedule page
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     // should wait for URL but that path starts with booking/
     await page.waitForURL(/\/booking\/.*/);

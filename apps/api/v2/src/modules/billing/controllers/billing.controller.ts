@@ -7,9 +7,8 @@ import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subsc
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
 import { BillingService } from "@/modules/billing/services/billing.service";
-import { PlatformPlan } from "@/modules/billing/types";
+import { StripeService } from "@/modules/stripe/stripe.service";
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -25,7 +24,6 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
 import { Request } from "express";
-import { Stripe } from "stripe";
 
 import { ApiResponse } from "@calcom/platform-types";
 
@@ -40,6 +38,7 @@ export class BillingController {
 
   constructor(
     private readonly billingService: BillingService,
+    public readonly stripeService: StripeService,
     private readonly configService: ConfigService<AppConfig>
   ) {
     this.stripeWhSecret = configService.get("stripe.webhookSecret", { infer: true }) ?? "";
@@ -69,13 +68,32 @@ export class BillingController {
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
   ): Promise<ApiResponse<SubscribeTeamToBillingResponseDto | undefined>> {
-    const { status } = await this.billingService.getBillingData(teamId);
+    const { action, url } = await this.billingService.createSubscriptionForTeam(teamId, input.plan);
 
-    if (status === "valid") {
-      throw new BadRequestException("This team is already subscribed to a plan.");
+    if (action === "redirect") {
+      return {
+        status: "success",
+        data: {
+          action: "redirect",
+          url,
+        },
+      };
     }
 
-    const { action, url } = await this.billingService.createSubscriptionForTeam(teamId, input.plan);
+    return {
+      status: "success",
+    };
+  }
+
+  @Post("/:teamId/upgrade")
+  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @MembershipRoles(["OWNER", "ADMIN"])
+  async upgradeTeamBillingInStripe(
+    @Param("teamId") teamId: number,
+    @Body() input: SubscribeToPlanInput
+  ): Promise<ApiResponse<SubscribeTeamToBillingResponseDto | undefined>> {
+    const { action, url } = await this.billingService.updateSubscriptionForTeam(teamId, input.plan);
+
     if (action === "redirect") {
       return {
         status: "success",
@@ -103,33 +121,7 @@ export class BillingController {
       this.stripeWhSecret
     );
 
-    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
-      const subscription = event.data.object as Stripe.Subscription;
-      if (!subscription.metadata?.teamId) {
-        return {
-          status: "success",
-        };
-      }
-
-      const teamId = Number.parseInt(subscription.metadata.teamId);
-      const plan = subscription.metadata.plan;
-      if (!plan || !teamId) {
-        this.logger.log("Webhook received but not pertaining to Platform, discarding.");
-        return {
-          status: "success",
-        };
-      }
-
-      await this.billingService.setSubscriptionForTeam(
-        teamId,
-        subscription,
-        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
-      );
-
-      return {
-        status: "success",
-      };
-    }
+    await this.billingService.createOrUpdateStripeSubscription(event);
 
     return {
       status: "success",
