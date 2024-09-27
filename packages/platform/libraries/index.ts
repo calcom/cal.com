@@ -1,5 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarService } from "@calcom/app-store/applecalendar/lib";
+import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
@@ -94,22 +95,39 @@ export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-u
 export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 export {
-  transformApiEventTypeBookingFields,
-  transformApiEventTypeIntervalLimits,
-  transformApiEventTypeLocations,
-  getResponseEventTypeLocations,
-  getResponseEventTypeBookingFields,
+  // note(Lauris): Api to internal
+  transformBookingFieldsApiToInternal,
+  transformLocationsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
+  transformRecurrenceApiToInternal,
+  transformBookerLayoutsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformEventColorsApiToInternal,
+  transformSeatsApiToInternal,
+  // note(Lauris): Internal to api
+  transformBookingFieldsInternalToApi,
+  transformLocationsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformRecurrenceInternalToApi,
+  transformBookerLayoutsInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformSeatsInternalToApi,
+  // note(Lauris): schemas
   TransformedLocationsSchema,
   BookingFieldsSchema,
-  getResponseEventTypeIntervalLimits,
-  getResponseEventTypeFutureBookingLimits,
-  transformApiEventTypeFutureBookingLimits,
-  transformApiEventTypeRecurrence,
-  getResponseEventTypeRecurrence,
+  // note(Lauris): constants
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldRescheduleReason,
 } from "@calcom/lib/event-types/transformers";
 
-export { parseBookingLimit } from "@calcom/lib";
-export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
+export type { SystemField, CustomField } from "@calcom/lib/event-types/transformers";
+
+export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
@@ -124,3 +142,6 @@ export { getTranslation };
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
+
+export { IcsFeedCalendarService };
+export { validateCustomEventName } from "@calcom/core/event";

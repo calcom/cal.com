@@ -974,6 +974,8 @@ checksums:
     signin_with_google: f84b1b8574fb23734c002b401cad49e2
     signin_with_saml: 932c77d607b1fa394c53aedf4259ecf8
     signin_with_saml_oidc: 3d9ec37d3e09a530398f25a77dc27070
+    continue_with_email: 42a67d19cf743f883eee15ca96579f22
+    continue_with_google: 296841ac969a7f5d0fffc144f2488bbb
     last_used: 79c1790ff1f8cf956c06f93699704b4d
     you_will_need_to_generate: deaaf4d09d215932679faf27827222c1
     import: 348b8ab981de5b7f1fca6d7302263bbd
@@ -1029,9 +1031,9 @@ checksums:
     installed_other: 25f19e5931e29ffdbf4cec6ea0db8b93
     verify_wallet: ba0dac35dde0024fdf54f4db82b818a3
     create_events_on: eaa763ea656b9e7f8290bc5ed0984ab4
-    enterprise_license: 45f91fd21b7f938a3c591775512f024f
+    enterprise_license: b3d02910f01b8483595644c29ea8c026
     enterprise_license_locally: 327a7ba96a6aa5638278b66dc945d060
-    enterprise_license_sales: c3050be48188a2a066114fd8c89be77a
+    enterprise_license_sales: 6ddc24566e6ce9799886389110639d65
     missing_license: 9ae9ce7650395265fe358b8209eae43c
     next_steps: 12392fe73ae60b6e5a9d851256b8477e
     acquire_commercial_license: cba688b700ac5f3d9eef805fc6fac0fc
@@ -1733,6 +1735,7 @@ checksums:
     already_have_account: 699043a787e26ec2ecad53f52df28d5b
     already_have_key: 18768c72aec29b91c4a8fb5b9af7f77d
     already_have_key_suggestion: c2c89f46f30bf9713e7ae09b63adc470
+    create_license_key: 1430b640d5efb293d0484cf2f9fac5c7
     app_is_enabled: 38a2bd1420d7cc809fb716dd73ffceda
     app_is_disabled: da8f70cedc70b97cf1461f91952f1373
     keys_have_been_saved: d2aaa76ef379fc0b2d44a7fb1bfdb75b
@@ -2481,6 +2484,7 @@ checksums:
     lock_org_users_eventtypes_description: 03457f2d4e1311209ae417982afeec86
     add_to_event_type: 372ae07e79c77be4504d31245fff222e
     create_account_password: f9d4c3b6d3f9b7a218da8abb6a128a2c
+    create_account_with_saml: 29412fbd06b4bcc0b300987632079737
     error_creating_account_password: 4f8272ccba5d0745c17d76345a1aaff3
     cannot_create_account_password_cal_provider: ef87fdd935251ae04c49cd7b7c8758d3
     cannot_create_account_password_already_existing: ea1efae1f472bb23edd77580dbfdb478
@@ -2605,5 +2609,11 @@ checksums:
     reschedule_with_same_round_robin_host_title: 0b315779fdae608827ceab1b1640423b
     reschedule_with_same_round_robin_host_description: d581417695b5275d6706a08b8d7dd39a
     disable_input_if_prefilled: 19415e3062d8ef1031beb38ce4a0b3c9
+    booking_limits: d5ad11cfda4e601b89557825502e661f
+    booking_limits_team_description: 691b85f82abc36bfe95c9cb22ebba62b
+    limit_team_booking_frequency_description: 9ae22ec673d2ddaf9a3948f73b4bdf3d
+    booking_limits_updated_successfully: c1dbc8e3ecbbc1c25351806a30ab6368
     you_are_unauthorized_to_make_this_change_to_the_booking: c770486d5b4b98a407ff485cbe60e563
+    hide_calendar_event_details: 18686c17d852ffc8acf5549587897df5
+    description_hide_calendar_event_details: b7c5880a3d927f4f9255d2afa6e330d1
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

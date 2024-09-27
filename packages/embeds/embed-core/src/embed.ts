@@ -10,6 +10,10 @@ import allCss from "./tailwind.generated.css?inline";
 import type { UiConfig } from "./types";
 
 export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
+
+// Exporting for consumption by @calcom/embed-core user
+export type { EmbedEvent } from "./sdk-action-manager";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[]> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -141,10 +145,20 @@ function withColorScheme(
   return queryObject;
 }
 
+type allPossibleCallbacksAndActions = {
+  [K in keyof EventDataMap]: {
+    action: K;
+    callback: (arg0: CustomEvent<EventData<K>>) => void;
+  };
+}[keyof EventDataMap];
+
 type SingleInstructionMap = {
-  // TODO: This makes api("on", {}) loose it's generic type. Find a way to fix it.
-  // e.g. api("on", { action: "__dimensionChanged", callback: (e) => { /* `e.detail.data` has all possible values for all events/actions */} });
-  [K in keyof CalApi]: CalApi[K] extends (...args: never[]) => void ? [K, ...Parameters<CalApi[K]>] : never;
+  on: ["on", allPossibleCallbacksAndActions];
+  off: ["off", allPossibleCallbacksAndActions];
+} & {
+  [K in Exclude<keyof CalApi, "on" | "off">]: CalApi[K] extends (...args: never[]) => void
+    ? [K, ...Parameters<CalApi[K]>]
+    : never;
 };
 
 type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
@@ -387,6 +401,7 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Intentionally done
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });

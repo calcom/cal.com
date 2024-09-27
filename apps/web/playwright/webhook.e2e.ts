@@ -9,9 +9,11 @@ import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
   bookTimeSlot,
+  confirmReschedule,
   createUserWithSeatedEventAndAttendees,
   gotoRoutingLink,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 // remove dynamic properties that differs depending on where you run the tests
@@ -104,6 +106,7 @@ test.describe("BOOKING_CREATED", async () => {
         location: "[redacted/dynamic]",
         destinationCalendar: null,
         hideCalendarNotes: false,
+        hideCalendarEventDetails: false,
         requiresConfirmation: "[redacted/dynamic]",
         eventTypeId: "[redacted/dynamic]",
         seatsShowAttendees: true,
@@ -145,8 +148,10 @@ test.describe("BOOKING_REJECTED", async () => {
     const webhookReceiver = await webhooks.createReceiver();
     await page.goto("/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
-    await page.click('[data-testid="rejection-confirm"]');
-    await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
+
+    await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm?batch=1", {
+      action: () => page.click('[data-testid="rejection-confirm"]'),
+    });
 
     await webhookReceiver.waitForRequestCount(1);
 
@@ -358,7 +363,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page.getByTestId("success-page")).toBeVisible();
 
@@ -426,7 +431,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page.getByTestId("success-page")).toBeVisible();
 
@@ -459,7 +464,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     await expect(page).toHaveURL(/.*booking/);
 
@@ -577,11 +582,9 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     expect(newMeetingEndedTriggers.length).toBe(0);
 
     // disable webhook
-    await page.click('[data-testid="webhook-switch"]');
-    await page.getByTestId("webhook-switch").click();
-    const response = await page.waitForResponse("/api/trpc/webhook/edit?batch=1");
-    expect(response.status()).toBe(200);
-    // await page.waitForLoadState("networkidle");
+    await submitAndWaitForResponse(page, "/api/trpc/webhook/edit?batch=1", {
+      action: () => page.getByTestId("webhook-switch").click(),
+    });
 
     const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
       where: {
@@ -610,7 +613,6 @@ test.describe("FORM_SUBMITTED", async () => {
 
     await user.apiLogin();
     const webhookReceiver = await webhooks.createReceiver();
-    // await page.waitForLoadState("networkidle");
 
     const form = await routingForms.create({
       name: "Test Form",
@@ -625,8 +627,6 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
-
-    // await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";
@@ -694,8 +694,6 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
-
-    // await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const textFieldIdentifier = "name";

@@ -58,7 +58,17 @@ export default function Platform() {
     return <div className="m-5">Loading...</div>;
   }
 
-  if (isPlatformUser && !isPaidUser) return <PlatformPricing teamId={userOrgId} />;
+  if (isPlatformUser && !isPaidUser)
+    return (
+      <PlatformPricing
+        teamId={userOrgId}
+        heading={
+          <div className="mb-5 text-center text-2xl font-semibold">
+            <h1>Subscribe to Platform</h1>
+          </div>
+        }
+      />
+    );
 
   if (isPlatformUser) {
     return (
