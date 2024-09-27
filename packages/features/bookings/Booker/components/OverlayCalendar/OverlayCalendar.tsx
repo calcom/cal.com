@@ -4,7 +4,6 @@ import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 import { useOverlayCalendar } from "../hooks/useOverlayCalendar";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
 import { OverlayCalendarSettingsModal } from "./OverlayCalendarSettingsModal";
-import { OverlayCalendarSwitch } from "./OverlayCalendarSwitch";
 
 type OverlayCalendarProps = Pick<
   UseCalendarsReturnType,
@@ -48,11 +47,11 @@ export const OverlayCalendar = ({
 
   return (
     <>
-      <OverlayCalendarSwitch
-        enabled={isOverlayCalendarEnabled}
-        hasSession={hasSession}
-        onStateChange={handleSwitchStateChange}
-      />
+      {/*<OverlayCalendarSwitch*/}
+      {/*  enabled={isOverlayCalendarEnabled}*/}
+      {/*  hasSession={hasSession}*/}
+      {/*  onStateChange={handleSwitchStateChange}*/}
+      {/*/>*/}
       {!isPlatform && (
         <OverlayCalendarContinueModal
           open={isOpenOverlayContinueModal}
