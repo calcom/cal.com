@@ -4141,6 +4141,7 @@ __metadata:
     "@calcom/prisma": "*"
     "@golevelup/ts-jest": ^0.4.0
     "@microsoft/microsoft-graph-types-beta": ^0.42.0-preview
+    "@nest-lab/throttler-storage-redis": 1.0.0
     "@nestjs/bull": ^10.1.1
     "@nestjs/cli": ^10.0.0
     "@nestjs/common": ^10.0.0
@@ -4175,7 +4176,6 @@ __metadata:
     jest: ^29.7.0
     luxon: ^3.4.4
     nest-winston: ^1.9.4
-    nestjs-throttler-storage-redis: ^0.4.1
     next-auth: ^4.22.1
     passport: ^0.7.0
     passport-jwt: ^4.0.1
@@ -9489,6 +9489,32 @@ __metadata:
     pump: ^3.0.0
     tar-fs: ^2.1.1
   checksum: 7fa8ac40b4e85738a4ee6bf891bc27fce2445b65b4477e0ec86aed0fa62ab18bdf5d193ce04553ad9bfa639e1eef33b8b30da4ef3e7218f12bf95f24c8786e5b
+  languageName: node
+  linkType: hard
+
+"@nest-lab/throttler-storage-redis@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@nest-lab/throttler-storage-redis@npm:1.0.0"
+  dependencies:
+    tslib: ^2.3.0
+  peerDependencies:
+    "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
+    "@nestjs/core": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
+    "@nestjs/throttler": ">=6.0.0"
+    ioredis: ">=5.0.0"
+    reflect-metadata: ^0.2.1
+  peerDependenciesMeta:
+    "@nestjs/common":
+      optional: false
+    "@nestjs/core":
+      optional: false
+    "@nestjs/throttler":
+      optional: false
+    ioredis:
+      optional: false
+    reflect-metadata:
+      optional: false
+  checksum: ed6913f789e73a94370547c6fc1336d582e56b635dda951f18be297508cf732849cf45190e19df081c3849aede7cc5fe3940bd43373eb33201e91363651e19c8
   languageName: node
   linkType: hard
 
@@ -36538,19 +36564,6 @@ __metadata:
     "@nestjs/common": ^5.0.0 || ^6.6.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
     winston: ^3.0.0
   checksum: 595d23135b4760d7ac18613acf018dff538f8167eac7052a473c4995a6609c3584270dd4d82d6a4b3d7fba688284c04e33b93479bbe933a1e2f27d1cd964a681
-  languageName: node
-  linkType: hard
-
-"nestjs-throttler-storage-redis@npm:^0.4.1":
-  version: 0.4.3
-  resolution: "nestjs-throttler-storage-redis@npm:0.4.3"
-  peerDependencies:
-    "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/core": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/throttler": ">=5.0.0"
-    ioredis: ">=5.0.0"
-    reflect-metadata: ^0.2.1
-  checksum: 72178c70aff73a554701f3d92e5d80dc67f50eedb92200bacfad9542d067d3bbdb4583210f7010a4fd18c77864a5d58bea8103d45f0b0c0c53c93bf9630b49f8
   languageName: node
   linkType: hard
 
