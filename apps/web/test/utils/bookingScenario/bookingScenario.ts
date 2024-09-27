@@ -191,6 +191,7 @@ type WhiteListedBookingProps = {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  user?: { id: number };
   bookingSeat?: Prisma.BookingSeatCreateInput[];
   createdAt?: string;
 };
