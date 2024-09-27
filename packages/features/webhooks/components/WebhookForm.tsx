@@ -137,16 +137,6 @@ const WebhookForm = (props: {
     }
   }, [changeSecret, formMethods]);
 
-  useEffect(() => {
-    if (showTimeSection) {
-      formMethods.setValue("time", props.webhook?.time || 5, { shouldDirty: true });
-      formMethods.setValue("timeUnit", props.webhook?.timeUnit || TimeUnit.MINUTE, { shouldDirty: true });
-    } else {
-      formMethods.setValue("time", undefined, { shouldDirty: true });
-      formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
-    }
-  }, [showTimeSection]);
-
   return (
     <Form
       form={formMethods}
@@ -209,13 +199,23 @@ const WebhookForm = (props: {
                   value={selectValue}
                   onChange={(event) => {
                     onChange(event.map((selection) => selection.value));
-                    setShowTimeSection(
-                      !!event.find(
-                        (trigger) =>
-                          trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-                          trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-                      )
+                    const noShowWebhookTriggerExists = !!event.find(
+                      (trigger) =>
+                        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                     );
+
+                    if (noShowWebhookTriggerExists) {
+                      formMethods.setValue("time", props.webhook?.time ?? 5, { shouldDirty: true });
+                      formMethods.setValue("timeUnit", props.webhook?.timeUnit ?? TimeUnit.MINUTE, {
+                        shouldDirty: true,
+                      });
+                    } else {
+                      formMethods.setValue("time", undefined, { shouldDirty: true });
+                      formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
+                    }
+
+                    setShowTimeSection(noShowWebhookTriggerExists);
                   }}
                 />
               </div>

@@ -29,7 +29,7 @@ const TimeUnitAddonSuffix = ({
   // because isDropdownOpen already triggers a render cycle we can use getValues()
   // instead of watch() function
   const form = useFormContext();
-  const timeUnit = form.getValues("timeUnit");
+  const timeUnit = form.getValues("timeUnit") ?? TimeUnit.MINUTE;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   return (
     <Dropdown onOpenChange={setIsDropdownOpen}>
