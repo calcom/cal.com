@@ -4,6 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModuleOptions, ThrottlerStorage } from "@nestjs/throttler";
 import { Request } from "express";
+import { ThrottlerStorageRedisService } from "nestjs-throttler-storage-redis";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 
@@ -11,13 +12,16 @@ import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 export class CustomThrottlerGuard extends ThrottlerGuard {
   private logger = new Logger("CustomThrottlerGuard");
 
+  protected storageService: ThrottlerStorageRedisService;
+
   constructor(
     options: ThrottlerModuleOptions,
-    storageService: ThrottlerStorage,
+    storageService: ThrottlerStorageRedisService,
     reflector: Reflector,
     private readonly config: ConfigService
   ) {
     super(options, storageService, reflector);
+    this.storageService = storageService;
   }
 
   protected async getTracker(request: Request): Promise<string> {
