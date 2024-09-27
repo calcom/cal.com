@@ -485,6 +485,14 @@ export async function addBookings(bookings: InputBooking[]) {
         };
       }
 
+      if (booking.user) {
+        bookingCreate.user = {
+          connect: {
+            id: booking.user.id,
+          },
+        };
+      }
+
       return bookingCreate;
     })
   );

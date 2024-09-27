@@ -92,6 +92,7 @@ describe("Trigger Host No Show:", () => {
               status: BookingStatus.ACCEPTED,
               startTime: bookingStartTime,
               endTime: `${plus1DateString}T05:15:00.000Z`,
+              user: { id: organizer.id },
               metadata: {
                 videoCallUrl: "https://existing-daily-video-call-url.example.com",
               },
@@ -219,6 +220,7 @@ describe("Trigger Host No Show:", () => {
               status: BookingStatus.ACCEPTED,
               startTime: bookingStartTime,
               endTime: `${plus1DateString}T05:15:00.000Z`,
+              user: { id: organizer.id },
               metadata: {
                 videoCallUrl: "https://existing-daily-video-call-url.example.com",
               },
