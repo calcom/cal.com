@@ -335,7 +335,7 @@ export default function Signup({
         <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
-          <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
+          <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
             {displayBackButton && (
               <div className="flex w-fit lg:-mt-12">
                 <Button
@@ -595,7 +595,7 @@ export default function Signup({
                     {t("sign_in")}
                   </Link>
                 </div>
-                <div className="text-subtle ">
+                <div className="text-subtle">
                   <Trans
                     i18nKey="signing_up_terms"
                     components={[
@@ -619,57 +619,51 @@ export default function Signup({
               </div>
             </div>
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
-            {IS_CALCOM && (
-              <>
-                <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
-                  <div>
-                    <img
-                      src="/product-cards/product-of-the-day.svg"
-                      className="h-[34px] w-full dark:invert"
-                      alt="Cal.com was Product of the Day at ProductHunt"
-                    />
-                  </div>
-                  <div>
-                    <img
-                      src="/product-cards/product-of-the-week.svg"
-                      className="h-[34px] w-full dark:invert"
-                      alt="Cal.com was Product of the Week at ProductHunt"
-                    />
-                  </div>
-                  <div>
-                    <img
-                      src="/product-cards/product-of-the-month.svg"
-                      className="h-[34px] w-full dark:invert"
-                      alt="Cal.com was Product of the Month at ProductHunt"
-                    />
-                  </div>
+          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:pb-4 lg:pl-12 lg:pt-8">
+            <>
+              <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-day.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Day at ProductHunt"
+                  />
                 </div>
-                <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
-                  <div>
-                    <img
-                      src="/product-cards/producthunt.svg"
-                      className="h-[54px] w-full"
-                      alt="ProductHunt Rating of 5 Stars"
-                    />
-                  </div>
-                  <div>
-                    <img
-                      src="/product-cards/google-reviews.svg"
-                      className="h-[54px] w-full"
-                      alt="Google Reviews Rating of 4.7 Stars"
-                    />
-                  </div>
-                  <div>
-                    <img
-                      src="/product-cards/g2.svg"
-                      className="h-[54px] w-full"
-                      alt="G2 Rating of 4.7 Stars"
-                    />
-                  </div>
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-week.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Week at ProductHunt"
+                  />
                 </div>
-              </>
-            )}
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-month.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Month at ProductHunt"
+                  />
+                </div>
+              </div>
+              <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div>
+                  <img
+                    src="/product-cards/producthunt.svg"
+                    className="h-[54px] w-full"
+                    alt="ProductHunt Rating of 5 Stars"
+                  />
+                </div>
+                <div>
+                  <img
+                    src="/product-cards/google-reviews.svg"
+                    className="h-[54px] w-full"
+                    alt="Google Reviews Rating of 4.7 Stars"
+                  />
+                </div>
+                <div>
+                  <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="G2 Rating of 4.7 Stars" />
+                </div>
+              </div>
+            </>
             <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
               <img
