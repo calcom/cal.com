@@ -66,6 +66,7 @@ async function postHandler(req: NextApiRequest) {
       zuid: body.zuid,
     },
   });
+
   if (existingSetupEntry) {
     throw new Error("zoho user already has a managed setup in progress");
   }
@@ -163,7 +164,7 @@ async function postHandler(req: NextApiRequest) {
   await sendMail({
     from: "buffer-sender@buffer-staging.esa-emails.technology",
     to: "talor.dcs@gmail.com",
-    subject: "",
+    subject: "Scheduling Setup",
     html: setupZohoCalenderOauthEmail({ url }),
   });
 
