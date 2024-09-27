@@ -9,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button, ButtonGroup, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
 
-import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
 
@@ -134,7 +133,7 @@ export function Header({
       </div>
       <div className="ml-auto flex gap-2">
         {renderOverlay?.()}
-        <TimeFormatToggle />
+        {/*<TimeFormatToggle />*/}
         <div className="fixed top-4 ltr:right-4 rtl:left-4">
           <LayoutToggleWithData
             layout={layout}

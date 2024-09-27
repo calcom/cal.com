@@ -2,7 +2,6 @@ import { useIsPlatform } from "@calcom/atoms/monorepo";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 import { useOverlayCalendar } from "../hooks/useOverlayCalendar";
-import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
 import { OverlayCalendarSettingsModal } from "./OverlayCalendarSettingsModal";
 
 type OverlayCalendarProps = Pick<
@@ -52,13 +51,13 @@ export const OverlayCalendar = ({
       {/*  hasSession={hasSession}*/}
       {/*  onStateChange={handleSwitchStateChange}*/}
       {/*/>*/}
-      {!isPlatform && (
-        <OverlayCalendarContinueModal
-          open={isOpenOverlayContinueModal}
-          onClose={handleCloseContinueModal}
-          onContinue={handleClickContinue}
-        />
-      )}
+      {/*{!isPlatform && (*/}
+      {/*  <OverlayCalendarContinueModal*/}
+      {/*    open={isOpenOverlayContinueModal}*/}
+      {/*    onClose={handleCloseContinueModal}*/}
+      {/*    onContinue={handleClickContinue}*/}
+      {/*  />*/}
+      {/*)}*/}
       <OverlayCalendarSettingsModal
         connectedCalendars={connectedCalendars}
         open={isOpenOverlaySettingsModal}
