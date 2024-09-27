@@ -7504,6 +7504,9 @@
           "hideCalendarNotes": {
             "type": "boolean"
           },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
+          },
           "color": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
@@ -7565,6 +7568,7 @@
           "confirmationPolicy",
           "requiresBookerEmailVerification",
           "hideCalendarNotes",
+          "hideCalendarEventDetails",
           "color",
           "seats",
           "offsetStart",
@@ -9507,6 +9511,9 @@
             "type": "boolean"
           },
           "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
             "type": "boolean"
           },
           "color": {

@@ -972,6 +972,8 @@
   "signin_with_google": "Accedi con Google",
   "signin_with_saml": "Accedi con SAML",
   "signin_with_saml_oidc": "Accedi con SAML/OIDC",
+  "continue_with_email": "Continua con l'email",
+  "continue_with_google": "Continua con Google",
   "last_used": "Ultimo utilizzo",
   "you_will_need_to_generate": "Dovrai generare un token di accesso con il tuo vecchio strumento di pianificazione.",
   "import": "Importa",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Impedisci ai membri di creare propri tipi di evento.",
   "add_to_event_type": "Aggiungi al tipo di evento",
   "create_account_password": "Crea password per l'account",
+  "create_account_with_saml": "Crea un account con SAML",
   "error_creating_account_password": "Non è stato possibile creare la password per l'account",
   "cannot_create_account_password_cal_provider": "Impossibile creare password per gli account cal",
   "cannot_create_account_password_already_existing": "Impossibile creare password per account già creati",
@@ -2609,5 +2612,7 @@
   "limit_team_booking_frequency_description": "Limita quante volte i membri possono essere prenotati in tutti i tipi di eventi del team (collettivi e round-robin)",
   "booking_limits_updated_successfully": "Limiti di prenotazione aggiornati con successo",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Non sei autorizzato a effettuare questa modifica alla prenotazione",
+  "hide_calendar_event_details": "Nascondi i dettagli degli eventi del calendario nei calendari condivisi",
+  "description_hide_calendar_event_details": "Quando un calendario è condiviso, gli eventi sono visibili ai lettori ma i loro dettagli sono nascosti a chi non ha accesso in scrittura.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
