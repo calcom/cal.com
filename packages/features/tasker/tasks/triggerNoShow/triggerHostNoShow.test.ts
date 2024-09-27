@@ -125,6 +125,7 @@ describe("Trigger Host No Show:", () => {
       vi.mocked(getMeetingSessionsFromRoomName).mockResolvedValue(EMPTY_MEETING_SESSIONS);
 
       const payload = JSON.stringify({
+        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         bookingId: 222,
         webhook: {
           id: "22",
@@ -274,6 +275,7 @@ describe("Trigger Host No Show:", () => {
       vi.mocked(getMeetingSessionsFromRoomName).mockResolvedValue(MOCKED_MEETING_SESSIONS);
 
       const payload = JSON.stringify({
+        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         bookingId: 222,
         webhook: {
           id: "22",
