@@ -16,6 +16,9 @@ export const OutlookConnect: FC<Partial<OAuthConnectProps>> = ({
   onCheckError,
   redir,
   initialData,
+  isMultiCalendar = false,
+  tooltipSide,
+  tooltip,
 }) => {
   const { t } = useLocale();
   return (
@@ -28,6 +31,9 @@ export const OutlookConnect: FC<Partial<OAuthConnectProps>> = ({
       onCheckError={onCheckError}
       redir={redir}
       initialData={initialData}
+      isMultiCalendar={isMultiCalendar}
+      tooltipSide={tooltipSide}
+      tooltip={tooltip}
     />
   );
 };

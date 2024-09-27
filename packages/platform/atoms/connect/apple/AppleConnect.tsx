@@ -13,11 +13,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Tooltip } from "@calcom/ui";
 import { Button, Form, PasswordField, TextField } from "@calcom/ui";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";
 import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
+import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
@@ -29,6 +31,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   loadingLabel,
   className,
   initialData,
+  isMultiCalendar,
 }) => {
   const { t } = useLocale();
   const form = useForm({
@@ -42,6 +45,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     calendar: "apple",
     initialData,
   });
+  const { data: connectedCalendars, isLoading: isConnectedCalendarsLoading } = useConnectedCalendars({});
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   let displayedLabel = label || t("apple_connect_atom_label");
@@ -64,6 +68,20 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     },
   });
 
+  const connectedCalendarsTooltip = () => {
+    return (
+      <div className="border-subtle bg-subtle rounded-md border-[1.5px]">
+        {connectedCalendars?.connectedCalendars.map((calendar, index) => {
+          return (
+            <div key={calendar.primary?.externalId} className="bg-subtle  px-4 py-2 text-black">
+              {calendar.primary?.name} - {calendar.primary?.email}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const isChecking = !checked;
   const isDisabled = isChecking || !allowConnect;
 
@@ -73,18 +91,35 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     displayedLabel = alreadyConnectedLabel || t("apple_connect_atom_already_connected_label");
   }
 
+  if (isMultiCalendar) {
+    if (
+      !!connectedCalendars?.connectedCalendars &&
+      !isConnectedCalendarsLoading &&
+      connectedCalendars?.connectedCalendars?.length < 1
+    ) {
+      return null;
+    }
+  }
+
   return (
     <AtomsWrapper>
       <Dialog open={isDialogOpen}>
         <DialogTrigger asChild>
-          <Button
-            StartIcon="calendar-days"
-            color="primary"
-            disabled={isDisabled}
-            className={cn("", className, isDisabled && "cursor-not-allowed", !isDisabled && "cursor-pointer")}
-            onClick={() => setIsDialogOpen(true)}>
-            {displayedLabel}
-          </Button>
+          <Tooltip content={connectedCalendarsTooltip()}>
+            <Button
+              StartIcon="calendar-days"
+              color="primary"
+              disabled={isDisabled}
+              className={cn(
+                "",
+                className,
+                isDisabled && "cursor-not-allowed",
+                !isDisabled && "cursor-pointer"
+              )}
+              onClick={() => setIsDialogOpen(true)}>
+              {displayedLabel}
+            </Button>
+          </Tooltip>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>

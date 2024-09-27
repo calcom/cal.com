@@ -16,6 +16,8 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
   onCheckError,
   redir,
   initialData,
+  isMultiCalendar = false,
+  tooltipSide,
 }) => {
   const { t } = useLocale();
   return (
@@ -28,6 +30,8 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
       onCheckError={onCheckError}
       redir={redir}
       initialData={initialData}
+      isMultiCalendar={isMultiCalendar}
+      tooltipSide={tooltipSide}
     />
   );
 };

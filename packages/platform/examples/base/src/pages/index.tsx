@@ -25,6 +25,9 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
               className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
             />
             <Connect.OutlookCalendar
+              isMultiCalendar={true}
+              tooltipSide="bottom"
+              // tooltip={<>This is where the tooltip should be</>}
               redir="http://localhost:4321/calendars"
               className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
             />
