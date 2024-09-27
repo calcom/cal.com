@@ -531,6 +531,22 @@ if (only === "all" || only == "ns:columnView") {
   });
 }
 
+if (only === "all" || only == "ns:autoScrollTest") {
+  if (!calLink) {
+    throw new Error("cal-link parameter is required for autoScrollTest");
+  }
+  Cal("init", "autoScrollTest", {
+    debug: true,
+    origin: origin,
+  });
+  Cal.ns.autoScrollTest("inline", {
+    elementOrSelector: "#cal-booking-place-autoScrollTest .place",
+    calLink: calLink,
+    config: {
+      "flag.coep": "true",
+    },
+  });
+}
 // Verifies that the type of e.detail.data is valid. type-check will fail if we accidentally break it.
 const bookingSuccessfulV2Callback = (e: EmbedEvent<"bookingSuccessfulV2">) => {
   const data = e.detail.data;

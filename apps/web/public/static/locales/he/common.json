@@ -972,6 +972,8 @@
   "signin_with_google": "כניסה עם Google",
   "signin_with_saml": "כניסה עם SAML",
   "signin_with_saml_oidc": "כניסה עם SAML/OIDC",
+  "continue_with_email": "המשך עם אימייל",
+  "continue_with_google": "המשך עם Google",
   "last_used": "שימוש אחרון",
   "you_will_need_to_generate": "תצטרך ליצור טוקן גישה מהכלי הישן שבו השתמשת לקביעת מועדים.",
   "import": "ייבוא",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "מנע מחברים ליצור סוגי אירועים משלהם.",
   "add_to_event_type": "הוספה לסוגי האירועים",
   "create_account_password": "יצירת סיסמת חשבון",
+  "create_account_with_saml": "צור חשבון עם SAML",
   "error_creating_account_password": "יצירת סיסמת חשבון נכשלה",
   "cannot_create_account_password_cal_provider": "לא ניתן ליצור סיסמת חשבון לחשבונות cal",
   "cannot_create_account_password_already_existing": "לא ניתן ליצור סיסמת חשבון לחשבונות שכבר נוצרה להם סיסמה",
@@ -2609,5 +2612,7 @@
   "limit_team_booking_frequency_description": "הגבל כמה פעמים ניתן להזמין חברי צוות בכל סוגי האירועים של הצוות (קולקטיבי ו-round robin)",
   "booking_limits_updated_successfully": "מגבלות ההזמנה עודכנו בהצלחה",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "אין לך הרשאה לבצע שינוי זה בהזמנה",
+  "hide_calendar_event_details": "הסתר פרטי אירועי לוח שנה בלוחות שנה משותפים",
+  "description_hide_calendar_event_details": "כאשר לוח שנה משותף, האירועים נראים לקוראים אך פרטיהם מוסתרים מאלו שאין להם גישת כתיבה.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

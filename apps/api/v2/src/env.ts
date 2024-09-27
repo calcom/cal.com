@@ -19,6 +19,7 @@ export type Environment = {
   CALCOM_LICENSE_KEY: string;
   GET_LICENSE_KEY_URL: string;
   API_KEY_PREFIX: string;
+  DOCS_URL: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

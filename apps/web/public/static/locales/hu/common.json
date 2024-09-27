@@ -972,6 +972,8 @@
   "signin_with_google": "Jelentkezzen be a Google-lal",
   "signin_with_saml": "Jelentkezzen be SAML-lel",
   "signin_with_saml_oidc": "Jelentkezzen be SAML/OIDC segítségével",
+  "continue_with_email": "Folytatás e-maillel",
+  "continue_with_google": "Folytatás Google-lal",
   "last_used": "Utoljára használt",
   "you_will_need_to_generate": "A régi ütemező eszközből létre kell hoznia egy hozzáférési tokent.",
   "import": "Importálás",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Megakadályozza, hogy a tagok saját eseménytípusokat hozzanak létre.",
   "add_to_event_type": "Hozzáadás az eseménytípushoz",
   "create_account_password": "Fiók jelszavának létrehozása",
+  "create_account_with_saml": "Fiók létrehozása SAML-lel",
   "error_creating_account_password": "Nem sikerült létrehozni a fiók jelszavát",
   "cannot_create_account_password_cal_provider": "Nem lehet fiókjelszót létrehozni a cal fiókokhoz",
   "cannot_create_account_password_already_existing": "A már létrehozott fiókokhoz nem lehet jelszót létrehozni",
@@ -2609,5 +2612,7 @@
   "limit_team_booking_frequency_description": "Korlátozza, hogy a tagok hányszor foglalhatók az összes csapat eseménytípusra (kollektív és round-robin)",
   "booking_limits_updated_successfully": "A foglalási korlátok sikeresen frissítve",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nincs jogosultsága a foglalás módosításához",
+  "hide_calendar_event_details": "Naptáresemény részleteinek elrejtése megosztott naptárakon",
+  "description_hide_calendar_event_details": "Amikor egy naptár meg van osztva, az események láthatóak az olvasók számára, de a részletek rejtve maradnak azok elől, akiknek nincs írási hozzáférésük.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

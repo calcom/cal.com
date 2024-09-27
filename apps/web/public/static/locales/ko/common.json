@@ -972,6 +972,8 @@
   "signin_with_google": "Google로 로그인",
   "signin_with_saml": "SAML로 로그인",
   "signin_with_saml_oidc": "SAML/OIDC로 로그인",
+  "continue_with_email": "이메일로 계속하기",
+  "continue_with_google": "Google로 계속하기",
   "last_used": "마지막 사용",
   "you_will_need_to_generate": "이전 일정 관리 도구에서 액세스 토큰을 생성해야 합니다.",
   "import": "가져오기",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "회원이 자신의 이벤트 유형을 생성하지 못하도록 방지합니다.",
   "add_to_event_type": "이벤트 유형에 추가",
   "create_account_password": "계정 비밀번호 생성",
+  "create_account_with_saml": "SAML로 계정 만들기",
   "error_creating_account_password": "계정 비밀번호 생성 실패",
   "cannot_create_account_password_cal_provider": "cal 계정에 대해 계정 비밀번호를 생성할 수 없습니다",
   "cannot_create_account_password_already_existing": "이미 생성된 계정에 대해 계정 비밀번호를 생성할 수 없습니다",
@@ -2609,5 +2612,7 @@
   "limit_team_booking_frequency_description": "모든 팀 이벤트 유형(집단 및 round-robin)에서 팀원들이 예약될 수 있는 횟수를 제한합니다",
   "booking_limits_updated_successfully": "예약 제한이 성공적으로 업데이트되었습니다",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "이 예약을 변경할 권한이 없습니다",
+  "hide_calendar_event_details": "공유 캘린더에서 이벤트 세부 정보 숨기기",
+  "description_hide_calendar_event_details": "캘린더가 공유되면 이벤트는 읽기 권한이 있는 사람에게 보이지만, 쓰기 권한이 없는 사람에게는 세부 정보가 숨겨집니다.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
