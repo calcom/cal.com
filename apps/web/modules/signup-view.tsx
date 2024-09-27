@@ -504,7 +504,7 @@ export default function Signup({
               </div>
             )}
             {!displayEmailForm && (
-              <div className="mt-24">
+              <div className="mt-12">
                 {/* Upper Row */}
                 <div className="mt-6 flex flex-col gap-2 md:flex-row">
                   {isGoogleLoginEnabled ? (
@@ -619,7 +619,7 @@ export default function Signup({
               </div>
             </div>
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:pb-4 lg:pl-12 lg:pt-8">
+          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
             {IS_CALCOM && (
               <>
                 <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
