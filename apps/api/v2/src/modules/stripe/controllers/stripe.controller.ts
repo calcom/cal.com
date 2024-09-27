@@ -44,13 +44,14 @@ export class StripeController {
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @GetUser() user: UserWithProfile,
-    @Query("redir") redir?: string | null
+    @Query("redir") redir?: string | null,
+    @Query("errorRedir") errorRedir?: string | null
   ): Promise<StripConnectOutputResponseDto> {
     const origin = req.headers.origin;
     const accessToken = authorization.replace("Bearer ", "");
 
     const state = {
-      onErrorReturnTo: origin,
+      onErrorReturnTo: !!errorRedir ? errorRedir : origin,
       fromApp: false,
       returnTo: !!redir ? redir : origin,
       accessToken,
