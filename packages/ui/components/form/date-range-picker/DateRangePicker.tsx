@@ -14,11 +14,15 @@ type DatePickerWithRangeProps = {
   dates: { startDate: Date; endDate?: Date };
   onDatesChange: ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => void;
   disabled?: boolean;
+  minDate?: Date;
+  maxDate?: Date;
 };
 
 export function DatePickerWithRange({
   className,
   dates,
+  minDate,
+  maxDate,
   onDatesChange,
   disabled,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
@@ -56,6 +60,8 @@ export function DatePickerWithRange({
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             initialFocus
+            fromDate={minDate}
+            toDate={maxDate}
             mode="range"
             defaultMonth={dates?.startDate}
             selected={{ from: dates?.startDate, to: dates?.endDate }}
