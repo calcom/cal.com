@@ -319,7 +319,7 @@ export class UpdateEventTypeInput_2024_06_14 {
   })
   @ValidateNested()
   @DocsPropertyOptional({
-    description: "Create a recurring event type.",
+    description: "Create an event type with multiple seats.",
     oneOf: [{ $ref: getSchemaPath(Seats_2024_06_14) }, { $ref: getSchemaPath(Disabled_2024_06_14) }],
   })
   @Type(() => Object)
