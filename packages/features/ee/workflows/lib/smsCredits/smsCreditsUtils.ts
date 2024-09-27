@@ -1,6 +1,3 @@
-import { isAttendeeAction } from "ee/workflows/lib/actionHelperFunctions";
-import type { PartialWorkflowReminder } from "ee/workflows/lib/getWorkflowReminders";
-
 import dayjs from "@calcom/dayjs";
 import { sendSmsLimitAlmostReachedEmails, sendSmsLimitReachedEmails } from "@calcom/emails";
 import { IS_SELF_HOSTED, SMS_CREDITS_PER_MEMBER } from "@calcom/lib/constants";
@@ -8,6 +5,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SmsCreditAllocationType, WorkflowMethods } from "@calcom/prisma/enums";
 
+import { isAttendeeAction } from "../actionHelperFunctions";
 import * as twilio from "../reminders/providers/twilioProvider";
 import { smsCountryCredits } from "./countryCredits";
 
@@ -275,12 +273,6 @@ export async function getPayingTeamId(userId: number) {
 
   return teamToPay?.id;
 }
-
-type WorkflowReminder = PartialWorkflowReminder & {
-  id: number;
-  referenceId: string | null;
-  method: string;
-};
 
 export async function cancelScheduledSmsAndScheduleEmails({
   teamId,
