@@ -206,10 +206,10 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
-  const [COOKIE_CONSENT, setCOOKIE_CONSENT] = useState(false); // No need to be checked for user to proceed
+  const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
 
   function handleConsentChange(consent: boolean) {
-    setCOOKIE_CONSENT(!consent);
+    setUserConsentToCookie(!consent);
   }
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
@@ -297,7 +297,7 @@ export default function Signup({
 
   return (
     <>
-      {IS_CALCOM && (!IS_EUROPE || COOKIE_CONSENT) ? (
+      {IS_CALCOM && (!IS_EUROPE || userConsentToCookie) ? (
         <>
           {process.env.NEXT_PUBLIC_GTM_ID && (
             <>
@@ -433,7 +433,7 @@ export default function Signup({
 
                   <CheckboxField
                     data-testid="signup-cookie-content-checkbox"
-                    onChange={() => handleConsentChange(COOKIE_CONSENT)}
+                    onChange={() => handleConsentChange(userConsentToCookie)}
                     description={t("cookie_consent_checkbox")}
                   />
                   {errors.apiError && (
