@@ -17,21 +17,21 @@ test.describe("Signup Main Page Test", async () => {
 
   test("Continue with email button must exist / work", async ({ page }) => {
     await page.goto("/signup");
-    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-    await page.locator('[data-testid="continue-with-email-button"]').click();
+    await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+    await page.getByTestId("continue-with-email-button").click();
   });
 
   test("Continue with google button must exist / work", async ({ page }) => {
     await page.goto("/signup");
-    await expect(page.locator('[data-testid="continue-with-google-button"]')).toBeVisible();
-    await page.locator('[data-testid="continue-with-google-button"]').click();
+    await expect(page.getByTestId("continue-with-google-button")).toBeVisible();
+    await page.getByTestId("continue-with-google-button").click();
     await page.waitForURL("/auth/sso/google");
   });
 
   test("Continue with SAML button must exist / work", async ({ page }) => {
     await page.goto("/signup");
-    await expect(page.locator('[data-testid="continue-with-saml-button"]')).toBeVisible();
-    await page.locator('[data-testid="continue-with-saml-button"]').click();
+    await expect(page.getByTestId("continue-with-saml-button")).toBeVisible();
+    await page.getByTestId("continue-with-saml-button").click();
   });
 });
 
@@ -48,12 +48,12 @@ test.describe("Email Signup Flow Test", async () => {
       await users.create({
         username: "pro",
       });
-      const submitButton = page.locator('[data-testid="signup-submit-button"]');
+      const submitButton = page.getByTestId("signup-submit-button");
 
       await page.goto("/signup");
       await expect(page.locator("text=Create your account")).toBeVisible();
-      await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-      await page.locator('[data-testid="continue-with-email-button"]').click();
+      await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+      await page.getByTestId("continue-with-email-button").click();
       await expect(submitButton).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
@@ -79,12 +79,12 @@ test.describe("Email Signup Flow Test", async () => {
       const user = await users.create({
         username: "pro",
       });
-      const submitButton = page.locator('[data-testid="signup-submit-button"]');
+      const submitButton = page.getByTestId("signup-submit-button");
 
       await page.goto("/signup");
       await expect(page.locator("text=Create your account")).toBeVisible();
-      await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-      await page.locator('[data-testid="continue-with-email-button"]').click();
+      await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+      await page.getByTestId("continue-with-email-button").click();
       await expect(submitButton).toBeVisible();
 
       const alertMessage = "Username or email is already taken";
@@ -111,15 +111,15 @@ test.describe("Email Signup Flow Test", async () => {
       username: "rock",
       password: "Password99!",
     });
-    const submitButton = page.locator('[data-testid="signup-submit-button"]');
+    const submitButton = page.getByTestId("signup-submit-button");
     // Ensure the premium username is available
     await prisma.user.deleteMany({ where: { username: "rock" } });
 
     // Signup with premium username name
     await page.goto("/signup");
     await expect(page.locator("text=Create your account")).toBeVisible();
-    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-    await page.locator('[data-testid="continue-with-email-button"]').click();
+    await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+    await page.getByTestId("continue-with-email-button").click();
     await expect(submitButton).toBeVisible();
 
     // Fill form
@@ -146,12 +146,12 @@ test.describe("Email Signup Flow Test", async () => {
       // Email intentonally kept as different from username
       email: `rickjones${Math.random()}-${Date.now()}@example.com`,
     });
-    const submitButton = page.locator('[data-testid="signup-submit-button"]');
+    const submitButton = page.getByTestId("signup-submit-button");
 
     await page.goto("/signup");
     await expect(page.locator("text=Create your account")).toBeVisible();
-    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-    await page.locator('[data-testid="continue-with-email-button"]').click();
+    await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+    await page.getByTestId("continue-with-email-button").click();
     await expect(submitButton).toBeVisible();
 
     // Fill form
@@ -172,9 +172,9 @@ test.describe("Email Signup Flow Test", async () => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
     await expect(page.locator("text=Create your account")).toBeVisible();
-    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-    await page.locator('[data-testid="continue-with-email-button"]').click();
-    await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+    await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+    await page.getByTestId("continue-with-email-button").click();
+    await expect(page.getByTestId("signup-submit-button")).toBeVisible();
 
     // Fill form
     const usernameInput = page.locator('input[name="username"]');
@@ -225,7 +225,7 @@ test.describe("Email Signup Flow Test", async () => {
     const signupUrlWithToken = `/signup?token=${token}`;
     await page.goto(signupUrlWithToken);
     await expect(page.locator("text=Create your account")).toBeVisible();
-    await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+    await expect(page.getByTestId("signup-submit-button")).toBeVisible();
 
     const usernameField = page.locator('input[name="username"]');
     const emailField = page.locator('input[name="email"]');
@@ -254,12 +254,12 @@ test.describe("Email Signup Flow Test", async () => {
       username: "email-verify",
       password: "Password99!",
     });
-    const submitButton = page.locator('[data-testid="signup-submit-button"]');
+    const submitButton = page.getByTestId("signup-submit-button");
 
     await page.goto("/signup");
     await expect(page.locator("text=Create your account")).toBeVisible();
-    await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-    await page.locator('[data-testid="continue-with-email-button"]').click();
+    await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+    await page.getByTestId("continue-with-email-button").click();
     await expect(submitButton).toBeVisible();
 
     // Fill form
@@ -330,9 +330,9 @@ test.describe("Email Signup Flow Test", async () => {
 
       const url = new URL(newPage.url());
       expect(url.pathname).toBe("/signup");
-      await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
-      await page.locator('[data-testid="continue-with-email-button"]').click();
-      await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+      await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
+      await page.getByTestId("continue-with-email-button").click();
+      await expect(page.getByTestId("signup-submit-button")).toBeVisible();
       // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
@@ -345,12 +345,12 @@ test.describe("Email Signup Flow Test", async () => {
   test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
     // log in trail user
     await test.step("Sign up", async () => {
-      const submitButton = page.locator('[data-testid="signup-submit-button"]');
-      const checkbox = page.locator('[data-testid="signup-cookie-content-checkbox"]');
+      const submitButton = page.getByTestId("signup-submit-button");
+      const checkbox = page.getByTestId("signup-cookie-content-checkbox");
       await page.goto("/signup");
 
       // Navigate to email form
-      await page.locator('[data-testid="continue-with-email-button"]').click();
+      await page.getByTestId("continue-with-email-button").click();
 
       // Fill form
       await page.locator('input[name="username"]').fill("pro");
@@ -370,11 +370,11 @@ test.describe("Email Signup Flow Test", async () => {
 
 test.describe("SAML Signup Flow Test", async () => {
   test("Should navigate user to another URL", async ({ page }) => {
-    const submitButton = page.locator('[data-testid="saml-submit-button"]');
+    const submitButton = page.getByTestId("saml-submit-button");
     await page.goto("/signup");
 
     // Navigate to email form
-    await page.locator('[data-testid="continue-with-saml-button"]').click();
+    await page.getByTestId("continue-with-saml-button").click();
     // Fill form
     await page.locator('input[name="username"]').fill("pro");
     await page.locator('input[name="email"]').fill("pro@example.com");
@@ -386,7 +386,7 @@ test.describe("SAML Signup Flow Test", async () => {
 
   test("Password input should not exist", async ({ page }) => {
     await page.goto("/signup");
-    await page.locator('[data-testid="continue-with-saml-button"]').click();
+    await page.getByTestId("continue-with-saml-button").click();
 
     await expect(page.locator('input[name="password"]')).not.toBeVisible();
   });
@@ -394,12 +394,12 @@ test.describe("SAML Signup Flow Test", async () => {
   test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
     // log in trail user
     await test.step("Sign up", async () => {
-      const submitButton = page.locator('[data-testid="saml-submit-button"]');
-      const checkbox = page.locator('[data-testid="signup-cookie-content-checkbox"]');
+      const submitButton = page.getByTestId("saml-submit-button");
+      const checkbox = page.getByTestId("signup-cookie-content-checkbox");
       await page.goto("/signup");
 
       // Navigate to email form
-      await page.locator('[data-testid="continue-with-saml-button"]').click();
+      await page.getByTestId("continue-with-saml-button").click();
 
       // Fill form
       await page.locator('input[name="username"]').fill("pro");
