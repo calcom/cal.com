@@ -143,7 +143,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://www.google.com");
+      await page.fill("[name=externalRedirectUrl]", "https://cal.com");
       await saveCurrentForm(page);
 
       const { fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
@@ -171,7 +171,7 @@ test.describe("Routing Forms", () => {
 
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
-        return url.hostname.includes("google.com");
+        return url.hostname.includes("cal.com");
       });
 
       const url = new URL(page.url());
@@ -332,9 +332,7 @@ test.describe("Routing Forms", () => {
 
       await page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
-        return (
-          url.hostname.includes("google.com") && url.searchParams.get("Test field") === "external-redirect"
-        );
+        return url.hostname.includes("cal.com") && url.searchParams.get("Test field") === "external-redirect";
       });
 
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
@@ -389,7 +387,7 @@ test.describe("Routing Forms", () => {
       routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
-      expect(route).toBe("https://google.com");
+      expect(route).toBe("https://cal.com");
       await page.click('[data-testid="dialog-rejection"]');
 
       // Multiselect(Legacy)
@@ -467,7 +465,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
     await fillAllOptionsBasedFields();
     page.click('button[type="submit"]');
     await page.waitForURL((url) => {
-      return url.hostname.includes("google.com");
+      return url.hostname.includes("cal.com");
     });
   })();
 
