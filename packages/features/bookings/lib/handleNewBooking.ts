@@ -1814,7 +1814,7 @@ async function handler(
   }
 
   try {
-    if (isConfirmedByDefault && (booking.location === DailyLocationType || booking.location.trim() === "")) {
+    if (isConfirmedByDefault && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
       await scheduleNoShowTriggers({
         booking: { startTime: booking.startTime, id: booking.id },
         triggerForUser,

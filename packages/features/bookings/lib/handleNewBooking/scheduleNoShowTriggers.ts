@@ -98,7 +98,7 @@ const createWebhookScheduleTrigger = async ({
 }: {
   payload: string;
   startAfter: Date;
-  webhook: ReturnType<typeof getWebhooks>[number];
+  webhook: Awaited<ReturnType<typeof getWebhooks>>[number];
   bookingId: number;
 }) => {
   return prisma.webhookScheduledTriggers.create({
