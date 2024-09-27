@@ -485,7 +485,9 @@ export async function addBookings(bookings: InputBooking[]) {
         };
       }
 
-      if (booking.user) {
+      if (booking?.user?.id) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         bookingCreate.user = {
           connect: {
             id: booking.user.id,
