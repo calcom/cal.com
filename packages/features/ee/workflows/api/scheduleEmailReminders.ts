@@ -113,10 +113,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       continue;
     }
     if (!reminder.isMandatoryReminder && reminder.workflowStep) {
+      // if sms limit is reached we can also have SMS_ATTENDEE as workflow action but is should be EMAIL_ATTENDEE instead
+      const action =
+        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+          ? WorkflowActions.EMAIL_ATTENDEE
+          : reminder.workflowStep.action;
       try {
         let sendTo;
 
-        switch (reminder.workflowStep.action) {
+        switch (action) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
             const hosts = reminder?.booking?.eventType?.hosts
@@ -141,23 +146,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         const name =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+          action === WorkflowActions.EMAIL_ATTENDEE
             ? reminder.booking.attendees[0].name
             : reminder.booking.user?.name;
 
         const attendeeName =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+          action === WorkflowActions.EMAIL_ATTENDEE
             ? reminder.booking.user?.name
             : reminder.booking.attendees[0].name;
 
         const timeZone =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+          action === WorkflowActions.EMAIL_ATTENDEE
             ? reminder.booking.attendees[0].timeZone
             : reminder.booking.user?.timeZone;
 
         const locale =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
-          reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+          action === WorkflowActions.EMAIL_ATTENDEE
             ? reminder.booking.attendees[0].locale
             : reminder.booking.user?.locale;
 
@@ -232,7 +236,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
           emailContent = emailReminderTemplate(
             false,
-            reminder.workflowStep.action,
+            action,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             reminder.booking.startTime.toISOString() || "",
             reminder.booking.endTime.toISOString() || "",
@@ -255,7 +259,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           );
           emailContent = emailRatingTemplate({
             isEditingMode: true,
-            action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
+            action: action || WorkflowActions.EMAIL_ADDRESS,
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
             endTime: reminder.booking.endTime.toISOString() || "",

@@ -1,10 +1,12 @@
+import { isAttendeeAction } from "ee/workflows/lib/actionHelperFunctions";
+import type { PartialWorkflowReminder } from "ee/workflows/lib/getWorkflowReminders";
+
 import dayjs from "@calcom/dayjs";
 import { sendSmsLimitAlmostReachedEmails, sendSmsLimitReachedEmails } from "@calcom/emails";
 import { IS_SELF_HOSTED, SMS_CREDITS_PER_MEMBER } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SmsCreditAllocationType, WorkflowMethods } from "@calcom/prisma/enums";
-import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import * as twilio from "../reminders/providers/twilioProvider";
 import { smsCountryCredits } from "./countryCredits";
@@ -274,6 +276,12 @@ export async function getPayingTeamId(userId: number) {
   return teamToPay?.id;
 }
 
+type WorkflowReminder = PartialWorkflowReminder & {
+  id: number;
+  referenceId: string | null;
+  method: string;
+};
+
 export async function cancelScheduledSmsAndScheduleEmails({
   teamId,
   userId,
@@ -295,14 +303,25 @@ export async function cancelScheduledSmsAndScheduleEmails({
         },
       },
     },
-    select: {
-      id: true,
-      referenceId: true,
-      method: true,
-    },
+    select: { referenceId: true, id: true, workflowStep: { select: { action: true } } },
   });
 
-  deleteAllWorkflowReminders(smsRemindersToCancel);
-
-  // todo: schedule as emails instead
+  await Promise.all(
+    smsRemindersToCancel.map(async (reminder) => {
+      // Cancel already scheduled SMS
+      if (reminder.referenceId) {
+        await twilio.cancelSMS(reminder.referenceId);
+      }
+      if (reminder.workflowStep?.action && isAttendeeAction(reminder.workflowStep?.action))
+        // Update attendee reminders to unscheduled email reminder
+        await prisma.workflowReminder.update({
+          where: { id: reminder.id },
+          data: {
+            method: WorkflowMethods.EMAIL,
+            referenceId: null,
+            scheduled: false,
+          },
+        });
+    })
+  );
 }

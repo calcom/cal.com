@@ -103,14 +103,6 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   isMandatoryReminder?: boolean;
 }
 
-export const scheduleSMSFallbackEmail = async (args: {
-  scheduledDate: Date;
-  sendTo: MailData["to"];
-  body: string;
-}) => {
-  //todo: implement function
-};
-
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
   const {
     evt,
@@ -396,7 +388,6 @@ export const deleteScheduledEmailReminder = async (reminderId: number, reference
           id: reminderId,
         },
       });
-
       return;
     }
 

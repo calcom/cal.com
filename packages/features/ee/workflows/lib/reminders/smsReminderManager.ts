@@ -275,9 +275,6 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
       },
     });
 
-    const userId = workflowReminder?.workflowStep?.workflow.userId ?? undefined;
-    const teamId = workflowReminder?.workflowStep?.workflow.teamId ?? undefined;
-
     if (referenceId) {
       await twilio.cancelSMS(referenceId);
     }
