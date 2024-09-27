@@ -17,15 +17,11 @@ export const setIs24hClockInLocalStorage = (is24h: boolean) =>
   localStorage.setItem(is24hLocalstorageKey, is24h.toString());
 
 export const getIs24hClockFromLocalStorage = () => {
-  const is24hFromLocalstorage = localStorage.getItem(is24hLocalstorageKey);
-
-  if (is24hFromLocalstorage === null) return null;
-
-  return is24hFromLocalstorage === "true";
+  return true;
 };
 
 export const getTimeFormatStringFromUserTimeFormat = (timeFormat: number | null | undefined) => {
-  return timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR;
+  return TimeFormat.TWENTY_FOUR_HOUR;
 };
 
 /**
