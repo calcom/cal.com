@@ -6619,6 +6619,9 @@
               },
               {
                 "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
               }
             ]
           },
@@ -6669,7 +6672,7 @@
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
           "seats": {
-            "description": "Create a recurring event type.",
+            "description": "Create an event type with multiple seats.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/Seats_2024_06_14"
@@ -7971,6 +7974,9 @@
               },
               {
                 "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
               }
             ]
           },
@@ -8021,7 +8027,7 @@
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
           "seats": {
-            "description": "Create a recurring event type.",
+            "description": "Create an event type with multiple seats.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/Seats_2024_06_14"
@@ -9435,6 +9441,9 @@
               },
               {
                 "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
               }
             ]
           },
@@ -9485,7 +9494,7 @@
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
           "seats": {
-            "description": "Create a recurring event type.",
+            "description": "Create an event type with multiple seats.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/Seats_2024_06_14"
@@ -10159,6 +10168,9 @@
               },
               {
                 "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
               }
             ]
           },
@@ -10209,7 +10221,7 @@
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
           "seats": {
-            "description": "Create a recurring event type.",
+            "description": "Create an event type with multiple seats.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/Seats_2024_06_14"
