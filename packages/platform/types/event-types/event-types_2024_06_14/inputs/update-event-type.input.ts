@@ -233,6 +233,7 @@ export class UpdateEventTypeInput_2024_06_14 {
       { $ref: getSchemaPath(BusinessDaysWindow_2024_06_14) },
       { $ref: getSchemaPath(CalendarDaysWindow_2024_06_14) },
       { $ref: getSchemaPath(RangeWindow_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
     ],
   })
   @Type(() => Object)
