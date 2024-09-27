@@ -38,6 +38,7 @@
     "next-axiom": "^0.17.0",
     "next-swagger-doc": "^0.3.6",
     "next-validations": "^0.2.0",
+    "posthog-node": "^4.2.0",
     "typescript": "^4.9.4",
     "tzdata": "^1.0.30",
     "uuid": "^8.3.2",

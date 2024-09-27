@@ -88,6 +88,7 @@ import {
 } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
+import usePostHog from "../ee/event-tracking/lib/posthog/userPostHog";
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
@@ -222,10 +223,12 @@ const Layout = (props: LayoutProps) => {
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
+  const { identify } = usePostHog();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
+    identify();
     const showIntercom = localStorage.getItem("showIntercom");
     if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
     boot();

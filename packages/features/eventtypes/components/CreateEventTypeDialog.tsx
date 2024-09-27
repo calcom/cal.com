@@ -26,6 +26,8 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
+import usePostHog from "../../ee/event-tracking/lib/posthog/userPostHog";
+
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
   teamId: number | null | undefined; // if undefined, then it's a profile
@@ -74,6 +76,7 @@ export default function CreateEventTypeDialog({
   }[];
   isInfiniteScrollEnabled: boolean;
 }) {
+  const postHog = usePostHog();
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
@@ -155,6 +158,7 @@ export default function CreateEventTypeDialog({
           <Form
             form={form}
             handleSubmit={(values) => {
+              postHog.capture("Event Created Frontend");
               createMutation.mutate(values);
             }}>
             <div className="mt-3 space-y-6 pb-11">

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
+import postHogClient from "@calcom/features/ee/event-tracking/lib/posthog/postHogClient";
 import { getDefaultLocations } from "@calcom/lib/server";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
@@ -108,6 +109,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       ...data,
       profileId: profile.id,
     });
+    postHogClient().capture(ctx.user.id.toString(), "Event Created", {});
     return { eventType };
   } catch (e) {
     console.warn(e);
