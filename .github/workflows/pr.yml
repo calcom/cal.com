@@ -224,6 +224,7 @@ jobs:
         build,
         build-api-v1,
         build-api-v2,
+        build-atoms,
         e2e,
         e2e-api-v2,
         e2e-embed,

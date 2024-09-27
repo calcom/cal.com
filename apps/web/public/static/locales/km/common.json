@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} បានដំឡើង",
   "verify_wallet": "ផ្ទៀងផ្ទាត់កាបូប",
   "create_events_on": "បង្កើតព្រឹត្តិការណ៍នៅលើ",
-  "enterprise_license": "នេះគឺជម្រើសសម្រាប់សហគ្រាស",
+  "enterprise_license": "នេះគឺជាមុខងារជំនួញ",
   "enterprise_license_locally": "Bạn có thể thử tính năng này tại địa phương nhưng không phải trên môi trường sản xuất.",
-  "enterprise_license_sales": "Để nâng cấp lên phiên bản doanh nghiệp, vui lòng liên hệ với đội ngũ bán hàng của chúng tôi. Nếu khóa giấy phép đã có sẵn, vui lòng liên hệ support@cal.com để được hỗ trợ.",
+  "enterprise_license_sales": "ដើម្បីទិញអាជ្ញាប័ណ្ណជំនួញ សូមទាក់ទងក្រុមលក់របស់យើង។ ប្រសិនបើមានកូនសោអាជ្ញាប័ណ្ណរួចហើយ សូមទាក់ទង support@cal.com សម្រាប់ជំនួយ។",
   "missing_license": "បាត់បង់អាជ្ញាប័ណ្ណ",
   "next_steps": "ជំហានបន្ទាប់",
   "acquire_commercial_license": "ទទួលបានអាជ្ញាប័ណ្ណពាណិជ្ជកម្ម",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "កំណត់ពេលថ្មីជាមួយម្ចាស់ Round-Robin ដដែល",
   "reschedule_with_same_round_robin_host_description": "ព្រឹត្តិការណ៍ដែលបានកំណត់ពេលថ្មីនឹងត្រូវចាត់ចែងទៅម្ចាស់ដដែលដូចពេលដំបូង",
   "disable_input_if_prefilled": "បិទការបញ្ចូលប្រសិនបើ URL identifier ត្រូវបានបំពេញរួចហើយ",
+  "booking_limits": "ដែនកំណត់ការកក់",
+  "booking_limits_team_description": "ដែនកំណត់ការកក់សម្រាប់សមាជិកក្រុមទាំងអស់ក្នុងប្រភេទព្រឹត្តិការណ៍ក្រុមទាំងអស់",
+  "limit_team_booking_frequency_description": "ដែនកំណត់ចំនួនដងដែលសមាជិកអាចត្រូវបានកក់ក្នុងប្រភេទព្រឹត្តិការណ៍ក្រុមទាំងអស់ (សហគមន៍ និង round-robin)",
+  "booking_limits_updated_successfully": "ដែនកំណត់ការកក់ត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "អ្នកមិនមានសិទ្ធិធ្វើការផ្លាស់ប្តូរនេះលើការកក់ទេ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

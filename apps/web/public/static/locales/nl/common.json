@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} keer geïnstalleerd",
   "verify_wallet": "Wallet verifiëren",
   "create_events_on": "Maak gebeurtenissen aan in de",
-  "enterprise_license": "Dit is een bedrijfsfunctie",
+  "enterprise_license": "Dit is een commerciële functie",
   "enterprise_license_locally": "Je kunt deze functie lokaal testen, maar niet in productie.",
-  "enterprise_license_sales": "Om te upgraden naar de enterprise-editie, neem contact op met ons verkoopteam. Als er al een licentiesleutel aanwezig is, neem dan contact op met support@cal.com voor hulp.",
+  "enterprise_license_sales": "Neem contact op met ons verkoopteam om een commerciële licentie aan te schaffen. Als er al een licentiesleutel aanwezig is, neem dan contact op met support@cal.com voor hulp.",
   "missing_license": "Ontbrekende licentie",
   "next_steps": "Volgende stappen",
   "acquire_commercial_license": "Verkrijg een commerciële licentie",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Opnieuw plannen met dezelfde Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Opnieuw geplande evenementen worden toegewezen aan dezelfde host als oorspronkelijk gepland",
   "disable_input_if_prefilled": "Invoer uitschakelen als de URL-identificatie vooraf is ingevuld",
+  "booking_limits": "Boekingslimieten",
+  "booking_limits_team_description": "Boekingslimieten voor teamleden voor alle soorten teamevenementen",
+  "limit_team_booking_frequency_description": "Beperk hoe vaak teamleden geboekt kunnen worden voor alle soorten teamevenementen (collectief en round-robin)",
+  "booking_limits_updated_successfully": "Boekingslimieten succesvol bijgewerkt",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "U bent niet gemachtigd om deze wijziging in de boeking aan te brengen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

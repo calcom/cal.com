@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} installation(s)",
   "verify_wallet": "Vérifier le portefeuille",
   "create_events_on": "Créer des événements dans :",
-  "enterprise_license": "Il s'agit d'une fonctionnalité d'entreprise",
+  "enterprise_license": "Ceci est une fonctionnalité commerciale",
   "enterprise_license_locally": "Vous pouvez tester cette fonctionnalité en local, mais pas en production.",
-  "enterprise_license_sales": "Pour passer sur l'édition entreprise, veuillez contacter notre équipe commerciale. Si une clé de licence est déjà en place, veuillez contacter support@cal.com pour obtenir de l'aide.",
+  "enterprise_license_sales": "Pour acheter une licence commerciale, veuillez contacter notre équipe commerciale. Si une clé de licence est déjà en place, veuillez contacter support@cal.com pour obtenir de l'aide.",
   "missing_license": "Licence manquante",
   "next_steps": "Prochaines étapes",
   "acquire_commercial_license": "Obtenir une licence commerciale",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Reprogrammer avec le même hôte round-robin",
   "reschedule_with_same_round_robin_host_description": "Les événements reprogrammés seront attribués au même hôte que celui initialement prévu",
   "disable_input_if_prefilled": "Désactiver la saisie si l'identifiant URL est prérempli",
+  "booking_limits": "Limites de réservation",
+  "booking_limits_team_description": "Limites de réservation pour les membres de l'équipe sur tous les types d'événements d'équipe",
+  "limit_team_booking_frequency_description": "Limitez le nombre de fois où les membres peuvent être réservés pour tous les types d'événements d'équipe (collectifs et round robin)",
+  "booking_limits_updated_successfully": "Limites de réservation mises à jour avec succès",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Vous n'êtes pas autorisé à apporter cette modification à la réservation",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1027,9 +1027,9 @@
   "installed_other": "{{count}} er installert",
   "verify_wallet": "Verifiser Lommebok",
   "create_events_on": "Opprett hendelser på",
-  "enterprise_license": "Dette er en bedriftsfunksjon",
+  "enterprise_license": "Dette er en kommersiell funksjon",
   "enterprise_license_locally": "Du kan teste denne funksjonen lokalt, men ikke i produksjon.",
-  "enterprise_license_sales": "For å oppgradere til enterprise-utgaven, ta kontakt med vårt salgsteam. Hvis en lisensnøkkel allerede er på plass, ta kontakt med support@cal.com for hjelp.",
+  "enterprise_license_sales": "For å kjøpe en kommersiell lisens, vennligst kontakt vårt salgsteam. Hvis en lisensnøkkel allerede er på plass, vennligst kontakt support@cal.com for hjelp.",
   "missing_license": "Mangler Lisens",
   "next_steps": "Neste Skritt",
   "acquire_commercial_license": "Skaff en kommersiell lisens",
@@ -2604,6 +2604,10 @@
   "reschedule_with_same_round_robin_host_title": "Omplanlegg med samme Round-Robin-vert",
   "reschedule_with_same_round_robin_host_description": "Omplanlagte hendelser vil bli tildelt samme vert som opprinnelig planlagt",
   "disable_input_if_prefilled": "Deaktiver inndata hvis URL-identifikatoren er forhåndsutfylt",
+  "booking_limits": "Bestillingsgrenser",
+  "booking_limits_team_description": "Bestillingsgrenser for teammedlemmer på tvers av alle teamhendelsestyper",
+  "limit_team_booking_frequency_description": "Begrens hvor mange ganger medlemmer kan bookes på tvers av alle teamhendelsestyper (kollektivt og round-robin)",
+  "booking_limits_updated_successfully": "Bestillingsgrenser oppdatert vellykket",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tillatelse til å gjøre denne endringen i bestillingen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
