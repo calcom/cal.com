@@ -9,6 +9,7 @@ import { useAtomsContext } from "../useAtomsContext";
 
 export interface UseCheckProps {
   onCheckError?: OnCheckErrorType;
+  onCheckSuccess?: () => void;
   initialData?: {
     status: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
     data: {
@@ -21,7 +22,7 @@ const stripeQueryKey = ["get-stripe-check"];
 export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-check`];
 
-export const useCheck = ({ onCheckError, initialData }: UseCheckProps) => {
+export const useCheck = ({ onCheckError, initialData, onCheckSuccess }: UseCheckProps) => {
   const { isInit, accessToken } = useAtomsContext();
   const queryClient = useQueryClient();
 
@@ -34,6 +35,7 @@ export const useCheck = ({ onCheckError, initialData }: UseCheckProps) => {
         ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(`/stripe/check`)
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
+            onCheckSuccess();
             return { status: SUCCESS_STATUS, data: { allowConnect: false, checked: true } };
           }
           onCheckError?.(responseBody);

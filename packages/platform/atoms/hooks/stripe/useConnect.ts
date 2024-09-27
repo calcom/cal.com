@@ -5,14 +5,18 @@ import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
-export const useGetRedirectUrl = (redir?: string) => {
+export const useGetRedirectUrl = (redir?: string, errorRedir?: string) => {
   const authUrl = useQuery({
     queryKey: ["get-stripe-connect-redirect-uri"],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
       return http
-        ?.get<ApiResponse<{ authUrl: string }>>(`/stripe/connect${redir ? `?redir=${redir}` : ""}`)
+        ?.get<ApiResponse<{ authUrl: string }>>(
+          `/stripe/connect${redir ? `?redir=${encodeURIComponent(redir)}` : "?redir="}${
+            errorRedir ? `&errorRedir=${encodeURIComponent(errorRedir)}` : ""
+          }`
+        )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
             return responseBody.data.authUrl;
@@ -26,8 +30,8 @@ export const useGetRedirectUrl = (redir?: string) => {
   return authUrl;
 };
 
-export const useConnect = (redir?: string) => {
-  const { refetch } = useGetRedirectUrl(redir);
+export const useConnect = (redir?: string, errorRedir?: string) => {
+  const { refetch } = useGetRedirectUrl(redir, errorRedir);
 
   const connect = async () => {
     const redirectUri = await refetch();

@@ -16,7 +16,9 @@ type StripeConnectProps = {
   loadingLabel: string;
   onCheckError?: OnCheckErrorType;
   redir?: string;
+  errorRedir?: string;
   initialData: UseCheckProps["initialData"];
+  onCheckSuccess?: () => void;
 };
 
 export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
@@ -25,13 +27,16 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   loadingLabel,
   alreadyConnectedLabel,
   redir,
+  errorRedir,
   onCheckError,
   initialData,
+  onCheckSuccess,
 }) => {
   const { t } = useLocale();
-  const { connect } = useConnect(redir);
+  const { connect } = useConnect(redir, errorRedir);
   const { allowConnect, checked } = useCheck({
     onCheckError,
+    onCheckSuccess,
     initialData,
   });
 
