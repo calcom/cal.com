@@ -20,10 +20,12 @@ type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
 
 export function getHosts(booking: Booking): Host[] {
-  const hosts = [
+  let hosts = [
     ...(booking?.eventType?.hosts?.map((host) => ({ id: host.userId, email: host.user.email })) ?? []),
     ...(booking?.eventType?.users?.map((user) => ({ id: user.id, email: user.email })) ?? []),
   ];
+
+  hosts = hosts.filter((host) => booking.attendees?.some((attendee) => attendee.email === host.email));
 
   if (booking?.user?.id && !hosts.some((host) => host.id === booking?.user?.id)) {
     hosts.push({ id: booking.user.id, email: booking.user.email });

@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 type ScheduleNoShowTriggersArgs = {
@@ -33,16 +33,17 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   noShowPromises.push(
     ...subscribersHostsNoShowStarted.map((webhook) => {
       if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
+        const startAfter = dayjs(booking.startTime)
           .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
-        return tasker.create(
-          "triggerGuestNoShowWebhook",
-          JSON.stringify({ bookingId: booking.id, webhook }),
-          {
-            scheduledAt,
-          }
-        );
+
+        const payload = JSON.stringify({
+          triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+          bookingId: booking.id,
+          webhook,
+        });
+
+        return createWebhookScheduleTrigger({ payload, startAfter, webhook, bookingId: booking.id });
       }
       return Promise.resolve();
     })
@@ -61,12 +62,17 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   noShowPromises.push(
     ...subscribersGuestsNoShowStarted.map((webhook) => {
       if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
+        const startAfter = dayjs(booking.startTime)
           .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
-        return tasker.create("triggerHostNoShowWebhook", JSON.stringify({ bookingId: booking.id, webhook }), {
-          scheduledAt,
+
+        const payload = JSON.stringify({
+          triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+          bookingId: booking.id,
+          webhook,
         });
+
+        return createWebhookScheduleTrigger({ payload, startAfter, webhook, bookingId: booking.id });
       }
 
       return Promise.resolve();
@@ -82,4 +88,35 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   // const workflowGuestsNoShow = workflows.filter(
   //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   // );
+};
+
+const createWebhookScheduleTrigger = async ({
+  payload,
+  startAfter,
+  webhook,
+  bookingId,
+}: {
+  payload: string;
+  startAfter: Date;
+  webhook: ReturnType<typeof getWebhooks>[number];
+  bookingId: number;
+}) => {
+  return prisma.webhookScheduledTriggers.create({
+    data: {
+      payload,
+      appId: webhook.appId,
+      startAfter,
+      subscriberUrl: webhook.subscriberUrl,
+      webhook: {
+        connect: {
+          id: webhook.id,
+        },
+      },
+      booking: {
+        connect: {
+          id: bookingId,
+        },
+      },
+    },
+  });
 };
