@@ -974,6 +974,8 @@ checksums:
     signin_with_google: f84b1b8574fb23734c002b401cad49e2
     signin_with_saml: 932c77d607b1fa394c53aedf4259ecf8
     signin_with_saml_oidc: 3d9ec37d3e09a530398f25a77dc27070
+    continue_with_email: 42a67d19cf743f883eee15ca96579f22
+    continue_with_google: 296841ac969a7f5d0fffc144f2488bbb
     last_used: 79c1790ff1f8cf956c06f93699704b4d
     you_will_need_to_generate: deaaf4d09d215932679faf27827222c1
     import: 348b8ab981de5b7f1fca6d7302263bbd
@@ -2482,6 +2484,7 @@ checksums:
     lock_org_users_eventtypes_description: 03457f2d4e1311209ae417982afeec86
     add_to_event_type: 372ae07e79c77be4504d31245fff222e
     create_account_password: f9d4c3b6d3f9b7a218da8abb6a128a2c
+    create_account_with_saml: 29412fbd06b4bcc0b300987632079737
     error_creating_account_password: 4f8272ccba5d0745c17d76345a1aaff3
     cannot_create_account_password_cal_provider: ef87fdd935251ae04c49cd7b7c8758d3
     cannot_create_account_password_already_existing: ea1efae1f472bb23edd77580dbfdb478
