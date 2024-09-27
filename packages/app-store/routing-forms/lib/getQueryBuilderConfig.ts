@@ -21,11 +21,11 @@ type RaqbConfigFields = Record<
 >;
 
 export type FormFieldsQueryBuilderConfigWithRaqbFields = typeof FormFieldsInitialConfig & {
-  fields: RaqbConfigFields
+  fields: RaqbConfigFields;
 };
 
 export type AttributesQueryBuilderConfigWithRaqbFields = typeof AttributesInitialConfig & {
-  fields: RaqbConfigFields
+  fields: RaqbConfigFields;
 };
 
 export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
@@ -79,18 +79,7 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
   return config;
 }
 
-function transformAttributesToCompatibleFormat(
-  attributes: {
-    name: string;
-    slug: string;
-    type: AttributeType;
-    id: string;
-    options: {
-      value: string;
-      slug: string;
-    }[];
-  }[]
-) {
+function transformAttributesToCompatibleFormat(attributes: Attribute[]) {
   const attributeTypesMap = new Map<string, string>([
     ["SINGLE_SELECT", "select"],
     ["MULTI_SELECT", "multiselect"],
@@ -107,7 +96,8 @@ function transformAttributesToCompatibleFormat(
       type: mappedType,
       options: attribute.options.map((option) => ({
         title: option.value,
-        value: option.slug,
+        // We have to use something that doesn't change often. ID of attribute never changes. Changing means a saved value will become invalid
+        value: option.id,
       })),
     };
   });
@@ -117,7 +107,7 @@ export function getQueryBuilderConfigForAttributes({
   attributes,
   form,
 }: {
-  attributes: Attribute[]
+  attributes: Attribute[];
   form: Pick<RoutingForm, "fields">;
 }) {
   const transformedAttributes = transformAttributesToCompatibleFormat(attributes);

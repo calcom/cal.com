@@ -64,6 +64,7 @@ export type Attribute = {
   type: AttributeType;
   id: string;
   options: {
+    id: string;
     value: string;
     slug: string;
   }[];

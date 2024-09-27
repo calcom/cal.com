@@ -10,6 +10,7 @@ import type { UseFormReturn } from "react-hook-form";
 import Shell from "@calcom/features/shell/Shell";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
@@ -36,6 +37,7 @@ import {
   type AttributesQueryBuilderConfigWithRaqbFields,
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
+import type { SerializableForm } from "../../types/types";
 import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
 
 type FormFieldsQueryBuilderState = {
@@ -518,6 +520,15 @@ const Routes = ({
 
   const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
 
+  const notHaveAttributesQuery = ({ form }: { form: SerializableForm<App_RoutingForms_Form> }) => {
+    return form.routes?.every((route) => {
+      if (isRouter(route)) {
+        return true;
+      }
+      return !route.attributesQueryValue;
+    });
+  };
+
   const availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
@@ -533,6 +544,11 @@ const Routes = ({
           },
         });
         return router.id !== hookForm.getValues().id && routerValidInContext;
+      })
+      // We don't want to support picking forms that have attributes query. We can consider it later.
+      // This is mainly because the Router picker feature is pretty much not used and we don't want to complicate things
+      .filter(({ form }) => {
+        return notHaveAttributesQuery({ form: form });
       })
       .map(({ form: router }) => {
         return {
