@@ -270,7 +270,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -283,7 +283,7 @@ export const insightsRouter = router({
         },
       });
 
-      const { whereCondition: whereConditional } = r;
+      const { whereCondition: whereConditional } = baseWhereCondition;
 
       const baseWhereCondition = {
         ...whereConditional,
@@ -437,7 +437,7 @@ export const insightsRouter = router({
           timeView = "day";
         }
       }
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -450,7 +450,7 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: whereConditional } = r;
+      let { whereCondition: whereConditional } = baseWhereCondition;
 
       // Get timeline data
       const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
@@ -525,7 +525,7 @@ export const insightsRouter = router({
         return [];
       }
 
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -538,7 +538,7 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: bookingWhere } = r;
+      let { whereCondition: bookingWhere } = baseWhereCondition;
 
       bookingWhere = {
         ...bookingWhere,
@@ -754,7 +754,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -767,7 +767,7 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: bookingWhere } = r;
+      let { whereCondition: bookingWhere } = baseWhereCondition;
 
       bookingWhere = {
         ...bookingWhere,
@@ -846,7 +846,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -859,7 +859,7 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: bookingWhere } = r;
+      let { whereCondition: bookingWhere } = baseWhereCondition;
 
       bookingWhere = {
         ...bookingWhere,
@@ -1219,7 +1219,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -1232,7 +1232,7 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: bookingWhere } = r;
+      let { whereCondition: bookingWhere } = baseWhereCondition;
 
       bookingWhere = {
         ...bookingWhere,
@@ -1348,7 +1348,7 @@ export const insightsRouter = router({
         return [];
       }
       const user = ctx.user;
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -1360,7 +1360,7 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      let { whereCondition: bookingWhere } = r;
+      let { whereCondition: bookingWhere } = baseWhereCondition;
 
       bookingWhere = {
         ...bookingWhere,
@@ -1438,7 +1438,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -1450,7 +1450,7 @@ export const insightsRouter = router({
           insightsDb: ctx.insightsDb,
         },
       });
-      let { whereCondition: bookingWhere } = r;
+      let { whereCondition: bookingWhere } = baseWhereCondition;
 
       bookingWhere = {
         teamId,
@@ -1527,7 +1527,7 @@ export const insightsRouter = router({
       }
       const user = ctx.user;
 
-      const r = await buildBaseWhereCondition({
+      const baseWhereCondition = await buildBaseWhereCondition({
         teamId,
         eventTypeId,
         memberUserId,
@@ -1540,7 +1540,7 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: bookingWhere } = r;
+      let { whereCondition: bookingWhere } = baseWhereCondition;
       bookingWhere = {
         teamId,
         eventTypeId,
