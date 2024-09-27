@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
+import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
@@ -369,6 +370,9 @@ test.describe("Email Signup Flow Test", async () => {
 });
 
 test.describe("SAML Signup Flow Test", async () => {
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip(isSAMLLoginEnabled, "Skipping due to SAML login being disabled");
+
   test("Should navigate user to another URL", async ({ page }) => {
     const submitButton = page.getByTestId("saml-submit-button");
     await page.goto("/signup");
