@@ -972,6 +972,8 @@
   "signin_with_google": "使用Google登录",
   "signin_with_saml": "使用 SAML 登录",
   "signin_with_saml_oidc": "使用 SAML/OIDC 登录",
+  "continue_with_email": "通过电子邮件继续",
+  "continue_with_google": "通过 Google 继续",
   "last_used": "上次使用",
   "you_will_need_to_generate": "您需要从从您的旧工具上生成访问令牌",
   "import": "导入",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "阻止成员创建自己的事件类型。",
   "add_to_event_type": "添加到事件类型",
   "create_account_password": "创建账户密码",
+  "create_account_with_saml": "使用 SAML 创建账户",
   "error_creating_account_password": "创建账户密码失败",
   "cannot_create_account_password_cal_provider": "无法为cal账户创建密码",
   "cannot_create_account_password_already_existing": "无法为已创建的账户设置密码",
@@ -2609,5 +2612,7 @@
   "limit_team_booking_frequency_description": "限制团队成员在所有团队活动类型（集体和round-robin）中的预订次数",
   "booking_limits_updated_successfully": "预订限制更新成功",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您无权对此预订进行更改",
+  "hide_calendar_event_details": "隐藏共享日历中的事件详情",
+  "description_hide_calendar_event_details": "当日历被共享时，事件对读者可见，但其详情对没有写入权限的人隐藏。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
