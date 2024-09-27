@@ -711,6 +711,7 @@ async function handler(
     conferenceCredentialId,
     destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
+    hideCalendarEventDetails: eventType.hideCalendarEventDetails,
     requiresConfirmation: !isConfirmedByDefault,
     eventTypeId: eventType.id,
     // if seats are not enabled we should default true

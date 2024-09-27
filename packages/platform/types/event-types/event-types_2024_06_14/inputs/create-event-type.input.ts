@@ -290,6 +290,10 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   useDestinationCalendarEmail?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideCalendarEventDetails?: boolean;
 }
 
 export enum HostPriority {
