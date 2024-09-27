@@ -33,12 +33,20 @@
   },
   "tabs": [
     {
+      "name": "Platform",
+      "url": "platform"
+    },
+    {
       "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2"
     }
   ],
   "navigation": [
+    {
+      "group": "Platform",
+      "pages": ["platform/introduction", "platform/quickstart", "platform/booking-redirects", "platform/faq"]
+    },
     {
       "group": "Getting started",
       "pages": ["api-reference/v2/introduction", "api-reference/v2/v1-v2-differences"]
