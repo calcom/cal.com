@@ -4134,7 +4134,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.41"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.43"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4152,7 +4152,7 @@ __metadata:
     "@nestjs/schematics": ^10.0.0
     "@nestjs/swagger": ^7.3.0
     "@nestjs/testing": ^10.0.0
-    "@nestjs/throttler": ^5.1.2
+    "@nestjs/throttler": 6.2.1
     "@sentry/node": ^8.8.0
     "@types/cookie-parser": ^1.4.6
     "@types/express": ^4.17.21
@@ -4370,6 +4370,15 @@ __metadata:
 "@calcom/basecamp3@workspace:packages/app-store/basecamp3":
   version: 0.0.0-use.local
   resolution: "@calcom/basecamp3@workspace:packages/app-store/basecamp3"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/bolna@workspace:packages/app-store/bolna":
+  version: 0.0.0-use.local
+  resolution: "@calcom/bolna@workspace:packages/app-store/bolna"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -5121,14 +5130,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.41":
-  version: 0.0.41
-  resolution: "@calcom/platform-libraries@npm:0.0.41"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.43":
+  version: 0.0.43
+  resolution: "@calcom/platform-libraries@npm:0.0.43"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: a4052828549f0705d585647a0962a82cd09643161c71c066e66f6ce71dd26f9a5912ce09270256e8c99d5b5fc49b8f812ac903c623ff9840c0ebf0295632b261
+  checksum: c9a6ede11ddd5ec413aacc6e8f6624446d964a60a303469fce329c9a925d8a436931ce91b3d1dfa943c8e8740d7b041e5b0522dfc387c8309008cb255d391b5c
   languageName: node
   linkType: hard
 
@@ -9730,14 +9739,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/throttler@npm:^5.1.2":
-  version: 5.1.2
-  resolution: "@nestjs/throttler@npm:5.1.2"
+"@nestjs/throttler@npm:6.2.1":
+  version: 6.2.1
+  resolution: "@nestjs/throttler@npm:6.2.1"
   peerDependencies:
     "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
     "@nestjs/core": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
     reflect-metadata: ^0.1.13 || ^0.2.0
-  checksum: 181c99fca712be09ce9264e0b3f505f450d07d19cdacd58ca2e66c9f29e143ac3a8051a3cdc0b928f162ae0c0b14d40fc68752434d46c9b25e555974a1c8c1a1
+  checksum: 6634812aaba2db9fd7edd1200d051447d2dc33dca8318a14d517f02b103fd2a3e4a41842c006f8f5218b757da20eff0d6f472b0455d3a25d3a8758eed96552ae
   languageName: node
   linkType: hard
 
