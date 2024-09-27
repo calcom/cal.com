@@ -248,7 +248,7 @@ export const bookingCreateBodySchema = z.object({
   seatReferenceUid: z.string().optional(),
   orgSlug: z.string().optional(),
   teamMemberEmail: z.string().nullish(),
-  teamMemberIds: z.array(z.number()).nullish(),
+  routedTeamMemberIds: z.array(z.number()).nullish(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -649,6 +649,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   metadata: true,
   children: true,
   hideCalendarNotes: true,
+  hideCalendarEventDetails: true,
   minimumBookingNotice: true,
   beforeEventBuffer: true,
   afterEventBuffer: true,

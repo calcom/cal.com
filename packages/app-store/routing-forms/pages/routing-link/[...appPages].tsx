@@ -70,7 +70,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     const chosenRoute = findMatchingRoute({ form, response });
 
     if (!chosenRoute) {
-      // This error should never happen has we ensure that fallback route is always there that matches always
+      // This error should never happen as we ensure that fallback route is always there that matches always
       throw new Error("No matching route found");
     }
 
@@ -110,15 +110,16 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         teamMembersMatchingAttributeLogic
       });
       const chosenRoute = chosenRouteWithFormResponse.route;
+      const decidedAction = chosenRoute.action;
       sdkActionManager?.fire("routed", {
-        actionType: chosenRoute.action.type,
-        actionValue: chosenRoute.action.value,
+        actionType: decidedAction.type,
+        actionValue: decidedAction.value,
       });
       //TODO: Maybe take action after successful mutation
-      if (chosenRoute.action.type === "customPageMessage") {
-        setCustomPageMessage(chosenRoute.action.value);
-      } else if (chosenRoute.action.type === "eventTypeRedirectUrl") {
-        const eventTypeUrlWithResolvedVariables = substituteVariables(chosenRoute.action.value, response, fields);
+      if (decidedAction.type === "customPageMessage") {
+        setCustomPageMessage(decidedAction.value);
+      } else if (decidedAction.type === "eventTypeRedirectUrl") {
+        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
         router.push(
           getAbsoluteEventTypeRedirectUrl({
             form,
@@ -126,8 +127,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
             allURLSearchParams,
           })
         );
-      } else if (chosenRoute.action.type === "externalRedirectUrl") {
-        navigateInTopWindow(`${chosenRoute.action.value}?${allURLSearchParams}`);
+      } else if (decidedAction.type === "externalRedirectUrl") {
+        navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
       }
       // We don't want to show this message as it doesn't look good in Embed.
       // showToast("Form submitted successfully! Redirecting now ...", "success");

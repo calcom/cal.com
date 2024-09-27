@@ -16,7 +16,7 @@ import { getQueryBuilderConfigForAttributes } from "../lib/getQueryBuilderConfig
 import isRouter from "../lib/isRouter";
 import type { OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
-
+const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 type Field = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
 
 function isOptionsField(field: Pick<Field, "type" | "options">) {
@@ -96,17 +96,18 @@ export function replaceFieldVariableInLogicWithResponseValue({
   fields: Field[] | undefined;
   response: FormResponse;
 }) {
+  const log = moduleLogger.getSubLogger({ prefix: ["replaceFieldVariableInLogicWithResponseValue"] });
   const logicWithFieldValues = JSON.parse(
     JSON.stringify(logic).replace(/{field:([\w-]+)}/g, (match, fieldId) => {
       const field = fields?.find((f) => f.id === fieldId);
       if (!field) {
-        console.log("field not found", fieldId);
+        log.debug("field not found", safeStringify({ fieldId }));
         return match;
       }
       const matchingOptionLabel = field.options?.find(
         (option) => option.id === response[fieldId]?.value
       )?.label;
-      console.log("matchingOptionLabel", { matchingOptionLabel, response, fieldId });
+      log.debug("matchingOptionLabel", safeStringify({ matchingOptionLabel, response, fieldId }));
       const fieldValue = slugify(matchingOptionLabel || "");
       return fieldValue ? fieldValue : match;
     })
@@ -154,7 +155,7 @@ export async function findTeamMembersMatchingAttributeLogic({
       if (result) {
         teamMembersMatchingAttributeLogic.push(member.userId);
       } else {
-        console.log("Team member does not match attributes logic", safeStringify({ member }));
+        moduleLogger.debug("Team member does not match attributes logic", safeStringify({ member }));
       }
     });
   }
@@ -230,12 +231,12 @@ export async function onFormSubmission(
   }, [] as OrderedResponses);
 
   if (form.settings?.emailOwnerOnSubmission) {
-    logger.debug(
+    moduleLogger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
     await sendResponseEmail(form, orderedResponses, [form.user.email]);
   } else if (form.userWithEmails?.length) {
-    logger.debug(
+    moduleLogger.debug(
       `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
     );
     await sendResponseEmail(form, orderedResponses, form.userWithEmails);
@@ -254,7 +255,7 @@ export const sendResponseEmail = async (
       await email.sendEmail();
     }
   } catch (e) {
-    logger.error("Error sending response email", e);
+    moduleLogger.error("Error sending response email", e);
   }
 };
 

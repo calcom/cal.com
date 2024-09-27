@@ -38,23 +38,25 @@ import {
 import isRouter from "../../lib/isRouter";
 import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
 
-type QueryBuilderState =
-  | {
-      tree: ImmutableTree;
-      config: FormFieldsQueryBuilderConfigWithRaqbFields;
-    }
-  | {
-      tree: ImmutableTree;
-      config: AttributesQueryBuilderConfigWithRaqbFields;
-    };
+type FormFieldsQueryBuilderState = {
+  tree: ImmutableTree;
+  config: FormFieldsQueryBuilderConfigWithRaqbFields;
+};
 
-type Route =
-  | (LocalRoute & {
-      // queryValue is parsed to create states
-      formFieldsQueryBuilderState: QueryBuilderState;
-      attributesQueryBuilderState: QueryBuilderState | null;
-    })
-  | GlobalRoute;
+type AttributesQueryBuilderState = {
+  tree: ImmutableTree;
+  config: AttributesQueryBuilderConfigWithRaqbFields;
+};
+
+type LocalRouteWithRaqbStates = LocalRoute & {
+  formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
+  attributesQueryBuilderState: AttributesQueryBuilderState | null;
+};
+
+type Route = LocalRouteWithRaqbStates | GlobalRoute;
+
+type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
+type FormFieldsQueryValue = LocalRoute["queryValue"];
 
 const hasRules = (route: Route) => {
   if (isRouter(route)) return false;
@@ -63,6 +65,9 @@ const hasRules = (route: Route) => {
 
 const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();
+  const formFieldsQueryValue = { id: uuid, type: "group" } as FormFieldsQueryValue;
+  const attributesQueryValue = { id: uuid, type: "group" } as AttributesQueryValue;
+
   return {
     id: uuid,
     action: {
@@ -70,8 +75,8 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
       value: "",
     },
     // It is actually formFieldsQueryValue
-    queryValue: { id: uuid, type: "group" },
-    attributesQueryValue: { id: uuid, type: "group" },
+    queryValue: formFieldsQueryValue,
+    attributesQueryValue: attributesQueryValue,
   };
 };
 
@@ -161,7 +166,7 @@ const Route = ({
     immutableTree: ImmutableTree,
     config: FormFieldsQueryBuilderConfigWithRaqbFields
   ) => {
-    const jsonTree = QbUtils.getTree(immutableTree);
+    const jsonTree = QbUtils.getTree(immutableTree) as LocalRoute["queryValue"];
     setRoute(route.id, {
       formFieldsQueryBuilderState: { tree: immutableTree, config: config },
       queryValue: jsonTree,
@@ -176,7 +181,7 @@ const Route = ({
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
       attributesQueryBuilderState: { tree: immutableTree, config: config },
-      attributesQueryValue: jsonTree,
+      attributesQueryValue: jsonTree as AttributesQueryValue,
     });
   };
 
@@ -429,19 +434,28 @@ const Route = ({
 const buildState = ({
   queryValue,
   config,
-}: {
-  queryValue: JsonTree;
-  config: FormFieldsQueryBuilderConfigWithRaqbFields | AttributesQueryBuilderConfigWithRaqbFields;
-}) => ({
+}:
+  | {
+      queryValue: FormFieldsQueryValue;
+      config: FormFieldsQueryBuilderConfigWithRaqbFields;
+    }
+  | {
+      queryValue: AttributesQueryValue;
+      config: AttributesQueryBuilderConfigWithRaqbFields;
+    }) => ({
   tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config),
   config,
 });
 
-const deserializeRoute = (
-  route: Exclude<SerializableRoute, GlobalRoute>,
-  formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields,
-  attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null
-): Route => {
+const deserializeRoute = ({
+  route,
+  formFieldsQueryBuilderConfig,
+  attributesQueryBuilderConfig,
+}: {
+  route: Exclude<SerializableRoute, GlobalRoute>;
+  formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
+  attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
+}): Route => {
   return {
     ...route,
     formFieldsQueryBuilderState: buildState({
@@ -486,7 +500,7 @@ const Routes = ({
       _routes.forEach((r) => {
         if (isRouter(r)) return;
         if (!r.queryValue?.id) {
-          r.queryValue = { id: QbUtils.uuid(), type: "group" };
+          r.queryValue = { id: QbUtils.uuid(), type: "group" } as LocalRoute["queryValue"];
         }
       });
       return _routes;
@@ -494,7 +508,11 @@ const Routes = ({
 
     return transformRoutes().map((route) => {
       if (isRouter(route)) return route;
-      return deserializeRoute(route, formFieldsQueryBuilderConfig, attributesQueryBuilderConfig);
+      return deserializeRoute({
+        route,
+        formFieldsQueryBuilderConfig,
+        attributesQueryBuilderConfig,
+      });
     });
   });
 
@@ -573,11 +591,11 @@ const Routes = ({
   });
 
   if (!fallbackRoute) {
-    fallbackRoute = deserializeRoute(
-      createFallbackRoute(),
+    fallbackRoute = deserializeRoute({
+      route: createFallbackRoute(),
       formFieldsQueryBuilderConfig,
-      attributesQueryBuilderConfig
-    );
+      attributesQueryBuilderConfig,
+    });
     setRoutes((routes) => {
       // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -679,22 +697,17 @@ const Routes = ({
                 ...routes,
                 {
                   ...newEmptyRoute,
-                  formFieldsQueryBuilderState: {
-                    tree: QbUtils.checkTree(
-                      QbUtils.loadTree(newEmptyRoute.queryValue),
-                      formFieldsQueryBuilderConfig
-                    ),
+                  formFieldsQueryBuilderState: buildState({
+                    queryValue: newEmptyRoute.queryValue,
                     config: formFieldsQueryBuilderConfig,
-                  },
-                  attributesQueryBuilderState: attributesQueryBuilderConfig
-                    ? {
-                        tree: QbUtils.checkTree(
-                          QbUtils.loadTree(newEmptyRoute.queryValue),
-                          attributesQueryBuilderConfig
-                        ),
-                        config: attributesQueryBuilderConfig,
-                      }
-                    : null,
+                  }),
+                  attributesQueryBuilderState:
+                    attributesQueryBuilderConfig && newEmptyRoute.attributesQueryValue
+                      ? buildState({
+                          queryValue: newEmptyRoute.attributesQueryValue,
+                          config: attributesQueryBuilderConfig,
+                        })
+                      : null,
                 },
               ];
 

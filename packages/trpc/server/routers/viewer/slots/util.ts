@@ -31,7 +31,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-import { getHostsMatchingTeamMemberIdsIncludingFixed } from "@calcom/lib/bookings/getHostsMatchingTeamMemberIds";
+import { getRoutedHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
@@ -115,7 +115,6 @@ async function getEventTypeId({
       organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
     );
   }
-  if (!userId && !teamId) throw new TRPCError({ code: "NOT_FOUND" });
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventTypeSlug,
@@ -179,6 +178,22 @@ export async function getEventType(
       rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
+      team: {
+        select: {
+          id: true,
+          bookingLimits: true,
+        },
+      },
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+            },
+          },
+        },
+      },
       schedule: {
         select: {
           id: true,
@@ -395,7 +410,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           };
         });
 
-  let hosts = getHostsMatchingTeamMemberIdsIncludingFixed({ hosts: eventHosts, teamMemberIds: input.teamMemberIds });
+  let hosts = getRoutedHosts({ hosts: eventHosts, routedTeamMemberIds: input.routedTeamMemberIds });
 
   if (
     input.rescheduleUid &&

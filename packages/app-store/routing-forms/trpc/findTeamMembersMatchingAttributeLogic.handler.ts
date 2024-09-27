@@ -1,23 +1,32 @@
-import { TRPCError } from "@calcom/trpc/server";
-import { getSerializableForm } from "../lib/getSerializableForm";
-import { findTeamMembersMatchingAttributeLogic } from "./utils";
-import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
-import type { PrismaClient } from "@calcom/prisma";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import type { PrismaClient } from "@calcom/prisma";
+import { TRPCError } from "@calcom/trpc/server";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { getSerializableForm } from "../lib/getSerializableForm";
+import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
+import { findTeamMembersMatchingAttributeLogic } from "./utils";
+
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
   ctx: {
     prisma: PrismaClient;
+    user: NonNullable<TrpcSessionUser>;
   };
   input: TFindTeamMembersMatchingAttributeLogicInputSchema;
 }
 
-export const findTeamMembersMatchingAttributeLogicHandler = async ({ ctx, input }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
-  const { prisma } = ctx;
+export const findTeamMembersMatchingAttributeLogicHandler = async ({
+  ctx,
+  input,
+}: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
+  const { prisma, user } = ctx;
   const { formId, response, routeId } = input;
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
+      ...entityPrismaWhereClause({ userId: user.id }),
     },
   });
 
@@ -43,7 +52,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({ ctx, input 
     form: serializableForm,
     teamId: form.teamId,
   });
-  
+
   if (!matchingTeamMembersIds) {
     return null;
   }

@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getUsersMatchingTeamMemberIdsIncludingFixed } from "@calcom/lib/bookings/getHostsMatchingTeamMemberIds";
+import { getRoutedUsers } from "@calcom/lib/bookings/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -16,18 +16,23 @@ const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 
-export const loadUsers = async (
-  eventType: EventType,
-  dynamicUserList: string[],
-  req: IncomingMessage,
-  teamMemberIds?: number[] | undefined | null
-) => {
+export const loadUsers = async ({
+  eventType,
+  dynamicUserList,
+  req,
+  routedTeamMemberIds,
+}: {
+  eventType: EventType;
+  dynamicUserList: string[];
+  req: IncomingMessage;
+  routedTeamMemberIds?: number[] | undefined | null;
+}) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);
     const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
-    return getUsersMatchingTeamMemberIdsIncludingFixed({ users, teamMemberIds });
+    return getRoutedUsers({ users, routedTeamMemberIds });
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {

@@ -1,7 +1,9 @@
+import { useSearchParams } from "next/navigation";
+
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
-import { useSearchParams } from "next/navigation";
 
 export type UseScheduleWithCacheArgs = {
   username?: string | null;
@@ -43,11 +45,9 @@ export const useSchedule = ({
     prefetchNextMonth,
     selectedDate,
   });
-
   const searchParams = useSearchParams();
-  const teamMemberIdsParam = searchParams?.get("teamMemberIds");
-  const teamMemberIds = (typeof teamMemberIdsParam === "string" ? (teamMemberIdsParam.split(",").filter(Boolean).map((id) => parseInt(id, 10))) : null)
- 
+
+  const routedTeamMemberIds = searchParams ? getRoutedTeamMemberIdsFromSearchParams(searchParams) : null;
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
@@ -66,7 +66,7 @@ export const useSchedule = ({
       rescheduleUid,
       orgSlug,
       teamMemberEmail,
-      teamMemberIds,
+      routedTeamMemberIds,
     },
     {
       trpc: {

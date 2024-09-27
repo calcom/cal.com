@@ -61,11 +61,11 @@ export const zodNonRouterRoute = z.object({
   /**
    * RAQB query value for form fields
    */
-  queryValue: queryValueSchema,
+  queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
   /**
    * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
    */
-  attributesQueryValue: queryValueSchema.optional(),
+  attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
     // TODO: Make it a union type of "customPageMessage" and ..

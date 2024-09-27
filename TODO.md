@@ -23,6 +23,8 @@ TODO:
 - [ ] Use teamMemberIds to calculate availabilithy as well in addition to doing it in handleNewBooking
 - [ ] Don't let the Routing Form with attributesQueryValue be picked
 - [ ] Use a subset of event assignees using teamMemberIds
+- [ ] Ensure that renaming an attribute option doesn't remove it from routing logic
+- [ ] Document well that the option name in Routing Form Field and Attribute Option name must be same to connect them.
 V2.0
 - Fallback for when no team member matches the criteria.
     - Fallback will be attributes query builder that would match a different set of users. Though the booking will use the team members assigned to the event type, it might be better to be able to identify such a scenario and use a different set of users. It also makes it easy to identify when the fallback scenario happens.

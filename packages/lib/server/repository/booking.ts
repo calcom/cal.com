@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
@@ -248,5 +249,91 @@ export class BookingRepository {
         },
       },
     });
+  }
+
+  static async getAllAcceptedTeamBookingsOfUser(params: {
+    user: { id: number; email: string };
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string | null;
+    returnCount: true;
+  }): Promise<number>;
+
+  static async getAllAcceptedTeamBookingsOfUser(params: {
+    user: { id: number; email: string };
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string | null;
+  }): Promise<Array<Booking>>;
+
+  static async getAllAcceptedTeamBookingsOfUser(params: {
+    user: { id: number; email: string };
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string | null;
+    returnCount?: boolean;
+  }) {
+    const { user, teamId, startDate, endDate, returnCount, excludedUid } = params;
+
+    const baseWhere: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+      ...(excludedUid && {
+        uid: {
+          not: excludedUid,
+        },
+      }),
+    };
+
+    const whereCollectiveRoundRobinOwner: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      userId: user.id,
+      eventType: {
+        teamId,
+      },
+    };
+
+    const whereCollectiveRoundRobinBookingsAttendee: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      attendees: {
+        some: {
+          email: user.email,
+        },
+      },
+      eventType: {
+        teamId,
+      },
+    };
+
+    if (returnCount) {
+      const collectiveRoundRobinBookingsOwner = await prisma.booking.count({
+        where: whereCollectiveRoundRobinOwner,
+      });
+
+      const collectiveRoundRobinBookingsAttendee = await prisma.booking.count({
+        where: whereCollectiveRoundRobinBookingsAttendee,
+      });
+
+      const totalNrOfBooking = collectiveRoundRobinBookingsOwner + collectiveRoundRobinBookingsAttendee;
+
+      return totalNrOfBooking;
+    }
+    const collectiveRoundRobinBookingsOwner = await prisma.booking.findMany({
+      where: whereCollectiveRoundRobinOwner,
+    });
+
+    const collectiveRoundRobinBookingsAttendee = await prisma.booking.findMany({
+      where: whereCollectiveRoundRobinBookingsAttendee,
+    });
+
+    return [...collectiveRoundRobinBookingsOwner, ...collectiveRoundRobinBookingsAttendee];
   }
 }

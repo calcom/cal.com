@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
 import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
@@ -42,8 +43,7 @@ export const mapBookingToMutationInput = ({
   orgSlug,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(window.location.search);
-  const teamMemberIdsParam = searchParams.get("teamMemberIds");
-  const teamMemberIds = (typeof teamMemberIdsParam === "string" ? (teamMemberIdsParam.split(",").filter(Boolean).map((id) => parseInt(id, 10))) : null)
+  const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
   return {
     ...values,
     user: username,
@@ -65,7 +65,7 @@ export const mapBookingToMutationInput = ({
     hashedLink,
     teamMemberEmail,
     orgSlug,
-    teamMemberIds
+    routedTeamMemberIds,
   };
 };
 

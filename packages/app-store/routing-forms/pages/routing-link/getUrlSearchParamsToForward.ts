@@ -69,12 +69,13 @@ export function getUrlSearchParamsToForward({
     }
   }
 
-
   const allQueryParams: Params = {
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,
-    ...(teamMembersMatchingAttributeLogic ? { teamMemberIds: teamMembersMatchingAttributeLogic.join(",") } : null),
+    ...(teamMembersMatchingAttributeLogic
+      ? { ['cal.routedTeamMemberIds']: teamMembersMatchingAttributeLogic.join(",") }
+      : null),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();
