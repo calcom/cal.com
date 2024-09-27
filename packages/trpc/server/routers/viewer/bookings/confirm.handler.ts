@@ -17,7 +17,12 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  MembershipRole,
+  WebhookTriggerEvents,
+  UserPermissionRole,
+} from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
@@ -37,6 +42,8 @@ type ConfirmOptions = {
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const { user } = ctx;
   const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
+
+  console.log("user", user);
 
   const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
@@ -113,7 +120,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     loggedInUserId: user.id,
     teamId: booking.eventType?.teamId,
     bookingUserId: booking.userId,
+    userRole: user.role,
   });
+
+  return;
 
   // Do not move this before authorization check.
   // This is done to avoid exposing extra information to the requester.
@@ -412,12 +422,17 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
   loggedInUserId,
   teamId,
   bookingUserId,
+  userRole,
 }: {
   eventTypeId: number | null;
   loggedInUserId: number;
   teamId?: number | null;
   bookingUserId: number | null;
+  userRole: string;
 }): Promise<void> => {
+  // check system wide admin
+  if (userRole === UserPermissionRole.ADMIN) return;
+
   // Check if the user is the owner of the event type
   if (bookingUserId === loggedInUserId) return;
 
@@ -429,7 +444,6 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
         OR: [{ hosts: { some: { userId: loggedInUserId } } }, { users: { some: { id: loggedInUserId } } }],
       },
     });
-    console.log("eventTypeId", eventType);
     if (eventType) return;
   }
 
