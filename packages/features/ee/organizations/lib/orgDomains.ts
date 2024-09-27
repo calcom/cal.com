@@ -107,7 +107,7 @@ export function subdomainSuffix() {
     return process.env.LOCAL_TESTING_DOMAIN_VERCEL;
   }
   const urlSplit = WEBAPP_URL.replace("https://", "")?.replace("http://", "").split(".");
-  return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
+  return urlSplit.length >=3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
 }
 
 export function getOrgFullOrigin(slug: string | null, options: { protocol: boolean } = { protocol: true }) {

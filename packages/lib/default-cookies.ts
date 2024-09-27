@@ -18,14 +18,11 @@ const NEXTAUTH_COOKIE_DOMAIN = process.env.NEXTAUTH_COOKIE_DOMAIN || "";
 
 export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
-
+  const domainForLocalTesting = process.env.ORGANIZATIONS_ENABLED
+    ? NEXTAUTH_COOKIE_DOMAIN || ".cal.local"
+    : undefined;
   const defaultOptions: CookieOption["options"] = {
-    domain: isENVDev
-      ? process.env.ORGANIZATIONS_ENABLED
-        ? //FIXME: This is causing login to not work if someone uses anything other .cal.local for testing
-          ".cal.local"
-        : undefined
-      : NEXTAUTH_COOKIE_DOMAIN,
+    domain: isENVDev ? domainForLocalTesting : NEXTAUTH_COOKIE_DOMAIN,
     // To enable cookies on widgets,
     // https://stackoverflow.com/questions/45094712/iframe-not-reading-cookies-in-chrome
     // But we need to set it as `lax` in development
