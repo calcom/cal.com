@@ -346,6 +346,7 @@ test.describe("Email Signup Flow Test", async () => {
     // log in trail user
     await test.step("Sign up", async () => {
       const submitButton = page.locator('[data-testid="signup-submit-button"]');
+      const checkbox = page.locator('[data-testid="signup-cookie-content-checkbox"]');
       await page.goto("/signup");
 
       // Navigate to email form
@@ -356,25 +357,19 @@ test.describe("Email Signup Flow Test", async () => {
       await page.locator('input[name="email"]').fill("pro@example.com");
       await page.locator('input[name="password"]').fill("Password99!");
 
-      await page.locator('[data-testid="signup-cookie-content-checkbox"]').check();
+      await expect(checkbox).toBeVisible();
+      await checkbox.check();
       await expect(submitButton).toBeEnabled();
 
       // the cookie consent checkbox does not need to be checked for user to proceed
-      await page.locator('[data-testid="signup-cookie-content-checkbox"]').uncheck();
+      await checkbox.uncheck();
       await expect(submitButton).toBeEnabled();
     });
   });
 });
 
 test.describe("SAML Signup Flow Test", async () => {
-  test("Password input should not exist", async ({ page }) => {
-    await page.goto("/signup");
-    await page.locator('[data-testid="continue-with-saml-button"]').click();
-
-    await expect(page.locator('input[name="password"]')).not.toBeVisible();
-  });
-
-  test("Premium Username Flow - creates stripe checkout", async ({ page }) => {
+  test("Should navigate user to another URL", async ({ page }) => {
     const submitButton = page.locator('[data-testid="saml-submit-button"]');
     await page.goto("/signup");
 
@@ -389,10 +384,18 @@ test.describe("SAML Signup Flow Test", async () => {
     await page.waitForURL("/auth/sso/saml");
   });
 
+  test("Password input should not exist", async ({ page }) => {
+    await page.goto("/signup");
+    await page.locator('[data-testid="continue-with-saml-button"]').click();
+
+    await expect(page.locator('input[name="password"]')).not.toBeVisible();
+  });
+
   test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
     // log in trail user
     await test.step("Sign up", async () => {
       const submitButton = page.locator('[data-testid="saml-submit-button"]');
+      const checkbox = page.locator('[data-testid="signup-cookie-content-checkbox"]');
       await page.goto("/signup");
 
       // Navigate to email form
@@ -401,12 +404,12 @@ test.describe("SAML Signup Flow Test", async () => {
       // Fill form
       await page.locator('input[name="username"]').fill("pro");
       await page.locator('input[name="email"]').fill("pro@example.com");
-
-      await page.locator('[data-testid="signup-cookie-content-checkbox"]').check();
+      await expect(checkbox).toBeVisible();
+      await checkbox.check();
       await expect(submitButton).toBeEnabled();
 
       // the cookie consent checkbox does not need to be checked for user to proceed
-      await page.locator('[data-testid="signup-cookie-content-checkbox"]').uncheck();
+      await checkbox.uncheck();
       await expect(submitButton).toBeEnabled();
     });
   });
