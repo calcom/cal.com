@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "אין לך הרשאה לבצע שינוי זה בהזמנה",
   "hide_calendar_event_details": "הסתר פרטי אירועי לוח שנה בלוחות שנה משותפים",
   "description_hide_calendar_event_details": "כאשר לוח שנה משותף, האירועים נראים לקוראים אך פרטיהם מוסתרים מאלו שאין להם גישת כתיבה.",
+  "last_number_of_days": "ב{{count}} הימים האחרונים",
+  "month_to_date": "מתחילת החודש",
+  "year_to_date": "מתחילת השנה",
+  "custom_range": "טווח מותאם אישית",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

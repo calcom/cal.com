@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tillatelse til å gjøre denne endringen i bestillingen",
   "hide_calendar_event_details": "Skjul kalenderhendelsesdetaljer på delte kalendere",
   "description_hide_calendar_event_details": "Når en kalender deles, er hendelser synlige for lesere, men detaljene er skjult for de uten skriveadgang.",
+  "last_number_of_days": "siste {{count}} dager",
+  "month_to_date": "måned til dags dato",
+  "year_to_date": "år til dags dato",
+  "custom_range": "tilpasset periode",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
