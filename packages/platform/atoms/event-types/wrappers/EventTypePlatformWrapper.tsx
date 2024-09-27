@@ -148,7 +148,6 @@ const EventType = ({
               onConfirm={(e: { preventDefault: () => void }) => {
                 e.preventDefault();
                 handleSubmit(form.getValues());
-
                 setSlugExistsChildrenDialogOpen([]);
               }}
             />

@@ -43,7 +43,7 @@ export class AtomsController {
     @GetUser() user: UserWithProfile,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<ApiResponse<unknown>> {
-    const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, eventTypeId);
+    const eventType = await this.eventTypesService.getUserEventType(user, eventTypeId);
     return {
       status: SUCCESS_STATUS,
       data: eventType,
@@ -58,7 +58,7 @@ export class AtomsController {
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeReturn
   ): Promise<ApiResponse<UpdateEventTypeReturn>> {
-    const eventType = await this.eventTypesService.updateEventTypeForAtom(eventTypeId, body, user);
+    const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
     return {
       status: SUCCESS_STATUS,
       data: eventType,

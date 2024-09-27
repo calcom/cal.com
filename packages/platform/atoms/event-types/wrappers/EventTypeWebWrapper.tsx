@@ -353,6 +353,7 @@ const EventTypeWeb = ({
       isTeamEventTypeDeleted.current = true;
       isAppDir ? appRouter.push("/event-types") : pageRouter.push("/event-types");
       setSlugExistsChildrenDialogOpen([]);
+      setIsOpenAssignmentWarnDialog(false);
     },
     onError: (err) => {
       if (err instanceof HttpError) {

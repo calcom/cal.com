@@ -1,31 +1,30 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
-import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import {
   updateEventType,
   TUpdateEventTypeInputSchema,
   systemBeforeFieldEmail,
+  getEventTypeById,
 } from "@calcom/platform-libraries";
+import { PrismaClient } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesAtomService {
   constructor(
-    private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly usersRepository: UsersRepository,
     private readonly usersService: UsersService,
     private readonly dbWrite: PrismaWriteService,
-    private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly schedulesRepository: SchedulesRepository_2024_06_11
+    private readonly dbRead: PrismaReadService,
+    private readonly eventTypeService: EventTypesService_2024_06_14
   ) {}
 
-  async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
+  async getUserEventType(user: UserWithProfile, eventTypeId: number) {
     this.eventTypeService.checkUserOwnsEventType(user.id, { id: eventTypeId, userId: user.id });
     const organizationId = this.usersService.getUserMainOrgId(user);
 
@@ -33,11 +32,14 @@ export class EventTypesAtomService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
 
-    const eventType = await this.eventTypesRepository.getUserEventTypeForAtom(
-      user,
+    const eventType = await getEventTypeById({
+      currentOrganizationId: this.usersService.getUserMainOrgId(user),
+      eventTypeId,
+      userId: user.id,
+      prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
-      eventTypeId
-    );
+      isTrpcCall: true,
+    });
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
@@ -47,11 +49,7 @@ export class EventTypesAtomService {
     return eventType;
   }
 
-  async updateEventTypeForAtom(
-    eventTypeId: number,
-    body: TUpdateEventTypeInputSchema,
-    user: UserWithProfile
-  ) {
+  async updateEventType(eventTypeId: number, body: TUpdateEventTypeInputSchema, user: UserWithProfile) {
     this.eventTypeService.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
     const bookingFields = [...(body.bookingFields || [])];
@@ -63,7 +61,7 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
-    await updateEventType({
+    const eventType = await updateEventType({
       input: { id: eventTypeId, ...body, bookingFields },
       ctx: {
         user: eventTypeUser,
@@ -72,8 +70,6 @@ export class EventTypesAtomService {
         prisma: this.dbWrite.prisma,
       },
     });
-
-    const eventType = await this.getUserEventTypeForAtom(user, eventTypeId);
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);

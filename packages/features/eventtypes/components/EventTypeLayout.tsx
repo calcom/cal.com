@@ -64,8 +64,6 @@ function EventTypeSingleLayout({
   isPlatform,
   tabsNavigation,
 }: Props) {
-  console.log("EventTypeLayout Shell 1", isPlatform);
-
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
 
@@ -82,13 +80,7 @@ function EventTypeSingleLayout({
     translate: t,
     formMethods,
   });
-
-  console.log("EventTypeLayout Shell 2", isPlatform);
-
-  // Define tab navigation here
   const EventTypeTabs = tabsNavigation;
-  console.log("EventTypeLayout Shell 3", isPlatform);
-
   const permalink = `${bookerUrl}/${
     team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
   }/${eventType.slug}`;
@@ -97,14 +89,11 @@ function EventTypeSingleLayout({
     team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
   }/${formMethods.getValues("slug")}`;
   const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
-  // const title = formMethods.watch("title");
-  console.log("EventTypeLayout Shell 4", isPlatform);
 
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
 
-  console.log("EventTypeLayout Shell", isPlatform);
   return (
     <Shell
       backPath="/event-types"
