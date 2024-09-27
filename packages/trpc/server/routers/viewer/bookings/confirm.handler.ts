@@ -43,8 +43,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const { user } = ctx;
   const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
 
-  console.log("user", user);
-
   const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
   const booking = await prisma.booking.findUniqueOrThrow({
