@@ -256,6 +256,9 @@ export default class GoogleCalendarService implements Calendar {
         : true,
       iCalUID: formattedCalEvent.iCalUID,
     };
+    if (calEventRaw.hideCalendarEventDetails) {
+      payload.visibility = "private";
+    }
 
     if (formattedCalEvent.location) {
       payload["location"] = getLocation(formattedCalEvent);
