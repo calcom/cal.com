@@ -40,6 +40,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
+  const timeZone = ctx.user.timeZone;
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
@@ -52,6 +53,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,
     schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
+    timeZone: timeZone,
   };
 
   if (teamId && schedulingType) {
