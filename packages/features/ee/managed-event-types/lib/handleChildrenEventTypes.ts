@@ -239,7 +239,7 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             hashedLink:
-              "singleUseLinks" in unlockedFieldProps
+              "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
                 : {
                     deleteMany: {},

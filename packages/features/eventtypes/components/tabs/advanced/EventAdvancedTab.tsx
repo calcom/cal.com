@@ -12,7 +12,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { SingleUseLinksController } from "@calcom/features/eventtypes/components";
+import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
@@ -58,8 +58,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
-  const [singleUseLinksVisible, setSingleUseLinksVisible] = useState(
-    !!formMethods.getValues("singleUseLinks") && formMethods.getValues("singleUseLinks")?.length !== 0
+  const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
+    !!formMethods.getValues("multiplePrivateLinks") &&
+      formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
@@ -136,10 +137,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
-  const singleUseLinksLocked = shouldLockDisableProps("singleUseLinks");
+  const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
 
   if (isManagedEventType) {
-    singleUseLinksLocked.disabled = true;
+    multiplePrivateLinksLocked.disabled = true;
   }
 
   const closeEventNameTip = () => setShowEventNameTip(false);
@@ -385,7 +386,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         )}
       />
       <Controller
-        name="singleUseLinks"
+        name="multiplePrivateLinks"
         render={() => {
           return (
             <SettingsToggle
@@ -393,30 +394,30 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                singleUseLinksVisible && "rounded-b-none"
+                multiplePrivateLinksVisible && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
-              data-testid="singleUseLinksCheck"
-              title={t("single_use_links_title")}
-              {...singleUseLinksLocked}
-              description={t("single_use_links_description", { appName: APP_NAME })}
+              data-testid="multiplePrivateLinksCheck"
+              title={t("multiple_private_links_title")}
+              {...multiplePrivateLinksLocked}
+              description={t("multiple_private_links_description", { appName: APP_NAME })}
               tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
-              checked={singleUseLinksVisible}
+              checked={multiplePrivateLinksVisible}
               onCheckedChange={(e) => {
                 if (!e) {
-                  formMethods.setValue("singleUseLinks", [], { shouldDirty: true });
+                  formMethods.setValue("multiplePrivateLinks", [], { shouldDirty: true });
                 } else {
                   formMethods.setValue(
-                    "singleUseLinks",
+                    "multiplePrivateLinks",
                     [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
                     { shouldDirty: true }
                   );
                 }
-                setSingleUseLinksVisible(e);
+                setMultiplePrivateLinksVisible(e);
               }}>
               {!isManagedEventType && (
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <SingleUseLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                  <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
                 </div>
               )}
             </SettingsToggle>

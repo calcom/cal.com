@@ -66,7 +66,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     assignAllTeamMembers,
     hosts,
     id,
-    singleUseLinks,
+    multiplePrivateLinks,
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
     userId,
@@ -353,13 +353,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const connectedSingleUseLinks = connectedLinks.map((link) => link.link);
+  const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
-  if (singleUseLinks && singleUseLinks.length > 0) {
-    const singleUseLinksToBeInserted = singleUseLinks.filter(
-      (link) => !connectedSingleUseLinks.includes(link)
+  if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
+    const multiplePrivateLinksToBeInserted = multiplePrivateLinks.filter(
+      (link) => !connectedMultiplePrivateLinks.includes(link)
     );
-    const singleLinksToBeDeleted = connectedSingleUseLinks.filter((link) => !singleUseLinks.includes(link));
+    const singleLinksToBeDeleted = connectedMultiplePrivateLinks.filter(
+      (link) => !multiplePrivateLinks.includes(link)
+    );
     if (singleLinksToBeDeleted.length > 0) {
       await ctx.prisma.hashedLink.deleteMany({
         where: {
@@ -370,9 +372,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
-    if (singleUseLinksToBeInserted.length > 0) {
+    if (multiplePrivateLinksToBeInserted.length > 0) {
       await ctx.prisma.hashedLink.createMany({
-        data: singleUseLinksToBeInserted.map((link) => {
+        data: multiplePrivateLinksToBeInserted.map((link) => {
           return {
             link: link,
             eventTypeId: input.id,
@@ -382,12 +384,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   } else {
     // Delete all the single-use links for this event.
-    if (connectedSingleUseLinks.length > 0) {
+    if (connectedMultiplePrivateLinks.length > 0) {
       await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
           link: {
-            in: connectedSingleUseLinks,
+            in: connectedMultiplePrivateLinks,
           },
         },
       });

@@ -7,7 +7,7 @@ import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon, TextField, Tooltip, showToast } from "@calcom/ui";
 
-export const SingleUseLinksController = ({
+export const MultiplePrivateLinksController = ({
   team,
   bookerUrl,
 }: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl">) => {
@@ -16,20 +16,20 @@ export const SingleUseLinksController = ({
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
   return (
     <Controller
-      name="singleUseLinks"
+      name="multiplePrivateLinks"
       control={formMethods.control}
       render={({ field: { value, onChange } }) => {
         if (!value) {
           value = [];
         }
-        const addSingleUseLink = () => {
-          const newSingleUseLink = generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id);
+        const addPrivateLink = () => {
+          const newPrivateLink = generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id);
           if (!value) value = [];
-          value.push(newSingleUseLink);
+          value.push(newPrivateLink);
           onChange(value);
         };
 
-        const removeSingleUseLink = (index: number) => {
+        const removePrivateLink = (index: number) => {
           if (!value) value = [];
           value.splice(index, 1);
           onChange(value);
@@ -59,7 +59,7 @@ export const SingleUseLinksController = ({
                             aria-label="copy link"
                             onClick={() => {
                               navigator.clipboard.writeText(singleUseURL);
-                              showToast(t("single_use_link_copied"), "success");
+                              showToast(t("multiple_private_link_copied"), "success");
                             }}>
                             <Icon name="copy" className="ml-1 h-4 w-4" />
                           </Button>
@@ -73,7 +73,7 @@ export const SingleUseLinksController = ({
                         StartIcon="trash-2"
                         color="destructive"
                         className="ml-2 border-none"
-                        onClick={() => removeSingleUseLink(key)}
+                        onClick={() => removePrivateLink(key)}
                       />
                     )}
                   </li>
@@ -82,9 +82,9 @@ export const SingleUseLinksController = ({
             <Button
               color="minimal"
               StartIcon="plus"
-              onClick={addSingleUseLink}
+              onClick={addPrivateLink}
               data-testid="add-single-use-link-button">
-              {t("add_a_single_use_link")}
+              {t("add_a_multiple_private_link")}
             </Button>
           </ul>
         );

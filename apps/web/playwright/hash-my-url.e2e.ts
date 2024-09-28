@@ -26,7 +26,7 @@ test.describe("hash my url", () => {
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
     // ignore if it is already checked, and click if unchecked
-    const hashedLinkCheck = await page.locator('[data-testid="singleUseLinksCheck"]');
+    const hashedLinkCheck = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
 
     await hashedLinkCheck.click();
 
@@ -51,7 +51,7 @@ test.describe("hash my url", () => {
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
 
-    const hashedLinkCheck2 = await page.locator('[data-testid="singleUseLinksCheck"]');
+    const hashedLinkCheck2 = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
     await hashedLinkCheck2.click();
 
     // we wait for the hashedLink setting to load

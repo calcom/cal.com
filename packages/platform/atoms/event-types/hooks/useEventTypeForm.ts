@@ -72,7 +72,7 @@ export const useEventTypeForm = ({
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
-      singleUseLinks: eventType.hashedLink.map((link) => link.link),
+      multiplePrivateLinks: eventType.hashedLink.map((link) => link.link),
       eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
@@ -347,7 +347,7 @@ export const useEventTypeForm = ({
       customInputs,
       children,
       assignAllTeamMembers,
-      singleUseLinks: values.singleUseLinks,
+      multiplePrivateLinks: values.multiplePrivateLinks,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
