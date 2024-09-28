@@ -18,21 +18,29 @@ test.describe("Signup Main Page Test", async () => {
 
   test("Continue with email button must exist / work", async ({ page }) => {
     await page.goto("/signup");
-    await expect(page.getByTestId("continue-with-email-button")).toBeVisible();
-    await page.getByTestId("continue-with-email-button").click();
+    const button = page.getByTestId("continue-with-email-button");
+    await expect(button).toBeVisible();
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(page.getByTestId("signup-back-button")).toBeVisible();
   });
 
   test("Continue with google button must exist / work", async ({ page }) => {
     await page.goto("/signup");
-    await expect(page.getByTestId("continue-with-google-button")).toBeVisible();
-    await page.getByTestId("continue-with-google-button").click();
+    const button = page.getByTestId("continue-with-google-button");
+    await expect(button).toBeVisible();
+    await expect(button).toBeEnabled();
+    await button.click();
     await page.waitForURL("/auth/sso/google");
   });
 
   test("Continue with SAML button must exist / work", async ({ page }) => {
     await page.goto("/signup");
-    await expect(page.getByTestId("continue-with-saml-button")).toBeVisible();
-    await page.getByTestId("continue-with-saml-button").click();
+    const button = page.getByTestId("continue-with-saml-button");
+    await expect(button).toBeVisible();
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(page.getByTestId("signup-back-button")).toBeVisible();
   });
 });
 

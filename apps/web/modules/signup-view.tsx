@@ -342,6 +342,7 @@ export default function Signup({
                   color="minimal"
                   className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
                   StartIcon="arrow-left"
+                  data-testid="signup-back-button"
                   onClick={() => {
                     setDisplayEmailForm(false);
                     setIsSamlSignup(false);
