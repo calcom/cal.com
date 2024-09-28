@@ -360,31 +360,28 @@ test.describe("Email Signup Flow Test", async () => {
   });
 
   test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
-    // log in trail user
-    await test.step("Sign up", async () => {
-      await page.goto("/signup");
+    await page.goto("/signup");
 
-      // Navigate to email form
-      await page.getByTestId("continue-with-email-button").click();
+    // Navigate to email form
+    await page.getByTestId("continue-with-email-button").click();
 
-      // Fill form
-      await page.locator('input[name="username"]').fill("pro");
-      await page.locator('input[name="email"]').fill("pro@example.com");
-      await page.locator('input[name="password"]').fill("Password99!");
+    // Fill form
+    await page.locator('input[name="username"]').fill("pro");
+    await page.locator('input[name="email"]').fill("pro@example.com");
+    await page.locator('input[name="password"]').fill("Password99!");
 
-      const submitButton = page.getByTestId("signup-submit-button");
-      const checkbox = page.getByTestId("signup-cookie-content-checkbox");
+    const submitButton = page.getByTestId("signup-submit-button");
+    const checkbox = page.getByTestId("signup-cookie-content-checkbox");
 
-      await submitButton.waitFor({ state: "visible" });
-      await checkbox.waitFor({ state: "visible" });
-      await checkbox.waitFor({ state: "attached" });
-      await checkbox.check();
-      await expect(submitButton).toBeEnabled();
+    await submitButton.waitFor({ state: "visible" });
+    await checkbox.waitFor({ state: "visible" });
+    await checkbox.waitFor({ state: "attached" });
+    await checkbox.check();
+    await expect(submitButton).toBeEnabled();
 
-      // the cookie consent checkbox does not need to be checked for user to proceed
-      await checkbox.uncheck();
-      await expect(submitButton).toBeEnabled();
-    });
+    // the cookie consent checkbox does not need to be checked for user to proceed
+    await checkbox.uncheck();
+    await expect(submitButton).toBeEnabled();
   });
 });
 
@@ -418,29 +415,26 @@ test.describe("SAML Signup Flow Test", async () => {
   });
 
   test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
-    // log in trail user
-    await test.step("Sign up", async () => {
-      await page.goto("/signup");
+    await page.goto("/signup");
 
-      // Navigate to email form
-      await page.getByTestId("continue-with-saml-button").click();
+    // Navigate to email form
+    await page.getByTestId("continue-with-saml-button").click();
 
-      // Fill form
-      await page.locator('input[name="username"]').fill("pro");
-      await page.locator('input[name="email"]').fill("pro@example.com");
+    // Fill form
+    await page.locator('input[name="username"]').fill("pro");
+    await page.locator('input[name="email"]').fill("pro@example.com");
 
-      const submitButton = page.getByTestId("saml-submit-button");
-      const checkbox = page.getByTestId("signup-cookie-content-checkbox");
+    const submitButton = page.getByTestId("saml-submit-button");
+    const checkbox = page.getByTestId("signup-cookie-content-checkbox");
 
-      await submitButton.waitFor({ state: "visible" });
-      await checkbox.waitFor({ state: "visible" });
-      await checkbox.waitFor({ state: "attached" });
-      await checkbox.check();
-      await expect(submitButton).toBeEnabled();
+    await submitButton.waitFor({ state: "visible" });
+    await checkbox.waitFor({ state: "visible" });
+    await checkbox.waitFor({ state: "attached" });
+    await checkbox.check();
+    await expect(submitButton).toBeEnabled();
 
-      // the cookie consent checkbox does not need to be checked for user to proceed
-      await checkbox.uncheck();
-      await expect(submitButton).toBeEnabled();
-    });
+    // the cookie consent checkbox does not need to be checked for user to proceed
+    await checkbox.uncheck();
+    await expect(submitButton).toBeEnabled();
   });
 });
