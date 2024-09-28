@@ -72,7 +72,7 @@ export const Filters = () => {
           />
         </Tooltip>
       </ButtonGroup> */}
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-nowrap sm:justify-between">
+      <div className="flex flex-col-reverse sm:flex-row sm:flex-nowrap sm:justify-between">
         <Download />
         <DateSelect />
       </div>
