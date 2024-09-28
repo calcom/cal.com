@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "No tienes autorización para realizar este cambio en la reserva",
   "hide_calendar_event_details": "Ocultar detalles de eventos del calendario en calendarios compartidos",
   "description_hide_calendar_event_details": "Cuando se comparte un calendario, los eventos son visibles para los lectores, pero sus detalles están ocultos para aquellos sin acceso de escritura.",
+  "last_number_of_days": "últimos {{count}} días",
+  "month_to_date": "mes hasta la fecha",
+  "year_to_date": "año hasta la fecha",
+  "custom_range": "rango personalizado",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

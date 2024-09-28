@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemáte oprávnění provést tuto změnu v rezervaci",
   "hide_calendar_event_details": "Skrýt podrobnosti událostí v kalendáři na sdílených kalendářích",
   "description_hide_calendar_event_details": "Když je kalendář sdílen, události jsou viditelné pro čtenáře, ale jejich podrobnosti jsou skryty pro ty, kteří nemají přístup k úpravám.",
+  "last_number_of_days": "posledních {{count}} dní",
+  "month_to_date": "od začátku měsíce",
+  "year_to_date": "od začátku roku",
+  "custom_range": "vlastní rozsah",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
