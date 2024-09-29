@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 
-type LoginType = "saml" | "google" | "credentials" | undefined;
+type LoginType = "saml" | "google" | "microsoft" | "credentials" | undefined;
 
 export function useLastUsed() {
   const [lastUsed, setLastUsed] = useState<LoginType>(() => {

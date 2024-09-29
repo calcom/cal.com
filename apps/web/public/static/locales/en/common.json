@@ -972,6 +972,7 @@
   "signup_with_google": "Sign up with Google",
   "signup_with_microsoft": "Sign up with Microsoft",
   "signin_with_google": "Sign in with Google",
+  "signin_with_microsoft": "Sign in with Microsoft",
   "signin_with_saml": "Sign in with SAML",
   "signin_with_saml_oidc": "Sign in with SAML/OIDC",
   "continue_with_email": "Continue with email",
