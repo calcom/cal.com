@@ -13,16 +13,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Tooltip } from "@calcom/ui";
 import { Button, Form, PasswordField, TextField } from "@calcom/ui";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";
 import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
-import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
+import { ConnectedCalendarsTooltip } from "../OAuthConnect";
 import type { OAuthConnectProps } from "../OAuthConnect";
 
 export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
@@ -31,7 +30,10 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   loadingLabel,
   className,
   initialData,
-  isMultiCalendar,
+  isMultiCalendar = false,
+  tooltip,
+  tooltipSide = "bottom",
+  isClickable,
 }) => {
   const { t } = useLocale();
   const form = useForm({
@@ -45,7 +47,6 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     calendar: "apple",
     initialData,
   });
-  const { data: connectedCalendars, isLoading: isConnectedCalendarsLoading } = useConnectedCalendars({});
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   let displayedLabel = label || t("apple_connect_atom_label");
@@ -68,20 +69,6 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     },
   });
 
-  const connectedCalendarsTooltip = () => {
-    return (
-      <div className="border-subtle bg-subtle rounded-md border-[1.5px]">
-        {connectedCalendars?.connectedCalendars.map((calendar, index) => {
-          return (
-            <div key={calendar.primary?.externalId} className="bg-subtle  px-4 py-2 text-black">
-              {calendar.primary?.name} - {calendar.primary?.email}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   const isChecking = !checked;
   const isDisabled = isChecking || !allowConnect;
 
@@ -91,35 +78,40 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     displayedLabel = alreadyConnectedLabel || t("apple_connect_atom_already_connected_label");
   }
 
-  if (isMultiCalendar) {
-    if (
-      !!connectedCalendars?.connectedCalendars &&
-      !isConnectedCalendarsLoading &&
-      connectedCalendars?.connectedCalendars?.length < 1
-    ) {
-      return null;
-    }
-  }
-
   return (
     <AtomsWrapper>
       <Dialog open={isDialogOpen}>
         <DialogTrigger asChild>
-          <Tooltip content={connectedCalendarsTooltip()}>
-            <Button
-              StartIcon="calendar-days"
-              color="primary"
-              disabled={isDisabled}
-              className={cn(
-                "",
-                className,
-                isDisabled && "cursor-not-allowed",
-                !isDisabled && "cursor-pointer"
-              )}
-              onClick={() => setIsDialogOpen(true)}>
-              {displayedLabel}
-            </Button>
-          </Tooltip>
+          <>
+            {isMultiCalendar && (
+              <Button
+                StartIcon="calendar-days"
+                color="primary"
+                disabled={isClickable ? false : isChecking}
+                tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip />}
+                tooltipSide={tooltipSide}
+                tooltipOffset={10}
+                className={cn("", !isDisabled && "cursor-pointer", className)}
+                onClick={() => setIsDialogOpen(true)}>
+                {displayedLabel}
+              </Button>
+            )}
+            {!isMultiCalendar && (
+              <Button
+                StartIcon="calendar-days"
+                color="primary"
+                disabled={isDisabled}
+                className={cn(
+                  "",
+                  isDisabled && "cursor-not-allowed",
+                  !isDisabled && "cursor-pointer",
+                  className
+                )}
+                onClick={() => setIsDialogOpen(true)}>
+                {displayedLabel}
+              </Button>
+            )}
+          </>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
