@@ -972,6 +972,8 @@
   "signin_with_google": "Logga in med Google",
   "signin_with_saml": "Logga in med SAML",
   "signin_with_saml_oidc": "Logga in med SAML/OIDC",
+  "continue_with_email": "Fortsätt med e-post",
+  "continue_with_google": "Fortsätt med Google",
   "last_used": "Senast använd",
   "you_will_need_to_generate": "Du måste generera en åtkomsttoken från ditt gamla schemaläggningsverktyg.",
   "import": "Importera",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Förhindra medlemmar från att skapa egna händelsetyper.",
   "add_to_event_type": "Lägg till i händelsetyp",
   "create_account_password": "Skapa kontolösenord",
+  "create_account_with_saml": "Skapa konto med SAML",
   "error_creating_account_password": "Misslyckades med att skapa kontolösenord",
   "cannot_create_account_password_cal_provider": "Kan inte skapa kontolösenord för cal-konton",
   "cannot_create_account_password_already_existing": "Kan inte skapa kontolösenord för redan skapade konton",
@@ -2609,5 +2612,11 @@
   "limit_team_booking_frequency_description": "Begränsa hur många gånger medlemmar kan bokas för alla typer av teamhändelser (kollektivt och round-robin)",
   "booking_limits_updated_successfully": "Bokningsgränser uppdaterades framgångsrikt",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har inte behörighet att göra denna ändring i bokningen",
+  "hide_calendar_event_details": "Dölj kalenderhändelsedetaljer på delade kalendrar",
+  "description_hide_calendar_event_details": "När en kalender delas är händelser synliga för läsare, men deras detaljer är dolda för dem utan skrivåtkomst.",
+  "last_number_of_days": "senaste {{count}} dagarna",
+  "month_to_date": "månad till datum",
+  "year_to_date": "år till datum",
+  "custom_range": "anpassat intervall",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

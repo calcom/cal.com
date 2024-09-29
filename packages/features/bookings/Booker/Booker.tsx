@@ -138,6 +138,7 @@ const BookerComponent = ({
   const scrolledToTimeslotsOnce = useRef(false);
   const scrollToTimeSlots = () => {
     if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Conditional within !isEmbed condition
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
       scrolledToTimeslotsOnce.current = true;
     }
@@ -458,7 +459,7 @@ const BookerComponent = ({
           <m.span
             key="logo"
             className={classNames(
-              "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+              "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
               hasDarkBackground ? "dark" : "",
               layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
             )}>

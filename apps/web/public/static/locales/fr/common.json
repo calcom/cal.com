@@ -972,6 +972,8 @@
   "signin_with_google": "Se connecter avec Google",
   "signin_with_saml": "Se connecter avec SAML",
   "signin_with_saml_oidc": "Se connecter avec SAML/OIDC",
+  "continue_with_email": "Continuer avec l'e-mail",
+  "continue_with_google": "Continuer avec Google",
   "last_used": "Dernière utilisation",
   "you_will_need_to_generate": "Vous devrez générer un token d'accès à partir de votre ancien outil de planification.",
   "import": "Importer",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Empêchez les membres de créer leurs propres types d'évènements.",
   "add_to_event_type": "Ajouter un type d'évènement",
   "create_account_password": "Créer le mot de passe du compte",
+  "create_account_with_saml": "Créer un compte avec SAML",
   "error_creating_account_password": "Échec de la création du mot de passe du compte",
   "cannot_create_account_password_cal_provider": "Impossible de créer un mot de passe pour les comptes cal",
   "cannot_create_account_password_already_existing": "Impossible de créer un mot de passe pour un compte déjà créé",
@@ -2609,5 +2612,11 @@
   "limit_team_booking_frequency_description": "Limitez le nombre de fois où les membres peuvent être réservés pour tous les types d'événements d'équipe (collectifs et round robin)",
   "booking_limits_updated_successfully": "Limites de réservation mises à jour avec succès",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Vous n'êtes pas autorisé à apporter cette modification à la réservation",
+  "hide_calendar_event_details": "Masquer les détails des événements du calendrier sur les calendriers partagés",
+  "description_hide_calendar_event_details": "Lorsqu'un calendrier est partagé, les événements sont visibles pour les lecteurs, mais leurs détails sont cachés pour ceux qui n'ont pas d'accès en écriture.",
+  "last_number_of_days": "{{count}} derniers jours",
+  "month_to_date": "mois en cours",
+  "year_to_date": "année en cours",
+  "custom_range": "période personnalisée",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

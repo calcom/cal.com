@@ -972,6 +972,8 @@
   "signin_with_google": "Log ind med Google",
   "signin_with_saml": "Log ind med SAML",
   "signin_with_saml_oidc": "Log ind med SAML/OIDC",
+  "continue_with_email": "Fortsæt med e-mail",
+  "continue_with_google": "Fortsæt med Google",
   "last_used": "Sidst brugt",
   "you_will_need_to_generate": "Du skal generere et adgangs token fra dit gamle planlægningsværktøj.",
   "import": "Importér",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Forhindre medlemmer i at oprette deres egne begivenhedstyper.",
   "add_to_event_type": "Tilføj til begivenhedstype",
   "create_account_password": "Opret kontoadgangskode",
+  "create_account_with_saml": "Opret konto med SAML",
   "error_creating_account_password": "Kunne ikke oprette kontoadgangskode",
   "cannot_create_account_password_cal_provider": "Kan ikke oprette kontoadgangskode for cal-konti",
   "cannot_create_account_password_already_existing": "Kan ikke oprette kontoadgangskode for allerede oprettede konti",
@@ -2609,5 +2612,11 @@
   "limit_team_booking_frequency_description": "Begræns, hvor mange gange medlemmer kan bookes på tværs af alle teambegivenhedstyper (kollektiv og round-robin)",
   "booking_limits_updated_successfully": "Bookinggrænser opdateret med succes",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tilladelse til at foretage denne ændring i bookingen",
+  "hide_calendar_event_details": "Skjul kalenderbegivenhedsdetaljer på delte kalendere",
+  "description_hide_calendar_event_details": "Når en kalender deles, er begivenheder synlige for læsere, men deres detaljer er skjult for dem uden skriveadgang.",
+  "last_number_of_days": "sidste {{count}} dage",
+  "month_to_date": "måned til dato",
+  "year_to_date": "år til dato",
+  "custom_range": "tilpasset interval",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

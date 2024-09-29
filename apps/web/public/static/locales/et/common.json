@@ -972,6 +972,8 @@
   "signin_with_google": "Logi sisse Google'iga",
   "signin_with_saml": "Logi sisse SAML-iga",
   "signin_with_saml_oidc": "Logi sisse SAML-i/OIDC-ga",
+  "continue_with_email": "Jätka e-postiga",
+  "continue_with_google": "Jätka Google'iga",
   "last_used": "Viimati kasutatud",
   "you_will_need_to_generate": "Peate oma vanast ajastamistööriistast looma juurdepääsuluba.",
   "import": "Import",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Takistage liikmetel oma sündmuste tüüpide loomist.",
   "add_to_event_type": "Lisa sündmuse tüübile",
   "create_account_password": "Loo konto parool",
+  "create_account_with_saml": "Loo konto SAML-iga",
   "error_creating_account_password": "Konto parooli loomine ebaõnnestus",
   "cannot_create_account_password_cal_provider": "Ei saa luua konto parooli cal kontodele",
   "cannot_create_account_password_already_existing": "Ei saa luua konto parooli juba loodud paroolidele",
@@ -2609,5 +2612,11 @@
   "limit_team_booking_frequency_description": "Piirake, mitu korda saab liikmeid broneerida kõigi meeskonna sündmusetüüpide lõikes (ühised ja round-robin)",
   "booking_limits_updated_successfully": "Broneerimispiirangud on edukalt uuendatud",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Teil puuduvad õigused selle broneeringu muutmiseks",
+  "hide_calendar_event_details": "Peida kalendrisündmuste üksikasjad jagatud kalendrites",
+  "description_hide_calendar_event_details": "Kui kalender on jagatud, on sündmused lugejatele nähtavad, kuid nende üksikasjad on peidetud nende eest, kellel puudub kirjutamisõigus.",
+  "last_number_of_days": "viimased {{count}} päeva",
+  "month_to_date": "kuu algusest tänaseni",
+  "year_to_date": "aasta algusest tänaseni",
+  "custom_range": "kohandatud vahemik",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

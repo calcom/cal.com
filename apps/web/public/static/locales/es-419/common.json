@@ -972,6 +972,8 @@
   "signin_with_google": "Iniciar sesión con Google",
   "signin_with_saml": "Iniciar sesión con SAML",
   "signin_with_saml_oidc": "Iniciar sesión con SAML/OIDC",
+  "continue_with_email": "Continuar con correo electrónico",
+  "continue_with_google": "Continuar con Google",
   "last_used": "Último uso",
   "you_will_need_to_generate": "Necesitarás generar un token de acceso desde tu antigua herramienta de programación.",
   "import": "Importar",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Evitar que los miembros creen sus propios tipos de eventos.",
   "add_to_event_type": "Agregar al tipo de evento",
   "create_account_password": "Crear contraseña de cuenta",
+  "create_account_with_saml": "Crear cuenta con SAML",
   "error_creating_account_password": "Error al crear la contraseña de la cuenta",
   "cannot_create_account_password_cal_provider": "No se puede crear la contraseña de la cuenta para cuentas cal",
   "cannot_create_account_password_already_existing": "No se puede crear la contraseña de la cuenta para las ya creadas",
@@ -2609,5 +2612,11 @@
   "limit_team_booking_frequency_description": "Limita cuántas veces se pueden reservar los miembros en todos los tipos de eventos del equipo (colectivos y round-robin)",
   "booking_limits_updated_successfully": "Límites de reservas actualizados con éxito",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "No tienes autorización para realizar este cambio en la reserva",
+  "hide_calendar_event_details": "Ocultar detalles de eventos del calendario en calendarios compartidos",
+  "description_hide_calendar_event_details": "Cuando se comparte un calendario, los eventos son visibles para los lectores, pero sus detalles están ocultos para aquellos sin acceso de escritura.",
+  "last_number_of_days": "últimos {{count}} días",
+  "month_to_date": "mes hasta la fecha",
+  "year_to_date": "año hasta la fecha",
+  "custom_range": "rango personalizado",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

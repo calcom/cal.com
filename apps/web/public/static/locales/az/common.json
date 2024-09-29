@@ -972,6 +972,8 @@
   "signin_with_google": "Google ilə daxil olun",
   "signin_with_saml": "SAML ilə daxil olun",
   "signin_with_saml_oidc": "SAML/OIDC ilə daxil olun",
+  "continue_with_email": "Email ilə davam edin",
+  "continue_with_google": "Google ilə davam edin",
   "last_used": "Son istifadə",
   "you_will_need_to_generate": "Köhnə planlama alətinizdən bir giriş tokeni yaratmalısınız.",
   "import": "İdxal et",
@@ -2480,6 +2482,7 @@
   "lock_org_users_eventtypes_description": "Üzvlərin öz tədbir növlərini yaratmasının qarşısını al.",
   "add_to_event_type": "Tədbir növünə əlavə et",
   "create_account_password": "Hesab parolu yarat",
+  "create_account_with_saml": "SAML ilə hesab yaradın",
   "error_creating_account_password": "Hesab parolu yaratmaq alınmadı",
   "cannot_create_account_password_cal_provider": "cal hesabları üçün hesab parolu yaradıla bilmir",
   "cannot_create_account_password_already_existing": "Artıq yaradılmışlar üçün hesab parolu yaradıla bilmir",
@@ -2609,5 +2612,11 @@
   "limit_team_booking_frequency_description": "Komanda üzvlərinin bütün komanda tədbir növləri (kollektiv və round-robin) üzrə neçə dəfə rezervasiya edilə biləcəyini məhdudlaşdırın",
   "booking_limits_updated_successfully": "Rezervasiya məhdudiyyətləri uğurla yeniləndi",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Bu dəyişikliyi etmək üçün səlahiyyətiniz yoxdur",
+  "hide_calendar_event_details": "Təqvim hadisə detallarını gizlət",
+  "description_hide_calendar_event_details": "Təqvim paylaşıldıqda, hadisələr oxucular üçün görünür, lakin yazma icazəsi olmayanlar üçün detallar gizlədilir.",
+  "last_number_of_days": "son {{count}} gün",
+  "month_to_date": "bu ayın tarixinə qədər",
+  "year_to_date": "bu ilin tarixinə qədər",
+  "custom_range": "xüsusi aralıq",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
