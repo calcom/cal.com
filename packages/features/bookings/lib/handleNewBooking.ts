@@ -64,10 +64,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import {
-  deleteAllWorkflowReminders,
-  getAllWorkflowsFromEventType,
-} from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
