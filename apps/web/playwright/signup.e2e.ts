@@ -148,7 +148,7 @@ test.describe("Email Signup Flow Test", async () => {
     expect(url).toContain(expectedUrl);
     // TODO: complete the stripe checkout flow
   });
-  test("Signup with valid (non premium) username", async ({ page, users, features }) => {
+  test("Signup with valid (non premium) username", async ({ page, users }) => {
     const userToCreate = users.buildForSignup({
       username: "rick-jones",
       password: "Password99!",
