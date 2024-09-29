@@ -1,4 +1,3 @@
-// Outlook
 export const OUTLOOK_API_CREDENTIALS = process.env.OUTLOOK_API_CREDENTIALS || "{}";
 export const { client_id: OUTLOOK_CLIENT_ID, client_secret: OUTLOOK_CLIENT_SECRET } =
   JSON.parse(OUTLOOK_API_CREDENTIALS)?.web || {};
