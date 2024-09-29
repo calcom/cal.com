@@ -6,6 +6,8 @@ import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("SAML tests", () => {
   test("test SAML configuration UI with pro@example.com", async ({ page }) => {
     // TODO: Figure out a way to use the users from fixtures here, right now we cannot set
@@ -84,7 +86,7 @@ test.describe("SAML tests", () => {
 
     // Submit form
     const submitButton = page.getByTestId("saml-submit-button");
-    await expect(submitButton).toBeEnabled({ timeout: 10000 });
+    await expect(submitButton).toBeEnabled();
     await submitButton.click();
     const sp = new URLSearchParams();
     sp.set("username", username);
