@@ -106,6 +106,7 @@ test.describe("BOOKING_CREATED", async () => {
         location: "[redacted/dynamic]",
         destinationCalendar: null,
         hideCalendarNotes: false,
+        hideCalendarEventDetails: false,
         requiresConfirmation: "[redacted/dynamic]",
         eventTypeId: "[redacted/dynamic]",
         seatsShowAttendees: true,

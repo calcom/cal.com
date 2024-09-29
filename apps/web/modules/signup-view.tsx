@@ -180,7 +180,7 @@ export default function Signup({
   emailVerificationEnabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
-  const displayMiddleDivider = isGoogleLoginEnabled; // Add the isOutlookLoginEnabled flag here when Outlook login is added
+  const [isSamlSignup, setIsSamlSignup] = useState(false);
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -335,15 +335,16 @@ export default function Signup({
         <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
-          <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
+          <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
             {displayBackButton && (
               <div className="flex w-fit lg:-mt-12">
                 <Button
                   color="minimal"
-                  className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group mb-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
+                  className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
                   StartIcon="arrow-left"
                   onClick={() => {
                     setDisplayEmailForm(false);
+                    setIsSamlSignup(false);
                   }}>
                   {t("back")}
                 </Button>
@@ -412,12 +413,14 @@ export default function Signup({
                   />
 
                   {/* Password */}
-                  <PasswordField
-                    data-testid="signup-passwordfield"
-                    label={t("password")}
-                    {...register("password")}
-                    hintErrors={["caplow", "min", "num"]}
-                  />
+                  {!isSamlSignup && (
+                    <PasswordField
+                      data-testid="signup-passwordfield"
+                      label={t("password")}
+                      {...register("password")}
+                      hintErrors={["caplow", "min", "num"]}
+                    />
+                  )}
                   {/* Cloudflare Turnstile Captcha */}
                   {CLOUDFLARE_SITE_ID ? (
                     <TurnstileCaptcha
@@ -440,25 +443,63 @@ export default function Signup({
                       data-testid="signup-error-message"
                     />
                   )}
-                  <Button
-                    type="submit"
-                    className="my-2 w-full justify-center"
-                    loading={loadingSubmitState}
-                    disabled={
-                      !!formMethods.formState.errors.username ||
-                      !!formMethods.formState.errors.email ||
-                      !formMethods.getValues("email") ||
-                      !formMethods.getValues("password") ||
-                      (CLOUDFLARE_SITE_ID &&
-                        !process.env.NEXT_PUBLIC_IS_E2E &&
-                        !formMethods.getValues("cfToken")) ||
-                      isSubmitting ||
-                      usernameTaken
-                    }>
-                    {premiumUsername && !usernameTaken
-                      ? `Create Account for ${getPremiumPlanPriceValue()}`
-                      : t("create_account")}
-                  </Button>
+                  {isSamlSignup ? (
+                    <Button
+                      color="primary"
+                      disabled={
+                        !!formMethods.formState.errors.username ||
+                        !!formMethods.formState.errors.email ||
+                        !formMethods.getValues("email") ||
+                        !formMethods.getValues("username") ||
+                        premiumUsername ||
+                        isSubmitting
+                      }
+                      onClick={() => {
+                        const username = formMethods.getValues("username");
+                        if (!username) {
+                          showToast("error", t("username_required"));
+                          return;
+                        }
+                        localStorage.setItem("username", username);
+                        const sp = new URLSearchParams();
+                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                        sp.set("username", username);
+                        sp.set("email", formMethods.getValues("email"));
+                        router.push(
+                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                        );
+                      }}
+                      className={classNames(
+                        "my-2 w-full justify-center rounded-md text-center",
+                        formMethods.formState.errors.username && formMethods.formState.errors.email
+                          ? "opacity-50"
+                          : ""
+                      )}>
+                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
+                      {t("create_account_with_saml")}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      data-testid="signup-submit-button"
+                      className="my-2 w-full justify-center"
+                      loading={loadingSubmitState}
+                      disabled={
+                        !!formMethods.formState.errors.username ||
+                        !!formMethods.formState.errors.email ||
+                        !formMethods.getValues("email") ||
+                        !formMethods.getValues("password") ||
+                        (CLOUDFLARE_SITE_ID &&
+                          !process.env.NEXT_PUBLIC_IS_E2E &&
+                          !formMethods.getValues("cfToken")) ||
+                        isSubmitting ||
+                        usernameTaken
+                      }>
+                      {premiumUsername && !usernameTaken
+                        ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
+                        : t("create_account")}
+                    </Button>
+                  )}
                 </Form>
               </div>
             )}
@@ -472,17 +513,15 @@ export default function Signup({
                       loading={isGoogleLoading}
                       CustomStartIcon={
                         <img
-                          className={classNames(
-                            "text-subtle  mr-2 h-4 w-4 dark:invert",
-                            premiumUsername && "opacity-50"
-                          )}
+                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
                           src="/google-icon-colored.svg"
-                          alt=""
+                          alt="Continue with Google Icon"
                         />
                       }
                       className={classNames("w-full justify-center rounded-md text-center")}
                       data-testid="continue-with-google-button"
                       onClick={async () => {
+                        setIsSamlSignup(false);
                         setIsGoogleLoading(true);
                         const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
                         const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
@@ -501,12 +540,12 @@ export default function Signup({
 
                         router.push(url);
                       }}>
-                      Continue with Google
+                      {t("continue_with_google")}
                     </Button>
                   ) : null}
                 </div>
 
-                {displayMiddleDivider && (
+                {isGoogleLoginEnabled && (
                   <div className="mt-6">
                     <div className="relative flex items-center">
                       <div className="border-subtle flex-grow border-t" />
@@ -519,60 +558,30 @@ export default function Signup({
                 )}
 
                 {/* Lower Row */}
-                <div className="mt-6 flex flex-col gap-2 md:flex-row">
+                <div className="mt-6 flex flex-col gap-2">
                   <Button
                     color="secondary"
                     disabled={isGoogleLoading}
                     className={classNames("w-full justify-center rounded-md text-center")}
                     onClick={() => {
                       setDisplayEmailForm(true);
+                      setIsSamlSignup(false);
                     }}
                     data-testid="continue-with-email-button">
-                    Continue with email
+                    {t("continue_with_email")}
                   </Button>
-                  {isSAMLLoginEnabled ? (
+                  {isSAMLLoginEnabled && (
                     <Button
-                      color="secondary"
-                      disabled={
-                        !!formMethods.formState.errors.username ||
-                        !!formMethods.formState.errors.email ||
-                        premiumUsername ||
-                        isSubmitting ||
-                        isGoogleLoading
-                      }
-                      className={classNames(
-                        "w-full justify-center rounded-md text-center",
-                        formMethods.formState.errors.username && formMethods.formState.errors.email
-                          ? "opacity-50"
-                          : ""
-                      )}
+                      color="minimal"
+                      disabled={isGoogleLoading}
+                      className={classNames("w-full justify-center rounded-md text-center")}
                       onClick={() => {
-                        if (!formMethods.getValues("username")) {
-                          formMethods.trigger("username");
-                        }
-                        if (!formMethods.getValues("email")) {
-                          formMethods.trigger("email");
-
-                          return;
-                        }
-                        const username = formMethods.getValues("username");
-                        if (!username) {
-                          showToast("error", t("username_required"));
-                          return;
-                        }
-                        localStorage.setItem("username", username);
-                        const sp = new URLSearchParams();
-                        // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                        sp.set("username", username);
-                        sp.set("email", formMethods.getValues("email"));
-                        router.push(
-                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
-                        );
+                        setDisplayEmailForm(true);
+                        setIsSamlSignup(true);
                       }}>
-                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
-                      {t("saml_sso")}
+                      {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
                     </Button>
-                  ) : null}
+                  )}
                 </div>
               </div>
             )}
@@ -586,7 +595,7 @@ export default function Signup({
                     {t("sign_in")}
                   </Link>
                 </div>
-                <div className="text-subtle ">
+                <div className="text-subtle">
                   <Trans
                     i18nKey="signing_up_terms"
                     components={[
