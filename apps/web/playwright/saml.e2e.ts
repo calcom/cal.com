@@ -19,7 +19,7 @@ test.describe("SAML tests", () => {
     // await page.waitForSelector("[data-testid=saml_config]");
   });
 
-  test.describe("@test SAML Signup Flow Test", async () => {
+  test.describe("SAML Signup Flow Test", async () => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!isSAMLLoginEnabled, "Skipping due to SAML login being disabled");
 
