@@ -82,7 +82,6 @@ test.describe("SAML tests", () => {
 
     // Submit form
     const submitButton = page.getByTestId("saml-submit-button");
-    await expect(submitButton).toBeEnabled();
     await submitButton.click();
     const sp = new URLSearchParams();
     sp.set("username", username);

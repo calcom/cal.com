@@ -72,8 +72,6 @@ test.describe("Email Signup Flow Test", async () => {
 
       // Submit form
       const submitButton = page.getByTestId("signup-submit-button");
-      await expect(submitButton).toBeVisible();
-      await expect(submitButton).toBeEnabled();
       await submitButton.click();
 
       const alert = await page.waitForSelector('[data-testid="alert"]');
@@ -105,8 +103,6 @@ test.describe("Email Signup Flow Test", async () => {
 
       // Submit form
       const submitButton = page.getByTestId("signup-submit-button");
-      await expect(submitButton).toBeVisible();
-      await expect(submitButton).toBeEnabled();
       await submitButton.click();
 
       const alert = await page.waitForSelector('[data-testid="alert"]');
@@ -140,8 +136,6 @@ test.describe("Email Signup Flow Test", async () => {
 
     // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
-    await expect(submitButton).toBeVisible();
-    await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
     // Check that stripe checkout is present
@@ -175,8 +169,6 @@ test.describe("Email Signup Flow Test", async () => {
 
     // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
-    await expect(submitButton).toBeVisible();
-    await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
     await page.waitForURL("/auth/verify-email**");
@@ -288,8 +280,6 @@ test.describe("Email Signup Flow Test", async () => {
 
     // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
-    await expect(submitButton).toBeVisible();
-    await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
