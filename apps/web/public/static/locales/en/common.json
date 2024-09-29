@@ -2596,6 +2596,7 @@
   "disable_email": "Disable email",
   "grant_admin_api": "Grant Admin API Access",
   "revoke_admin_api": "Revoke Admin API Access",
+  "add_calendar_label": "Add {{calendar}} Calendar",
   "apple_connect_atom_label": "Connect Apple Calendar",
   "apple_connect_atom_already_connected_label": "Connected Apple Calendar",
   "apple_connect_atom_loading_label": "Checking Apple Calendar",
