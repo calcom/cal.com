@@ -118,6 +118,13 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
+  legacyListMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("legacyListMembers"),
+      () => import("./legacyListMembers.handler")
+    );
+    return handler(opts);
+  }),
   getUserConnectedApps: authedProcedure.input(ZGetUserConnectedAppsInputSchema).query(async (opts) => {
     const handler = await importHandler(
       namespaced("getUserConnectedApps"),

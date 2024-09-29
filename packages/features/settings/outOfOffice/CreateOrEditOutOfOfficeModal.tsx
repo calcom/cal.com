@@ -1,13 +1,10 @@
-import { keepPreviousData } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
@@ -32,7 +29,6 @@ export type BookingRedirectForm = {
   uuid?: string | null;
 };
 
-type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 type Option = { value: number; label: string };
 
 export const CreateOrEditOutOfOfficeEntryModal = ({
@@ -47,24 +43,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [searchText, setSearchText] = useState("");
-  const debouncedSearchTerm = useDebounce(searchText, 500);
-
-  const { data, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchTerm: debouncedSearchTerm,
-    },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      placeholderData: keepPreviousData,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-    }
-  );
-
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
+  const { data: listMembers } = trpc.viewer.teams.legacyListMembers.useQuery({});
 
   const me = useMeQuery();
 
@@ -72,7 +51,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     value: number;
     label: string;
   }[] =
-    flatData
+    listMembers
       ?.filter((member) => me?.data?.id !== member.id)
       .map((member) => ({
         value: member.id,
@@ -239,14 +218,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       render={({ field: { onChange, value } }) => (
                         <Select<Option>
                           name="toTeamUsername"
-                          isLoading={isFetching}
                           data-testid="team_username_select"
                           value={memberListOptions.find((member) => member.value === value)}
                           placeholder={t("select_team_member")}
                           options={memberListOptions}
-                          onInputChange={(inputValue) => {
-                            setSearchText(inputValue);
-                          }}
                           onChange={(selectedOption) => {
                             if (selectedOption?.value) {
                               onChange(selectedOption.value);

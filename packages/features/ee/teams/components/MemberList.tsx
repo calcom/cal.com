@@ -128,7 +128,7 @@ export default function MemberList(props: Props) {
     {
       limit: 10,
       searchTerm: debouncedSearchTerm,
-      teamIds: [props.team.id],
+      teamId: props.team.id,
     },
     {
       enabled: !!props.team.id,
@@ -154,7 +154,7 @@ export default function MemberList(props: Props) {
     utils.viewer.teams.listMembers.setInfiniteData(
       {
         limit: 10,
-        teamIds: [teamId],
+        teamId,
         searchTerm,
       },
       (data) => {
@@ -181,7 +181,7 @@ export default function MemberList(props: Props) {
       await utils.viewer.teams.listMembers.cancel();
       const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
-        teamIds: [teamIds[0]],
+        teamId: teamIds[0],
         searchTerm: searchTerm,
       });
 

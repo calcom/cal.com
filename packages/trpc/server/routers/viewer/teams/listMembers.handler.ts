@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -28,11 +28,11 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
 });
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
-  const { cursor, limit, teamIds, searchTerm } = input;
+  const { cursor, limit, teamId, searchTerm } = input;
 
-  const accessibleTeamIds = await getAccessibleTeamIds(ctx, teamIds);
+  const canAccessMembers = await checkCanAccessMembers(ctx, teamId);
 
-  if (accessibleTeamIds.length === 0) {
+  if (!canAccessMembers) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You are not authorized to see members of any teams",
@@ -40,7 +40,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
   }
 
   const whereCondition: Prisma.MembershipWhereInput = {
-    teamId: { in: accessibleTeamIds },
+    teamId,
   };
 
   if (searchTerm) {
@@ -67,7 +67,6 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1,
     orderBy: { id: "asc" },
-    distinct: ["userId"],
   });
 
   let nextCursor: typeof cursor | undefined = undefined;
@@ -106,20 +105,6 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
   };
 };
 
-async function getAccessibleTeamIds(ctx: ListMembersHandlerOptions["ctx"], teamIds?: number[]) {
-  if (teamIds && teamIds.length > 0) {
-    return Promise.all(
-      teamIds.map(async (teamId) => ((await checkCanAccessMembers(ctx, teamId)) ? teamId : null))
-    ).then((ids) => ids.filter((id): id is number => id !== null));
-  } else {
-    const userTeams = await prisma.membership.findMany({
-      where: { userId: ctx.user.id, accepted: true },
-      select: { teamId: true },
-    });
-    return userTeams.map((team) => team.teamId);
-  }
-}
-
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
   const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
   const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
@@ -127,13 +112,15 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
   const isTargetingOrg = teamId === ctx.user.organizationId;
 
   if (isTargetingOrg) {
-    return isOrgPrivate && !isOrgAdminOrOwner;
+    return isOrgAdminOrOwner || !isOrgPrivate;
   }
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
     },
   });
+
+  if (!team) return false;
 
   if (isOrgAdminOrOwner && team?.parentId === orgId) {
     return true;
@@ -143,8 +130,11 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
     where: {
       teamId,
       userId: ctx.user.id,
+      accepted: true,
     },
   });
+
+  if (!membership) return false;
 
   const isTeamAdminOrOwner =
     membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;

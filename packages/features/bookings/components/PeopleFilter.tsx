@@ -1,23 +1,18 @@
-import { keepPreviousData } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider, FilterSearchField, Icon, Button } from "@calcom/ui";
-
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
-
-type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
+import { AnimatedPopover, Avatar, Divider, FilterSearchField, Icon } from "@calcom/ui";
 
 export const PeopleFilter = () => {
   const { t } = useLocale();
+  const orgBranding = useOrgBranding();
 
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
   const isAdmin = currentOrg?.user.role === "ADMIN" || currentOrg?.user.role === "OWNER";
@@ -25,24 +20,17 @@ export const PeopleFilter = () => {
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
-  const debouncedSearchTerm = useDebounce(searchText, 500);
 
-  const { data, isFetching, status, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    trpc.viewer.teams.listMembers.useInfiniteQuery(
-      {
-        limit: 10,
-        searchTerm: debouncedSearchTerm,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-        refetchOnWindowFocus: true,
-        refetchOnMount: true,
-        staleTime: 0,
-      }
+  const members = trpc.viewer.teams.legacyListMembers.useQuery({});
+
+  const filteredMembers = members?.data
+    ?.filter((member) => member.accepted)
+    ?.filter((member) =>
+      searchText.trim() !== ""
+        ? member?.name?.toLowerCase()?.includes(searchText.toLowerCase()) ||
+          member?.username?.toLowerCase()?.includes(searchText.toLowerCase())
+        : true
     );
-
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
 
   const getTextForPopover = () => {
     const userIds = query.userIds;
@@ -51,12 +39,6 @@ export const PeopleFilter = () => {
     }
     return `${t("all")}`;
   };
-
-  const buttonInView = useInViewObserver(() => {
-    if (!isFetching && hasNextPage && status === "success") {
-      fetchNextPage();
-    }
-  });
 
   if (!hasPermToView) {
     return null;
@@ -74,7 +56,7 @@ export const PeopleFilter = () => {
         />
         <Divider />
         <FilterSearchField onChange={(e) => setSearchText(e.target.value)} placeholder={t("search")} />
-        {flatData?.map((member) => (
+        {filteredMembers?.map((member) => (
           <FilterCheckboxField
             key={member.id}
             id={member.id.toString()}
@@ -90,16 +72,7 @@ export const PeopleFilter = () => {
             icon={<Avatar alt={`${member?.id} avatar`} imageSrc={member.avatarUrl} size="xs" />}
           />
         ))}
-        <div className="text-default text-center" ref={buttonInView.ref}>
-          <Button
-            color="minimal"
-            loading={isFetchingNextPage}
-            disabled={!hasNextPage}
-            onClick={() => fetchNextPage()}>
-            {hasNextPage ? t("load_more_results") : t("no_more_results")}
-          </Button>
-        </div>
-        {flatData?.length === 0 && (
+        {filteredMembers?.length === 0 && (
           <h2 className="text-default px-4 py-2 text-sm font-medium">{t("no_options_available")}</h2>
         )}
       </FilterCheckboxFieldsContainer>

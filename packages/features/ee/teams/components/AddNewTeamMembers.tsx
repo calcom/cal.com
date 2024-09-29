@@ -75,7 +75,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
     trpc.viewer.teams.listMembers.useInfiniteQuery(
       {
         limit: 10,
-        teamIds: [teamId],
+        teamId,
       },
       {
         enabled: !!teamId,

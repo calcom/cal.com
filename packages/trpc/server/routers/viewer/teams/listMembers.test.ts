@@ -113,7 +113,7 @@ describe("listMembers", () => {
     const result = await listMembers({
       ctx,
       input: {
-        teamIds: [team.id],
+        teamId: team.id,
         limit: 10,
       },
     });
@@ -151,7 +151,7 @@ describe("listMembers", () => {
     const result = await listMembers({
       ctx,
       input: {
-        teamIds: [team.id],
+        teamId: team.id,
         limit: 10,
       },
     });
@@ -190,7 +190,7 @@ describe("listMembers", () => {
       listMembers({
         ctx: nonAdminUserCtx,
         input: {
-          teamIds: [team.id],
+          teamId: team.id,
           limit: 10,
         },
       })
@@ -221,7 +221,7 @@ describe("listMembers", () => {
       listMembers({
         ctx: nonAdminUserCtx,
         input: {
-          teamIds: [team.id],
+          teamId: team.id,
           limit: 10,
         },
       })
@@ -242,7 +242,7 @@ describe("listMembers", () => {
     const searchByEmail = await listMembers({
       ctx,
       input: {
-        teamIds: [team.id],
+        teamId: team.id,
         limit: 10,
         searchTerm: "organizer",
       },
@@ -260,7 +260,7 @@ describe("listMembers", () => {
     const searchByName = await listMembers({
       ctx,
       input: {
-        teamIds: [team.id],
+        teamId: team.id,
         limit: 10,
         searchTerm: organizer.name,
       },
