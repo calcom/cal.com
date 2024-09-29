@@ -310,7 +310,7 @@ export async function createNewUsersConnectToOrgIfExists({
 
         const isBecomingAnOrgMember = parentId || isOrg;
 
-        const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+        const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
         const t = await getTranslation(language, "common");
         const createdUser = await tx.user.create({
           data: {
@@ -345,13 +345,12 @@ export async function createNewUsersConnectToOrgIfExists({
                 accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
               },
             },
-            // Default schedule
             schedules: {
               create: {
                 name: t("default_schedule_name"),
                 availability: {
                   createMany: {
-                    data: availability.map((schedule) => ({
+                    data: defaultAvailability.map((schedule) => ({
                       days: schedule.days,
                       startTime: schedule.startTime,
                       endTime: schedule.endTime,
