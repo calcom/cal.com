@@ -2,7 +2,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TListMembersInputSchema } from "./legacyListMembers.schema.schema";
+import type { TListMembersInputSchema } from "./legacyListMembers.schema";
 
 type ListMembersOptions = {
   ctx: {
@@ -66,4 +66,4 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   );
 };
 
-export default listMembersHandler;
+export default legacyListMembers;
