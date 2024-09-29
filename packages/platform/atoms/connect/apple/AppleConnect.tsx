@@ -29,6 +29,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   loadingLabel,
   className,
   initialData,
+  onSuccess,
 }) => {
   const { t } = useLocale();
   const form = useForm({
@@ -55,6 +56,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
         toast({
           description: "Calendar credentials added successfully",
         });
+        onSuccess?.();
       }
     },
     onError: (err) => {
@@ -81,7 +83,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
             StartIcon="calendar-days"
             color="primary"
             disabled={isDisabled}
-            className={cn("", className, isDisabled && "cursor-not-allowed", !isDisabled && "cursor-pointer")}
+            className={cn("", isDisabled && "cursor-not-allowed", !isDisabled && "cursor-pointer", className)}
             onClick={() => setIsDialogOpen(true)}>
             {displayedLabel}
           </Button>
