@@ -118,5 +118,4 @@ export const ConnectedCalendarsTooltip = () => {
       })}
     </div>
   );
-  // return <>Hello world this is the tooltip component</>;
 };
