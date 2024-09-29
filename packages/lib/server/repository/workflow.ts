@@ -1,13 +1,20 @@
 import { z } from "zod";
 
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
+import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
+import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
+import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
 import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
+
+import logger from "../../logger";
 
 export const ZGetInputSchema = z.object({
   id: z.number(),
@@ -58,6 +65,8 @@ const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>
 });
 
 export class WorkflowRepository {
+  private static log = logger.getSubLogger({ prefix: ["workflow"] });
+
   static async getById({ id }: TGetInputSchema) {
     return await prisma.workflow.findFirst({
       where: {
@@ -275,5 +284,115 @@ export class WorkflowRepository {
         totalCount: allWorkflows.length,
       };
     }
+  }
+  static async getRemindersFromRemovedTeams(
+    removedTeams: number[],
+    workflowSteps: WorkflowStep[],
+    activeOn?: number[]
+  ) {
+    const remindersToDeletePromise: Prisma.PrismaPromise<
+      {
+        id: number;
+        referenceId: string | null;
+        method: string;
+      }[]
+    >[] = [];
+
+    removedTeams.forEach((teamId) => {
+      const reminderToDelete = prisma.workflowReminder.findMany({
+        where: {
+          OR: [
+            {
+              //team event types + children managed event types
+              booking: {
+                eventType: {
+                  OR: [{ teamId }, { teamId: null, parent: { teamId } }],
+                },
+              },
+            },
+            {
+              // user bookings
+              booking: {
+                user: {
+                  AND: [
+                    // user is part of team that got removed
+                    {
+                      teams: {
+                        some: {
+                          teamId: teamId,
+                        },
+                      },
+                    },
+                    // and user is not part of any team were the workflow is still active on
+                    {
+                      teams: {
+                        none: {
+                          teamId: {
+                            in: activeOn,
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+                eventType: {
+                  teamId: null,
+                  parentId: null, // children managed event types are handled above with team event types
+                },
+              },
+            },
+          ],
+          workflowStepId: {
+            in: workflowSteps.map((step) => {
+              return step.id;
+            }),
+          },
+        },
+        select: {
+          id: true,
+          referenceId: true,
+          method: true,
+        },
+      });
+
+      remindersToDeletePromise.push(reminderToDelete);
+    });
+    const remindersToDelete = (await Promise.all(remindersToDeletePromise)).flat();
+    return remindersToDelete;
+  }
+
+  static async deleteAllWorkflowReminders(
+    remindersToDelete:
+      | {
+          id: number;
+          referenceId: string | null;
+          method: string;
+        }[]
+      | null
+  ) {
+    const reminderMethods: {
+      [x: string]: (id: number, referenceId: string | null) => void;
+    } = {
+      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id, referenceId),
+      [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
+      [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
+    };
+
+    if (!remindersToDelete) return Promise.resolve();
+
+    const results = await Promise.allSettled(
+      remindersToDelete.map((reminder) => {
+        return reminderMethods[reminder.method](reminder.id, reminder.referenceId);
+      })
+    );
+
+    results.forEach((result, index) => {
+      if (result.status !== "fulfilled") {
+        this.log.error(
+          `An error occurred when deleting reminder ${remindersToDelete[index].id}, method: ${remindersToDelete[index].method}`,
+          result.reason
+        );
+      }
+    });
   }
 }
