@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
-import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
@@ -378,60 +377,6 @@ test.describe("Email Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill("Password99!");
 
     const submitButton = page.getByTestId("signup-submit-button");
-    const checkbox = page.getByTestId("signup-cookie-content-checkbox");
-
-    await submitButton.waitFor({ state: "visible" });
-    await checkbox.waitFor({ state: "visible" });
-    await checkbox.waitFor({ state: "attached" });
-    await checkbox.check();
-    await expect(submitButton).toBeEnabled();
-
-    // the cookie consent checkbox does not need to be checked for user to proceed
-    await checkbox.uncheck();
-    await expect(submitButton).toBeEnabled();
-  });
-});
-
-test.describe("SAML Signup Flow Test", async () => {
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(!isSAMLLoginEnabled, "Skipping due to SAML login being disabled");
-
-  test("Should navigate user to another URL", async ({ page }) => {
-    await page.goto("/signup");
-
-    // Navigate to email form
-    await page.getByTestId("continue-with-saml-button").click();
-    // Fill form
-    await page.locator('input[name="username"]').fill("pro");
-    await page.locator('input[name="email"]').fill("pro@example.com");
-
-    // Submit form
-    const submitButton = page.getByTestId("saml-submit-button");
-    await submitButton.waitFor({ state: "visible" });
-    await expect(submitButton).toBeEnabled();
-    await submitButton.click();
-
-    await page.waitForURL("/auth/sso/saml");
-  });
-
-  test("Password input should not exist", async ({ page }) => {
-    await page.goto("/signup");
-    await page.getByTestId("continue-with-saml-button").click();
-
-    await expect(page.locator('input[name="password"]')).not.toBeVisible();
-  });
-
-  test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
-    await page.goto("/signup");
-
-    // Navigate to email form
-    await page.getByTestId("continue-with-saml-button").click();
-
-    // Fill form
-    await page.locator('input[name="username"]').fill("pro");
-    await page.locator('input[name="email"]').fill("pro@example.com");
-
-    const submitButton = page.getByTestId("saml-submit-button");
     const checkbox = page.getByTestId("signup-cookie-content-checkbox");
 
     await submitButton.waitFor({ state: "visible" });
