@@ -18,7 +18,12 @@ export default function Calendars(props: { calUsername: string; calEmail: string
         </h1>
       )}
       <div>
-        <CalendarSettings />
+        <CalendarSettings
+          calendarRedirectUrls={{
+            google: "http://localhost:4321/calendars",
+            outlook: "http://localhost:4321/calendars",
+          }}
+        />
       </div>
     </main>
   );
