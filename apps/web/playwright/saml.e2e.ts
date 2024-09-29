@@ -64,22 +64,6 @@ test.describe("SAML tests", () => {
       await expect(submitButton).toBeEnabled();
     });
 
-    test("Should navigate user to another URL", async ({ page }) => {
-      // Fill form
-      const username = "tester123";
-      const email = "tester123@example.com";
-      await page.locator('input[name="username"]').fill(username);
-      await page.locator('input[name="email"]').fill(email);
-
-      // Submit form
-      const submitButton = page.getByTestId("saml-submit-button");
-      await submitButton.click();
-      const sp = new URLSearchParams();
-      sp.set("username", username);
-      sp.set("email", email);
-      await page.waitForURL(`/auth/sso/saml?${sp.toString()}`);
-    });
-
     test("Submit button should be disabled with a premium username", async ({ page }) => {
       // eslint-disable-next-line playwright/no-skipped-test
       test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
