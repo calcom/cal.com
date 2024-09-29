@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "この予約の変更を行う権限がありません",
   "hide_calendar_event_details": "共有カレンダーのイベント詳細を非表示にする",
   "description_hide_calendar_event_details": "カレンダーが共有されると、イベントは閲覧者に表示されますが、書き込み権限のない人には詳細が非表示になります。",
+  "last_number_of_days": "過去{{count}}日間",
+  "month_to_date": "月初から今日まで",
+  "year_to_date": "年初から今日まで",
+  "custom_range": "カスタム範囲",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
