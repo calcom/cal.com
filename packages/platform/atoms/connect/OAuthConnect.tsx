@@ -44,8 +44,6 @@ export const OAuthConnect: FC<
   tooltipSide = "bottom",
 }) => {
   const { connect } = useConnect(calendar, redir);
-  // const { data: connectedCalendars, isLoading: isConnectedCalendarsLoading } = useConnectedCalendars({});
-  const connectedCalendars = useConnectedCalendars({});
   const { allowConnect, checked } = useCheck({
     onCheckError,
     calendar: calendar,
@@ -64,28 +62,16 @@ export const OAuthConnect: FC<
   }
 
   if (isMultiCalendar) {
-    //  console.log(connectedCalendars?.connectedCalendars, "connected calendars data");
-
-    // if (isConnectedCalendarsLoading) {
-    //   displayedLabel = loadingLabel;
-    // }
-
-    //  const calendars = connectedCalendars?.connectedCalendars;
-
-    if (!connectedCalendars.data) return null;
-
     return (
       <AtomsWrapper>
         <Button
           StartIcon="calendar-days"
           color="primary"
-          tooltip={
-            tooltip ? tooltip : <ConnectedCalendarsTooltip connectedCalendars={connectedCalendars?.data} />
-          }
+          tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip />}
           tooltipSide={tooltipSide}
           tooltipOffset={10}
           disabled={isChecking}
-          className={cn("", className, isChecking && "animate-pulse", !isDisabled && "cursor-pointer")}
+          className={cn("", isChecking && "animate-pulse", !isDisabled && "cursor-pointer", className)}
           onClick={() => connect()}>
           {displayedLabel}
         </Button>
@@ -113,33 +99,24 @@ export const OAuthConnect: FC<
   );
 };
 
-export const ConnectedCalendarsTooltip = (
-  connectedCalendars: ReturnType<typeof useConnectedCalendars>["data"]
-) => {
-  // if (!Boolean(connectedCalendars?.connectedCalendars?.length)) return null;
+export const ConnectedCalendarsTooltip = () => {
+  const { data: connectedCalendars, isLoading: isConnectedCalendarsLoading } = useConnectedCalendars({});
 
-  if (!connectedCalendars || connectedCalendars?.connectedCalendars?.length < 1) return null;
+  if (isConnectedCalendarsLoading) return null;
 
-  console.log(
-    connectedCalendars,
-    "this is the connected calendars data inside of Connected alendars Tooltip component".toLocaleUpperCase()
+  return (
+    <div className="bg-subtle flex flex-col rounded-md border border-gray-300">
+      {connectedCalendars?.connectedCalendars.map((calendar, index, arr) => {
+        return (
+          <>
+            <div key={calendar.primary?.externalId} className="bg-transparent px-4 py-2 text-black">
+              {calendar.primary?.name} - {calendar.primary?.email}
+            </div>
+            {arr.length - 1 !== index && <hr className="w-[90%] self-center" />}
+          </>
+        );
+      })}
+    </div>
   );
-  console.log(connectedCalendars.connectedCalendars, "these are connected calendars");
-
-  // return (
-  //   <div className="bg-subtle flex flex-col rounded-md border border-gray-300">
-  //     {connectedCalendars?.connectedCalendars?.map((calendar, index, arr) => {
-  //       return (
-  //         <>
-  //           <div key={calendar.primary?.externalId} className="bg-transparent px-4 py-2 text-black">
-  //             {calendar.primary?.name} - {calendar.primary?.email}
-  //           </div>
-  //           {arr.length - 1 !== index && <hr className="w-[93%] self-center" />}
-  //         </>
-  //       );
-  //     })}
-  //   </div>
-  // );
-
-  return <>Hello world this is the tooltip component</>;
+  // return <>Hello world this is the tooltip component</>;
 };
