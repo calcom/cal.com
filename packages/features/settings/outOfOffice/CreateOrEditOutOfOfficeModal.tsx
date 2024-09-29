@@ -55,7 +55,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       ?.filter((member) => me?.data?.id !== member.id)
       .map((member) => ({
         value: member.id,
-        label: member.name || member.email || "",
+        label: member.name || "",
       })) || [];
 
   const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
@@ -221,6 +221,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                           data-testid="team_username_select"
                           value={memberListOptions.find((member) => member.value === value)}
                           placeholder={t("select_team_member")}
+                          isSearchable
                           options={memberListOptions}
                           onChange={(selectedOption) => {
                             if (selectedOption?.value) {
