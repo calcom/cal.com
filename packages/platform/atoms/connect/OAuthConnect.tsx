@@ -19,6 +19,7 @@ export type OAuthConnectProps = {
   onCheckError?: OnCheckErrorType;
   redir?: string;
   initialData: UseCheckProps["initialData"];
+  onSuccess?: () => void;
 };
 
 export const OAuthConnect: FC<
