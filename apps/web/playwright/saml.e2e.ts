@@ -9,12 +9,14 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 
 test.describe("SAML tests", () => {
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip(!isSAMLLoginEnabled, "Skipping due to SAML login being disabled");
+
   test("test SAML configuration UI with pro@example.com", async ({ page }) => {
     // TODO: Figure out a way to use the users from fixtures here, right now we cannot set
     // the SAML_ADMINS env variables dynamically
     await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!isSAMLLoginEnabled, "Skipping due to SAML login being disabled");
     // Try to go Security page
     await page.goto("/settings/security/sso");
     // It should redirect you to the event-types page
@@ -22,12 +24,13 @@ test.describe("SAML tests", () => {
   });
 
   test.describe("SAML Signup Flow Test", async () => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!isSAMLLoginEnabled, "Skipping due to SAML login being disabled");
-
-    test("Submit button should be disabled without username", async ({ page }) => {
+    test.beforeEach(async ({ page }) => {
       await page.goto("/signup");
       await page.getByTestId("continue-with-saml-button").click();
+      await page.waitForSelector('[data-testid="saml-submit-button"]');
+    });
+
+    test("Submit button should be disabled without username", async ({ page }) => {
       await page.locator('input[name="email"]').fill("tester123@example.com");
       const submitButton = page.getByTestId("saml-submit-button");
       await expect(submitButton).toBeVisible();
@@ -35,8 +38,6 @@ test.describe("SAML tests", () => {
     });
 
     test("Submit button should be disabled without email", async ({ page }) => {
-      await page.goto("/signup");
-      await page.getByTestId("continue-with-saml-button").click();
       await page.locator('input[name="username"]').fill("tester123");
       const submitButton = page.getByTestId("saml-submit-button");
       await expect(submitButton).toBeVisible();
@@ -44,18 +45,10 @@ test.describe("SAML tests", () => {
     });
 
     test("Password input should not exist", async ({ page }) => {
-      await page.goto("/signup");
-      await page.getByTestId("continue-with-saml-button").click();
-
       await expect(page.locator('input[name="password"]')).toBeHidden();
     });
 
     test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
-      await page.goto("/signup");
-
-      // Navigate to email form
-      await page.getByTestId("continue-with-saml-button").click();
-
       // Fill form
       await page.locator('input[name="username"]').fill("tester123");
       await page.locator('input[name="email"]').fill("tester123@example.com");
@@ -70,44 +63,34 @@ test.describe("SAML tests", () => {
       await checkbox.uncheck();
       await expect(submitButton).toBeEnabled();
     });
-  });
 
-  test("Should navigate user to another URL", async ({ page }) => {
-    await page.goto("/signup");
+    test("Should navigate user to another URL", async ({ page }) => {
+      // Fill form
+      const username = "tester123";
+      const email = "tester123@example.com";
+      await page.locator('input[name="username"]').fill(username);
+      await page.locator('input[name="email"]').fill(email);
 
-    // Navigate to email form
-    await page.getByTestId("continue-with-saml-button").click();
+      // Submit form
+      const submitButton = page.getByTestId("saml-submit-button");
+      await submitButton.click();
+      const sp = new URLSearchParams();
+      sp.set("username", username);
+      sp.set("email", email);
+      await page.waitForURL(`/auth/sso/saml?${sp.toString()}`);
+    });
 
-    // Fill form
-    const username = "tester123";
-    const email = "tester123@example.com";
-    await page.locator('input[name="username"]').fill(username);
-    await page.locator('input[name="email"]').fill(email);
+    test("Submit button should be disabled with a premium username", async ({ page }) => {
+      // eslint-disable-next-line playwright/no-skipped-test
+      test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
 
-    // Submit form
-    const submitButton = page.getByTestId("saml-submit-button");
-    await expect(submitButton).toBeEnabled();
-    await submitButton.click();
-    const sp = new URLSearchParams();
-    sp.set("username", username);
-    sp.set("email", email);
-    await page.waitForURL(`/auth/sso/saml?${sp.toString()}`);
-  });
+      // Fill form
+      await page.locator('input[name="username"]').fill("pro");
+      await page.locator('input[name="email"]').fill("pro@example.com");
 
-  test("Submit button should be disabled with a premium username", async ({ page }) => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
-    await page.goto("/signup");
-
-    // Navigate to email form
-    await page.getByTestId("continue-with-saml-button").click();
-
-    // Fill form
-    await page.locator('input[name="username"]').fill("pro");
-    await page.locator('input[name="email"]').fill("pro@example.com");
-
-    // Submit form
-    const submitButton = page.getByTestId("saml-submit-button");
-    await expect(submitButton).toBeDisabled();
+      // Submit form
+      const submitButton = page.getByTestId("saml-submit-button");
+      await expect(submitButton).toBeDisabled();
+    });
   });
 });
