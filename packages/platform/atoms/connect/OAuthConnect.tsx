@@ -24,6 +24,7 @@ export type OAuthConnectProps = {
   isMultiCalendar?: boolean;
   tooltip?: ReactNode;
   tooltipSide?: "top" | "bottom" | "left" | "right";
+  isClickable?: boolean;
 };
 
 export const OAuthConnect: FC<
@@ -42,6 +43,7 @@ export const OAuthConnect: FC<
   isMultiCalendar = false,
   tooltip,
   tooltipSide = "bottom",
+  isClickable,
 }) => {
   const { connect } = useConnect(calendar, redir);
   const { allowConnect, checked } = useCheck({
@@ -67,11 +69,11 @@ export const OAuthConnect: FC<
         <Button
           StartIcon="calendar-days"
           color="primary"
+          disabled={isClickable ? false : isChecking}
           tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip />}
           tooltipSide={tooltipSide}
           tooltipOffset={10}
-          disabled={isChecking}
-          className={cn("", isChecking && "animate-pulse", !isDisabled && "cursor-pointer", className)}
+          className={cn("", !isDisabled && "cursor-pointer", className)}
           onClick={() => connect()}>
           {displayedLabel}
         </Button>
@@ -87,10 +89,10 @@ export const OAuthConnect: FC<
         disabled={isDisabled}
         className={cn(
           "",
-          className,
           isChecking && "animate-pulse",
           isDisabled && "cursor-not-allowed",
-          !isDisabled && "cursor-pointer"
+          !isDisabled && "cursor-pointer",
+          className
         )}
         onClick={() => connect()}>
         {displayedLabel}
@@ -102,7 +104,10 @@ export const OAuthConnect: FC<
 export const ConnectedCalendarsTooltip = () => {
   const { data: connectedCalendars, isLoading: isConnectedCalendarsLoading } = useConnectedCalendars({});
 
-  if (isConnectedCalendarsLoading) return null;
+  if (isConnectedCalendarsLoading)
+    return (
+      <div className="bg-subtle flex flex-col rounded-md border border-gray-300 px-4 py-2">Loading...</div>
+    );
 
   return (
     <div className="bg-subtle flex flex-col rounded-md border border-gray-300">
