@@ -185,8 +185,7 @@ PageProps & WithNonceProps<{}>) {
       <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
         {t("create_an_account")}
       </Link>
-      <Icon name="circle" className="mx-5 h-2 w-2 fill-[#d9d9d9]" color="#d9d9d9" />
-
+      {displaySSOLogin && <Icon name="circle" className="mx-5 h-2 w-2 fill-[#d9d9d9]" color="#d9d9d9" />}
       {displaySSOLogin && (
         <SAMLLogin
           disabled={formState.isSubmitting}
