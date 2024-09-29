@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Sie sind nicht berechtigt, diese Änderung an der Buchung vorzunehmen",
   "hide_calendar_event_details": "Kalenderereignisdetails in geteilten Kalendern verbergen",
   "description_hide_calendar_event_details": "Wenn ein Kalender geteilt wird, sind Ereignisse für Leser sichtbar, aber ihre Details bleiben für Personen ohne Schreibzugriff verborgen.",
+  "last_number_of_days": "letzte {{count}} Tage",
+  "month_to_date": "aktueller Monat",
+  "year_to_date": "aktuelles Jahr",
+  "custom_range": "benutzerdefinierter Zeitraum",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

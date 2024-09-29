@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nincs jogosultsága a foglalás módosításához",
   "hide_calendar_event_details": "Naptáresemény részleteinek elrejtése megosztott naptárakon",
   "description_hide_calendar_event_details": "Amikor egy naptár meg van osztva, az események láthatóak az olvasók számára, de a részletek rejtve maradnak azok elől, akiknek nincs írási hozzáférésük.",
+  "last_number_of_days": "az elmúlt {{count}} nap",
+  "month_to_date": "hónap elejétől",
+  "year_to_date": "év elejétől",
+  "custom_range": "egyéni tartomány",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -58,6 +58,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -992,7 +993,7 @@ async function handler(
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     // cancel workflow reminders from previous rescheduled booking
-    await deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
+    await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
