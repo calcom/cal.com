@@ -379,9 +379,6 @@ test.describe("Email Signup Flow Test", async () => {
     const submitButton = page.getByTestId("signup-submit-button");
     const checkbox = page.getByTestId("signup-cookie-content-checkbox");
 
-    await submitButton.waitFor({ state: "visible" });
-    await checkbox.waitFor({ state: "visible" });
-    await checkbox.waitFor({ state: "attached" });
     await checkbox.check();
     await expect(submitButton).toBeEnabled();
 

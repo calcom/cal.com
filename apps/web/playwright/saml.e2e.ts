@@ -28,7 +28,6 @@ test.describe("SAML tests", () => {
       await page.getByTestId("continue-with-saml-button").click();
       await page.locator('input[name="email"]').fill("tester123@example.com");
       const submitButton = page.getByTestId("saml-submit-button");
-      await submitButton.waitFor({ state: "visible" });
       await expect(submitButton).not.toBeEnabled();
     });
 
@@ -37,7 +36,6 @@ test.describe("SAML tests", () => {
       await page.getByTestId("continue-with-saml-button").click();
       await page.locator('input[name="username"]').fill("tester123");
       const submitButton = page.getByTestId("saml-submit-button");
-      await submitButton.waitFor({ state: "visible" });
       await expect(submitButton).not.toBeEnabled();
     });
 
@@ -61,9 +59,6 @@ test.describe("SAML tests", () => {
       const submitButton = page.getByTestId("saml-submit-button");
       const checkbox = page.getByTestId("signup-cookie-content-checkbox");
 
-      await submitButton.waitFor({ state: "visible" });
-      await checkbox.waitFor({ state: "visible" });
-      await checkbox.waitFor({ state: "attached" });
       await checkbox.check();
       await expect(submitButton).toBeEnabled();
 
@@ -87,7 +82,6 @@ test.describe("SAML tests", () => {
 
     // Submit form
     const submitButton = page.getByTestId("saml-submit-button");
-    await submitButton.waitFor({ state: "visible" });
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
     const sp = new URLSearchParams();
@@ -110,7 +104,6 @@ test.describe("SAML tests", () => {
 
     // Submit form
     const submitButton = page.getByTestId("saml-submit-button");
-    await submitButton.waitFor({ state: "visible" });
     await expect(submitButton).not.toBeEnabled();
   });
 });
