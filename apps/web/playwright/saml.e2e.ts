@@ -28,7 +28,8 @@ test.describe("SAML tests", () => {
       await page.getByTestId("continue-with-saml-button").click();
       await page.locator('input[name="email"]').fill("tester123@example.com");
       const submitButton = page.getByTestId("saml-submit-button");
-      await expect(submitButton).not.toBeEnabled();
+      await expect(submitButton).toBeVisible();
+      await expect(submitButton).toBeDisabled();
     });
 
     test("Submit button should be disabled without email", async ({ page }) => {
@@ -36,14 +37,15 @@ test.describe("SAML tests", () => {
       await page.getByTestId("continue-with-saml-button").click();
       await page.locator('input[name="username"]').fill("tester123");
       const submitButton = page.getByTestId("saml-submit-button");
-      await expect(submitButton).not.toBeEnabled();
+      await expect(submitButton).toBeVisible();
+      await expect(submitButton).toBeDisabled();
     });
 
     test("Password input should not exist", async ({ page }) => {
       await page.goto("/signup");
       await page.getByTestId("continue-with-saml-button").click();
 
-      await expect(page.locator('input[name="password"]')).not.toBeVisible();
+      await expect(page.locator('input[name="password"]')).toBeHidden();
     });
 
     test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
@@ -82,6 +84,7 @@ test.describe("SAML tests", () => {
 
     // Submit form
     const submitButton = page.getByTestId("saml-submit-button");
+    await expect(submitButton).toBeEnabled({ timeout: 10000 });
     await submitButton.click();
     const sp = new URLSearchParams();
     sp.set("username", username);
@@ -103,6 +106,6 @@ test.describe("SAML tests", () => {
 
     // Submit form
     const submitButton = page.getByTestId("saml-submit-button");
-    await expect(submitButton).not.toBeEnabled();
+    await expect(submitButton).toBeDisabled();
   });
 });
