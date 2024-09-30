@@ -114,11 +114,14 @@ async function generateSwagger(app: NestExpressApplication<Server>) {
   }
 
   fs.writeFileSync(outputFile, JSON.stringify(document, null, 2), { encoding: "utf8" });
-  SwaggerModule.setup("docs", app, document, {
-    customCss: ".swagger-ui .topbar { display: none }",
-  });
 
-  logger.log(`Swagger documentation available in the "/docs" endpoint\n`);
+  if (!process.env.DOCS_URL) {
+    SwaggerModule.setup("docs", app, document, {
+      customCss: ".swagger-ui .topbar { display: none }",
+    });
+
+    logger.log(`Swagger documentation available in the "/docs" endpoint\n`);
+  }
 }
 
 run().catch((error: Error) => {
