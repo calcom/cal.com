@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import type { EventAdvancedWebWrapperProps } from "@calcom/atoms/event-types/wrappers/EventAdvancedWebWrapper";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
@@ -12,21 +13,26 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
+import {
+  DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
+  APP_NAME,
+  IS_VISUAL_REGRESSION_TESTING,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import {
   Alert,
   Button,
@@ -50,9 +56,19 @@ type BookingField = z.infer<typeof fieldSchema>;
 
 const CustomEventTypeModal = dynamic(() => import("./CustomEventTypeModal"));
 
-export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
-  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
-  const { data: user } = trpc.viewer.me.useQuery();
+export type EventAdvancedTabProps = EventAdvancedWebWrapperProps & {
+  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
+  user?: RouterOutputs["viewer"]["me"];
+  isUserLoading?: boolean;
+};
+
+export const EventAdvancedTab = ({
+  eventType,
+  team,
+  calendarsQueryData,
+  user,
+  isUserLoading,
+}: EventAdvancedTabProps) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
@@ -154,7 +170,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   );
 
   const displayDestinationCalendarSelector =
-    !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
+    !!calendarsQueryData?.connectedCalendars?.length && (!team || isChildrenManagedEventType);
 
   const verifiedSecondaryEmails = [
     {
@@ -186,6 +202,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     onChange={onChange}
                     hidePlaceholder
                     hideAdvancedText
+                    calendarsQueryData={calendarsQueryData}
                   />
                 )}
               />
@@ -261,7 +278,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           )}
         </div>
       </div>
-      <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />
+      <BookerLayoutSelector
+        fallbackToUserSettings
+        isDark={selectedThemeIsDark}
+        isOuterBorder={true}
+        user={user}
+        isUserLoading={isUserLoading}
+      />
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <FormBuilder
           title={t("booking_questions_title")}
