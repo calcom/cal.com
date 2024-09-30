@@ -2,6 +2,7 @@ import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminde
 import { scheduleSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { scheduleWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -12,11 +13,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import type { TActivateEventTypeInputSchema } from "./activateEventType.schema";
-import {
-  deleteAllWorkflowReminders,
-  removeSmsReminderFieldForEventTypes,
-  upsertSmsReminderFieldForEventTypes,
-} from "./util";
+import { removeSmsReminderFieldForEventTypes, upsertSmsReminderFieldForEventTypes } from "./util";
 
 type ActivateEventTypeOptions = {
   ctx: {
@@ -121,7 +118,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       },
     });
 
-    await deleteAllWorkflowReminders(remindersToDelete);
+    await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
 
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
