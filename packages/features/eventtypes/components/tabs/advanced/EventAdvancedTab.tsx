@@ -154,6 +154,7 @@ export const EventAdvancedTab = ({
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
+  const hideCalendarEventDetailsLocked = shouldLockDisableProps("hideCalendarEventDetails");
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
@@ -341,6 +342,21 @@ export const EventAdvancedTab = ({
             title={t("disable_notes")}
             {...hideCalendarNotesLocked}
             description={t("disable_notes_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+      <Controller
+        name="hideCalendarEventDetails"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("hide_calendar_event_details")}
+            {...hideCalendarEventDetailsLocked}
+            description={t("description_hide_calendar_event_details")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
