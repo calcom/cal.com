@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
+import { withOptimize } from "@prisma/extension-optimize";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
@@ -47,6 +48,7 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
     .$extends(bookingIdempotencyKeyExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension())
     .$extends(withAccelerate());
+    .$extends(withOptimize());
 
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
@@ -60,6 +62,9 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(bookingIdempotencyKeyExtension())
   .$extends(disallowUndefinedDeleteUpdateManyExtension())
   .$extends(withAccelerate());
+if (process.env.ENABLE_OPTIMIZE_EXTENSION === "true") {
+  prismaWithClientExtensions.$extends(withOptimize());
+}
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
