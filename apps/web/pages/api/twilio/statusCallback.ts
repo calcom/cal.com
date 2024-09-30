@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import {
   addCredits,
+  cancelScheduledSmsAndScheduleEmails,
   getTeamIdToBeCharged,
   smsCreditCountSelect,
 } from "@calcom/features/ee/workflows/lib/smsCredits/smsCreditsUtils";
@@ -18,7 +19,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const authToken = process.env.TWILIO_TOKEN;
 
   const twilioSignature = req.headers["x-twilio-signature"];
-  const url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback`;
+  const baseUrl = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback`;
+
+  const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
+  const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
 
   if (typeof twilioSignature === "string") {
     const valid = twilio.validateRequest(authToken ?? "", twilioSignature, url, req.body);
@@ -84,8 +88,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           return res.status(200).send(`SMS limit reached`);
         }
       }
+      return res.status(200).send(`SMS not yet delivered`);
     } else {
-      res.status(401).send("Missing or invalid Twilio signature");
+      return res.status(401).send("Missing or invalid Twilio signature");
     }
   }
 }
