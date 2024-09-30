@@ -57,9 +57,7 @@ const EventLimitsTab = dynamic(() =>
 
 const EventAdvancedTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab").then(
-    (mod) => mod.EventAdvancedTab
-  )
+  import("./EventAdvancedWebWrapper").then((mod) => mod)
 );
 
 const EventInstantTab = dynamic(() =>
@@ -161,7 +159,7 @@ const EventTypeWeb = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: loggedInUser } = useMeQuery();
+  const { data: loggedInUser, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
   const telemetry = useTelemetry();
@@ -247,7 +245,14 @@ const EventTypeWeb = ({
     ),
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
-    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    advanced: (
+      <EventAdvancedTab
+        eventType={eventType}
+        team={team}
+        loggedInUser={loggedInUser}
+        isLoggedInUserPending={isLoggedInUserPending}
+      />
+    ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
