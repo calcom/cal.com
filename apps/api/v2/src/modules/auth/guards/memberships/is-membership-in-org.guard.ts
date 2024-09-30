@@ -1,3 +1,4 @@
+import { OrganizationsMembershipRepository } from "@/modules/organizations/repositories/organizations-membership.repository";
 import {
   Injectable,
   CanActivate,
@@ -8,8 +9,6 @@ import {
 import { Request } from "express";
 
 import { Membership } from "@calcom/prisma/client";
-
-import { OrganizationsMembershipRepository } from "../../../organizations/repositories/organizations-membership.repository";
 
 @Injectable()
 export class IsMembershipInOrg implements CanActivate {

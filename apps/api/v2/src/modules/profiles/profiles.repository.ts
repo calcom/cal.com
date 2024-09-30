@@ -1,17 +1,20 @@
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class ProfilesRepository {
-  // TODO: PrismaReadService
+  constructor(private readonly dbRead: PrismaReadService) {}
+
   async getPlatformOwnerUserId(organizationId: number) {
-    // const profile = await this.dbRead.prisma.profile.findFirst({
-    //   where: {
-    //     organizationId,
-    //   },
-    //   orderBy: {
-    //     createdAt: "asc",
-    //   },
-    // });
-    // return profile?.userId;
+    const profile = await this.dbRead.prisma.profile.findFirst({
+      where: {
+        organizationId,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    return profile?.userId;
   }
 }

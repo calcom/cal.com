@@ -1,33 +1,38 @@
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
+import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
+import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GCalService } from "@/modules/apps/services/gcal.service";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import {
   BadRequestException,
   Controller,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
+  Logger,
   Query,
   Redirect,
   Req,
   UnauthorizedException,
   UseGuards,
+  Headers,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { Prisma } from "@prisma/client";
 import { Request } from "express";
+import { google } from "googleapis";
+import { z } from "zod";
 
 import { APPS_READ, GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
-
-import { getEnv } from "../../env";
-import { API_VERSIONS_VALUES } from "../../lib/api-versions";
-import { GCalService } from "../../modules/apps/services/gcal.service";
-import { GetUser } from "../../modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "../../modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "../../modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "../../modules/auth/guards/permissions/permissions.guard";
-import { CredentialsRepository } from "../../modules/credentials/credentials.repository";
-import { CalendarsService } from "../calendars/services/calendars.service";
-import { GcalAuthUrlOutput } from "./outputs/auth-url.output";
-import { GcalCheckOutput } from "./outputs/check.output";
-import { GcalSaveRedirectOutput } from "./outputs/save-redirect.output";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -39,20 +44,25 @@ const CALENDAR_SCOPES = [
   path: "/v2/gcal",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Google Calendar")
+@DocsTags("Platform / Google Calendar")
 export class GcalController {
+  private readonly logger = new Logger("Platform Gcal Provider");
+
   constructor(
     private readonly credentialRepository: CredentialsRepository,
+    private readonly tokensRepository: TokensRepository,
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
+    private readonly config: ConfigService,
     private readonly gcalService: GCalService,
     private readonly calendarsService: CalendarsService
   ) {}
 
-  private apiUrl = getEnv("API_URL");
-  private redirectUri = `${this.apiUrl}/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Get auth URL" })
   async redirect(
     @Headers("Authorization") authorization: string,
     @Req() req: Request
@@ -72,8 +82,9 @@ export class GcalController {
   @Get("/oauth/save")
   @Redirect(undefined, 301)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Connect a calendar" })
   async save(@Query("state") state: string, @Query("code") code: string): Promise<GcalSaveRedirectOutput> {
-    const url = new URL("/calendars/google/save");
+    const url = new URL(this.config.get("api.url") + "/calendars/google/save");
     url.searchParams.append("code", code);
     url.searchParams.append("state", state);
     return { url: url.href };
@@ -83,6 +94,7 @@ export class GcalController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @Permissions([APPS_READ])
+  @ApiOperation({ summary: "Check a calendar connection status" })
   async check(@GetUser("id") userId: number): Promise<GcalCheckOutput> {
     const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
 

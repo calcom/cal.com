@@ -1,8 +1,7 @@
+import { Locales } from "@/lib/enums/locales";
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsEnum, IsOptional } from "class-validator";
-
-import { Locales } from "../../../../../lib/enums/locales";
 
 export class ManagedUserOutput {
   @ApiProperty({ example: 1 })
@@ -13,6 +12,9 @@ export class ManagedUserOutput {
 
   @ApiProperty({ example: "alice" })
   username!: string | null;
+
+  @ApiProperty({ example: "alice" })
+  name!: string | null;
 
   @ApiProperty({ example: "America/New_York" })
   timeZone!: string;

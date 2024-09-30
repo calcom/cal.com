@@ -1,3 +1,21 @@
+import { getEnv } from "@/env";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
+import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
+import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
+import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
+import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
+import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
+import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
+import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -25,25 +43,6 @@ import { User, MembershipRole } from "@prisma/client";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput } from "@calcom/platform-types";
 import { Pagination } from "@calcom/platform-types";
-
-import { getEnv } from "../../../../env";
-import { API_VERSIONS_VALUES } from "../../../../lib/api-versions";
-import { GetUser } from "../../../auth/decorators/get-user/get-user.decorator";
-import { MembershipRoles } from "../../../auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "../../../auth/guards/next-auth/next-auth.guard";
-import { OrganizationRolesGuard } from "../../../auth/guards/organization-roles/organization-roles.guard";
-import { GetManagedUsersOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
-import { ManagedUserOutput } from "../../../oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
-import { CreateOAuthClientResponseDto } from "../../../oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
-import { GetOAuthClientResponseDto } from "../../../oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
-import { GetOAuthClientsResponseDto } from "../../../oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
-import { OAuthClientGuard } from "../../../oauth-clients/guards/oauth-client-guard";
-import { UpdateOAuthClientInput } from "../../../oauth-clients/inputs/update-oauth-client.input";
-import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
-import { OrganizationsRepository } from "../../../organizations/organizations.repository";
-import { UsersService } from "../../../users/services/users.service";
-import { UserWithProfile } from "../../../users/users.repository";
-import { UsersRepository } from "../../../users/users.repository";
 
 const AUTH_DOCUMENTATION = `⚠️ First, this endpoint requires \`Cookie: next-auth.session-token=eyJhbGciOiJ\` header. Log into Cal web app using owner of organization that was created after visiting \`/settings/organizations/new\`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.
 Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.`;
@@ -173,6 +172,7 @@ export class OAuthClientsController {
       id: user.id,
       email: user.email,
       username: user.username,
+      name: user.name,
       timeZone: user.timeZone,
       weekStart: user.weekStart,
       createdDate: user.createdDate,

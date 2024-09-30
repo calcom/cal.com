@@ -1,88 +1,48 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
+import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
-import {
-  CreateTeamEventTypeInput_2024_06_14,
-  UpdateTeamEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
-
-import { EventTypesRepository_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/event-types.repository";
-import { EventTypesService_2024_06_14 } from "../../../../ee/event-types/event-types_2024_06_14/services/event-types.service";
-import { MembershipsRepository } from "../../../memberships/memberships.repository";
-import { OrganizationsEventTypesRepository } from "../../../organizations/repositories/organizations-event-types.repository";
-import { OrganizationsTeamsRepository } from "../../../organizations/repositories/organizations-teams.repository";
-import { InputOrganizationsEventTypesService } from "../../../organizations/services/event-types/input.service";
-import { OutputOrganizationsEventTypesService } from "../../../organizations/services/event-types/output.service";
-import { UsersService } from "../../../users/services/users.service";
-import { UserWithProfile } from "../../../users/users.repository";
+import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
 export class OrganizationsEventTypesService {
   constructor(
-    private readonly inputService: InputOrganizationsEventTypesService,
     private readonly eventTypesService: EventTypesService_2024_06_14,
+    private readonly dbWrite: PrismaWriteService,
     private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly outputService: OutputOrganizationsEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
     private readonly usersService: UsersService
   ) {}
-  // TODO: PrismaWriteService
+
   async createTeamEventType(
     user: UserWithProfile,
     teamId: number,
     orgId: number,
-    body: CreateTeamEventTypeInput_2024_06_14
-  ) {
-    // await this.validateHosts(teamId, body.hosts);
-    // const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
-    // const {
-    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //   hosts,
-    //   assignAllTeamMembers,
-    //   locations,
-    //   bookingLimitsCount,
-    //   bookingLimitsDuration,
-    //   bookingWindow,
-    //   bookingFields,
-    //   recurrence,
-    //   ...rest
-    // } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
-    // const { eventType: eventTypeCreated } = await createEventType({
-    //   input: { teamId: teamId, locations, ...rest },
-    //   ctx: {
-    //     user: eventTypeUser,
-    //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //     // @ts-ignore
-    //     prisma: this.dbWrite.prisma,
-    //   },
-    // });
-    // return await this.updateTeamEventType(
-    //   eventTypeCreated.id,
-    //   teamId,
-    //   {
-    //     hosts: body.hosts,
-    //     assignAllTeamMembers,
-    //     bookingLimitsCount,
-    //     bookingLimitsDuration,
-    //     bookingWindow,
-    //     bookingFields,
-    //     recurrence,
-    //     ...rest,
-    //   },
-    //   user
-    // );
-  }
+    body: InputTeamEventTransformed_2024_06_14
+  ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
+    const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { hosts, children, destinationCalendar, ...rest } = body;
 
-  async validateHosts(teamId: number, hosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
-    if (hosts && hosts.length) {
-      const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
-      const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
-      if (invalidHosts.length) {
-        throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
-      }
-    }
+    const { eventType: eventTypeCreated } = await createEventType({
+      input: { teamId: teamId, ...rest },
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+
+    return this.updateTeamEventType(eventTypeCreated.id, teamId, body, user);
   }
 
   async validateEventTypeExists(teamId: number, eventTypeId: number) {
@@ -103,22 +63,22 @@ export class OrganizationsEventTypesService {
       role: user.role,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
-      profile: { id: profileId },
+      profile: { id: profileId || null },
       metadata: user.metadata,
     };
   }
 
-  async getTeamEventType(teamId: number, eventTypeId: number) {
+  async getTeamEventType(teamId: number, eventTypeId: number): Promise<DatabaseTeamEventType | null> {
     const eventType = await this.organizationEventTypesRepository.getTeamEventType(teamId, eventTypeId);
 
     if (!eventType) {
       return null;
     }
 
-    return this.outputService.getResponseTeamEventType(eventType);
+    return eventType;
   }
 
-  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string) {
+  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string): Promise<DatabaseTeamEventType | null> {
     const eventType = await this.organizationEventTypesRepository.getTeamEventTypeBySlug(
       teamId,
       eventTypeSlug
@@ -128,65 +88,49 @@ export class OrganizationsEventTypesService {
       return null;
     }
 
-    return this.outputService.getResponseTeamEventType(eventType);
+    return eventType;
   }
 
-  async getTeamEventTypes(teamId: number) {
-    const eventTypes = await this.organizationEventTypesRepository.getTeamEventTypes(teamId);
-
-    const eventTypePromises = eventTypes.map(async (eventType) => {
-      return await this.outputService.getResponseTeamEventType(eventType);
-    });
-
-    return await Promise.all(eventTypePromises);
+  async getTeamEventTypes(teamId: number): Promise<DatabaseTeamEventType[]> {
+    return await this.organizationEventTypesRepository.getTeamEventTypes(teamId);
   }
 
-  async getTeamsEventTypes(orgId: number, skip = 0, take = 250) {
-    const eventTypes = await this.organizationEventTypesRepository.getTeamsEventTypes(orgId, skip, take);
-
-    const eventTypePromises = eventTypes.map(async (eventType) => {
-      return await this.outputService.getResponseTeamEventType(eventType);
-    });
-
-    return await Promise.all(eventTypePromises);
+  async getTeamsEventTypes(orgId: number, skip = 0, take = 250): Promise<DatabaseTeamEventType[]> {
+    return await this.organizationEventTypesRepository.getTeamsEventTypes(orgId, skip, take);
   }
-  // TODO: PrismaWriteService
+
   async updateTeamEventType(
     eventTypeId: number,
     teamId: number,
-    body: UpdateTeamEventTypeInput_2024_06_14,
+    body: InputTeamEventTransformed_2024_06_14,
     user: UserWithProfile
-  ) {
-    // await this.validateEventTypeExists(teamId, eventTypeId);
-    // await this.validateHosts(teamId, body.hosts);
-    // const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
-    // const bodyTransformed = await this.inputService.transformInputUpdateTeamEventType(
-    //   eventTypeId,
-    //   teamId,
-    //   body
-    // );
-    // await updateEventType({
-    //   input: { id: eventTypeId, ...bodyTransformed },
-    //   ctx: {
-    //     user: eventTypeUser,
-    //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //     // @ts-ignore
-    //     prisma: this.dbWrite.prisma,
-    //   },
-    // });
-    // const eventType = await this.organizationEventTypesRepository.getEventTypeById(eventTypeId);
-    // if (!eventType) {
-    //   throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
-    // }
-    // if (eventType.schedulingType !== "MANAGED") {
-    //   return this.outputService.getResponseTeamEventType(eventType);
-    // }
-    // const children = await this.organizationEventTypesRepository.getEventTypeChildren(eventType.id);
-    // const eventTypes = [eventType, ...children];
-    // const eventTypePromises = eventTypes.map(async (e) => {
-    //   return await this.outputService.getResponseTeamEventType(e);
-    // });
-    // return await Promise.all(eventTypePromises);
+  ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
+    await this.validateEventTypeExists(teamId, eventTypeId);
+    const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
+
+    await updateEventType({
+      input: { id: eventTypeId, ...body },
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+
+    const eventType = await this.organizationEventTypesRepository.getEventTypeById(eventTypeId);
+
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    }
+
+    if (eventType.schedulingType !== "MANAGED") {
+      return eventType;
+    }
+
+    const childrenEventTypes = await this.organizationEventTypesRepository.getEventTypeChildren(eventType.id);
+
+    return [eventType, ...childrenEventTypes];
   }
 
   async deleteTeamEventType(teamId: number, eventTypeId: number) {

@@ -1,4 +1,4 @@
-import { logLevels } from "./lib/logger";
+import { logLevels } from "@/lib/logger";
 
 export type Environment = {
   NODE_ENV: "development" | "production";
@@ -11,6 +11,7 @@ export type Environment = {
   JWT_SECRET: string;
   SENTRY_DSN: string;
   LOG_LEVEL: keyof typeof logLevels;
+  REDIS_URL: string;
   STRIPE_API_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   WEB_APP_URL: string;
@@ -18,6 +19,7 @@ export type Environment = {
   CALCOM_LICENSE_KEY: string;
   GET_LICENSE_KEY_URL: string;
   API_KEY_PREFIX: string;
+  DOCS_URL: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

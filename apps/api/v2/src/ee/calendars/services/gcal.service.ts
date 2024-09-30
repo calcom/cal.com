@@ -1,24 +1,19 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { AppsRepository } from "@/modules/apps/apps.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
 
-import { GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
-
-import { getEnv } from "../../../env";
-import { AppsRepository } from "../../../modules/apps/apps.repository";
-import { CredentialsRepository } from "../../../modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "../../../modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "../../../modules/tokens/tokens.repository";
-import { OAuthCalendarApp } from "../../calendars/calendars.interface";
-import { CalendarsService } from "../../calendars/services/calendars.service";
+import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -27,12 +22,12 @@ const CALENDAR_SCOPES = [
 
 @Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
-  private apiUrl = getEnv("API_URL");
-  private redirectUri = `${this.apiUrl}/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
   private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
   private logger = new Logger("GcalService");
 
   constructor(
+    private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
     private readonly calendarsService: CalendarsService,
@@ -136,11 +131,6 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const token = await oAuth2Client.getToken(parsedCode);
     // Google oAuth Credentials are stored in token.tokens
     const key = token.tokens;
-    const credential = await this.credentialRepository.createAppCredential(
-      GOOGLE_CALENDAR_TYPE,
-      key as Prisma.InputJsonValue,
-      ownerId
-    );
 
     oAuth2Client.setCredentials(key);
 
@@ -154,10 +144,39 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
     if (primaryCal?.id) {
-      await this.selectedCalendarsRepository.createSelectedCalendar(
-        primaryCal.id,
-        credential.id,
+      const alreadyExistingSelectedCalendar = await this.selectedCalendarsRepository.getUserSelectedCalendar(
         ownerId,
+        GOOGLE_CALENDAR_TYPE,
+        primaryCal.id
+      );
+
+      if (alreadyExistingSelectedCalendar) {
+        const isCredentialValid = await this.calendarsService.checkCalendarCredentialValidity(
+          ownerId,
+          alreadyExistingSelectedCalendar.credentialId ?? 0,
+          GOOGLE_CALENDAR_TYPE
+        );
+
+        // user credential probably got expired in this case
+        if (!isCredentialValid) {
+          await this.calendarsService.createAndLinkCalendarEntry(
+            ownerId,
+            alreadyExistingSelectedCalendar.externalId,
+            key as Prisma.InputJsonValue,
+            GOOGLE_CALENDAR_TYPE,
+            alreadyExistingSelectedCalendar.credentialId
+          );
+        }
+
+        return {
+          url: redir || origin,
+        };
+      }
+
+      await this.calendarsService.createAndLinkCalendarEntry(
+        ownerId,
+        primaryCal.id,
+        key as Prisma.InputJsonValue,
         GOOGLE_CALENDAR_TYPE
       );
     }

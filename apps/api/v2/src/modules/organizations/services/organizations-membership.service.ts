@@ -1,7 +1,7 @@
+import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
+import { OrganizationsMembershipRepository } from "@/modules/organizations/repositories/organizations-membership.repository";
 import { Injectable } from "@nestjs/common";
 
-import { CreateOrgMembershipDto } from "../../organizations/inputs/create-organization-membership.input";
-import { OrganizationsMembershipRepository } from "../../organizations/repositories/organizations-membership.repository";
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 
 @Injectable()
@@ -12,6 +12,14 @@ export class OrganizationsMembershipService {
     const membership = await this.organizationsMembershipRepository.findOrgMembership(
       organizationId,
       membershipId
+    );
+    return membership;
+  }
+
+  async getOrgMembershipByUserId(organizationId: number, userId: number) {
+    const membership = await this.organizationsMembershipRepository.findOrgMembershipByUserId(
+      organizationId,
+      userId
     );
     return membership;
   }

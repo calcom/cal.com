@@ -1,8 +1,9 @@
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Module } from "@nestjs/common";
 
-import { TokensRepository } from "../tokens/tokens.repository";
-
 @Module({
+  imports: [PrismaModule],
   providers: [TokensRepository],
   exports: [TokensRepository],
 })

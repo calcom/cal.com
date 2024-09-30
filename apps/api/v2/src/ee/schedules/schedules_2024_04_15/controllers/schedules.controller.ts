@@ -1,3 +1,16 @@
+import { CreateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/create-schedule.output";
+import { DeleteScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/delete-schedule.output";
+import { GetDefaultScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-default-schedule.output";
+import { GetScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-schedule.output";
+import { GetSchedulesOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-schedules.output";
+import { UpdateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/update-schedule.output";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -10,33 +23,20 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiResponse, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
 
-import { VERSION_2024_04_15_VALUE } from "../../../../lib/api-versions";
-import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "../../../../modules/users/users.repository";
 import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input";
-import { CreateScheduleOutput_2024_04_15 } from "../outputs/create-schedule.output";
-import { DeleteScheduleOutput_2024_04_15 } from "../outputs/delete-schedule.output";
-import { GetDefaultScheduleOutput_2024_04_15 } from "../outputs/get-default-schedule.output";
-import { GetScheduleOutput_2024_04_15 } from "../outputs/get-schedule.output";
-import { GetSchedulesOutput_2024_04_15 } from "../outputs/get-schedules.output";
-import { UpdateScheduleOutput_2024_04_15 } from "../outputs/update-schedule.output";
-import { SchedulesService_2024_04_15 } from "../services/schedules.service";
 
 @Controller({
   path: "/v2/schedules",
   version: VERSION_2024_04_15_VALUE,
 })
 @UseGuards(ApiAuthGuard, PermissionsGuard)
-@DocsTags("Schedules")
+@DocsExcludeController(true)
 export class SchedulesController_2024_04_15 {
   constructor(private readonly schedulesService: SchedulesService_2024_04_15) {}
 
@@ -57,11 +57,6 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
-  @ApiResponse({
-    status: 200,
-    description: "Returns the default schedule",
-    type: GetDefaultScheduleOutput_2024_04_15,
-  })
   async getDefaultSchedule(
     @GetUser() user: UserWithProfile
   ): Promise<GetDefaultScheduleOutput_2024_04_15 | null> {

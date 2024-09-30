@@ -1,3 +1,25 @@
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { EventTypeIdParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-id.input";
+import { GetPublicEventTypeQueryParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/get-public-event-type-query-params.input";
+import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
+import { CreateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/create-event-type.output";
+import { DeleteEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/delete-event-type.output";
+import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
+import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
+import {
+  GetEventTypesData,
+  GetEventTypesOutput,
+} from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types.output";
+import { UpdateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/update-event-type.output";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { VERSION_2024_04_15, VERSION_2024_06_11 } from "@/lib/api-versions";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -14,39 +36,23 @@ import {
   InternalServerErrorException,
   ParseIntPipe,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
 import { PrismaClient } from "@calcom/prisma";
-
-import { VERSION_2024_04_15, VERSION_2024_06_11 } from "../../../../lib/api-versions";
-import { GetUser } from "../../../../modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "../../../../modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "../../../../modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "../../../../modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "../../../../modules/users/users.repository";
-import { CreateEventTypeInput_2024_04_15 } from "../inputs/create-event-type.input";
-import { EventTypeIdParams_2024_04_15 } from "../inputs/event-type-id.input";
-import { GetPublicEventTypeQueryParams_2024_04_15 } from "../inputs/get-public-event-type-query-params.input";
-import { UpdateEventTypeInput_2024_04_15 } from "../inputs/update-event-type.input";
-import { CreateEventTypeOutput } from "../outputs/create-event-type.output";
-import { DeleteEventTypeOutput } from "../outputs/delete-event-type.output";
-import { GetEventTypePublicOutput } from "../outputs/get-event-type-public.output";
-import { GetEventTypeOutput } from "../outputs/get-event-type.output";
-import { GetEventTypesPublicOutput } from "../outputs/get-event-types-public.output";
-import { GetEventTypesData, GetEventTypesOutput } from "../outputs/get-event-types.output";
-import { UpdateEventTypeOutput } from "../outputs/update-event-type.output";
-import { EventTypesService_2024_04_15 } from "../services/event-types.service";
 
 @Controller({
   path: "/v2/event-types",
   version: [VERSION_2024_04_15, VERSION_2024_06_11],
 })
 @UseGuards(PermissionsGuard)
-@DocsTags("Event types")
+@DocsExcludeController(true)
 export class EventTypesController_2024_04_15 {
-  constructor(private readonly eventTypesService: EventTypesService_2024_04_15) {}
+  constructor(
+    private readonly eventTypesService: EventTypesService_2024_04_15,
+    private readonly prismaReadService: PrismaReadService
+  ) {}
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
@@ -98,33 +104,33 @@ export class EventTypesController_2024_04_15 {
       data: eventTypes as GetEventTypesData,
     };
   }
-  // TODO: PrismaReadService
+
   @Get("/:username/:eventSlug/public")
   async getPublicEventType(
     @Param("username") username: string,
     @Param("eventSlug") eventSlug: string,
     @Query() queryParams: GetPublicEventTypeQueryParams_2024_04_15
   ): Promise<GetEventTypePublicOutput> {
-    // try {
-    //   const event = await getPublicEvent(
-    //     username.toLowerCase(),
-    //     eventSlug,
-    //     queryParams.isTeamEvent,
-    //     queryParams.org || null,
-    //     this.prismaReadService.prisma as unknown as PrismaClient,
-    //     // We should be fine allowing unpublished orgs events to be servable through platform because Platform access is behind license
-    //     // If there is ever a need to restrict this, we can introduce a new query param `fromRedirectOfNonOrgLink`
-    //     true
-    //   );
-    //   return {
-    //     data: event,
-    //     status: SUCCESS_STATUS,
-    //   };
-    // } catch (err) {
-    //   if (err instanceof Error) {
-    //     throw new NotFoundException(err.message);
-    //   }
-    // }
+    try {
+      const event = await getPublicEvent(
+        username.toLowerCase(),
+        eventSlug,
+        queryParams.isTeamEvent,
+        queryParams.org || null,
+        this.prismaReadService.prisma as unknown as PrismaClient,
+        // We should be fine allowing unpublished orgs events to be servable through platform because Platform access is behind license
+        // If there is ever a need to restrict this, we can introduce a new query param `fromRedirectOfNonOrgLink`
+        true
+      );
+      return {
+        data: event,
+        status: SUCCESS_STATUS,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new NotFoundException(err.message);
+      }
+    }
     throw new InternalServerErrorException("Could not find public event.");
   }
 

@@ -1,7 +1,6 @@
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { ExecutionContext } from "@nestjs/common";
 import { createParamDecorator } from "@nestjs/common";
-
-import { UserWithProfile } from "../../../users/users.repository";
 
 export type GetUserReturnType = UserWithProfile & { isSystemAdmin: boolean };
 

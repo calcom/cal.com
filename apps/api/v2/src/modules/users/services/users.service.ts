@@ -1,8 +1,7 @@
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { User } from "@calcom/prisma/client";
-
-import { UsersRepository, UserWithProfile } from "../../users/users.repository";
 
 @Injectable()
 export class UsersService {

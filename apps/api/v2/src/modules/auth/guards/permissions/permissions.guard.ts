@@ -1,17 +1,20 @@
+import { isApiKey } from "@/lib/api-key";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { getToken } from "next-auth/jwt";
 
 import { hasPermissions } from "@calcom/platform-utils";
 
-import { getEnv } from "../../../../env";
-import { isApiKey } from "../../../../lib/api-key";
-import { Permissions } from "../../../auth/decorators/permissions/permissions.decorator";
-import { TokensRepository } from "../../../tokens/tokens.repository";
-
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector, private tokensRepository: TokensRepository) {}
+  constructor(
+    private reflector: Reflector,
+    private tokensRepository: TokensRepository,
+    private readonly config: ConfigService
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermissions = this.reflector.get(Permissions, context.getHandler());
@@ -22,8 +25,7 @@ export class PermissionsGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const authString = request.get("Authorization")?.replace("Bearer ", "");
-    const apiKeyPrefix = getEnv("API_KEY_PREFIX");
-    const nextAuthSecret = getEnv("NEXTAUTH_SECRET");
+    const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
     const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
 
     if (nextAuthToken) {
@@ -35,7 +37,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     // only check permissions for accessTokens attached to an oAuth Client
-    if (isApiKey(authString, apiKeyPrefix ?? "cal_")) {
+    if (isApiKey(authString, this.config.get("api.apiKeyPrefix") ?? "cal_")) {
       return true;
     }
 

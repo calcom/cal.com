@@ -1,7 +1,6 @@
+import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { MembershipRole } from "@prisma/client";
 import { IsString, IsOptional, IsBoolean, IsEnum } from "class-validator";
-
-import { CreateUserInput } from "../../users/inputs/create-user.input";
 
 export class CreateOrganizationUserInput extends CreateUserInput {
   @IsOptional()

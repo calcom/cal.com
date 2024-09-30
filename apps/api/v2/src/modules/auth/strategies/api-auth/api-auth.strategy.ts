@@ -1,25 +1,26 @@
+import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { AuthMethods } from "@/lib/enums/auth-methods";
+import { BaseStrategy } from "@/lib/passport/strategies/types";
+import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
+import { DeploymentsService } from "@/modules/deployments/deployments.service";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
-import { getEnv } from "../../../../env";
-import { hashAPIKey, isApiKey, stripApiKey } from "../../../../lib/api-key";
-import { BaseStrategy } from "../../../../lib/passport/strategies/types";
-import { ApiKeyRepository } from "../../../api-key/api-key-repository";
-import { DeploymentsService } from "../../../deployments/deployments.service";
-import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "../../../oauth-clients/services/oauth-flow.service";
-import { ProfilesRepository } from "../../../profiles/profiles.repository";
-import { TokensRepository } from "../../../tokens/tokens.repository";
-import { UserWithProfile, UsersRepository } from "../../../users/users.repository";
-
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
   constructor(
     private readonly deploymentsService: DeploymentsService,
+    private readonly config: ConfigService,
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
     private readonly userRepository: UsersRepository,
@@ -30,7 +31,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     super();
   }
 
-  async authenticate(request: Request) {
+  async authenticate(request: Request & { authMethod: AuthMethods }) {
     try {
       const { params } = request;
       const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
@@ -38,18 +39,23 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
 
       if (oAuthClientId && oAuthClientSecret) {
+        request.authMethod = AuthMethods["OAUTH_CLIENT"];
         return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret);
       }
 
       if (bearerToken) {
         const requestOrigin = request.get("Origin");
+        request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+          ? AuthMethods["API_KEY"]
+          : AuthMethods["ACCESS_TOKEN"];
         return await this.authenticateBearerToken(bearerToken, requestOrigin);
       }
 
-      const nextAuthSecret = getEnv("NEXTAUTH_SECRET");
+      const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
       const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
 
       if (nextAuthToken) {
+        request.authMethod = AuthMethods["NEXT_AUTH"];
         return await this.authenticateNextAuth(nextAuthToken);
       }
 
@@ -104,8 +110,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
   async authenticateBearerToken(authString: string, requestOrigin: string | undefined) {
     try {
-      const apiKeyPrefix = getEnv("API_KEY_PREFIX");
-      const user = isApiKey(authString, apiKeyPrefix ?? "cal_")
+      const user = isApiKey(authString, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
         ? await this.apiKeyStrategy(authString)
         : await this.accessTokenStrategy(authString, requestOrigin);
 
@@ -129,8 +134,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     if (!isLicenseValid) {
       throw new UnauthorizedException("Invalid or missing CALCOM_LICENSE_KEY environment variable");
     }
-    const apiKeyPrefix = getEnv("API_KEY_PREFIX");
-    const strippedApiKey = stripApiKey(apiKey, apiKeyPrefix);
+    const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
     const apiKeyHash = hashAPIKey(strippedApiKey);
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
     if (!keyData) {

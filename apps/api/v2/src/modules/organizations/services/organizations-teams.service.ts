@@ -1,11 +1,11 @@
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "@/modules/organizations/inputs/update-organization-team.input";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { supabase } from "../../../config/supabase";
-import { MembershipsRepository } from "../../memberships/memberships.repository";
-import { CreateOrgTeamDto } from "../../organizations/inputs/create-organization-team.input";
-import { UpdateOrgTeamDto } from "../../organizations/inputs/update-organization-team.input";
-import { OrganizationsTeamsRepository } from "../../organizations/repositories/organizations-teams.repository";
-import { UserWithProfile } from "../../users/users.repository";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationsTeamsService {
@@ -74,7 +74,7 @@ export class OrganizationsTeamsService {
     const orgTeams = await this.organizationsTeamRepository.findOrgTeams(organizationId);
 
     for (const team of orgTeams) {
-      await this.updateNewTeamMemberEventTypes(userId, team.id);
+      await updateNewTeamMemberEventTypes(userId, team.id);
     }
   }
 
@@ -84,63 +84,8 @@ export class OrganizationsTeamsService {
       oAuthClientId
     );
 
-    if (oAuthClientTeams) {
-      for (const team of oAuthClientTeams) {
-        await this.updateNewTeamMemberEventTypes(userId, team.id);
-      }
-    }
-  }
-
-  async updateNewTeamMemberEventTypes(userId: number, teamId: number) {
-    const { data: eventTypesToAdd, error } = await supabase
-      .from("EventType")
-      .select("*")
-      .eq("teamId", teamId)
-      .eq("assignAllTeamMembers", true);
-
-    // const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
-
-    if (!error && eventTypesToAdd && eventTypesToAdd.length > 0) {
-      eventTypesToAdd.map(async (eventType) => {
-        if (eventType.schedulingType === "MANAGED") {
-          // const managedEventTypeValues = allManagedEventTypePropsZod
-          //   .omit(unlockedManagedEventTypeProps)
-          //   .parse(eventType);
-          // // Define the values for unlocked properties to use on creation, not updation
-          // const unlockedEventTypeValues = allManagedEventTypePropsZod
-          //   .pick(unlockedManagedEventTypeProps)
-          //   .parse(eventType);
-          // Calculate if there are new workflows for which assigned members will get too
-          const currentWorkflowIds = eventType.workflows?.map((wf: any) => wf.workflowId);
-          const { data } = await supabase.from("EventType").update({
-            // ...managedEventTypeValues,
-            // ...unlockedEventTypeValues,
-            // bookingLimits:
-            //   (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-            // recurringEvent:
-            //   (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-            // metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-            // bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            // durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-            // eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-            // onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
-            userId,
-            parentId: eventType.parentId,
-            hidden: false,
-            // workflows: currentWorkflowIds && {
-            //   create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
-            // },
-          });
-        } else {
-          const { data: updatedUser } = await supabase
-            .from("EventType")
-            .update({ hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] } })
-            .eq("id", eventType.id)
-            .single();
-
-          return updatedUser;
-        }
-      });
+    for (const team of oAuthClientTeams) {
+      await updateNewTeamMemberEventTypes(userId, team.id);
     }
   }
 }

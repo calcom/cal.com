@@ -1,10 +1,9 @@
+import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNumber, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-
-import { ManagedUserOutput } from "../../../../oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 
 class CreateManagedUserData {
   @ApiProperty({

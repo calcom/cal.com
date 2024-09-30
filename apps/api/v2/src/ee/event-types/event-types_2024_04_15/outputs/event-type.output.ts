@@ -1,3 +1,17 @@
+import {
+  CREATE_EVENT_DESCRIPTION_EXAMPLE,
+  CREATE_EVENT_LENGTH_EXAMPLE,
+  CREATE_EVENT_SLUG_EXAMPLE,
+  CREATE_EVENT_TITLE_EXAMPLE,
+} from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { PeriodType } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/period-type";
+import { SchedulingType } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/scheduling-type";
+import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
+import {
+  BookingField_2024_04_15,
+  IntervalLimits_2024_04_15,
+  RecurringEvent_2024_04_15,
+} from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
 import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -12,21 +26,6 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-
-import {
-  CREATE_EVENT_DESCRIPTION_EXAMPLE,
-  CREATE_EVENT_LENGTH_EXAMPLE,
-  CREATE_EVENT_SLUG_EXAMPLE,
-  CREATE_EVENT_TITLE_EXAMPLE,
-} from "../inputs/create-event-type.input";
-import { PeriodType } from "../inputs/enums/period-type";
-import { SchedulingType } from "../inputs/enums/scheduling-type";
-import { EventTypeLocation_2024_04_15 } from "../inputs/event-type-location.input";
-import {
-  BookingField_2024_04_15,
-  IntervalLimits_2024_04_15,
-  RecurringEvent_2024_04_15,
-} from "../inputs/update-event-type.input";
 
 export class EventTypeOutput {
   @IsInt()

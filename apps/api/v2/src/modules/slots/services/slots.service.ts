@@ -1,10 +1,9 @@
+import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
+import { SlotsRepository } from "@/modules/slots/slots.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { v4 as uuid } from "uuid";
 
 import { ReserveSlotInput } from "@calcom/platform-types";
-
-import { EventTypesRepository_2024_04_15 } from "../../../ee/event-types/event-types_2024_04_15/event-types.repository";
-import { SlotsRepository } from "../../slots/slots.repository";
 
 @Injectable()
 export class SlotsService {
