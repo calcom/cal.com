@@ -17,6 +17,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
@@ -37,9 +38,7 @@ const EventSetupTab = dynamic(() =>
 
 const EventAvailabilityTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab").then(
-    (mod) => mod.EventAvailabilityTab
-  )
+  import("./EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
 const EventTeamAssignmentTab = dynamic(() =>
@@ -55,9 +54,7 @@ const EventLimitsTab = dynamic(() =>
 
 const EventAdvancedTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab").then(
-    (mod) => mod.EventAdvancedTab
-  )
+  import("./EventAdvancedWebWrapper").then((mod) => mod)
 );
 
 const EventInstantTab = dynamic(() =>
@@ -68,9 +65,7 @@ const EventInstantTab = dynamic(() =>
 
 const EventRecurringTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/recurring/EventRecurringTab").then(
-    (mod) => mod.EventRecurringTab
-  )
+  import("./EventRecurringWebWrapper").then((mod) => mod)
 );
 
 const EventAppsTab = dynamic(() =>
@@ -146,6 +141,7 @@ const EventTypeWeb = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
+  const { data: loggedInUser, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
   const telemetry = useTelemetry();
@@ -226,10 +222,19 @@ const EventTypeWeb = ({
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    availability: (
+      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} loggedInUser={loggedInUser} />
+    ),
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
-    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    advanced: (
+      <EventAdvancedTab
+        eventType={eventType}
+        team={team}
+        loggedInUser={loggedInUser}
+        isLoggedInUserPending={isLoggedInUserPending}
+      />
+    ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
