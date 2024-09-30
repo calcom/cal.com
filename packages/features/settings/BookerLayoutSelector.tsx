@@ -120,7 +120,6 @@ const BookerLayoutFields = ({
   isUserLoading,
 }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
-  // const { isPending: isUserLoading, data: user } = useMeQuery();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
 
   const disableFields = showUserSettings && !isOverridingSettings;
