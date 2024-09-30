@@ -21,6 +21,7 @@ export type ExtendedCalendarEvent = CalendarEvent & {
   eventType: {
     slug?: string;
     schedulingType?: SchedulingType | null;
+    parent?: { teamId?: number | null } | null;
     hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
   };
 };
@@ -51,7 +52,8 @@ const processWorkflowStep = async (
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
-  const { teamId, userId } = workflow;
+  const { userId } = workflow;
+  const teamId = evt.eventType.parent?.teamId ?? workflow.teamId;
   let teamIdChargedForSMS;
 
   let fallbackEmail;
@@ -66,7 +68,7 @@ const processWorkflowStep = async (
     fallbackEmail = !teamIdChargedForSMS ? attendeeEmail : undefined;
 
     await checkSMSRateLimit({
-      identifier: `sms:${workflow.teamId ? "team:" : "user:"}${workflow.teamId || workflow.userId}`,
+      identifier: `sms:${teamId ? "team:" : "user:"}${teamId || workflow.userId}`,
       rateLimitingType: "sms",
     });
   }
@@ -87,7 +89,7 @@ const processWorkflowStep = async (
       template: step.template,
       sender: step.sender,
       userId: workflow.userId,
-      teamId: workflow.teamId,
+      teamId: teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
       teamIdToCharge: teamIdChargedForSMS,
@@ -164,7 +166,7 @@ const processWorkflowStep = async (
       workflowStepId: step.id,
       template: step.template,
       userId: workflow.userId,
-      teamId: workflow.teamId,
+      teamId: teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
       teamIdToCharge: teamIdChargedForSMS,
@@ -184,6 +186,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     hideBranding,
     seatReferenceUid,
   } = args;
+
   if (isNotConfirmed || !workflows.length) return;
 
   for (const workflow of workflows) {

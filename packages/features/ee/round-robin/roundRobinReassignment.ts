@@ -538,7 +538,11 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     await scheduleWorkflowReminders({
       workflows: newEventWorkflows,
       smsReminderNumber: null,
-      calendarEvent: { ...evt, metadata: workflowEventMetadata, eventType: { slug: eventType.slug } },
+      calendarEvent: {
+        ...evt,
+        metadata: workflowEventMetadata,
+        eventType: { slug: eventType.slug, parent: eventType.parent },
+      },
       hideBranding: !!eventType?.owner?.hideBranding,
     });
   }

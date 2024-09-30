@@ -256,25 +256,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
 
 export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
   try {
-    const workflowReminder = await prisma.workflowReminder.findFirst({
-      where: {
-        id: reminderId,
-      },
-      select: {
-        smsCredits: true,
-        workflowStep: {
-          select: {
-            workflow: {
-              select: {
-                userId: true,
-                teamId: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
     if (referenceId) {
       await twilio.cancelSMS(referenceId);
     }
