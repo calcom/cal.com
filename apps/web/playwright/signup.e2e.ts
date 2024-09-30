@@ -357,6 +357,7 @@ test.describe("Email Signup Flow Test", async () => {
 
   test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
     await page.goto("/signup");
+    await expect(page.locator("text=Create your account")).toBeVisible();
 
     // Navigate to email form
     await page.getByTestId("continue-with-email-button").click();
