@@ -2603,6 +2603,9 @@ checksums:
     outlook_connect_atom_label: 25337852f8c06dc4d93ee1dc01960fd0
     outlook_connect_atom_already_connected_label: 734727a604a5c679372f83233ea8800d
     outlook_connect_atom_loading_label: 5e839068f5fb852287d1a3d8a01818e1
+    stripe_connect_atom_label: 1e300f03f3b040acdd4383d0e9841143
+    stripe_connect_atom_already_connected_label: d784aa19f45311fa4079bafed4f20924
+    stripe_connect_atom_loading_label: b1c6ecddb32dca26ded9d0cc0a977d12
     booking_question_response_variables: b6619cf0eac72e4f894fbed23960d599
     managed_by_teamAdmins: b3f977831c90142705c9c979e0c37d2a
     number_of_options: 61add413dabcfc36aa759d46ab7c225f
@@ -2616,4 +2619,8 @@ checksums:
     you_are_unauthorized_to_make_this_change_to_the_booking: c770486d5b4b98a407ff485cbe60e563
     hide_calendar_event_details: 18686c17d852ffc8acf5549587897df5
     description_hide_calendar_event_details: b7c5880a3d927f4f9255d2afa6e330d1
+    last_number_of_days: 4a42f1909236573b9b8c347b4bdbf0b4
+    month_to_date: 7f7e4653c67cdaab178faa332007b1a0
+    year_to_date: 1de1bfcb57fc841987305d851383042a
+    custom_range: c489facbacd8b2b232c9ea6aae568ae3
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

@@ -2601,6 +2601,9 @@
   "outlook_connect_atom_label": "Kết nối Lịch Outlook",
   "outlook_connect_atom_already_connected_label": "Đã kết nối Lịch Outlook",
   "outlook_connect_atom_loading_label": "Đang kiểm tra Lịch Outlook",
+  "stripe_connect_atom_label": "Kết nối với Stripe",
+  "stripe_connect_atom_already_connected_label": "Đã kết nối với Stripe",
+  "stripe_connect_atom_loading_label": "Đang kiểm tra thông tin Stripe",
   "booking_question_response_variables": "Các biến phản hồi câu hỏi đặt lịch",
   "managed_by_teamAdmins": "Được quản lý bởi {{teamAdmins}}",
   "number_of_options": "{{count}} tùy chọn",
@@ -2614,5 +2617,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Bạn không có quyền thực hiện thay đổi này đối với đặt chỗ",
   "hide_calendar_event_details": "Ẩn chi tiết sự kiện trên lịch chia sẻ",
   "description_hide_calendar_event_details": "Khi một lịch được chia sẻ, các sự kiện sẽ hiển thị cho người xem nhưng chi tiết của chúng sẽ bị ẩn đối với những người không có quyền chỉnh sửa.",
+  "last_number_of_days": "{{count}} ngày qua",
+  "month_to_date": "từ đầu tháng đến nay",
+  "year_to_date": "từ đầu năm đến nay",
+  "custom_range": "phạm vi tùy chỉnh",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

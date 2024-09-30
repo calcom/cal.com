@@ -2601,6 +2601,9 @@
   "outlook_connect_atom_label": "連接 Outlook 日曆",
   "outlook_connect_atom_already_connected_label": "已連接 Outlook 日曆",
   "outlook_connect_atom_loading_label": "正在檢查 Outlook 日曆",
+  "stripe_connect_atom_label": "連接到 Stripe",
+  "stripe_connect_atom_already_connected_label": "已連接 Stripe",
+  "stripe_connect_atom_loading_label": "正在檢查 Stripe 憑證",
   "booking_question_response_variables": "預訂問題回應變數",
   "managed_by_teamAdmins": "由 {{teamAdmins}} 管理",
   "number_of_options": "{{count}} 個選項",
@@ -2614,5 +2617,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您無權更改此預訂",
   "hide_calendar_event_details": "隱藏共享行事曆中的事件詳情",
   "description_hide_calendar_event_details": "當行事曆被共享時，事件對讀者可見，但其詳情對沒有寫入權限的人隱藏。",
+  "last_number_of_days": "過去 {{count}} 天",
+  "month_to_date": "本月至今",
+  "year_to_date": "本年至今",
+  "custom_range": "自訂範圍",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
