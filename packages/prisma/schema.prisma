@@ -829,7 +829,7 @@ model RateLimit {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 
   @@index([apiKeyId])
 }
