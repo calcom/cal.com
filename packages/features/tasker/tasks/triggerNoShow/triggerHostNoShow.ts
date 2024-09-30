@@ -1,6 +1,37 @@
+import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger } from "./common";
+import type { Booking, Host } from "./common";
+import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
+
+const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTheCall: Host[]) => {
+  try {
+    await Promise.allSettled(
+      hostsThatDidntJoinTheCall.map((host) => {
+        if (booking?.user?.id === host.id) {
+          return prisma.booking.update({
+            where: {
+              uid: booking.uid,
+            },
+            data: {
+              noShowHost: true,
+            },
+          });
+        }
+        // If there are more than one host then it is stored in attendees table
+        else if (booking.attendees?.some((attendee) => attendee.email === host.email)) {
+          return prisma.attendee.update({
+            where: { id: host.id },
+            data: { noShow: true },
+          });
+        }
+        return Promise.resolve();
+      })
+    );
+  } catch (error) {
+    log.error("Error marking hosts as no show in booking", error);
+  }
+};
 
 export async function triggerHostNoShow(payload: string): Promise<void> {
   const result = await prepareNoShowTrigger(payload);
@@ -21,4 +52,6 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
   });
 
   await Promise.all(hostsNoShowPromises);
+
+  await markHostsAsNoShowInBooking(booking, hostsThatDidntJoinTheCall);
 }

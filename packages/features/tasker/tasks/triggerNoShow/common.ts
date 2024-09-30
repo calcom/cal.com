@@ -10,28 +10,39 @@ import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName
 import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
-type Host = {
+export type Host = {
   id: number;
   email: string;
 };
 
-type Booking = Awaited<ReturnType<typeof getBooking>>;
+export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
 
 export function getHosts(booking: Booking): Host[] {
-  let hosts = [
-    ...(booking?.eventType?.hosts?.map((host) => ({ id: host.userId, email: host.user.email })) ?? []),
-    ...(booking?.eventType?.users?.map((user) => ({ id: user.id, email: user.email })) ?? []),
-  ];
+  const hostMap = new Map<number, Host>();
 
-  hosts = hosts.filter((host) => booking.attendees?.some((attendee) => attendee.email === host.email));
+  const addHost = (id: number, email: string) => {
+    if (!hostMap.has(id)) {
+      hostMap.set(id, { id, email });
+    }
+  };
 
-  if (booking?.user?.id && !hosts.some((host) => host.id === booking?.user?.id)) {
-    hosts.push({ id: booking.user.id, email: booking.user.email });
+  booking?.eventType?.hosts?.forEach((host) => addHost(host.userId, host.user.email));
+  booking?.eventType?.users?.forEach((user) => addHost(user.id, user.email));
+
+  // Add booking.user if not already included
+  if (booking?.user?.id && booking?.user?.email) {
+    addHost(booking.user.id, booking.user.email);
   }
 
-  return hosts;
+  // Filter hosts to only include those who are also attendees
+  const attendeeEmails = new Set(booking.attendees?.map((attendee) => attendee.email));
+  const filteredHosts = Array.from(hostMap.values()).filter(
+    (host) => attendeeEmails.has(host.email) || host.id === booking.user?.id
+  );
+
+  return filteredHosts;
 }
 
 export function sendWebhookPayload(
@@ -80,7 +91,7 @@ export function checkIfUserJoinedTheCall(userId: number, allParticipants: Partic
   );
 }
 
-const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
+export const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
 
 export const prepareNoShowTrigger = async (
   payload: string

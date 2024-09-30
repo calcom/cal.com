@@ -71,11 +71,11 @@ export default function EditOAuthClientWebhooks() {
                   },
                   {
                     value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_hosts_daily_no_show_trigger",
+                    label: "after_hosts_cal_video_no_show",
                   },
                   {
                     value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_guests_daily_no_show_trigger",
+                    label: "after_guests_cal_video_no_show",
                   },
                 ]}
                 onSubmit={async (data) => {
