@@ -118,7 +118,7 @@ export class BookingReferenceRepository {
       }
     } catch (error) {
       log.error(
-        `Error in updateAfterCredentialCreate() while updating bookingReferences for credential id:${credentialId}`,
+        `Error in reconnectWithNewCredential() while updating bookingReferences for credential id:${credentialId}`,
         safeStringify(error)
       );
     }
