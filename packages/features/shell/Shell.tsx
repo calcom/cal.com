@@ -52,7 +52,6 @@ import {
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
@@ -223,12 +222,10 @@ const Layout = (props: LayoutProps) => {
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
-  const { identify } = usePostHog();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
-    identify();
     const showIntercom = localStorage.getItem("showIntercom");
     if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
     boot();
@@ -390,8 +387,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-  const utils = trpc.useUtils();
-  const bookerUrl = useBookerUrl();
+  const postHog = usePostHog();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   useEffect(() => {
@@ -566,7 +562,10 @@ function UserDropdown({ small }: UserDropdownProps) {
                     type="button"
                     StartIcon="log-out"
                     aria-hidden="true"
-                    onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
+                    onClick={() => {
+                      postHog.reset();
+                      signOut({ callbackUrl: "/auth/logout" });
+                    }}>
                     {t("sign_out")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -809,7 +808,7 @@ const NavigationItem: React.FC<{
             <Icon
               name={item.isLoading ? "rotate-cw" : item.icon}
               className={classNames(
-                "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 md:ltr:mx-auto lg:ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit",
                 item.isLoading && "animate-spin"
               )}
               aria-hidden="true"
@@ -1163,11 +1162,11 @@ export function ShellMain(props: LayoutProps) {
               className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                className={classNames("w-full truncate md:block ltr:mr-4 rtl:ml-4", props.headerClassName)}>
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "font-cal text-emphasis inline max-w-28 truncate text-lg font-semibold tracking-wide sm:max-w-72 sm:text-xl md:block md:max-w-80 xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl",
                       props.hideHeadingOnMobile && "hidden"
                     )}>
@@ -1186,7 +1185,7 @@ export function ShellMain(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 md:z-auto ltr:right-4 md:ltr:right-0 rtl:left-4 md:rtl:left-0",
                     "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {isLocaleReady && props.CTA}
@@ -1344,7 +1343,7 @@ function ProfileDropdown() {
           onInteractOutside={() => {
             setMenuOpen(false);
           }}
-          className="min-w-56 hariom group overflow-hidden rounded-md">
+          className="group min-w-56 overflow-hidden rounded-md">
           <DropdownMenuItem className="p-3 uppercase">
             <span>Switch to</span>
           </DropdownMenuItem>
