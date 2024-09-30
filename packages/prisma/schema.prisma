@@ -1,4 +1,4 @@
-// This is your Prisma Schema file
+  // This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -110,6 +110,7 @@ model EventType {
   recurringEvent                          Json?
   disableGuests                           Boolean                   @default(false)
   hideCalendarNotes                       Boolean                   @default(false)
+  hideCalendarEventDetails                Boolean                   @default(false)
   /// @zod.min(0)
   minimumBookingNotice                    Int                       @default(120)
   beforeEventBuffer                       Int                       @default(0)

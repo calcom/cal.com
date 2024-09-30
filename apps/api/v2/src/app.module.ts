@@ -1,6 +1,7 @@
 import appConfig from "@/config/app";
 import { CustomThrottlerGuard } from "@/lib/throttler-guard";
 import { AppLoggerMiddleware } from "@/middleware/app.logger.middleware";
+import { RedirectsMiddleware } from "@/middleware/app.redirects.middleware";
 import { RewriterMiddleware } from "@/middleware/app.rewrites.middleware";
 import { JsonBodyMiddleware } from "@/middleware/body/json.body.middleware";
 import { RawBodyMiddleware } from "@/middleware/body/raw.body.middleware";
@@ -79,6 +80,8 @@ export class AppModule implements NestModule {
       .forRoutes("*")
       .apply(AppLoggerMiddleware)
       .forRoutes("*")
+      .apply(RedirectsMiddleware)
+      .forRoutes("/")
       .apply(RewriterMiddleware)
       .forRoutes("/");
   }

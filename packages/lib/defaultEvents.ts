@@ -85,6 +85,7 @@ const commons = {
   onlyShowFirstAvailableSlot: false,
   id: 0,
   hideCalendarNotes: false,
+  hideCalendarEventDetails: false,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,
