@@ -48,6 +48,9 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
     await user1NotMemberOfOrg1.apiLogin();
     await page.goto("/event-types");
 
+    await page.waitForSelector(`[data-testid="event-types"] [data-testid="preview-link-button"]`, {
+      timeout: 5000,
+    });
     const userEventLinksLocators = await page
       .locator(`[data-testid="event-types"] [data-testid="preview-link-button"]`)
       .all();
@@ -61,6 +64,9 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
 
     await page.goto(`/event-types?teamId=${team1MemberOfOrg1.id}`);
 
+    await page.waitForSelector(`[data-testid="event-types"] [data-testid="preview-link-button"]`, {
+      timeout: 5000,
+    });
     const teamEventLinksLocators = await page
       .locator(`[data-testid="event-types"] [data-testid="preview-link-button"]`)
       .all();
