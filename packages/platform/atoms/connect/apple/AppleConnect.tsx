@@ -88,7 +88,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 StartIcon="calendar-days"
                 color="primary"
                 disabled={isClickable ? false : isChecking}
-                tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip />}
+                tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance="apple" />}
                 tooltipSide={tooltipSide}
                 tooltipOffset={10}
                 className={cn("", !isDisabled && "cursor-pointer", className)}
