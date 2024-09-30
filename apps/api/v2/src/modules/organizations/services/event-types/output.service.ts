@@ -65,6 +65,7 @@ type Input = Pick<
   | "requiresConfirmationWillBlockSlot"
   | "eventName"
   | "useEventTypeDestinationCalendarEmail"
+  | "hideCalendarEventDetails"
 >;
 
 @Injectable()

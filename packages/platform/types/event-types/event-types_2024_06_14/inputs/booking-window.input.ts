@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import {
   IsEnum,
@@ -47,7 +47,7 @@ export class BusinessDaysWindow_2024_06_14 extends BookingWindowBase {
 
   @IsOptional()
   @IsBoolean()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: true,
     description:
       "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date.",
@@ -67,7 +67,7 @@ export class CalendarDaysWindow_2024_06_14 extends BookingWindowBase {
 
   @IsOptional()
   @IsBoolean()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: true,
     description:
       "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date.",
