@@ -3,18 +3,9 @@ import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
-import {
-  deleteScheduledEmailReminder,
-  scheduleEmailReminder,
-} from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
-import {
-  deleteScheduledSMSReminder,
-  scheduleSMSReminder,
-} from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import {
-  deleteScheduledWhatsappReminder,
-  scheduleWhatsappReminder,
-} from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
+import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
+import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
+import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import {
@@ -27,18 +18,13 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
-import {
-  BookingStatus,
-  MembershipRole,
-  WorkflowActions,
-  WorkflowMethods,
-  WorkflowTriggerEvents,
-} from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -424,41 +410,6 @@ export async function isAuthorizedToAddActiveOnIds(
   return true;
 }
 
-const reminderMethods: {
-  [x: string]: (id: number, referenceId: string | null) => void;
-} = {
-  [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id, referenceId),
-  [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
-  [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
-};
-
-export async function deleteAllWorkflowReminders(
-  remindersToDelete:
-    | {
-        id: number;
-        referenceId: string | null;
-        method: string;
-      }[]
-    | null
-) {
-  if (!remindersToDelete) return Promise.resolve();
-
-  const results = await Promise.allSettled(
-    remindersToDelete.map((reminder) => {
-      return reminderMethods[reminder.method](reminder.id, reminder.referenceId);
-    })
-  );
-
-  results.forEach((result, index) => {
-    if (result.status !== "fulfilled") {
-      log.error(
-        `An error occurred when deleting reminder ${remindersToDelete[index].id}, method: ${remindersToDelete[index].method}`,
-        result.reason
-      );
-    }
-  });
-}
-
 export async function deleteRemindersOfActiveOnIds({
   removedActiveOnIds,
   workflowSteps,
@@ -472,84 +423,8 @@ export async function deleteRemindersOfActiveOnIds({
 }) {
   const remindersToDelete = !isOrg
     ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps)
-    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, activeOnIds);
-  await deleteAllWorkflowReminders(remindersToDelete);
-}
-
-async function getRemindersFromRemovedTeams(
-  removedTeams: number[],
-  workflowSteps: WorkflowStep[],
-  activeOn?: number[]
-) {
-  const remindersToDeletePromise: Prisma.PrismaPromise<
-    {
-      id: number;
-      referenceId: string | null;
-      method: string;
-    }[]
-  >[] = [];
-
-  removedTeams.forEach((teamId) => {
-    const reminderToDelete = prisma.workflowReminder.findMany({
-      where: {
-        OR: [
-          {
-            //team event types + children managed event types
-            booking: {
-              eventType: {
-                OR: [{ teamId }, { teamId: null, parent: { teamId } }],
-              },
-            },
-          },
-          {
-            // user bookings
-            booking: {
-              user: {
-                AND: [
-                  // user is part of team that got removed
-                  {
-                    teams: {
-                      some: {
-                        teamId: teamId,
-                      },
-                    },
-                  },
-                  // and user is not part of any team were the workflow is still active on
-                  {
-                    teams: {
-                      none: {
-                        teamId: {
-                          in: activeOn,
-                        },
-                      },
-                    },
-                  },
-                ],
-              },
-              eventType: {
-                teamId: null,
-                parentId: null, // children managed event types are handled above with team event types
-              },
-            },
-          },
-        ],
-        workflowStepId: {
-          in: workflowSteps.map((step) => {
-            return step.id;
-          }),
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        method: true,
-      },
-    });
-
-    remindersToDeletePromise.push(reminderToDelete);
-  });
-  const remindersToDelete = (await Promise.all(remindersToDeletePromise)).flat();
-  return remindersToDelete;
+    : await WorkflowRepository.getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, activeOnIds);
+  await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
 }
 
 async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], workflowSteps: WorkflowStep[]) {
