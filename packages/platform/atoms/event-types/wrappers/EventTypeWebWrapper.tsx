@@ -68,9 +68,7 @@ const EventInstantTab = dynamic(() =>
 
 const EventRecurringTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/recurring/EventRecurringTab").then(
-    (mod) => mod.EventRecurringTab
-  )
+  import("./EventRecurringWebWrapper").then((mod) => mod)
 );
 
 const EventAppsTab = dynamic(() =>
