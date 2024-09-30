@@ -115,7 +115,6 @@ async function getEventTypeId({
       organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
     );
   }
-  if (!userId && !teamId) throw new TRPCError({ code: "NOT_FOUND" });
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventTypeSlug,
@@ -179,6 +178,22 @@ export async function getEventType(
       rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
+      team: {
+        select: {
+          id: true,
+          bookingLimits: true,
+        },
+      },
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+            },
+          },
+        },
+      },
       schedule: {
         select: {
           id: true,
