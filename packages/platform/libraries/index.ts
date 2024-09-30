@@ -83,7 +83,7 @@ export type { CityTimezones } from "@calcom/lib/cityTimezonesHandler";
 
 export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
-
+export type { TUpdateInputSchema as TUpdateEventTypeInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/update.schema";
 export { createNewUsersConnectToOrgIfExists, sendSignupToOrganizationEmail };
 
 export { getAllUserBookings };

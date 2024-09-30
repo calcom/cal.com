@@ -142,27 +142,6 @@ export class EventTypesService_2024_06_14 {
     });
   }
 
-  async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
-    const organizationId = this.usersService.getUserMainOrgId(user);
-
-    const isUserOrganizationAdmin = organizationId
-      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
-      : false;
-
-    const eventType = await this.eventTypesRepository.getUserEventTypeForAtom(
-      user,
-      isUserOrganizationAdmin,
-      eventTypeId
-    );
-
-    if (!eventType) {
-      return null;
-    }
-
-    this.checkUserOwnsEventType(user.id, eventType.eventType);
-    return eventType;
-  }
-
   async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
     const user = await this.usersRepository.findByUsername(username);
     if (!user) {
