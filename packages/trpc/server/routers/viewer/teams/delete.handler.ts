@@ -16,8 +16,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const teamRepository = new TeamRepository();
-  return await teamRepository.deleteById({ id: input.teamId });
+  return await TeamRepository.deleteById({ id: input.teamId });
 };
 
 export default deleteHandler;
