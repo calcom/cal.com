@@ -17,6 +17,7 @@ test.describe("Signup Main Page Test", async () => {
 
   test("Continue with email button must exist / work", async ({ page }) => {
     await page.goto("/signup");
+    await expect(page.locator("text=Create your account")).toBeVisible();
     const button = page.getByTestId("continue-with-email-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
@@ -35,6 +36,7 @@ test.describe("Signup Main Page Test", async () => {
 
   test("Continue with SAML button must exist / work", async ({ page }) => {
     await page.goto("/signup");
+    await expect(page.locator("text=Create your account")).toBeVisible();
     const button = page.getByTestId("continue-with-saml-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
