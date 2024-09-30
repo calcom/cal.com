@@ -6,6 +6,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -102,13 +104,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
 
   if (primaryCalendar.uid) {
-    const credential = await prisma.credential.create({
-      data: {
-        type: config.type,
-        key,
-        userId: req.session.user.id,
-        appId: config.slug,
-      },
+    const credential = await CredentialRepository.create({
+      type: config.type,
+      key,
+      userId: req.session.user.id,
+      appId: config.slug,
     });
     const selectedCalendarWhereUnique = {
       userId: req.session?.user.id,
@@ -118,11 +118,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      await prisma.selectedCalendar.create({
-        data: {
-          ...selectedCalendarWhereUnique,
-          credentialId: credential.id,
-        },
+      await SelectedCalendarRepository.create({
+        ...selectedCalendarWhereUnique,
+        credentialId: credential.id,
       });
     } catch (error) {
       let errorMessage = "something_went_wrong";

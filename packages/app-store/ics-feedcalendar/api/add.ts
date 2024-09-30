@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -43,9 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         throw new Error(`Listed cals and URLs mismatch: ${listedCals.length} vs. ${urls.length}`);
       }
 
-      await prisma.credential.create({
-        data,
-      });
+      await CredentialRepository.create(data);
     } catch (e) {
       logger.error("Could not add ICS feeds", e);
       return res.status(500).json({ message: "Could not add ICS feeds" });

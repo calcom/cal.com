@@ -1,5 +1,8 @@
+import type { SelectedCalendar } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
 
@@ -12,6 +15,10 @@ const bookingReferenceSelect = Prisma.validator<Prisma.BookingReferenceSelect>()
   credentialId: true,
   deleted: true,
   bookingId: true,
+});
+
+const log = logger.getSubLogger({
+  prefix: ["BookingReferenceRepository"],
 });
 
 export class BookingReferenceRepository {
@@ -48,5 +55,72 @@ export class BookingReferenceRepository {
         return { ...reference, bookingId };
       }),
     });
+  }
+
+  /**
+   * If previously connected credential is deleted, reconnect with new credential when it is created.
+   */
+  static async reconnectWithNewCredential({
+    credentialId,
+    credentialType,
+    userId,
+    selectedCalendars,
+  }: {
+    credentialId: number;
+    credentialType: string;
+    userId: number | null;
+    selectedCalendars: Omit<SelectedCalendar, "userId" | "integration" | "credentialId">[];
+  }) {
+    try {
+      const bookingReferences = await prisma.bookingReference.findMany({
+        where: {
+          type: credentialType,
+          booking: {
+            userId: userId,
+          },
+          credentialId: null,
+          ...(selectedCalendars.length === 0
+            ? { externalCalendarId: null } // for non-calendar apps
+            : {
+                externalCalendarId: {
+                  in: selectedCalendars.map((selectedCalendar) => selectedCalendar.externalId),
+                },
+              }),
+        },
+      });
+      if (bookingReferences.length > 0) {
+        if (credentialType === "google_calendar") {
+          // get 'google_meet_video' booking references for the same bookings
+          bookingReferences.push(
+            ...(await prisma.bookingReference.findMany({
+              where: {
+                type: "google_meet_video",
+                bookingId: {
+                  in: bookingReferences
+                    .filter((bookingReference) => !!bookingReference.bookingId)
+                    .map((bookingReference) => bookingReference.bookingId as number),
+                },
+                credentialId: null,
+              },
+            }))
+          );
+        }
+        await prisma.bookingReference.updateMany({
+          where: {
+            id: {
+              in: bookingReferences.map((bookingReference) => bookingReference.id),
+            },
+          },
+          data: {
+            credentialId,
+          },
+        });
+      }
+    } catch (error) {
+      log.error(
+        `Error in updateAfterCredentialCreate() while updating bookingReferences for credential id:${credentialId}`,
+        safeStringify(error)
+      );
+    }
   }
 }

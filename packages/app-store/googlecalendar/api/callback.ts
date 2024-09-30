@@ -8,6 +8,8 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -86,13 +88,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       await updateProfilePhoto(oAuth2Client, req.session.user.id);
     }
 
-    const credential = await prisma.credential.create({
-      data: {
-        type: "google_calendar",
-        key,
-        userId: req.session.user.id,
-        appId: "google-calendar",
-      },
+    const credential = await CredentialRepository.create({
+      type: "google_calendar",
+      key: key ? (key as Prisma.InputJsonValue) : Prisma.JsonNull,
+      userId: req.session.user.id,
+      appId: "google-calendar",
     });
 
     const selectedCalendarWhereUnique = {
@@ -104,11 +104,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      await prisma.selectedCalendar.create({
-        data: {
-          credentialId: credential.id,
-          ...selectedCalendarWhereUnique,
-        },
+      await SelectedCalendarRepository.create({
+        credentialId: credential.id,
+        ...selectedCalendarWhereUnique,
       });
     } catch (error) {
       let errorMessage = "something_went_wrong";
@@ -162,13 +160,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  await prisma.credential.create({
-    data: {
-      type: "google_video",
-      key: {},
-      userId: req.session.user.id,
-      appId: "google-meet",
-    },
+  await CredentialRepository.create({
+    type: "google_video",
+    key: {},
+    userId: req.session.user.id,
+    appId: "google-meet",
   });
 
   res.redirect(
