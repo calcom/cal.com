@@ -7,7 +7,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { test, todo } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
-import { IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { confirmReschedule, IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -438,7 +438,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
-      await page.click('[data-testid="confirm-reschedule-button"]');
+      await confirmReschedule(page);
 
       await expect(page.getByText("This meeting is scheduled")).toBeVisible();
     });

@@ -12,7 +12,7 @@ export class OrganizationsEventTypesRepository {
         id: eventTypeId,
         teamId,
       },
-      include: { users: true, schedule: true, hosts: true },
+      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
     });
   }
 
@@ -24,7 +24,7 @@ export class OrganizationsEventTypesRepository {
           slug: eventTypeSlug,
         },
       },
-      include: { users: true, schedule: true, hosts: true },
+      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
     });
   }
 
@@ -33,21 +33,21 @@ export class OrganizationsEventTypesRepository {
       where: {
         teamId,
       },
-      include: { users: true, schedule: true, hosts: true },
+      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
     });
   }
 
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: true, schedule: true, hosts: true },
+      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
     });
   }
 
   async getEventTypeChildren(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findMany({
       where: { parentId: eventTypeId },
-      include: { users: true, schedule: true, hosts: true },
+      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
     });
   }
 
@@ -60,7 +60,7 @@ export class OrganizationsEventTypesRepository {
       },
       skip,
       take,
-      include: { users: true, schedule: true, hosts: true },
+      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
     });
   }
 

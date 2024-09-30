@@ -1,6 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { apiLogin } from "playwright/fixtures/users";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -185,10 +184,7 @@ test.describe("Managed Event Types", () => {
     await saveAndWaitForResponse(memberPage);
 
     // We edit the managed event as original owner
-    const adminContext = await browser.newContext();
-    const adminPage = await adminContext.newPage();
-    const adminUserSnapshot = await adminUser.self();
-    await apiLogin({ ...adminUserSnapshot, password: adminUserSnapshot.username }, adminPage);
+    const [adminContext, adminPage] = await adminUser.apiLoginOnNewBrowser(browser);
     await adminPage.goto("/event-types");
     await adminPage.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await adminPage.waitForURL("event-types/**");
