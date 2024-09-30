@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nie masz uprawnień do wprowadzenia tej zmiany w rezerwacji",
   "hide_calendar_event_details": "Ukryj szczegóły wydarzeń w kalendarzu na udostępnionych kalendarzach",
   "description_hide_calendar_event_details": "Gdy kalendarz jest udostępniony, wydarzenia są widoczne dla czytelników, ale ich szczegóły są ukryte dla osób bez dostępu do edycji.",
+  "last_number_of_days": "ostatnie {{count}} dni",
+  "month_to_date": "od początku miesiąca",
+  "year_to_date": "od początku roku",
+  "custom_range": "zakres niestandardowy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

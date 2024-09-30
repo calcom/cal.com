@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import { IsBoolean, IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
 
@@ -8,7 +8,7 @@ export class BaseBookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per day (must be a multiple of 15)",
     example: 60,
   })
@@ -17,7 +17,7 @@ export class BaseBookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per week (must be a multiple of 15)",
     example: 120,
   })
@@ -26,7 +26,7 @@ export class BaseBookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per month (must be a multiple of 15)",
     example: 180,
   })
@@ -35,7 +35,7 @@ export class BaseBookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per year (must be a multiple of 15)",
     example: 240,
   })

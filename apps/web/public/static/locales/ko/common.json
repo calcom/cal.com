@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "이 예약을 변경할 권한이 없습니다",
   "hide_calendar_event_details": "공유 캘린더에서 이벤트 세부 정보 숨기기",
   "description_hide_calendar_event_details": "캘린더가 공유되면 이벤트는 읽기 권한이 있는 사람에게 보이지만, 쓰기 권한이 없는 사람에게는 세부 정보가 숨겨집니다.",
+  "last_number_of_days": "지난 {{count}}일",
+  "month_to_date": "이번 달 현재까지",
+  "year_to_date": "올해 현재까지",
+  "custom_range": "사용자 지정 범위",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
