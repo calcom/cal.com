@@ -1,3 +1,4 @@
+import { getEnv } from "@/env";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
@@ -16,9 +17,9 @@ import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 
-const DEFAULT_TTL = seconds(60);
-const DEFAULT_LIMIT = 100;
-const DEFAULT_BLOCK_DURATION = seconds(300);
+const DEFAULT_TTL = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", 60 * 1000));
+const DEFAULT_LIMIT = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 120));
+const DEFAULT_BLOCK_DURATION = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", 60 * 1000));
 
 const rateLimitSchema = z.object({
   limit: z.number(),
@@ -36,7 +37,6 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     options: ThrottlerModuleOptions,
     @Inject(ThrottlerStorageRedisService) protected readonly storageService: ThrottlerStorageRedisService,
     reflector: Reflector,
-    private readonly config: ConfigService,
     private readonly dbRead: PrismaReadService
   ) {
     super(options, storageService, reflector);
@@ -59,7 +59,6 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
   private async handleApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
     const rateLimits = await this.getRateLimitsForApiKeyTracker(tracker);
-    console.log("asap rateLimits", rateLimits);
 
     for (const rateLimit of rateLimits) {
       await this.incrementRateLimit(tracker, rateLimit, response);
@@ -153,8 +152,9 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const authorizationHeader = request.get("Authorization")?.replace("Bearer ", "");
 
     if (authorizationHeader) {
-      return isApiKey(authorizationHeader, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
-        ? `api_key_${hashAPIKey(stripApiKey(authorizationHeader))}`
+      const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
+      return isApiKey(authorizationHeader, apiKeyPrefix)
+        ? `api_key_${hashAPIKey(stripApiKey(authorizationHeader, apiKeyPrefix))}`
         : `access_token_${authorizationHeader}`;
     }
 
