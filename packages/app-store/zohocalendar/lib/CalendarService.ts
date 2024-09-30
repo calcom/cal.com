@@ -1,5 +1,6 @@
 import { stringify } from "querystring";
 import { z } from "zod";
+import moment from "moment";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
@@ -266,8 +267,8 @@ export default class ZohoCalendarService implements Calendar {
         .filter((freebusy: FreeBusy) => freebusy.fbtype === "busy")
         .map((freebusy: FreeBusy) => ({
           // using dayjs utc plugin because by default, dayjs parses and displays in local time, which causes a mismatch
-          start: dayjs.utc(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
-          end: dayjs.utc(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
+          start: moment.utc(freebusy.startTime, "YYYYMMDDTHHmmssZ").toISOString(),
+          end: moment.utc(freebusy.endTime, "YYYYMMDDTHHmmssZ").toISOString(),
         })) || []
     );
   }
@@ -280,6 +281,7 @@ export default class ZohoCalendarService implements Calendar {
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
       .map((e) => e.externalId);
+
     if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
       // Only calendars of other integrations selected
       return Promise.resolve([]);
@@ -287,6 +289,7 @@ export default class ZohoCalendarService implements Calendar {
 
     try {
       let queryIds = selectedCalendarIds;
+      console.log('ZohoCalendarService.getAvailability', queryIds);
 
       if (queryIds.length === 0) {
         queryIds = (await this.listCalendars()).map((e) => e.externalId) || [];
