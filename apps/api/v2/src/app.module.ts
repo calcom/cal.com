@@ -57,6 +57,13 @@ import { AppController } from "./app.controller";
   controllers: [AppController],
   providers: [
     {
+      provide: ThrottlerStorageRedisService,
+      useFactory: (redisService: RedisService) => {
+        return new ThrottlerStorageRedisService(redisService.redis);
+      },
+      inject: [RedisService],
+    },
+    {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
     },
