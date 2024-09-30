@@ -3,7 +3,6 @@ import { useState } from "react";
 import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
-import { OFFICE_365_CALENDAR, GOOGLE_CALENDAR } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { ButtonProps } from "@calcom/ui";
 import {
@@ -22,8 +21,8 @@ import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
 import { useDeleteCalendarCredentials } from "../../hooks/calendars/useDeleteCalendarCredentials";
 import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelectedCalendar";
-import { useConnect } from "../../hooks/connect/useConnect";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
+import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { Switch } from "../../src/components/ui/switch";
 import { useToast } from "../../src/components/ui/use-toast";
@@ -278,9 +277,6 @@ const PlatformAdditionalCalendarSelector = ({
   const { t } = useLocale();
   const { refetch } = useConnectedCalendars({});
 
-  const { connect: connectOutlookCalendar } = useConnect(OFFICE_365_CALENDAR, calendarRedirectUrls?.outlook);
-  const { connect: connectGoogleCalendar } = useConnect(GOOGLE_CALENDAR, calendarRedirectUrls?.google);
-
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
@@ -291,30 +287,35 @@ const PlatformAdditionalCalendarSelector = ({
       <DropdownMenuContent>
         <div>
           <div>
-            <Button
-              onClick={() => {
-                connectGoogleCalendar();
-              }}
-              className="border-none"
-              color="secondary"
-              StartIcon="calendar-days">
-              {t("add_calendar_label", { calendar: "Google" })}
-            </Button>
+            <Connect.GoogleCalendar
+              isMultiCalendar={true}
+              isClickable={true}
+              tooltip={<></>}
+              redir={calendarRedirectUrls?.google}
+              label={t("add_calendar_label", { calendar: "Google" })}
+              loadingLabel={t("add_calendar_label", { calendar: "Google" })}
+              alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+            />
           </div>
           <div>
-            <Button
-              onClick={() => {
-                connectOutlookCalendar();
-              }}
-              className="border-none"
-              color="secondary"
-              StartIcon="calendar-days">
-              {t("add_calendar_label", { calendar: "Outlook" })}
-            </Button>
+            <Connect.OutlookCalendar
+              isMultiCalendar={true}
+              isClickable={true}
+              tooltip={<></>}
+              redir={calendarRedirectUrls?.outlook}
+              label={t("add_calendar_label", { calendar: "Outlook" })}
+              loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
+              alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+            />
           </div>
           <div>
             <AppleConnect
               onSuccess={refetch}
+              isClickable={true}
+              isMultiCalendar={true}
+              tooltip={<></>}
               label={t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
