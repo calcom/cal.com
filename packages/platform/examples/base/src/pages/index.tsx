@@ -25,17 +25,21 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
               className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
             />
             <Connect.OutlookCalendar
+              isMultiCalendar={true}
               redir="http://localhost:4321/calendars"
               className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
             />
-            <Connect.AppleCalendar className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
+            <Connect.AppleCalendar
+              isMultiCalendar={true}
+              className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
+            />
           </div>
         </div>
         <div className="hidden lg:block">
           <img
             width="76%"
             height="76%"
-            className=" rounded-lg shadow-2xl"
+            className="rounded-lg shadow-2xl"
             alt="cover image"
             src="https://images.unsplash.com/photo-1506784365847-bbad939e9335?q=80&w=2668&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           />
