@@ -21,6 +21,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     WebhooksModule,
     DestinationCalendarsModule,
     AtomsModule,
+    StripeModule,
   ],
 })
 export class EndpointsModule implements NestModule {
