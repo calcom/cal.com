@@ -193,7 +193,9 @@ export const getPlatformManageLink = (
   if (calEvent.platformBookingUrl) {
     res += `Check Here: ${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${calEvent.type}&username=${
       calEvent.organizer.username
-    }&changes=true${calEvent.platformCancelUrl || shouldDisplayReschedule ? ` ${t("or_lowercase")} ` : ""}`;
+    }${calEvent?.team ? `&teamId=${calEvent.team.id}` : ""}&changes=true${
+      calEvent.platformCancelUrl || shouldDisplayReschedule ? ` ${t("or_lowercase")} ` : ""
+    }`;
   }
   if (calEvent.platformCancelUrl) {
     res += `${t("cancel")}: ${getCancelLink(calEvent)}`;
@@ -235,6 +237,7 @@ export const getPlatformCancelLink = (
     platformCancelLink.searchParams.append("cancel", "true");
     platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
     if (seatUid) platformCancelLink.searchParams.append("seatReferenceUid", seatUid);
+    if (calEvent?.team) platformCancelLink.searchParams.append("teamId", calEvent.team.id.toString());
     return platformCancelLink.toString();
   }
   return "";
@@ -276,6 +279,7 @@ export const getPlatformRescheduleLink = (
     calEvent.organizer.username &&
       platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
     platformRescheduleLink.searchParams.append("reschedule", "true");
+    if (calEvent?.team) platformRescheduleLink.searchParams.append("teamId", calEvent.team.id.toString());
     return platformRescheduleLink.toString();
   }
   return "";
