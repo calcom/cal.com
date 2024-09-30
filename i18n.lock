@@ -2616,4 +2616,8 @@ checksums:
     you_are_unauthorized_to_make_this_change_to_the_booking: c770486d5b4b98a407ff485cbe60e563
     hide_calendar_event_details: 18686c17d852ffc8acf5549587897df5
     description_hide_calendar_event_details: b7c5880a3d927f4f9255d2afa6e330d1
+    last_number_of_days: 4a42f1909236573b9b8c347b4bdbf0b4
+    month_to_date: 7f7e4653c67cdaab178faa332007b1a0
+    year_to_date: 1de1bfcb57fc841987305d851383042a
+    custom_range: c489facbacd8b2b232c9ea6aae568ae3
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
