@@ -17,7 +17,6 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -781,6 +780,63 @@ export const getEventTypeWorkflows = async (
   userId: number,
   eventTypeId: number
 ): Promise<z.infer<typeof ZWorkflows>> => {
-  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
-  return rawEventType?.workflows;
+  const workflows = await prisma.workflow.findMany({
+    where: {
+      OR: [
+        {
+          userId: userId,
+        },
+        {
+          team: {
+            members: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+        },
+      ],
+      activeOn: {
+        some: {
+          eventTypeId: eventTypeId,
+        },
+      },
+    },
+    select: {
+      name: true,
+      id: true,
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      userId: true,
+      teamId: true,
+      team: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          members: true,
+        },
+      },
+      activeOn: {
+        select: {
+          eventType: {
+            select: {
+              id: true,
+              title: true,
+              parentId: true,
+              _count: {
+                select: {
+                  children: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      steps: true,
+    },
+  });
+
+  return workflows.map((workflow) => ({ workflow }));
 };
