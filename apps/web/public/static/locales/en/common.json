@@ -2618,5 +2618,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "You are unauthorized to make this change to the booking",
   "hide_calendar_event_details": "Hide calendar event details on shared calendars",
   "description_hide_calendar_event_details": "When a calendar is shared, events are visible to readers but their details are hidden from those without write access.",
+  "last_number_of_days": "last {{count}} days",
+  "month_to_date": "month to date",
+  "year_to_date": "year to date",
+  "custom_range": "custom range",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

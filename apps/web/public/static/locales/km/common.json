@@ -2614,5 +2614,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "អ្នកមិនមានសិទ្ធិធ្វើការផ្លាស់ប្តូរនេះលើការកក់ទេ",
   "hide_calendar_event_details": "លាក់ព័ត៌មានលម្អិតនៃព្រឹត្តិការណ៍ប្រចាំប្រតិទិននៅលើប្រតិទិនដែលបានចែករំលែក",
   "description_hide_calendar_event_details": "នៅពេលដែលប្រតិទិនត្រូវបានចែករំលែក ព្រឹត្តិការណ៍នឹងមើលឃើញបានសម្រាប់អ្នកអាន ប៉ុន្តែព័ត៌មានលម្អិតនឹងត្រូវបានលាក់ពីអ្នកដែលមិនមានសិទ្ធិចូលសរសេរ។",
+  "last_number_of_days": "ចុងក្រោយ {{count}} ថ្ងៃ",
+  "month_to_date": "ខែនេះ",
+  "year_to_date": "ឆ្នាំនេះ",
+  "custom_range": "ជួរដែលកំណត់ដោយខ្លួនឯង",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
