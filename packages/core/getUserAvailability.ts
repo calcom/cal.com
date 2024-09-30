@@ -257,6 +257,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     currentBookings: initialData?.currentBookings,
   });
 
+  console.log('Busy times', busyTimes)
+
   const detailedBusyTimes: EventBusyDetails[] = [
     ...busyTimes.map((a) => ({
       ...a,

@@ -253,11 +253,16 @@ export default class ZohoCalendarService implements Calendar {
       uemail: userEmail,
     });
 
+    console.log('<--- called getBusyData --->')
+    console.log(query);
+
     const response = await this.fetcher(`/calendars/freebusy?${query}`, {
       method: "GET",
     });
 
     const data = await this.handleData(response, this.log);
+
+    console.log(response, data);
 
     if (data.fb_not_enabled || data.NODATA) return [];
 
@@ -277,9 +282,11 @@ export default class ZohoCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    console.log('<----- getAvailability has been called ----->');
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
       .map((e) => e.externalId);
+    console.dir(selectedCalendarIds, { depth: null })
     if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
       // Only calendars of other integrations selected
       return Promise.resolve([]);
@@ -287,8 +294,10 @@ export default class ZohoCalendarService implements Calendar {
 
     try {
       let queryIds = selectedCalendarIds;
+      console.log('c.getAvailability', queryIds);
 
       if (queryIds.length === 0) {
+        console.log('<--- query Ids is empty ----->')
         queryIds = (await this.listCalendars()).map((e) => e.externalId) || [];
         if (queryIds.length === 0) {
           return Promise.resolve([]);
@@ -303,11 +312,14 @@ export default class ZohoCalendarService implements Calendar {
       const diff = originalEndDate.diff(originalStartDate, "days");
 
       if (diff <= 30) {
+        console.log(originalStartDate.format("YYYYMMDD[T]HHmmss[Z]"));
+        console.log(originalEndDate.format("YYYYMMDD[T]HHmmss[Z]"));
         const busyData = await this.getBusyData(
           originalStartDate.format("YYYYMMDD[T]HHmmss[Z]"),
           originalEndDate.format("YYYYMMDD[T]HHmmss[Z]"),
           userInfo.Email
         );
+        console.log(busyData);
         return busyData;
       } else {
         // Zoho only supports 31 days of freebusy data
@@ -337,6 +349,7 @@ export default class ZohoCalendarService implements Calendar {
       }
     } catch (error) {
       this.log.error(error);
+      console.log(error);
       return [];
     }
   }
@@ -370,6 +383,16 @@ export default class ZohoCalendarService implements Calendar {
       // No primary calendar found, get primary calendar directly
       const respPrimary = await this.fetcher(`/calendars?category=own`);
       const dataPrimary = (await this.handleData(respPrimary, this.log)) as ZohoCalendarListResp;
+      console.log(dataPrimary.calendars.map((cal) => {
+        const calendar: IntegrationCalendar = {
+          externalId: cal.uid ?? "No Id",
+          integration: this.integrationName,
+          name: cal.name || "No calendar name",
+          primary: cal.isdefault,
+          email: cal.uid ?? "",
+        };
+        return calendar;
+      }));
       return dataPrimary.calendars.map((cal) => {
         const calendar: IntegrationCalendar = {
           externalId: cal.uid ?? "No Id",
@@ -382,6 +405,7 @@ export default class ZohoCalendarService implements Calendar {
       });
     } catch (err) {
       this.log.error("There was an error contacting zoho calendar service: ", err);
+      console.log(err)
       throw err;
     }
   }
