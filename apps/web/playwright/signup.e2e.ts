@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
 import { randomBytes } from "crypto";
 
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
@@ -10,14 +10,16 @@ import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
 
+const preventFlakyTest = async (page: Page) => {
+  await expect(page.locator("text=Create your account")).toBeVisible();
+};
 test.describe("Signup Main Page Test", async () => {
-  test.beforeEach(async ({ features }) => {
-    features.reset();
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/signup");
+    await preventFlakyTest(page);
   });
 
   test("Continue with email button must exist / work", async ({ page }) => {
-    await page.goto("/signup");
-    await expect(page.locator("text=Create your account")).toBeVisible();
     const button = page.getByTestId("continue-with-email-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
@@ -26,7 +28,6 @@ test.describe("Signup Main Page Test", async () => {
   });
 
   test("Continue with google button must exist / work", async ({ page }) => {
-    await page.goto("/signup");
     const button = page.getByTestId("continue-with-google-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
@@ -35,8 +36,6 @@ test.describe("Signup Main Page Test", async () => {
   });
 
   test("Continue with SAML button must exist / work", async ({ page }) => {
-    await page.goto("/signup");
-    await expect(page.locator("text=Create your account")).toBeVisible();
     const button = page.getByTestId("continue-with-saml-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
@@ -60,7 +59,7 @@ test.describe("Email Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      await expect(page.locator("text=Create your account")).toBeVisible();
+      await preventFlakyTest(page);
       const continueWithEmailButton = page.getByTestId("continue-with-email-button");
       await expect(continueWithEmailButton).toBeVisible();
       await continueWithEmailButton.click();
@@ -91,7 +90,7 @@ test.describe("Email Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
-      await expect(page.locator("text=Create your account")).toBeVisible();
+      await preventFlakyTest(page);
       const continueWithEmailButton = page.getByTestId("continue-with-email-button");
       await expect(continueWithEmailButton).toBeVisible();
       await continueWithEmailButton.click();
@@ -126,7 +125,7 @@ test.describe("Email Signup Flow Test", async () => {
 
     // Signup with premium username name
     await page.goto("/signup");
-    await expect(page.locator("text=Create your account")).toBeVisible();
+    await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
     await continueWithEmailButton.click();
@@ -159,7 +158,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
-    await expect(page.locator("text=Create your account")).toBeVisible();
+    await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
     await continueWithEmailButton.click();
@@ -184,7 +183,7 @@ test.describe("Email Signup Flow Test", async () => {
   test("Signup fields prefilled with query params", async ({ page, users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
-    await expect(page.locator("text=Create your account")).toBeVisible();
+    await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
     await continueWithEmailButton.click();
@@ -238,7 +237,7 @@ test.describe("Email Signup Flow Test", async () => {
 
     const signupUrlWithToken = `/signup?token=${token}`;
     await page.goto(signupUrlWithToken);
-    await expect(page.locator("text=Create your account")).toBeVisible();
+    await preventFlakyTest(page);
     await expect(page.getByTestId("signup-submit-button")).toBeVisible();
 
     const usernameField = page.locator('input[name="username"]');
@@ -270,7 +269,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
-    await expect(page.locator("text=Create your account")).toBeVisible();
+    await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
     await expect(continueWithEmailButton).toBeVisible();
     await continueWithEmailButton.click();
@@ -359,7 +358,7 @@ test.describe("Email Signup Flow Test", async () => {
 
   test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
     await page.goto("/signup");
-    await expect(page.locator("text=Create your account")).toBeVisible();
+    await preventFlakyTest(page);
 
     // Navigate to email form
     await page.getByTestId("continue-with-email-button").click();

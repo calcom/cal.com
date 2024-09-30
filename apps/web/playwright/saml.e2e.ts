@@ -26,7 +26,7 @@ test.describe("SAML tests", () => {
   test.describe("SAML Signup Flow Test", async () => {
     test.beforeEach(async ({ page }) => {
       await page.goto("/signup");
-      await expect(page.locator("text=Create your account")).toBeVisible();
+      await expect(page.locator("text=Create your account")).toBeVisible(); // this prevents flaky test
       await page.getByTestId("continue-with-saml-button").click();
       await page.waitForSelector('[data-testid="saml-submit-button"]');
     });
