@@ -20,6 +20,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
