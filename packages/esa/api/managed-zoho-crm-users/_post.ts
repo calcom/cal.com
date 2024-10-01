@@ -81,7 +81,7 @@ async function postHandler(req: NextApiRequest) {
   const password = "some-default-password";
   const hashedPassword = await hashPassword(password);
 
-  console.log("4 ==> user create", email);
+  console.log("4 ==> user create ==>", email);
   const user = await prisma.user.create({
     data: {
       name: body.name,
