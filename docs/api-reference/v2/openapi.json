@@ -4630,6 +4630,89 @@
         "tags": ["Slots"]
       }
     },
+    "/v2/stripe/connect": {
+      "get": {
+        "operationId": "StripeController_redirect",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stripe"]
+      }
+    },
+    "/v2/stripe/save": {
+      "get": {
+        "operationId": "StripeController_save",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stripe"]
+      }
+    },
+    "/v2/stripe/check": {
+      "get": {
+        "operationId": "StripeController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stripe"]
+      }
+    },
     "/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",
@@ -8677,6 +8760,9 @@
           "useDestinationCalendarEmail": {
             "type": "boolean"
           },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
+          },
           "teamId": {
             "type": "number",
             "nullable": true
@@ -9678,6 +9764,48 @@
             "type": "string"
           }
         }
+      },
+      "StripConnectOutputDto": {
+        "type": "object",
+        "properties": {
+          "authUrl": {
+            "type": "string"
+          }
+        },
+        "required": ["authUrl"]
+      },
+      "StripConnectOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/StripConnectOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["url"]
+      },
+      "StripCredentialsCheckOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          }
+        },
+        "required": ["status"]
       },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
