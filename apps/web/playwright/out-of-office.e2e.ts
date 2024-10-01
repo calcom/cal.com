@@ -81,8 +81,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("team_username_select").click();
 
-    await page.locator("#react-select-3-input").fill("user");
-    await page.locator("#react-select-3-input").press("Enter");
+    await page.locator("#react-select-3-option-0").click();
 
     // send request
     await saveAndWaitForResponse(page);
@@ -160,8 +159,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("team_username_select").click();
 
-    await page.locator("#react-select-3-input").fill("userThree");
-    await page.locator("#react-select-3-input").press("Enter");
+    await page.locator("#react-select-3-option-1").click();
 
     // send request
     await saveAndWaitForResponse(page);

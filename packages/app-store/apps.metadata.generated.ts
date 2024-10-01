@@ -9,6 +9,7 @@ import around_config_json from "./around/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
+import bolna_config_json from "./bolna/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import campsite_config_json from "./campsite/config.json";
@@ -57,6 +58,7 @@ import plausible_config_json from "./plausible/config.json";
 import posthog_config_json from "./posthog/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
+import retell_ai_config_json from "./retell-ai/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
@@ -103,6 +105,7 @@ export const appStoreMetadata = {
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
+  bolna: bolna_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   campsite: campsite_config_json,
@@ -151,6 +154,7 @@ export const appStoreMetadata = {
   posthog: posthog_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
+  "retell-ai": retell_ai_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,
   "routing-forms": routing_forms_config_json,

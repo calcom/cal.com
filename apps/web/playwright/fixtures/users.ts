@@ -1,4 +1,4 @@
-import type { Page, WorkerInfo } from "@playwright/test";
+import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
@@ -292,6 +292,12 @@ export const createUsersFixture = (
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
         { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
         { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+        {
+          title: "Multiple duration",
+          slug: "multiple-duration",
+          length: 30,
+          metadata: { multipleDuration: [30, 60, 90] },
+        },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
@@ -372,7 +378,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://google.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -732,6 +738,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     self,
     apiLogin: async (password?: string) =>
       apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    /** Don't forget to close context at the end */
+    apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
+      const newContext = await browser.newContext();
+      const newPage = await newContext.newPage();
+      await apiLogin({ ...(await self()), password: password || user.username }, newPage);
+      // Don't forget to: newContext.close();
+      return [newContext, newPage] as const;
+    },
     /**
      * @deprecated use apiLogin instead
      */
@@ -1014,10 +1028,11 @@ export async function login(
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
-  await signInLocator.click();
 
   // waiting for specific login request to resolve
-  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  const responsePromise = page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  await signInLocator.click();
+  await responsePromise;
 }
 
 export async function apiLogin(
