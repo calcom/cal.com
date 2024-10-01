@@ -15,6 +15,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -276,7 +277,18 @@ async function handler(req: CustomRequest) {
   const teamMembers = await Promise.all(teamMembersPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
+  const ownerProfile = await prisma.profile.findFirst({
+    where: {
+      userId: bookingToDelete.userId,
+    },
+  });
+
+  const bookerUrl = await getBookerBaseUrl(
+    bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
+  );
+
   const evt: CalendarEvent = {
+    bookerUrl,
     title: bookingToDelete?.title,
     length: bookingToDelete?.eventType?.length,
     type: bookingToDelete?.eventType?.slug as string,
@@ -371,6 +383,7 @@ async function handler(req: CustomRequest) {
     evt: {
       ...evt,
       metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
+      bookerUrl,
       ...{
         eventType: {
           slug: bookingToDelete.eventType?.slug,
