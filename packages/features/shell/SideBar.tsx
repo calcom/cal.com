@@ -3,8 +3,8 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
-import { type NavigationItemType } from "shell/navigation/NavigationItem";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -13,10 +13,23 @@ import { IS_CALCOM, IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar, Button, ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo } from "@calcom/ui";
+import { useNotifications, ButtonState } from "@calcom/lib/hooks/useNotifications";
+import {
+  Avatar,
+  Button,
+  ButtonOrLink,
+  Credits,
+  Icon,
+  SkeletonText,
+  Tooltip,
+  Logo,
+  showToast,
+} from "@calcom/ui";
 
-import { KBarTrigger } from "../kbar/kbar";
+import { KBarTrigger } from "../kbar/Kbar";
+import type { LayoutProps } from "./Shell";
 import { Navigation } from "./navigation/Navigation";
+import { type NavigationItemType } from "./navigation/NavigationItem";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 

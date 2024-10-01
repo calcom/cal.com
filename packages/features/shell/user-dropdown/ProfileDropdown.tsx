@@ -1,6 +1,8 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
+import { classNames } from "@calcom/lib";
+import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { trpc } from "@calcom/trpc";
 import {

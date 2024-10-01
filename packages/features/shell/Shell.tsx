@@ -21,7 +21,6 @@ import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
 import { MobileNavigationContainer } from "./navigation/Navigation";
-import { MobileNavigationMoreItem } from "./navigation/NavigationItem";
 import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
@@ -250,15 +249,3 @@ function MainContainer({
     </main>
   );
 }
-
-export const MobileNavigationMoreItems = () => {
-  const { mobileNavigationMoreItems } = getDesktopNavigationItems();
-
-  return (
-    <ul className="border-subtle mt-2 rounded-md border">
-      {mobileNavigationMoreItems.map((item) => (
-        <MobileNavigationMoreItem key={item.name} item={item} />
-      ))}
-    </ul>
-  );
-};

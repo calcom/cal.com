@@ -1,3 +1,4 @@
+import type { User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

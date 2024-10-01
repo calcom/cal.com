@@ -7,7 +7,7 @@ import { classNames } from "@calcom/lib";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
-import { NavigationItem, MobileNavigationItem } from "./NavigationItem";
+import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
 export const MORE_SEPARATOR_NAME = "more";
 
@@ -121,7 +121,7 @@ const platformNavigation: NavigationItemType[] = [
   },
 ];
 
-const getDesktopNavigationItems = (isPlatformNavigation = false) => {
+export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
   const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
   const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
 
@@ -189,5 +189,17 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
       {/* add padding to content for mobile navigation*/}
       <div className="block pt-12 md:hidden" />
     </>
+  );
+};
+
+export const MobileNavigationMoreItems = () => {
+  const { mobileNavigationMoreItems } = getDesktopNavigationItems();
+
+  return (
+    <ul className="border-subtle mt-2 rounded-md border">
+      {mobileNavigationMoreItems.map((item) => (
+        <MobileNavigationMoreItem key={item.name} item={item} />
+      ))}
+    </ul>
   );
 };
