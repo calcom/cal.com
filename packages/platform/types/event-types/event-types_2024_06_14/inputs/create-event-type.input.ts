@@ -34,6 +34,10 @@ export const CREATE_EVENT_DESCRIPTION_EXAMPLE =
 export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
   @Min(1)
+  userId!: number;
+
+  @IsInt()
+  @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   lengthInMinutes!: number;
 
