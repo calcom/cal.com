@@ -140,6 +140,12 @@ export const scheduleSMS = async (
 };
 
 export const cancelSMS = async (referenceId: string) => {
+  if (testMode) {
+    console.log(
+      "Skipped canceling SMS because process.env.NEXT_PUBLIC_IS_E2E or process.env.INTEGRATION_TEST_MODE is set"
+    );
+    return;
+  }
   const twilio = createTwilioClient();
   await twilio.messages(referenceId).update({ status: "canceled" });
 };

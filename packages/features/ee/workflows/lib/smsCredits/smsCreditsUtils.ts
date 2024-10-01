@@ -188,7 +188,7 @@ export async function addCredits(
       });
 
       // no more credits available for team, cancel all already scheduled sms and schedule emails instead
-      cancelScheduledSmsAndScheduleEmails({ teamId });
+      await cancelScheduledSmsAndScheduleEmails({ teamId });
 
       return { isFree: true }; // still allow sending last sms
     }
@@ -317,7 +317,7 @@ export async function cancelScheduledSmsAndScheduleEmails({
         if (reminder.referenceId) {
           await twilio.cancelSMS(reminder.referenceId);
         }
-        if (reminder.workflowStep?.action && isAttendeeAction(reminder.workflowStep?.action))
+        if (reminder.workflowStep?.action && isAttendeeAction(reminder.workflowStep?.action)) {
           // Update attendee reminders to unscheduled email reminder
           await prisma.workflowReminder.update({
             where: { id: reminder.id },
@@ -327,6 +327,7 @@ export async function cancelScheduledSmsAndScheduleEmails({
               scheduled: false,
             },
           });
+        }
       })
     );
   }

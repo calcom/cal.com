@@ -5,7 +5,7 @@ import { vi, describe, beforeAll, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { resetTestEmails } from "@calcom/lib/testEmails";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { addCredits, smsCreditCountSelect } from "../smsCredits/smsCreditsUtils";
@@ -376,7 +376,7 @@ describe("addCredits", () => {
     });
   });
 
-  describe("SMS limit reached emails", () => {
+  describe("SMS limit reached", () => {
     test("should send 'limit reached' email when the credit limit is reached", async ({ emails }) => {
       prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
       prismaMock.smsCreditCount.update.mockResolvedValue({
@@ -451,9 +451,82 @@ describe("addCredits", () => {
       expect(areEmailsSentToOwner).toBe(true);
       expect(areEmailsSentToMember).toBe(false);
     });
+
+    test("should cancel scheduled sms and schedule emails when sms limit is reached", async () => {
+      prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
+      prismaMock.smsCreditCount.update.mockResolvedValue({
+        id: 1,
+        credits: 752,
+        limitReached: false,
+        warningSent: true,
+        month: dayjs().startOf("month").toDate(),
+        userId: null,
+        teamId: 1,
+        overageCharges: 0,
+        team: {
+          smsOverageLimit: 0,
+          name: "Test Team",
+          members: [
+            {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+              user: {
+                email: "admin@example.com",
+                name: "Admin name",
+              },
+            },
+            {
+              accepted: true,
+              role: MembershipRole.OWNER,
+              user: {
+                email: "owner@example.com",
+                name: "Owner name",
+              },
+            },
+            {
+              accepted: true,
+              role: MembershipRole.MEMBER,
+              user: {
+                email: "member@example.com",
+                name: "Member name",
+              },
+            },
+          ],
+        },
+      } as SmsCreditCountWithTeam);
+
+      prismaMock.workflowReminder.findMany.mockResolvedValue([
+        {
+          workflowStep: {
+            action: WorkflowActions.SMS_ATTENDEE,
+          },
+          id: 1,
+          referenceId: "referenceId",
+        },
+        {
+          workflowStep: {
+            action: WorkflowActions.SMS_NUMBER,
+          },
+          id: 2,
+          referenceId: "referenceId",
+        },
+      ]);
+
+      const result = await addCredits("+15555551234", 1, null, mockGetCreditsForNumber);
+
+      expect(result).toEqual({ isFree: true }); //last SMS is still sent for free
+
+      // SMS_NUMBER is canceled but can't be sent as email as we don't have the email
+      expect(prismaMock.workflowReminder.update).toHaveBeenCalledTimes(1);
+
+      expect(prismaMock.workflowReminder.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          method: WorkflowMethods.EMAIL,
+          referenceId: null,
+          scheduled: false,
+        },
+      });
+    });
   });
 });
-
-// describe("getPayingTeamId", () => {});
-
-// describe("cancelScheduledSmsAndScheduleEmails", () => {});
