@@ -29,13 +29,11 @@ import {
 } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
-import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
-import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -58,7 +56,6 @@ import {
   showToast,
   SkeletonText,
   Tooltip,
-  useCalcomTheme,
   type IconName,
 } from "@calcom/ui";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
@@ -68,6 +65,7 @@ import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
+import { useAppTheme } from "./useAppTheme";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -149,16 +147,6 @@ export type LayoutProps = {
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
   isPlatformUser?: boolean;
-};
-
-const useAppTheme = () => {
-  const { data: user } = useMeQuery();
-  const brandTheme = getBrandColours({
-    lightVal: user?.brandColor,
-    darkVal: user?.darkBrandColor,
-  });
-  useCalcomTheme(brandTheme);
-  useTheme(user?.appTheme);
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
