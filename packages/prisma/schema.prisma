@@ -110,6 +110,7 @@ model EventType {
   recurringEvent                          Json?
   disableGuests                           Boolean                   @default(false)
   hideCalendarNotes                       Boolean                   @default(false)
+  hideCalendarEventDetails                Boolean                   @default(false)
   /// @zod.min(0)
   minimumBookingNotice                    Int                       @default(120)
   beforeEventBuffer                       Int                       @default(0)
@@ -183,6 +184,7 @@ model Credential {
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
+  references           BookingReference[]
 
   @@index([userId])
   @@index([appId])
@@ -439,6 +441,9 @@ model Team {
   smsLockReviewedByAdmin Boolean                 @default(false)
   features               TeamFeatures[]
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -530,10 +535,11 @@ model BookingReference {
   bookingId                  Int?
   externalCalendarId         String?
   deleted                    Boolean?
-  credentialId               Int?
+
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId Int?
 
   @@index([bookingId])
-  @@index([credentialId])
   @@index([type])
   @@index([uid])
 }
@@ -612,6 +618,7 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  oneTimePassword       String?                    @unique @default(uuid())
   /// @zod.email()
   cancelledBy           String?
   /// @zod.email()

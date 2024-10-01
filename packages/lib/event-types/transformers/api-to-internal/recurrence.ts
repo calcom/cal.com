@@ -7,7 +7,8 @@ import {
 export function transformRecurrenceApiToInternal(
   recurrence: CreateEventTypeInput_2024_06_14["recurrence"]
 ): TransformRecurringEventSchema_2024_06_14 | undefined {
-  if (!recurrence) return undefined;
+  if (!recurrence || recurrence.disabled) return undefined;
+
   return {
     interval: recurrence.interval,
     count: recurrence.occurrences,
