@@ -903,7 +903,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 )}
 
-                <div className="mb-2 flex items-center pb-[1.5px]">
+                <div className="mb-2 flex items-center pb-1">
                   <Label className="mb-0 flex-none ">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </Label>
@@ -917,6 +917,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     props.form.clearErrors();
                   }}
                   variables={DYNAMIC_TEXT_VARIABLES}
+                  addVariableButtonTop={
+                    step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER
+                  }
                   height="200px"
                   updateTemplate={updateTemplate}
                   firstRender={firstRender}
