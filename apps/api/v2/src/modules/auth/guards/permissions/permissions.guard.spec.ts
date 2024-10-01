@@ -102,6 +102,62 @@ describe("PermissionsGuard", () => {
     });
   });
 
+  describe("when oauth id is provided", () => {
+    it("should return true for valid permissions", async () => {
+      const mockContext = createMockExecutionContext({ "x-cal-client-id": "100" });
+      jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE]);
+
+      let oAuthClientPermissions = 0;
+      oAuthClientPermissions |= SCHEDULE_WRITE;
+      jest.spyOn(guard, "getOAuthClientPermissionsById").mockResolvedValue(oAuthClientPermissions);
+      await expect(guard.canActivate(mockContext)).resolves.toBe(true);
+    });
+
+    it("should return true for multiple valid permissions", async () => {
+      const mockContext = createMockExecutionContext({ "x-cal-client-id": "100" });
+      jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE, SCHEDULE_READ]);
+
+      let oAuthClientPermissions = 0;
+      oAuthClientPermissions |= SCHEDULE_WRITE;
+      oAuthClientPermissions |= SCHEDULE_READ;
+      jest.spyOn(guard, "getOAuthClientPermissionsById").mockResolvedValue(oAuthClientPermissions);
+
+      await expect(guard.canActivate(mockContext)).resolves.toBe(true);
+    });
+
+    it("should return true for empty Permissions decorator", async () => {
+      const mockContext = createMockExecutionContext({ "x-cal-client-id": "100" });
+      jest.spyOn(reflector, "get").mockReturnValue([]);
+
+      let oAuthClientPermissions = 0;
+      oAuthClientPermissions |= SCHEDULE_WRITE;
+      jest.spyOn(guard, "getOAuthClientPermissionsById").mockResolvedValue(oAuthClientPermissions);
+      await expect(guard.canActivate(mockContext)).resolves.toBe(true);
+    });
+
+    it("should return false for invalid permissions", async () => {
+      const mockContext = createMockExecutionContext({ "x-cal-client-id": "100" });
+      jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE]);
+
+      let oAuthClientPermissions = 0;
+      oAuthClientPermissions |= APPS_WRITE;
+      jest.spyOn(guard, "getOAuthClientPermissionsById").mockResolvedValue(oAuthClientPermissions);
+
+      await expect(guard.canActivate(mockContext)).resolves.toBe(false);
+    });
+
+    it("should return false for a missing permission", async () => {
+      const mockContext = createMockExecutionContext({ "x-cal-client-id": "100" });
+      jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE, SCHEDULE_READ]);
+
+      let oAuthClientPermissions = 0;
+      oAuthClientPermissions |= SCHEDULE_WRITE;
+      jest.spyOn(guard, "getOAuthClientPermissionsById").mockResolvedValue(oAuthClientPermissions);
+
+      await expect(guard.canActivate(mockContext)).resolves.toBe(false);
+    });
+  });
+
   function createMockExecutionContext(headers: Record<string, string>): ExecutionContext {
     return createMock<ExecutionContext>({
       switchToHttp: () => ({

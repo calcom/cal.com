@@ -30,7 +30,7 @@ export class PermissionsGuard implements CanActivate {
     const authString = request.get("Authorization")?.replace("Bearer ", "");
     const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
     const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
-    const oAuthClientId = request.params.clientId || request.get(X_CAL_CLIENT_ID);
+    const oAuthClientId = request.params?.clientId || request.get(X_CAL_CLIENT_ID);
 
     if (nextAuthToken) {
       return true;
