@@ -100,11 +100,11 @@ export class TokensRepository {
   async getAccessTokenOwnerId(accessTokenSecret: string) {
     const { data } = (await supabase
       .from("AccessToken")
-      .select("userId")
+      .select("user_id")
       .eq("secret", accessTokenSecret)
       .single()) as { data: { userId: number } };
 
-    return data;
+    return data?.userId;
   }
   // TODO: PrismaWriteService
   async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {

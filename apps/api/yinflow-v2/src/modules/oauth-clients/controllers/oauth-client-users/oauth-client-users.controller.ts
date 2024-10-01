@@ -80,7 +80,7 @@ export class OAuthClientUsersController {
     console.log("asap createUser client", JSON.stringify(client, null, 2));
 
     const isPlatformManaged = true;
-    const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
+    const { user, tokens, message } = await this.oAuthClientUsersService.createOauthClientUser(
       oAuthClientId,
       body,
       isPlatformManaged,
@@ -89,7 +89,9 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: { user, ...tokens },
+      data: {
+        message: JSON.stringify({ message }),
+      } as any,
     };
   }
 

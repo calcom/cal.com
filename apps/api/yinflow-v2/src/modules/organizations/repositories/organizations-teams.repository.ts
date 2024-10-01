@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 
-import { supabase } from "../../../config/supabase";
 import { CreateOrgTeamDto } from "../inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "../inputs/update-organization-team.input";
 
@@ -50,14 +49,14 @@ export class OrganizationsTeamsRepository {
     //   },
     // });
   }
+  // TODO: PrismaReadService
   async getPlatformOrgTeams(organizationId: number, oAuthClientId: string) {
-    const { data } = await supabase
-      .from("Team")
-      .select("*")
-      .eq("parentId", organizationId)
-      .eq("createdByOAuthClientId", oAuthClientId);
-
-    return data;
+    // return this.dbRead.prisma.team.findMany({
+    //   where: {
+    //     parentId: organizationId,
+    //     createdByOAuthClientId: oAuthClientId,
+    //   },
+    // });
   }
   // TODO: PrismaReadService
   async updateOrgTeam(organizationId: number, teamId: number, data: UpdateOrgTeamDto) {

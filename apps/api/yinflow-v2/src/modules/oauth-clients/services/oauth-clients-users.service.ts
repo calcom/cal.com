@@ -90,6 +90,12 @@ export class OAuthClientUsersService {
     if (body.timeZone) {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
       user.defaultScheduleId = defaultSchedule.id;
+
+      return {
+        tokens: null,
+        user: null,
+        message: defaultSchedule,
+      };
     }
 
     await this.organizationsTeamsService.addUserToPlatformTeamEvents(user.id, organizationId, oAuthClientId);

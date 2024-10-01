@@ -1,16 +1,29 @@
-import { Controller, Get, Version, VERSION_NEUTRAL } from "@nestjs/common";
-import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
+import { Controller, Get, Param, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
 
-import { getEnv } from "./env";
+import { ApiAuthGuard } from "./modules/auth/guards/api-auth/api-auth.guard";
+
+const SUPABASE_URL = "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
 
 @Controller()
-@DocsTags("Health - development only")
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
 export class AppController {
   @Get("health")
   @Version(VERSION_NEUTRAL)
   getHealth(): "OK" {
     return "OK";
+  }
+
+  @Get("/supabase")
+  @UseGuards(ApiAuthGuard)
+  @Version(VERSION_NEUTRAL)
+  async getSupabase(@Param("scope") scope: string, @Param("eq") eq: string): Promise<any> {
+    const supabaseResponse = await fetch(`${SUPABASE_URL}?scope=${scope}&eq=${eq}`, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+      },
+    });
+
+    return await supabaseResponse.json();
   }
 
   @Get()

@@ -35,7 +35,7 @@ export class OAuthFlowService {
 
     if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
 
-    return ownerIdFromDb.userId;
+    return ownerIdFromDb;
   }
 
   async validateAccessToken(secret: string) {

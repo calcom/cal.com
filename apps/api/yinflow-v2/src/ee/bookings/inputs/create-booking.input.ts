@@ -51,6 +51,10 @@ export class CreateBookingInput {
   @IsString()
   start!: string;
 
+  @IsInt()
+  @Min(1)
+  userId!: string;
+
   @IsNumber()
   eventTypeId!: number;
 
@@ -66,6 +70,7 @@ export class CreateBookingInput {
   @IsOptional()
   recurringEventId?: string;
 
+  @IsOptional()
   @IsTimeZone()
   timeZone!: string;
 
@@ -78,6 +83,7 @@ export class CreateBookingInput {
   user?: string[];
 
   @IsString()
+  @IsOptional()
   language!: string;
 
   @IsString()
@@ -85,7 +91,8 @@ export class CreateBookingInput {
   bookingUid?: string;
 
   @IsObject()
-  metadata!: Record<string, string>;
+  @IsOptional()
+  metadata?: Record<string, string>;
 
   @IsBoolean()
   @IsOptional()

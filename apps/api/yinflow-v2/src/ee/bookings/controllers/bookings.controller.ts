@@ -14,6 +14,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { randomBytes } from "crypto";
 import { Request } from "express";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
@@ -120,13 +121,12 @@ export class BookingsController {
     @Body() body: CreateBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
-    const oAuthClientId = clientId?.toString();
-    const { orgSlug, locationUrl } = body;
-    req.headers["x-cal-force-slug"] = orgSlug;
     const {
       bookingUid,
       end,
       start,
+      orgSlug,
+      locationUrl,
       eventTypeSlug,
       user,
       responses,
@@ -134,8 +134,12 @@ export class BookingsController {
       language,
       metadata,
       timeZone,
+      userId,
       ...otherParams
     } = body;
+
+    req.headers["x-cal-force-slug"] = orgSlug;
+
     try {
       const { data: eventType } = await supabase
         .from("EventType")
@@ -145,13 +149,15 @@ export class BookingsController {
 
       if (!eventType) throw new NotFoundException("Event type not found.");
 
+      const uid = randomBytes(16).toString("hex");
+
       const { data: booking, error } = await supabase
         .from("Booking")
         .insert({
           ...otherParams,
-          uid: bookingUid,
+          uid: bookingUid || uid,
           endTime: end,
-          userId: 44,
+          userId,
           title: eventType.title,
           startTime: start,
           user: JSON.stringify(user),
@@ -196,19 +202,27 @@ export class BookingsController {
   @Post("/:bookingUid/mark-absent")
   @UseGuards(ApiAuthGuard)
   async markAbsent(
-    @GetUser("id") userId: number,
     @Body() body: MarkNoShowInput,
     @Param("bookingUid") bookingUid: string
   ): Promise<MarkNoShowOutput> {
     try {
-      const markNoShowResponse = await handleMarkNoShow({
-        bookingUid: bookingUid,
-        attendees: body.attendees,
-        noShowHost: body.noShowHost,
-        userId,
-      });
+      const data = this.getBookingInfo(bookingUid) as any;
+      const attendees =
+        data.attendees && data.attendees.length !== 0
+          ? data.attendees.map((attendee: string) => JSON.parse(attendee))
+          : [];
+      const absentAttendee = [...attendees, ...body.attendees].map((attendee: any) =>
+        JSON.stringify(attendee)
+      );
 
-      return { status: SUCCESS_STATUS, data: markNoShowResponse };
+      const { data: absentedBooking } = await supabase
+        .from("Booking")
+        .update({ attendees: absentAttendee, absentHost: !!body.host })
+        .eq("uid", bookingUid)
+        .select("*")
+        .single();
+
+      return { status: SUCCESS_STATUS, data: absentedBooking };
     } catch (err) {
       this.handleBookingErrors(err, "no-show");
     }
@@ -270,11 +284,11 @@ export class BookingsController {
 
     if (error || !bookingInfo) return null;
 
-    return bookingInfo;
+    return error || bookingInfo;
   }
 
   private async getBookingReschedule(uid: string, body: RescheduleBookingInput): Promise<any> {
-    const { userId, ...data } = body;
+    const { userId, start, ...data } = body;
     let rescheduleUid: string | null = null;
 
     let theBooking = this.getBookingInfo(uid) as any;
@@ -284,23 +298,19 @@ export class BookingsController {
     let hasOwnershipOnBooking = false;
     let bookingSeatData: { description?: string; responses: Prisma.JsonValue } | null = null;
 
+    const { data: booking } = await supabase
+      .from("Booking")
+      .update({ ...data, startTime: start })
+      .eq("uid", uid)
+      .select("*")
+      .maybeSingle();
+
     if (!theBooking) {
-      const { data: booking } = await supabase
-        .from("Booking")
-        .update(data)
-        .eq("uid", uid)
-        .select("*")
-        .limit(1)
-        .single();
-
-      theBooking = booking;
-
       const { data: bookingSeat, error } = await supabase
         .from("BookingSeat")
         .select("*")
         .eq("referenceUid", uid)
-        .limit(1)
-        .single();
+        .maybeSingle();
 
       if (bookingSeat && !error) {
         bookingSeatData = bookingSeat.data as any;
@@ -309,6 +319,8 @@ export class BookingsController {
         attendeeEmail = bookingSeat.attendee.email;
       }
     }
+
+    theBooking = booking;
 
     if (theBooking && theBooking?.eventType?.seatsPerTimeSlot && bookingSeatReferenceUid === null) {
       const isOwnerOfBooking = theBooking.userId === userId;
@@ -347,7 +359,7 @@ export class BookingsController {
       })
       .eq("uid", bookingId)
       .select("*")
-      .single();
+      .maybeSingle();
 
     if (bookingToDelete?.eventType?.seatsPerTimeSlot)
       await supabase.from("Attendee").delete().eq("bookingId", bookingId).select("*");
@@ -367,36 +379,6 @@ export class BookingsController {
       bookingId: bookingToDelete.id,
       bookingUid: bookingToDelete.uid,
     };
-  }
-
-  private async getOwnerId(req: Request): Promise<number | undefined> {
-    try {
-      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (accessToken) {
-        return this.oAuthFlowService.getOwnerId(accessToken);
-      }
-    } catch (err) {
-      this.logger.error(err);
-    }
-  }
-
-  private async getOAuthClientsParams(clientId: string): Promise<OAuthRequestParams> {
-    const res = DEFAULT_PLATFORM_PARAMS;
-    try {
-      const client = await this.oAuthClientRepository.getOAuthClient(clientId);
-      // fetch oAuthClient from db and use data stored in db to set these values
-      if (client) {
-        res.platformClientId = clientId;
-        res.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
-        res.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
-        res.platformBookingUrl = client.bookingRedirectUri ?? "";
-        res.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
-      }
-      return res;
-    } catch (err) {
-      this.logger.error(err);
-      return res;
-    }
   }
 
   private handleBookingErrors(

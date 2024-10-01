@@ -6,17 +6,17 @@ class Attendee {
   email!: string;
 
   @IsBoolean()
-  noShow!: boolean;
+  absent!: boolean;
 }
 
 export class MarkNoShowInput {
   @IsBoolean()
   @IsOptional()
-  noShowHost?: boolean;
+  host?: boolean;
 
   @ValidateNested()
   @Type(() => Attendee)
   @IsArray()
   @IsOptional()
-  attendees?: Attendee[];
+  attendees!: Attendee[];
 }
