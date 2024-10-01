@@ -80,12 +80,12 @@ export type BookerPlatformWrapperAtomProps = Omit<
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
 
-type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
+export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
 };
 
-type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
+export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
