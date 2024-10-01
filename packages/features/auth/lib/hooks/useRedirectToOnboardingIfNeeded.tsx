@@ -1,8 +1,10 @@
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-import { useEmailVerifyCheck } from "@calcom/features/auth/lib/hooks/useEmailVerifyCheck";
-import { useFlagMap } from "@calcom/features/ee/flags/useFlags";
-import { useMeQuery } from "@calcom/trpc/react";
+import dayjs from "@calcom/dayjs";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useEmailVerifyCheck } from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const shouldShowOnboarding = (
   user: Pick<User, "createdDate" | "completedOnboarding"> & {
