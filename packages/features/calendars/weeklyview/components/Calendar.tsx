@@ -8,7 +8,6 @@ import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
-import { CurrentTime } from "./currentTime";
 import { AvailableCellsForDay, EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
@@ -27,8 +26,8 @@ export function Calendar(props: CalendarComponentProps) {
 
   const startDate = useCalendarStore((state) => state.startDate);
   const endDate = useCalendarStore((state) => state.endDate);
-  const startHour = useCalendarStore((state) => state.startHour || 0);
-  const endHour = useCalendarStore((state) => state.endHour || 23);
+  const startHour = useCalendarStore((state) => state.startHour || 9);
+  const endHour = useCalendarStore((state) => state.endHour || 21);
   const usersCellsStopsPerHour = useCalendarStore((state) => state.gridCellsPerHour || 4);
   const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
   const hideHeader = useCalendarStore((state) => state.hideHeader);
@@ -36,7 +35,7 @@ export function Calendar(props: CalendarComponentProps) {
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
   const hours = useMemo(
-    () => getHoursToDisplay(startHour || 0, endHour || 23, timezone),
+    () => getHoursToDisplay(startHour || 9, endHour || 21, timezone),
     [startHour, endHour, timezone]
   );
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
@@ -67,7 +66,7 @@ export function Calendar(props: CalendarComponentProps) {
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
             <DateValues containerNavRef={containerNav} days={days} />
             <div className="relative flex flex-auto">
-              <CurrentTime />
+              {/*<CurrentTime />*/}
               <div className="bg-default dark:bg-muted ring-muted border-default sticky left-0 z-10 w-14 flex-none border-l border-r ring-1" />
               <div
                 className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
