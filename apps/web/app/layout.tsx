@@ -2,6 +2,7 @@ import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
+import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
@@ -30,37 +31,18 @@ export const generateMetadata = () =>
     },
   });
 
-const getInitialProps = async (url: string) => {
-  const { pathname, searchParams } = new URL(url);
-
-  const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
-  const embedColorScheme = searchParams?.get("ui.color-scheme");
-
-  const req = { headers: headers(), cookies: cookies() };
-  const newLocale = await getLocale(req);
-  const direction = dir(newLocale);
-
-  return { isEmbed, embedColorScheme, locale: newLocale, direction };
-};
-
-const getFallbackProps = () => ({
-  locale: "en",
-  direction: "ltr",
-  isEmbed: false,
-  embedColorScheme: false,
-});
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = headers();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const embedColorScheme = searchParams?.get("ui.color-scheme");
+  const isEmbed = pathname?.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
 
-  const fullUrl = h.get("x-url") ?? "";
   const nonce = h.get("x-csp") ?? "";
 
-  const isSSG = !fullUrl;
-
-  const { locale, direction, isEmbed, embedColorScheme } = isSSG
-    ? getFallbackProps()
-    : await getInitialProps(fullUrl);
+  const req = { headers: headers(), cookies: cookies() };
+  const locale = await getLocale(req);
+  const direction = dir(locale);
 
   return (
     <html
