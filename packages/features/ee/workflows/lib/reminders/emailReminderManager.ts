@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
+import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -140,6 +142,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     emailSubject,
     emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
   };
+  const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
+
   if (emailBody) {
     const variables: VariablesType = {
       eventName: evt.title || "",
@@ -155,10 +159,10 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
-      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
-      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
+      cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}`,
+      ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
     };
 
     const locale =
@@ -198,8 +202,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       timeZone,
       organizer: evt.organizer.name,
       name,
-      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
-      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
+      ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
     });
   }
 
@@ -214,23 +218,19 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
     const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
 
-    const attendeePromises = [];
-    for (const attendee of evt.attendees) {
-      attendeePromises.push(
-        getTranslation(attendee.language.locale ?? "en", "common").then((tAttendee) => ({
-          ...attendee,
-          language: { ...attendee.language, translate: tAttendee },
-        }))
-      );
-    }
+    const attendeeT = await getTranslation(evt.attendees[0].language.locale || "en", "common");
 
-    const attendees = await Promise.all(attendeePromises);
+    const attendee = {
+      ...evt.attendees[0],
+      name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
+      language: { ...evt.attendees[0].language, translate: attendeeT },
+    };
 
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
-      attendees,
+      attendees: [attendee],
     };
 
     return sendSendgridMail(
