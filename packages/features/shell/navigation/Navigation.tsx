@@ -1,5 +1,9 @@
+import { useSession } from "next-auth/react";
+
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
+import { classNames } from "@calcom/lib";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
