@@ -105,7 +105,7 @@ describe("TeamRepository", () => {
   describe("inviteMemberByToken", () => {
     it("should throw error if verification token is not found", async () => {
       prismaMock.verificationToken.findFirst.mockResolvedValue(null);
-      await expect(TeamRepository.inviteMemberByToken("invalid-token")).rejects.toThrow(TRPCError);
+      await expect(TeamRepository.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
     });
 
     it("should create membership and update billing", async () => {
@@ -115,7 +115,7 @@ describe("TeamRepository", () => {
       const mockTeamBilling = { updateQuantity: vi.fn() };
       TeamBilling.findAndInit.mockResolvedValue(mockTeamBilling);
 
-      const result = await TeamRepository.inviteMemberByToken("valid-token");
+      const result = await TeamRepository.inviteMemberByToken("valid-token", 1);
 
       expect(prismaMock.membership.create).toHaveBeenCalled();
       expect(mockTeamBilling.updateQuantity).toHaveBeenCalled();

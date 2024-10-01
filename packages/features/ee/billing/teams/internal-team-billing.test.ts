@@ -4,10 +4,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { Redirect } from "@calcom/lib/redirect";
 
 import * as billingModule from "..";
 import { InternalTeamBilling } from "./internal-team-billing";
+import { TeamBillingPublishResponseStatus } from "./team-billing";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual("@calcom/lib/constants");
@@ -73,13 +73,34 @@ describe("InternalTeamBilling", () => {
       prismaMock.membership.count.mockResolvedValue(5);
       prismaMock.membership.findFirstOrThrow.mockResolvedValue({ userId: 123 });
 
-      await expect(internalTeamBilling.publish()).rejects.toThrow(Redirect);
+      const result = await internalTeamBilling.publish();
+      expect(result).toEqual({
+        redirectUrl: "http://checkout.url",
+        status: TeamBillingPublishResponseStatus.REQUIRES_PAYMENT,
+      });
 
       expect(prismaMock.membership.count).toHaveBeenCalledWith({ where: { teamId: 1 } });
       expect(prismaMock.membership.findFirstOrThrow).toHaveBeenCalledWith({
         where: { teamId: 1, role: "OWNER" },
         select: { userId: true },
       });
+    });
+    it("should return upgrade url if upgrade is required", async () => {
+      const internalTeamBilling = new InternalTeamBilling(mockTeam);
+      const mockUrl = `${WEBAPP_URL}/api/teams/${mockTeam.id}/upgrade?session_id=cs_789`;
+      vi.spyOn(internalTeamBilling, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: mockUrl,
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+
+      const result = await internalTeamBilling.publish();
+
+      expect(result).toEqual({
+        redirectUrl: mockUrl,
+        status: TeamBillingPublishResponseStatus.REQUIRES_UPGRADE,
+      });
+      expect(internalTeamBilling.checkIfTeamPaymentRequired).toHaveBeenCalled();
     });
   });
 

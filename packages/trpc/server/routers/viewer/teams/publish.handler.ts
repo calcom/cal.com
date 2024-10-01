@@ -66,7 +66,8 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
   await checkPermissions({ ctx, input });
 
   try {
-    await TeamRepository.publish(teamId);
+    const { redirectUrl, status } = await TeamRepository.publish(teamId);
+    if (redirectUrl) return { url: redirectUrl, status };
   } catch (error) {
     /** We return the url for client redirect if needed */
     if (error instanceof Redirect) return { url: error.url };

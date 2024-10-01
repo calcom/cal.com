@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 
-import type { TeamBilling, TeamBillingInput } from "./team-billing";
+import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["StubTeamBilling"] });
 
@@ -17,6 +17,7 @@ export class StubTeamBilling implements TeamBilling {
   }
   async publish() {
     log.info(`Skipping team billing publish due team billing being disabled`);
+    return { redirectUrl: null, status: TeamBillingPublishResponseStatus.SUCCESS };
   }
   async downgrade() {
     log.info(`Skipping team billing downgrade due team billing being disabled`);

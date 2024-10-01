@@ -275,7 +275,7 @@ export class TeamRepository {
 
   static async publish(teamId: number) {
     const teamBilling = await TeamBilling.findAndInit(teamId);
-    await teamBilling.publish();
+    return teamBilling.publish();
   }
 
   static async removeMembers(teamIds: number[], memberIds: number[], isOrg = false) {

@@ -11,7 +11,7 @@ import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import billing from "..";
-import type { TeamBilling, TeamBillingInput } from "./team-billing";
+import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
@@ -60,7 +60,10 @@ export class InternalTeamBilling implements TeamBilling {
   async publish() {
     const { url } = await this.checkIfTeamPaymentRequired();
     const teamId = this.team.id;
-    if (url) throw new Redirect(307, url);
+    if (url) {
+      // TODO: We should probably hit the logic of this URL handled by the /upgrade API handler as it just generates the url to check the payment status and upgrade if needed
+      return { redirectUrl: url, status: TeamBillingPublishResponseStatus.REQUIRES_UPGRADE };
+    }
     const requestedSlug = this.team.metadata?.requestedSlug || "";
     // if payment needed, respond with checkout url
     const membershipCount = await prisma.membership.count({ where: { teamId } });
@@ -79,13 +82,21 @@ export class InternalTeamBilling implements TeamBilling {
         userId: owner.userId,
         pricePerSeat: null,
       });
-      if (checkoutSession.url) throw new Redirect(307, checkoutSession.url);
+
+      if (checkoutSession.url) {
+        return {
+          redirectUrl: checkoutSession.url,
+          status: TeamBillingPublishResponseStatus.REQUIRES_PAYMENT,
+        };
+      }
+
       const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema, this.team.metadata);
       const data: Prisma.TeamUpdateInput = {
         metadata: mergeMetadata({ requestedSlug: undefined }),
       };
       if (requestedSlug) data.slug = requestedSlug;
       await prisma.team.update({ where: { id: teamId }, data });
+      return { status: TeamBillingPublishResponseStatus.SUCCESS, redirectUrl: null };
     } catch (error) {
       if (error instanceof Redirect) throw error;
       const { message } = getRequestedSlugError(error, requestedSlug);
