@@ -337,10 +337,10 @@ export default function Success(props: PageProps) {
     if (pathname && pathname.includes("/booking/")) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
-      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType&apiKey=${"teste"}`;
-      const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking&apiKey=${"teste"}`;
+      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType`;
+      const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking`;
 
-      fetch(getEventTypeSlugUrl)
+      fetch(getEventTypeSlugUrl, { headers: { Authorization: process.env.SUPABASE_ANON_KEY! } })
         .then((data) => {
           data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
             const eventTypeIds = [1146, 1154, 1246, 1375, 1379, 1383, 1389];
@@ -357,7 +357,7 @@ export default function Success(props: PageProps) {
           console.error(error);
         });
 
-      fetch(getBookedTimeUrl)
+      fetch(getBookedTimeUrl, { headers: { Authorization: process.env.SUPABASE_ANON_KEY! } })
         .then((data) => {
           data.json().then(({ data }: { data: BookingInfo[] }) => {
             const findedBooking = data.find(({ uid }) => uid === bookingUID);
