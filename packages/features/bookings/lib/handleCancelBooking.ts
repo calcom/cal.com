@@ -43,7 +43,7 @@ import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
-  return await prisma.booking.findUnique({
+  return await prisma.booking.findUniqueOrThrow({
     where: {
       id,
       uid,
@@ -171,10 +171,6 @@ async function handler(req: CustomRequest) {
     platformRescheduleUrl,
     arePlatformEmailsEnabled,
   } = req;
-
-  if (!bookingToDelete || !bookingToDelete.user) {
-    throw new HttpError({ statusCode: 400, message: "Booking not found" });
-  }
 
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
