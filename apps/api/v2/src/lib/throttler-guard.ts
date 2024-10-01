@@ -16,10 +16,6 @@ import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 
-const DEFAULT_TTL = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", 60 * 1000));
-const DEFAULT_LIMIT = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 120));
-const DEFAULT_BLOCK_DURATION = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", 60 * 1000));
-
 const rateLimitSchema = z.object({
   name: z.string(),
   limit: z.number(),
@@ -34,6 +30,10 @@ const rateLimitsSchema = z.array(rateLimitSchema);
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
   private logger = new Logger("CustomThrottlerGuard");
+
+  private defaultTttl = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", 60 * 1000));
+  private defaultLimit = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 120));
+  private defaultBlockDuration = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", 60 * 1000));
 
   constructor(
     options: ThrottlerModuleOptions,
@@ -78,12 +78,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   }
 
   private async handleNonApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
-    const rateLimit = {
-      name: "default",
-      limit: DEFAULT_LIMIT,
-      ttl: DEFAULT_TTL,
-      blockDuration: DEFAULT_BLOCK_DURATION,
-    };
+    const rateLimit = this.getDefaultRateLimit();
 
     const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
     if (isBlocked) {
@@ -91,6 +86,27 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     }
 
     return true;
+  }
+
+  private getDefaultRateLimit() {
+    return {
+      name: "default",
+      limit: this.getDefaultLimit(),
+      ttl: this.getDefaultTtl(),
+      blockDuration: this.getDefaultBlockDuration(),
+    };
+  }
+
+  getDefaultLimit() {
+    return this.defaultLimit;
+  }
+
+  getDefaultTtl() {
+    return this.defaultTttl;
+  }
+
+  getDefaultBlockDuration() {
+    return this.defaultBlockDuration;
   }
 
   private async getRateLimitsForApiKeyTracker(tracker: string) {
@@ -118,14 +134,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     });
 
     if (!rateLimits || rateLimits.length === 0) {
-      rateLimits = [
-        {
-          name: "default",
-          limit: DEFAULT_LIMIT,
-          ttl: DEFAULT_TTL,
-          blockDuration: DEFAULT_BLOCK_DURATION,
-        },
-      ];
+      rateLimits = [this.getDefaultRateLimit()];
     }
 
     await this.storageService.redis.setex(cacheKey, 3600, JSON.stringify(rateLimits));

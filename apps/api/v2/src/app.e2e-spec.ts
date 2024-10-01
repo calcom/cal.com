@@ -1,6 +1,6 @@
 import { AppModule } from "@/app.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { getEnv } from "@/env";
+import { CustomThrottlerGuard } from "@/lib/throttler-guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -42,10 +42,20 @@ describe("AppController", () => {
     let firstRateLimitWithMultipleLimits: RateLimit;
     let secondRateLimitWithMultipleLimits: RateLimit;
 
+    const mockDefaultLimit = 5;
+    const mockDefaultTtl = 2500;
+    const mockDefaultBlockDuration = 5000;
+
     beforeEach(async () => {
       const moduleRef: TestingModule = await Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule_2024_04_15],
       }).compile();
+
+      jest.spyOn(CustomThrottlerGuard.prototype, "getDefaultLimit").mockReturnValue(mockDefaultLimit);
+      jest.spyOn(CustomThrottlerGuard.prototype, "getDefaultTtl").mockReturnValue(mockDefaultTtl);
+      jest
+        .spyOn(CustomThrottlerGuard.prototype, "getDefaultBlockDuration")
+        .mockReturnValue(mockDefaultBlockDuration);
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       user = await userRepositoryFixture.create({
@@ -115,8 +125,8 @@ describe("AppController", () => {
     it(
       "api key with default rate limit - should enforce rate limits and reset after block duration",
       async () => {
-        const limit = getEnv("RATE_LIMIT_DEFAULT_LIMIT");
-        const blockDuration = getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS");
+        const limit = mockDefaultLimit;
+        const blockDuration = mockDefaultBlockDuration;
 
         for (let i = 1; i <= limit; i++) {
           const response = await request(app.getHttpServer())
@@ -324,8 +334,8 @@ describe("AppController", () => {
     it(
       "non api key with default rate limit - should enforce rate limits and reset after block duration",
       async () => {
-        const limit = getEnv("RATE_LIMIT_DEFAULT_LIMIT");
-        const blockDuration = getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS");
+        const limit = mockDefaultLimit;
+        const blockDuration = mockDefaultBlockDuration;
 
         for (let i = 1; i <= limit; i++) {
           const response = await request(app.getHttpServer())
