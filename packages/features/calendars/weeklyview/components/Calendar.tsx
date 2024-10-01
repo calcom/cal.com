@@ -77,6 +77,8 @@ export function Calendar(props: CalendarComponentProps) {
                 }}>
                 <HorizontalLines
                   hours={hours}
+                  startHour={startHour}
+                  endHour={endHour}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
                   containerOffsetRef={containerOffset}
                 />
