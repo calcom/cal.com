@@ -323,7 +323,7 @@ export const schemaBookingCancelParams = z
     seatReferenceUid: z.string().optional(),
     cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   })
-  .refine((data) => !!data.id || !!data.uid, "Required at least one of the following: 'id', 'uid'.");
+  .refine((data) => !!data.id || !!data.uid, "At least one of the following required: 'id', 'uid'.");
 
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
