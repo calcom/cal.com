@@ -168,7 +168,7 @@ async function handler(req: CustomRequest) {
     arePlatformEmailsEnabled,
   } = req;
 
-  if (!bookingToDelete.userId) {
+  if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
