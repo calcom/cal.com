@@ -3,7 +3,6 @@ import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import {
   ThrottlerGuard,
