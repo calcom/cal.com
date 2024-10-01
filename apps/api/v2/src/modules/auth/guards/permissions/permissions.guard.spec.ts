@@ -1,3 +1,4 @@
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext } from "@nestjs/common";
@@ -26,7 +27,8 @@ describe("PermissionsGuard", () => {
               return null;
           }
         }),
-      })
+      }),
+      createMock<OAuthClientRepository>()
     );
   });
 
@@ -38,7 +40,7 @@ describe("PermissionsGuard", () => {
     it("should return false", async () => {
       const mockContext = createMockExecutionContext({});
       jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE]);
-      jest.spyOn(guard, "getOAuthClientPermissions").mockResolvedValue(0);
+      jest.spyOn(guard, "getOAuthClientPermissionsByAccessToken").mockResolvedValue(0);
 
       await expect(guard.canActivate(mockContext)).resolves.toBe(false);
     });
@@ -51,7 +53,7 @@ describe("PermissionsGuard", () => {
 
       let oAuthClientPermissions = 0;
       oAuthClientPermissions |= SCHEDULE_WRITE;
-      jest.spyOn(guard, "getOAuthClientPermissions").mockResolvedValue(oAuthClientPermissions);
+      jest.spyOn(guard, "getOAuthClientPermissionsByAccessToken").mockResolvedValue(oAuthClientPermissions);
       await expect(guard.canActivate(mockContext)).resolves.toBe(true);
     });
 
@@ -62,7 +64,7 @@ describe("PermissionsGuard", () => {
       let oAuthClientPermissions = 0;
       oAuthClientPermissions |= SCHEDULE_WRITE;
       oAuthClientPermissions |= SCHEDULE_READ;
-      jest.spyOn(guard, "getOAuthClientPermissions").mockResolvedValue(oAuthClientPermissions);
+      jest.spyOn(guard, "getOAuthClientPermissionsByAccessToken").mockResolvedValue(oAuthClientPermissions);
 
       await expect(guard.canActivate(mockContext)).resolves.toBe(true);
     });
@@ -73,7 +75,7 @@ describe("PermissionsGuard", () => {
 
       let oAuthClientPermissions = 0;
       oAuthClientPermissions |= SCHEDULE_WRITE;
-      jest.spyOn(guard, "getOAuthClientPermissions").mockResolvedValue(oAuthClientPermissions);
+      jest.spyOn(guard, "getOAuthClientPermissionsByAccessToken").mockResolvedValue(oAuthClientPermissions);
       await expect(guard.canActivate(mockContext)).resolves.toBe(true);
     });
 
@@ -83,7 +85,7 @@ describe("PermissionsGuard", () => {
 
       let oAuthClientPermissions = 0;
       oAuthClientPermissions |= APPS_WRITE;
-      jest.spyOn(guard, "getOAuthClientPermissions").mockResolvedValue(oAuthClientPermissions);
+      jest.spyOn(guard, "getOAuthClientPermissionsByAccessToken").mockResolvedValue(oAuthClientPermissions);
 
       await expect(guard.canActivate(mockContext)).resolves.toBe(false);
     });
@@ -94,7 +96,7 @@ describe("PermissionsGuard", () => {
 
       let oAuthClientPermissions = 0;
       oAuthClientPermissions |= SCHEDULE_WRITE;
-      jest.spyOn(guard, "getOAuthClientPermissions").mockResolvedValue(oAuthClientPermissions);
+      jest.spyOn(guard, "getOAuthClientPermissionsByAccessToken").mockResolvedValue(oAuthClientPermissions);
 
       await expect(guard.canActivate(mockContext)).resolves.toBe(false);
     });
