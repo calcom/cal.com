@@ -63,8 +63,16 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   private async handleApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
     const rateLimits = await this.getRateLimitsForApiKeyTracker(tracker);
 
+    let allLimitsBlocked = true;
     for (const rateLimit of rateLimits) {
-      await this.incrementRateLimit(tracker, rateLimit, response);
+      const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
+      if (!isBlocked) {
+        allLimitsBlocked = false;
+      }
+    }
+
+    if (allLimitsBlocked) {
+      throw new ThrottlerException("Too many requests. Please try again later.");
     }
 
     return true;
@@ -78,7 +86,10 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       blockDuration: DEFAULT_BLOCK_DURATION,
     };
 
-    await this.incrementRateLimit(tracker, rateLimit, response);
+    const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
+    if (isBlocked) {
+      throw new ThrottlerException("Too many requests. Please try again later.");
+    }
 
     return true;
   }
@@ -133,7 +144,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       ttl,
       limit,
       blockDuration,
-      "default"
+      name
     );
 
     const nameFirstUpper = name.charAt(0).toUpperCase() + name.slice(1);
@@ -144,11 +155,9 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     );
     response.setHeader(`X-RateLimit-Reset-${nameFirstUpper}`, timeToBlockExpire || timeToExpire);
 
-    if (isBlocked) {
-      throw new ThrottlerException("Too many requests. Please try again later.");
-    }
-
     this.logger.log(`Rate limit for ${tracker} incremented. Remaining: ${limit - totalHits}`);
+
+    return { isBlocked };
   }
 
   protected async getTracker(request: Request): Promise<string> {

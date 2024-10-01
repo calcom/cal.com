@@ -34,8 +34,13 @@ describe("AppController", () => {
     let profilesRepositoryFixture: ProfileRepositoryFixture;
 
     let apiKeyString: string;
-    let apiKeyStringWithRateLimit: string;
+
     let rateLimit: RateLimit;
+    let apiKeyStringWithRateLimit: string;
+
+    let apiKeyStringWithMultipleLimits: string;
+    let firstRateLimitWithMultipleLimits: RateLimit;
+    let secondRateLimitWithMultipleLimits: RateLimit;
 
     beforeEach(async () => {
       const moduleRef: TestingModule = await Test.createTestingModule({
@@ -59,6 +64,24 @@ describe("AppController", () => {
       );
       apiKeyStringWithRateLimit = `cal_test_${keyStringWithRateLimit}`;
       rateLimit = await rateLimitRepositoryFixture.createRateLimit("long", apiKey.id, 2000, 3, 4000);
+
+      const { apiKey: apiKeyWithMultipleLimits, keyString: keyStringWithMultipleLimits } =
+        await apiKeysRepositoryFixture.createApiKey(user.id, null);
+      apiKeyStringWithMultipleLimits = `cal_test_${keyStringWithMultipleLimits}`;
+      firstRateLimitWithMultipleLimits = await rateLimitRepositoryFixture.createRateLimit(
+        "short",
+        apiKeyWithMultipleLimits.id,
+        1000,
+        2,
+        2000
+      );
+      secondRateLimitWithMultipleLimits = await rateLimitRepositoryFixture.createRateLimit(
+        "long",
+        apiKeyWithMultipleLimits.id,
+        2000,
+        3,
+        4000
+      );
 
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       organization = await organizationsRepositoryFixture.create({ name: "ecorp" });
@@ -172,6 +195,130 @@ describe("AppController", () => {
         expect(Number(afterBlockResponse.headers[`x-ratelimit-reset-${name}`])).toBeGreaterThan(0);
       },
       15 * 1000
+    );
+
+    it(
+      "api key with multiple rate limits - should enforce both short and long rate limits",
+      async () => {
+        const shortLimit = firstRateLimitWithMultipleLimits.limit;
+        const longLimit = secondRateLimitWithMultipleLimits.limit;
+        const shortName = firstRateLimitWithMultipleLimits.name;
+        const longName = secondRateLimitWithMultipleLimits.name;
+        const shortBlock = firstRateLimitWithMultipleLimits.blockDuration;
+        const longBlock = secondRateLimitWithMultipleLimits.blockDuration;
+
+        let requestsMade = 0;
+        // note(Lauris): exhaust short limit to have remaining 0 for it
+        for (let i = 1; i <= shortLimit; i++) {
+          const response = await request(app.getHttpServer())
+            .get("/v2/me")
+            .set({ Authorization: `Bearer ${apiKeyStringWithMultipleLimits}` })
+            .expect(200);
+
+          requestsMade++;
+
+          expect(response.headers[`x-ratelimit-limit-${shortName}`]).toBe(shortLimit.toString());
+          expect(response.headers[`x-ratelimit-remaining-${shortName}`]).toBe((shortLimit - i).toString());
+          expect(Number(response.headers[`x-ratelimit-reset-${shortName}`])).toBeGreaterThan(0);
+
+          expect(response.headers[`x-ratelimit-limit-${longName}`]).toBe(longLimit.toString());
+          expect(response.headers[`x-ratelimit-remaining-${longName}`]).toBe((longLimit - i).toString());
+          expect(Number(response.headers[`x-ratelimit-reset-${longName}`])).toBeGreaterThan(0);
+        }
+
+        // note(Lauris): short limit exhausted, now exhaust long limit to have remaining 0 for it
+        for (let i = requestsMade; i < longLimit; i++) {
+          const responseAfterShortLimit = await request(app.getHttpServer())
+            .get("/v2/me")
+            .set({ Authorization: `Bearer ${apiKeyStringWithMultipleLimits}` })
+            .expect(200);
+
+          requestsMade++;
+
+          expect(responseAfterShortLimit.headers[`x-ratelimit-limit-${shortName}`]).toBe(
+            shortLimit.toString()
+          );
+          expect(responseAfterShortLimit.headers[`x-ratelimit-remaining-${shortName}`]).toBe("0");
+          expect(Number(responseAfterShortLimit.headers[`x-ratelimit-reset-${shortName}`])).toBeGreaterThan(
+            0
+          );
+
+          expect(responseAfterShortLimit.headers[`x-ratelimit-limit-${longName}`]).toBe(longLimit.toString());
+          expect(responseAfterShortLimit.headers[`x-ratelimit-remaining-${longName}`]).toBe(
+            (longLimit - requestsMade).toString()
+          );
+          expect(Number(responseAfterShortLimit.headers[`x-ratelimit-reset-${longName}`])).toBeGreaterThan(0);
+        }
+
+        // note(Lauris): both have remaining 0 so now exceed both
+        const blockedResponseLong = await request(app.getHttpServer())
+          .get("/v2/me")
+          .set({ Authorization: `Bearer ${apiKeyStringWithMultipleLimits}` })
+          .expect(429);
+
+        expect(blockedResponseLong.headers[`x-ratelimit-limit-${shortName}`]).toBe(shortLimit.toString());
+        expect(blockedResponseLong.headers[`x-ratelimit-remaining-${shortName}`]).toBe("0");
+        expect(Number(blockedResponseLong.headers[`x-ratelimit-reset-${shortName}`])).toBeGreaterThanOrEqual(
+          firstRateLimitWithMultipleLimits.blockDuration / 1000
+        );
+
+        expect(blockedResponseLong.headers[`x-ratelimit-limit-${longName}`]).toBe(longLimit.toString());
+        expect(blockedResponseLong.headers[`x-ratelimit-remaining-${longName}`]).toBe("0");
+        expect(Number(blockedResponseLong.headers[`x-ratelimit-reset-${longName}`])).toBeGreaterThanOrEqual(
+          secondRateLimitWithMultipleLimits.blockDuration / 1000
+        );
+
+        // note(Lauris): wait for short limit to reset
+        await new Promise((resolve) => setTimeout(resolve, shortBlock));
+        const responseAfterShortLimitReload = await request(app.getHttpServer())
+          .get("/v2/me")
+          .set({ Authorization: `Bearer ${apiKeyStringWithMultipleLimits}` })
+          .expect(200);
+        expect(responseAfterShortLimitReload.headers[`x-ratelimit-limit-${shortName}`]).toBe(
+          shortLimit.toString()
+        );
+        expect(responseAfterShortLimitReload.headers[`x-ratelimit-remaining-${shortName}`]).toBe(
+          (shortLimit - 1).toString()
+        );
+        expect(
+          Number(responseAfterShortLimitReload.headers[`x-ratelimit-reset-${shortName}`])
+        ).toBeGreaterThan(0);
+        expect(responseAfterShortLimitReload.headers[`x-ratelimit-limit-${longName}`]).toBe(
+          longLimit.toString()
+        );
+        expect(responseAfterShortLimitReload.headers[`x-ratelimit-remaining-${longName}`]).toBe(
+          (longLimit - requestsMade).toString()
+        );
+        expect(
+          Number(responseAfterShortLimitReload.headers[`x-ratelimit-reset-${longName}`])
+        ).toBeGreaterThan(0);
+
+        // note(Lauris): wait for long limit to reset
+        await new Promise((resolve) => setTimeout(resolve, longBlock));
+        const responseAfterLongLimitReload = await request(app.getHttpServer())
+          .get("/v2/me")
+          .set({ Authorization: `Bearer ${apiKeyStringWithMultipleLimits}` })
+          .expect(200);
+        expect(responseAfterLongLimitReload.headers[`x-ratelimit-limit-${shortName}`]).toBe(
+          shortLimit.toString()
+        );
+        expect(responseAfterLongLimitReload.headers[`x-ratelimit-remaining-${shortName}`]).toBe(
+          (shortLimit - 1).toString()
+        );
+        expect(
+          Number(responseAfterLongLimitReload.headers[`x-ratelimit-reset-${shortName}`])
+        ).toBeGreaterThan(0);
+        expect(responseAfterLongLimitReload.headers[`x-ratelimit-limit-${longName}`]).toBe(
+          longLimit.toString()
+        );
+        expect(responseAfterLongLimitReload.headers[`x-ratelimit-remaining-${longName}`]).toBe(
+          (longLimit - 1).toString()
+        );
+        expect(Number(responseAfterLongLimitReload.headers[`x-ratelimit-reset-${longName}`])).toBeGreaterThan(
+          0
+        );
+      },
+      30 * 1000
     );
 
     it(
