@@ -21,6 +21,7 @@ export const smsCreditCountSelect = {
       id: true,
       name: true,
       smsOverageLimit: true,
+      parent: true,
       members: {
         select: {
           accepted: true,
@@ -66,9 +67,14 @@ export async function getTeamIdToBeCharged(userId?: number | null, teamId?: numb
   return null;
 }
 
-export async function addCredits(phoneNumber: string, teamId: number, userId?: number | null) {
-  //todo: teamId should also be given for managed event types and user worklfows
-  const credits = await getCreditsForNumber(phoneNumber);
+export async function addCredits(
+  phoneNumber: string,
+  teamId: number,
+  userId?: number | null,
+  getCreditsFn = getCreditsForNumber
+) {
+  const credits = await getCreditsFn(phoneNumber);
+  if (credits === 0) return { isFree: true };
 
   if (userId) {
     // user event types
@@ -143,6 +149,11 @@ export async function addCredits(phoneNumber: string, teamId: number, userId?: n
   const acceptedMembers = team.members.filter((member) => member.accepted);
 
   const freeCredits = acceptedMembers.length * SMS_CREDITS_PER_MEMBER;
+
+  if (team.parent) {
+    //orgs have unlimited free sms
+    return { isFree: true };
+  }
 
   if (smsCreditCountTeam.credits > freeCredits) {
     if (smsCreditCountTeam.team.smsOverageLimit === 0) {

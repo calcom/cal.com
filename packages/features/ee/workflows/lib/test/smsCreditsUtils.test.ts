@@ -5,20 +5,23 @@ import { vi, describe, beforeAll, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { resetTestEmails } from "@calcom/lib/testEmails";
-import { MembershipRole, SmsCreditAllocationType } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { addCredits } from "../smsCreditsUtils";
+import { addCredits, smsCreditCountSelect } from "../smsCredits/smsCreditsUtils";
 
 interface SmsCreditCountWithTeam {
   id: number;
-  limitReachedAt: Date | null;
-  warningSentAt: Date | null;
+  limitReached: boolean;
+  warningSent: boolean;
   credits: number;
   userId: number | null;
   teamId: number;
+  month: Date;
+  overageCharges: number;
   team: {
     name: string;
+    smsOverageLimit: number;
     members: Array<{
       accepted: boolean;
       role: MembershipRole;
@@ -30,11 +33,13 @@ interface SmsCreditCountWithTeam {
   };
 }
 
-vi.mock("@calcom/features/flags/server/utils", () => {
+vi.mock("@calcom/features/flags/server/utils", async () => {
   return {
     getFeatureFlag: vi.fn().mockResolvedValue(false),
   };
 });
+
+const mockGetCreditsForNumber = vi.fn().mockResolvedValue(2);
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
@@ -51,63 +56,19 @@ describe("addCredits", () => {
     resetTestEmails();
   });
 
-  test("should return null if no team has available credits for the user", async ({}) => {
-    prismaMock.membership.findMany.mockResolvedValue([]);
-
-    const result = await addCredits("+15555551234", 1, null);
-
-    expect(result).toBe(null);
-  });
-
-  test("should return teamId if user is member of a team that has available credits", async () => {
-    prismaMock.membership.findMany.mockResolvedValue([
-      {
-        team: {
-          id: 1,
-          smsCreditAllocationType: SmsCreditAllocationType.ALL,
-          smsCreditAllocationValue: 0,
-          smsCreditCounts: [
-            {
-              credits: 6,
-            },
-          ],
-        },
-      },
-      {
-        team: {
-          id: 2,
-          smsCreditAllocationType: SmsCreditAllocationType.ALL,
-          smsCreditAllocationValue: 0,
-          smsCreditCounts: [
-            {
-              credits: 2,
-            },
-          ],
-        },
-      },
-      {
-        team: {
-          id: 2,
-          smsCreditAllocationType: SmsCreditAllocationType.ALL,
-          smsCreditAllocationValue: 0,
-          smsCreditCounts: [
-            {
-              credits: 10,
-            },
-          ],
-        },
-      },
-    ]);
-
+  test("should return isFree true if team has still available free credits", async () => {
     interface SmsCreditCountWithTeam {
       id: number;
-      limitReached: Date | null;
-      warningSentAt: Date | null;
+      limitReached: boolean;
+      warningSent: boolean;
       credits: number;
       userId: number | null;
       teamId: number;
+      month: Date;
+      overageCharges: number;
       team: {
         name: string;
+        smsOverageLimit: number;
         members: Array<{
           accepted: boolean;
           role: MembershipRole;
@@ -123,13 +84,15 @@ describe("addCredits", () => {
     prismaMock.smsCreditCount.update.mockResolvedValue({
       id: 1,
       credits: 6,
-      limitReached: null,
-      warningSent: null,
+      limitReached: false,
+      warningSent: false,
       month: dayjs().startOf("month").toDate(),
       userId: 1,
       teamId: 2,
+      overageCharges: 0,
       team: {
         name: "Test Team",
+        smsOverageLimit: 0,
         members: [
           {
             accepted: true,
@@ -143,10 +106,28 @@ describe("addCredits", () => {
       },
     } as SmsCreditCountWithTeam);
 
-    const result = await addCredits("+15555551234", 1, null);
+    const result = await addCredits("+15555551234", 1, null, mockGetCreditsForNumber);
 
-    expect(result).toEqual({ teamId: 2 });
+    expect(prismaMock.smsCreditCount.update).toHaveBeenCalledTimes(1);
+
+    expect(prismaMock.smsCreditCount.update).toHaveBeenCalledWith({
+      where: {
+        id: 1,
+      },
+      data: {
+        credits: {
+          increment: 2,
+        },
+      },
+      select: smsCreditCountSelect,
+    });
+
+    expect(result).toEqual({ isFree: true });
   });
+
+  // test("should return isFree false if team has still available free credits", async () => {
+  //   //is there are no more available free credits
+  // });
 
   describe("SMS limit almost reached", () => {
     test("should send 'limit almost reached' email when 80% of credits are used", async ({ emails }) => {
@@ -154,12 +135,15 @@ describe("addCredits", () => {
       prismaMock.smsCreditCount.update.mockResolvedValue({
         id: 1,
         credits: 650,
-        limitReachedAt: null,
-        warningSentAt: dayjs().subtract(3, "month").toDate(),
+        limitReached: false,
+        warningSent: true,
+        month: dayjs().startOf("month").toDate(),
         userId: null,
         teamId: 1,
+        overageCharges: 0,
         team: {
           name: "Test Team",
+          smsOverageLimit: 0,
           members: [
             {
               accepted: true,
@@ -189,13 +173,13 @@ describe("addCredits", () => {
         },
       } as SmsCreditCountWithTeam);
 
-      const result = await addCredits("+15555551234", null, 1);
+      const result = await addCredits("+15555551234", 1, 1);
 
       expect(result).toEqual({ teamId: 1 });
 
       expect(prismaMock.smsCreditCount.update).toHaveBeenCalledWith({
         data: {
-          warningSentAt: new Date(),
+          warningSent: true,
         },
         where: {
           id: 1,
@@ -221,6 +205,10 @@ describe("addCredits", () => {
       expect(areEmailsSentToMember).toBe(false);
     });
 
+    // test("should send 'limit almost reached' email when 80% of the overage limit are used", async ({
+    //   emails,
+    // }) => {});
+
     test("should not send 'limit almost reached' email when 80% of credits are used but email was already sent", async ({
       emails,
     }) => {
@@ -228,12 +216,15 @@ describe("addCredits", () => {
       prismaMock.smsCreditCount.update.mockResolvedValue({
         id: 1,
         credits: 230,
-        limitReachedAt: null,
-        warningSentAt: dayjs().subtract(3, "day").toDate(),
+        limitReached: false,
+        warningSent: true,
+        month: dayjs().startOf("month").toDate(),
         userId: null,
         teamId: 1,
+        overageCharges: 0,
         team: {
           name: "Test Team",
+          smsOverageLimit: 0,
           members: [
             {
               accepted: true,
@@ -247,7 +238,7 @@ describe("addCredits", () => {
         },
       } as SmsCreditCountWithTeam);
 
-      const result = await addCredits("+15555551234", null, 1);
+      const result = await addCredits("+15555551234", 1, 1);
 
       expect(result).toEqual({ teamId: 1 });
 
@@ -265,11 +256,14 @@ describe("addCredits", () => {
       prismaMock.smsCreditCount.update.mockResolvedValue({
         id: 1,
         credits: 752,
-        limitReachedAt: null,
-        warningSentAt: dayjs().subtract(3, "day").toDate(),
+        limitReached: false,
+        warningSent: true,
+        month: dayjs().startOf("month").toDate(),
         userId: null,
         teamId: 1,
+        overageCharges: 0,
         team: {
+          smsOverageLimit: 0,
           name: "Test Team",
           members: [
             {
@@ -300,7 +294,7 @@ describe("addCredits", () => {
         },
       } as SmsCreditCountWithTeam);
 
-      const result = await addCredits("+15555551234", null, 1);
+      const result = await addCredits("+15555551234", 1, 1);
 
       expect(prismaMock.smsCreditCount.update).toHaveBeenCalledWith({
         data: {
@@ -345,12 +339,15 @@ describe("addCredits", () => {
       prismaMock.smsCreditCount.update.mockResolvedValue({
         id: 1,
         credits: 253,
-        limitReachedAt: dayjs().subtract(3, "day").toDate(),
-        warningSentAt: dayjs().subtract(10, "day").toDate(),
+        limitReached: true,
+        warningSent: true,
+        month: dayjs().startOf("month").toDate(),
         userId: null,
         teamId: 1,
+        overageCharges: 0,
         team: {
           name: "Test Team",
+          smsOverageLimit: 0,
           members: [
             {
               accepted: true,
@@ -364,7 +361,7 @@ describe("addCredits", () => {
         },
       } as SmsCreditCountWithTeam);
 
-      const result = await addCredits("+15555551234", null, 1);
+      const result = await addCredits("+15555551234", 1, 1);
 
       expect(result).toEqual(null); // limit was already reached no team has available credits
 
@@ -376,3 +373,7 @@ describe("addCredits", () => {
     });
   });
 });
+
+// describe("getPayingTeamId", () => {});
+
+// describe("cancelScheduledSmsAndScheduleEmails", () => {});

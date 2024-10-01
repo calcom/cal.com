@@ -156,6 +156,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
+        //todo callback missing here
         const scheduledSMS = await twilio.scheduleSMS(
           sendTo,
           message,
