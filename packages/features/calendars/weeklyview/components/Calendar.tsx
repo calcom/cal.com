@@ -76,7 +76,6 @@ export function Calendar(props: CalendarComponentProps) {
                     "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
                 }}>
                 <HorizontalLines
-                  hours={hours}
                   startHour={startHour}
                   endHour={endHour}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
