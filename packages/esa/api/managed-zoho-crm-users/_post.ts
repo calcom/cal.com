@@ -58,21 +58,27 @@ const createSchedule = async (input: { name: string; schedule: any }, user: any,
 async function postHandler(req: NextApiRequest) {
   const $req = req as NextApiRequest & { prisma: any };
 
-  console.log("1 ==> start", $req.body);
-
   const body = setupManagedZohoUserRequestSchema.parse($req.body);
   const prisma: PrismaClient = $req.prisma;
 
-  console.log("2 ==> body", body);
   const existingSetupEntry = await prisma.zohoSchedulingSetup.findFirst({
     where: {
       zuid: body.zuid,
     },
   });
 
-  console.log("3 ==> existEntry", existingSetupEntry);
   if (existingSetupEntry) {
     throw new Error("zoho user already has a managed setup in progress");
+  }
+
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      email: body.email.toLowerCase(),
+    },
+  });
+
+  if (existingUser) {
+    throw new Error("Cal user with the provided email already exists. Please complete the setup manually.");
   }
 
   // create cal user
@@ -81,7 +87,6 @@ async function postHandler(req: NextApiRequest) {
   const password = "some-default-password";
   const hashedPassword = await hashPassword(password);
 
-  console.log("4 ==> user create ==>", email);
   const user = await prisma.user.create({
     data: {
       name: body.name,
@@ -95,7 +100,6 @@ async function postHandler(req: NextApiRequest) {
     },
   });
 
-  console.log("5 ==> user", user);
   // create setup entry
   const managedSetup = await prisma.zohoSchedulingSetup.create({
     data: {
@@ -106,7 +110,6 @@ async function postHandler(req: NextApiRequest) {
     },
   });
 
-  console.log("6 ==> manage ", managedSetup);
   await createSchedule(
     {
       name: "Working Hours",
@@ -127,8 +130,6 @@ async function postHandler(req: NextApiRequest) {
     refresh_token: "-",
   };
 
-  console.log("7 ==>", appData, zoomKey);
-
   await prisma.credential.create({
     data: {
       type: appData.type,
@@ -138,16 +139,12 @@ async function postHandler(req: NextApiRequest) {
     },
   });
 
-  console.log("8 ==> zoom credentials created");
   // send zoho calendar oauth link
   const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
 
-  console.log("9 ==> before getAppKeys");
   const appKeys = await getAppKeysFromSlug("zohocalendar");
-  console.log("10 ==> after getAppKeys");
 
   const { client_id } = zohoKeysSchema.parse(appKeys);
-  console.log("11 ==> zohoKeysSchema", client_id);
 
   const state = JSON.stringify({
     managedSetupReturnTo: `${WEBAPP_URL}/esa/complete-setup`,
@@ -156,7 +153,6 @@ async function postHandler(req: NextApiRequest) {
     managedSetupId: managedSetup.id,
     userId: user.id,
   });
-  console.log("12 ==> state", state);
 
   const params = {
     client_id,
@@ -173,13 +169,9 @@ async function postHandler(req: NextApiRequest) {
     prompt: "consent",
   };
 
-  console.log("13 ==> params", params);
-
   const query = stringify(params);
-  console.log("14 ==> query", query);
 
   const url = `${OAUTH_BASE_URL}/auth?${query}`;
-  console.log("15 ==> url", url);
 
   await sendMail({
     from: "buffer-sender@buffer-staging.esa-emails.technology",
@@ -187,8 +179,6 @@ async function postHandler(req: NextApiRequest) {
     subject: "Scheduling Setup",
     html: setupZohoCalenderOauthEmail({ url }),
   });
-
-  console.log("16 ==> email sent -->");
 
   return {
     message: "Managed setup in progress",

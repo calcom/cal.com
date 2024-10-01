@@ -16,14 +16,11 @@ function shouldRedact<T extends Error>(error: T) {
 }
 
 export const redactError = <T extends Error | unknown>(error: T) => {
-  console.log("ALL Redact Error ==>", error);
   if (!(error instanceof Error)) {
     return error;
   }
   log.debug("Type of Error: ", error.constructor);
   if (shouldRedact(error) && IS_PRODUCTION) {
-    console.log("STRINGIFY PROD Redact Error ==>", JSON.stringify(error));
-    console.log("Clean PROD Redact Error ==>", error);
     log.error("Error: ", JSON.stringify(error));
     return new Error("An error occured while querying the database.11");
   }
