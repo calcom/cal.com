@@ -12,7 +12,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const [eventTypeId, setEventTypeId] = useState<number | null>(null);
   const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
   const router = useRouter();
-  const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypes(props.calUsername);
+  const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
   const { data: teams } = useTeams();
   const { isLoading: isLoadingTeamEvents, data: teamEventTypes } = useTeamEventTypes(teams?.[0]?.id || 0);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
@@ -85,7 +85,19 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         )}
         {eventTypeId && (
           <div>
-            <EventTypeSettings id={eventTypeId} tabs={["setup", "limits", "recurring", "advanced"]} />
+            <EventTypeSettings
+              id={eventTypeId}
+              tabs={["setup", "limits", "recurring", "advanced"]}
+              onSuccess={(eventType) => {
+                console.log(eventType);
+                setEventTypeId(null);
+                refetch();
+              }}
+              onError={(eventType, error) => {
+                console.log(eventType);
+                console.error(error);
+              }}
+            />
           </div>
         )}
       </div>
