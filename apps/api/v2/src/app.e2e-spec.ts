@@ -58,7 +58,7 @@ describe("AppController", () => {
         null
       );
       apiKeyStringWithRateLimit = `cal_test_${keyStringWithRateLimit}`;
-      rateLimit = await rateLimitRepositoryFixture.createRateLimit(apiKey.id, 2000, 3, 4000);
+      rateLimit = await rateLimitRepositoryFixture.createRateLimit("long", apiKey.id, 2000, 3, 4000);
 
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       organization = await organizationsRepositoryFixture.create({ name: "ecorp" });
@@ -101,9 +101,9 @@ describe("AppController", () => {
             .set({ Authorization: `Bearer ${apiKeyString}` })
             .expect(200);
 
-          expect(response.headers["x-ratelimit-limit"]).toBe(limit.toString());
-          expect(response.headers["x-ratelimit-remaining"]).toBe((limit - i).toString());
-          expect(Number(response.headers["x-ratelimit-reset"])).toBeGreaterThan(0);
+          expect(response.headers["x-ratelimit-limit-default"]).toBe(limit.toString());
+          expect(response.headers["x-ratelimit-remaining-default"]).toBe((limit - i).toString());
+          expect(Number(response.headers["x-ratelimit-reset-default"])).toBeGreaterThan(0);
         }
 
         const blockedResponse = await request(app.getHttpServer())
@@ -111,9 +111,9 @@ describe("AppController", () => {
           .set("Authorization", `Bearer ${apiKeyString}`)
           .expect(429);
 
-        expect(blockedResponse.headers["x-ratelimit-limit"]).toBe(limit.toString());
-        expect(blockedResponse.headers["x-ratelimit-remaining"]).toBe("0");
-        expect(Number(blockedResponse.headers["x-ratelimit-reset"])).toBeGreaterThanOrEqual(
+        expect(blockedResponse.headers["x-ratelimit-limit-default"]).toBe(limit.toString());
+        expect(blockedResponse.headers["x-ratelimit-remaining-default"]).toBe("0");
+        expect(Number(blockedResponse.headers["x-ratelimit-reset-default"])).toBeGreaterThanOrEqual(
           blockDuration / 1000
         );
 
@@ -124,9 +124,9 @@ describe("AppController", () => {
           .set("Authorization", `Bearer ${apiKeyString}`)
           .expect(200);
 
-        expect(afterBlockResponse.headers["x-ratelimit-limit"]).toBe(limit.toString());
-        expect(afterBlockResponse.headers["x-ratelimit-remaining"]).toBe((limit - 1).toString());
-        expect(Number(afterBlockResponse.headers["x-ratelimit-reset"])).toBeGreaterThan(0);
+        expect(afterBlockResponse.headers["x-ratelimit-limit-default"]).toBe(limit.toString());
+        expect(afterBlockResponse.headers["x-ratelimit-remaining-default"]).toBe((limit - 1).toString());
+        expect(Number(afterBlockResponse.headers["x-ratelimit-reset-default"])).toBeGreaterThan(0);
       },
       15 * 1000
     );
@@ -136,6 +136,7 @@ describe("AppController", () => {
       async () => {
         const limit = rateLimit.limit;
         const blockDuration = rateLimit.blockDuration;
+        const name = rateLimit.name;
 
         for (let i = 1; i <= limit; i++) {
           const response = await request(app.getHttpServer())
@@ -143,9 +144,9 @@ describe("AppController", () => {
             .set({ Authorization: `Bearer ${apiKeyStringWithRateLimit}` })
             .expect(200);
 
-          expect(response.headers["x-ratelimit-limit"]).toBe(limit.toString());
-          expect(response.headers["x-ratelimit-remaining"]).toBe((limit - i).toString());
-          expect(Number(response.headers["x-ratelimit-reset"])).toBeGreaterThan(0);
+          expect(response.headers[`x-ratelimit-limit-${name}`]).toBe(limit.toString());
+          expect(response.headers[`x-ratelimit-remaining-${name}`]).toBe((limit - i).toString());
+          expect(Number(response.headers[`x-ratelimit-reset-${name}`])).toBeGreaterThan(0);
         }
 
         const blockedResponse = await request(app.getHttpServer())
@@ -153,9 +154,9 @@ describe("AppController", () => {
           .set("Authorization", `Bearer ${apiKeyStringWithRateLimit}`)
           .expect(429);
 
-        expect(blockedResponse.headers["x-ratelimit-limit"]).toBe(limit.toString());
-        expect(blockedResponse.headers["x-ratelimit-remaining"]).toBe("0");
-        expect(Number(blockedResponse.headers["x-ratelimit-reset"])).toBeGreaterThanOrEqual(
+        expect(blockedResponse.headers[`x-ratelimit-limit-${name}`]).toBe(limit.toString());
+        expect(blockedResponse.headers[`x-ratelimit-remaining-${name}`]).toBe("0");
+        expect(Number(blockedResponse.headers[`x-ratelimit-reset-${name}`])).toBeGreaterThanOrEqual(
           blockDuration / 1000
         );
 
@@ -166,9 +167,9 @@ describe("AppController", () => {
           .set("Authorization", `Bearer ${apiKeyStringWithRateLimit}`)
           .expect(200);
 
-        expect(afterBlockResponse.headers["x-ratelimit-limit"]).toBe(limit.toString());
-        expect(afterBlockResponse.headers["x-ratelimit-remaining"]).toBe((limit - 1).toString());
-        expect(Number(afterBlockResponse.headers["x-ratelimit-reset"])).toBeGreaterThan(0);
+        expect(afterBlockResponse.headers[`x-ratelimit-limit-${name}`]).toBe(limit.toString());
+        expect(afterBlockResponse.headers[`x-ratelimit-remaining-${name}`]).toBe((limit - 1).toString());
+        expect(Number(afterBlockResponse.headers[`x-ratelimit-reset-${name}`])).toBeGreaterThan(0);
       },
       15 * 1000
     );
@@ -186,9 +187,9 @@ describe("AppController", () => {
             .set(X_CAL_SECRET_KEY, oAuthClient.secret)
             .expect(200);
 
-          expect(response.headers["x-ratelimit-limit"]).toBe(limit.toString());
-          expect(response.headers["x-ratelimit-remaining"]).toBe((limit - i).toString());
-          expect(Number(response.headers["x-ratelimit-reset"])).toBeGreaterThan(0);
+          expect(response.headers["x-ratelimit-limit-default"]).toBe(limit.toString());
+          expect(response.headers["x-ratelimit-remaining-default"]).toBe((limit - i).toString());
+          expect(Number(response.headers["x-ratelimit-reset-default"])).toBeGreaterThan(0);
         }
 
         const blockedResponse = await request(app.getHttpServer())
@@ -197,9 +198,9 @@ describe("AppController", () => {
           .set(X_CAL_SECRET_KEY, oAuthClient.secret)
           .expect(429);
 
-        expect(blockedResponse.headers["x-ratelimit-limit"]).toBe(limit.toString());
-        expect(blockedResponse.headers["x-ratelimit-remaining"]).toBe("0");
-        expect(Number(blockedResponse.headers["x-ratelimit-reset"])).toBeGreaterThanOrEqual(
+        expect(blockedResponse.headers["x-ratelimit-limit-default"]).toBe(limit.toString());
+        expect(blockedResponse.headers["x-ratelimit-remaining-default"]).toBe("0");
+        expect(Number(blockedResponse.headers["x-ratelimit-reset-default"])).toBeGreaterThanOrEqual(
           blockDuration / 1000
         );
 
@@ -211,9 +212,9 @@ describe("AppController", () => {
           .set(X_CAL_SECRET_KEY, oAuthClient.secret)
           .expect(200);
 
-        expect(afterBlockResponse.headers["x-ratelimit-limit"]).toBe(limit.toString());
-        expect(afterBlockResponse.headers["x-ratelimit-remaining"]).toBe((limit - 1).toString());
-        expect(Number(afterBlockResponse.headers["x-ratelimit-reset"])).toBeGreaterThan(0);
+        expect(afterBlockResponse.headers["x-ratelimit-limit-default"]).toBe(limit.toString());
+        expect(afterBlockResponse.headers["x-ratelimit-remaining-default"]).toBe((limit - 1).toString());
+        expect(Number(afterBlockResponse.headers["x-ratelimit-reset-default"])).toBeGreaterThan(0);
       },
       15 * 1000
     );

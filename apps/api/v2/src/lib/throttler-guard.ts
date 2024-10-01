@@ -22,10 +22,13 @@ const DEFAULT_LIMIT = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 120));
 const DEFAULT_BLOCK_DURATION = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", 60 * 1000));
 
 const rateLimitSchema = z.object({
+  name: z.string(),
   limit: z.number(),
   ttl: z.number(),
   blockDuration: z.number(),
 });
+
+type RateLimitType = z.infer<typeof rateLimitSchema>;
 
 const rateLimitsSchema = z.array(rateLimitSchema);
 
@@ -69,6 +72,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
   private async handleNonApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
     const rateLimit = {
+      name: "default",
       limit: DEFAULT_LIMIT,
       ttl: DEFAULT_TTL,
       blockDuration: DEFAULT_BLOCK_DURATION,
@@ -79,9 +83,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     return true;
   }
 
-  private async getRateLimitsForApiKeyTracker(
-    tracker: string
-  ): Promise<Array<{ limit: number; ttl: number; blockDuration: number }>> {
+  private async getRateLimitsForApiKeyTracker(tracker: string) {
     const cacheKey = `rate_limit:${tracker}`;
 
     const cachedRateLimits = await this.storageService.redis.get(cacheKey);
@@ -90,7 +92,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     }
 
     const apiKey = tracker.replace("api_key_", "");
-    let rateLimits: Array<{ limit: number; ttl: number; blockDuration: number }>;
+    let rateLimits: RateLimitType[];
     const apiKeyRecord = await this.dbRead.prisma.apiKey.findUnique({
       where: { hashedKey: apiKey },
       select: { id: true },
@@ -102,12 +104,13 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     rateLimits = await this.dbRead.prisma.rateLimit.findMany({
       where: { apiKeyId: apiKeyRecord.id },
-      select: { limit: true, ttl: true, blockDuration: true },
+      select: { name: true, limit: true, ttl: true, blockDuration: true },
     });
 
     if (!rateLimits || rateLimits.length === 0) {
       rateLimits = [
         {
+          name: "default",
           limit: DEFAULT_LIMIT,
           ttl: DEFAULT_TTL,
           blockDuration: DEFAULT_BLOCK_DURATION,
@@ -120,12 +123,8 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     return rateLimits;
   }
 
-  private async incrementRateLimit(
-    tracker: string,
-    rateLimit: { limit: number; ttl: number; blockDuration: number },
-    response: Response
-  ) {
-    const { limit, ttl, blockDuration } = rateLimit;
+  private async incrementRateLimit(tracker: string, rateLimit: RateLimitType, response: Response) {
+    const { name, limit, ttl, blockDuration } = rateLimit;
 
     const key = `${tracker}:${limit}:${ttl}`;
 
@@ -137,9 +136,13 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       "default"
     );
 
-    response.setHeader("X-RateLimit-Limit", limit);
-    response.setHeader("X-RateLimit-Remaining", timeToBlockExpire ? 0 : Math.max(0, limit - totalHits));
-    response.setHeader("X-RateLimit-Reset", timeToBlockExpire || timeToExpire);
+    const nameFirstUpper = name.charAt(0).toUpperCase() + name.slice(1);
+    response.setHeader(`X-RateLimit-Limit-${nameFirstUpper}`, limit);
+    response.setHeader(
+      `X-RateLimit-Remaining-${nameFirstUpper}`,
+      timeToBlockExpire ? 0 : Math.max(0, limit - totalHits)
+    );
+    response.setHeader(`X-RateLimit-Reset-${nameFirstUpper}`, timeToBlockExpire || timeToExpire);
 
     if (isBlocked) {
       throw new ThrottlerException("Too many requests. Please try again later.");

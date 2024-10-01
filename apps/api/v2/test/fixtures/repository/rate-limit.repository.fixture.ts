@@ -8,9 +8,10 @@ export class RateLimitRepositoryFixture {
     this.dbWrite = module.get(PrismaWriteService).prisma;
   }
 
-  async createRateLimit(apiKeyId: string, ttl: number, limit: number, blockDuration: number) {
+  async createRateLimit(name: string, apiKeyId: string, ttl: number, limit: number, blockDuration: number) {
     return await this.dbWrite.rateLimit.create({
       data: {
+        name,
         apiKeyId,
         ttl,
         limit,
