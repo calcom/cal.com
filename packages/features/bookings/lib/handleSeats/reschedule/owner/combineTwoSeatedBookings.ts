@@ -119,7 +119,7 @@ const combineTwoSeatedBookings = async (
 
   evt.attendees = updatedBookingAttendees;
 
-  evt = addVideoCallDataToEvent(updatedNewBooking.references, evt);
+  evt = { ...addVideoCallDataToEvent(updatedNewBooking.references, evt), bookerUrl: evt.bookerUrl };
 
   const copyEvent = cloneDeep(evt);
 

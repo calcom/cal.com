@@ -38,7 +38,7 @@ async function setupManagedEvent({
   const memberUser = users.get().find((u) => u.name === teamMateName)!;
   const { team } = await adminUser.getFirstTeamMembership();
   const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
-  return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle };
+  return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle, teamId: team.id };
 }
 
 /** Short hand to get elements by translation key */
@@ -129,7 +129,9 @@ test.describe("Managed Event Types", () => {
   test("Provides discrete field lock/unlock state for admin", async ({ page, users }) => {
     const { adminUser, teamEventTitle } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
-    await page.goto("/event-types");
+    const teamMembership = await adminUser.getFirstTeamMembership();
+
+    await page.goto(`/event-types?teamId=${teamMembership.team.id}`);
 
     await page.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await page.waitForURL("event-types/**");
@@ -169,7 +171,7 @@ test.describe("Managed Event Types", () => {
     users,
     browser,
   }) => {
-    const { adminUser, memberUser, teamEventTitle } = await setupManagedEvent({
+    const { adminUser, memberUser, teamEventTitle, teamId } = await setupManagedEvent({
       users,
       unlockedFields: {
         title: true,
@@ -185,7 +187,7 @@ test.describe("Managed Event Types", () => {
 
     // We edit the managed event as original owner
     const [adminContext, adminPage] = await adminUser.apiLoginOnNewBrowser(browser);
-    await adminPage.goto("/event-types");
+    await adminPage.goto(`/event-types?teamId=${teamId}`);
     await adminPage.getByTestId("event-types").locator(`a[title="${teamEventTitle}"]`).click();
     await adminPage.waitForURL("event-types/**");
     await adminPage.locator('input[name="length"]').fill(`45`);
