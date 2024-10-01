@@ -10,7 +10,6 @@ import { Toaster } from "react-hot-toast";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
@@ -27,19 +26,11 @@ import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
-import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
-import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Button,
   ButtonOrLink,
   Credits,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuTrigger,
   ErrorBoundary,
   HeadSeo,
   Icon,
@@ -47,15 +38,15 @@ import {
   showToast,
   SkeletonText,
   Tooltip,
-  type IconName,
 } from "@calcom/ui";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
-import { TeamInviteBadge } from "./TeamInviteBadge";
+import { Navigation, MobileNavigationContainer } from "./Navigation";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
-import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./navigation/NavigationItem";
+import { MobileNavigationMoreItem } from "./navigation/NavigationItem";
 import { useAppTheme } from "./useAppTheme";
+import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 
 // need to import without ssr to prevent hydration errors
@@ -173,208 +164,7 @@ export default function Shell(props: LayoutProps) {
   );
 }
 
-export type NavigationItemType = {
-  name: string;
-  href: string;
-  isLoading?: boolean;
-  onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
-  target?: HTMLAnchorElement["target"];
-  badge?: React.ReactNode;
-  icon?: IconName;
-  child?: NavigationItemType[];
-  pro?: true;
-  onlyMobile?: boolean;
-  onlyDesktop?: boolean;
-  isCurrent?: ({
-    item,
-    isChild,
-    pathname,
-  }: {
-    item: Pick<NavigationItemType, "href">;
-    isChild?: boolean;
-    pathname: string | null;
-  }) => boolean;
-};
-
 const requiredCredentialNavigationItems = ["Routing Forms"];
-const MORE_SEPARATOR_NAME = "more";
-
-const navigation: NavigationItemType[] = [
-  {
-    name: "event_types_page_title",
-    href: "/event-types",
-    icon: "link",
-  },
-  {
-    name: "bookings",
-    href: "/bookings/upcoming",
-    icon: "calendar",
-    badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
-  },
-  {
-    name: "availability",
-    href: "/availability",
-    icon: "clock",
-  },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: "users",
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
-  },
-  {
-    name: "apps",
-    href: "/apps",
-    icon: "grid-3x3",
-    isCurrent: ({ pathname: path, item }) => {
-      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
-    },
-    child: [
-      {
-        name: "app_store",
-        href: "/apps",
-        isCurrent: ({ pathname: path, item }) => {
-          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-          return (
-            (path?.startsWith(item.href) ?? false) &&
-            !(path?.includes("routing-forms/") ?? false) &&
-            !(path?.includes("/installed") ?? false)
-          );
-        },
-      },
-      {
-        name: "installed_apps",
-        href: "/apps/installed/calendar",
-        isCurrent: ({ pathname: path }) =>
-          (path?.startsWith("/apps/installed/") ?? false) ||
-          (path?.startsWith("/v2/apps/installed/") ?? false),
-      },
-    ],
-  },
-  {
-    name: MORE_SEPARATOR_NAME,
-    href: "/more",
-    icon: "ellipsis",
-  },
-  {
-    name: "Routing Forms",
-    href: "/apps/routing-forms/forms",
-    icon: "file-text",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: "zap",
-  },
-  {
-    name: "insights",
-    href: "/insights",
-    icon: "chart-bar",
-  },
-];
-
-const platformNavigation: NavigationItemType[] = [
-  {
-    name: "Dashboard",
-    href: "/settings/platform/",
-    icon: "layout-dashboard",
-  },
-  {
-    name: "Documentation",
-    href: "https://docs.cal.com/docs/platform",
-    icon: "chart-bar",
-    target: "_blank",
-  },
-  {
-    name: "API reference",
-    href: "https://api.cal.com/v2/docs#/",
-    icon: "terminal",
-    target: "_blank",
-  },
-  {
-    name: "Atoms",
-    href: "https://docs.cal.com/docs/platform#atoms",
-    icon: "atom",
-    target: "_blank",
-  },
-  {
-    name: MORE_SEPARATOR_NAME,
-    href: "https://docs.cal.com/docs/platform/faq",
-    icon: "ellipsis",
-    target: "_blank",
-  },
-];
-
-const getDesktopNavigationItems = (isPlatformNavigation = false) => {
-  const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
-  const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
-
-  const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
-    !isPlatformNavigation ? navigation : platformNavigation
-  ).reduce<Record<string, NavigationItemType[]>>(
-    (items, item, index) => {
-      // We filter out the "more" separator in` desktop navigation
-      if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-      // Items for mobile bottom navigation
-      if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-        items.mobileNavigationBottomItems.push(item);
-      } // Items for the "more" menu in mobile navigation
-      else {
-        items.mobileNavigationMoreItems.push(item);
-      }
-      return items;
-    },
-    { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
-  );
-
-  return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
-};
-
-const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
-  const { desktopNavigationItems } = getDesktopNavigationItems(isPlatformNavigation);
-
-  return (
-    <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
-      {desktopNavigationItems.map((item) => (
-        <NavigationItem key={item.name} item={item} />
-      ))}
-      <div className="text-subtle mt-0.5 lg:hidden">
-        <KBarTrigger />
-      </div>
-    </nav>
-  );
-};
-
-function MobileNavigationContainer({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) {
-  const { status } = useSession();
-  if (status !== "authenticated") return null;
-  return <MobileNavigation isPlatformNavigation={isPlatformNavigation} />;
-}
-
-const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
-  const isEmbed = useIsEmbed();
-  const { mobileNavigationBottomItems } = getDesktopNavigationItems(isPlatformNavigation);
-
-  return (
-    <>
-      <nav
-        className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
-          isEmbed && "hidden"
-        )}>
-        {mobileNavigationBottomItems.map((item) => (
-          <MobileNavigationItem key={item.name} item={item} />
-        ))}
-      </nav>
-      {/* add padding to content for mobile navigation*/}
-      <div className="block pt-12 md:hidden" />
-    </>
-  );
-};
 
 type SideBarContainerProps = {
   bannersHeight: number;
@@ -746,97 +536,3 @@ export const MobileNavigationMoreItems = () => {
     </ul>
   );
 };
-
-function ProfileDropdown() {
-  const { update, data: sessionData } = useSession();
-  const { data } = trpc.viewer.me.useQuery();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const refreshData = useRefreshData();
-
-  if (!data || !ENABLE_PROFILE_SWITCHER || !sessionData) {
-    return null;
-  }
-  const options = data.profiles.map((profile) => {
-    let label;
-    if (profile.organization) {
-      label = profile.organization.name;
-    } else {
-      label = sessionData.user.name;
-    }
-
-    return {
-      label,
-      value: profile.upId,
-    };
-  });
-
-  const currentOption = options.find((option) => option.value === sessionData.upId) || options[0];
-
-  return (
-    <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button
-          data-testid="user-dropdown-trigger-button"
-          className={classNames(
-            "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full px-2 py-1.5 text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded"
-          )}>
-          <span className="flex w-full flex-grow items-center justify-around gap-2 text-sm font-medium leading-none">
-            <Avatar alt={currentOption.label || ""} size="xsm" />
-            <span className="block w-20 overflow-hidden overflow-ellipsis whitespace-nowrap">
-              {currentOption.label}
-            </span>
-            <Icon
-              name="chevron-down"
-              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
-              aria-hidden="true"
-            />
-          </span>
-        </button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuPortal>
-        <DropdownMenuContent
-          align="start"
-          onInteractOutside={() => {
-            setMenuOpen(false);
-          }}
-          className="min-w-56 hariom group overflow-hidden rounded-md">
-          <DropdownMenuItem className="p-3 uppercase">
-            <span>Switch to</span>
-          </DropdownMenuItem>
-          {options.map((option) => {
-            const isSelected = currentOption.value === option.value;
-            return (
-              <DropdownMenuItem
-                key={option.value}
-                onClick={() => {
-                  setMenuOpen(false);
-                  if (isSelected) return;
-                  update({
-                    upId: option.value,
-                  }).then(() => {
-                    refreshData();
-                  });
-                }}
-                className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}>
-                <DropdownItem
-                  type="button"
-                  childrenClassName={classNames("flex w-full justify-between items-center")}>
-                  <span>
-                    <Avatar alt={option.label || ""} size="xsm" />
-                    <span className="ml-2">{option.label}</span>
-                  </span>
-                  {isSelected ? (
-                    <Icon name="check" className="ml-2 inline h-4 w-4" aria-hidden="true" />
-                  ) : null}
-                </DropdownItem>
-              </DropdownMenuItem>
-            );
-          })}
-
-          {/* <DropdownMenuSeparator /> */}
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
-  );
-}
