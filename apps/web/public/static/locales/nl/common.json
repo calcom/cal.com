@@ -2168,7 +2168,7 @@
   "select_time": "Tijd selecteren",
   "select_date": "Datum selecteren",
   "connecting_you_to_someone": "We verbinden je met iemand.",
-  "please_do_not_close_this_tab": "Sluit dit tabblad niet.",
+  "please_do_not_close_this_tab": "Sluit of vernieuw deze pagina niet",
   "see_all_available_times": "Bekijk alle beschikbare tijden",
   "org_team_names_example_1": "bijvoorbeeld Marketingteam",
   "org_team_names_example_2": "bijvoorbeeld Verkoopteam",
@@ -2601,6 +2601,9 @@
   "outlook_connect_atom_label": "Outlook Agenda verbinden",
   "outlook_connect_atom_already_connected_label": "Verbonden Outlook-agenda",
   "outlook_connect_atom_loading_label": "Outlook-agenda controleren",
+  "stripe_connect_atom_label": "Verbinden met Stripe",
+  "stripe_connect_atom_already_connected_label": "Stripe verbonden",
+  "stripe_connect_atom_loading_label": "Stripe-gegevens controleren",
   "booking_question_response_variables": "Variabelen voor boekingsvraagreacties",
   "managed_by_teamAdmins": "Beheerd door {{teamAdmins}}",
   "number_of_options": "{{count}} opties",
@@ -2614,5 +2617,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "U bent niet gemachtigd om deze wijziging in de boeking aan te brengen",
   "hide_calendar_event_details": "Verberg details van kalendergebeurtenissen op gedeelde kalenders",
   "description_hide_calendar_event_details": "Wanneer een kalender wordt gedeeld, zijn gebeurtenissen zichtbaar voor lezers, maar hun details zijn verborgen voor degenen zonder schrijfrechten.",
+  "last_number_of_days": "laatste {{count}} dagen",
+  "month_to_date": "maand tot nu toe",
+  "year_to_date": "jaar tot nu toe",
+  "custom_range": "aangepast bereik",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -4,11 +4,9 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 import type { MultiValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Locations from "@calcom/features/eventtypes/components/Locations";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
@@ -19,15 +17,15 @@ export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 >;
-export const EventSetupTab = (props: EventSetupTabProps) => {
+export const EventSetupTab = (props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding } = props;
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBranding();
+
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const multipleDurationOptions = [
@@ -54,9 +52,6 @@ export const EventSetupTab = (props: EventSetupTabProps) => {
   const descriptionLockedProps = shouldLockDisableProps("description");
   const urlLockedProps = shouldLockDisableProps("slug");
   const titleLockedProps = shouldLockDisableProps("title");
-  const urlPrefix = orgBranding
-    ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-    : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
@@ -98,7 +93,7 @@ export const EventSetupTab = (props: EventSetupTabProps) => {
                 {urlPrefix}/
                 {!isManagedEventType
                   ? team
-                    ? (orgBranding ? "" : "team/") + team.slug
+                    ? (hasOrgBranding ? "" : "team/") + team.slug
                     : formMethods.getValues("users")[0].username
                   : t("username_placeholder")}
                 /
