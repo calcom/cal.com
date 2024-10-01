@@ -44,7 +44,7 @@ import { AppController } from "./app.controller";
         // So we need to specify at least one dummy throttler here and CustomThrottlerGuard is actually handling the default and custom rate limits.
         throttlers: [
           {
-            name: "long",
+            name: "dummy",
             ttl: seconds(60),
             limit: 120,
           },
