@@ -297,9 +297,12 @@ test.describe("Organization", () => {
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
         await expect(page.locator("text=Create your account")).toBeVisible();
-        const usernameInput = page.locator('input[name="username"]');
+        await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
+        await page.locator('[data-testid="continue-with-email-button"]').click();
+        await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
+
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await usernameInput.fill(existingUser.username!);
+        await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
           .fill(`${existingUser.username}-differnet-email@example.com`);
@@ -429,7 +432,7 @@ async function signupFromInviteLink({
   const context = await browser.newContext();
   const inviteLinkPage = await context.newPage();
   await inviteLinkPage.goto(inviteLink);
-  await inviteLinkPage.waitForLoadState("networkidle");
+  await expect(inviteLinkPage.locator("text=Create your account")).toBeVisible();
 
   // Check required fields
   const button = inviteLinkPage.locator("button[type=submit][disabled]");
@@ -458,7 +461,7 @@ export async function signupFromEmailInviteLink({
   const signupPage = await context.newPage();
 
   signupPage.goto(inviteLink);
-  await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
+  await expect(signupPage.locator("text=Create your account")).toBeVisible();
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
   // await for value. initial value is ""
   if (expectedUsername) {
@@ -470,7 +473,6 @@ export async function signupFromEmailInviteLink({
     await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toHaveValue(expectedEmail);
   }
 
-  await signupPage.waitForLoadState("networkidle");
   // Check required fields
   await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
   await signupPage.locator("button[type=submit]").click();

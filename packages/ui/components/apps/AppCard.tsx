@@ -42,29 +42,20 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
-      setIsLoading(false);
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-      setIsLoading(false);
     },
   });
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
-  /**
-   * @todo Refactor to eliminate the isLoading state by using mutation.isPending directly.
-   * Currently, the isLoading state is used to manage the loading indicator due to the delay in loading the next page,
-   * which is caused by heavy queries in getServersideProps. This causes the loader to turn off before the page changes.
-   */
-  const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
 
   useEffect(() => {
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
 
   const handleAppInstall = () => {
-    setIsLoading(true);
     if (isConferencing(app.categories)) {
       mutation.mutate({
         type: app.type,
@@ -154,7 +145,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       onClick: () => {
                         handleAppInstall();
                       },
-                      loading: isLoading,
+                      loading: mutation.isPending,
                     };
                   }
                   return <InstallAppButtonChild paid={app.paid} {...props} />;
@@ -176,7 +167,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       onClick: () => {
                         handleAppInstall();
                       },
-                      loading: isLoading,
+                      loading: mutation.isPending,
                     };
                   }
                   return <InstallAppButtonChild paid={app.paid} {...props} />;
