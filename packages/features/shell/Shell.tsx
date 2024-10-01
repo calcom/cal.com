@@ -1,10 +1,10 @@
 import type { User as UserAuth } from "next-auth";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, Fragment, useEffect, useMemo, useState } from "react";
+import React, { cloneElement, Fragment, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -12,7 +12,6 @@ import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/h
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
@@ -20,23 +19,18 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import classNames from "@calcom/lib/classNames";
 import {
   APP_NAME,
-  DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
   IS_CALCOM,
   IS_VISUAL_REGRESSION_TESTING,
-  JOIN_COMMUNITY,
-  ROADMAP,
 } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Avatar,
   Button,
@@ -47,7 +41,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   ErrorBoundary,
   HeadSeo,
@@ -58,14 +51,13 @@ import {
   Tooltip,
   type IconName,
 } from "@calcom/ui";
-import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
-import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
 import { useAppTheme } from "./useAppTheme";
+import { UserDropdown } from "./user-dropdown/UserDropdown";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -74,7 +66,6 @@ const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tip
 
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
-
   const pathname = usePathname();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
@@ -180,203 +171,6 @@ export default function Shell(props: LayoutProps) {
     </KBarWrapper>
   ) : (
     <PublicShell {...props} />
-  );
-}
-
-interface UserDropdownProps {
-  small?: boolean;
-}
-
-function UserDropdown({ small }: UserDropdownProps) {
-  const { isPlatformUser } = useGetUserAttributes();
-  const { t } = useLocale();
-  const { data: user } = useMeQuery();
-  const utils = trpc.useUtils();
-  const bookerUrl = useBookerUrl();
-  const pathname = usePathname();
-  const isPlatformPages = pathname?.startsWith("/settings/platform");
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    const Beacon = window.Beacon;
-    // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
-    Beacon &&
-      Beacon("session-data", {
-        username: user?.username || "Unknown",
-        screenResolution: `${screen.width}x${screen.height}`,
-      });
-  });
-
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const onHelpItemSelect = () => {
-    setHelpOpen(false);
-    setMenuOpen(false);
-  };
-
-  // Prevent rendering dropdown if user isn't available.
-  // We don't want to show nameless user.
-  if (!user) {
-    return null;
-  }
-
-  return (
-    <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button
-          data-testid="user-dropdown-trigger-button"
-          className={classNames(
-            "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
-            small ? "p-2" : "px-2 py-1.5"
-          )}>
-          <span
-            className={classNames(
-              small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
-              "relative flex-shrink-0 rounded-full "
-            )}>
-            <Avatar
-              size={small ? "xs" : "xsm"}
-              imageSrc={`${user.avatarUrl || user.avatar}`}
-              alt={user.username || "Nameless User"}
-              className="overflow-hidden"
-            />
-            <span
-              className={classNames(
-                "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
-                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
-              )}
-            />
-          </span>
-          {!small && (
-            <span className="flex flex-grow items-center gap-2">
-              <span className="w-24 flex-shrink-0 text-sm leading-none">
-                <span className="text-emphasis block truncate font-medium">
-                  {user.name || "Nameless User"}
-                </span>
-              </span>
-              <Icon
-                name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
-                aria-hidden="true"
-              />
-            </span>
-          )}
-        </button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuPortal>
-        <FreshChatProvider>
-          <DropdownMenuContent
-            align="start"
-            onInteractOutside={() => {
-              setMenuOpen(false);
-              setHelpOpen(false);
-            }}
-            className="group overflow-hidden rounded-md">
-            {helpOpen ? (
-              <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
-            ) : (
-              <>
-                {!isPlatformPages && (
-                  <>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        CustomStartIcon={
-                          <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
-                        }
-                        href="/settings/my-account/profile">
-                        {t("my_profile")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        CustomStartIcon={
-                          <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                        }
-                        href="/settings/my-account/general">
-                        {t("my_settings")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        CustomStartIcon={
-                          <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
-                        }
-                        href="/settings/my-account/out-of-office">
-                        {t("out_of_office")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-
-                <DropdownMenuItem>
-                  <DropdownItem
-                    StartIcon="messages-square"
-                    target="_blank"
-                    rel="noreferrer"
-                    href={JOIN_COMMUNITY}>
-                    {t("join_our_community")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem StartIcon="map" target="_blank" href={ROADMAP}>
-                    {t("visit_roadmap")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon="circle-help"
-                    aria-hidden="true"
-                    onClick={() => setHelpOpen(true)}>
-                    {t("help")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                {!isPlatformPages && (
-                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                    <DropdownItem
-                      StartIcon="download"
-                      target="_blank"
-                      rel="noreferrer"
-                      href={DESKTOP_APP_LINK}>
-                      {t("download_desktop_app")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                )}
-
-                {!isPlatformPages && isPlatformUser && (
-                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                    <DropdownItem
-                      StartIcon="blocks"
-                      target="_blank"
-                      rel="noreferrer"
-                      href="/settings/platform">
-                      Platform
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon="log-out"
-                    aria-hidden="true"
-                    onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
-                    {t("sign_out")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </FreshChatProvider>
-      </DropdownMenuPortal>
-    </Dropdown>
   );
 }
 
