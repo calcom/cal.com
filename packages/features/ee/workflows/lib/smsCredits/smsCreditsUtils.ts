@@ -155,6 +155,13 @@ export async function addCredits(
     return { isFree: true };
   }
 
+  const warninigLimitReached =
+    smsCreditCountTeam.team.smsOverageLimit === 0
+      ? smsCreditCountTeam.credits > freeCredits * 0.8
+      : smsCreditCountTeam.overageCharges > smsCreditCountTeam.team.smsOverageLimit * 0.8;
+
+  let isFree = true;
+
   if (smsCreditCountTeam.credits > freeCredits) {
     if (smsCreditCountTeam.team.smsOverageLimit === 0) {
       const ownersAndAdmins = await Promise.all(
@@ -184,44 +191,38 @@ export async function addCredits(
       cancelScheduledSmsAndScheduleEmails({ teamId });
 
       return { isFree: true }; // still allow sending last sms
-    } else {
-      return { isFree: false };
     }
-  } else {
-    const warninigLimitReached =
-      smsCreditCountTeam.team.smsOverageLimit === 0
-        ? smsCreditCountTeam.credits > freeCredits * 0.8
-        : smsCreditCountTeam.overageCharges > smsCreditCountTeam.team.smsOverageLimit * 0.8;
+    isFree = false;
+  }
+  if (warninigLimitReached) {
+    if (!smsCreditCountTeam.warningSent) {
+      const ownersAndAdmins = await Promise.all(
+        acceptedMembers
+          .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
+          .map(async (member) => {
+            return {
+              email: member.user.email,
+              name: member.user.name,
+              t: await getTranslation(member.user.locale ?? "es", "common"),
+            };
+          })
+      );
 
-    if (warninigLimitReached) {
-      if (!smsCreditCountTeam.warningSent) {
-        const ownersAndAdmins = await Promise.all(
-          acceptedMembers
-            .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
-            .map(async (member) => {
-              return {
-                email: member.user.email,
-                name: member.user.name,
-                t: await getTranslation(member.user.locale ?? "es", "common"),
-              };
-            })
-        );
+      // notification email to team owners that limit is almost reached
+      await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
 
-        // notification email to team owners that limit is almost reached
-        await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
-
-        await prisma.smsCreditCount.update({
-          where: {
-            id: smsCreditCountTeam.id,
-          },
-          data: {
-            warningSent: true,
-          },
-        });
-      }
+      await prisma.smsCreditCount.update({
+        where: {
+          id: smsCreditCountTeam.id,
+        },
+        data: {
+          warningSent: true,
+        },
+      });
     }
   }
-  return { isFree: true };
+
+  return { isFree };
 }
 
 export async function getPayingTeamId(userId: number) {
@@ -309,22 +310,24 @@ export async function cancelScheduledSmsAndScheduleEmails({
     select: { referenceId: true, id: true, workflowStep: { select: { action: true } } },
   });
 
-  await Promise.all(
-    smsRemindersToCancel.map(async (reminder) => {
-      // Cancel already scheduled SMS
-      if (reminder.referenceId) {
-        await twilio.cancelSMS(reminder.referenceId);
-      }
-      if (reminder.workflowStep?.action && isAttendeeAction(reminder.workflowStep?.action))
-        // Update attendee reminders to unscheduled email reminder
-        await prisma.workflowReminder.update({
-          where: { id: reminder.id },
-          data: {
-            method: WorkflowMethods.EMAIL,
-            referenceId: null,
-            scheduled: false,
-          },
-        });
-    })
-  );
+  if (smsRemindersToCancel?.length) {
+    await Promise.all(
+      smsRemindersToCancel?.map(async (reminder) => {
+        // Cancel already scheduled SMS
+        if (reminder.referenceId) {
+          await twilio.cancelSMS(reminder.referenceId);
+        }
+        if (reminder.workflowStep?.action && isAttendeeAction(reminder.workflowStep?.action))
+          // Update attendee reminders to unscheduled email reminder
+          await prisma.workflowReminder.update({
+            where: { id: reminder.id },
+            data: {
+              method: WorkflowMethods.EMAIL,
+              referenceId: null,
+              scheduled: false,
+            },
+          });
+      })
+    );
+  }
 }
