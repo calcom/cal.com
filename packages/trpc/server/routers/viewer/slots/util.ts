@@ -416,8 +416,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   });
 
-  console.dir(currentBookingsAllUsers, { depth: null })
-
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
@@ -433,8 +431,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       durationLimits,
     });
   }
-
-  console.dir(busyTimesFromLimitsBookingsAllUsers, { depth: null })
 
   /* We get all users working hours and busy slots */
   const allUsersAvailability = await Promise.all(
@@ -483,8 +479,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       };
     })
   );
-
-  console.dir(allUsersAvailability, { depth: null })
 
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,

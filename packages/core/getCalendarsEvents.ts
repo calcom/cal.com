@@ -15,7 +15,6 @@ const getCalendarsEvents = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ): Promise<EventBusyDate[][]> => {
-  console.log('getCalendarsEvents called');
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
@@ -23,7 +22,6 @@ const getCalendarsEvents = async (
 
   const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
   performance.mark("getBusyCalendarTimesStart");
-  console.log('calendars', calendars)
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */
     if (!c) return [];
@@ -47,7 +45,6 @@ const getCalendarsEvents = async (
       })
     );
     const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
-    console.log('eventBusyDates', eventBusyDates);
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
