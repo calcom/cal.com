@@ -8,10 +8,12 @@ import React, { cloneElement, Fragment, useEffect, useMemo, useState } from "rea
 import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
+import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import useIntercom, { isInterComEnabled } from "@calcom/features/ee/support/lib/intercom/useIntercom";
+import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
@@ -35,7 +37,6 @@ import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotification
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
@@ -78,18 +79,9 @@ const Layout = (props: LayoutProps) => {
 
   const pathname = usePathname();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
-  const { data: user } = trpc.viewer.me.useQuery();
-  const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
-  useEffect(() => {
-    // not using useMediaQuery as it toggles between true and false
-    const showIntercom = localStorage.getItem("showIntercom");
-    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
-    boot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
+  useBootIntercom();
   useFormbricks();
 
   return (
