@@ -34,16 +34,19 @@ import { AppController } from "./app.controller";
     BullModule.forRoot({
       redis: `${process.env.REDIS_URL}${process.env.NODE_ENV === "production" ? "?tls=true" : ""}`,
     }),
-    // Rate limiting here is handled by the CustomThrottlerGuard
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
       inject: [RedisService],
       useFactory: (redisService: RedisService) => ({
+        // note(Lauris): IMPORTANT: rate limiting is enforced by CustomThrottlerGuard, but we need to have at least one
+        // entry in the throttlers array otherwise CustomThrottlerGuard is not invoked at all. If we specify only ThrottlerModule
+        // without .forRootAsync then throttler options are not passed to CustomThrottlerGuard containing redis connection etc.
+        // So we need to specify at least one dummy throttler here and CustomThrottlerGuard is actually handling the default and custom rate limits.
         throttlers: [
           {
             name: "long",
-            ttl: seconds(60), // Time to live for the long period in seconds
-            limit: 120, // Maximum number of requests within the long ttl
+            ttl: seconds(60),
+            limit: 120,
           },
         ],
         storage: new ThrottlerStorageRedisService(redisService.redis),
