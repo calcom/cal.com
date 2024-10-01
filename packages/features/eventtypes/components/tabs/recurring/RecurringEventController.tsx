@@ -24,11 +24,11 @@ export default function RecurringEventController({
   const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(
     formMethods.getValues("recurringEvent")
   );
-
+  /* Just yearly-0, monthly-1 and weekly-2 */
   const recurringEventFreqOptions = Object.entries(Frequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
     .map(([key, value]) => ({
-      label: t(`${key.toString().toLowerCase()}_one`),
+      label: t(`${key.toString().toLowerCase()}`, { count: recurringEventState?.interval }),
       value: value.toString(),
     }));
 
