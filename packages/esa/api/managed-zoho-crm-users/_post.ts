@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PrismaClient } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -55,7 +55,7 @@ const createSchedule = async (input: { name: string; schedule: any }, user: any,
   return { schedule };
 };
 
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const $req = req as NextApiRequest & { prisma: any };
 
   const body = setupManagedZohoUserRequestSchema.parse($req.body);
@@ -68,7 +68,7 @@ async function postHandler(req: NextApiRequest) {
   });
 
   if (existingSetupEntry) {
-    throw new Error("zoho user already has a managed setup in progress");
+    return res.status(409).json({ message: "Zoho user already has a managed setup in progress" });
   }
 
   const existingUser = await prisma.user.findFirst({
@@ -78,7 +78,9 @@ async function postHandler(req: NextApiRequest) {
   });
 
   if (existingUser) {
-    throw new Error("Cal user with the provided email already exists. Please complete the setup manually.");
+    return res.status(409).json({
+      message: "Cal user with the provided email already exists. Please complete the setup manually.",
+    });
   }
 
   // create cal user
