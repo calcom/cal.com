@@ -70,7 +70,7 @@ export const OAuthConnect: FC<
           StartIcon="calendar-days"
           color="primary"
           disabled={isClickable ? false : isChecking}
-          tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip />}
+          tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance={calendar} />}
           tooltipSide={tooltipSide}
           tooltipOffset={10}
           className={cn("", !isDisabled && "cursor-pointer", className)}
@@ -101,7 +101,11 @@ export const OAuthConnect: FC<
   );
 };
 
-export const ConnectedCalendarsTooltip = () => {
+export const ConnectedCalendarsTooltip = ({
+  calendarInstance,
+}: {
+  calendarInstance: (typeof CALENDARS)[number];
+}) => {
   const { data: connectedCalendars, isLoading: isConnectedCalendarsLoading } = useConnectedCalendars({});
 
   if (isConnectedCalendarsLoading)
@@ -111,16 +115,18 @@ export const ConnectedCalendarsTooltip = () => {
 
   return (
     <div className="bg-subtle flex flex-col rounded-md border border-gray-300">
-      {connectedCalendars?.connectedCalendars.map((calendar, index, arr) => {
-        return (
-          <>
-            <div key={calendar.primary?.externalId} className="bg-transparent px-4 py-2 text-black">
-              {calendar.primary?.name} - {calendar.primary?.email}
-            </div>
-            {arr.length - 1 !== index && <hr className="w-[90%] self-center" />}
-          </>
-        );
-      })}
+      {connectedCalendars?.connectedCalendars
+        .filter((calendar) => calendar.integration.slug === `${calendarInstance}-calendar`)
+        .map((calendar, index, arr) => {
+          return (
+            <>
+              <div key={calendar.primary?.externalId} className="bg-transparent px-4 py-2 text-black">
+                {calendar.primary?.name} - {calendar.primary?.email}
+              </div>
+              {arr.length - 1 !== index && <hr className="w-[90%] self-center" />}
+            </>
+          );
+        })}
     </div>
   );
 };
