@@ -2168,7 +2168,7 @@
   "select_time": "Select Time",
   "select_date": "Select Date",
   "connecting_you_to_someone": "We are connecting you to someone.",
-  "please_do_not_close_this_tab": "Please do not close this tab",
+  "please_do_not_close_this_tab": "Please do not close or refresh this page",
   "see_all_available_times": "See all available times",
   "org_team_names_example_1": "e.g. Marketing Team",
   "org_team_names_example_2": "e.g. Sales Team",
@@ -2605,6 +2605,9 @@
   "outlook_connect_atom_label": "Connect Outlook Calendar",
   "outlook_connect_atom_already_connected_label": "Connected Outlook Calendar",
   "outlook_connect_atom_loading_label": "Checking Outlook Calendar",
+  "stripe_connect_atom_label": "Connect to Stripe",
+  "stripe_connect_atom_already_connected_label": "Connected Stripe",
+  "stripe_connect_atom_loading_label": "Checking Stripe credentials",
   "booking_question_response_variables": "Booking question response variables",
   "managed_by_teamAdmins": "Managed by {{teamAdmins}}",
   "number_of_options":"{{count}} options",
@@ -2649,5 +2652,9 @@
   "allow_getting_charged_for_sms": "Allow getting charged for extra SMS beyond your limit. You will be charged at the end of every month. Pricing details are available <1>here</1>.",
   "hide_calendar_event_details": "Hide calendar event details on shared calendars",
   "description_hide_calendar_event_details": "When a calendar is shared, events are visible to readers but their details are hidden from those without write access.",
+  "last_number_of_days": "last {{count}} days",
+  "month_to_date": "month to date",
+  "year_to_date": "year to date",
+  "custom_range": "custom range",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

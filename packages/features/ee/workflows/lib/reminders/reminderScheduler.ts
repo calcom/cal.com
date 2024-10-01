@@ -16,7 +16,7 @@ import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
-export type ExtendedCalendarEvent = CalendarEvent & {
+export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: {
     slug?: string;
@@ -24,6 +24,7 @@ export type ExtendedCalendarEvent = CalendarEvent & {
     parent?: { teamId?: number | null } | null;
     hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
   };
+  bookerUrl: string;
 };
 
 type ProcessWorkflowStepParams = {
