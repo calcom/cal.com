@@ -41,9 +41,9 @@ import {
 } from "@calcom/ui";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
-import { Navigation, MobileNavigationContainer } from "./Navigation";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
+import { Navigation, MobileNavigationContainer } from "./navigation/Navigation";
 import { MobileNavigationMoreItem } from "./navigation/NavigationItem";
 import { useAppTheme } from "./useAppTheme";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
