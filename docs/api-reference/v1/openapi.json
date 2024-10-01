@@ -2,12 +2,6 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "url": "http://localhost:3002/v1"
-    },
-    {
-      "url": "https://api.cal.dev/v1"
-    },
-    {
       "url": "https://api.cal.com/v1"
     }
   ],
@@ -28,6 +22,66 @@
       }
     },
     "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Attendee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "bookingId": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "timeZone": {
+            "type": "string"
+          }
+        }
+      },
+      "AttendeesFetchedResponse": {
+        "type": "object",
+        "properties": {
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          }
+        }
+      },
+      "AttendeeCreatedResponse": {
+        "type": "object",
+        "properties": {
+          "attendee": {
+            "$ref": "#/components/schemas/Attendee"
+          },
+          "message": {
+            "type": "string",
+            "example": "Attendee created successfully"
+          }
+        }
+      },
+      "AttendeeFetchedResponse": {
+        "type": "object",
+        "properties": {
+          "attendee": {
+            "$ref": "#/components/schemas/Attendee"
+          }
+        }
+      },
       "ArrayOfBookings": {
         "type": "array",
         "items": {
@@ -347,13 +401,62 @@
         "tags": ["attendees"],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Find All Attendees",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendeesFetchedResponse"
+                },
+                "examples": {
+                  "Attendees found successfully": {
+                    "value": {
+                      "attendees": [
+                        {
+                          "id": 251,
+                          "bookingId": 313,
+                          "name": "John Doe",
+                          "email": "john.doe@example.com",
+                          "timeZone": "Asia/Jerusalem"
+                        },
+                        {
+                          "id": 252,
+                          "bookingId": 314,
+                          "name": "Jane Doe",
+                          "email": "jane.doe@example.com",
+                          "timeZone": "Asia/Dubai"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authorization information is missing or invalid."
+            "description": "Authorization information is missing or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Authorization information is missing or invalid."
+                }
+              }
+            }
           },
           "404": {
-            "description": "No attendees were found"
+            "description": "No attendees were found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "No attendees were found."
+                }
+              }
+            }
           }
         }
       },
@@ -400,14 +503,55 @@
         },
         "tags": ["attendees"],
         "responses": {
-          "201": {
-            "description": "OK, attendee created"
+          "200": {
+            "description": "Attendee created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendeeCreatedResponse"
+                },
+                "examples": {
+                  "Attendee created successfully": {
+                    "value": {
+                      "attendee": {
+                        "id": 255,
+                        "bookingId": 313,
+                        "name": "Justin Doe",
+                        "email": "justin.doe@example.com",
+                        "timeZone": "Asia/Jerusalem"
+                      },
+                      "message": "Attendee created successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad request. Attendee body is invalid."
+            "description": "Bad request. Attendee body is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Bad request. Attendee body is invalid."
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authorization information is missing or invalid."
+            "description": "Authorization information is missing or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Authorization information is missing or invalid."
+                }
+              }
+            }
           }
         }
       }
@@ -439,13 +583,43 @@
         "tags": ["attendees"],
         "responses": {
           "201": {
-            "description": "OK, attendee removed successfully"
+            "description": "OK, attendee removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "OK, attendee removed successfully"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad request. Attendee id is invalid."
+            "description": "Bad request. Attendee id is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Bad request. Attendee id is invalid."
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authorization information is missing or invalid."
+            "description": "Authorization information is missing or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Authorization information is missing or invalid."
+                }
+              }
+            }
           }
         }
       },
@@ -475,13 +649,53 @@
         "tags": ["attendees"],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendeeFetchedResponse"
+                },
+                "examples": {
+                  "Attendee fetched successfully": {
+                    "value": {
+                      "attendee": {
+                        "id": 255,
+                        "bookingId": 313,
+                        "name": "Justin Doe",
+                        "email": "justin.doe@example.com",
+                        "timeZone": "Asia/Jerusalem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authorization information is missing or invalid."
+            "description": "Authorization information is missing or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Authorization information is missing or invalid."
+                }
+              }
+            }
           },
           "404": {
-            "description": "Attendee was not found"
+            "description": "Attendee was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Attendee was not found"
+                }
+              }
+            }
           }
         }
       },
@@ -534,13 +748,53 @@
         "tags": ["attendees"],
         "responses": {
           "201": {
-            "description": "OK, attendee edited successfully"
+            "description": "OK, attendee edited successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendeeFetchedResponse"
+                },
+                "examples": {
+                  "Attendee edited successfully": {
+                    "value": {
+                      "attendee": {
+                        "id": 255,
+                        "bookingId": 313,
+                        "name": "Justin Doe",
+                        "email": "justin.doe@example.com",
+                        "timeZone": "Asia/Jerusalem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad request. Attendee body is invalid."
+            "description": "Bad request. Attendee body is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Bad request. Attendee body is invalid."
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authorization information is missing or invalid."
+            "description": "Authorization information is missing or invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Authorization information is missing or invalid."
+                }
+              }
+            }
           }
         }
       }
