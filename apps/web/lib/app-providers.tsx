@@ -146,6 +146,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const isEmbedMode = typeof embedNamespace === "string";
 
   const themeProviderProps = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+  console.log("123", themeProviderProps);
 
   return (
     <ThemeProvider {...themeProviderProps}>
@@ -199,6 +200,7 @@ function getThemeProviderProps({
   isEmbedMode: boolean;
   embedNamespace: string | null;
 }) {
+  console.log(props);
   const isBookingPage = (() => {
     if (typeof props.isBookingPage === "function") {
       return props.isBookingPage({ router: props.router });
