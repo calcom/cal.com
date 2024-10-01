@@ -7,36 +7,14 @@ import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
 import React, { cloneElement, Fragment, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
-import ImpersonatingBanner, {
-  type ImpersonatingBannerProps,
-} from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
-import {
-  OrgUpgradeBanner,
-  type OrgUpgradeBannerProps,
-} from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import useIntercom, { isInterComEnabled } from "@calcom/features/ee/support/lib/intercom/useIntercom";
-import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import AdminPasswordBanner, {
-  type AdminPasswordBannerProps,
-} from "@calcom/features/users/components/AdminPasswordBanner";
-import CalendarCredentialBanner, {
-  type CalendarCredentialBannerProps,
-} from "@calcom/features/users/components/CalendarCredentialBanner";
-import {
-  InvalidAppCredentialBanners,
-  type InvalidAppCredentialBannersProps,
-} from "@calcom/features/users/components/InvalidAppCredentialsBanner";
-import VerifyEmailBanner, {
-  type VerifyEmailBannerProps,
-} from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
 import {
   APP_NAME,
@@ -46,8 +24,6 @@ import {
   IS_VISUAL_REGRESSION_TESTING,
   JOIN_COMMUNITY,
   ROADMAP,
-  TOP_BANNER_HEIGHT,
-  WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
@@ -60,9 +36,7 @@ import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Avatar,
@@ -91,133 +65,17 @@ import { useGetUserAttributes } from "@calcom/web/components/settings/platform/h
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
+import { BannerContainer } from "./banners/LayoutBanner";
+import { useBanners } from "./banners/useBanners";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
   ssr: false,
 });
 
-/* TODO: Migate this */
-
-export const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
-
-export const ONBOARDING_NEXT_REDIRECT = {
-  redirect: {
-    permanent: false,
-    destination: "/getting-started",
-  },
-} as const;
-
-export const shouldShowOnboarding = (
-  user: Pick<User, "createdDate" | "completedOnboarding"> & {
-    organizationId: number | null;
-  }
-) => {
-  return (
-    !user.completedOnboarding &&
-    !user.organizationId &&
-    dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT)
-  );
-};
-
-function useRedirectToLoginIfUnauthenticated(isPublic = false) {
-  const { data: session, status } = useSession();
-  const loading = status === "loading";
-  const router = useRouter();
-  useEffect(() => {
-    if (isPublic) {
-      return;
-    }
-
-    if (!loading && !session) {
-      const urlSearchParams = new URLSearchParams();
-      urlSearchParams.set("callbackUrl", `${WEBAPP_URL}${location.pathname}${location.search}`);
-      router.replace(`/auth/login?${urlSearchParams.toString()}`);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, session, isPublic]);
-
-  return {
-    loading: loading && !session,
-    session,
-  };
-}
-
-type BannerTypeProps = {
-  teamUpgradeBanner: TeamsUpgradeBannerProps;
-  orgUpgradeBanner: OrgUpgradeBannerProps;
-  verifyEmailBanner: VerifyEmailBannerProps;
-  adminPasswordBanner: AdminPasswordBannerProps;
-  impersonationBanner: ImpersonatingBannerProps;
-  calendarCredentialBanner: CalendarCredentialBannerProps;
-  invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
-};
-
-type BannerType = keyof BannerTypeProps;
-
-type BannerComponent = {
-  [Key in BannerType]: (props: BannerTypeProps[Key]) => JSX.Element;
-};
-
-const BannerComponent: BannerComponent = {
-  teamUpgradeBanner: (props: TeamsUpgradeBannerProps) => <TeamsUpgradeBanner {...props} />,
-  orgUpgradeBanner: (props: OrgUpgradeBannerProps) => <OrgUpgradeBanner {...props} />,
-  verifyEmailBanner: (props: VerifyEmailBannerProps) => <VerifyEmailBanner {...props} />,
-  adminPasswordBanner: (props: AdminPasswordBannerProps) => <AdminPasswordBanner {...props} />,
-  impersonationBanner: (props: ImpersonatingBannerProps) => <ImpersonatingBanner {...props} />,
-  calendarCredentialBanner: (props: CalendarCredentialBannerProps) => <CalendarCredentialBanner {...props} />,
-  invalidAppCredentialBanners: (props: InvalidAppCredentialBannersProps) => (
-    <InvalidAppCredentialBanners {...props} />
-  ),
-};
-
-function useRedirectToOnboardingIfNeeded() {
-  const router = useRouter();
-  const query = useMeQuery();
-  const user = query.data;
-  const flags = useFlagMap();
-
-  const { data: email } = useEmailVerifyCheck();
-
-  const needsEmailVerification = !email?.isVerified && flags["email-verification"];
-
-  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
-
-  useEffect(() => {
-    if (isRedirectingToOnboarding && !needsEmailVerification) {
-      router.replace("/getting-started");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRedirectingToOnboarding, needsEmailVerification]);
-
-  return {
-    isRedirectingToOnboarding,
-  };
-}
-
-type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
-
-const useBanners = () => {
-  const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
-  const { data: userSession } = useSession();
-
-  if (isPending || !userSession) return null;
-
-  const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
-  const userImpersonatedByUID = userSession?.user.impersonatedBy?.id;
-
-  const userSessionBanners = {
-    adminPasswordBanner: isUserInactiveAdmin ? userSession : null,
-    impersonationBanner: userImpersonatedByUID ? userSession : null,
-  };
-
-  const allBanners: allBannerProps = Object.assign({}, getUserTopBanners, userSessionBanners);
-
-  return allBanners;
-};
-
 const Layout = (props: LayoutProps) => {
-  const banners = useBanners();
+  const { banners, bannersHeight } = useBanners();
+
   const pathname = usePathname();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const { data: user } = trpc.viewer.me.useQuery();
@@ -231,15 +89,6 @@ const Layout = (props: LayoutProps) => {
     boot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
-  const bannersHeight = useMemo(() => {
-    const activeBanners =
-      banners &&
-      Object.entries(banners).filter(([_, value]) => {
-        return value && (!Array.isArray(value) || value.length > 0);
-      });
-    return (activeBanners?.length ?? 0) * TOP_BANNER_HEIGHT;
-  }, [banners]);
 
   useFormbricks();
 
@@ -259,32 +108,7 @@ const Layout = (props: LayoutProps) => {
 
       <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
-          <div className="sticky top-0 z-10 w-full divide-y divide-black">
-            {Object.keys(banners).map((key) => {
-              if (key === "teamUpgradeBanner") {
-                const Banner = BannerComponent[key];
-                return <Banner data={banners[key]} key={key} />;
-              } else if (key === "orgUpgradeBanner") {
-                const Banner = BannerComponent[key];
-                return <Banner data={banners[key]} key={key} />;
-              } else if (key === "verifyEmailBanner") {
-                const Banner = BannerComponent[key];
-                return <Banner data={banners[key]} key={key} />;
-              } else if (key === "adminPasswordBanner") {
-                const Banner = BannerComponent[key];
-                return <Banner data={banners[key]} key={key} />;
-              } else if (key === "impersonationBanner") {
-                const Banner = BannerComponent[key];
-                return <Banner data={banners[key]} key={key} />;
-              } else if (key === "calendarCredentialBanner") {
-                const Banner = BannerComponent[key];
-                return <Banner data={banners[key]} key={key} />;
-              } else if (key === "invalidAppCredentialBanners") {
-                const Banner = BannerComponent[key];
-                return <Banner data={banners[key]} key={key} />;
-              }
-            })}
-          </div>
+          <BannerContainer banners={banners} />
         )}
 
         <div className="flex flex-1" data-testid="dashboard-shell">
