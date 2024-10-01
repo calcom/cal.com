@@ -25,7 +25,7 @@ const _useBanners = () => {
   return allBanners;
 };
 
-const useBannersHeight = (banners: AllBannerProps | undefined) => {
+const useBannersHeight = (banners: AllBannerProps | null) => {
   const bannersHeight = useMemo(() => {
     const activeBanners =
       banners &&
