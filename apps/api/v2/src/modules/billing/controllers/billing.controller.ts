@@ -68,20 +68,14 @@ export class BillingController {
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
   ): Promise<ApiResponse<SubscribeTeamToBillingResponseDto | undefined>> {
-    const { action, url } = await this.billingService.createSubscriptionForTeam(teamId, input.plan);
-
-    if (action === "redirect") {
-      return {
-        status: "success",
-        data: {
-          action: "redirect",
-          url,
-        },
-      };
-    }
+    const customerId = await this.billingService.createTeamBilling(teamId);
+    const url = await this.billingService.redirectToSubscribeCheckout(teamId, input.plan, customerId);
 
     return {
       status: "success",
+      data: {
+        url,
+      },
     };
   }
 
@@ -92,20 +86,13 @@ export class BillingController {
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
   ): Promise<ApiResponse<SubscribeTeamToBillingResponseDto | undefined>> {
-    const { action, url } = await this.billingService.updateSubscriptionForTeam(teamId, input.plan);
-
-    if (action === "redirect") {
-      return {
-        status: "success",
-        data: {
-          action: "redirect",
-          url,
-        },
-      };
-    }
+    const url = await this.billingService.updateSubscriptionForTeam(teamId, input.plan);
 
     return {
       status: "success",
+      data: {
+        url,
+      },
     };
   }
 

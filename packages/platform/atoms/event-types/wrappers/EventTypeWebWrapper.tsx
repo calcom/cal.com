@@ -1,26 +1,31 @@
 "use client";
 
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter as useAppRouter } from "next/navigation";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter as usePageRouter } from "next/router";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { NextRouter as NextPageRouter } from "next/router";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
+import { useTabsNavigations } from "../hooks/useTabsNavigations";
 
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
@@ -37,9 +42,7 @@ const EventSetupTab = dynamic(() =>
 
 const EventAvailabilityTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab").then(
-    (mod) => mod.EventAvailabilityTab
-  )
+  import("./EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
 const EventTeamAssignmentTab = dynamic(() =>
@@ -55,9 +58,7 @@ const EventLimitsTab = dynamic(() =>
 
 const EventAdvancedTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab").then(
-    (mod) => mod.EventAdvancedTab
-  )
+  import("./EventAdvancedWebWrapper").then((mod) => mod)
 );
 
 const EventInstantTab = dynamic(() =>
@@ -68,9 +69,7 @@ const EventInstantTab = dynamic(() =>
 
 const EventRecurringTab = dynamic(() =>
   // import web wrapper when it's ready
-  import("@calcom/features/eventtypes/components/tabs/recurring/EventRecurringTab").then(
-    (mod) => mod.EventRecurringTab
-  )
+  import("./EventRecurringWebWrapper").then((mod) => mod)
 );
 
 const EventAppsTab = dynamic(() =>
@@ -102,6 +101,7 @@ type EventTypeAppComponentProp = {
   isAppDir: true;
   pathname: string;
   pageRouter: null;
+  appRouter: AppRouterInstance;
 };
 
 // discriminative factor: isAppDir
@@ -110,6 +110,7 @@ type EventTypePageComponentProp = {
   isAppDir: false;
   pageRouter: NextPageRouter;
   pathname: null;
+  appRouter: null;
 };
 
 type EventTypeAppPageComponentProp = EventTypeAppComponentProp | EventTypePageComponentProp;
@@ -128,24 +129,38 @@ export const EventTypeWebWrapper = ({ id, isAppDir }: EventTypeWebWrapperProps &
 
 const EventTypePageWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
   const router = usePageRouter();
-  return <EventTypeWeb {...rest} id={id} isAppDir={false} pageRouter={router} pathname={null} />;
+  return (
+    <EventTypeWeb {...rest} id={id} isAppDir={false} pageRouter={router} pathname={null} appRouter={null} />
+  );
 };
 
 const EventTypeAppWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
   const pathname = usePathname();
-  return <EventTypeWeb {...rest} id={id} isAppDir={true} pathname={pathname ?? ""} pageRouter={null} />;
+  const router = useAppRouter();
+  return (
+    <EventTypeWeb
+      {...rest}
+      id={id}
+      isAppDir={true}
+      pathname={pathname ?? ""}
+      pageRouter={null}
+      appRouter={router}
+    />
+  );
 };
 
 const EventTypeWeb = ({
   id,
   isAppDir,
   pageRouter,
+  appRouter,
   pathname,
   ...rest
 }: EventTypeSetupProps & EventTypeAppPageComponentProp) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
+  const { data: loggedInUser, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
   const telemetry = useTelemetry();
@@ -226,10 +241,19 @@ const EventTypeWeb = ({
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    availability: (
+      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} loggedInUser={loggedInUser} />
+    ),
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
-    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    advanced: (
+      <EventAdvancedTab
+        eventType={eventType}
+        team={team}
+        loggedInUser={loggedInUser}
+        isLoggedInUserPending={isLoggedInUserPending}
+      />
+    ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
@@ -300,23 +324,78 @@ const EventTypeWeb = ({
     };
   }, []);
 
-  const onDelete = () => {
-    isTeamEventTypeDeleted.current = true;
-  };
   const onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
   };
+
+  const querySchema = z.object({
+    tabName: z
+      .enum([
+        "setup",
+        "availability",
+        "team",
+        "limits",
+        "advanced",
+        "instant",
+        "recurring",
+        "apps",
+        "workflows",
+        "webhooks",
+        "ai",
+      ])
+      .optional()
+      .default("setup"),
+  });
+
+  const {
+    data: { tabName },
+  } = useTypedQuery(querySchema);
+
+  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.eventTypes.invalidate();
+      showToast(t("event_type_deleted_successfully"), "success");
+      isTeamEventTypeDeleted.current = true;
+      isAppDir ? appRouter.push("/event-types") : pageRouter.push("/event-types");
+      setSlugExistsChildrenDialogOpen([]);
+      setIsOpenAssignmentWarnDialog(false);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+        setSlugExistsChildrenDialogOpen([]);
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
+      }
+    },
+  });
+
+  const { tabsNavigation } = useTabsNavigations({
+    formMethods: form,
+    eventType,
+    team,
+    eventTypeApps,
+    allActiveWorkflows,
+  });
+
   return (
     <EventTypeComponent
       {...rest}
       allActiveWorkflows={allActiveWorkflows}
       tabMap={tabMap}
-      onDelete={onDelete}
+      onDelete={(id) => {
+        deleteMutation.mutate({ id });
+      }}
+      isDeleting={deleteMutation.isPending}
       onConflict={onConflict}
       handleSubmit={handleSubmit}
       eventTypeApps={eventTypeApps}
       formMethods={form}
-      isUpdating={updateMutation.isPending}>
+      isUpdating={updateMutation.isPending}
+      isPlatform={false}
+      tabName={tabName}
+      tabsNavigation={tabsNavigation}>
       <>
         {slugExistsChildrenDialogOpen.length ? (
           <ManagedEventTypeDialog
