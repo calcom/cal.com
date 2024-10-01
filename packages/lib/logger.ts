@@ -8,7 +8,7 @@ const logger = new Logger({
   prettyLogTimeZone: IS_PRODUCTION ? "UTC" : "local",
   prettyErrorStackTemplate: "  • {{fileName}}\t{{method}}\n\t{{filePathWithLine}}", // default
   prettyErrorTemplate: "\n{{errorName}} {{errorMessage}}\nerror stack:\n{{errorStack}}", // default
-  prettyLogTemplate: "{{hh}}:{{MM}}:{{ss}}:{{ms}}\t{{logLevelName}}", // default with exclusion of `{{filePathWithLine}}`
+  prettyLogTemplate: "{{hh}}:{{MM}}:{{ss}}:{{ms}} [{{logLevelName}}] ", // default with exclusion of `{{filePathWithLine}}`
   stylePrettyLogs: true,
   prettyLogStyles: {
     name: "yellow",
