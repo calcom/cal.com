@@ -85,7 +85,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         )}
         {eventTypeId && (
           <div>
-            <EventTypeSettings id={eventTypeId} tabs={["setup"]} />
+            <EventTypeSettings id={eventTypeId} tabs={["setup", "payments"]} />
           </div>
         )}
       </div>
