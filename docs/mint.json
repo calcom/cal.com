@@ -36,12 +36,26 @@
       "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2"
+    },
+    {
+      "name": "API v1 Reference",
+      "openapi": "/api-reference/v1/openapi-v1.json",
+      "url": "api-reference/v1"
     }
   ],
   "navigation": [
     {
       "group": "Getting started",
       "pages": ["api-reference/v2/introduction", "api-reference/v2/v1-v2-differences"]
+    },
+    {
+      "group": "Getting started",
+      "pages": [
+        "api-reference/v1/introduction",
+        "api-reference/v1/authentication",
+        "api-reference/v1/errors",
+        "api-reference/v1/rate-limit"
+      ]
     }
   ],
   "footerSocials": {
