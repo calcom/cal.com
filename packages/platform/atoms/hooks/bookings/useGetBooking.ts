@@ -4,7 +4,7 @@ import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { getBookingInfo } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
-import http from "../lib/http";
+import http from "../../lib/http";
 
 export const QUERY_KEY = "user-booking";
 

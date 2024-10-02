@@ -5,7 +5,7 @@ import type { getAllUserBookings } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import type { GetBookingsInput_2024_04_15 } from "@calcom/platform-types/bookings";
 
-import http from "../lib/http";
+import http from "../../lib/http";
 
 export const QUERY_KEY = "user-bookings";
 
