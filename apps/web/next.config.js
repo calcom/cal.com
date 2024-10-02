@@ -20,11 +20,6 @@ const isOrganizationsEnabled =
 // To be able to use the version in the app without having to import package.json
 process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
-// TEMP DEBUGGING STATEMENT
-process.on("unhandledRejection", (error) => {
-  console.log("unhandledRejection VERCEL DO NOT CAREE", error);
-});
-
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
@@ -191,11 +186,11 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   /* We already do type check on GH actions */
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: !!process.env.CI,
   },
   /* We already do linting on GH actions */
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: !!process.env.CI,
   },
   transpilePackages: [
     "@calcom/app-store",
