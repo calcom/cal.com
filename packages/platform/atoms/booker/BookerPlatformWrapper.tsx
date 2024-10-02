@@ -62,6 +62,10 @@ export type BookerPlatformWrapperAtomProps = Omit<
     notes?: string;
     rescheduleReason?: string;
   } & Record<string, string | string[]>;
+  readOnlyFormValues?: {
+    name?: boolean;
+    email?: boolean;
+  };
   handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
@@ -149,7 +153,7 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
+            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.readOnlyFormValues)
             : undefined,
       };
     }
@@ -158,7 +162,10 @@ export const BookerPlatformWrapper = (
       isSuccess,
       isError,
       isPending,
-      data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
+      data:
+        data && data.length > 0
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.readOnlyFormValues)
+          : undefined,
     };
   }, [
     props.isTeamEvent,

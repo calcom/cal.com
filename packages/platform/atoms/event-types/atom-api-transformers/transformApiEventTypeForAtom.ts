@@ -9,6 +9,8 @@ import {
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
   transformRecurrenceApiToInternal,
+  systemBeforeFieldNameReadOnly,
+  systemBeforeFieldEmailReadOnly,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
@@ -26,7 +28,13 @@ import {
 
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerProps["entity"] | undefined,
+  readOnlyFormValues:
+    | {
+        name?: boolean;
+        email?: boolean;
+      }
+    | undefined
 ) {
   const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
 
@@ -46,7 +54,7 @@ export function transformApiEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, readOnlyFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -102,7 +110,13 @@ export function transformApiEventTypeForAtom(
 
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerProps["entity"] | undefined,
+  readOnlyFormValues:
+    | {
+        name?: boolean;
+        email?: boolean;
+      }
+    | undefined
 ) {
   const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
 
@@ -121,7 +135,7 @@ export function transformApiTeamEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, readOnlyFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -219,10 +233,18 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
   return withPrivateHidden;
 }
 
-function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
+function getBookingFields(
+  bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
+  readOnlyFormValues:
+    | {
+        name?: boolean;
+        email?: boolean;
+      }
+    | undefined
+) {
   const systemBeforeFields: SystemField[] = [
-    systemBeforeFieldName,
-    systemBeforeFieldEmail,
+    readOnlyFormValues?.name ? systemBeforeFieldNameReadOnly : systemBeforeFieldName,
+    readOnlyFormValues?.email ? systemBeforeFieldEmailReadOnly : systemBeforeFieldEmail,
     systemBeforeFieldLocation,
   ];
 
