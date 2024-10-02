@@ -4108,6 +4108,147 @@
         ]
       }
     },
+    "/v2/oauth/{clientId}/authorize": {
+      "post": {
+        "operationId": "OAuthFlowController_authorize",
+        "summary": "Authorize an OAuth client",
+        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthAuthorizeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
+          },
+          "400": {
+            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
+          }
+        },
+        "tags": [
+          "oauth"
+        ]
+      }
+    },
+    "/v2/oauth/{clientId}/exchange": {
+      "post": {
+        "operationId": "OAuthFlowController_exchange",
+        "summary": "Exchange authorization code for access tokens",
+        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully exchanged authorization code for access and refresh tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
+          }
+        },
+        "tags": [
+          "oauth"
+        ]
+      }
+    },
+    "/v2/oauth/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuthFlowController_refreshAccessToken",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "required": true,
+            "in": "header",
+            "description": "OAuth client secret key.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "oauth",
+          "Managed users"
+        ]
+      }
+    },
     "/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
@@ -4296,145 +4437,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/authorize": {
-      "post": {
-        "operationId": "OAuthFlowController_authorize",
-        "summary": "Authorize an OAuth client",
-        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OAuthAuthorizeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
-          },
-          "400": {
-            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/exchange": {
-      "post": {
-        "operationId": "OAuthFlowController_exchange",
-        "summary": "Exchange authorization code for access tokens",
-        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully exchanged authorization code for access and refresh tokens.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/refresh": {
-      "post": {
-        "operationId": "OAuthFlowController_refreshAccessToken",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-secret-key",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
                 }
               }
             }
@@ -4826,11 +4828,26 @@
         },
         "responses": {
           "201": {
-            "description": "",
+            "description": "Successful response returning uid of reserved slot.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "uid": {
+                          "type": "string",
+                          "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4845,14 +4862,31 @@
       "delete": {
         "operationId": "SlotsController_deleteSelectedSlot",
         "summary": "Delete a selected slot",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "query",
+            "description": "Unique identifier for the slot to be removed.",
+            "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Response deleting reserved slot by uid.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    }
+                  }
                 }
               }
             }
@@ -4867,14 +4901,128 @@
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
         "summary": "Get available slots",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "startTime",
+            "required": true,
+            "in": "query",
+            "description": "Start date string starting from which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endTime",
+            "required": true,
+            "in": "query",
+            "description": "End date string until which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T23:59:59.999Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "query",
+            "description": "Event Type ID for which slots are being fetched.",
+            "example": 100,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of the event type for which slots are being fetched.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "usernameList",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "duration",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - length of returned slots.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Available time slots retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "slots": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "time": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "example": "2024-09-25T08:00:00.000Z"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "data": {
+                      "slots": {
+                        "2024-09-25": [
+                          {
+                            "time": "2024-09-25T08:00:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-25T08:15:00.000Z"
+                          }
+                        ],
+                        "2024-09-26": [
+                          {
+                            "time": "2024-09-26T08:00:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-26T08:15:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-26T08:30:00.000Z"
+                          }
+                        ]
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -5693,7 +5841,8 @@
         "type": "object",
         "properties": {
           "refreshToken": {
-            "type": "string"
+            "type": "string",
+            "description": "Managed user's refresh token."
           }
         },
         "required": [
@@ -12468,7 +12617,32 @@
       },
       "ReserveSlotInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event Type ID for which timeslot is being reserved.",
+            "example": 100
+          },
+          "slotUtcStartDate": {
+            "type": "string",
+            "description": "Start date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z"
+          },
+          "slotUtcEndDate": {
+            "type": "string",
+            "description": "End date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:30:00.000Z"
+          },
+          "bookingUid": {
+            "type": "string",
+            "description": "Optional but only for events with seats. Used to retrieve booking of a seated event."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotUtcStartDate",
+          "slotUtcEndDate"
+        ]
       },
       "UserWebhookOutputDto": {
         "type": "object",

@@ -2170,7 +2170,7 @@ checksums:
     select_time: cb9cc2393ca45c6faea13fe4c9d4d6a5
     select_date: 1e6063bfd25d982048726ff586df55dc
     connecting_you_to_someone: 4fb9cd52b2caacf09de19b843407d1a9
-    please_do_not_close_this_tab: b422b9c8c835fc89154e50bc785ad1b0
+    please_do_not_close_this_tab: 0fc355011de61686ff1dd5606336a33a
     see_all_available_times: 4213ac0595fa798d9c140e13ec5b1133
     org_team_names_example_1: 6dcddcb08fbac91d1eee90340088b33c
     org_team_names_example_2: 9d2d66769cc5c05860b20d5ff529e2e0
@@ -2603,6 +2603,9 @@ checksums:
     outlook_connect_atom_label: 25337852f8c06dc4d93ee1dc01960fd0
     outlook_connect_atom_already_connected_label: 734727a604a5c679372f83233ea8800d
     outlook_connect_atom_loading_label: 5e839068f5fb852287d1a3d8a01818e1
+    stripe_connect_atom_label: 1e300f03f3b040acdd4383d0e9841143
+    stripe_connect_atom_already_connected_label: d784aa19f45311fa4079bafed4f20924
+    stripe_connect_atom_loading_label: b1c6ecddb32dca26ded9d0cc0a977d12
     booking_question_response_variables: b6619cf0eac72e4f894fbed23960d599
     managed_by_teamAdmins: b3f977831c90142705c9c979e0c37d2a
     number_of_options: 61add413dabcfc36aa759d46ab7c225f
