@@ -9,8 +9,8 @@ checkRoute () {
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
 checkRoute "$APP_ROUTER_AVAILABILITY_ENABLED" app/future/availability
 checkRoute "$APP_ROUTER_SETTINGS_DEVELOPER_ENABLED" app/future/settings/developer
-checkRoute "$APP_ROUTER_SETTINGS_SECURITY_ENABLED" app/future/settings/security
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
+checkRoute "$APP_ROUTER_SETTINGS_MY_ACCOUNT_ENABLED" app/future/settings/my-account
 checkRoute "$APP_ROUTER_SETTINGS_PLATFORM_ENABLED" app/future/settings/platform
 checkRoute "$APP_ROUTER_SETTINGS_ORG_ENABLED" app/future/settings/organizations
 checkRoute "$APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED" app/future/apps/installed

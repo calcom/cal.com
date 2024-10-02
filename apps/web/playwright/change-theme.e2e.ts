@@ -1,8 +1,9 @@
 import { expect } from "@playwright/test";
+import { testBothFutureAndLegacyRoutes } from "playwright/lib/future-legacy-routes";
 
 import { test } from "./lib/fixtures";
 
-test.describe("Change Theme Test", () => {
+testBothFutureAndLegacyRoutes.describe("Change Theme Test", () => {
   test("change theme to dark", async ({ page, users }) => {
     const pro = await users.create();
     await pro.apiLogin();
