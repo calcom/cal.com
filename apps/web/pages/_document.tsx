@@ -67,7 +67,27 @@ class MyDocument extends Document<Props> {
             nonce={nonce}
             id="newLocale"
             dangerouslySetInnerHTML={{
-              __html: `window.calNewLocale = "${newLocale}";`,
+              __html: `
+              window.calNewLocale = "${newLocale}";
+              (function applyTheme() {
+                  try {
+                  const theme = localStorage.getItem('app-theme');
+                  if (!theme) return;
+
+                  const onReady = () => {
+                    if (document.body) {
+                      document.body.classList.add(theme);
+                    } else {
+                      requestAnimationFrame(onReady);
+                    }
+                  };
+
+                  requestAnimationFrame(onReady);
+                } catch (e) {
+                  console.error('Error applying theme:', e);
+                }
+              })();
+            `,
             }}
           />
           <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
