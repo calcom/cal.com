@@ -42,7 +42,7 @@ export const createBookingsFixture = (page: Page, workerInfo: WorkerInfo) => {
       const startDate = startDateParam || dayjs().add(1, "day").toDate();
       const seed = `${username}:${dayjs(startDate).utc().format()}:${new Date().getTime()}:${
         workerInfo.workerIndex
-      }`;
+      }:${Math.random()}`;
       const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
       const booking = await prisma.booking.create({
         data: {
