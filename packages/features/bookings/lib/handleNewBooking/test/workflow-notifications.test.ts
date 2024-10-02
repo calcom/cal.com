@@ -58,6 +58,19 @@ describe("handleNewBooking", () => {
           schedules: [TestData.schedules.IstWorkHours],
           credentials: [getGoogleCalendarCredential()],
           selectedCalendars: [TestData.selectedCalendars.google],
+          teams: [
+            {
+              membership: {
+                accepted: true,
+              },
+              team: {
+                id: 1,
+                name: "Team 1",
+                slug: "team-1",
+                smsCreditAllocationType: SmsCreditAllocationType.ALL,
+              },
+            },
+          ],
           destinationCalendar: {
             integration: "google_calendar",
             externalId: "organizer@google-calendar.com",

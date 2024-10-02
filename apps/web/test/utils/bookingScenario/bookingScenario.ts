@@ -120,6 +120,8 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       slug: string;
       parentId?: number;
       isPrivate?: boolean;
+      smsCreditAllocationType?: SMSCreditAllocationType;
+      smsCreditAllocationValue?: number;
     };
   }[];
   schedules: {
