@@ -1556,19 +1556,11 @@ async function handler(
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
-  // Avoid passing referencesToCreate with id unique constrain values
-  // refresh hashed link if used
-  const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
-  const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
-
   try {
-    if (hasHashedBookingLink) {
-      await prisma.hashedLink.update({
+    if (hasHashedBookingLink && reqBody.hashedLink) {
+      await prisma.hashedLink.delete({
         where: {
           link: reqBody.hashedLink as string,
-        },
-        data: {
-          link: hashedUid,
         },
       });
     }
