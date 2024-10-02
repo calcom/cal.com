@@ -364,7 +364,9 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+              className={`sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] ${
+                !hideEventTypeDetails ? "md:border-l" : ""
+              }`}
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -376,7 +378,9 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+              className={`ml-[-1px] h-full flex-shrink px-5 py-3 lg:w-[var(--booker-main-width)] ${
+                !hideEventTypeDetails ? "md:border-subtle md:border-l" : ""
+              }`}>
               <DatePicker
                 classNames={{
                   datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
