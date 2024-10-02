@@ -79,7 +79,7 @@ export const LargeCalendar = ({
   }, [overlayEvents, displayOverlay]);
 
   return (
-    <div className="h-full [--calendar-dates-sticky-offset:66px]">
+    <div className="h-full ">
       <Calendar
         isPending={isLoading}
         availableTimeslots={availableSlots}

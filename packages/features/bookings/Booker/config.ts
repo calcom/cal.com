@@ -152,9 +152,7 @@ export const getBookerSizeClassNames = (
       `[--booker-main-width:480px] ${getBookerMetaClass("lg:[--booker-meta-width:280px]")}`,
     // Fullscreen view settings.
     layout !== BookerLayouts.MONTH_VIEW &&
-      `[--booker-main-width:480px] [--booker-meta-width:340px] ${getBookerMetaClass(
-        "lg:[--booker-meta-width:424px]"
-      )}`,
+      `[--booker-main-width:480px] ${getBookerMetaClass("lg:[--booker-meta-width:424px]")}`,
   ];
 };
 
