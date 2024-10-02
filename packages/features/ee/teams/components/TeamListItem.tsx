@@ -7,7 +7,7 @@ import { MemberInvitationModalWithoutMembers } from "@calcom/ee/teams/components
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -43,7 +43,7 @@ interface Props {
 }
 
 export default function TeamListItem(props: Props) {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const user = trpc.viewer.me.useQuery().data;

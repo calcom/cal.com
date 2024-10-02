@@ -11,7 +11,7 @@ import { z } from "zod";
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { classNames as cs } from "@calcom/lib";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -268,7 +268,7 @@ interface EditModalState extends Pick<App, "keys"> {
 }
 
 const AdminAppsListContainer = () => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
 

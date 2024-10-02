@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { Avatar, Button, Icon } from "@calcom/ui";
@@ -14,7 +14,7 @@ export default function Authorize() {
   const { t } = useLocale();
   const router = useRouter();
 
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const queryString = searchParams?.toString();
 
   // const { isLoading, error, data: client } = useOAuthClient(queryString);

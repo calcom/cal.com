@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
 
@@ -16,7 +16,7 @@ import type { FormValues } from "@components/settings/platform/oauth-clients/oau
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
 export default function CreateOAuthClient() {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const clientId = searchParams?.get("clientId") || "";
 

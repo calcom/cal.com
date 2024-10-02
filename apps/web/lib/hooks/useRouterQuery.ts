@@ -1,10 +1,8 @@
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-
 export default function useRouterQuery<T extends string>(name: T) {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
 

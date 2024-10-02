@@ -7,7 +7,7 @@ import React, { useMemo, useState } from "react";
 
 import { Dialog as PlatformDialogPrimitives, useIsPlatform } from "@calcom/atoms/monorepo";
 import classNames from "@calcom/lib/classNames";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { IconName } from "../..";
@@ -37,7 +37,7 @@ export function Dialog(props: DialogProps) {
 function WebDialog(props: DialogProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const newSearchParams = new URLSearchParams(searchParams ?? undefined);
   const { children, name, ...dialogProps } = props;
 

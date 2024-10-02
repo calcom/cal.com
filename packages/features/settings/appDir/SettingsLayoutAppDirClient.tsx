@@ -13,7 +13,7 @@ import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -247,7 +247,7 @@ const TeamListCollapsible = () => {
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
@@ -396,7 +396,7 @@ const SettingsSidebarContainer = ({
   currentOrg,
   otherTeams,
 }: SettingsSidebarContainerProps) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const tabsWithPermissions = useTabs();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import { classNames } from "@calcom/lib";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
@@ -20,7 +20,7 @@ interface IOutOfOfficeInSlotsProps {
 export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
   const { t } = useLocale();
   const { fromUser, toUser, emoji = "🏝️", borderDashed = true, date, className } = props;
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
 
   const router = useRouter();
 

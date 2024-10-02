@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
 
@@ -52,7 +52,7 @@ const PaymentForm = (props: Props) => {
   } = props;
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const [state, setState] = useState<States>({ status: "idle" });
   const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const stripe = useStripe();

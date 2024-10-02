@@ -13,7 +13,7 @@ import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -51,7 +51,7 @@ export default function Login({
   totpEmail,
 }: // eslint-disable-next-line @typescript-eslint/ban-types
 PageProps & WithNonceProps<{}>) {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const formSchema = z

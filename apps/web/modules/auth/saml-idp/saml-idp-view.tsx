@@ -3,11 +3,11 @@
 import { signIn } from "next-auth/react";
 import { useEffect } from "react";
 
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 
 // To handle the IdP initiated login flow callback
 export default function SamlIdp() {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const code = searchParams?.get("code");

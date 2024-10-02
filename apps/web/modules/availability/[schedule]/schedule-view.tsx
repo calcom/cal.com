@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/monorepo";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
@@ -23,7 +23,7 @@ export const AvailabilitySettingsWebWrapper = ({
   scheduleFetched: scheduleProp,
   travelSchedules: travelSchedulesProp,
 }: PageProps) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();

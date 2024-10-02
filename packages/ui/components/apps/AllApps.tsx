@@ -7,7 +7,7 @@ import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -63,7 +63,7 @@ interface CategoryTabProps {
 
 function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabProps) {
   const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
@@ -148,7 +148,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
 }
 
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();

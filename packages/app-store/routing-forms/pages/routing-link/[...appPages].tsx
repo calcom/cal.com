@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
@@ -208,7 +208,7 @@ RoutingLink.isBookingPage = true;
 export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const prefillResponse: FormResponse = {};
 
   // Prefill the form from query params

@@ -1,12 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import type { CredentialOwner } from "@calcom/app-store/types";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { AppListCard as AppListCardComponent } from "@calcom/ui";
 
@@ -43,7 +42,7 @@ export default function AppListCard(props: AppListCardProps) {
   const router = useRouter();
   const [highlight, setHighlight] = useState(shouldHighlight && hl === slug);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
 
   useEffect(() => {

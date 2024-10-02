@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { WizardForm } from "@calcom/ui";
@@ -18,7 +18,7 @@ import type { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
 function useSetStep() {
   const router = useRouter();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const setStep = (newStep = 1) => {
     const _searchParams = new URLSearchParams(searchParams ?? undefined);

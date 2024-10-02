@@ -20,7 +20,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -243,7 +243,7 @@ export const InfiniteEventTypeList = ({
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
@@ -850,7 +850,7 @@ const InfiniteScrollMain = ({
   eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
   profiles: GetUserEventGroupsResponse["profiles"] | undefined;
 }) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
 
   if (status === "error") {
@@ -890,7 +890,7 @@ const EventTypesPage: React.FC & {
   getLayout?: AppProps["Component"]["getLayout"];
 } = () => {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { open } = useIntercom();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

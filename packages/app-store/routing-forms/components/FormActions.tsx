@@ -9,7 +9,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { classNames } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import slugify from "@calcom/lib/slugify";
@@ -47,7 +47,7 @@ const newFormModalQuerySchema = z.object({
 export const useOpenModal = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const openModal = (option: z.infer<typeof newFormModalQuerySchema>) => {
     const newQuery = new URLSearchParams(searchParams ?? undefined);
     newQuery.set("dialog", "new-form");

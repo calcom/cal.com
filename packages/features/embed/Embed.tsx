@@ -19,7 +19,7 @@ import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -64,7 +64,7 @@ const queryParamsForDialog = [
 
 function useRouterHelpers() {
   const router = useRouter();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
@@ -534,7 +534,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   types: EmbedTypes;
 }) => {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -1169,7 +1169,7 @@ export const EmbedDialog = ({
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
 }) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const embedUrl = (searchParams?.get("embedUrl") || "") as string;
   const namespace = (searchParams?.get("namespace") || "") as string;
   return (

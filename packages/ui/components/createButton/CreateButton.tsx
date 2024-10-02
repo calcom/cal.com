@@ -1,6 +1,6 @@
 import { usePathname, useRouter } from "next/navigation";
 
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "@calcom/ui";
 import {
@@ -40,7 +40,7 @@ export type CreateBtnProps = {
 export function CreateButton(props: CreateBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
 
   const {

@@ -10,7 +10,7 @@ import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/compo
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -177,7 +177,7 @@ type PageProps = {
 
 export default function AvailabilityPage({ currentOrg }: PageProps) {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const me = useMeQuery();

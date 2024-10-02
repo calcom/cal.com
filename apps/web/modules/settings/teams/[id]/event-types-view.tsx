@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation";
 
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout } from "@calcom/ui";
 import { Button, showToast } from "@calcom/ui";
 
 export const CreateTeamEventType = () => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
@@ -48,7 +48,7 @@ export const CreateTeamEventType = () => {
 
 export const GetLayout = (page: React.ReactElement) => {
   const router = useRouter();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
 
   return (

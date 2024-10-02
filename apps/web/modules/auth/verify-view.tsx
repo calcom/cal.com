@@ -9,7 +9,7 @@ import z from "zod";
 
 import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -118,7 +118,7 @@ const MailOpenIcon = () => (
 );
 
 export default function Verify(props: PageProps) {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const routerQuery = useRouterQuery();

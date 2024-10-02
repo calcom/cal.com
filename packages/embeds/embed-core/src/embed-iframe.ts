@@ -211,7 +211,7 @@ const useUrlChange = (callback: (newUrl: string) => void) => {
 };
 
 export const useEmbedTheme = () => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const [theme, setTheme] = useState(
     embedStore.theme || (searchParams?.get("theme") as typeof embedStore.theme)
   );

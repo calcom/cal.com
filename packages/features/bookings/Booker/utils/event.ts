@@ -2,7 +2,7 @@ import { usePathname } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { trpc } from "@calcom/trpc/react";
 
 import { useTimePreferences } from "../../lib/timePreferences";
@@ -86,7 +86,7 @@ export const useScheduleForEvent = ({
     shallow
   );
 
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
   const pathname = usePathname();

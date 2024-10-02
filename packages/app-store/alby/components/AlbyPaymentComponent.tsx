@@ -5,7 +5,7 @@ import z from "zod";
 
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -128,7 +128,7 @@ type PaymentCheckerProps = PaymentPageProps;
 function PaymentChecker(props: PaymentCheckerProps) {
   // TODO: move booking success code to a common lib function
   // TODO: subscribe rather than polling
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const utils = trpc.useUtils();
   const { t } = useLocale();

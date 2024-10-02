@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
@@ -25,7 +25,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 export const NewWebhookView = () => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();

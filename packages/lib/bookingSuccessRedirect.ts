@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
 function getNewSearchParams(args: {
@@ -44,7 +44,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const isEmbed = useIsEmbed();
   const bookingSuccessRedirect = ({
     successRedirectUrl,

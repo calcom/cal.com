@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -13,7 +13,7 @@ import type { getServerSideProps } from "@server/lib/auth/sso/[provider]/getServ
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Provider(props: SSOProviderPageProps) {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {

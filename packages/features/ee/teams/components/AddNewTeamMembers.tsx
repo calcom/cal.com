@@ -7,7 +7,7 @@ import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/Invite
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -30,7 +30,7 @@ type FormValues = {
 };
 
 const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const session = useSession();
   const telemetry = useTelemetry();
 
@@ -67,7 +67,7 @@ export const AddNewTeamMembersForm = ({
   teamId: number;
   isOrg?: boolean;
 }) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
