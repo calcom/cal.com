@@ -17,7 +17,6 @@ import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
-import { EventMeta } from "./components/EventMeta";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
@@ -327,37 +326,6 @@ const BookerComponent = ({
                 )}
               </BookerSection>
             )}
-            <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
-              <BookerSection
-                area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                {!hideEventTypeDetails && orgBannerUrl && !isPlatform && (
-                  <img
-                    loading="eager"
-                    className="-mb-9 ltr:rounded-tl-md rtl:rounded-tr-md"
-                    alt="org banner"
-                    src={orgBannerUrl}
-                  />
-                )}
-                <EventMeta
-                  classNames={{
-                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                    eventMetaTimezoneSelect:
-                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                  }}
-                  event={event.data}
-                  isPending={event.isPending}
-                  isPlatform={isPlatform}
-                />
-                {layout !== BookerLayouts.MONTH_VIEW &&
-                  !(layout === "mobile" && bookerState === "booking") && (
-                    <div className="mt-auto px-5 py-3">
-                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
-                    </div>
-                  )}
-              </BookerSection>
-            </StickyOnDesktop>
 
             <BookerSection
               key="book-event-form"
