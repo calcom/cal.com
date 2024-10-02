@@ -713,7 +713,12 @@ const platformNavigation: NavigationItemType[] = [
   {
     name: "Billing",
     href: "/settings/platform/billing",
-    icon: "chart-bar",
+    icon: "credit-card",
+  },
+  {
+    name: "Members",
+    href: "/settings/platform/members",
+    icon: "users",
   },
 ];
 

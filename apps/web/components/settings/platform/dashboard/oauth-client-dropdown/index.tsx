@@ -24,7 +24,9 @@ export const OAuthClientsDropdown = ({
       {Array.isArray(oauthClients) && oauthClients.length > 0 ? (
         <Dropdown modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button color="secondary">{initialClientName}</Button>
+            <Button color="secondary" EndIcon="chevron-down">
+              {initialClientName}
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {oauthClients.map((client) => {

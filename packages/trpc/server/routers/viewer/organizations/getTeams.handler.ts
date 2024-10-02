@@ -12,12 +12,13 @@ type GetTeamsHandler = {
 
 export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
   const currentUser = ctx.user;
+  const currentUserOrgId = ctx.user.organizationId ?? currentUser.profiles[0].organizationId;
 
-  if (!currentUser.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const allOrgTeams = await prisma.team.findMany({
     where: {
-      parentId: currentUser.organizationId,
+      parentId: currentUserOrgId,
     },
     select: {
       id: true,
