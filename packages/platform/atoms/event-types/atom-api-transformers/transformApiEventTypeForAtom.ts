@@ -1,4 +1,3 @@
-import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
@@ -26,15 +25,12 @@ import {
   eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
 
+import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
+
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
-  entity: BookerProps["entity"] | undefined,
-  readOnlyFormValues:
-    | {
-        name?: boolean;
-        email?: boolean;
-      }
-    | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  readOnlyFormValues: BookerPlatformWrapperAtomProps["readOnlyFormValues"] | undefined
 ) {
   const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
 
@@ -110,13 +106,8 @@ export function transformApiEventTypeForAtom(
 
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
-  entity: BookerProps["entity"] | undefined,
-  readOnlyFormValues:
-    | {
-        name?: boolean;
-        email?: boolean;
-      }
-    | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  readOnlyFormValues: BookerPlatformWrapperAtomProps["readOnlyFormValues"] | undefined
 ) {
   const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
 
@@ -235,12 +226,7 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
 
 function getBookingFields(
   bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
-  readOnlyFormValues:
-    | {
-        name?: boolean;
-        email?: boolean;
-      }
-    | undefined
+  readOnlyFormValues: BookerPlatformWrapperAtomProps["readOnlyFormValues"] | undefined
 ) {
   const systemBeforeFields: SystemField[] = [
     readOnlyFormValues?.name ? systemBeforeFieldNameReadOnly : systemBeforeFieldName,
