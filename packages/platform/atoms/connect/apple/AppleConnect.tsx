@@ -21,6 +21,7 @@ import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
+import { ConnectedCalendarsTooltip } from "../OAuthConnect";
 import type { OAuthConnectProps } from "../OAuthConnect";
 
 export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
@@ -29,6 +30,10 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   loadingLabel,
   className,
   initialData,
+  isMultiCalendar = false,
+  tooltip,
+  tooltipSide = "bottom",
+  isClickable,
 }) => {
   const { t } = useLocale();
   const form = useForm({
@@ -76,15 +81,37 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   return (
     <AtomsWrapper>
       <Dialog open={isDialogOpen}>
-        <DialogTrigger>
-          <Button
-            StartIcon="calendar-days"
-            color="primary"
-            disabled={isDisabled}
-            className={cn("", className, isDisabled && "cursor-not-allowed", !isDisabled && "cursor-pointer")}
-            onClick={() => setIsDialogOpen(true)}>
-            {displayedLabel}
-          </Button>
+        <DialogTrigger asChild>
+          <>
+            {isMultiCalendar && (
+              <Button
+                StartIcon="calendar-days"
+                color="primary"
+                disabled={isClickable ? false : isChecking}
+                tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance="apple" />}
+                tooltipSide={tooltipSide}
+                tooltipOffset={10}
+                className={cn("", !isDisabled && "cursor-pointer", className)}
+                onClick={() => setIsDialogOpen(true)}>
+                {displayedLabel}
+              </Button>
+            )}
+            {!isMultiCalendar && (
+              <Button
+                StartIcon="calendar-days"
+                color="primary"
+                disabled={isDisabled}
+                className={cn(
+                  "",
+                  isDisabled && "cursor-not-allowed",
+                  !isDisabled && "cursor-pointer",
+                  className
+                )}
+                onClick={() => setIsDialogOpen(true)}>
+                {displayedLabel}
+              </Button>
+            )}
+          </>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>

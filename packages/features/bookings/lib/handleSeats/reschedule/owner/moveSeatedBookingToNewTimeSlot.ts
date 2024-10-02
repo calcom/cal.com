@@ -48,7 +48,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     },
   });
 
-  evt = addVideoCallDataToEvent(newBooking.references, evt);
+  evt = { ...addVideoCallDataToEvent(newBooking.references, evt), bookerUrl: evt.bookerUrl };
 
   const copyEvent = cloneDeep(evt);
 
