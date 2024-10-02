@@ -53,7 +53,7 @@ export function Header({
     [setLayout, layout]
   );
 
-  if (isMobile || !enabledLayouts) return null;
+  if (isMobile || !enabledLayouts || !selectedDate.isValid()) return null;
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
@@ -90,6 +90,7 @@ export function Header({
   };
   const formattedMonth = new Intl.DateTimeFormat(i18n.language, { month: "short" });
   const FormattedSelectedDateRange = () => {
+    if (!selectedDate.isValid()) return null;
     return (
       <h3 className="min-w-[150px] text-base font-semibold leading-4">
         {formattedMonth.format(selectedDate.toDate())} {selectedDate.format("D")}

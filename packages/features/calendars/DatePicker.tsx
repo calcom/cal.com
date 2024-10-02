@@ -101,7 +101,7 @@ export const useCalendarDays = ({
   // Combine days from the current month and next month (if needed)
   const allDays = useMemo(() => {
     if (shouldRenderNextMonth) {
-      return [...daysToRenderForTheMonth, ...daysToRenderForNextMonth];
+      return [...daysToRenderForTheMonth, ...daysToRenderForNextMonth.filter((d) => d.day)];
     }
     return daysToRenderForTheMonth;
   }, [shouldRenderNextMonth, daysToRenderForTheMonth, daysToRenderForNextMonth]);
@@ -194,11 +194,11 @@ export const Day = ({
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light ",
+        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-full border-2 border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light lg:top-1 lg:h-12 lg:w-12 ",
         active
-          ? "bg-brand-default text-brand"
+          ? "dark:bg-brand-default text-brand bg-[#0069FF] font-bold"
           : !disabled
-          ? " hover:border-brand-default text-emphasis bg-emphasis"
+          ? " dark:hover:border-brand-default dark:text-emphasis dark:bg-emphasis bg-[#eff5ff] font-bold text-[#0160E6] hover:border-[#0069FF]"
           : "text-muted"
       )}
       data-testid="day"
@@ -209,7 +209,7 @@ export const Day = ({
       {date.isToday() && (
         <span
           className={classNames(
-            "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
+            "dark:bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full bg-[#0069FF] align-middle sm:translate-y-[12px]",
             active && "bg-brand-accent"
           )}>
           <span className="sr-only">{t("today")}</span>
@@ -263,6 +263,7 @@ const Days = ({
     excludedDates,
     includedDates: props.includedDates,
   });
+  const layout = useBookerStore((state) => state.layout, shallow);
 
   const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
 
@@ -292,33 +293,30 @@ const Days = ({
   };
 
   /**
-   * Takes care of selecting a valid date in the month if the selected date is not available in the month
+   * Takes care of selecting a valid date in the month if the selected date is not available in the month.
+   * Because of requirements, the function is not run when the layout is mobile.
    */
+  const handleInitialDateSelection = useCallback(() => {
+    if (selected instanceof Array) return;
 
-  const useHandleInitialDateSelection = () => {
-    // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
-    if (selected instanceof Array) {
-      return;
-    }
-    const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
+    const firstAvailableDate = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
 
     const isSelectedDateAvailable = selected
       ? daysToRenderForTheMonth.some(({ day, disabled }) => {
-          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
+          return day && yyyymmdd(day) === yyyymmdd(selected) && !disabled;
         })
       : false;
 
-    if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
-      // If selected date not available in the month, select the first available date of the month
-      props.onChange(firstAvailableDateOfTheMonth);
+    if (!isSelectedDateAvailable && firstAvailableDate) {
+      props.onChange(firstAvailableDate);
     }
+  }, [selected, daysToRenderForTheMonth, props]);
 
-    if (!firstAvailableDateOfTheMonth) {
-      props.onChange(null);
+  useEffect(() => {
+    if (layout !== "mobile") {
+      handleInitialDateSelection();
     }
-  };
-
-  useEffect(useHandleInitialDateSelection);
+  }, [handleInitialDateSelection, layout]);
 
   return (
     <>
@@ -471,12 +469,9 @@ const DatePicker = ({
 
   return (
     <div className={className}>
-      <div className="mb-1 flex items-center justify-between text-xl">
-        <div className="text-default text-base">
-          {browsingDate ? monthText : <SkeletonText className="h-8 w-24" />}
-        </div>
+      <div className="mb-1 flex items-center justify-center text-xl">
         <div className="text-emphasis">
-          <div className="flex">
+          <div className="flex items-center justify-center">
             <Button
               className={classNames(
                 "group p-1 opacity-70 hover:opacity-100 rtl:rotate-180",
@@ -490,6 +485,9 @@ const DatePicker = ({
               variant="icon"
               StartIcon={ChevronLeft}
             />
+            <div className="text-default mx-4 text-base">
+              {browsingDate ? monthText : <SkeletonText className="h-8 w-24" />}
+            </div>
             <Button
               className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
               onClick={() => changeMonth(+1)}
