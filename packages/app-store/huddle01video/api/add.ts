@@ -17,8 +17,7 @@ async function handler(req: NextApiRequest) {
   };
   const query = stringify(params);
 
-  // TODO: CHANGE THIS
-  const url = `https://akmo.huddle01.app/thirdparty_auth?${query}`;
+  const url = `https://huddle01.app/thirdparty_auth?${query}`;
 
   return { url };
 }
