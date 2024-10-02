@@ -1,11 +1,20 @@
 import i18nMock from "../../../../../../tests/libs/__mocks__/libServerI18n";
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
+
+import twilio from "twilio";
 import { vi, describe, beforeAll, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { resetTestEmails } from "@calcom/lib/testEmails";
-import { MembershipRole, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
+import {
+  MembershipRole,
+  WorkflowActions,
+  WorkflowMethods,
+  SmsCreditAllocationType,
+} from "@calcom/prisma/enums";
+import handler from "@calcom/web/pages/api/twilio/statusCallback";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { addCredits, smsCreditCountSelect } from "../smsCredits/smsCreditsUtils";
@@ -102,7 +111,7 @@ describe("addCredits", () => {
     expect(result).toEqual({ isFree: true });
   });
 
-  test("should return isFree false if team has still available free credits", async () => {
+  test("should return isFree false if team has no more free credits", async () => {
     prismaMock.smsCreditCount.findFirst.mockResolvedValue({ id: 1 });
     prismaMock.smsCreditCount.update.mockResolvedValue({
       id: 1,
@@ -528,5 +537,128 @@ describe("addCredits", () => {
         },
       });
     });
+  });
+});
+
+vi.mock("twilio");
+vi.mock("@calcom/features/ee/workflows/lib/smsCredits/smsCreditsUtils", async () => {
+  const actualModule = await vi.importActual("@calcom/features/ee/workflows/lib/smsCredits/smsCreditsUtils");
+
+  return {
+    ...actualModule,
+    addCredits: vi.fn().mockResolvedValue({ isFree: true }),
+  };
+});
+
+const dummyPhoneNumber = "+15551234567";
+
+describe("twilio status callback", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("should return 401 if Twilio signature is invalid", async () => {
+    twilio.validateRequest.mockReturnValue(false);
+
+    const { req, res } = createMockNextJsRequest({
+      method: "POST",
+      body: { MessageStatus: "delivered" },
+      query: {
+        teamToCharge: "1",
+      },
+      headers: { "x-twilio-signature": "invalid_signature" },
+    });
+
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(401);
+    expect(res._getData()).toBe("Missing or invalid Twilio signature");
+    expect(addCredits).not.toHaveBeenCalled();
+  });
+
+  test("should call addCredits for teamToCharge on a valid request for a delivered message", async () => {
+    twilio.validateRequest.mockReturnValue(true);
+
+    const { req, res } = createMockNextJsRequest({
+      method: "POST",
+      body: { MessageStatus: "delivered", To: dummyPhoneNumber },
+      query: {
+        teamToCharge: "1",
+        userId: "2",
+      },
+      headers: { "x-twilio-signature": "invalid_signature" },
+    });
+
+    await handler(req, res);
+
+    expect(addCredits).toHaveBeenCalledWith(dummyPhoneNumber, 1, 2);
+  });
+
+  test("should call addCredits for the right teamId if no teamToCharge was given", async () => {
+    twilio.validateRequest.mockReturnValue(true);
+
+    // teamId given
+    const { req: req1, res: res1 } = createMockNextJsRequest({
+      method: "POST",
+      body: { MessageStatus: "delivered", To: dummyPhoneNumber },
+      query: {
+        userId: "1",
+        teamId: "1",
+      },
+      headers: { "x-twilio-signature": "invalid_signature" },
+    });
+
+    await handler(req1, res1);
+
+    expect(addCredits).toHaveBeenCalledWith(dummyPhoneNumber, 1, null);
+
+    // teamId not given
+    const { req: req2, res: res2 } = createMockNextJsRequest({
+      method: "POST",
+      body: { MessageStatus: "delivered", To: dummyPhoneNumber },
+      query: {
+        userId: "1",
+        teamId: "",
+      },
+      headers: { "x-twilio-signature": "invalid_signature" },
+    });
+
+    prismaMock.membership.findMany.mockResolvedValue([
+      {
+        team: {
+          id: 10,
+          smsCreditAllocationType: SmsCreditAllocationType.ALL,
+          smsCreditCounts: [{ credits: 55 }],
+        },
+      },
+      {
+        team: {
+          id: 11,
+          smsCreditAllocationType: SmsCreditAllocationType.NONE,
+          smsCreditCounts: [{ credits: 0 }],
+        },
+      },
+      {
+        // team has available credits for user and has used less than team 10
+        team: {
+          id: 12,
+          smsCreditAllocationType: SmsCreditAllocationType.SPECIFIC,
+          smsCreditAllocationValue: 55,
+          smsCreditCounts: [{ credits: 52 }],
+        },
+      },
+      {
+        team: {
+          id: 13,
+          smsCreditAllocationType: SmsCreditAllocationType.SPECIFIC,
+          smsCreditAllocationValue: 50,
+          smsCreditCounts: [{ credits: 50 }],
+        },
+      },
+    ]);
+
+    await handler(req2, res2);
+
+    expect(addCredits).toHaveBeenCalledWith(dummyPhoneNumber, 12, 1);
   });
 });

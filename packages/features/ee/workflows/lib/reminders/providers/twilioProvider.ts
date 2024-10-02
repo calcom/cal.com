@@ -96,7 +96,7 @@ export const scheduleSMS = async (
   scheduledDate: Date,
   sender: string,
   userId?: number | null,
-  teamId?: number | null, // teamId of workflow --> what about a user workflow on a managed event type, this needs to work too
+  teamId?: number | null,
   whatsapp = false
 ) => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
