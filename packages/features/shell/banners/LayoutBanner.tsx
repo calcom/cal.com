@@ -57,10 +57,11 @@ interface BannerContainerProps {
 export const BannerContainer: React.FC<BannerContainerProps> = ({ banners }) => {
   return (
     <div className="sticky top-0 z-10 w-full divide-y divide-black">
-      {Object.keys(banners).map((key) => {
-        const Banner = BannerComponent[key as keyof typeof BannerComponent];
-        if (Banner && banners[key as keyof AllBannerProps]) {
-          return <Banner data={banners[key as keyof AllBannerProps]} key={key} />;
+      {(Object.keys(banners) as Array<keyof BannerTypeProps>).map((key) => {
+        const Banner = BannerComponent[key];
+        const bannerData = banners[key];
+        if (Banner && bannerData) {
+          return <Banner data={bannerData} key={key} />;
         }
         return null;
       })}
