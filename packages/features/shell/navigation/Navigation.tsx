@@ -72,7 +72,7 @@ const navigation: NavigationItemType[] = [
     icon: "ellipsis",
   },
   {
-    name: "Routing Forms",
+    name: "routing_forms",
     href: "/apps/routing-forms/forms",
     icon: "file-text",
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
