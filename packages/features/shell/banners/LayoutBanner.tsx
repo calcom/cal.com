@@ -57,13 +57,29 @@ interface BannerContainerProps {
 export const BannerContainer: React.FC<BannerContainerProps> = ({ banners }) => {
   return (
     <div className="sticky top-0 z-10 w-full divide-y divide-black">
-      {(Object.keys(banners) as Array<keyof BannerTypeProps>).map((key) => {
-        const Banner = BannerComponent[key];
-        const bannerData = banners[key];
-        if (Banner && bannerData) {
-          return <Banner data={bannerData} key={key} />;
+      {Object.keys(banners).map((key) => {
+        if (key === "teamUpgradeBanner") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "orgUpgradeBanner") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "verifyEmailBanner") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "adminPasswordBanner") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "impersonationBanner") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "calendarCredentialBanner") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "invalidAppCredentialBanners") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
         }
-        return null;
       })}
     </div>
   );
