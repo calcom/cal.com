@@ -331,7 +331,7 @@ const BookerComponent = ({
               <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
                 <BookerSection
                   area="meta"
-                  className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)] md:border-r">
+                  className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                   {orgBannerUrl && !isPlatform && (
                     <img
                       loading="eager"
@@ -364,7 +364,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)]"
+              className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -376,7 +376,7 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 lg:w-[var(--booker-main-width)]">
+              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker
                 classNames={{
                   datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
