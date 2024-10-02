@@ -2168,7 +2168,7 @@
   "select_time": "Wybierz godzinę",
   "select_date": "Wybierz datę",
   "connecting_you_to_someone": "Łączymy Cię z kimś.",
-  "please_do_not_close_this_tab": "Proszę nie zamykać tej karty",
+  "please_do_not_close_this_tab": "Proszę nie zamykać ani nie odświeżać tej strony",
   "see_all_available_times": "Zobacz wszystkie dostępne godziny",
   "org_team_names_example_1": "np. zespół marketingowy",
   "org_team_names_example_2": "np. zespół ds. sprzedaży",
@@ -2601,6 +2601,9 @@
   "outlook_connect_atom_label": "Połącz z Kalendarzem Outlook",
   "outlook_connect_atom_already_connected_label": "Połączono z Kalendarzem Outlook",
   "outlook_connect_atom_loading_label": "Sprawdzanie kalendarza Outlook",
+  "stripe_connect_atom_label": "Połącz ze Stripe",
+  "stripe_connect_atom_already_connected_label": "Połączono ze Stripe",
+  "stripe_connect_atom_loading_label": "Sprawdzanie poświadczeń Stripe",
   "booking_question_response_variables": "Zmienne odpowiedzi na pytania dotyczące rezerwacji",
   "managed_by_teamAdmins": "Zarządzane przez {{teamAdmins}}",
   "number_of_options": "{{count}} opcji",
@@ -2614,5 +2617,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nie masz uprawnień do wprowadzenia tej zmiany w rezerwacji",
   "hide_calendar_event_details": "Ukryj szczegóły wydarzeń w kalendarzu na udostępnionych kalendarzach",
   "description_hide_calendar_event_details": "Gdy kalendarz jest udostępniony, wydarzenia są widoczne dla czytelników, ale ich szczegóły są ukryte dla osób bez dostępu do edycji.",
+  "last_number_of_days": "ostatnie {{count}} dni",
+  "month_to_date": "od początku miesiąca",
+  "year_to_date": "od początku roku",
+  "custom_range": "zakres niestandardowy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

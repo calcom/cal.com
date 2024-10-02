@@ -23,7 +23,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
     throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });
   }
 
-  await roundRobinReassignment({ bookingId });
+  await roundRobinReassignment({ bookingId, orgId: ctx.user.organizationId });
 };
 
 export default roundRobinReassignHandler;

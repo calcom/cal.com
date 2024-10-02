@@ -987,7 +987,7 @@ async function handler(
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
       eventType,
-      evt,
+      evt: { ...evt, bookerUrl },
       invitee,
       allCredentials,
       organizerUser,
@@ -1782,6 +1782,7 @@ async function handler(
     ...evt,
     metadata,
     eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+    bookerUrl,
   };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
