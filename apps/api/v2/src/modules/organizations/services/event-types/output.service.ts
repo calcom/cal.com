@@ -2,16 +2,21 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
-import type { EventType, User, Schedule, Host } from "@prisma/client";
+import type { EventType, User, Schedule, Host, DestinationCalendar } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
-type EventTypeRelations = { users: User[]; schedule: Schedule | null; hosts: Host[] };
-type DatabaseEventType = EventType & EventTypeRelations;
+type EventTypeRelations = {
+  users: User[];
+  schedule: Schedule | null;
+  hosts: Host[];
+  destinationCalendar?: DestinationCalendar | null;
+};
+export type DatabaseTeamEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
-  DatabaseEventType,
+  DatabaseTeamEventType,
   | "id"
   | "length"
   | "title"
@@ -52,6 +57,15 @@ type Input = Pick<
   | "periodCountCalendarDays"
   | "periodStartDate"
   | "periodEndDate"
+  | "requiresBookerEmailVerification"
+  | "hideCalendarNotes"
+  | "lockTimeZoneToggleOnBookingPage"
+  | "eventTypeColor"
+  | "seatsShowAttendees"
+  | "requiresConfirmationWillBlockSlot"
+  | "eventName"
+  | "useEventTypeDestinationCalendarEmail"
+  | "hideCalendarEventDetails"
 >;
 
 @Injectable()
@@ -65,7 +79,7 @@ export class OutputOrganizationsEventTypesService {
   async getResponseTeamEventType(databaseEventType: Input) {
     const { teamId, userId, parentId, assignAllTeamMembers } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { ownerId, users, ...rest } = await this.outputEventTypesService.getResponseEventType(
+    const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
       0,
       databaseEventType
     );
@@ -80,6 +94,7 @@ export class OutputOrganizationsEventTypesService {
       teamId,
       ownerId: userId,
       parentEventTypeId: parentId,
+      schedulingType: databaseEventType.schedulingType,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
     };
   }
