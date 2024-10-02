@@ -339,47 +339,47 @@
   ],
   "tags": [
     {
-      "name": "users"
+      "name": "Users"
     },
     {
-      "name": "event-types"
+      "name": "Event Types"
     },
     {
-      "name": "bookings"
+      "name": "Bookings"
     },
     {
-      "name": "attendees"
+      "name": "Attendees"
     },
     {
-      "name": "payments"
+      "name": "Payments"
     },
     {
-      "name": "schedules"
+      "name": "Schedules"
     },
     {
-      "name": "teams"
+      "name": "Teams"
     },
     {
-      "name": "memberships"
+      "name": "Memberships"
     },
     {
-      "name": "availabilities",
+      "name": "Availabilities",
       "description": "Allows modifying unique availabilities tied to a schedule."
     },
     {
-      "name": "custom-inputs"
+      "name": "Custom Inputs"
     },
     {
-      "name": "event-references"
+      "name": "Event References"
     },
     {
-      "name": "booking-references"
+      "name": "Booking References"
     },
     {
-      "name": "destination-calendars"
+      "name": "Destination Calendars"
     },
     {
-      "name": "selected-calendars"
+      "name": "Selected Calendars"
     }
   ],
   "paths": {
@@ -398,7 +398,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["attendees"],
+        "tags": ["Attendees"],
         "responses": {
           "200": {
             "description": "Find All Attendees",
@@ -501,7 +501,7 @@
             }
           }
         },
-        "tags": ["attendees"],
+        "tags": ["Attendees"],
         "responses": {
           "200": {
             "description": "Attendee created successfully.",
@@ -580,7 +580,7 @@
             "description": "ID of the attendee to delete"
           }
         ],
-        "tags": ["attendees"],
+        "tags": ["Attendees"],
         "responses": {
           "201": {
             "description": "OK, attendee removed successfully",
@@ -646,7 +646,7 @@
             "description": "ID of the attendee to get"
           }
         ],
-        "tags": ["attendees"],
+        "tags": ["Attendees"],
         "responses": {
           "200": {
             "description": "OK",
@@ -745,7 +745,7 @@
             "description": "ID of the attendee to get"
           }
         ],
-        "tags": ["attendees"],
+        "tags": ["Attendees"],
         "responses": {
           "201": {
             "description": "OK, attendee edited successfully",
@@ -859,7 +859,7 @@
             }
           }
         },
-        "tags": ["availabilities"],
+        "tags": ["Availabilities"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/availability"
         },
@@ -900,7 +900,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["availabilities"],
+        "tags": ["Availabilities"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/availability"
         },
@@ -939,7 +939,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["availabilities"],
+        "tags": ["Availabilities"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/availability"
         },
@@ -1022,7 +1022,7 @@
             }
           }
         },
-        "tags": ["availabilities"],
+        "tags": ["Availabilities"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/availability"
         },
@@ -1054,7 +1054,7 @@
         ],
         "operationId": "listBookingReferences",
         "summary": "Find all booking references",
-        "tags": ["booking-references"],
+        "tags": ["Booking References"],
         "responses": {
           "200": {
             "description": "OK"
@@ -1122,7 +1122,7 @@
             }
           }
         },
-        "tags": ["booking-references"],
+        "tags": ["Booking References"],
         "responses": {
           "201": {
             "description": "OK,  booking reference created"
@@ -1160,7 +1160,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["booking-references"],
+        "tags": ["Booking References"],
         "responses": {
           "201": {
             "description": "OK, bookingReference removed successfully"
@@ -1196,7 +1196,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["booking-references"],
+        "tags": ["Booking References"],
         "responses": {
           "200": {
             "description": "OK"
@@ -1263,7 +1263,7 @@
             "description": "ID of the booking reference to edit"
           }
         ],
-        "tags": ["booking-references"],
+        "tags": ["Booking References"],
         "responses": {
           "201": {
             "description": "OK, BookingReference edited successfully"
@@ -1420,7 +1420,7 @@
             }
           }
         },
-        "tags": ["bookings"],
+        "tags": ["Bookings"],
         "responses": {
           "200": {
             "description": "Booking(s) created successfully.",
@@ -1527,7 +1527,7 @@
             "description": "The reason for cancellation of the booking"
           }
         ],
-        "tags": ["bookings"],
+        "tags": ["Bookings"],
         "responses": {
           "200": {
             "description": "OK, booking cancelled successfully"
@@ -1565,7 +1565,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["bookings"],
+        "tags": ["Bookings"],
         "responses": {
           "200": {
             "description": "OK",
@@ -1793,7 +1793,7 @@
             "description": "ID of the booking to edit"
           }
         ],
-        "tags": ["bookings"],
+        "tags": ["Bookings"],
         "responses": {
           "200": {
             "description": "OK, booking edited successfully",
@@ -1861,7 +1861,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["bookings"],
+        "tags": ["Bookings"],
         "responses": {
           "200": {
             "description": "OK",
@@ -1947,7 +1947,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["bookings"],
+        "tags": ["Bookings"],
         "responses": {
           "200": {
             "description": "OK"
@@ -1994,7 +1994,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["bookings"],
+        "tags": ["Bookings"],
         "responses": {
           "200": {
             "description": "OK"
@@ -2041,7 +2041,7 @@
             "description": "ID of the credential to update"
           }
         ],
-        "tags": ["credentials"],
+        "tags": ["Credentials"],
         "responses": {
           "200": {
             "description": "OK"
@@ -2077,7 +2077,7 @@
             "description": "ID of the user to fetch the credentials for"
           }
         ],
-        "tags": ["credentials"],
+        "tags": ["Credentials"],
         "responses": {
           "200": {
             "description": "OK"
@@ -2122,7 +2122,7 @@
             "description": "ID of the credential to update"
           }
         ],
-        "tags": ["credentials"],
+        "tags": ["Credentials"],
         "requestBody": {
           "description": "Update a new credential",
           "required": true,
@@ -2175,7 +2175,7 @@
             "description": "ID of the user to fetch the credentials for"
           }
         ],
-        "tags": ["credentials"],
+        "tags": ["Credentials"],
         "requestBody": {
           "description": "Create a new credential",
           "required": true,
@@ -2223,7 +2223,7 @@
           }
         ],
         "summary": "Find all destination calendars",
-        "tags": ["destination-calendars"],
+        "tags": ["Destination Calendars"],
         "responses": {
           "200": {
             "description": "OK"
@@ -2283,7 +2283,7 @@
             }
           }
         },
-        "tags": ["destination-calendars"],
+        "tags": ["Destination Calendars"],
         "responses": {
           "201": {
             "description": "OK, destination calendar created"
@@ -2320,7 +2320,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["destination-calendars"],
+        "tags": ["Destination Calendars"],
         "responses": {
           "200": {
             "description": "OK, destinationCalendar removed successfully"
@@ -2355,7 +2355,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["destination-calendars"],
+        "tags": ["Destination Calendars"],
         "responses": {
           "200": {
             "description": "OK"
@@ -2419,7 +2419,7 @@
             }
           }
         },
-        "tags": ["destination-calendars"],
+        "tags": ["Destination Calendars"],
         "responses": {
           "200": {
             "description": "OK"
@@ -2457,7 +2457,7 @@
             "description": "Slug to filter event types by"
           }
         ],
-        "tags": ["event-types"],
+        "tags": ["Event Types"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/event-types"
         },
@@ -2782,7 +2782,7 @@
             }
           }
         },
-        "tags": ["event-types"],
+        "tags": ["Event Types"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/event-types"
         },
@@ -2823,7 +2823,7 @@
             "description": "ID of the eventType to delete"
           }
         ],
-        "tags": ["event-types"],
+        "tags": ["Event Types"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/event-types"
         },
@@ -2863,7 +2863,7 @@
             "description": "ID of the eventType to get"
           }
         ],
-        "tags": ["event-types"],
+        "tags": ["Event Types"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/event-types"
         },
@@ -3130,7 +3130,7 @@
             }
           }
         },
-        "tags": ["event-types"],
+        "tags": ["Event Types"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/event-types"
         },
@@ -3150,7 +3150,7 @@
     "/memberships": {
       "get": {
         "summary": "Find all memberships",
-        "tags": ["memberships"],
+        "tags": ["Memberships"],
         "responses": {
           "200": {
             "description": "OK"
@@ -3165,7 +3165,7 @@
       },
       "post": {
         "summary": "Creates a new membership",
-        "tags": ["memberships"],
+        "tags": ["Memberships"],
         "responses": {
           "201": {
             "description": "OK, membership created"
@@ -3202,7 +3202,7 @@
             "description": "Numeric teamId of the membership to get"
           }
         ],
-        "tags": ["memberships"],
+        "tags": ["Memberships"],
         "responses": {
           "201": {
             "description": "OK, membership removed successfuly"
@@ -3237,7 +3237,7 @@
             "description": "Numeric teamId of the membership to get"
           }
         ],
-        "tags": ["memberships"],
+        "tags": ["Memberships"],
         "responses": {
           "200": {
             "description": "OK"
@@ -3272,7 +3272,7 @@
             "description": "Numeric teamId of the membership to get"
           }
         ],
-        "tags": ["memberships"],
+        "tags": ["Memberships"],
         "responses": {
           "201": {
             "description": "OK, membership edited successfully"
@@ -3309,7 +3309,7 @@
             "description": "ID of the payment to get"
           }
         ],
-        "tags": ["payments"],
+        "tags": ["Payments"],
         "responses": {
           "200": {
             "description": "OK"
@@ -3326,7 +3326,7 @@
     "/payments": {
       "get": {
         "summary": "Find all payments",
-        "tags": ["payments"],
+        "tags": ["Payments"],
         "responses": {
           "200": {
             "description": "OK"
@@ -3355,7 +3355,7 @@
             "description": "Your API Key"
           }
         ],
-        "tags": ["schedules"],
+        "tags": ["Schedules"],
         "responses": {
           "200": {
             "description": "OK",
@@ -3454,7 +3454,7 @@
             }
           }
         },
-        "tags": ["schedules"],
+        "tags": ["Schedules"],
         "responses": {
           "200": {
             "description": "OK, schedule created",
@@ -3518,7 +3518,7 @@
             "description": "Your API Key"
           }
         ],
-        "tags": ["schedules"],
+        "tags": ["Schedules"],
         "responses": {
           "201": {
             "description": "OK, schedule removed successfully"
@@ -3554,7 +3554,7 @@
             "description": "Your API Key"
           }
         ],
-        "tags": ["schedules"],
+        "tags": ["Schedules"],
         "responses": {
           "200": {
             "description": "OK",
@@ -3658,7 +3658,7 @@
             }
           }
         },
-        "tags": ["schedules"],
+        "tags": ["Schedules"],
         "responses": {
           "200": {
             "description": "OK, schedule edited successfully",
@@ -3712,7 +3712,7 @@
             "description": "Your API Key"
           }
         ],
-        "tags": ["selected-calendars"],
+        "tags": ["Selected Calendars"],
         "responses": {
           "200": {
             "description": "OK"
@@ -3760,7 +3760,7 @@
             }
           }
         },
-        "tags": ["selected-calendars"],
+        "tags": ["Selected Calendars"],
         "responses": {
           "201": {
             "description": "OK, selected calendar created"
@@ -3816,7 +3816,7 @@
             "description": "integration of the selected calendar to get"
           }
         ],
-        "tags": ["selected-calendars"],
+        "tags": ["Selected Calendars"],
         "responses": {
           "201": {
             "description": "OK, selected-calendar removed successfully"
@@ -3870,7 +3870,7 @@
             "description": "integration of the selected calendar to get"
           }
         ],
-        "tags": ["selected-calendars"],
+        "tags": ["Selected Calendars"],
         "responses": {
           "200": {
             "description": "OK"
@@ -3924,7 +3924,7 @@
             "description": "integration of the selected calendar to get"
           }
         ],
-        "tags": ["selected-calendars"],
+        "tags": ["Selected Calendars"],
         "responses": {
           "201": {
             "description": "OK, selected-calendar edited successfully"
@@ -3953,7 +3953,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["teams"],
+        "tags": ["Teams"],
         "responses": {
           "200": {
             "description": "OK"
@@ -4043,7 +4043,7 @@
             }
           }
         },
-        "tags": ["teams"],
+        "tags": ["Teams"],
         "responses": {
           "201": {
             "description": "OK, team created"
@@ -4081,7 +4081,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["teams"],
+        "tags": ["Teams"],
         "responses": {
           "201": {
             "description": "OK, team removed successfully"
@@ -4117,7 +4117,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["teams"],
+        "tags": ["Teams"],
         "responses": {
           "200": {
             "description": "OK"
@@ -4174,7 +4174,7 @@
             }
           }
         },
-        "tags": ["teams"],
+        "tags": ["Teams"],
         "responses": {
           "201": {
             "description": "OK, team edited successfully"
@@ -4211,7 +4211,7 @@
             "required": true
           }
         ],
-        "tags": ["event-types"],
+        "tags": ["Event Types"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/event-types"
         },
@@ -4231,7 +4231,7 @@
     "/users": {
       "get": {
         "operationId": "listUsers",
-        "summary": "Find all users.",
+        "summary": "Find all users",
         "parameters": [
           {
             "in": "query",
@@ -4258,7 +4258,7 @@
             "description": "The email address or an array of email addresses to filter by"
           }
         ],
-        "tags": ["users"],
+        "tags": ["Users"],
         "responses": {
           "200": {
             "description": "OK"
@@ -4360,7 +4360,7 @@
             }
           }
         },
-        "tags": ["users"],
+        "tags": ["Users"],
         "responses": {
           "201": {
             "description": "OK, user created"
@@ -4399,7 +4399,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["users"],
+        "tags": ["Users"],
         "responses": {
           "201": {
             "description": "OK, user removed successfuly"
@@ -4436,7 +4436,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["users"],
+        "tags": ["Users"],
         "responses": {
           "200": {
             "description": "OK"
@@ -4547,7 +4547,7 @@
             }
           }
         },
-        "tags": ["users"],
+        "tags": ["Users"],
         "responses": {
           "200": {
             "description": "OK, user edited successfully"
@@ -4579,7 +4579,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["webhooks"],
+        "tags": ["Webhooks"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/webhooks"
         },
@@ -4649,7 +4649,7 @@
             }
           }
         },
-        "tags": ["webhooks"],
+        "tags": ["Webhooks"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/webhooks"
         },
@@ -4690,7 +4690,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["webhooks"],
+        "tags": ["Webhooks"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/webhooks"
         },
@@ -4729,7 +4729,7 @@
             "description": "Your API key"
           }
         ],
-        "tags": ["webhooks"],
+        "tags": ["Webhooks"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/webhooks"
         },
@@ -4807,7 +4807,7 @@
             }
           }
         },
-        "tags": ["webhooks"],
+        "tags": ["Webhooks"],
         "externalDocs": {
           "url": "https://docs.cal.com/docs/core-features/webhooks"
         },
