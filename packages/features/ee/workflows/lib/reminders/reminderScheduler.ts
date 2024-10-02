@@ -143,7 +143,7 @@ const processWorkflowStep = async (
         timeUnit: workflow.timeUnit,
       },
       sendTo,
-      emailSubject: step.emailSubject || "",
+      emailSubject: fallbackEmail ? "Booking notification" : step.emailSubject || "",
       emailBody: step.reminderBody || "",
       template: step.template,
       sender: step.sender || SENDER_NAME,

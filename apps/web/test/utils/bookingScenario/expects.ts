@@ -317,11 +317,13 @@ export function expectWebhookToHaveBeenCalledWith(
 export function expectWorkflowToBeTriggered({
   emails,
   emailsToReceive,
+  subject,
 }: {
   emails: Fixtures["emails"];
   emailsToReceive: string[];
+  subject?: string;
 }) {
-  const subjectPattern = /^Reminder: /i;
+  const subjectPattern = subject ?? /^Reminder: /i;
   emailsToReceive.forEach((email) => {
     expect(emails.get()).toEqual(
       expect.arrayContaining([

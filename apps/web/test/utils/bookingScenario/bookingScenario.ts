@@ -632,7 +632,7 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
       ...team,
       parentId: team.parentId,
     };
-    await prismock.team.upsert({
+    const createdTeam = await prismock.team.upsert({
       where: {
         id: teamsWithParentId.id,
       },
@@ -643,6 +643,23 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
         ...teamsWithParentId,
       },
     });
+
+    if (team.smsCreditCount) {
+      await prismock.smsCreditCount.create({
+        data: {
+          userId: team.smsCreditCount.userId,
+          teamId: team.smsCreditCount.teamId,
+          month: team.smsCreditCount.month,
+          credits: team.smsCreditCount.credits,
+          limitReached: team.smsCreditCount.limitReached,
+          team: {
+            connect: {
+              id: createdTeam.id,
+            },
+          },
+        },
+      });
+    }
   }
 
   const addedTeams = await prismock.team.findMany({

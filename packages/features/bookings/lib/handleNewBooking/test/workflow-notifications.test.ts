@@ -23,8 +23,9 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, beforeEach } from "vitest";
 
+import dayjs from "@calcom/dayjs";
 import { resetTestSMS } from "@calcom/lib/testSMS";
-import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
+import { SMSLockState, SchedulingType, SmsCreditAllocationType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 // Local test runs sometime gets too slow
@@ -242,6 +243,136 @@ describe("handleNewBooking", () => {
         expectSMSWorkflowToBeNotTriggered({
           sms,
           toNumber: "000",
+        });
+      },
+      timeout
+    );
+
+    test(
+      "should send sms as email when user's sms limit is reached",
+      async ({ sms, emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizerOtherEmail = "organizer2@example.com";
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          teams: [
+            {
+              membership: {
+                accepted: true,
+              },
+              team: {
+                id: 1,
+                name: "Team 1",
+                slug: "team-1",
+                smsCreditAllocationType: SmsCreditAllocationType.SPECIFIC,
+                smsCreditAllocationValue: 50,
+                smsCreditCount: {
+                  userId: 101,
+                  teamId: 1,
+                  month: dayjs().utc().startOf("month").toDate(),
+                  credits: 50,
+                  limitReached: false,
+                },
+              },
+            },
+          ],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerOtherEmail,
+          },
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "SMS_ATTENDEE",
+                template: "CUSTOM",
+                activeOn: [1],
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                useEventTypeDestinationCalendarEmail: true,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                destinationCalendar: {
+                  integration: "google_calendar",
+                  externalId: "event-type-1@google-calendar.com",
+                  primaryEmail: organizerDestinationCalendarEmailOnEventType,
+                },
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            user: organizer.username,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+              smsReminderNumber: "000",
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        await handleNewBooking(req);
+
+        expectSMSWorkflowToBeNotTriggered({
+          sms,
+          toNumber: "000",
+        });
+
+        expectWorkflowToBeTriggered({
+          emailsToReceive: [booker.email],
+          emails,
+          subject: "Booking notification",
         });
       },
       timeout
@@ -534,6 +665,136 @@ describe("handleNewBooking", () => {
         expectSMSWorkflowToBeNotTriggered({
           sms,
           toNumber: "000",
+        });
+      },
+      timeout
+    );
+
+    test(
+      "should send sms as email when teams's sms limit is reached",
+      async ({ sms, emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizerOtherEmail = "organizer2@example.com";
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          teams: [
+            {
+              membership: {
+                accepted: true,
+              },
+              team: {
+                id: 1,
+                name: "Team 1",
+                slug: "team-1",
+                smsCreditAllocationType: SmsCreditAllocationType.SPECIFIC,
+                smsCreditAllocationValue: 50,
+                smsCreditCount: {
+                  userId: null,
+                  teamId: 1,
+                  month: dayjs().utc().startOf("month").toDate(),
+                  credits: 252,
+                  limitReached: true,
+                },
+              },
+            },
+          ],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerOtherEmail,
+          },
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "SMS_ATTENDEE",
+                template: "CUSTOM",
+                activeOn: [1],
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                useEventTypeDestinationCalendarEmail: true,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                destinationCalendar: {
+                  integration: "google_calendar",
+                  externalId: "event-type-1@google-calendar.com",
+                  primaryEmail: organizerDestinationCalendarEmailOnEventType,
+                },
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            user: organizer.username,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+              smsReminderNumber: "000",
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        await handleNewBooking(req);
+
+        expectSMSWorkflowToBeNotTriggered({
+          sms,
+          toNumber: "000",
+        });
+
+        expectWorkflowToBeTriggered({
+          emailsToReceive: [booker.email],
+          emails,
+          subject: "Booking notification",
         });
       },
       timeout
