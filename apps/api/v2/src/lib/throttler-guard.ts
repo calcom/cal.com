@@ -184,6 +184,12 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     this.logger.log(
       `Tracker "${tracker}" rate limit "${name}" incremented. isBlocked ${isBlocked}, totalHits ${totalHits}, timeToExpire ${timeToExpire}, timeToBlockExpire ${timeToBlockExpire}`
     );
+    this.logger.log(
+      `Tracker "${tracker}" rate limit "${name}" response headers:
+        X-RateLimit-Limit-${nameFirstUpper}: ${limit},
+        X-RateLimit-Remaining-${nameFirstUpper}: ${timeToBlockExpire ? 0 : Math.max(0, limit - totalHits)},
+        X-RateLimit-Reset-${nameFirstUpper}: ${timeToBlockExpire || timeToExpire}`
+    );
 
     return { isBlocked };
   }
