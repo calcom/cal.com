@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
-import stripe from "../lib/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST" && req.method !== "GET")

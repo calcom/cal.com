@@ -2,11 +2,12 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import stripe from "@calcom/features/ee/payments/server/stripe";
+
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import type { StripeData } from "../lib/server";
-import stripe from "../lib/server";
 
 function getReturnToValueFromQueryState(req: NextApiRequest) {
   let returnTo = "";
