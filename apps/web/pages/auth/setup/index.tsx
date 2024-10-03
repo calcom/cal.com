@@ -12,7 +12,6 @@ import Setup from "~/auth/setup-view";
 
 const Page = (props: PageProps) => {
   const { t } = useLocale();
-
   return (
     <>
       <Meta title={t("setup")} description={t("setup_description")} />
