@@ -155,7 +155,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
         ${JSON.stringify(rateLimits, null, 2)}`);
     }
 
-    await this.storageService.redis.setex(cacheKey, 3600, JSON.stringify(rateLimits));
+    await this.storageService.redis.set(cacheKey, JSON.stringify(rateLimits), "EX", 3600);
 
     return rateLimits;
   }
