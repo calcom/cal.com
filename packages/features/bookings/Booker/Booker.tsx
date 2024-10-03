@@ -434,7 +434,7 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l">
+              className="ml-[-1px] h-full flex-shrink px-5 py-3">
               <m.div
                 className="h-full"
                 {...fadeInUp}

@@ -67,7 +67,10 @@ export const EventMetaBlock = ({
   className,
   isDark,
 }: EventMetaProps) => {
-  if (!React.Children.count(children)) return null;
+  // Check if children is falsy or only contains empty strings/whitespace
+  if (!React.Children.toArray(children).some((child) => (typeof child === "string" ? child.trim() : child))) {
+    return null;
+  }
 
   return (
     <div

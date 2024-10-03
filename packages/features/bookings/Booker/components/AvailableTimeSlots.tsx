@@ -8,6 +8,7 @@ import { classNames } from "@calcom/lib";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
+import { TimeFormatToggleAlt } from "../../components/TimeFormatToggleAlt";
 import { EventDuration } from "../../components/event-meta/Duration";
 import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType, useEventReturnType } from "../utils/event";
@@ -106,9 +107,12 @@ export const AvailableTimeSlots = ({
         <div className="my-4 flex flex-col items-center justify-center">
           <p className="text-text text-center text-xl font-semibold">Select a Time</p>
           {event && (
-            <p className="text-subtle my-2 text-sm">
-              Duration: <EventDuration event={event} />
-            </p>
+            <>
+              <p className="text-subtle my-2 text-sm">
+                Duration: <EventDuration event={event} />
+              </p>
+              <TimeFormatToggleAlt />
+            </>
           )}
         </div>
       )}
