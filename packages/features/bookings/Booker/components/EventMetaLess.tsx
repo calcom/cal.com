@@ -31,7 +31,9 @@ export const EventMetaLess = ({
   }
 
   return (
-    <div className="border-subtle relative z-10 border-b-2 p-4" data-testid="event-meta">
+    <div
+      className="border-subtle bg-default dark:bg-muted relative z-10 border-b-2 p-4"
+      data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
