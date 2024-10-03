@@ -15,6 +15,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { randomBytes } from "crypto";
+import dayjs from "dayjs";
 import { Request } from "express";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
@@ -245,33 +246,134 @@ export class BookingsController {
     teamId,
     teamsIds,
   }: GetBookingsInput): Promise<GetBookingsOutput["data"]["bookings"]> {
-    let supabaseQuery = supabase.from("Booking").select("*");
+    const { data: bookings } = await supabase
+      .from("Booking")
+      .select(
+        "id, uid, userId, createdAt, status, cancellationReason, responses, reschedulingReason, recurringEventId, startTime, endTime, eventTypeId, attendees, absentHost"
+      );
 
-    if (!!status) supabaseQuery = supabaseQuery.eq("status", status);
-    // case !!attendeeEmail:
-    //   supabaseQuery = supabaseQuery.eq("attendees.email", attendeeEmail);
-    // case !!attendeeName:
-    //   supabaseQuery = supabaseQuery.eq("attendees.email", attendeeEmail);
-    if (!!eventTypeIds) supabaseQuery = supabaseQuery.in("eventTypeId", eventTypeIds as number[]);
-    if (!!eventTypeId) supabaseQuery = supabaseQuery.eq("eventTypeId", eventTypeId);
-    // case !!teamsIds:
-    //   supabaseQuery = supabaseQuery.eq("attendees.email", attendeeEmail);
-    // case !!teamId:
-    //   supabaseQuery = supabaseQuery.eq("attendees.email", attendeeEmail);
-    if (!!afterStart) supabaseQuery = supabaseQuery.gt("startTime", afterStart);
-    if (!!beforeEnd) supabaseQuery = supabaseQuery.lt("endTime", beforeEnd);
-    if (!!sortStart) supabaseQuery = supabaseQuery.order("startTime", { ascending: sortStart === "asc" });
-    if (!!sortEnd) supabaseQuery = supabaseQuery.order("endTime", { ascending: sortEnd === "asc" });
-    if (!!sortCreated) supabaseQuery = supabaseQuery.order("createdAt", { ascending: sortCreated === "asc" });
-    if (!!take)
-      if (skip) supabaseQuery = supabaseQuery.range(skip as number, (take as number) + skip - 1);
-      else supabaseQuery = supabaseQuery.limit(take as number);
+    const { data: bookingReferences } = await supabase
+      .from("BookingReference")
+      .select("bookingId, meetingUrl");
 
-    const { data: bookings, error } = await supabaseQuery;
+    const { data: users } = await supabase.from("users").select("*");
 
-    if (error || !bookings) return null;
+    const formattedBookings = (bookings as any[]).map((booking) => {
+      const duration = dayjs(booking.endTime as string).diff(dayjs(booking.startTime as string), "minutes");
+      const findedBookingReference = (bookingReferences as any[]).find((ref) => ref.bookingId === booking.id);
+      const meetingUrl = findedBookingReference ? findedBookingReference.meetingUrl : null;
+      const findedUser = (users as any[]).find((user) => user.id === booking.userId);
+      const hosts = findedUser ? [findedUser] : [];
+      const guests = booking.responses ? booking.responses.guests : null;
 
-    return bookings as GetBookingsOutput["data"]["bookings"];
+      return {
+        id: booking.id,
+        uid: booking.uid,
+        status: booking.status,
+        cancellationReason: booking.cancellationReason,
+        reschedulingReason: booking.reschedulingReason,
+        start: booking.startTime,
+        end: booking.endTime,
+        duration,
+        eventTypeId: booking.eventTypeId,
+        attendees: booking.attendees,
+        absentHost: booking.absentHost,
+        created: booking.createdAt,
+        meetingUrl,
+        hosts,
+        guests,
+        rescheduledFromUid: booking.recurringEventId,
+      };
+    });
+
+    const filteredBookings = formattedBookings
+      .filter((booking) => {
+        if (!status) return true;
+        return status.includes(booking.status);
+      })
+      .filter((booking) => {
+        if (!eventTypeId) return true;
+        return booking.eventTypeId === eventTypeId;
+      })
+      .filter((booking) => {
+        if (!eventTypeIds) return true;
+        return eventTypeIds.includes(booking.eventTypeId);
+      })
+      .filter((booking) => {
+        if (!attendeeEmail || !booking.attendees || booking.attendees.length === 0) return true;
+        return booking.attendees.some((attendee: any) => {
+          try {
+            const parsedAttendee = JSON.parse(attendee);
+            return parsedAttendee.email === attendeeEmail;
+          } catch (_) {
+            return false;
+          }
+        });
+      })
+      .filter((booking) => {
+        if (!attendeeName || !booking.attendees || booking.attendees.length === 0) return true;
+        return booking.attendees.some((attendee: any) => {
+          try {
+            const parsedAttendee = JSON.parse(attendee);
+            return parsedAttendee.name === attendeeName;
+          } catch (_) {
+            return false;
+          }
+        });
+      })
+      .filter((booking) => {
+        if (!afterStart) return true;
+        return dayjs(booking.start).isAfter(afterStart);
+      })
+      .filter((booking) => {
+        if (!beforeEnd) return true;
+        return dayjs(booking.end).isBefore(beforeEnd);
+      })
+      .sort((a, b) => {
+        const aTime = new Date(a.start).getTime();
+        const bTime = new Date(b.start).getTime();
+
+        if (aTime === bTime || !sortStart) return 0;
+        else if (aTime > bTime && sortStart === "asc") return 1;
+        else if (aTime < bTime && sortStart === "desc") return 1;
+        else if (aTime < bTime && sortStart === "asc") return -1;
+        else return -1;
+      })
+      .sort((a, b) => {
+        const aTime = new Date(a.end).getTime();
+        const bTime = new Date(b.end).getTime();
+
+        if (aTime === bTime || !sortEnd) return 0;
+        else if (aTime > bTime && sortEnd === "asc") return 1;
+        else if (aTime < bTime && sortEnd === "desc") return 1;
+        else if (aTime < bTime && sortEnd === "asc") return -1;
+        else return -1;
+      })
+      .sort((a, b) => {
+        const aTime = new Date(a.end).getTime();
+        const bTime = new Date(b.end).getTime();
+
+        if (aTime === bTime || !sortCreated) return 0;
+        else if (aTime > bTime && sortCreated === "asc") return 1;
+        else if (aTime < bTime && sortCreated === "desc") return 1;
+        else if (aTime < bTime && sortCreated === "asc") return -1;
+        else return -1;
+      });
+
+    let finishFormattedBookings = filteredBookings.map((booking) => {
+      const { created: _, ...rest } = booking;
+      return rest;
+    });
+
+    if (!!skip) finishFormattedBookings = finishFormattedBookings.slice(skip as number);
+    if (!!take) finishFormattedBookings = finishFormattedBookings.slice(0, take as number);
+
+    // // case !!teamsIds:
+    // //   supabaseQuery = supabaseQuery.eq("attendees.email", attendeeEmail);
+    // // case !!teamId:
+    // //   supabaseQuery = supabaseQuery.eq("attendees.email", attendeeEmail);
+
+    return finishFormattedBookings as unknown as GetBookingsOutput["data"]["bookings"];
   }
 
   private async getBookingInfo(bookingUid: string): Promise<GetBookingOutput["data"] | null> {
