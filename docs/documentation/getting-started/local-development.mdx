@@ -124,10 +124,7 @@ yarn dx
 
 ## **Cron Jobs**
 
-There are a few features which require cron job setup. When self-hosting, you would probably need to set up cron jobs according to the hosting platform you are using.
-For instance, if you are hosting on Vercel, you would need to set up cron jobs by following [this document](https://vercel.com/guides/how-to-setup-cron-jobs-on-vercel).
-
-At cal.com, the cron jobs are found in the following directory:
+There are a few features which require cron job setup. At cal.com, the cron jobs are found in the following directory:
 ```bash
 /apps/web/pages/api/cron
 ```
@@ -161,10 +158,17 @@ yarn
 
 ### Running API server
 
-Run the API with yarn:
+Run the API V1 with yarn:
 
 ```bash
 yarn workspace @calcom/api dev
+```
+
+Run the API V2 with yarn:
+<Info>Please note API V2 requires the database running in docker</Info>
+
+```bash
+yarn workspace @calcom/api-v2 dev
 ```
 
 <Note>
@@ -175,4 +179,4 @@ On windows, you would need to update the script to explicitly set port to 3003 a
 
 Open [http://localhost:3003](http://localhost:3003/) with your browser to see the result.
 
-If you wish to test how API works locally, please [check out our guide here](/docs/how-to-guides/how-to-test-api-in-a-local-instance).
+If you wish to test how API works locally, please [check out our guide here](/documentation/guides/how-to-setup-api-in-a-local-instance).

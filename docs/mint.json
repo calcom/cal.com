@@ -51,7 +51,7 @@
       "url": "api-reference/v1"
     },
     {
-      "name": "Self Host",
+      "name": "Self Hosting Cal.com",
       "url": "self-hosting"
     }
   ],
@@ -64,8 +64,8 @@
           "group": "Getting Started",
           "pages": [
             "documentation/getting-started/sign-up-for-a-cal.com-account",
-            "documentation/getting-started/local-development",
-            "documentation/getting-started/complete-your-onboarding"
+            "documentation/getting-started/complete-your-onboarding",
+            "documentation/getting-started/local-development"
           ]
         }
       ]
@@ -81,7 +81,11 @@
     },
     {
       "group": "Guides",
-      "pages": ["documentation/guides/index"]
+      "pages": ["documentation/guides/how-to-setup-api-in-a-local-instance"]
+    },
+    {
+      "group": "Self Hosting",
+      "pages": ["self-hosting/index"]
     },
     {
       "group": "Getting started",
