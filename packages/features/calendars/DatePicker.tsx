@@ -64,6 +64,7 @@ export const Day = ({
   away,
   emoji,
   customClassName,
+  timezone,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
@@ -74,10 +75,15 @@ export const Day = ({
     dayContainer?: string;
     dayActive?: string;
   };
+  timezone?: string;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+  const isToday = () => {
+    const todayInTimeZone = dayjs().tz(timezone).startOf("day");
+    return date.isSame(todayInTimeZone, "date");
+  };
 
   return (
     <button
@@ -101,7 +107,7 @@ export const Day = ({
       {...props}>
       {away && <span data-testid="away-emoji">{emoji}</span>}
       {!away && date.date()}
-      {date.isToday() && (
+      {isToday() && (
         <span
           className={classNames(
             "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
@@ -280,6 +286,7 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
+              timezone={props.timezone}
             />
           )}
         </div>
@@ -413,6 +420,7 @@ const DatePicker = ({
           slots={slots}
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
+          timezone={selectedTimeZone}
         />
       </div>
     </div>
