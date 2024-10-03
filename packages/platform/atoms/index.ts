@@ -20,3 +20,9 @@ export { useDeleteCalendarCredentials } from "./hooks/calendars/useDeleteCalenda
 export { useAddSelectedCalendar } from "./hooks/calendars/useAddSelectedCalendar";
 export { useRemoveSelectedCalendar } from "./hooks/calendars/useRemoveSelectedCalendar";
 export { useTeams } from "./hooks/teams/useTeams";
+export { SelectedCalendarsSettingsPlatformWrapper as SelectedCalendarsSettings } from "./selected-calendars/index";
+export { DestinationCalendarSettingsPlatformWrapper as DestinationCalendarSettings } from "./destination-calendar/index";
+export { CalendarSettingsPlatformWrapper as CalendarSettings } from "./calendar-settings/index";
+export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
+export { EventTypePlatformWrapper as EventTypeSettings } from "./event-types/wrappers/EventTypePlatformWrapper";
+export { StripeConnect } from "./connect/stripe/StripeConnect";

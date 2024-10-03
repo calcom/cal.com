@@ -3,6 +3,8 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { Booking, User } from "@prisma/client";
 
+import { Prisma } from "@calcom/prisma/client";
+
 export class BookingsRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
@@ -14,6 +16,14 @@ export class BookingsRepositoryFixture {
 
   async getById(bookingId: Booking["id"]) {
     return this.prismaReadClient.booking.findFirst({ where: { id: bookingId } });
+  }
+
+  async getByUid(bookingUid: Booking["uid"]) {
+    return this.prismaReadClient.booking.findUnique({ where: { uid: bookingUid } });
+  }
+
+  async create(booking: Prisma.BookingCreateInput) {
+    return this.prismaWriteClient.booking.create({ data: booking });
   }
 
   async deleteById(bookingId: Booking["id"]) {

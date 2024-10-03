@@ -1,3 +1,5 @@
+"use client";
+
 import { useId } from "@radix-ui/react-id";
 import { Root as ToggleGroupPrimitive, Item as ToggleGroupItemPrimitive } from "@radix-ui/react-toggle-group";
 import { useState } from "react";

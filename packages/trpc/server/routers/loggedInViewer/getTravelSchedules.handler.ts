@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type GetTravelSchedulesOptions = {
@@ -8,17 +8,5 @@ type GetTravelSchedulesOptions = {
 };
 
 export const getTravelSchedulesHandler = async ({ ctx }: GetTravelSchedulesOptions) => {
-  const allTravelSchedules = await prisma.travelSchedule.findMany({
-    where: {
-      userId: ctx.user.id,
-    },
-    select: {
-      id: true,
-      startDate: true,
-      endDate: true,
-      timeZone: true,
-    },
-  });
-
-  return allTravelSchedules;
+  return await TravelScheduleRepository.findTravelSchedulesByUserId(ctx.user.id);
 };

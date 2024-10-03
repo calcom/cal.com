@@ -365,6 +365,10 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      {
+        source: "/icons/sprite.svg",
+        destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[
@@ -433,6 +437,22 @@ const nextConfig = {
         source: "/:path*/embed",
         // COEP require-corp header is set conditionally when flag.coep is set to true
         headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "cal.com",
+          },
+        ],
+        headers: [
+          // make sure to pass full referer URL for booking pages
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer-when-downgrade",
+          },
+        ],
       },
       // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
       ...[

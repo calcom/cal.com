@@ -105,44 +105,32 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   type UserEventTypes = (typeof profileEventTypes)[number];
 
-  const mapEventType = async (eventType: UserEventTypes) => {
-    const { parent, ...rest } = eventType;
-    return {
-      ...rest,
-      safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-      users: await Promise.all(
-        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-          async (u) =>
-            await UserRepository.enrichUserWithItsProfile({
-              user: u,
-            })
-        )
-      ),
-      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
-      parent: eventType.parent,
-      children: await Promise.all(
-        (eventType.children || []).map(async (c) => ({
-          ...c,
-          users: await Promise.all(
-            c.users.map(
-              async (u) =>
-                await UserRepository.enrichUserWithItsProfile({
-                  user: u,
-                })
-            )
-          ),
-        }))
-      ),
-      managedBy: {
-        teamId: parent?.team?.id,
-        admins:
-          parent?.team?.members
-            .filter((member) => member.role === MembershipRole.ADMIN && member.accepted === true)
-            .map((member) => member.user?.name || member.user?.username || member.user?.email)
-            .filter((name) => !!name) || [],
-      },
-    };
-  };
+  const mapEventType = async (eventType: UserEventTypes) => ({
+    ...eventType,
+    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+    users: await Promise.all(
+      (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        async (u) =>
+          await UserRepository.enrichUserWithItsProfile({
+            user: u,
+          })
+      )
+    ),
+    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+    children: await Promise.all(
+      (eventType.children || []).map(async (c) => ({
+        ...c,
+        users: await Promise.all(
+          c.users.map(
+            async (u) =>
+              await UserRepository.enrichUserWithItsProfile({
+                user: u,
+              })
+          )
+        ),
+      }))
+    ),
+  });
 
   const userEventTypes = (await Promise.all(profileEventTypes.map(mapEventType))).filter((eventType) => {
     const isAChildEvent = eventType.parentId;

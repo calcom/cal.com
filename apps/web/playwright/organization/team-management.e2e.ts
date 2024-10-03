@@ -38,7 +38,7 @@ test.describe("Teams", () => {
       if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
       await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
     });
 
     await test.step("Can add members", async () => {
@@ -57,20 +57,26 @@ test.describe("Teams", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       // Cleanup here since this user is created without our fixtures.
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
-    await test.step("Can finish team creation", async () => {
+    await test.step("Can finish team invitation", async () => {
       await page.getByTestId("publish-button").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+    });
+
+    await test.step("Can finish team creation", async () => {
+      await expect(page.locator('button[value="ROUND_ROBIN"]')).toBeVisible();
+      await page.click('button[value="ROUND_ROBIN"]');
+      await page.fill("[name=title]", "roundRobin");
+      await page.getByTestId("finish-button").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
       await page.getByTestId("disband-team-button").click();
       await page.getByTestId("dialog-confirmation").click();
       await page.waitForURL("/teams");

@@ -9,6 +9,7 @@ import around_config_json from "./around/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
+import bolna_config_json from "./bolna/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import campsite_config_json from "./campsite/config.json";
@@ -32,6 +33,7 @@ import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
+import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
@@ -56,6 +58,7 @@ import plausible_config_json from "./plausible/config.json";
 import posthog_config_json from "./posthog/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
+import retell_ai_config_json from "./retell-ai/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
@@ -68,6 +71,7 @@ import sirius_video_config_json from "./sirius_video/config.json";
 import skype_config_json from "./skype/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
+import synthflow_config_json from "./synthflow/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
 import basic_config_json from "./templates/basic/config.json";
@@ -101,6 +105,7 @@ export const appStoreMetadata = {
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
+  bolna: bolna_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   campsite: campsite_config_json,
@@ -124,6 +129,7 @@ export const appStoreMetadata = {
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
   gtm: gtm_config_json,
+  "horizon-workrooms": horizon_workrooms_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,
   "ics-feedcalendar": ics_feedcalendar_config_json,
@@ -148,6 +154,7 @@ export const appStoreMetadata = {
   posthog: posthog_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
+  "retell-ai": retell_ai_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,
   "routing-forms": routing_forms_config_json,
@@ -160,6 +167,7 @@ export const appStoreMetadata = {
   skype: skype_config_json,
   stripepayment: stripepayment__metadata_ts,
   sylapsvideo: sylapsvideo_config_json,
+  synthflow: synthflow_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
   basic: basic_config_json,

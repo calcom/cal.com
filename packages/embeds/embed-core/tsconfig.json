@@ -12,6 +12,6 @@
       "@calcom/embed-snippet": ["../embed-snippet/src"]
     }
   },
-  "include": ["src", "env.d.ts", "index.ts"],
+  "include": ["src", "env.d.ts", "index.ts", "*.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }

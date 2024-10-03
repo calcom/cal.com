@@ -24,12 +24,18 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         },
       },
       slug: true,
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
       teamId: true,
       team: {
         select: {
           id: true,
           name: true,
           parentId: true,
+          bookingLimits: true,
         },
       },
       bookingFields: true,
@@ -53,13 +59,16 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      hideCalendarEventDetails: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
       seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
+      rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
+      isRRWeightsEnabled: true,
       parentId: true,
       parent: {
         select: {
@@ -92,6 +101,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           isFixed: true,
           priority: true,
+          weight: true,
+          weightAdjustment: true,
           user: {
             select: {
               credentials: {
@@ -120,13 +131,16 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     },
   });
 
+  const { profile, ...restEventType } = eventType;
+  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
+
   return {
-    ...eventType,
+    ...restEventType,
     metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields(eventType || {}),
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
     isDynamic: false,
   };
 };

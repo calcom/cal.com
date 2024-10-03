@@ -2,6 +2,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { useCallback } from "react";
 
+import { IconSprites } from "@calcom/ui";
 import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import esTranslations from "@calcom/web/public/static/locales/es/common.json";
@@ -36,9 +37,12 @@ export function BaseCalProvider({
   labels,
   autoUpdateTimezone,
   language = EN,
+  organizationId,
   onTimezoneChange,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
+  const [stateOrgId, setOrganizationId] = useState<number>(0);
+
   const { data: me } = useMe();
 
   const { mutateAsync } = useUpdateUserTimezone();
@@ -63,8 +67,9 @@ export function BaseCalProvider({
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
     onError: setError,
-    onSuccess: () => {
+    onSuccess: (data) => {
       setError("");
+      setOrganizationId(data.organizationId);
     },
   });
 
@@ -78,9 +83,35 @@ export function BaseCalProvider({
     clientId,
   });
 
+  const resolveKey = useCallback(
+    (key: string, values: Record<string, string | number | null | undefined>) => {
+      if (values?.count === undefined || values?.count === null) {
+        return key;
+      }
+
+      const { count } = values;
+
+      const translation = labels?.[key as keyof typeof labels] ?? String(getTranslation(key, language) ?? "");
+
+      // note(Lauris): if translation contains {{count}}, don't append pluralization suffix because count does not represent
+      // the decision which key to use but it is to be interpolated as the value.
+      if (translation.includes("{{count}}")) {
+        return key;
+      }
+
+      const num = Number(count);
+      const pluralForm = num === 1 ? "one" : "other";
+      return `${key}_${pluralForm}`;
+    },
+    []
+  );
+
   const translations = {
     t: (key: string, values: Record<string, string | number | null | undefined>) => {
-      let translation = labels?.[key as keyof typeof labels] ?? String(getTranslation(key, language) ?? "");
+      const resolvedKey = resolveKey(key, values);
+
+      let translation =
+        labels?.[resolvedKey as keyof typeof labels] ?? String(getTranslation(resolvedKey, language) ?? "");
       if (!translation) {
         return "";
       }
@@ -119,11 +150,12 @@ export function BaseCalProvider({
         isInit: isInit,
         isValidClient: Boolean(!error && clientId && isInit),
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
-        organizationId: me?.data.organizationId || 0,
+        organizationId: organizationId || stateOrgId || me?.data.organizationId || 0,
         ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>
       <Toaster />
+      <IconSprites />
     </AtomsContext.Provider>
   ) : (
     <AtomsContext.Provider
@@ -142,6 +174,7 @@ export function BaseCalProvider({
       <>
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
+        <IconSprites />
       </>
     </AtomsContext.Provider>
   );
