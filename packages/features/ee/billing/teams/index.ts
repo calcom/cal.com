@@ -6,7 +6,8 @@ import type { TeamBilling as _TeamBilling, TeamBillingInput } from "./team-billi
 import { TeamBillingRepository } from "./team-billing.repository";
 
 export class TeamBilling {
-  public repo = new TeamBillingRepository();
+  static repo = new TeamBillingRepository();
+
   /** Initialize a single team billing */
   static init(team: TeamBillingInput): _TeamBilling {
     if (IS_TEAM_BILLING_ENABLED) return new InternalTeamBilling(team);
