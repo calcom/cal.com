@@ -18,7 +18,7 @@ export type LazyModule<D> = Promise<{
 }>;
 
 type SWHandlers = {
-  [K in keyof SWHMap]?: LazyModule<SWHMap[K]["data"]>;
+  [K in keyof SWHMap]?: () => LazyModule<SWHMap[K]["data"]>;
 };
 
 /** Just a shorthand for HttpError  */
@@ -36,8 +36,8 @@ export class HttpCode extends HttpError {
  * @example
  * ```ts
  * stripeWebhookHandler({
- *   "payment_intent.succeeded": import("./_lazyLoadedSuccessHandler"),
- *   "customer.subscription.deleted": import("./_customer.subscription.deleted"),
+ *   "payment_intent.succeeded": () => import("./_lazyLoadedSuccessHandler"),
+ *   "customer.subscription.deleted": () => import("./_customer.subscription.deleted"),
  * })
  * ```
  */
@@ -53,7 +53,9 @@ export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextAp
     sig,
     STRIPE_WEBHOOK_SECRET
   ) as Stripe.DiscriminatedEvent;
-  const handler = (await handlers[event.type])?.default;
+  const handlerGetter = handlers[event.type];
+  if (!handlerGetter) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
+  const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe events.
   if (!handler) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
   // @ts-expect-error - we know the handler is defined and accpets the data type

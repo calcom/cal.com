@@ -80,7 +80,7 @@ describe("stripeWebhookHandler", () => {
 
     const mockHandler = vi.fn().mockResolvedValueOnce("handler_response");
     const handlers = {
-      "payment_intent.succeeded": Promise.resolve({ default: mockHandler }),
+      "payment_intent.succeeded": () => Promise.resolve({ default: mockHandler }),
     };
 
     const handler = stripeWebhookHandler(handlers);

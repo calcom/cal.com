@@ -8,9 +8,9 @@ export default defaultHandler({
     default: defaultResponder(
       // We handle each Stripe webhook event type with it's own lazy loaded handler
       stripeWebhookHandler({
-        "payment_intent.succeeded": import("./_payment_intent.succeeded"),
-        // "customer.subscription.updated": import("./_customer.subscription.deleted"),
-        "customer.subscription.deleted": import("./_customer.subscription.deleted"),
+        "payment_intent.succeeded": () => import("./_payment_intent.succeeded"),
+        // "customer.subscription.updated": () => import("./_customer.subscription.deleted"),
+        "customer.subscription.deleted": () => import("./_customer.subscription.deleted"),
       })
     ),
   }),
