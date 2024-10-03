@@ -93,62 +93,62 @@ jobs:
 
   deps:
     name: Install dependencies
-    needs: [changes]
+    needs: [changes, check-label]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
   type-check:
     name: Type check
-    needs: [changes, deps]
+    needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: [changes, deps]
+    needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
-    needs: [changes, deps]
+    needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   build-api-v1:
     name: Production builds
-    needs: [changes, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [changes, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
-    needs: [changes, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build:
     name: Production builds
-    needs: [changes, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
   integration-test:
     name: Tests
-    needs: [changes, build, build-api-v1, build-api-v2]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
@@ -237,3 +237,4 @@ jobs:
       - name: fail if conditional jobs failed
         if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
+        
