@@ -127,8 +127,8 @@ type CalcomThemeProps = Readonly<{
   isBookingPage: boolean;
   themeBasis: string | null;
   nonce: string | undefined;
-  isThemeSupported: boolean;
   children: React.ReactNode;
+  isThemeSupported?: boolean;
 }>;
 
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
@@ -273,7 +273,7 @@ const AppProviders = (props: PageWrapperProps) => {
               <CalcomThemeProvider
                 themeBasis={props.themeBasis}
                 nonce={props.nonce}
-                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported ?? true}
+                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
                 isBookingPage={props.isBookingPage || isBookingPage}>
                 <FeatureFlagsProvider>
                   <OrgBrandProvider>

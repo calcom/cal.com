@@ -2168,7 +2168,7 @@
   "select_time": "Välj tid",
   "select_date": "Välj datum",
   "connecting_you_to_someone": "Vi kopplar dig till någon.",
-  "please_do_not_close_this_tab": "Stäng inte denna flik",
+  "please_do_not_close_this_tab": "Vänligen stäng eller uppdatera inte den här sidan",
   "see_all_available_times": "Se alla tillgängliga tider",
   "org_team_names_example_1": "t.ex. marknadsföringsteam",
   "org_team_names_example_2": "t.ex. säljteam",
@@ -2601,6 +2601,9 @@
   "outlook_connect_atom_label": "Anslut Outlook Kalender",
   "outlook_connect_atom_already_connected_label": "Ansluten Outlook Kalender",
   "outlook_connect_atom_loading_label": "Kontrollerar Outlook Kalender",
+  "stripe_connect_atom_label": "Anslut till Stripe",
+  "stripe_connect_atom_already_connected_label": "Stripe ansluten",
+  "stripe_connect_atom_loading_label": "Kontrollerar Stripe-uppgifter",
   "booking_question_response_variables": "Variabler för bokningsfrågesvar",
   "managed_by_teamAdmins": "Hanteras av {{teamAdmins}}",
   "number_of_options": "{{count}} alternativ",
@@ -2614,5 +2617,9 @@
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har inte behörighet att göra denna ändring i bokningen",
   "hide_calendar_event_details": "Dölj kalenderhändelsedetaljer på delade kalendrar",
   "description_hide_calendar_event_details": "När en kalender delas är händelser synliga för läsare, men deras detaljer är dolda för dem utan skrivåtkomst.",
+  "last_number_of_days": "senaste {{count}} dagarna",
+  "month_to_date": "månad till datum",
+  "year_to_date": "år till datum",
+  "custom_range": "anpassat intervall",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

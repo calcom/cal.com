@@ -8,6 +8,7 @@ import {
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
+  transformRecurrenceApiToInternal,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
@@ -27,7 +28,7 @@ export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
   entity: BookerProps["entity"] | undefined
 ) {
-  const { lengthInMinutes, locations, bookingFields, users, ...rest } = eventType;
+  const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
   const user = users[0];
@@ -95,6 +96,7 @@ export function transformApiEventTypeForAtom(
         upId: `usr-${user.id}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
@@ -102,7 +104,7 @@ export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
   entity: BookerProps["entity"] | undefined
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, ...rest } = eventType;
+  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -180,6 +182,7 @@ export function transformApiTeamEventTypeForAtom(
         upId: `usr-${host.userId}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
