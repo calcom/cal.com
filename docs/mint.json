@@ -33,6 +33,10 @@
   },
   "tabs": [
     {
+      "name": "Documentation",
+      "url": "documentation"
+    },
+    {
       "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2"
@@ -44,6 +48,28 @@
     }
   ],
   "navigation": [
+    {
+      "group": "Getting started",
+      "pages": [
+        "documentation/introduction",
+        {
+          "group": "Getting Started",
+          "pages": [
+            "documentation/getting-started/sign-up-for-a-cal.com-account",
+            "documentation/getting-started/local-development"
+          ]
+        },
+        {
+          "group": "Open Source Contribution",
+          "pages": [
+            "documentation/open-source-contribution/index",
+            "documentation/open-source-contribution/code-styling",
+            "documentation/open-source-contribution/pull-requests",
+            "documentation/open-source-contribution/contributors-guide"
+          ]
+        }
+      ]
+    },
     {
       "group": "Getting started",
       "pages": ["api-reference/v2/introduction", "api-reference/v2/v1-v2-differences"]
