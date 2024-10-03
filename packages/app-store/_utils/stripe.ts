@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
-import Stripe from "stripe";
 
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
@@ -67,8 +67,3 @@ export async function getStripeCustomerId(user: UserType): Promise<string> {
 
   return customerId;
 }
-
-const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY || "";
-export const stripe = new Stripe(stripePrivateKey, {
-  apiVersion: "2020-08-27",
-});

@@ -1,8 +1,9 @@
 import type Stripe from "stripe";
 
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { getStripeCustomerIdFromUserId, stripe } from "./stripe";
+import { getStripeCustomerIdFromUserId } from "./stripe";
 
 interface RedirectArgs {
   userId: number;

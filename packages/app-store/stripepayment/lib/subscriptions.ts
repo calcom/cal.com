@@ -1,4 +1,4 @@
-import stripe from "./server";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 
 interface IRetrieveSubscriptionIdResponse {
   message?: string;
