@@ -37,6 +37,10 @@
       "url": "documentation"
     },
     {
+      "name": "Platform",
+      "url": "platform"
+    },
+    {
       "name": "API v2 Reference",
       "openapi": "/api-reference/v2/openapi.json",
       "url": "api-reference/v2"
@@ -45,6 +49,10 @@
       "name": "API v1 Reference",
       "openapi": "/api-reference/v1/openapi-v1.json",
       "url": "api-reference/v1"
+    },
+    {
+      "name": "Self Host",
+      "url": "self-hosting"
     }
   ],
   "navigation": [
@@ -56,19 +64,24 @@
           "group": "Getting Started",
           "pages": [
             "documentation/getting-started/sign-up-for-a-cal.com-account",
-            "documentation/getting-started/local-development"
-          ]
-        },
-        {
-          "group": "Open Source Contribution",
-          "pages": [
-            "documentation/open-source-contribution/index",
-            "documentation/open-source-contribution/code-styling",
-            "documentation/open-source-contribution/pull-requests",
-            "documentation/open-source-contribution/contributors-guide"
+            "documentation/getting-started/local-development",
+            "documentation/getting-started/complete-your-onboarding"
           ]
         }
       ]
+    },
+    {
+      "group": "Open Source Contribution",
+      "pages": [
+        "documentation/open-source-contribution/index",
+        "documentation/open-source-contribution/code-styling",
+        "documentation/open-source-contribution/pull-requests",
+        "documentation/open-source-contribution/contributors-guide"
+      ]
+    },
+    {
+      "group": "Guides",
+      "pages": ["documentation/guides/index"]
     },
     {
       "group": "Getting started",
