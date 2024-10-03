@@ -231,6 +231,7 @@ const _getBusyTimesFromTeamLimits = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   teamId: number,
+  includeMangedEvents: boolean,
   rescheduleUid?: string
 ) => {
   const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
@@ -245,6 +246,7 @@ const _getBusyTimesFromTeamLimits = async (
     startDate: limitDateFrom.toDate(),
     endDate: limitDateTo.toDate(),
     excludedUid: rescheduleUid,
+    includeMangedEvents,
   });
 
   const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({

@@ -57,6 +57,7 @@ const _getEventType = async (id: number) => {
         select: {
           id: true,
           bookingLimits: true,
+          includeManagedEventsInLimits: true,
         },
       },
       hosts: {
@@ -300,6 +301,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateFrom.tz(timeZone),
           dateTo.tz(timeZone),
           eventType?.team.id,
+          eventType.team.includeManagedEventsInLimits,
           initialData?.rescheduleUid ?? undefined
         )
       : [];
