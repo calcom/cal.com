@@ -11,7 +11,7 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -32,9 +32,10 @@ async function cancelAttendeeSeat(
   },
   eventTypeMetadata: EventTypeMetadata
 ) {
-  const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
+  const input = bookingCancelAttendeeSeatSchema.safeParse(req.body);
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
-  if (!seatReferenceUid) return;
+  if (!input.success) return;
+  const { seatReferenceUid } = input.data;
   const bookingToDelete = req.bookingToDelete;
   if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
 
