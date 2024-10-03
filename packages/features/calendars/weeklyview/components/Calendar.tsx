@@ -27,6 +27,7 @@ export function Calendar(props: CalendarComponentProps) {
   const startHour = useCalendarStore((state) => state.startHour || 9);
   const endHour = useCalendarStore((state) => state.endHour || 21);
   const usersCellsStopsPerHour = useCalendarStore((state) => state.gridCellsPerHour || 4);
+  const hoverEventDuration = useCalendarStore((state) => state.hoverEventDuration || 4);
   const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
   const hideHeader = useCalendarStore((state) => state.hideHeader);
 
@@ -107,6 +108,7 @@ export function Calendar(props: CalendarComponentProps) {
                         key={days[i].toISOString()}
                         day={days[i]}
                         startHour={startHour}
+                        slotDuration={hoverEventDuration}
                         availableSlots={availableTimeslots}
                       />
                     ) : (
