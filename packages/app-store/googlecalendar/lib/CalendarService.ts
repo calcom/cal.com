@@ -516,9 +516,10 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async getCalIds(selectedCalendars: IntegrationCalendar[]): Promise<string[]> {
-    const selectedCalendarIds = selectedCalendars
-      .filter((e) => e.integration === this.integrationName)
-      .map((e) => e.externalId);
+    const selectedCalendarsIds = selectedCalendars.reduce((calendarIds, calendar) => {
+      if (calendar.integration === this.integrationName && calendar.externalId)
+        calendarIds.push(calendar.externalId);
+    }, [] as string[]);
     if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
       // Only calendars of other integrations selected
       return [];
