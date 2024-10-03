@@ -8,7 +8,6 @@ import {
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -149,9 +148,6 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
     const { message } = getRequestedSlugError(error, requestedSlug);
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
   }
-
-  // Sync Services: Close.com
-  closeComUpdateTeam(prevTeam, updatedTeam);
 
   return {
     url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile`,

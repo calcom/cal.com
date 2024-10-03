@@ -314,9 +314,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       upId: user.profile.upId,
     };
   }
-
-  // Sync Services: Close.com
-  //closeComUpsertOrganizationUser(createTeam, ctx.user, MembershipRole.OWNER);
 };
 
 export default createHandler;

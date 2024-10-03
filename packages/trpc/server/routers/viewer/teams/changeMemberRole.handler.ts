@@ -1,5 +1,4 @@
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -68,9 +67,6 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
       user: true,
     },
   });
-
-  // Sync Services: Close.com
-  closeComUpsertTeamUser(membership.team, membership.user, membership.role);
 };
 
 export default changeMemberRoleHandler;

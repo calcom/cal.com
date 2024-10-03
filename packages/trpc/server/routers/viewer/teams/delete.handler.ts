@@ -2,7 +2,6 @@ import { cancelTeamSubscriptionFromStripe } from "@calcom/features/ee/teams/lib/
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { closeComDeleteTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -53,9 +52,6 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   });
 
   if (deletedTeam?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
-
-  // Sync Services: Close.cm
-  closeComDeleteTeam(deletedTeam);
 };
 
 // cancel/delete all workflowReminders of the removed team if the realted booking doesn't belong to another active team (org teams only)
