@@ -165,7 +165,7 @@ const Days = ({
 
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
-    minDate: minDate,
+    minDate,
     includedDates: props.includedDates,
   });
 
