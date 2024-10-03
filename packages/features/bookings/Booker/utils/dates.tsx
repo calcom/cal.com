@@ -6,6 +6,7 @@ interface EventFromToTime {
   timeFormat: TimeFormat;
   timeZone: string;
   language: string;
+  showInOneLine?: boolean;
 }
 
 export const formatEventFromToTime = ({
@@ -38,6 +39,13 @@ export const formatEventFromToTime = ({
 
 export const FromToTime = (props: EventFromToTime) => {
   const formatted = formatEventFromToTime(props);
+  if (props.showInOneLine) {
+    return (
+      <>
+        {formatted.time}, {formatted.date}
+      </>
+    );
+  }
   return (
     <>
       {formatted.date}

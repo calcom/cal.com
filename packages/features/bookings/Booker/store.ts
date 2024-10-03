@@ -166,6 +166,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedDate: (selectedDate: string | null) => {
     // unset selected date
     if (!selectedDate) {
+      set({ selectedDate });
       removeQueryParam("date");
       return;
     }
@@ -284,6 +285,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // force clear this.
     if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
     if (month) set({ month });
+    if (get().month) {
+      updateQueryParam("month", get().month as string);
+    }
 
     if (isInstantMeeting) {
       const month = dayjs().format("YYYY-MM");

@@ -61,7 +61,7 @@ export const useBookerLayout = (event: useEventReturnType["data"]) => {
   // In Embed, a Dialog doesn't look good, we disable it intentionally for the layouts that support showing Form without Dialog(i.e. no-dialog Form)
   const shouldShowFormInDialogMap: Record<BookerLayout, boolean> = {
     // mobile supports showing the Form without Dialog
-    mobile: !isEmbed,
+    mobile: false,
     // We don't show Dialog in month_view currently. Can be easily toggled though as it supports no-dialog Form
     month_view: false,
     // week_view doesn't support no-dialog Form

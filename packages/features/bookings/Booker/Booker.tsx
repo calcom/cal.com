@@ -1,6 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useCallback } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -18,6 +18,8 @@ import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
+import { EventMetaLess } from "./components/EventMetaLess";
+import { EventMetaMore } from "./components/EventMetaMore";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
@@ -25,8 +27,9 @@ import { LargeCalendar } from "./components/LargeCalendar";
 import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
+import { TimezoneWithLabel } from "./components/TimezoneWithLabel";
 import { Away, NotFound } from "./components/Unavailable";
-import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
+import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation, fadeInUp } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { useBrandColors } from "./utils/use-brand-colors";
@@ -68,7 +71,10 @@ const BookerComponent = ({
   verifyCode,
 }: BookerProps & WrappedBookerProps) => {
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const [selectedDate, setSelectedDate] = useBookerStore(
+    (state) => [state.selectedDate, state.setSelectedDate],
+    shallow
+  );
   const {
     shouldShowFormInDialog,
     hasDarkBackground,
@@ -139,6 +145,30 @@ const BookerComponent = ({
     loadingConnectedCalendar,
     onToggleCalendar,
   } = calendars;
+
+  const onGoBack = useCallback(() => {
+    if (bookerState === "booking") {
+      setSelectedTimeslot(null);
+      if (seatedEventData.bookingUid) {
+        setSeatedEventData({
+          ...seatedEventData,
+          bookingUid: undefined,
+          attendees: undefined,
+        });
+      }
+    }
+    if (bookerState === "selecting_time") {
+      setSelectedDate(null);
+      setBookerState("selecting_date");
+    }
+  }, [
+    bookerState,
+    setSelectedTimeslot,
+    setSelectedDate,
+    setBookerState,
+    setSeatedEventData,
+    seatedEventData,
+  ]);
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
@@ -333,25 +363,66 @@ const BookerComponent = ({
               className={classNames(
                 "relative z-10 flex [grid-area:meta]",
                 // Important: In Embed if we make min-height:100vh, it will cause the height to continuously keep on increasing
-                layout !== BookerLayouts.MONTH_VIEW && !isEmbed && "sm:min-h-screen"
+                (layout === BookerLayouts.WEEK_VIEW || layout === BookerLayouts.COLUMN_VIEW) &&
+                  !isEmbed &&
+                  "md:min-h-screen"
               )}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                <EventMeta event={event.data} isPending={event.isPending} />
-                {layout !== BookerLayouts.MONTH_VIEW &&
-                  !(layout === "mobile" && bookerState === "booking") && (
-                    <div className="mt-auto px-5 py-3 ">
-                      <DatePicker event={event} schedule={schedule} />
-                    </div>
-                  )}
+                className={classNames(
+                  "max-w-screen flex w-full flex-col",
+                  (layout === BookerLayouts.WEEK_VIEW || layout === BookerLayouts.COLUMN_VIEW) &&
+                    "md:w-[var(--booker-meta-width)]"
+                )}
+                visible={
+                  layout === BookerLayouts.WEEK_VIEW ||
+                  layout === BookerLayouts.COLUMN_VIEW ||
+                  (layout === BookerLayouts.MONTH_VIEW && bookerState === "booking")
+                }>
+                {(layout === BookerLayouts.WEEK_VIEW || layout === BookerLayouts.COLUMN_VIEW) && (
+                  <EventMeta event={event.data} isPending={event.isPending} />
+                )}
+                {layout === BookerLayouts.MONTH_VIEW && (
+                  <EventMetaMore event={event.data} isPending={event.isPending} onGoBack={onGoBack} />
+                )}
+                {layout !== BookerLayouts.MONTH_VIEW && bookerState !== "booking" && (
+                  <div className="mt-auto px-5 py-3 ">
+                    <DatePicker event={event} schedule={schedule} />
+                  </div>
+                )}
               </BookerSection>
             </StickyOnDesktop>
+
+            {layout === "mobile" && (
+              <StickyOnDesktop
+                key="meta-mobile"
+                className={classNames("relative z-10 flex [grid-area:meta]")}>
+                <BookerSection area="meta" className="max-w-screen flex w-full flex-col">
+                  {bookerState === "selecting_time" && (
+                    <EventMetaLess event={event.data} isPending={event.isPending} onGoBack={onGoBack} />
+                  )}
+                  {bookerState === "booking" && (
+                    <EventMetaMore event={event.data} isPending={event.isPending} onGoBack={onGoBack} />
+                  )}
+                  {bookerState === "selecting_date" && (
+                    <div className="mt-auto px-5 py-3 ">
+                      <p className="my-2 text-center font-semibold">Select a Day</p>
+                      <DatePicker event={event} schedule={schedule} />
+                      <TimezoneWithLabel
+                        event={event.data}
+                        isPending={event.isPending}
+                        className="py-6 lg:p-6"
+                      />
+                    </div>
+                  )}
+                </BookerSection>
+              </StickyOnDesktop>
+            )}
 
             <BookerSection
               key="book-event-form"
               area="main"
-              className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+              className="border-subtle sticky top-0 ml-[-1px] h-full p-6"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -363,8 +434,18 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker event={event} schedule={schedule} />
+              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l">
+              <m.div
+                className="h-full"
+                {...fadeInUp}
+                layout
+                transition={{ ...fadeInUp.transition, delay: 0.3 }}>
+                <p className="my-2 text-center font-semibold">Select a Date & Time</p>
+                <div className="flex h-[95%] flex-col justify-between">
+                  <DatePicker event={event} schedule={schedule} />
+                  <TimezoneWithLabel event={event.data} isPending={event.isPending} className="p-6" />
+                </div>
+              </m.div>
             </BookerSection>
 
             <BookerSection
@@ -403,6 +484,7 @@ const BookerComponent = ({
                 isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
+                event={event.data}
               />
             </BookerSection>
           </AnimatePresence>

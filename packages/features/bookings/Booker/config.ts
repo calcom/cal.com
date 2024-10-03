@@ -68,30 +68,29 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
           "timeslots"
         `,
       gridTemplateColumns: "100%",
-      gridTemplateRows: "minmax(min-content,max-content) 1fr",
+      gridTemplateRows: "minmax(min-content,max-content) auto auto auto",
     },
   },
   month_view: {
     default: {
-      width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
-      minHeight: "450px",
+      minHeight: "480px",
       height: "auto",
       gridTemplateAreas: `
-      "meta main main"
-      "meta main main"
-      `,
-      gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
-      gridTemplateRows: "1fr 0fr",
+          "meta"
+          "main"
+        `,
+      gridTemplateColumns: "100%",
+      gridTemplateRows: "minmax(min-content,max-content) auto",
     },
     selecting_time: {
-      width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
-      minHeight: "450px",
+      width: "calc(var(--booker-main-width) + var(--booker-timeslots-width))",
+      minHeight: "480px",
       height: "auto",
       gridTemplateAreas: `
-      "meta main timeslots"
-      "meta main timeslots"
+      "main timeslots"
+      "main timeslots"
       `,
-      gridTemplateColumns: "var(--booker-meta-width) 1fr var(--booker-timeslots-width)",
+      gridTemplateColumns: "1fr var(--booker-timeslots-width)",
       gridTemplateRows: "1fr 0fr",
     },
   },

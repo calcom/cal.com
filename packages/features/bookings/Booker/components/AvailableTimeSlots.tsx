@@ -8,8 +8,9 @@ import { classNames } from "@calcom/lib";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
+import { EventDuration } from "../../components/event-meta/Duration";
 import { useBookerStore } from "../store";
-import type { useScheduleForEventReturnType } from "../utils/event";
+import type { useScheduleForEventReturnType, useEventReturnType } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -18,6 +19,7 @@ type AvailableTimeSlotsProps = {
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
+  event?: useEventReturnType["data"];
 };
 
 /**
@@ -34,6 +36,7 @@ export const AvailableTimeSlots = ({
   showAvailableSeatsCount,
   schedule,
   isLoading,
+  event,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -78,25 +81,37 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
-      <div className="flex">
-        {isLoading ? (
-          <div className="mb-3 h-8" />
-        ) : (
-          slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
-            <AvailableTimesHeader
-              key={slots.date}
-              date={dayjs(slots.date)}
-              showTimeFormatToggle={!isColumnView}
-              availableMonth={
-                dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
-                  ? dayjs(slots.date).format("MMM")
-                  : undefined
-              }
-            />
-          ))
-        )}
-      </div>
+      {layout !== "mobile" && (
+        <div className="flex">
+          {isLoading ? (
+            <div className="mb-3 h-8" />
+          ) : (
+            slotsPerDay.length > 0 &&
+            slotsPerDay.map((slots) => (
+              <AvailableTimesHeader
+                key={slots.date}
+                date={dayjs(slots.date)}
+                showTimeFormatToggle={!isColumnView}
+                availableMonth={
+                  dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
+                    ? dayjs(slots.date).format("MMM")
+                    : undefined
+                }
+              />
+            ))
+          )}
+        </div>
+      )}
+      {layout === "mobile" && (
+        <div className="my-4 flex flex-col items-center justify-center">
+          <p className="text-text text-center text-xl font-semibold">Select a Time</p>
+          {event && (
+            <p className="text-subtle my-2 text-sm">
+              Duration: <EventDuration event={event} />
+            </p>
+          )}
+        </div>
+      )}
       <div
         ref={containerRef}
         className={classNames(
