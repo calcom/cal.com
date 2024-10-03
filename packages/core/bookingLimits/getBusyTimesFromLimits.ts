@@ -89,6 +89,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
   eventTypeId?: number;
   teamId?: number;
   user?: { id: number; email: string };
+  includeMangedEvents?: boolean;
 }) => {
   const {
     bookings,
@@ -100,6 +101,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     teamId,
     user,
     rescheduleUid,
+    includeMangedEvents = false,
   } = params;
 
   for (const key of descendingLimitKeys) {
@@ -123,6 +125,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
             teamId,
             user,
             rescheduleUid,
+            includeMangedEvents,
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit);
@@ -268,6 +271,7 @@ const _getBusyTimesFromTeamLimits = async (
     rescheduleUid,
     teamId,
     user,
+    includeMangedEvents,
   });
 
   return limitManager.getBusyTimes();

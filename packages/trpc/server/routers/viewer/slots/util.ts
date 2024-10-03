@@ -182,6 +182,7 @@ export async function getEventType(
         select: {
           id: true,
           bookingLimits: true,
+          includeManagedEventsInLimits: true,
         },
       },
       parent: {
