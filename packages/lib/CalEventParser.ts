@@ -182,7 +182,7 @@ export const getBookingUrl = (calEvent: CalendarEvent) => {
 export const getPlatformManageLink = (
   calEvent: Parameters<typeof getCancelLink>[0] &
     Parameters<typeof getRescheduleLink>[0]["calEvent"] &
-    Pick<CalendarEvent, "platformBookingUrl" | "platformRescheduleUrl">,
+    Pick<CalendarEvent, "platformBookingUrl" | "platformRescheduleUrl" | "team">,
   t: TFunction
 ) => {
   const shouldDisplayReschedule = !calEvent.recurringEvent && calEvent.platformRescheduleUrl;
@@ -225,7 +225,7 @@ export const getManageLink = (
 };
 
 export const getPlatformCancelLink = (
-  calEvent: Pick<CalendarEvent, "platformCancelUrl" | "type" | "organizer" | "recurringEvent">,
+  calEvent: Pick<CalendarEvent, "platformCancelUrl" | "type" | "organizer" | "recurringEvent" | "team">,
   bookingUid: string,
   seatUid?: string
 ): string => {
@@ -267,7 +267,7 @@ export const getCancelLink = (
 };
 
 export const getPlatformRescheduleLink = (
-  calEvent: Pick<CalendarEvent, "platformRescheduleUrl" | "type" | "organizer">,
+  calEvent: Pick<CalendarEvent, "platformRescheduleUrl" | "type" | "organizer" | "team">,
   bookingUid: string,
   seatUid?: string
 ): string => {

@@ -30,6 +30,7 @@ export type ICSCalendarEvent = Pick<
   | "recurringEvent"
   | "team"
   | "type"
+  | "hideCalendarEventDetails"
 >;
 
 const generateIcsString = ({
