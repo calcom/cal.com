@@ -1,10 +1,9 @@
-import { TeamBillingRepository } from "ee/billing/teams/team-billing.repository";
-
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
 import { InternalTeamBilling } from "./internal-team-billing";
 import { StubTeamBilling } from "./stub-team-billing";
 import type { TeamBilling as _TeamBilling, TeamBillingInput } from "./team-billing";
+import { TeamBillingRepository } from "./team-billing.repository";
 
 export class TeamBilling {
   public repo = new TeamBillingRepository();
