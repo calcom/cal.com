@@ -14,7 +14,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, Form, SettingsToggle, showToast } from "@calcom/ui";
+import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
 
@@ -22,9 +22,10 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const form = useForm<{ bookingLimits?: IntervalLimit }>({
+  const form = useForm<{ bookingLimits?: IntervalLimit; includeManagedEventsInLimits: boolean }>({
     defaultValues: {
       bookingLimits: team?.bookingLimits || undefined,
+      includeManagedEventsInLimits: team?.includeManagedEventsInLimits ?? false,
     },
   });
 
@@ -40,7 +41,10 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
       if (res) {
-        reset({ bookingLimits: res.bookingLimits });
+        reset({
+          bookingLimits: res.bookingLimits,
+          includeManagedEventsInLimits: res.includeManagedEventsInLimits,
+        });
       }
       showToast(t("booking_limits_updated_successfully"), "success");
     },
@@ -83,9 +87,12 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                         });
                       } else {
                         form.setValue("bookingLimits", {});
+                        form.setValue("includeManagedEventsInLimits", false);
                       }
                       const bookingLimits = form.getValues("bookingLimits");
-                      mutation.mutate({ bookingLimits, id: team.id });
+                      const includeManagedEventsInLimits = form.getValues("includeManagedEventsInLimits");
+
+                      mutation.mutate({ bookingLimits, includeManagedEventsInLimits, id: team.id });
                     }}
                     switchContainerClassName={classNames(
                       "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -93,7 +100,21 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                     )}
                     childrenClassName="lg:ml-0">
                     <div className="border-subtle border border-y-0 p-6">
-                      <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+                      <Controller
+                        name="includeManagedEventsInLimits"
+                        render={({ field: { value, onChange } }) => (
+                          <CheckboxField
+                            description={t("count_managed_to_limit")}
+                            descriptionAsLabel
+                            onChange={(e) => onChange(e)}
+                            checked={value}
+                          />
+                        )}
+                      />
+
+                      <div className="pt-6">
+                        <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+                      </div>
                     </div>
                     <SectionBottomActions className="mb-6" align="end">
                       <Button disabled={isSubmitting || !isDirty} type="submit" color="primary">
