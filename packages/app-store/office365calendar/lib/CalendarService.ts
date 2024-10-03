@@ -162,17 +162,23 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async getCalIds(selectedCalendars: IntegrationCalendar[]): Promise<string[]> {
-    const selectedCalendarIds = selectedCalendars
-      .filter((e) => e.integration === this.integrationName)
-      .map((e) => e.externalId)
-      .filter(Boolean);
+    const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
+      if (calendar.integration === this.integrationName && calendar.externalId)
+        calendarIds.push(calendar.externalId);
+      return calendarIds;
+    }, [] as string[]);
     if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
       // Only calendars of other integrations selected
       return Promise.resolve([]);
     }
 
     const ids = await (selectedCalendarIds.length === 0
-      ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
+      ? this.listCalendars().then((cals) =>
+          cals.reduce((calendarIds, calendar) => {
+            if (calendar.externalId) calendarIds.push(calendar.externalId);
+            return calendarIds;
+          }, [] as string[])
+        )
       : Promise.resolve(selectedCalendarIds));
     return ids;
   }
