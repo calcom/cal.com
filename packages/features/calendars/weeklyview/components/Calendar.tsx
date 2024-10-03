@@ -69,9 +69,7 @@ export function Calendar(props: CalendarComponentProps) {
             <div
               className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
               style={{
-                backgroundColor: "var(--disabled-gradient-background)",
-                background:
-                  "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
+                backgroundColor: "gray",
               }}>
               <HorizontalLines
                 startHour={startHour}
@@ -130,6 +128,16 @@ export function Calendar(props: CalendarComponentProps) {
                   </li>
                 ))}
               </SchedulerColumns>
+
+              {/*<SchedulerColumnsWithX*/}
+              {/*  offsetHeight={containerOffset.current?.offsetHeight}*/}
+              {/*  gridStopsPerDay={numberOfGridStopsPerDay}*/}
+              {/*  days={days}*/}
+              {/*  startHour={startHour}*/}
+              {/*  endHour={endHour}*/}
+              {/*  availableTimeslots={availableTimeslots}*/}
+              {/*  timezone={timezone}*/}
+              {/*/>*/}
             </div>
           </div>
         </div>

@@ -280,6 +280,7 @@ const BookerComponent = ({
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
             !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
+
             `${customClassNames?.bookerContainer}`
           )}>
           <AnimatePresence>
@@ -337,32 +338,10 @@ const BookerComponent = ({
             </BookerSection>
 
             <BookerSection
-              key="datepicker"
-              area="main"
-              visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
-              {...fadeInLeft}
-              initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker
-                classNames={{
-                  datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
-                  datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
-                  datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
-                  datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
-                  datePickerDatesActive: customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
-                  datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
-                }}
-                event={event}
-                schedule={schedule}
-                scrollToTimeSlots={scrollToTimeSlots}
-              />
-            </BookerSection>
-
-            <BookerSection
               key="large-calendar"
               area="main"
               visible={layout === BookerLayouts.WEEK_VIEW}
-              className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
+              className="border-subtle sticky top-0  ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
               <LargeCalendar
                 extraDays={extraDays}
