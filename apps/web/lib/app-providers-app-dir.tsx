@@ -71,10 +71,12 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
    **/
 
   const session = useSession();
-  const locale =
-    session?.data?.user.locale ?? typeof window !== "undefined"
-      ? window.document.documentElement.lang || "en"
+  const fallbackLocale =
+    typeof window !== "undefined" && window.document.documentElement.lang
+      ? window.document.documentElement.lang
       : "en";
+  const newLocale = typeof window !== "undefined" && window.calNewLocale ? window.calNewLocale : null;
+  const locale = session?.data?.user.locale ?? newLocale ?? fallbackLocale;
 
   useEffect(() => {
     try {
@@ -127,8 +129,8 @@ type CalcomThemeProps = Readonly<{
   isBookingPage: boolean;
   themeBasis: string | null;
   nonce: string | undefined;
-  isThemeSupported: boolean;
   children: React.ReactNode;
+  isThemeSupported?: boolean;
 }>;
 
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
@@ -273,7 +275,7 @@ const AppProviders = (props: PageWrapperProps) => {
               <CalcomThemeProvider
                 themeBasis={props.themeBasis}
                 nonce={props.nonce}
-                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported ?? true}
+                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
                 isBookingPage={props.isBookingPage || isBookingPage}>
                 <FeatureFlagsProvider>
                   <OrgBrandProvider>

@@ -86,7 +86,7 @@ async function seedAppData() {
         },
         {
           id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-          action: { type: "externalRedirectUrl", value: "https://google.com" },
+          action: { type: "externalRedirectUrl", value: "https://cal.com" },
           queryValue: {
             id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
             type: "group",

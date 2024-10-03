@@ -18,7 +18,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -57,17 +56,19 @@ export class SchedulesController_2024_06_11 {
   @ApiOperation({
     summary: "Create a schedule",
     description: `
+      Create a schedule for the authenticated user.
+
       The point of creating schedules is for event types to be available at specific times.
 
-      First goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.
-      1. If you passed \`timeZone\` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. Managed user can then change the default schedule via \`AvailabilitySettings\` atom.
-      2. If you did not, then we assume you want that user has specific schedule right away. You should create default schedule by specifying
-      \`"isDefault": true\` in the request body. Until the user has a default schedule that user can't be booked or manage his / her schedule via the AvailabilitySettings atom.
+      The first goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.
+      1. If you passed \`timeZone\` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the \`AvailabilitySettings\` atom.
+      2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying
+      \`"isDefault": true\` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.
 
-      Second goal is to create other schedules that event types can point to, so that when that event is booked availability is not checked against the default schedule but against that specific schedule.
-      After creating a non default schedule you can update event type to point to that schedule via the PATCH \`event-types/{eventTypeId}\` endpoint.
+      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.
+      After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH \`event-types/{eventTypeId}\` endpoint.
 
-      When specifying start time and end time for each day use 24 hour format e.g. 08:00, 15:00 etc.
+      When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.
       `,
   })
   async createSchedule(
@@ -86,8 +87,11 @@ export class SchedulesController_2024_06_11 {
   @Permissions([SCHEDULE_READ])
   @ApiResponse({
     status: 200,
-    description: "Returns the default schedule of the authenticated user",
     type: GetDefaultScheduleOutput_2024_06_11,
+  })
+  @ApiOperation({
+    summary: "Get default schedule",
+    description: "Get the default schedule of the authenticated user.",
   })
   async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetScheduleOutput_2024_06_11> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
@@ -100,7 +104,7 @@ export class SchedulesController_2024_06_11 {
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // allow 10 requests per minute (for :scheduleId)
+  @ApiOperation({ summary: "Get a schedule" })
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number
@@ -116,7 +120,8 @@ export class SchedulesController_2024_06_11 {
   @Get("/")
   @Permissions([SCHEDULE_READ])
   @ApiOperation({
-    description: "Returns all schedules of the authenticated user",
+    summary: "Get all schedules",
+    description: "Get all schedules of the authenticated user.",
   })
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput_2024_06_11> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
@@ -129,6 +134,7 @@ export class SchedulesController_2024_06_11 {
 
   @Patch("/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
+  @ApiOperation({ summary: "Update a schedule" })
   async updateSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput_2024_06_11,
@@ -149,6 +155,7 @@ export class SchedulesController_2024_06_11 {
   @Delete("/:scheduleId")
   @HttpCode(HttpStatus.OK)
   @Permissions([SCHEDULE_WRITE])
+  @ApiOperation({ summary: "Delete a schedule" })
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number

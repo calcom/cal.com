@@ -1,0 +1,287 @@
+---
+title: Welcome to Platform!
+description: The one stop destination to build your next scheduling business.
+---
+
+<img src="/images/Platform_banner.png" width="800" height="800" />
+
+Platform is the best choice for starting a scheduling business. You can white-label the design or change every line of code to make it work for you. It consists of our newly created set of APIs and plug and play UI components called atoms.
+
+<a
+    href="https://app.cal.com/signup?redirect=https://app.cal.com/settings/platform/new"
+    heading="">
+    Get started
+</a>
+
+## Atoms
+
+Atoms are customizable UI components handling scheduling on behalf of your users. Everything from the frontend to the backend is being handled by the atom, all you need to is import the atom and drop it in your code and you're good to go.
+
+## How to use atoms
+
+Here's some examples around how you can use atoms in your project.
+
+### 1. Google Calendar connect atom
+
+The below code snippet renders the Google calendar connect button which syncs a user's google calendar.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function Connect() {
+  return (
+    <main>
+      <Connect.GoogleCalendar />
+    </main>
+  )
+}
+```
+
+If you need to customize the appearance of any atom, you can pass in custom css styles via a className prop.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function Connect() {
+  return (
+    <main>
+      <Connect.GoogleCalendar className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
+    </main>
+  )
+}
+```
+
+This is how the google calendar connect button looks:
+
+<img src="/images/gcal_atom.png" />
+
+### 2. Outlook Calendar connect atom
+
+The below code snippet renders the Outlook calendar connect button which syncs a user's outlook calendar.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.OutlookCalendar />
+    </main>
+  )
+}
+```
+
+If you need to customize the appearance of the atom, you can pass in custom css styles via the className prop. Additionally, if you want to pass in a custom redirect url that can be done via the redir prop.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.OutlookCalendar className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" redir="http://localhost:4321/calendars" />
+    </main>
+  )
+}
+```
+
+This is how the outlook calendar connect button looks:
+
+<img src="/images/outlook_calendar.png" />
+
+### 3. Apple Calendar connect atom
+
+The below code snippet renders the Apple calendar connect button which syncs a user's apple calendar.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.AppleCalendar />
+    </main>
+  )
+}
+```
+
+If you need to customize the appearance of the atom, you can pass in custom css styles via the className prop.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.AppleCalendar className="h-[40px] bg-gradient-to-r from-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
+    </main>
+  )
+}
+```
+
+This is how the apple calendar connect button looks:
+
+<img src="/images/apple_calendar_atom.png" />
+
+The apple calendar atom works a bit differently than outlook and google calendar. We don't get redirected to an OAuth consent page, instead a modal appears which prompts us to create an app specific password to use with Cal.com:
+
+<img src="/images/apple_calendar_modal.png" />
+
+<Note>If you try to put your Apple Id password in the above password field, it will throw an error. It only accepts an app specific password generated from https://appleid.apple.com/account/manage.</Note>
+
+### 4. Availability settings atom
+
+The below code snippet renders the availability settings atom through which a user can set their available time slots.
+
+```js
+import { AvailabilitySettings } from "@calcom/atoms";
+
+export default function Availability() {
+  return (
+    <>
+       <AvailabilitySettings
+          onUpdateSuccess={() => {
+            console.log("Updated schedule successfully");
+          }}
+          onDeleteSuccess={() => {
+            console.log("Deleted schedule successfully");
+          }}
+       />
+    <>
+  )
+}
+```
+
+This is how the availability settings atom looks:
+
+<img src="/images/availability_settings.png" />
+
+If a user wishes to add further adjustments to their availability for special occasions or events, they can use the date overrides feature. Date overrides enables users to pick any date that they're currently available and set specific hours for availability on that day or mark themselves entirely unavailable. Once that day is passed, the date override is automatically deleted.
+
+The below code snippet renders date overrides into the availability settings atom
+
+```js
+import { AvailabilitySettings } from "@calcom/atoms";
+
+export default function Availability() {
+  return (
+    <>
+       <AvailabilitySettings
+          enableOverrides={true}
+          onUpdateSuccess={() => {
+            console.log("Updated schedule successfully");
+          }}
+          onDeleteSuccess={() => {
+            console.log("Deleted schedule successfully");
+          }}
+       />
+    <>
+  )
+}
+```
+
+This is how the availability settings atom looks with date overrides:
+
+<img src="/images/date_overrides.png" />
+
+When a user tries to add date overrides for their availability, a modal appears which prompts the user to select the date and availability they want to override.
+
+<img src="/images/date_overrides_modal.png" />
+
+After successfully adding a date override, this is how the availability settings atom looks:
+
+<img src="/images/date_overrides_added.png" />
+
+### 5. Booker atom
+
+The below code snippet renders the booker atom through which a user can be booked for any event that they have set.
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <Booker
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+         }}
+      />
+    <>
+  )
+}
+```
+
+This is how the booker atom looks:
+
+<img src="/images/booker.png" />
+
+### 6. Calendar settings atom
+
+The below code snippet renders the calendar settings atom through which you can configure how your event types interact with your calendars. The atom gives you the ability to select where to add events when you're booked. Additionally, you can also select which calendars you want to check for conflicts to prevent double bookings.
+
+```js
+import { CalendarSettings } from "@calcom/atoms";
+
+export default function CalendarSettingsComponent( props : CalendarSettingsComponentProps ) {
+  return (
+    <>
+      <CalendarSettings />
+    <>
+  )
+}
+```
+
+This is how the calendar settings atom looks:
+
+<img src="/images/calendar_settings_atom.png" />
+
+Additionally, if you wish to select either the Destination Calendar or the Selected Calendar, we also provide atoms specifically designed for this purpose.
+
+**1. Destination calendar settings atom**
+
+The below code snippet renders the destination calendar settings atom. Through this atom you can select which calendar you want to add events to when you're booked.
+
+```js
+import { DestinationCalendarSettings } from "@calcom/atoms";
+
+export default function DestinationCalendars( props : DestinationCalendarsProps ) {
+  return (
+    <>
+      <DestinationCalendarSettings classNames="mx-5" statusLoader={<>Loading...</>} />
+    <>
+  )
+}
+```
+This is how the destination calendar settings atom looks:
+
+<img src="/images/destination_calendar_settings.png" />
+
+**2. Selected calendar settings atom**
+
+The below code snippet renders the selected calendar settings atom. Through this atom you can select which calendars you want to check for conflicts to prevent double bookings.
+
+```js
+import { SelectedCalendarSettings } from "@calcom/atoms";
+
+export default function SelectedCalendars( props : SelectedCalendarsProps ) {
+  return (
+    <>
+      <SelectedCalendarSettings classNames="mx-5 mb-6" />
+    <>
+  )
+}
+```
+This is how the selected calendar settings atom looks:
+
+<img src="/images/selected_calendar_settings.png" />
+
+## Platform APIs
+
+We've also created a set of new and scalable APIs for our Platform customers called v2 which we plan to make the successor for our v1 APIs. Internally all the atoms use the new Platform APIs to handle scheduling.
+
+Once you set up an OAuth client and create a managed user for that particular OAuth client you're ready to use the Platform API. Below are some examples around how you can use the Platform APIs in your project.
+
+Go [here](/api-reference/v2) to see all the available endpoints.
