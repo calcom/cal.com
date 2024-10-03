@@ -1,0 +1,20 @@
+---
+title: 'Introduction to API v2'
+description: 'Introduction to Cal.com API v2 endpoints'
+---
+
+## Authentication
+
+The Cal.com API uses API keys to authenticate requests. You can view and manage your API keys in your settings page under the security tab in Cal.com.
+
+<img src="/images/i1600x899-DllqhV6w_3Vj_oxtjov.png" />
+
+API Keys are under Settings > Security
+
+Test mode secret keys have the prefix `cal_` and live mode secret keys have the prefix `cal_live_`.
+
+Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.
+
+Authentication to the API is performed via the Authentication header like: `Bearer: cal_live_xxxxxx`
+
+All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
