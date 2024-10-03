@@ -91,13 +91,13 @@ export class CreateBookingInput_2024_08_13 {
 
   @ApiPropertyOptional({
     type: String,
-    description:
-      "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+    description: "Location for this booking. Displayed in email and calendar event.",
     example: "https://example.com/meeting",
+    required: false,
   })
   @IsUrl()
   @IsOptional()
-  meetingUrl?: string;
+  location?: string;
 
   // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
   // @ApiProperty({
@@ -112,7 +112,8 @@ export class CreateBookingInput_2024_08_13 {
 
   @ApiPropertyOptional({
     type: Object,
-    description: "Booking field responses.",
+    description:
+      "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
     example: { customField: "customValue" },
     required: false,
   })
@@ -169,14 +170,13 @@ export class CreateRecurringBookingInput_2024_08_13 {
 
   @ApiProperty({
     type: String,
-    description:
-      "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+    description: "Location for this booking. Displayed in email and calendar event.",
     example: "https://example.com/meeting",
     required: false,
   })
   @IsUrl()
   @IsOptional()
-  meetingUrl?: string;
+  location?: string;
 
   // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
   // @ApiProperty({

@@ -10,8 +10,8 @@ export { useTeamEventTypes } from "./hooks/event-types/public/useTeamEventTypes"
 export { useEventType as useEvent } from "./hooks/event-types/public/useEventType";
 export { useEventTypeById } from "./hooks/event-types/private/useEventTypeById";
 export { useCancelBooking } from "./hooks/bookings/useCancelBooking";
-export { useGetBooking } from "./hooks/bookings/useGetBooking";
-export { useGetBookings } from "./hooks/bookings/useGetBookings";
+export { useBooking } from "./hooks/bookings/useBooking";
+export { useBookings } from "./hooks/bookings/useBookings";
 export { useMe } from "./hooks/useMe";
 export { OutlookConnect } from "./connect/outlook/OutlookConnect";
 export * as Connect from "./connect";

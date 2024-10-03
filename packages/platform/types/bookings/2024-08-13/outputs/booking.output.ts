@@ -6,10 +6,10 @@ import {
   IsDateString,
   IsEnum,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   IsTimeZone,
-  IsUrl,
   ValidateNested,
 } from "class-validator";
 
@@ -56,6 +56,18 @@ class Host {
   timeZone!: string;
 }
 
+class EventType {
+  @ApiProperty({ type: Number, example: 1 })
+  @IsInt()
+  @Expose()
+  id!: number;
+
+  @ApiProperty({ type: String, example: "some-event" })
+  @IsString()
+  @Expose()
+  slug!: string;
+}
+
 export class BookingOutput_2024_08_13 {
   @ApiProperty({ type: Number, example: 123 })
   @IsInt()
@@ -66,6 +78,16 @@ export class BookingOutput_2024_08_13 {
   @IsString()
   @Expose()
   uid!: string;
+
+  @ApiProperty({ type: String, example: "Consultation" })
+  @IsString()
+  @Expose()
+  title!: string;
+
+  @ApiProperty({ type: String, example: "Learn how to integrate scheduling into marketplace." })
+  @IsString()
+  @Expose()
+  description!: string;
 
   @ApiProperty({ type: [Host] })
   @ValidateNested({ each: true })
@@ -111,10 +133,10 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   duration!: number;
 
-  @ApiProperty({ type: Number, example: 45 })
-  @IsInt()
+  @ApiProperty({ type: EventType })
+  @Type(() => EventType)
   @Expose()
-  eventTypeId!: number;
+  eventType!: EventType;
 
   @ApiProperty({ type: [Attendee] })
   @ValidateNested({ each: true })
@@ -130,15 +152,25 @@ export class BookingOutput_2024_08_13 {
   guests?: string[];
 
   @ApiProperty({ type: String, required: false, example: "https://example.com/meeting" })
-  @IsUrl()
   @IsOptional()
   @Expose()
-  meetingUrl?: string;
+  location!: string;
 
   @ApiProperty({ type: Boolean, example: true })
   @IsBoolean()
   @Expose()
   absentHost!: boolean;
+
+  @ApiProperty({
+    type: Object,
+    description:
+      "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+    example: { customField: "customValue" },
+    required: false,
+  })
+  @IsObject()
+  @Expose()
+  bookingFieldsResponses!: Record<string, unknown>;
 }
 
 export class RecurringBookingOutput_2024_08_13 {
@@ -151,6 +183,16 @@ export class RecurringBookingOutput_2024_08_13 {
   @IsString()
   @Expose()
   uid!: string;
+
+  @ApiProperty({ type: String, example: "Recurring meeting" })
+  @IsString()
+  @Expose()
+  title!: string;
+
+  @ApiProperty({ type: String, example: "Learn how to integrate scheduling into marketplace." })
+  @IsString()
+  @Expose()
+  description!: string;
 
   @ApiProperty({ type: [Host] })
   @ValidateNested({ each: true })
@@ -196,10 +238,10 @@ export class RecurringBookingOutput_2024_08_13 {
   @Expose()
   duration!: number;
 
-  @ApiProperty({ type: Number, example: 50 })
-  @IsInt()
+  @ApiProperty({ type: EventType })
+  @Type(() => EventType)
   @Expose()
-  eventTypeId!: number;
+  eventType!: EventType;
 
   @ApiProperty({ type: String, example: "recurring_uid_987" })
   @IsString()
@@ -220,13 +262,23 @@ export class RecurringBookingOutput_2024_08_13 {
   guests?: string[];
 
   @ApiProperty({ type: String, required: false, example: "https://example.com/recurring-meeting" })
-  @IsUrl()
   @IsOptional()
   @Expose()
-  meetingUrl?: string;
+  location!: string;
 
   @ApiProperty({ type: Boolean, example: false })
   @IsBoolean()
   @Expose()
   absentHost!: boolean;
+
+  @ApiProperty({
+    type: Object,
+    description:
+      "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+    example: { customField: "customValue" },
+    required: false,
+  })
+  @IsObject()
+  @Expose()
+  bookingFieldsResponses!: Record<string, unknown>;
 }
