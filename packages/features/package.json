@@ -6,6 +6,9 @@
   "authors": "Cal.com, Inc.",
   "version": "1.0.0",
   "main": "index.ts",
+  "scripts": {
+    "dx": "docker compose up -d || docker-compose up -d"
+  },
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",

@@ -9,6 +9,7 @@ const config: Stripe.StripeConfig = {
 };
 
 if (process.env.STRIPE_MOCK_HOST) {
+  process.env.STRIPE_PRIVATE_KEY = "sk_test_123";
   config.host = process.env.STRIPE_MOCK_HOST;
   config.port = process.env.STRIPE_MOCK_PORT;
   config.protocol = "http";

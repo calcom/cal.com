@@ -26,13 +26,15 @@ export const testName = "Test Testson";
 export const teamEventTitle = "Team Event - 30min";
 export const teamEventSlug = "team-event-30min";
 
-export const IS_STRIPE_ENABLED = !!(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.STRIPE_PRIVATE_KEY &&
-  process.env.PAYMENT_FEE_FIXED &&
-  process.env.PAYMENT_FEE_PERCENTAGE
-);
+export const IS_STRIPE_ENABLED =
+  !!process.env.STRIPE_MOCK_HOST ||
+  !!(
+    process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+    process.env.STRIPE_CLIENT_ID &&
+    process.env.STRIPE_PRIVATE_KEY &&
+    process.env.PAYMENT_FEE_FIXED &&
+    process.env.PAYMENT_FEE_PERCENTAGE
+  );
 
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {

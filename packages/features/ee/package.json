@@ -5,9 +5,6 @@
   "private": true,
   "license": "See license in LICENSE",
   "main": "./index.ts",
-  "scripts": {
-    "dx": "docker compose up -d || docker-compose up -d"
-  },
   "dependencies": {
     "@calcom/lib": "*",
     "@calcom/ui": "*",
