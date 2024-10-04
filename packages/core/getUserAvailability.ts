@@ -57,6 +57,7 @@ const _getEventType = async (id: number) => {
         select: {
           team: {
             select: {
+              id: true,
               bookingLimits: true,
               includeManagedEventsInLimits: true,
             },
