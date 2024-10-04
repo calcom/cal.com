@@ -2048,7 +2048,6 @@
   "error_charging_card": "Có sự cố khi tính phí vắng mặt. Vui lòng thử lại sau.",
   "collect_no_show_fee": "Thu phí vắng mặt",
   "no_show_fee_charged": "Phí vắng mặt đã tính",
-  "insights": "Insights",
   "routing_forms": "Biểu mẫu Định tuyến",
   "testing_workflow_info_message": "Khi kiểm tra tiến độ công việc này, hãy để ý rằng Email và SMS chỉ có thể được đặt lịch trước ít nhất 1 giờ",
   "insights_no_data_found_for_filter": "Không tìm thấy dữ liệu cho bộ lọc hay ngày đã chọn.",

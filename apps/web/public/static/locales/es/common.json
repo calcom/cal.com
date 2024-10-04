@@ -2048,7 +2048,6 @@
   "error_charging_card": "Algo salió mal al cobrar la tarifa por no presentarse. Inténtelo de nuevo más tarde.",
   "collect_no_show_fee": "Cobrar comisión por no presentarse",
   "no_show_fee_charged": "Comisión por no presentarse cobrada",
-  "insights": "Insights",
   "routing_forms": "Formularios de enrutamiento",
   "testing_workflow_info_message": "Al probar este flujo de trabajo, tenga en cuenta que los correos electrónicos y los SMS solo se pueden programar con al menos 1 hora de anticipación",
   "insights_no_data_found_for_filter": "No se encontraron datos para el filtro seleccionado o las fechas seleccionadas.",

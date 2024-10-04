@@ -2048,7 +2048,6 @@
   "error_charging_card": "Coś poszło nie tak podczas pobierania opłaty za niestawienie się. Spróbuj ponownie później.",
   "collect_no_show_fee": "Pobierz opłatę za niestawienie się",
   "no_show_fee_charged": "Pobrano opłatę za niestawienie się",
-  "insights": "Insights",
   "routing_forms": "Formularze routingu",
   "testing_workflow_info_message": "Podczas testowania tego przepływu pracy pamiętaj, że wiadomości e-mail i SMS można zaplanować jedynie z co najmniej 1-godzinnym wyprzedzeniem",
   "insights_no_data_found_for_filter": "Nie znaleziono danych dotyczących wybranego filtru lub wskazanych dat.",

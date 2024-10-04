@@ -2048,7 +2048,6 @@
   "error_charging_card": "Katılmama ücreti alınırken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.",
   "collect_no_show_fee": "Katılmama ücretini tahsil edin",
   "no_show_fee_charged": "Katılmama ücreti tahsil edildi",
-  "insights": "Insights",
   "routing_forms": "Yönlendirme Formları",
   "testing_workflow_info_message": "Bu iş akışını test ederken, E-postaların ve SMS'lerin yalnızca en az 1 saat önceden planlanabileceğini unutmayın",
   "insights_no_data_found_for_filter": "Seçili filtre veya tarihler için veri bulunamadı.",

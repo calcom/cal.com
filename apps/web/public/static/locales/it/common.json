@@ -2048,7 +2048,6 @@
   "error_charging_card": "L'addebito della penale per mancata presentazione non è andato a buon fine. Riprovare più tardi.",
   "collect_no_show_fee": "Riscuoti penale per mancata presentazione",
   "no_show_fee_charged": "Penale per mancata presentazione addebitata",
-  "insights": "Insights",
   "routing_forms": "Moduli di Routing",
   "testing_workflow_info_message": "Durante il test di questo flusso di lavoro, tieni presente che le e-mail e i messaggi SMS devono essere programmati con almeno 1 ora di anticipo",
   "insights_no_data_found_for_filter": "Nessun dato trovato per il filtro selezionato o le date selezionate.",
