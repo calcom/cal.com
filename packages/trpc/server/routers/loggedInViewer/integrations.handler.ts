@@ -6,10 +6,9 @@ import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import getUserTeams from "@calcom/lib/apps/getUserTeams";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
@@ -22,6 +21,11 @@ type IntegrationsOptions = {
   };
   input: TIntegrationsInputSchema;
 };
+
+// refactor this into small small pieces
+// separate the teams stuff from the rest
+// user credentials stuff as well
+/// and basically whatever that can be separated into smaller pieces so as to resue it
 
 type TeamQuery = Prisma.TeamGetPayload<{
   select: {
@@ -55,73 +59,33 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     sortByMostPopular,
     appId,
   } = input;
+  // user credentials logic needs to have its own function
   let credentials = await getUsersCredentials(user);
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
-    const teamsQuery = await prisma.team.findMany({
-      where: {
-        members: {
-          some: {
-            userId: user.id,
-            accepted: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-        name: true,
-        logoUrl: true,
-        members: {
-          where: {
-            userId: user.id,
-          },
-          select: {
-            role: true,
-          },
-        },
-        parent: {
-          select: {
-            id: true,
-            credentials: {
-              select: credentialForCalendarServiceSelect,
-            },
-            name: true,
-            logoUrl: true,
-            members: {
-              where: {
-                userId: user.id,
-              },
-              select: {
-                role: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    // start teams fn here
+    const userTeamsQuery = await getUserTeams(user.id);
+
     // If a team is a part of an org then include those apps
     // Don't want to iterate over these parent teams
     const filteredTeams: TeamQuery[] = [];
     const parentTeams: TeamQuery[] = [];
     // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
     if (teamId) {
-      teamsQuery.forEach((team) => {
+      userTeamsQuery.forEach((team) => {
         if (team?.parent) {
           const { parent, ...filteredTeam } = team;
           filteredTeams.push(filteredTeam);
           // Only add parent team if it's not already in teamsQuery
-          if (!teamsQuery.some((t) => t.id === parent.id)) {
+          if (!userTeamsQuery.some((t) => t.id === parent.id)) {
             parentTeams.push(parent);
           }
         }
       });
     }
 
-    userTeams = [...teamsQuery, ...parentTeams];
+    userTeams = [...userTeamsQuery, ...parentTeams];
 
     const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? teamApp.credentials.flat() : [];
@@ -132,7 +96,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       credentials = credentials.concat(teamAppCredentials);
     }
   }
+  // end teams fn here
 
+  // this can be reused further in v2 then
   const enabledApps = await getEnabledAppsFromCredentials(credentials, {
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
