@@ -3,11 +3,19 @@ on:
   workflow_call:
 permissions:
   contents: read
+env:
+  STRIPE_MOCK_HOST: localhost
+  STRIPE_MOCK_PORT: 12111
 jobs:
   test:
     name: Unit
     timeout-minutes: 20
     runs-on: buildjet-4vcpu-ubuntu-2204
+    services:
+      stripe-mock-server:
+        image: stripe/stripe-mock:latest
+        ports:
+          - "12111-12112:12111-12112"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
