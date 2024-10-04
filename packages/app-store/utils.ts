@@ -107,7 +107,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
 export function getAppsBySlug(
   credentials: CredentialDataWithTeamName[],
   filterOnCredentials?: boolean,
-  slug?: string
+  slug: string
 ) {
   const apps = getApps(credentials, filterOnCredentials);
 
