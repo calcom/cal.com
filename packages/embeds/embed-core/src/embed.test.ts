@@ -83,8 +83,8 @@ describe("Cal", () => {
         expect(paramValues).toEqual(["value3"]);
       });
 
-      it("should exclude reserved params from page URL(as these could be unintentional to pass these query params to embed, so better to exclude them and avoid crashing the booking page)", () => {
-        mockSearchParams("?date=2023-05-01&duration=30");
+      it("should exclude reserved params from the page URL(as these could be unintentional to pass these query params to embed, so better to exclude them and avoid crashing the booking page)", () => {
+        mockSearchParams("?date=2023-05-01&duration=30&hello=world");
 
         const iframe = cal.createIframe({
           calLink: "john-doe/meeting",
@@ -96,6 +96,7 @@ describe("Cal", () => {
 
         expect(iframe.src).not.toContain("date=");
         expect(iframe.src).not.toContain("duration=");
+        expect(iframe.src).toContain("hello=");
         expect(iframe.src).toContain("email=test%40example.com");
       });
 
