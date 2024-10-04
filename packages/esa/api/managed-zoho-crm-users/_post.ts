@@ -71,34 +71,42 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(409).json({ message: "Zoho user already has a managed setup in progress" });
   }
 
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      email: body.email.toLowerCase(),
-    },
-  });
-
-  if (existingUser) {
-    return res.status(409).json({
-      message: "Cal user with the provided email already exists. Please complete the setup manually.",
-    });
-  }
-
-  // create cal user
+  // create or update cal user
   const email = body.email.toLowerCase();
   const username = email.split("@").shift();
   const password = "some-default-password";
   const hashedPassword = await hashPassword(password);
 
-  const user = await prisma.user.create({
-    data: {
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: {
       name: body.name,
       username,
-      email,
-      password: { create: { hash: hashedPassword } },
       emailVerified: new Date(Date.now()),
       identityProvider: IdentityProvider.CAL,
       timeZone: body.timeZone,
       completedOnboarding: true,
+    },
+    create: {
+      name: body.name,
+      username,
+      email,
+      emailVerified: new Date(Date.now()),
+      identityProvider: IdentityProvider.CAL,
+      timeZone: body.timeZone,
+      completedOnboarding: true,
+    },
+  });
+
+  // create cal user's password if no existing password
+  await prisma.userPassword.upsert({
+    where: {
+      userId: user.id,
+    },
+    update: {},
+    create: {
+      userId: user.id,
+      hash: hashedPassword,
     },
   });
 
@@ -132,14 +140,34 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     refresh_token: "-",
   };
 
-  await prisma.credential.create({
-    data: {
-      type: appData.type,
-      key: zoomKey,
+  const existingUserZoomCredential = await prisma.credential.findFirst({
+    where: {
       userId: user.id,
       appId: appData.appId,
+      type: appData.type,
     },
   });
+
+  // create or update user's zoom credentials
+  if (existingUserZoomCredential) {
+    await prisma.credential.update({
+      where: {
+        id: existingUserZoomCredential.id,
+      },
+      data: {
+        key: zoomKey,
+      },
+    });
+  } else {
+    await prisma.credential.create({
+      data: {
+        type: appData.type,
+        key: zoomKey,
+        userId: user.id,
+        appId: appData.appId,
+      },
+    });
+  }
 
   // send zoho calendar oauth link
   const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
