@@ -63,11 +63,21 @@ export type ScheduleTextReminderAction = Extract<
   WorkflowActions,
   "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
 >;
+
+export type TeamOrUserId =
+  | {
+      userId: number;
+      teamId?: never;
+    }
+  | {
+      teamId: number;
+      userId?: never;
+    };
 export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   reminderPhone: string | null;
   message: string;
   action: ScheduleTextReminderAction;
-  teamIdToCharge: number;
+  teamOrUserToCharge: TeamOrUserId;
   userId?: number | null;
   teamId?: number | null;
   isVerificationPending?: boolean;
@@ -89,7 +99,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
-    teamIdToCharge,
+    teamOrUserToCharge,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -194,7 +204,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
           phoneNumber: reminderPhone,
           body: smsMessage,
           sender: senderID,
-          teamIdToCharge,
+          teamOrUserToCharge,
           userId,
           teamId,
         });

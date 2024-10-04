@@ -16,7 +16,7 @@ ALTER TABLE "WorkflowReminder" ADD COLUMN     "smsCredits" INTEGER;
 CREATE TABLE "SmsCreditCount" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER,
-    "teamId" INTEGER NOT NULL,
+    "teamId" INTEGER,
     "credits" INTEGER NOT NULL DEFAULT 0,
     "month" TIMESTAMP(3) NOT NULL,
     "overageCharges" INTEGER NOT NULL DEFAULT 0,

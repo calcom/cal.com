@@ -55,18 +55,18 @@ const processWorkflowStep = async (
 ) => {
   const { userId } = workflow;
   const teamId = evt.eventType.parent?.teamId ?? workflow.teamId;
-  let teamIdChargedForSMS;
+  let teamOrUserToCharge;
 
   let fallbackEmail;
 
   if (isSMSOrWhatsappAction(step.action)) {
-    teamIdChargedForSMS = await getTeamIdToBeCharged(userId, teamId);
+    teamOrUserToCharge = await getTeamIdToBeCharged(userId, teamId);
 
     const attendeeEmail = !!emailAttendeeSendToOverride
       ? emailAttendeeSendToOverride
       : evt.attendees[0].email;
 
-    fallbackEmail = !teamIdChargedForSMS ? attendeeEmail : undefined;
+    fallbackEmail = !teamOrUserToCharge ? attendeeEmail : undefined;
 
     await checkSMSRateLimit({
       identifier: `sms:${teamId ? "team:" : "user:"}${teamId || workflow.userId}`,
@@ -74,7 +74,7 @@ const processWorkflowStep = async (
     });
   }
 
-  if (isSMSAction(step.action) && teamIdChargedForSMS) {
+  if (isSMSAction(step.action) && teamOrUserToCharge) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder({
       evt,
@@ -93,7 +93,7 @@ const processWorkflowStep = async (
       teamId: teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
-      teamIdToCharge: teamIdChargedForSMS,
+      teamOrUserToCharge,
     });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -152,7 +152,7 @@ const processWorkflowStep = async (
       seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
     });
-  } else if (isWhatsappAction(step.action) && teamIdChargedForSMS) {
+  } else if (isWhatsappAction(step.action) && teamOrUserToCharge) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleWhatsappReminder({
       evt,
@@ -170,7 +170,7 @@ const processWorkflowStep = async (
       teamId: teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
-      teamIdToCharge: teamIdChargedForSMS,
+      teamOrUserToCharge,
     });
   }
 };

@@ -23,7 +23,7 @@ import type {
   WorkflowTriggerEvents,
   WorkflowMethods,
 } from "@calcom/prisma/client";
-import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
+import type { SchedulingType, SmsCreditAllocationType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -120,8 +120,9 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       slug: string;
       parentId?: number;
       isPrivate?: boolean;
-      smsCreditAllocationType?: SMSCreditAllocationType;
+      smsCreditAllocationType?: SmsCreditAllocationType;
       smsCreditAllocationValue?: number;
+      smsCreditCount?: Prisma.SmsCreditCountCreateInput & { userId?: number | null };
     };
   }[];
   schedules: {
@@ -650,15 +651,10 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
       await prismock.smsCreditCount.create({
         data: {
           userId: team.smsCreditCount.userId,
-          teamId: team.smsCreditCount.teamId,
           month: team.smsCreditCount.month,
           credits: team.smsCreditCount.credits,
           limitReached: team.smsCreditCount.limitReached,
-          team: {
-            connect: {
-              id: createdTeam.id,
-            },
-          },
+          teamId: createdTeam.id,
         },
       });
     }

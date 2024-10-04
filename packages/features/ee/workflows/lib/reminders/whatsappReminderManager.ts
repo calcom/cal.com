@@ -34,6 +34,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
+    teamOrUserToCharge,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -154,7 +155,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
           sender: "",
           userId,
           teamId,
-          teamIdToCharge: 0,
+          teamOrUserToCharge,
         }); //todo: find teamIdToCharge
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);

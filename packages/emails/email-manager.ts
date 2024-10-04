@@ -699,40 +699,69 @@ export const sendBookingRedirectNotification = async (bookingRedirect: IBookingR
   await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
 };
 
-export const sendSmsLimitAlmostReachedEmails = async (team: {
-  id: number;
-  name: string;
-  ownersAndAdmins: {
+export const sendSmsLimitAlmostReachedEmails = async ({
+  team,
+  user,
+}: {
+  team?: {
+    id: number;
+    name: string;
+    ownersAndAdmins: {
+      email: string;
+      name: string | null;
+      t: TFunction;
+    }[];
+  };
+  user?: {
     email: string;
-    name: string | null;
+    name: string;
     t: TFunction;
-  }[];
+  };
 }) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(
-    ...team.ownersAndAdmins.map((owner) => {
-      return sendEmail(() => new SmsLimitAlmostReachedEmail({ team, user: owner }));
-    })
-  );
+  if (team) {
+    emailsToSend.push(
+      ...team.ownersAndAdmins.map((owner) => {
+        return sendEmail(() => new SmsLimitAlmostReachedEmail({ team, user: owner }));
+      })
+    );
+  } else if (user) {
+    emailsToSend.push(sendEmail(() => new SmsLimitAlmostReachedEmail({ user })));
+  }
+
   await Promise.all(emailsToSend);
 };
 
-export const sendSmsLimitReachedEmails = async (team: {
-  id: number;
-  name: string;
-  ownersAndAdmins: {
+export const sendSmsLimitReachedEmails = async ({
+  team,
+  user,
+}: {
+  team?: {
+    id: number;
+    name: string;
+    ownersAndAdmins: {
+      email: string;
+      name: string | null;
+      t: TFunction;
+    }[];
+  };
+  user?: {
     email: string;
-    name: string | null;
+    name: string;
     t: TFunction;
-  }[];
+  };
 }) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(
-    ...team.ownersAndAdmins.map((owner) => {
-      return sendEmail(() => new SmsLimitReachedEmail({ team, user: owner }));
-    })
-  );
+  if (team) {
+    emailsToSend.push(
+      ...team.ownersAndAdmins.map((owner) => {
+        return sendEmail(() => new SmsLimitReachedEmail({ team, user: owner }));
+      })
+    );
+  } else if (user) {
+    emailsToSend.push(sendEmail(() => new SmsLimitReachedEmail({ user })));
+  }
   await Promise.all(emailsToSend);
 };

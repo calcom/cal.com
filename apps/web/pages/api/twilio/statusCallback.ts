@@ -41,13 +41,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           : null;
 
         //at this point of time I don't know the paying team yet
-        let teamIdToCharge = parsedTeamToCharge ?? parsedTeamId;
+        let teamOrUserToCharge =
+          parsedTeamToCharge || parsedTeamId ? { teamId: parsedTeamToCharge ?? parsedTeamId } : null;
+
         if (!teamIdToCharge && userId) {
-          teamIdToCharge = await getTeamIdToBeCharged(parsedUserId, teamIdToCharge);
+          teamOrUserToCharge = await getTeamIdToBeCharged(parsedUserId, teamIdToCharge);
         }
 
-        if (teamIdToCharge) {
-          const isFree = await addCredits(req.body.To, teamIdToCharge, !parsedTeamId ? parsedUserId : null);
+        if (teamOrUserToCharge) {
+          const isFree = await addCredits(
+            req.body.To,
+            teamOrUserToCharge,
+            !parsedTeamId ? parsedUserId : null
+          );
 
           if (!isFree) {
             const costsString = (await twilioClient.messages(req.body.MessageSid).fetch()).price;

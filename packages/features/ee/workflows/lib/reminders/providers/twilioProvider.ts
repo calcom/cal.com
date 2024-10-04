@@ -7,6 +7,8 @@ import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
+import type { TeamOrUserId } from "../smsReminderManager";
+
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
@@ -42,12 +44,12 @@ export const sendSMS = async (params: {
   phoneNumber: string;
   body: string;
   sender: string;
+  teamOrUserToCharge: TeamOrUserId;
   userId?: number | null;
   teamId?: number | null; // teamId of workflow
   whatsapp?: boolean;
-  teamIdToCharge?: number; //orgs don't need that
 }) => {
-  const { phoneNumber, body, sender, userId, teamId, whatsapp = false, teamIdToCharge } = params;
+  const { phoneNumber, body, sender, userId, teamId, whatsapp = false, teamOrUserToCharge } = params;
 
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
 
@@ -85,7 +87,7 @@ export const sendSMS = async (params: {
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, whatsapp),
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?teamId=teamId&userId=userId&teamToCharge=${teamIdToCharge}`,
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?teamId=teamId&userId=userId&userIdToCharge=${teamOrUserToCharge.userId}&teamToCharge=${teamOrUserToCharge.teamId}`,
   });
   return { ...response };
 };

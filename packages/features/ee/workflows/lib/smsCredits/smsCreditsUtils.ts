@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { sendSmsLimitAlmostReachedEmails, sendSmsLimitReachedEmails } from "@calcom/emails";
 import { IS_SELF_HOSTED, SMS_CREDITS_PER_MEMBER } from "@calcom/lib/constants";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SmsCreditAllocationType, WorkflowMethods } from "@calcom/prisma/enums";
@@ -16,6 +17,13 @@ export const smsCreditCountSelect = {
   month: true,
   credits: true,
   overageCharges: true,
+  user: {
+    select: {
+      name: true,
+      email: true,
+      locale: true,
+    },
+  },
   team: {
     select: {
       id: true,
@@ -58,36 +66,38 @@ export async function getTeamIdToBeCharged(userId?: number | null, teamId?: numb
       select: smsCreditCountSelect,
     });
     if (!smsCreditCountTeam?.limitReached) {
-      return teamId;
+      return { teamId };
     }
   } else if (userId) {
-    const teamIdChargedForSMS = await getPayingTeamId(userId);
-    return teamIdChargedForSMS ?? null;
+    const teamOrUserChargedForSMS = await getPayingTeamId(userId);
+    return teamOrUserChargedForSMS;
   }
   return null;
 }
 
 export async function addCredits(
   phoneNumber: string,
-  teamId: number,
+  teamId?: number | null,
   userId?: number | null,
   getCreditsFn = getCreditsForNumber
 ) {
   const credits = await getCreditsFn(phoneNumber);
   if (credits === 0) return { isFree: true };
 
+  let smsCreditCount;
+
   if (userId) {
     // user event types
     const existingSMSCreditCountUser = await prisma.smsCreditCount.findFirst({
       where: {
-        teamId,
+        ...(teamId ? { teamId } : { teamId: null }),
         userId: userId,
         month: dayjs().utc().startOf("month").toDate(),
       },
     });
 
     if (existingSMSCreditCountUser) {
-      await prisma.smsCreditCount.update({
+      smsCreditCount = await prisma.smsCreditCount.update({
         where: {
           id: existingSMSCreditCountUser.id,
         },
@@ -99,9 +109,9 @@ export async function addCredits(
         select: smsCreditCountSelect,
       });
     } else {
-      await prisma.smsCreditCount.create({
+      smsCreditCount = await prisma.smsCreditCount.create({
         data: {
-          teamId,
+          ...(teamId ? { teamId } : { teamId: null }),
           userId,
           credits,
           month: dayjs().utc().startOf("month").toDate(),
@@ -111,92 +121,61 @@ export async function addCredits(
     }
   }
 
-  const existingSMSCreditCountTeam = await prisma.smsCreditCount.findFirst({
-    where: {
-      teamId,
-      userId: null,
-      month: dayjs().utc().startOf("month").toDate(),
-    },
-  });
-
-  let smsCreditCountTeam;
-
-  if (existingSMSCreditCountTeam) {
-    smsCreditCountTeam = await prisma.smsCreditCount.update({
+  if (teamId) {
+    const existingSMSCreditCountTeam = await prisma.smsCreditCount.findFirst({
       where: {
-        id: existingSMSCreditCountTeam.id,
-      },
-      data: {
-        credits: {
-          increment: credits,
-        },
-      },
-      select: smsCreditCountSelect,
-    });
-  } else {
-    smsCreditCountTeam = await prisma.smsCreditCount.create({
-      data: {
         teamId,
-        credits,
+        userId: null,
         month: dayjs().utc().startOf("month").toDate(),
       },
-      select: smsCreditCountSelect,
     });
+
+    if (existingSMSCreditCountTeam) {
+      smsCreditCount = await prisma.smsCreditCount.update({
+        where: {
+          id: existingSMSCreditCountTeam.id,
+        },
+        data: {
+          credits: {
+            increment: credits,
+          },
+        },
+        select: smsCreditCountSelect,
+      });
+    } else {
+      smsCreditCount = await prisma.smsCreditCount.create({
+        data: {
+          teamId,
+          credits,
+          month: dayjs().utc().startOf("month").toDate(),
+        },
+        select: smsCreditCountSelect,
+      });
+    }
   }
 
-  const team = smsCreditCountTeam.team;
+  if (!smsCreditCount) return { isFree: false };
 
-  const acceptedMembers = team.members.filter((member) => member.accepted);
+  const team = smsCreditCount.team;
 
-  const freeCredits = acceptedMembers.length * SMS_CREDITS_PER_MEMBER;
-
-  if (team.parent) {
+  if (team?.parent) {
     //orgs have unlimited free sms
     return { isFree: true };
   }
 
+  const acceptedMembers = team?.members.filter((member) => member.accepted) ?? [];
+
+  const freeCredits = (acceptedMembers.length ?? 1) * SMS_CREDITS_PER_MEMBER;
+
   const warninigLimitReached =
-    smsCreditCountTeam.team.smsOverageLimit === 0
-      ? smsCreditCountTeam.credits > freeCredits * 0.8
-      : smsCreditCountTeam.overageCharges > smsCreditCountTeam.team.smsOverageLimit * 0.8;
+    !team || team.smsOverageLimit === 0
+      ? smsCreditCount.credits > freeCredits * 0.8
+      : smsCreditCount.overageCharges > team.smsOverageLimit * 0.8;
 
   let isFree = true;
 
-  if (smsCreditCountTeam.credits > freeCredits) {
-    if (smsCreditCountTeam.team.smsOverageLimit === 0) {
-      const ownersAndAdmins = await Promise.all(
-        acceptedMembers
-          .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
-          .map(async (member) => {
-            return {
-              email: member.user.email,
-              name: member.user.name,
-              t: await getTranslation(member.user.locale ?? "en", "common"),
-            };
-          })
-      );
-
-      await sendSmsLimitReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
-
-      await prisma.smsCreditCount.update({
-        where: {
-          id: smsCreditCountTeam.id,
-        },
-        data: {
-          limitReached: true,
-        },
-      });
-
-      // no more credits available for team, cancel all already scheduled sms and schedule emails instead
-      await cancelScheduledSmsAndScheduleEmails({ teamId });
-
-      return { isFree: true }; // still allow sending last sms
-    }
-    isFree = false;
-  }
-  if (warninigLimitReached) {
-    if (!smsCreditCountTeam.warningSent) {
-      const ownersAndAdmins = await Promise.all(
+  const ownersAndAdmins = team
+    ? await Promise.all(
         acceptedMembers
           .filter((member) => member.role === "OWNER" || member.role === "ADMIN")
           .map(async (member) => {
@@ -206,14 +185,49 @@ export async function addCredits(
               t: await getTranslation(member.user.locale ?? "es", "common"),
             };
           })
-      );
+      )
+    : [];
 
-      // notification email to team owners that limit is almost reached
-      await sendSmsLimitAlmostReachedEmails({ id: team.id, name: team.name, ownersAndAdmins });
+  const user =
+    !team && smsCreditCount.user
+      ? {
+          email: smsCreditCount.user.email,
+          name: smsCreditCount.user.name || "",
+          t: await getTranslation(smsCreditCount.user?.locale ?? "en", "common"),
+        }
+      : undefined;
+
+  if (smsCreditCount.credits > freeCredits) {
+    if (!team || team.smsOverageLimit === 0) {
+      await sendSmsLimitReachedEmails(
+        team ? { team: { id: team.id, name: team.name, ownersAndAdmins } } : { user }
+      );
 
       await prisma.smsCreditCount.update({
         where: {
-          id: smsCreditCountTeam.id,
+          id: smsCreditCount.id,
+        },
+        data: {
+          limitReached: true,
+        },
+      });
+
+      // no more credits available for team, cancel all already scheduled sms and schedule emails instead
+      await cancelScheduledSmsAndScheduleEmails({ teamId, userId });
+
+      return { isFree: true }; // still allow sending last sms
+    }
+    isFree = false;
+  }
+  if (warninigLimitReached) {
+    if (!smsCreditCount.warningSent) {
+      await sendSmsLimitAlmostReachedEmails(
+        team ? { team: { id: team.id, name: team.name, ownersAndAdmins } } : { user }
+      );
+
+      await prisma.smsCreditCount.update({
+        where: {
+          id: smsCreditCount.id,
         },
         data: {
           warningSent: true,
@@ -221,11 +235,28 @@ export async function addCredits(
       });
     }
   }
-
   return { isFree };
 }
 
 export async function getPayingTeamId(userId: number) {
+  const userWithoutTeam = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      teams: {
+        none: {
+          accepted: true,
+        },
+      },
+    },
+  });
+
+  const isCurrentUsernamePremium =
+    userWithoutTeam && hasKeyInMetadata(userWithoutTeam, "isPremium")
+      ? !!userWithoutTeam.metadata.isPremium
+      : false;
+
+  if (userWithoutTeam && isCurrentUsernamePremium) return { userId: userWithoutTeam.id };
+
   let teamMembershipsWithAvailableCredits = await prisma.membership.findMany({
     where: {
       userId,
@@ -283,7 +314,7 @@ export async function getPayingTeamId(userId: number) {
       !membership.team.smsCreditCounts.length || membership.team.smsCreditCounts[0].credits === lowestCredits
   )?.team;
 
-  return teamToPay?.id;
+  return teamToPay ? { teamId: teamToPay.id } : null;
 }
 
 export async function cancelScheduledSmsAndScheduleEmails({
@@ -293,6 +324,7 @@ export async function cancelScheduledSmsAndScheduleEmails({
   teamId?: number | null;
   userId?: number | null;
 }) {
+  //todo: if only userId is given cancel for user only
   const smsRemindersToCancel = await prisma.workflowReminder.findMany({
     where: {
       OR: [{ method: WorkflowMethods.SMS }, { method: WorkflowMethods.WHATSAPP }],
