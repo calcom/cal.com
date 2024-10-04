@@ -85,6 +85,7 @@ describe(
                 team: {
                   id: 1,
                   bookingLimits: { PER_WEEK: 2 },
+                  includeManagedEventsInLimits: false,
                 },
                 schedulingType: SchedulingType.COLLECTIVE,
               },
@@ -100,6 +101,27 @@ describe(
                 ],
                 teamId: 1,
                 schedulingType: SchedulingType.COLLECTIVE,
+              },
+              {
+                id: 3,
+                slotInterval: eventLength,
+                length: eventLength,
+                hosts: [
+                  {
+                    userId: 101,
+                  },
+                ],
+                teamId: 1,
+                schedulingType: SchedulingType.MANAGED,
+              },
+              {
+                id: 4,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                parent: {
+                  id: 3,
+                },
               },
             ],
             bookings: [
@@ -123,6 +145,14 @@ describe(
                 status: BookingStatus.ACCEPTED,
                 startTime: `2024-08-06T04:30:00.000Z`,
                 endTime: `2024-08-06T05:00:00.000Z`,
+              },
+              {
+                // managed event type doesn't count, includeManagedEventsInLimits is false
+                eventTypeId: 4,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-07T04:30:00.000Z`,
+                endTime: `2024-08-07T05:00:00.000Z`,
               },
             ],
             organizer,
@@ -175,7 +205,7 @@ describe(
           body: mockBookingData2,
         });
 
-        // this is the third team booking of this week for user 101, limit reached
+        // this is the thrid team booking of this week for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );
@@ -266,7 +296,7 @@ describe(
           body: mockBookingData1,
         });
 
-        // this is the second team booking of this days for user 101, limit reached
+        // this is the second team booking of this day for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );
@@ -288,7 +318,8 @@ describe(
                 ],
                 team: {
                   id: 1,
-                  bookingLimits: { PER_MONTH: 3 },
+                  bookingLimits: { PER_MONTH: 4 },
+                  includeManagedEventsInLimits: true,
                 },
                 schedulingType: SchedulingType.COLLECTIVE,
               },
@@ -305,6 +336,27 @@ describe(
                 teamId: 1,
                 schedulingType: SchedulingType.COLLECTIVE,
               },
+              {
+                id: 3,
+                slotInterval: eventLength,
+                length: eventLength,
+                hosts: [
+                  {
+                    userId: 101,
+                  },
+                ],
+                teamId: 1,
+                schedulingType: SchedulingType.MANAGED,
+              },
+              {
+                id: 4,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                parent: {
+                  id: 3,
+                },
+              },
             ],
             bookings: [
               {
@@ -320,6 +372,14 @@ describe(
                 status: BookingStatus.ACCEPTED,
                 startTime: `2024-08-22T03:30:00.000Z`,
                 endTime: `2024-08-22T04:00:00.000Z`,
+              },
+              {
+                //managed event type also counts towards limits
+                eventTypeId: 4,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-15T03:30:00.000Z`,
+                endTime: `2024-08-15T04:00:00.000Z`,
               },
             ],
             organizer,
@@ -369,10 +429,10 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingData2,
         });
 
-        // this is the second team booking of this days for user 101, limit reached
+        // this is the firth team booking (incl. managed) of this month for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );
@@ -394,7 +454,8 @@ describe(
                 ],
                 team: {
                   id: 1,
-                  bookingLimits: { PER_YEAR: 2 },
+                  bookingLimits: { PER_YEAR: 3 },
+                  includeManagedEventsInLimits: true,
                 },
                 schedulingType: SchedulingType.COLLECTIVE,
               },
@@ -411,6 +472,27 @@ describe(
                 teamId: 1,
                 schedulingType: SchedulingType.COLLECTIVE,
               },
+              {
+                id: 3,
+                slotInterval: eventLength,
+                length: eventLength,
+                hosts: [
+                  {
+                    userId: 101,
+                  },
+                ],
+                teamId: 1,
+                schedulingType: SchedulingType.MANAGED,
+              },
+              {
+                id: 4,
+                slotInterval: eventLength,
+                length: eventLength,
+                userId: 101,
+                parent: {
+                  id: 3,
+                },
+              },
             ],
             bookings: [
               {
@@ -418,6 +500,13 @@ describe(
                 userId: 101,
                 status: BookingStatus.ACCEPTED,
                 startTime: `2024-02-03T03:30:00.000Z`,
+                endTime: `2024-02-03T04:00:00.000Z`,
+              },
+              {
+                eventTypeId: 4,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `2024-08-03T03:30:00.000Z`,
                 endTime: `2024-08-03T04:00:00.000Z`,
               },
             ],
@@ -468,10 +557,9 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingData2,
         });
 
-        // this is the second team booking of this days for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );

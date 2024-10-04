@@ -458,8 +458,8 @@ export const getPeriodStartDatesBetween = (
 
 const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
   const dates = [];
-  let startDate = dayjs(dateFrom).startOf(period);
-  const endDate = dayjs(dateTo).endOf(period);
+  let startDate = dayjs(dateFrom).utc().startOf(period);
+  const endDate = dayjs(dateTo).utc().endOf(period);
   while (startDate.isBefore(endDate)) {
     dates.push(startDate);
     startDate = startDate.add(1, period);
