@@ -351,7 +351,7 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await gotoRoutingLink({ page, formId: routingForm.id });
-      page.click('button[type="submit"]');
+      await page.click('button[type="submit"]');
       const firstInputMissingValue = await page.evaluate(() => {
         return document.querySelectorAll("input")[0].validity.valueMissing;
       });

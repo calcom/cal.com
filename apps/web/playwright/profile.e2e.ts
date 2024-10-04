@@ -51,6 +51,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -107,6 +108,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -187,6 +189,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     await page.getByTestId("add-secondary-email").click();
 
@@ -249,11 +252,12 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await expect(page.locator("text=Manage settings for your Cal.com profile")).toBeVisible();
 
     await page.getByTestId("add-secondary-email").click();
 
     const secondaryEmail = `${emailInfo}-secondary-email@${emailDomain}`;
-    const secondaryEmailInput = await page.getByTestId("secondary-email-input");
+    const secondaryEmailInput = page.getByTestId("secondary-email-input");
     await secondaryEmailInput.fill(secondaryEmail);
 
     await page.getByTestId("add-secondary-email-button").click();
@@ -275,9 +279,7 @@ test.describe("Update Profile", () => {
     await expect(page.getByTestId("profile-form-email-1-unverified-badge")).toBeVisible();
   });
 
-  // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
+  test("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
     const { secondaryEmail } = await createSecondaryEmail({ page, users });
 
     await expect(page.getByTestId("profile-form-email-1-primary-badge")).toBeHidden();
