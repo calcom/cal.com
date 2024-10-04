@@ -242,20 +242,24 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [eventTypeUrl, setEventTypeUrl] = useState("");
-  const { data: teamMembersMatchingAttributeLogic, isPending: isTeamMembersMatchingAttributeLogicPending } =
-    trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useQuery(
-      {
-        formId: form.id,
-        response,
-        routeId: chosenRoute?.id!,
+  const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
+    | {
+        id: number;
+        name: string | null;
+        email: string;
+      }[]
+    | null
+  >([]);
+  const findTeamMembersMatchingAttributeLogicMutation =
+    trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
+      onSuccess(data) {
+        setTeamMembersMatchingAttributeLogic(data);
       },
-      {
-        enabled: !!chosenRoute,
-      }
-    );
+    });
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
+    
     if (route?.action?.type === "eventTypeRedirectUrl") {
       setEventTypeUrl(
         enrichedWithUserProfileForm
@@ -267,7 +271,16 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           : ""
       );
     }
+    
     setChosenRoute(route || null);
+    
+    if (!route) return;
+
+    findTeamMembersMatchingAttributeLogicMutation.mutate({
+      formId: form.id,
+      response,
+      routeId: route.id,
+    });
   }
 
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
@@ -360,7 +373,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               {isTeamForm ? (
                 <div>
                   <span>{t("matching_members")}:</span>{" "}
-                  {!isTeamMembersMatchingAttributeLogicPending ? (
+                  {!findTeamMembersMatchingAttributeLogicMutation.isPending ? (
                     <div>
                       {teamMembersMatchingAttributeLogic?.map((member) => member.email).join(", ") ||
                         t("no_matching_members")}

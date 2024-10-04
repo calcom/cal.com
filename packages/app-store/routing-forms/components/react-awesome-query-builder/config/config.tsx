@@ -1,13 +1,13 @@
 import type { ChangeEvent } from "react";
-import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
-// Figure out why routing-forms/env.d.ts doesn't work
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import BasicConfig from "react-awesome-query-builder/lib/config/basic";
+import type { Settings, Widgets, SelectWidgetProps, SelectWidget } from "react-awesome-query-builder";
 
 import { EmailField } from "@calcom/ui";
 
 import widgetsComponents from "../widgets";
+// Figure out why routing-forms/env.d.ts doesn't work
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import BasicConfig from "./BasicConfig";
 
 const enum ConfigFor {
   FormFields = "FormFields",
@@ -58,7 +58,8 @@ function getSettings(_configFor: ConfigFor) {
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
 // So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
 function getWidgets(_configFor: ConfigFor) {
-  const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
+  // const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
+  const widgets: Widgets = {
     ...BasicConfig.widgets,
     text: {
       ...BasicConfig.widgets.text,
@@ -75,11 +76,11 @@ function getWidgets(_configFor: ConfigFor) {
     multiselect: {
       ...BasicConfig.widgets.multiselect,
       factory: (
-        props: SelectWidgetProps & {
+        props?: SelectWidgetProps & {
           listValues: { title: string; value: string }[];
         }
       ) => renderComponent(props, MultiSelectWidget),
-    },
+    } as SelectWidget,
     select: {
       ...BasicConfig.widgets.select,
       factory: (
@@ -87,7 +88,7 @@ function getWidgets(_configFor: ConfigFor) {
           listValues: { title: string; value: string }[];
         }
       ) => renderComponent(props, SelectWidget),
-    },
+    } as SelectWidget,
     phone: {
       ...BasicConfig.widgets.text,
       factory: (props) => {
@@ -137,6 +138,20 @@ function getTypes(_configFor: ConfigFor) {
         ...BasicConfig.types.text.widgets,
       },
     },
+    multiselect: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        multiselect: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [
+            ...BasicConfig.types.multiselect.widgets.multiselect.operators,
+            "multiselect_contains",
+            "multiselect_not_contains",
+          ],
+        },
+      },
+    },
   };
 }
 
@@ -144,24 +159,59 @@ function getOperators(configFor: ConfigFor) {
   // Clone to avoid mutating the original object
   const operators = {
     ...BasicConfig.operators,
+    // Attributes don't need reporting at the moment. So, we can support contains and not contains operators for attributes.
+    ...(configFor === ConfigFor.Attributes
+      ? {
+          multiselect_contains: {
+            label: "Contains",
+            labelForFormat: "CONTAINS",
+            reversedOp: "multiselect_not_contains",
+            jsonLogic2: "some-in",
+            jsonLogic: function (e, t, r) {
+              return {
+                some: [
+                  e,
+                  {
+                    in: [
+                      {
+                        var: "",
+                      },
+                      r,
+                    ],
+                  },
+                ],
+              };
+            },
+          },
+          multiselect_not_contains: {
+            isNotOp: !0,
+            label: "Not contains",
+            labelForFormat: "NOT CONTAINS",
+            reversedOp: "multiselect_contains",
+            jsonLogic2: "!some-in",
+            jsonLogic: function (e, t, r) {
+              return {
+                "!": {
+                  some: [
+                    e,
+                    {
+                      in: [
+                        {
+                          var: "",
+                        },
+                        r,
+                      ],
+                    },
+                  ],
+                },
+              };
+            },
+            _jsonLogicIsExclamationOp: !0,
+          },
+        }
+      : {}),
   };
-  operators.equal.label = operators.select_equals.label = "Equals";
-  operators.greater_or_equal.label = "Greater than or equal to";
-  operators.greater.label = "Greater than";
-  operators.less_or_equal.label = "Less than or equal to";
-  operators.less.label = "Less than";
-  operators.not_equal.label = operators.select_not_equals.label = "Does not equal";
-  operators.between.label = "Between";
 
-  delete operators.proximity;
-  delete operators.is_null;
-  delete operators.is_not_null;
-
-  /**
-   * Not supported with JSONLogic. Implement them and add these back -> https://github.com/jwadhams/json-logic-js/issues/81
-   */
-  delete operators.starts_with;
-  delete operators.ends_with;
   return operators;
 }
 

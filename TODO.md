@@ -21,11 +21,17 @@
 
 TODO:
 - [x] Use teamMemberIds to calculate availabilithy as well in addition to doing it in handleNewBooking
-- [ ] Don't let the Routing Form with attributesQueryValue be picked
+- [x] Don't let the Routing Form with attributesQueryValue be picked
 - [x] Use a subset of event assignees using teamMemberIds
 - [x] Ensure that renaming an attribute option doesn't remove it from routing logic
 - [ ] Document well that the option label in Routing Form Field and Attribute Option name must be same to connect them.
 - [ ] Test with non option based attributes and form field input
+- [ ] Switching from Select to MultiSelect in attribute removes the selected option from Routing.
+    - Warnings are needed with recommendation to create new attribute instead
+- [x] Add support for multiselect_contains and multiselect_not_contains operators in attributes
+- [x] Fix bug with Multiselect attribute
+- [ ] Unit tests for findTeamMembersMatchingAttributesQuery
+    - [ ] Should test performance as well
 - [ ] Test with hundreds of team members and 100s of attributes. Like 2000 is what our biggest customer has.
 
 V2.0

@@ -87,8 +87,8 @@ type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
 >;
 
 // We connect Form Field value and Attribute value using the labels lowercased
-function compatibleForAttributeAndFormFieldMatch(string: string) {
-  return string.toLowerCase();
+function compatibleForAttributeAndFormFieldMatch(stringOrStringArray: string | string[]) {
+  return typeof stringOrStringArray === "string" ? stringOrStringArray.toLowerCase() : stringOrStringArray.map((string) => string.toLowerCase());
 }
 
 function getAttributesCompatibleForMatchingWithFormField(attributes: Record<string, string>) {
@@ -188,9 +188,13 @@ export async function findTeamMembersMatchingAttributeLogic({
     const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({ attributes, form });
     const teamMembersWithAttributeValues = await getAttributesMappedWithTeamMembers({ teamId: teamId });
 
-    teamMembersWithAttributeValues.forEach((member) => {
+    teamMembersWithAttributeValues.forEach((member, index) => {
       const attributesCompatibleForMatchingWithFormField = getAttributesCompatibleForMatchingWithFormField(
         member.attributes
+      );
+      moduleLogger.debug(
+        `Checking team member ${member.userId} with index ${index} with attributes logic`,
+        safeStringify({ attributesCompatibleForMatchingWithFormField, attributes: member.attributes })
       );
       const result = evaluateRaqbLogic(
         {
@@ -211,7 +215,7 @@ export async function findTeamMembersMatchingAttributeLogic({
       if (result) {
         teamMembersMatchingAttributeLogic.push(member.userId);
       } else {
-        moduleLogger.debug("Team member does not match attributes logic", safeStringify({ member }));
+        moduleLogger.debug(`Team member ${member.userId} does not match attributes logic with index ${index}`);
       }
     });
   }

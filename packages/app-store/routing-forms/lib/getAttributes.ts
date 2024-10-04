@@ -45,6 +45,8 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
       },
     },
   });
+
+  log.debug("Returned attributesToUser", safeStringify({ attributesToUser }));
   return attributesToUser;
 }
 
@@ -99,15 +101,23 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
 export async function getAttributesMappedWithTeamMembers({ teamId }: { teamId: number }) {
   const attributesToUser = await getAttributeToUserWithMembershipAndAttributesForTeam({ teamId });
 
-  const teamMembers = attributesToUser.map((attributeToUser) => {
-    const membership = attributeToUser.member;
-    const attributeOption = attributeToUser.attributeOption;
-    return {
-      userId: membership.userId,
-      attributes: {
-        [attributeOption.attribute.id]: attributeOption.slug,
-      },
-    };
-  });
-  return teamMembers;
+  const teamMembers = attributesToUser.reduce((acc, attributeToUser) => {
+    const { userId } = attributeToUser.member;
+    const { attribute, slug } = attributeToUser.attributeOption;
+
+    if (!acc[userId]) {
+      acc[userId] = { userId, attributes: {} };
+    }
+
+    if (Array.isArray(acc[userId].attributes[attribute.id])) {
+      acc[userId].attributes[attribute.id].push(slug);
+    } else if (acc[userId].attributes[attribute.id]) {
+      acc[userId].attributes[attribute.id] = [acc[userId].attributes[attribute.id], slug];
+    } else {
+      acc[userId].attributes[attribute.id] = slug;
+    }
+    return acc;
+  }, {} as Record<number, { userId: number; attributes: Record<string, string> }>);
+
+  return Object.values(teamMembers);
 }

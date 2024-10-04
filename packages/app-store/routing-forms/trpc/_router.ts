@@ -83,7 +83,7 @@ const appRoutingForms = router({
 
   findTeamMembersMatchingAttributeLogic: authedProcedure
     .input(ZFindTeamMembersMatchingAttributeLogicInputSchema)
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const handler = await getHandler(
         "findTeamMembersMatchingAttributeLogic",
         () => import("./findTeamMembersMatchingAttributeLogic.handler")
