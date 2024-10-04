@@ -61,9 +61,21 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 echo 'E2E_TEST_MAILHOG_ENABLED=1' >> .env
 ```
 
+### E2E Testing
+
+Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
 
 
-**Manual setup**
+In a terminal just run:
+```bash
+yarn test-e2e
+```
+To open last HTML report run:
+```bash
+yarn playwright show-report test-results/reports/playwright-html-report
+```
+
+### Manual setup
 
 1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
@@ -94,21 +106,6 @@ When you're testing out the enterprise features locally, you should see a warnin
 <img src="./images/i1600x900-E4RcIPb1_bYp_hcpsya.png" />
 </Info>
 
-**Setting up your first user**
-
-In case you didn't use quick start with `yarn dx`, you can set up your first user as follows:
-
-1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
-
-    ```bash
-    yarn db-studio
-    ```
-
-2. Click on the `User` model to add a new user record.
-
-3. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-
-4. Open a browser to [http://localhost:3000](http://localhost:3000/) and login with your just created, first user.
 
 ## **Development quick start with** **`yarn dx`**
 
@@ -179,4 +176,4 @@ On windows, you would need to update the script to explicitly set port to 3003 a
 
 Open [http://localhost:3003](http://localhost:3003/) with your browser to see the result.
 
-If you wish to test how API works locally, please [check out our guide here](/developing-with-cal.com/guides/how-to-setup-api-in-a-local-instance).
+If you wish to test how API works locally, please [check out our guide here](/developing-with-cal.com/guides/api/how-to-setup-api-in-a-local-instance).

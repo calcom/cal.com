@@ -71,7 +71,32 @@
     },
     {
       "group": "Guides",
-      "pages": ["developing-with-cal.com/guides/how-to-setup-api-in-a-local-instance"]
+      "pages": [
+        {
+          "group": "API Development",
+          "icon": "brackets-curly",
+          "pages": ["developing-with-cal.com/guides/api/how-to-setup-api-in-a-local-instance"]
+        },
+        {
+          "group": "Auth and Provision",
+          "icon": "user-shield",
+          "pages": [
+            "developing-with-cal.com/guides/auth-and-provision/how-to-setup-oidc-with-okta",
+            "developing-with-cal.com/guides/auth-and-provision/how-to-setup-scim-with-okta",
+            "developing-with-cal.com/guides/auth-and-provision/sso-setup"
+          ]
+        },
+        {
+          "group": "Email",
+          "icon": "inbox",
+          "pages": ["developing-with-cal.com/guides/email/setup-mailtrap-for-email-testing"]
+        },
+        {
+          "group": "Embeds",
+          "icon": "code-simple",
+          "pages": ["developing-with-cal.com/guides/embeds/embed-events"]
+        }
+      ]
     },
     {
       "group": "Self Hosting",
