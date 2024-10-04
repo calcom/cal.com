@@ -2048,7 +2048,6 @@
   "error_charging_card": "Algo não correu bem no débito da taxa de não-comparência. Por favor, tente novamente mais tarde.",
   "collect_no_show_fee": "Cobrar taxa de não-comparência",
   "no_show_fee_charged": "A taxa de não-comparência debitada",
-  "insights": "Insights",
   "routing_forms": "Formulários de Roteamento",
   "testing_workflow_info_message": "Ao testar este fluxo de trabalho tenha em consideração que e-mails e SMS só podem ser agendados com, pelo menos, 1 hora de antecedência",
   "insights_no_data_found_for_filter": "Não foram encontrados dados para as datas ou filtros selecionados.",
