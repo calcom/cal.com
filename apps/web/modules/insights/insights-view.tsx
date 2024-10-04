@@ -51,7 +51,12 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <Shell withoutMain={false} title={t("insights")} description={t("insights_subtitle")}>
+      <Shell
+        withoutMain={false}
+        heading={t("insights")}
+        subtitle={t("insights_subtitle")}
+        title={t("insights")}
+        description={t("insights_subtitle")}>
         <UpgradeTip
           plan="team"
           title={t("make_informed_decisions")}

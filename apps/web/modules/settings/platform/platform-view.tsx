@@ -77,6 +77,8 @@ export default function Platform() {
       <QueryClientProvider client={queryClient}>
         <div>
           <Shell
+            heading={t("platform")}
+            subtitle={t("platform_description")}
             title={t("platform")}
             description={t("platform_description")}
             hideHeadingOnMobile

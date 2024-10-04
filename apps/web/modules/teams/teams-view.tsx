@@ -18,6 +18,8 @@ function Teams(props: PageProps) {
   return (
     <Shell
       withoutMain={false}
+      heading={t("teams")}
+      subtitle={t("create_manage_teams_collaborative")}
       title={t("teams")}
       description={t("create_manage_teams_collaborative")}
       hideHeadingOnMobile

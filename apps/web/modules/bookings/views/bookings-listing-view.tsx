@@ -149,6 +149,8 @@ export default function Bookings() {
     <Shell
       withoutMain={false}
       hideHeadingOnMobile
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
       title={t("bookings")}
       description={t("bookings_description")}>
       <div className="flex flex-col">

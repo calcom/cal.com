@@ -212,6 +212,8 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   return (
     <div>
       <Shell
+        heading={t("availability")}
+        subtitle={t("configure_availability")}
         title={t("availability")}
         description={t("configure_availability")}
         hideHeadingOnMobile
