@@ -33,8 +33,12 @@
   },
   "tabs": [
     {
-      "name": "Documentation",
-      "url": "documentation"
+      "name": "Developing with Cal.com",
+      "url": "developing-with-cal.com"
+    },
+    {
+      "name": "Self Hosting Cal.com",
+      "url": "self-hosting"
     },
     {
       "name": "Platform",
@@ -49,43 +53,39 @@
       "name": "API v1 Reference",
       "openapi": "/api-reference/v1/openapi-v1.json",
       "url": "api-reference/v1"
-    },
-    {
-      "name": "Self Hosting Cal.com",
-      "url": "self-hosting"
     }
   ],
   "navigation": [
     {
       "group": "Getting started",
-      "pages": [
-        "documentation/introduction",
-        {
-          "group": "Getting Started",
-          "pages": [
-            "documentation/getting-started/sign-up-for-a-cal.com-account",
-            "documentation/getting-started/complete-your-onboarding",
-            "documentation/getting-started/local-development"
-          ]
-        }
-      ]
+      "pages": ["developing-with-cal.com/introduction", "developing-with-cal.com/local-development"]
     },
     {
       "group": "Open Source Contribution",
       "pages": [
-        "documentation/open-source-contribution/index",
-        "documentation/open-source-contribution/code-styling",
-        "documentation/open-source-contribution/pull-requests",
-        "documentation/open-source-contribution/contributors-guide"
+        "developing-with-cal.com/open-source-contribution/index",
+        "developing-with-cal.com/open-source-contribution/code-styling",
+        "developing-with-cal.com/open-source-contribution/pull-requests",
+        "developing-with-cal.com/open-source-contribution/contributors-guide"
       ]
     },
     {
       "group": "Guides",
-      "pages": ["documentation/guides/how-to-setup-api-in-a-local-instance"]
+      "pages": ["developing-with-cal.com/guides/how-to-setup-api-in-a-local-instance"]
     },
     {
       "group": "Self Hosting",
       "pages": ["self-hosting/index"]
+    },
+    {
+      "group": "Getting Started",
+      "pages": [
+        "platform/introduction",
+        "platform/quickstart",
+        "platform/booking-redirects",
+        "platform/atoms-reference",
+        "platform/faq"
+      ]
     },
     {
       "group": "Getting started",
