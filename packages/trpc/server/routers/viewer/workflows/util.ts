@@ -14,10 +14,10 @@ import {
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -481,7 +481,8 @@ export async function scheduleWorkflowNotifications(
     timeUnit,
     trigger,
     userId,
-    teamId
+    teamId,
+    isOrg
   );
 }
 
@@ -587,10 +588,14 @@ export async function scheduleBookingReminders(
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
   userId: number,
-  teamId: number | null
+  teamId: number | null,
+  isOrg: boolean
 ) {
   if (!bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
+
+  const bookerUrl = await getBookerBaseUrl(isOrg ? teamId : null);
+
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
     // we do not have attendees phone number (user is notified about that when setting this action)
@@ -601,6 +606,7 @@ export async function scheduleBookingReminders(
       const defaultLocale = "en";
       const bookingInfo = {
         uid: booking.uid,
+        bookerUrl,
         attendees: booking.attendees.map((attendee) => {
           return {
             name: attendee.name,
@@ -781,6 +787,63 @@ export const getEventTypeWorkflows = async (
   userId: number,
   eventTypeId: number
 ): Promise<z.infer<typeof ZWorkflows>> => {
-  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
-  return rawEventType?.workflows;
+  const workflows = await prisma.workflow.findMany({
+    where: {
+      OR: [
+        {
+          userId: userId,
+        },
+        {
+          team: {
+            members: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+        },
+      ],
+      activeOn: {
+        some: {
+          eventTypeId: eventTypeId,
+        },
+      },
+    },
+    select: {
+      name: true,
+      id: true,
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      userId: true,
+      teamId: true,
+      team: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          members: true,
+        },
+      },
+      activeOn: {
+        select: {
+          eventType: {
+            select: {
+              id: true,
+              title: true,
+              parentId: true,
+              _count: {
+                select: {
+                  children: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      steps: true,
+    },
+  });
+
+  return workflows.map((workflow) => ({ workflow }));
 };

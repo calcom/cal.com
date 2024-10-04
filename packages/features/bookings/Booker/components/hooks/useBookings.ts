@@ -13,6 +13,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
@@ -85,22 +86,64 @@ export interface IUseBookingErrors {
 }
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
+const STORAGE_KEY = "instantBookingData";
+
+const storeInLocalStorage = ({
+  eventTypeId,
+  expiryTime,
+  bookingId,
+}: {
+  eventTypeId: number;
+  expiryTime: Date;
+  bookingId: number;
+}) => {
+  const value = JSON.stringify({ eventTypeId, expiryTime, bookingId });
+  localStorage.setItem(STORAGE_KEY, value);
+};
+
 export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
+  const eventTypeId = useBookerStore((state) => state.eventId);
+  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
+
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStore((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
-  const bookingId = parseInt(getQueryParam("bookingId") || "0");
+  const bookingId = parseInt(getQueryParam("bookingId") ?? "0");
+
+  useEffect(() => {
+    if (!isInstantMeeting) return;
+
+    const storedInfo = localStorage.getItem(STORAGE_KEY);
+
+    if (storedInfo) {
+      const parsedInfo = JSON.parse(storedInfo);
+
+      const parsedInstantBookingInfo =
+        parsedInfo.eventTypeId === eventTypeId &&
+        isInstantMeeting &&
+        new Date(parsedInfo.expiryTime) > new Date()
+          ? parsedInfo
+          : null;
+
+      if (parsedInstantBookingInfo) {
+        setExpiryTime(parsedInstantBookingInfo.expiryTime);
+        updateQueryParam("bookingId", parsedInstantBookingInfo.bookingId);
+      }
+    }
+  }, [eventTypeId, isInstantMeeting]);
 
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
@@ -218,6 +261,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
+        rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly
       };
 
       bookingSuccessRedirect({
@@ -239,6 +283,14 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const createInstantBookingMutation = useMutation({
     mutationFn: createInstantBooking,
     onSuccess: (responseData) => {
+      if (eventTypeId) {
+        storeInLocalStorage({
+          eventTypeId,
+          expiryTime: responseData.expires,
+          bookingId: responseData.bookingId,
+        });
+      }
+
       updateQueryParam("bookingId", responseData.bookingId);
       setExpiryTime(responseData.expires);
     },
