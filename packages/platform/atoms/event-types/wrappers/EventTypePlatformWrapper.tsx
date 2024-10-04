@@ -84,7 +84,7 @@ const EventType = ({
     advanced: <></>,
     instant: <></>,
     recurring: <></>,
-    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper /> : <></>,
+    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
     apps: <></>,
     workflows: <></>,
     webhooks: <></>,
