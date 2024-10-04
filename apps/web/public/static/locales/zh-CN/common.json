@@ -2048,7 +2048,6 @@
   "error_charging_card": "收取失约费时出错。请稍后再试。",
   "collect_no_show_fee": "收取失约费",
   "no_show_fee_charged": "已收取失约费",
-  "insights": "Insights",
   "routing_forms": "路由表单",
   "testing_workflow_info_message": "测试此工作流程时请注意，电子邮件和短信必须提前至少 1 小时安排",
   "insights_no_data_found_for_filter": "未找到所选筛选器或所选日期的数据。",

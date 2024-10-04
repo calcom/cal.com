@@ -2048,7 +2048,6 @@
   "error_charging_card": "Er is iets misgegaan met het in rekening brengen van de afwezigheidsvergoeding. Probeer het later opnieuw.",
   "collect_no_show_fee": "Afwezigheidsvergoeding innen",
   "no_show_fee_charged": "Afwezigheidsvergoeding in rekening gebracht",
-  "insights": "Insights",
   "routing_forms": "Routeringsformulieren",
   "testing_workflow_info_message": "Let er bij het testen van deze werkstroom op dat e-mails en sms minimaal 1 uur van tevoren kunnen gepland moeten worden",
   "insights_no_data_found_for_filter": "Geen gegevens gevonden voor het geselecteerde filter of de geselecteerde datums.",

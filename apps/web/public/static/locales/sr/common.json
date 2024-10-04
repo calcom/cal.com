@@ -2048,7 +2048,6 @@
   "error_charging_card": "Došlo je do greške prilikom naplate naknade za izostanak. Pokušajte ponovo kasnije.",
   "collect_no_show_fee": "Prikupi naknadu za izostanak",
   "no_show_fee_charged": "Naplaćena je naknada za izostanak",
-  "insights": "Insights",
   "routing_forms": "Obrasci za usmeravanje",
   "testing_workflow_info_message": "Kada testirate ovaj radni tok, imajte na umu da imejlovi i SMS-ovi mogu da budu zakazani najmanje 1 sat unapred",
   "insights_no_data_found_for_filter": "Nisu pronađeni podaci za izabrani filter ili izabrane datume.",

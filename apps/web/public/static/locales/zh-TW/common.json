@@ -2048,7 +2048,6 @@
   "error_charging_card": "收取缺席費時發生問題。請稍後再試一次。",
   "collect_no_show_fee": "收取缺席費",
   "no_show_fee_charged": "已收取缺席費",
-  "insights": "Insights",
   "routing_forms": "路由表單",
   "testing_workflow_info_message": "測試此工作流程時，請注意電子郵件和簡訊只能提前至少 1 小時預定",
   "insights_no_data_found_for_filter": "找不到所選篩選條件或日期的資料。",

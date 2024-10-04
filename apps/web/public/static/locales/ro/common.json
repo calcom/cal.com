@@ -2048,7 +2048,6 @@
   "error_charging_card": "A survenit o eroare la perceperea taxei de neprezentare. Încercați din nou mai târziu.",
   "collect_no_show_fee": "Colectare taxă de neprezentare",
   "no_show_fee_charged": "Taxă de neprezentare percepută",
-  "insights": "Insights",
   "routing_forms": "Formulare de Rutare",
   "testing_workflow_info_message": "La testarea acestui flux de lucru, țineți cont de faptul că e-mailurile și SMS-urile pot fi programate doar cu cel puțin o oră în prealabil",
   "insights_no_data_found_for_filter": "Nu s-au găsit date pentru filtrul selectat sau pentru datele selectate.",
