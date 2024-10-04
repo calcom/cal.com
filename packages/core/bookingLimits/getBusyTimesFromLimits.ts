@@ -27,6 +27,7 @@ const _getBusyTimesFromLimits = async (
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   bookings: EventBusyDetails[],
+  timeZone?: string | null,
   rescheduleUid?: string
 ) => {
   performance.mark("limitsStart");
@@ -45,6 +46,7 @@ const _getBusyTimesFromLimits = async (
       eventTypeId: eventType.id,
       limitManager,
       rescheduleUid,
+      timeZone,
     });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
@@ -90,6 +92,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
   teamId?: number;
   user?: { id: number; email: string };
   includeManagedEvents?: boolean;
+  timeZone?: string | null;
 }) => {
   const {
     bookings,
@@ -102,6 +105,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     user,
     rescheduleUid,
     includeManagedEvents = false,
+    timeZone,
   } = params;
 
   for (const key of descendingLimitKeys) {
@@ -126,6 +130,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
             user,
             rescheduleUid,
             includeManagedEvents,
+            timeZone,
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit);
@@ -235,7 +240,8 @@ const _getBusyTimesFromTeamLimits = async (
   dateTo: Dayjs,
   teamId: number,
   includeManagedEvents: boolean,
-  rescheduleUid?: string
+  rescheduleUid?: string,
+  timeZone?: string | null
 ) => {
   const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
     dateFrom.toISOString(),
@@ -272,6 +278,7 @@ const _getBusyTimesFromTeamLimits = async (
     teamId,
     user,
     includeManagedEvents,
+    timeZone,
   });
 
   return limitManager.getBusyTimes();

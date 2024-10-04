@@ -298,7 +298,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           duration,
           eventType,
           initialData?.busyTimesFromLimitsBookings ?? [],
-          initialData?.rescheduleUid ?? undefined
+          initialData?.rescheduleUid ?? undefined,
+          timeZone
         )
       : [];
 
@@ -317,7 +318,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo.tz(timeZone),
           teamForBookingLimits.id,
           teamForBookingLimits.includeManagedEventsInLimits,
-          initialData?.rescheduleUid ?? undefined
+          initialData?.rescheduleUid ?? undefined,
+          timeZone
         )
       : [];
 
@@ -473,8 +475,9 @@ export const getPeriodStartDatesBetween = (
 
 const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
   const dates = [];
-  let startDate = dayjs(dateFrom).utc().startOf(period);
-  const endDate = dayjs(dateTo).utc().endOf(period);
+  let startDate = dayjs(dateFrom).startOf(period);
+  const endDate = dayjs(dateTo).endOf(period);
+
   while (startDate.isBefore(endDate)) {
     dates.push(startDate);
     startDate = startDate.add(1, period);
