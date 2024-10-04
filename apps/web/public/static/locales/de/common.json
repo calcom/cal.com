@@ -2048,7 +2048,6 @@
   "error_charging_card": "Beim Berechnen der Nichterscheinungsgebühr ist etwas schiefgelaufen. Bitte versuchen Sie es später erneut.",
   "collect_no_show_fee": "Gebühr für das Nichterscheinen anfordern",
   "no_show_fee_charged": "Gebühr für das Nichterscheinen berechnet",
-  "insights": "Insights",
   "routing_forms": "Weiterleitungsformulare",
   "testing_workflow_info_message": "Bitte beachten Sie beim Testen dieses Workflows, dass E-Mails und SMS spätestens 1 Stunde im Voraus geplant werden können",
   "insights_no_data_found_for_filter": "Keine Daten für den ausgewählten Filter oder das ausgewählte Datum gefunden.",

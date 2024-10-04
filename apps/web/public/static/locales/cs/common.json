@@ -2048,7 +2048,6 @@
   "error_charging_card": "Při strhávání poplatku za nedostavení se došlo k chybě. Zkuste to později.",
   "collect_no_show_fee": "Vybrat poplatek za nedostavení se",
   "no_show_fee_charged": "Poplatek za nedostavení se stržen",
-  "insights": "Insights",
   "routing_forms": "Směrovací formuláře",
   "testing_workflow_info_message": "Při testování tohoto pracovního postupu mějte na paměti, že e-maily a SMS lze naplánovat pouze nejméně 1 hodinu předem.",
   "insights_no_data_found_for_filter": "Pro vybraný filtr nebo vybraná data nebyla nalezena žádná data.",

@@ -98,10 +98,12 @@ export default function Apps({ categories, appStore, userAdminTeams }: PageProps
 }
 
 export const LayoutWrapper = (page: React.ReactElement) => {
+  const { t } = useLocale();
+
   return (
     <Shell
-      title="Apps Store"
-      description="Create forms to direct attendees to the correct destinations."
+      title={t("app_store")}
+      description={t("app_store_description")}
       withoutMain={true}
       hideHeadingOnMobile>
       {page}

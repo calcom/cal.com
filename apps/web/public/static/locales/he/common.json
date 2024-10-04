@@ -2048,7 +2048,6 @@
   "error_charging_card": "משהו השתבש בעת גביית דמי אי-הגעה. אפשר לנסות שוב מאוחר יותר.",
   "collect_no_show_fee": "גביית דמי אי-הגעה",
   "no_show_fee_charged": "דמי אי-הגעה חויבו",
-  "insights": "Insights",
   "routing_forms": "טפסי ניתוב",
   "testing_workflow_info_message": "במהלך בדיקת תהליך העבודה הזה, קח/י בחשבון שניתן לתזמן הודעות דוא\"ל ו-SMS לפחות שעה אחת מראש",
   "insights_no_data_found_for_filter": "לא נמצאו נתונים עבור המסנן שנבחר או התאריכים שנבחרו.",
