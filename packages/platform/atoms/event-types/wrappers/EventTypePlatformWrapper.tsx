@@ -9,6 +9,7 @@ import type { EventTypeSetupProps, TabMap } from "@calcom/features/eventtypes/li
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
+import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { useAtomsEventTypeById } from "../hooks/useAtomEventTypeById";
@@ -16,6 +17,7 @@ import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
+import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
@@ -37,6 +39,7 @@ const EventType = ({
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = props;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const { data: user, isLoading: isUserLoading } = useMe();
 
   const updateMutation = useAtomUpdateEventType({
     onSuccess: async () => {
@@ -65,6 +68,10 @@ const EventType = ({
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
 
+  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+    toast({ description: message });
+  };
+
   const tabMap = {
     setup: tabs.includes("setup") ? (
       <SetupTab
@@ -80,7 +87,17 @@ const EventType = ({
     availability: <></>,
     team: <></>,
     limits: <></>,
-    advanced: <></>,
+    advanced: tabs.includes("advanced") ? (
+      <EventAdvancedPlatformWrapper
+        eventType={eventType}
+        team={team}
+        user={user?.data}
+        isUserLoading={isUserLoading}
+        showToast={showToast}
+      />
+    ) : (
+      <></>
+    ),
     instant: <></>,
     recurring: <></>,
     apps: <></>,

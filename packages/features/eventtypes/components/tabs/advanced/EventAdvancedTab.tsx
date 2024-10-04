@@ -1,9 +1,7 @@
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
-import type { EventAdvancedWebWrapperProps } from "@calcom/atoms/event-types/wrappers/EventAdvancedWebWrapper";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
@@ -13,7 +11,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
@@ -45,21 +43,25 @@ import {
   Switch,
   TextField,
   Tooltip,
-  showToast,
   ColorPicker,
 } from "@calcom/ui";
 
+import CustomEventTypeModal from "./CustomEventTypeModal";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
 type BookingField = z.infer<typeof fieldSchema>;
 
-const CustomEventTypeModal = dynamic(() => import("./CustomEventTypeModal"));
-
-export type EventAdvancedTabProps = EventAdvancedWebWrapperProps & {
-  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
-  user?: RouterOutputs["viewer"]["me"];
+export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
+  user?: Partial<
+    Pick<RouterOutputs["viewer"]["me"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
+  >;
   isUserLoading?: boolean;
+  showToast: (message: string, variant: "success" | "warning" | "error") => void;
+};
+
+export type EventAdvancedTabProps = EventAdvancedBaseProps & {
+  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
 };
 
 export const EventAdvancedTab = ({
@@ -68,6 +70,7 @@ export const EventAdvancedTab = ({
   calendarsQueryData,
   user,
   isUserLoading,
+  showToast,
 }: EventAdvancedTabProps) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
