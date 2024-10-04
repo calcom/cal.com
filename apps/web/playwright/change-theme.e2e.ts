@@ -1,15 +1,15 @@
 import { expect } from "@playwright/test";
+import { testBothFutureAndLegacyRoutes } from "playwright/lib/future-legacy-routes";
 
 import { test } from "./lib/fixtures";
 
-test.describe("Change Theme Test", () => {
+testBothFutureAndLegacyRoutes.describe("Change Theme Test", () => {
   test("change theme to dark", async ({ page, users }) => {
     const pro = await users.create();
     await pro.apiLogin();
 
     await page.goto("/settings/my-account/appearance");
 
-    await page.waitForLoadState("networkidle");
     //Click the "Dark" theme label
     await page.click('[data-testid="theme-dark"]');
     //Click the update button
@@ -29,7 +29,6 @@ test.describe("Change Theme Test", () => {
 
     await page.goto("/settings/my-account/appearance");
 
-    await page.waitForLoadState("networkidle");
     //Click the "Light" theme label
     await page.click('[data-testid="theme-light"]');
     //Click the update theme button

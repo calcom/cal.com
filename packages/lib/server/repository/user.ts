@@ -126,8 +126,7 @@ export class UserRepository {
       orgSlug,
       usernameList,
     });
-
-    log.debug("findUsersByUsername", safeStringify({ where, profiles }));
+    log.info("findUsersByUsername", safeStringify({ where, profiles }));
 
     return (
       await prisma.user.findMany({
@@ -135,6 +134,7 @@ export class UserRepository {
         where,
       })
     ).map((user) => {
+      log.info("findUsersByUsername", safeStringify({ user }));
       // User isn't part of any organization
       if (!profiles) {
         return {
@@ -175,27 +175,26 @@ export class UserRepository {
           organization: getParsedTeam(profile.organization),
         }))
       : null;
-
-    const where = profiles
-      ? {
-          // Get UserIds from profiles
-          id: {
-            in: profiles.map((profile) => profile.user.id),
-          },
-        }
-      : {
-          username: {
-            in: usernameList,
-          },
-          ...(orgSlug
-            ? {
-                organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
-              }
-            : {
-                organization: null,
-              }),
-        };
-
+    const where =
+      profiles && profiles.length > 0
+        ? {
+            // Get UserIds from profiles
+            id: {
+              in: profiles.map((profile) => profile.user.id),
+            },
+          }
+        : {
+            username: {
+              in: usernameList,
+            },
+            ...(orgSlug
+              ? {
+                  organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+                }
+              : {
+                  organization: null,
+                }),
+          };
     return { where, profiles };
   }
 
@@ -517,7 +516,58 @@ export class UserRepository {
       },
     });
   }
-
+  static async getUserAdminTeams(userId: number) {
+    return prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        avatarUrl: true,
+        name: true,
+        username: true,
+        teams: {
+          where: {
+            accepted: true,
+            OR: [
+              {
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+              {
+                team: {
+                  parent: {
+                    members: {
+                      some: {
+                        id: userId,
+                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+                isOrganization: true,
+                parent: {
+                  select: {
+                    logoUrl: true,
+                    name: true,
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
     const membershipQuery = {
       members: {
@@ -544,29 +594,6 @@ export class UserRepository {
     return !!teams.length;
   }
 
-  static async getUserAdminTeams(userId: number): Promise<number[]> {
-    const user = await prisma.user.findFirst({
-      where: {
-        id: userId,
-      },
-      select: {
-        teams: {
-          where: {
-            accepted: true,
-            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-          },
-          select: { teamId: true },
-        },
-      },
-    });
-
-    const teamIds = [];
-    for (const team of user?.teams || []) {
-      teamIds.push(team.teamId);
-    }
-    return teamIds;
-  }
-
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await prisma.user.findUnique({
       where: {
@@ -585,5 +612,33 @@ export class UserRepository {
         id: userId,
       },
     });
+  }
+
+  static async findUserTeams({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        completedOnboarding: true,
+        teams: {
+          select: {
+            accepted: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return user;
   }
 }

@@ -16,6 +16,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Team } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -24,7 +25,7 @@ import { Form, Steps, showToast } from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";
 
-import type { PersonalAccountProps, TeamsProp } from "@components/apps/installation/AccountsStepCard";
+import type { PersonalAccountProps } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
@@ -42,8 +43,18 @@ export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
     bookingFields?: LocationFormValues["bookingFields"];
   };
 
-export type TEventTypesForm = {
+export type TEventTypeGroup = {
+  teamId?: number;
+  userId?: number | null;
+  slug?: string | null;
+  name?: string | null;
+  image: string;
+  isOrganisation?: boolean;
   eventTypes: TEventType[];
+};
+
+export type TEventTypesForm = {
+  eventTypeGroups: TEventTypeGroup[];
 };
 
 type StepType = (typeof STEPS)[number];
@@ -57,17 +68,22 @@ type StepObj = Record<
   }
 >;
 
+export type TTeams = (Pick<Team, "id" | "name" | "logoUrl" | "isOrganization"> & {
+  alreadyInstalled: boolean;
+})[];
+
 export type OnboardingPageProps = {
   appMetadata: AppMeta;
   step: StepType;
-  teams?: TeamsProp;
+  teams?: TTeams;
   personalAccount: PersonalAccountProps;
-  eventTypes?: TEventType[];
+  eventTypeGroups?: TEventTypeGroup[];
   userName: string;
   credentialId?: number;
   showEventTypesStep: boolean;
   isConferencing: boolean;
   installableOnTeams: boolean;
+  isOrg: boolean;
 };
 
 type TUpdateObject = {
@@ -82,7 +98,7 @@ const OnboardingPage = ({
   teams,
   personalAccount,
   appMetadata,
-  eventTypes,
+  eventTypeGroups,
   userName,
   credentialId,
   showEventTypesStep,
@@ -133,7 +149,7 @@ const OnboardingPage = ({
 
   const formMethods = useForm<TEventTypesForm>({
     defaultValues: {
-      eventTypes,
+      eventTypeGroups,
     },
   });
   const mutation = useAddAppMutation(null, {
@@ -147,9 +163,9 @@ const OnboardingPage = ({
   });
 
   useEffect(() => {
-    eventTypes && formMethods.setValue("eventTypes", eventTypes);
+    eventTypeGroups && formMethods.setValue("eventTypeGroups", eventTypeGroups);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventTypes]);
+  }, [eventTypeGroups]);
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async (data) => {
@@ -222,34 +238,38 @@ const OnboardingPage = ({
               form={formMethods}
               id="outer-event-type-form"
               handleSubmit={async (values) => {
-                const mutationPromises = values?.eventTypes
-                  .filter((eventType) => eventType.selected)
-                  .map((value: TEventType) => {
-                    // Prevent two payment apps to be enabled
-                    // Ok to cast type here because this metadata will be updated as the event type metadata
-                    if (
-                      checkForMultiplePaymentApps(value.metadata as z.infer<typeof EventTypeMetaDataSchema>)
-                    )
-                      throw new Error(t("event_setup_multiple_payment_apps_error"));
-                    if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
-                      throw new Error(t("seats_and_no_show_fee_error"));
-                    }
-                    let updateObject: TUpdateObject = { id: value.id };
-                    if (isConferencing) {
-                      updateObject = {
-                        ...updateObject,
-                        locations: value.locations,
-                        bookingFields: value.bookingFields ? value.bookingFields : undefined,
-                      };
-                    } else {
-                      updateObject = {
-                        ...updateObject,
-                        metadata: value.metadata,
-                      };
-                    }
+                let mutationPromises: ReturnType<typeof updateMutation.mutateAsync>[] = [];
+                for (const group of values.eventTypeGroups) {
+                  const promises = group.eventTypes
+                    .filter((eventType) => eventType.selected)
+                    .map((value: TEventType) => {
+                      // Prevent two payment apps to be enabled
+                      // Ok to cast type here because this metadata will be updated as the event type metadata
+                      if (
+                        checkForMultiplePaymentApps(value.metadata as z.infer<typeof EventTypeMetaDataSchema>)
+                      )
+                        throw new Error(t("event_setup_multiple_payment_apps_error"));
+                      if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
+                        throw new Error(t("seats_and_no_show_fee_error"));
+                      }
+                      let updateObject: TUpdateObject = { id: value.id };
+                      if (isConferencing) {
+                        updateObject = {
+                          ...updateObject,
+                          locations: value.locations,
+                          bookingFields: value.bookingFields ? value.bookingFields : undefined,
+                        };
+                      } else {
+                        updateObject = {
+                          ...updateObject,
+                          metadata: value.metadata,
+                        };
+                      }
 
-                    return updateMutation.mutateAsync(updateObject);
-                  });
+                      return updateMutation.mutateAsync(updateObject);
+                    });
+                  mutationPromises = [...mutationPromises, ...promises];
+                }
                 try {
                   await Promise.all(mutationPromises);
                   router.push("/event-types");
@@ -272,28 +292,30 @@ const OnboardingPage = ({
                 />
               )}
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
-                eventTypes &&
-                Boolean(eventTypes?.length) && (
+                eventTypeGroups &&
+                Boolean(eventTypeGroups?.length) && (
                   <EventTypesStepCard
                     setConfigureStep={setConfigureStep}
                     userName={userName}
                     handleSetUpLater={handleSetUpLater}
                   />
                 )}
-              {currentStep === AppOnboardingSteps.CONFIGURE_STEP && formPortalRef.current && (
-                <ConfigureStepCard
-                  slug={appMetadata.slug}
-                  categories={appMetadata.categories}
-                  credentialId={credentialId}
-                  userName={userName}
-                  loading={updateMutation.isPending}
-                  formPortalRef={formPortalRef}
-                  setConfigureStep={setConfigureStep}
-                  eventTypes={eventTypes}
-                  handleSetUpLater={handleSetUpLater}
-                  isConferencing={isConferencing}
-                />
-              )}
+              {currentStep === AppOnboardingSteps.CONFIGURE_STEP &&
+                formPortalRef.current &&
+                eventTypeGroups && (
+                  <ConfigureStepCard
+                    slug={appMetadata.slug}
+                    categories={appMetadata.categories}
+                    credentialId={credentialId}
+                    userName={userName}
+                    loading={updateMutation.isPending}
+                    formPortalRef={formPortalRef}
+                    setConfigureStep={setConfigureStep}
+                    eventTypeGroups={eventTypeGroups}
+                    handleSetUpLater={handleSetUpLater}
+                    isConferencing={isConferencing}
+                  />
+                )}
             </Form>
           </div>
         </div>

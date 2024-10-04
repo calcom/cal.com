@@ -145,6 +145,7 @@ export type InputEventType = {
   length?: number;
   offsetStart?: number;
   slotInterval?: number;
+  userId?: number;
   minimumBookingNotice?: number;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
@@ -158,6 +159,7 @@ export type InputEventType = {
   team?: {
     id?: number | null;
     parentId?: number | null;
+    bookingLimits?: IntervalLimit;
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
@@ -244,6 +246,7 @@ export async function addEventTypesToDb(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
+    team?: { id?: number | null; bookingLimits?: IntervalLimit };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -281,6 +284,21 @@ export async function addEventTypesToDb(
             },
           },
         },
+      });
+    }
+
+    if (eventType.team?.id) {
+      const createdTeam = await prismock.team.create({
+        data: {
+          id: eventType.team?.id,
+          bookingLimits: eventType.team?.bookingLimits,
+          name: "",
+        },
+      });
+
+      await prismock.eventType.update({
+        where: { id: eventType.id },
+        data: { teamId: createdTeam.id },
       });
     }
   }
@@ -1249,7 +1267,6 @@ export function getScenarioData(
       ];
     });
   }
-
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {
@@ -1265,8 +1282,9 @@ export function getScenarioData(
         ...eventType,
         teamId: eventType.teamId || null,
         team: {
-          id: eventType.teamId,
+          id: eventType.teamId ?? eventType.team?.id,
           parentId: org ? org.id : null,
+          bookingLimits: eventType?.team?.bookingLimits,
         },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
@@ -1298,10 +1316,10 @@ export function enableEmailFeature() {
 
 export function mockNoTranslations() {
   log.silly("Mocking i18n.getTranslation to return identity function");
-  // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
+      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });
