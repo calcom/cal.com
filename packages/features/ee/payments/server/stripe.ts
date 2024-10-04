@@ -9,6 +9,9 @@ const config: Stripe.StripeConfig = {
 };
 
 if (process.env.STRIPE_MOCK_HOST) {
+  // Cannot assign to 'STRIPE_PRIVATE_KEY' because it is a read-only property.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   process.env.STRIPE_PRIVATE_KEY = "sk_test_123";
   config.host = process.env.STRIPE_MOCK_HOST;
   config.port = process.env.STRIPE_MOCK_PORT;
