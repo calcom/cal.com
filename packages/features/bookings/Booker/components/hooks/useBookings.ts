@@ -108,6 +108,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const { t } = useLocale();
@@ -260,6 +261,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
+        rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly
       };
 
       bookingSuccessRedirect({
