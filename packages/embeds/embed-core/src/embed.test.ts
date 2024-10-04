@@ -31,15 +31,17 @@ describe("Cal", () => {
     CalClass = (await import("./embed")).Cal;
   });
 
-  beforeEach(() => {
-    cal = new CalClass("test-namespace", []);
-    window.Cal.config = { forwardQueryParams: true };
-    // Mock the getConfig method
-    cal.getConfig = vi.fn().mockReturnValue({ calOrigin: "https://app.cal.com" });
-  });
+
 
   describe("createIframe", () => {
-    describe("params handling", () => {
+    describe("params handling with forwardQueryParams feature enabled", () => {
+      beforeEach(() => {
+        cal = new CalClass("test-namespace", []);
+        window.Cal.config = { forwardQueryParams: true };
+        // Mock the getConfig method
+        cal.getConfig = vi.fn().mockReturnValue({ calOrigin: "https://app.cal.com" });
+      });
+
       it("should merge query parameters from URL and explicit params", () => {
         mockSearchParams("?existingParam=value");
 
@@ -81,7 +83,23 @@ describe("Cal", () => {
         expect(paramValues).toEqual(["value3"]);
       });
 
-      it("should exclude reserved params", () => {
+      it("should exclude reserved params from page URL(as these could be unintentional to pass these query params to embed, so better to exclude them and avoid crashing the booking page)", () => {
+        mockSearchParams("?date=2023-05-01&duration=30");
+
+        const iframe = cal.createIframe({
+          calLink: "john-doe/meeting",
+          config: {
+            email: "test@example.com",
+          },
+          calOrigin: null,
+        });
+
+        expect(iframe.src).not.toContain("date=");
+        expect(iframe.src).not.toContain("duration=");
+        expect(iframe.src).toContain("email=test%40example.com");
+      });
+
+      it("should allow configuring reserved params through config(as it is explicitly passed by user)", () => {
         const iframe = cal.createIframe({
           calLink: "john-doe/meeting",
           config: {
@@ -92,8 +110,8 @@ describe("Cal", () => {
           calOrigin: null,
         });
 
-        expect(iframe.src).not.toContain("date=");
-        expect(iframe.src).not.toContain("duration=");
+        expect(iframe.src).toContain("date=2023-05-01");
+        expect(iframe.src).toContain("duration=30");
         expect(iframe.src).toContain("email=test%40example.com");
       });
 
