@@ -1,4 +1,4 @@
-@import "react-phone-input-2/lib/style.css";
+@import "./styles/react-phone-input2.css";
 
 @tailwind base;
 @tailwind components;
