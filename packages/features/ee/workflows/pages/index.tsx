@@ -66,8 +66,8 @@ function WorkflowsPage({ filteredList }: PageProps) {
     <Shell withoutMain>
       <LicenseRequired>
         <ShellMain
-          heading={t("workflows")}
-          subtitle={t("workflows_to_automate_notifications")}
+          title={t("workflows")}
+          description={t("workflows_to_automate_notifications")}
           hideHeadingOnMobile
           CTA={
             session.data?.hasValidLicense ? (
