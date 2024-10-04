@@ -198,7 +198,7 @@ const AppearanceView = ({
           });
           if (values.appTheme === "light") {
             document.body.classList.remove("dark");
-          } else if (values.appTheme === 'dark') {
+          } else if (values.appTheme === "dark") {
             document.body.classList.remove("light");
           }
         }}>

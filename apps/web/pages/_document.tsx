@@ -70,13 +70,25 @@ class MyDocument extends Document<Props> {
               __html: `
               window.calNewLocale = "${newLocale}";
               (function applyTheme() {
-                  try {
-                  const theme = localStorage.getItem('app-theme');
-                  if (!theme) return;
+                try {
+                  const appTheme = localStorage.getItem('app-theme');
+                  if (!appTheme) return;
+
+                  let bookingTheme, username;
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('booking-theme:')) {
+                      bookingTheme = localStorage.getItem(key);
+                      username = key.split("booking-theme:")[1];
+                      break;
+                    }
+                  }
 
                   const onReady = () => {
+                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
+
                     if (document.body) {
-                      document.body.classList.add(theme);
+                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
                     } else {
                       requestAnimationFrame(onReady);
                     }
