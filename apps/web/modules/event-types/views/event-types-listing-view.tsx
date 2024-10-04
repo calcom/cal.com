@@ -19,7 +19,6 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import Shell from "@calcom/features/shell/Shell";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -250,6 +249,7 @@ export const InfiniteEventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
+  const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
@@ -443,8 +443,11 @@ export const InfiniteEventTypeList = ({
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
-            const isPrivateURLEnabled = type.hashedLink?.link;
-            const placeholderHashedLink = `${WEBSITE_URL}/d/${type.hashedLink?.link}/${type.slug}`;
+            const isPrivateURLEnabled =
+              type.hashedLink && type.hashedLink.length > 0
+                ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
+                : "";
+            const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
             const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
             const isChildrenManagedEventType =
               type.metadata?.managedEventConfig !== undefined &&
@@ -544,6 +547,11 @@ export const InfiniteEventTypeList = ({
                                       onClick={() => {
                                         showToast(t("private_link_copied"), "success");
                                         navigator.clipboard.writeText(placeholderHashedLink);
+                                        setPrivateLinkCopyIndices((prev) => {
+                                          const prevIndex = prev[type.slug] ?? 0;
+                                          prev[type.slug] = (prevIndex + 1) % type.hashedLink.length;
+                                          return prev;
+                                        });
                                       }}
                                     />
                                   </Tooltip>

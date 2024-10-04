@@ -27,7 +27,7 @@ export type NewSeatedBookingObject = {
   rescheduleReason: RescheduleReason;
   reqBodyUser: string | string[] | undefined;
   noEmail: NoEmail;
-  isConfirmedByDefault: IsConfirmedByDefault;
+  isConfirmedByDefault: boolean;
   additionalNotes: AdditionalNotes;
   reqAppsStatus: ReqAppsStatus;
   attendeeLanguage: string | null;
