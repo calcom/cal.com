@@ -46,7 +46,7 @@ const getEnabledAppsFromCredentials = async (
   }
 
   if (!!filterOnAppSlug) {
-    apps = getAppsBySlug(credentials, filterOnCredentials, filterOnAppSlug);
+    apps = getAppsBySlug(credentials, filterOnAppSlug, filterOnCredentials);
   }
 
   const where: Prisma.AppWhereInput = {
