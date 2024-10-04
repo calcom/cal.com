@@ -78,6 +78,18 @@
           "pages": ["developing-with-cal.com/guides/api/how-to-setup-api-in-a-local-instance"]
         },
         {
+          "group": "App Store and Integration",
+          "icon": "grid",
+          "pages": [
+            "developing-with-cal.com/guides/appstore-and-integration/adding-your-first-app",
+            "developing-with-cal.com/guides/appstore-and-integration/build-a-greeter-app",
+            "developing-with-cal.com/guides/appstore-and-integration/build-an-app",
+            "developing-with-cal.com/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
+            "developing-with-cal.com/guides/appstore-and-integration/how-to-use-cal.com-with-hubspot",
+            "developing-with-cal.com/guides/appstore-and-integration/oauth"
+          ]
+        },
+        {
           "group": "Auth and Provision",
           "icon": "user-shield",
           "pages": [
