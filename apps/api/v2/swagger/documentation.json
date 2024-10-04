@@ -3248,6 +3248,7 @@
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
+        "summary": "Save an ICS feed",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -3279,6 +3280,7 @@
     "/v2/calendars/ics-feed/check": {
       "get": {
         "operationId": "CalendarsController_checkIcsFeed",
+        "summary": "Check an ICS feed",
         "parameters": [],
         "responses": {
           "200": {
@@ -4106,6 +4108,147 @@
         ]
       }
     },
+    "/v2/oauth/{clientId}/authorize": {
+      "post": {
+        "operationId": "OAuthFlowController_authorize",
+        "summary": "Authorize an OAuth client",
+        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthAuthorizeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
+          },
+          "400": {
+            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
+          }
+        },
+        "tags": [
+          "oauth"
+        ]
+      }
+    },
+    "/v2/oauth/{clientId}/exchange": {
+      "post": {
+        "operationId": "OAuthFlowController_exchange",
+        "summary": "Exchange authorization code for access tokens",
+        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully exchanged authorization code for access and refresh tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
+          }
+        },
+        "tags": [
+          "oauth"
+        ]
+      }
+    },
+    "/v2/oauth/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuthFlowController_refreshAccessToken",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "required": true,
+            "in": "header",
+            "description": "OAuth client secret key.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "oauth",
+          "Managed users"
+        ]
+      }
+    },
     "/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
@@ -4304,150 +4447,11 @@
         ]
       }
     },
-    "/v2/oauth/{clientId}/authorize": {
-      "post": {
-        "operationId": "OAuthFlowController_authorize",
-        "summary": "Authorize an OAuth client",
-        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OAuthAuthorizeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
-          },
-          "400": {
-            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/exchange": {
-      "post": {
-        "operationId": "OAuthFlowController_exchange",
-        "summary": "Exchange authorization code for access tokens",
-        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully exchanged authorization code for access and refresh tokens.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/refresh": {
-      "post": {
-        "operationId": "OAuthFlowController_refreshAccessToken",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-secret-key",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
         "summary": "Create a schedule",
-        "description": "\n      The point of creating schedules is for event types to be available at specific times.\n\n      First goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. Managed user can then change the default schedule via `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want that user has specific schedule right away. You should create default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule that user can't be booked or manage his / her schedule via the AvailabilitySettings atom.\n\n      Second goal is to create other schedules that event types can point to, so that when that event is booked availability is not checked against the default schedule but against that specific schedule.\n      After creating a non default schedule you can update event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use 24 hour format e.g. 08:00, 15:00 etc.\n      ",
+        "description": "\n      Create a schedule for the authenticated user.\n\n      The point of creating schedules is for event types to be available at specific times.\n\n      The first goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.\n\n      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.\n      After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.\n      ",
         "parameters": [
           {
             "name": "Authorization",
@@ -4496,7 +4500,8 @@
       },
       "get": {
         "operationId": "SchedulesController_2024_06_11_getSchedules",
-        "summary": "Get all schedules (of the authenticated user)",
+        "summary": "Get all schedules",
+        "description": "Get all schedules of the authenticated user.",
         "parameters": [
           {
             "name": "Authorization",
@@ -4537,7 +4542,8 @@
     "/v2/schedules/default": {
       "get": {
         "operationId": "SchedulesController_2024_06_11_getDefaultSchedule",
-        "summary": "Get default schedule (of the authenticated user)",
+        "summary": "Get default schedule",
+        "description": "Get the default schedule of the authenticated user.",
         "parameters": [
           {
             "name": "Authorization",
@@ -4560,7 +4566,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns the default schedule of the authenticated user",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -4822,11 +4828,26 @@
         },
         "responses": {
           "201": {
-            "description": "",
+            "description": "Successful response returning uid of reserved slot.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "uid": {
+                          "type": "string",
+                          "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4841,14 +4862,31 @@
       "delete": {
         "operationId": "SlotsController_deleteSelectedSlot",
         "summary": "Delete a selected slot",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "query",
+            "description": "Unique identifier for the slot to be removed.",
+            "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Response deleting reserved slot by uid.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    }
+                  }
                 }
               }
             }
@@ -4863,14 +4901,128 @@
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
         "summary": "Get available slots",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "startTime",
+            "required": true,
+            "in": "query",
+            "description": "Start date string starting from which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endTime",
+            "required": true,
+            "in": "query",
+            "description": "End date string until which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T23:59:59.999Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "query",
+            "description": "Event Type ID for which slots are being fetched.",
+            "example": 100,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of the event type for which slots are being fetched.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "usernameList",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "duration",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - length of returned slots.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Available time slots retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "slots": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "time": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "example": "2024-09-25T08:00:00.000Z"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "data": {
+                      "slots": {
+                        "2024-09-25": [
+                          {
+                            "time": "2024-09-25T08:00:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-25T08:15:00.000Z"
+                          }
+                        ],
+                        "2024-09-26": [
+                          {
+                            "time": "2024-09-26T08:00:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-26T08:15:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-26T08:30:00.000Z"
+                          }
+                        ]
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4878,6 +5030,95 @@
         },
         "tags": [
           "Slots"
+        ]
+      }
+    },
+    "/v2/stripe/connect": {
+      "get": {
+        "operationId": "StripeController_redirect",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
+    "/v2/stripe/save": {
+      "get": {
+        "operationId": "StripeController_save",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
+    "/v2/stripe/check": {
+      "get": {
+        "operationId": "StripeController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
         ]
       }
     },
@@ -5689,7 +5930,8 @@
         "type": "object",
         "properties": {
           "refreshToken": {
-            "type": "string"
+            "type": "string",
+            "description": "Managed user's refresh token."
           }
         },
         "required": [
@@ -7504,9 +7746,6 @@
           "hideCalendarNotes": {
             "type": "boolean"
           },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
-          },
           "color": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
@@ -7568,7 +7807,6 @@
           "confirmationPolicy",
           "requiresBookerEmailVerification",
           "hideCalendarNotes",
-          "hideCalendarEventDetails",
           "color",
           "seats",
           "offsetStart",
@@ -9513,9 +9751,6 @@
           "hideCalendarNotes": {
             "type": "boolean"
           },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
-          },
           "color": {
             "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
           },
@@ -9533,6 +9768,9 @@
             "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
           },
           "useDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
             "type": "boolean"
           },
           "teamId": {
@@ -10746,6 +10984,60 @@
             "type": "string"
           }
         }
+      },
+      "StripConnectOutputDto": {
+        "type": "object",
+        "properties": {
+          "authUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "authUrl"
+        ]
+      },
+      "StripConnectOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/StripConnectOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "StripCredentialsCheckOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          }
+        },
+        "required": [
+          "status"
+        ]
       },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
@@ -12140,7 +12432,32 @@
       },
       "ReserveSlotInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event Type ID for which timeslot is being reserved.",
+            "example": 100
+          },
+          "slotUtcStartDate": {
+            "type": "string",
+            "description": "Start date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z"
+          },
+          "slotUtcEndDate": {
+            "type": "string",
+            "description": "End date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:30:00.000Z"
+          },
+          "bookingUid": {
+            "type": "string",
+            "description": "Optional but only for events with seats. Used to retrieve booking of a seated event."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotUtcStartDate",
+          "slotUtcEndDate"
+        ]
       },
       "UserWebhookOutputDto": {
         "type": "object",

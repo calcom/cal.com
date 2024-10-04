@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.5.7",
+  "version": "4.5.9",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -136,7 +136,7 @@
     "stripe": "^9.16.0",
     "superjson": "1.9.1",
     "tailwindcss-radix": "^2.6.0",
-    "turndown": "^7.1.1",
+    "turndown": "^7.1.3",
     "uuid": "^8.3.2",
     "zod": "^3.22.4"
   },

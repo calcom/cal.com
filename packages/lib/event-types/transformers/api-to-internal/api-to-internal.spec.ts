@@ -764,13 +764,4 @@ describe("transformRecurrenceApiToInternal", () => {
     const result = transformRecurrenceApiToInternal(input);
     expect(result).toEqual(expectedOutput);
   });
-
-  it("should transform recurrence - disabled", () => {
-    const input: CreateEventTypeInput_2024_06_14["recurrence"] = {
-      disabled: true,
-    };
-    const expectedOutput = undefined;
-    const result = transformRecurrenceApiToInternal(input);
-    expect(result).toEqual(expectedOutput);
-  });
 });
