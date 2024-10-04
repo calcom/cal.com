@@ -53,6 +53,16 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      parent: {
+        select: {
+          team: {
+            select: {
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
       team: {
         select: {
           id: true,
@@ -291,17 +301,21 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         )
       : [];
 
-  const teamBookingLimits = parseBookingLimit(eventType?.team?.bookingLimits);
+  const teamForBookingLimits =
+    eventType?.team ??
+    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+  const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
   const busyTimesFromTeamLimits =
-    eventType?.team && teamBookingLimits
+    teamForBookingLimits && teamBookingLimits
       ? await getBusyTimesFromTeamLimits(
           user,
           teamBookingLimits,
           dateFrom.tz(timeZone),
           dateTo.tz(timeZone),
-          eventType?.team.id,
-          eventType.team.includeManagedEventsInLimits,
+          teamForBookingLimits.id,
+          teamForBookingLimits.includeManagedEventsInLimits,
           initialData?.rescheduleUid ?? undefined
         )
       : [];
