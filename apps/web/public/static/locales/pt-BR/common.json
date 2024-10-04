@@ -2048,7 +2048,6 @@
   "error_charging_card": "Algo deu errado ao cobrar a taxa de não comparecimento. Tente novamente mais tarde.",
   "collect_no_show_fee": "Coletar taxa de não comparecimento",
   "no_show_fee_charged": "Taxa de não comparecimento cobrada",
-  "insights": "Insights",
   "routing_forms": "Formulários de Roteamento",
   "testing_workflow_info_message": "Ao testar este fluxo de trabalho, não se esqueça de que e-mails e SMS só podem ser reprogramados com pelo menos uma hora de antecedência",
   "insights_no_data_found_for_filter": "Nenhum dado encontrado para o filtro ou dados selecionados.",

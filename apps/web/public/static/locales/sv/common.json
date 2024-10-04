@@ -2048,7 +2048,6 @@
   "error_charging_card": "Något gick fel när avgiften för utebliven närvaro debiterades. Försök igen senare.",
   "collect_no_show_fee": "Samla in avgift för utebliven närvaro",
   "no_show_fee_charged": "Avgift för utebliven närvaro har debiterats",
-  "insights": "Insights",
   "routing_forms": "Routningsformulär",
   "testing_workflow_info_message": "När det här arbetsflödet testas ska du vara medveten om att e-postmeddelanden och SMS endast kan schemaläggas minst en timme i förväg",
   "insights_no_data_found_for_filter": "Inga data hittades för valt filter eller valda datum.",

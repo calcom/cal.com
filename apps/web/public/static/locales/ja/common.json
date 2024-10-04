@@ -2048,7 +2048,6 @@
   "error_charging_card": "不参加費用の請求時にエラーが発生しました。後でもう一度お試しください。",
   "collect_no_show_fee": "不参加費用を徴収する",
   "no_show_fee_charged": "不参加費用が請求されました",
-  "insights": "Insights",
   "routing_forms": "ルーティングフォーム",
   "testing_workflow_info_message": "このワークフローをテストする場合、少なくとも 1 時間前でなければメールと SMS のスケジュール設定ができないことにご注意ください",
   "insights_no_data_found_for_filter": "選択したフィルターまたは日付のデータが見つかりませんでした。",
