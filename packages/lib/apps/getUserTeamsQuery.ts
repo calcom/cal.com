@@ -1,7 +1,7 @@
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-const getUserTeams = async (userId: number) => {
+const getUserTeamsQuery = async (userId: number) => {
   const teamsQuery = await prisma.team.findMany({
     where: {
       members: {
@@ -50,4 +50,4 @@ const getUserTeams = async (userId: number) => {
   return teamsQuery;
 };
 
-export default getUserTeams;
+export default getUserTeamsQuery;
