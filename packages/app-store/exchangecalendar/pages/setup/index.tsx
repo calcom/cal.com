@@ -36,11 +36,12 @@ export default function ExchangeSetup() {
   const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<IFormData>({
     defaultValues: {
-      authenticationMethod: ExchangeAuthentication.STANDARD,
+      authenticationMethod: ExchangeAuthentication.NTLM,
       exchangeVersion: ExchangeVersion.Exchange2016,
     },
     resolver: zodResolver(schema),
   });
+  const authenticationMethod = form.watch("authenticationMethod");
   const authenticationMethods = [
     { value: ExchangeAuthentication.STANDARD, label: t("exchange_authentication_standard") },
     { value: ExchangeAuthentication.NTLM, label: t("exchange_authentication_ntlm") },
@@ -119,7 +120,7 @@ export default function ExchangeSetup() {
                         <SelectField
                           label={t("exchange_authentication")}
                           options={authenticationMethods}
-                          defaultValue={authenticationMethods[0]}
+                          defaultValue={authenticationMethods[1]}
                           onChange={async (authentication) => {
                             if (authentication) {
                               onChange(authentication.value);
@@ -129,23 +130,25 @@ export default function ExchangeSetup() {
                         />
                       )}
                     />
-                    <Controller
-                      name="exchangeVersion"
-                      control={form.control}
-                      render={({ field: { onChange } }) => (
-                        <SelectField
-                          label={t("exchange_version")}
-                          options={exchangeVersions}
-                          defaultValue={exchangeVersions[7]}
-                          onChange={async (version) => {
-                            onChange(version?.value);
-                            if (version) {
-                              form.setValue("exchangeVersion", version.value);
-                            }
-                          }}
-                        />
-                      )}
-                    />
+                    {authenticationMethod === ExchangeAuthentication.STANDARD ? (
+                      <Controller
+                        name="exchangeVersion"
+                        control={form.control}
+                        render={({ field: { onChange } }) => (
+                          <SelectField
+                            label={t("exchange_version")}
+                            options={exchangeVersions}
+                            defaultValue={exchangeVersions[7]}
+                            onChange={async (version) => {
+                              onChange(version?.value);
+                              if (version) {
+                                form.setValue("exchangeVersion", version.value);
+                              }
+                            }}
+                          />
+                        )}
+                      />
+                    ) : null}
                     <Switch
                       label={t("exchange_compression")}
                       name="useCompression"
