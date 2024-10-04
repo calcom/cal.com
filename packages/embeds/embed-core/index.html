@@ -4,6 +4,13 @@
     <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
     <!-- <script src="./src/embed.ts" type="module"></script> -->
     <script>
+      let popupRescheduleUid = null;
+      let calLink = null;
+      (function defineVariables() {
+        const searchParams = new URL(document.URL).searchParams;
+        popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
+        calLink = searchParams.get("calLink");
+      })()
       function generateRandomHexColor() {
         // Generate a random integer between 0 and 16777215 (FFFFFF in hex)
         const randomInt = Math.floor(Math.random() * 16777216);
@@ -17,7 +24,7 @@
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
-      (() => {
+      (function scrollToIframeInPlayground() {
         const url = new URL(document.URL);
         // Only run the example specified by only=, avoids distraction and faster to test.
         const only = (window.only = url.searchParams.get("only") || '');
@@ -25,7 +32,7 @@
         if (elementIdentifier) {
           location.hash = "#cal-booking-place-" + elementIdentifier + "-iframe";
         }
-      })();
+      })(); 
       
       function addInlineEmbedInNewNamespaceWithoutReload(selector) {
         Cal("init", "withoutReloadNamespace", {
@@ -271,10 +278,14 @@
         See Team Links [Auto Theme]
       </button>
       <script>
-        let popupRescheduleId =
-          new URL(document.URL).searchParams.get("popupRescheduleId") || "qm3kwt3aTnVD7vmP9tiT2f";
         document.write(
-          `<button data-cal-namespace="popupReschedule" data-cal-config='{"flag.coep":"true"}' data-cal-link="reschedule/${popupRescheduleId}">Reschedule Event[Auto Theme]</button>`
+          `<button data-cal-namespace="popupRescheduleWithReschedulePath" data-cal-config='{"flag.coep":"true"}' data-cal-link="reschedule/${popupRescheduleUid}">Reschedule Event(with /reschedule) - Needs popupRescheduleUid param</button>`
+        );
+      </script>
+
+      <script>
+        document.write(
+    `<button data-cal-namespace="popupRescheduleWithRescheduleUidParam" data-cal-config='{"flag.coep":"true", "rescheduleUid": "${popupRescheduleUid}"}' data-cal-link="${calLink}">Reschedule Event(with rescheduleUid param) - Needs popupRescheduleUid and calLink param</button>`
         );
       </script>
       <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid" data-cal-config='{"flag.coep": "true"}'>

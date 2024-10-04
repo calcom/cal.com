@@ -115,6 +115,17 @@ describe("Cal", () => {
         expect(iframe.src).toContain("email=test%40example.com");
       });
 
+      it("should allow configuring reserved params through direct URL params to embed calLink(as it is explicitly passed by user)", () => {
+        const iframe = cal.createIframe({
+          calLink: "john-doe/meeting?date=2023-05-01&duration=30&email=test@example.com",
+          calOrigin: null,
+        });
+
+        expect(iframe.src).toContain("date=2023-05-01");
+        expect(iframe.src).toContain("duration=30");
+        expect(iframe.src).toContain("email=test%40example.com");
+      });
+      
       it("should respect forwardQueryParams setting to disable sending page query params but still send the ones in the config", () => {
         mockSearchParams("?param1=value");
 

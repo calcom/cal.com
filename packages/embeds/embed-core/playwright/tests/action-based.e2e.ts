@@ -91,7 +91,7 @@ test.describe("Popup Tests", () => {
 
     await test.step("Reschedule the booking", async () => {
       await addEmbedListeners("popupReschedule");
-      await page.goto(`/?popupRescheduleId=${booking.uid}`);
+      await page.goto(`/?popupRescheduleUid=${booking.uid}`);
       await page.click('[data-cal-namespace="popupReschedule"]');
       const calNamespace = "popupReschedule";
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: booking.eventSlug });
