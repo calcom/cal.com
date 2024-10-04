@@ -1,15 +1,14 @@
 import type { Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
-import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import constructUserTeams from "@calcom/lib/apps/constructUserTeams";
+import getAppDependencyData from "@calcom/lib/apps/getAppDependencyData";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import getTeamAppCredentials from "@calcom/lib/apps/getTeamAppCredentials";
 import getUserAvailableTeams from "@calcom/lib/apps/getUserAvailableTeams";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
@@ -63,7 +62,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     credentials = getTeamAppCredentials(userTeams, credentials, includeTeamInstalledApps);
   }
 
-  // start refactor for enabled apps here
   const enabledApps = await getEnabledAppsFromCredentials(credentials, {
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
@@ -75,28 +73,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
-      // this can be refactored into its own function
-      // construct teams for app starts here
-      const teams = await Promise.all(
-        credentials
-          .filter((c) => c.appId === app.slug && c.teamId)
-          .map(async (c) => {
-            const team = userTeams.find((team) => team.id === c.teamId);
-            if (!team) {
-              return null;
-            }
-            return {
-              teamId: team.id,
-              name: team.name,
-              logoUrl: team.logoUrl,
-              credentialId: c.id,
-              isAdmin:
-                team.members[0].role === MembershipRole.ADMIN ||
-                team.members[0].role === MembershipRole.OWNER,
-            };
-          })
-      );
-      // construct teams for app ends here
+      const teams = await constructUserTeams(credentials, app.slug, userTeams);
+      const dependencyData = getAppDependencyData(enabledApps, app.dependencies);
 
       // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
@@ -104,7 +82,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         avatar: user.avatar,
       };
 
-      // construct isSetupAlready starts here
       // We need to know if app is payment type
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
@@ -116,21 +93,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
           isSetupAlready = paymentInstance.isSetupAlready();
         }
       }
-      // construct isSetupAlready ends here
-
-      // construct app dependency data starts here
-      let dependencyData: TDependencyData = [];
-      if (app.dependencies?.length) {
-        dependencyData = app.dependencies.map((dependency) => {
-          const dependencyInstalled = enabledApps.some(
-            (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
-          );
-          // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-          const dependencyName = getAppFromSlug(dependency)?.name;
-          return { name: dependencyName, installed: dependencyInstalled };
-        });
-      }
-      // construct app dependency data ends here
 
       return {
         ...app,
@@ -146,9 +108,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       };
     })
   );
-  // end refactor for enabled apps here
 
-  // its fine if we dont refactor below stuff, its just an if conditional so thats alright
   if (variant) {
     // `flatMap()` these work like `.filter()` but infers the types correctly
     apps = apps
