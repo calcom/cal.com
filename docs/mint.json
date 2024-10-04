@@ -57,7 +57,7 @@
   ],
   "navigation": [
     {
-      "group": "Getting started",
+      "group": "Getting Started",
       "pages": ["developing-with-cal.com/introduction", "developing-with-cal.com/local-development"]
     },
     {
@@ -111,8 +111,30 @@
       ]
     },
     {
-      "group": "Self Hosting",
-      "pages": ["self-hosting/index"]
+      "group": "Getting Started",
+      "pages": [
+        "self-hosting/installation",
+        "self-hosting/database-migrations",
+        "self-hosting/upgrading",
+        "self-hosting/sso-setup",
+        "self-hosting/docker",
+        "self-hosting/vercel"
+      ]
+    },
+    {
+      "group": "Install Apps",
+      "pages": [
+        "self-hosting/install-apps/introduction",
+        "self-hosting/install-apps/google",
+        "self-hosting/install-apps/microsoft",
+        "self-hosting/install-apps/zoom",
+        "self-hosting/install-apps/daily",
+        "self-hosting/install-apps/hubspot",
+        "self-hosting/install-apps/sendgrid",
+        "self-hosting/install-apps/stripe",
+        "self-hosting/install-apps/twilio",
+        "self-hosting/install-apps/zoho"
+      ]
     },
     {
       "group": "Getting Started",
@@ -125,11 +147,11 @@
       ]
     },
     {
-      "group": "Getting started",
+      "group": "Getting Started",
       "pages": ["api-reference/v2/introduction", "api-reference/v2/v1-v2-differences"]
     },
     {
-      "group": "Getting started",
+      "group": "Getting Started",
       "pages": [
         "api-reference/v1/introduction",
         "api-reference/v1/authentication",
