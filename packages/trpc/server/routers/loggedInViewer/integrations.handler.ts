@@ -6,11 +6,11 @@ import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
-import getUserTeams from "@calcom/lib/apps/getUserTeams";
+import getTeamAppCredentials from "@calcom/lib/apps/getTeamAppCredentials";
+import getUserAvailableTeams from "@calcom/lib/apps/getUserAvailableTeams";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
@@ -22,12 +22,7 @@ type IntegrationsOptions = {
   input: TIntegrationsInputSchema;
 };
 
-// refactor this into small small pieces
-// separate the teams stuff from the rest
-// user credentials stuff as well
-/// and basically whatever that can be separated into smaller pieces so as to resue it
-
-type TeamQuery = Prisma.TeamGetPayload<{
+export type TeamQuery = Prisma.TeamGetPayload<{
   select: {
     id: true;
     credentials: {
@@ -59,46 +54,16 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     sortByMostPopular,
     appId,
   } = input;
-  // user credentials logic needs to have its own function
+
   let credentials = await getUsersCredentials(user);
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
-    // start teams fn here
-    const userTeamsQuery = await getUserTeams(user.id);
-
-    // If a team is a part of an org then include those apps
-    // Don't want to iterate over these parent teams
-    const filteredTeams: TeamQuery[] = [];
-    const parentTeams: TeamQuery[] = [];
-    // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
-    if (teamId) {
-      userTeamsQuery.forEach((team) => {
-        if (team?.parent) {
-          const { parent, ...filteredTeam } = team;
-          filteredTeams.push(filteredTeam);
-          // Only add parent team if it's not already in teamsQuery
-          if (!userTeamsQuery.some((t) => t.id === parent.id)) {
-            parentTeams.push(parent);
-          }
-        }
-      });
-    }
-
-    userTeams = [...userTeamsQuery, ...parentTeams];
-
-    const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
-      return teamApp.credentials ? teamApp.credentials.flat() : [];
-    });
-    if (!includeTeamInstalledApps || teamId) {
-      credentials = teamAppCredentials;
-    } else {
-      credentials = credentials.concat(teamAppCredentials);
-    }
+    userTeams = await getUserAvailableTeams(user.id, teamId);
+    credentials = getTeamAppCredentials(userTeams, credentials, includeTeamInstalledApps);
   }
-  // end teams fn here
 
-  // this can be reused further in v2 then
+  // start refactor for enabled apps here
   const enabledApps = await getEnabledAppsFromCredentials(credentials, {
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
@@ -110,6 +75,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
+      // this can be refactored into its own function
+      // construct teams for app starts here
       const teams = await Promise.all(
         credentials
           .filter((c) => c.appId === app.slug && c.teamId)
@@ -129,12 +96,15 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
             };
           })
       );
+      // construct teams for app ends here
+
       // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
         name: user.name,
         avatar: user.avatar,
       };
 
+      // construct isSetupAlready starts here
       // We need to know if app is payment type
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
@@ -146,7 +116,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
           isSetupAlready = paymentInstance.isSetupAlready();
         }
       }
+      // construct isSetupAlready ends here
 
+      // construct app dependency data starts here
       let dependencyData: TDependencyData = [];
       if (app.dependencies?.length) {
         dependencyData = app.dependencies.map((dependency) => {
@@ -158,6 +130,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
           return { name: dependencyName, installed: dependencyInstalled };
         });
       }
+      // construct app dependency data ends here
 
       return {
         ...app,
@@ -173,7 +146,9 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       };
     })
   );
+  // end refactor for enabled apps here
 
+  // its fine if we dont refactor below stuff, its just an if conditional so thats alright
   if (variant) {
     // `flatMap()` these work like `.filter()` but infers the types correctly
     apps = apps
