@@ -212,12 +212,10 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   return (
     <div>
       <Shell
-        heading={t("availability")}
-        title="Availability"
-        description="Configure times when you are available for bookings."
+        title={t("availability")}
+        description={t("configure_availability")}
         hideHeadingOnMobile
         withoutMain={false}
-        subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
             <ToggleGroup

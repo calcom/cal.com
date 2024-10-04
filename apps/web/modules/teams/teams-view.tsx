@@ -18,11 +18,9 @@ function Teams(props: PageProps) {
   return (
     <Shell
       withoutMain={false}
-      heading={t("teams")}
-      title="Teams"
-      description="Create and manage teams to use collaborative features."
+      title={t("teams")}
+      description={t("create_manage_teams_collaborative")}
       hideHeadingOnMobile
-      subtitle={t("create_manage_teams_collaborative")}
       CTA={
         (!user.organizationId || user.organization.isOrgAdmin) && (
           <Button
