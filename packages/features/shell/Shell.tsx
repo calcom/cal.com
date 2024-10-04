@@ -369,6 +369,13 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useAppTheme();
+  const postHog = usePostHog();
+
+  useEffect(() => {
+    if (!props.isPublic) {
+      postHog.identify();
+    }
+  }, []);
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>
