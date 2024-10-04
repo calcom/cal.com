@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-type Credentials = {
+export type Credentials = {
   user: {
     email: string;
   } | null;

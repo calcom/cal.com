@@ -5,7 +5,7 @@ import getApps from "@calcom/app-store/utils";
 import { getAppsBySlug } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
-type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
+export type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
 /**
  *
