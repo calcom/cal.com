@@ -7,7 +7,7 @@ export const getRoutedHosts = <T extends { user: { id: number }; isFixed?: boole
   routedTeamMemberIds,
   hosts,
 }: {
-  routedTeamMemberIds: number[] | undefined | null;
+  routedTeamMemberIds: number[] | null;
   hosts: T[];
 }) => {
   // We don't want to enter a scenario where we have no team members to be booked
@@ -24,7 +24,7 @@ export const getRoutedUsers = <T extends { id: number; isFixed?: boolean }>({
   routedTeamMemberIds,
   users,
 }: {
-  routedTeamMemberIds: number[] | undefined | null;
+  routedTeamMemberIds: number[] | null;
   users: T[];
 }) => {
  // We don't want to enter a scenario where we have no team members to be booked

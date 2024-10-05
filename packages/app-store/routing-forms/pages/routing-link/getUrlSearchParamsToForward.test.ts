@@ -57,6 +57,7 @@ describe("getUrlSearchParamsToForward", () => {
       f2: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
+      "cal.routingFormResponseId": "1",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -64,6 +65,7 @@ describe("getUrlSearchParamsToForward", () => {
       fields,
       searchParams,
       teamMembersMatchingAttributeLogic: null,
+      formResponseId: 1,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -88,6 +90,7 @@ describe("getUrlSearchParamsToForward", () => {
       "Field 2": "value2",
       query1: "value1",
       query2: "value2",
+      "cal.routingFormResponseId": "1",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -95,6 +98,7 @@ describe("getUrlSearchParamsToForward", () => {
       fields,
       searchParams,
       teamMembersMatchingAttributeLogic: null,
+      formResponseId: 1,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -136,6 +140,7 @@ describe("getUrlSearchParamsToForward", () => {
       "Field 2": ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
+      "cal.routingFormResponseId": "1",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -143,6 +148,7 @@ describe("getUrlSearchParamsToForward", () => {
       fields,
       searchParams,
       teamMembersMatchingAttributeLogic: null,
+      formResponseId: 1,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -184,6 +190,7 @@ describe("getUrlSearchParamsToForward", () => {
       "Field 2": ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
+      "cal.routingFormResponseId": "1",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -191,6 +198,7 @@ describe("getUrlSearchParamsToForward", () => {
       fields,
       searchParams,
       teamMembersMatchingAttributeLogic: null,
+      formResponseId: 1,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
@@ -208,6 +216,7 @@ describe("getUrlSearchParamsToForward", () => {
       "Field 1": "123",
       query1: "value1",
       query2: "value2",
+      "cal.routingFormResponseId": "1",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -215,6 +224,7 @@ describe("getUrlSearchParamsToForward", () => {
       fields,
       searchParams,
       teamMembersMatchingAttributeLogic: null,
+      formResponseId: 1
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });

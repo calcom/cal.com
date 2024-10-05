@@ -24,15 +24,22 @@ TODO:
 - [x] Don't let the Routing Form with attributesQueryValue be picked
 - [x] Use a subset of event assignees using teamMemberIds
 - [x] Ensure that renaming an attribute option doesn't remove it from routing logic
-- [ ] Document well that the option label in Routing Form Field and Attribute Option name must be same to connect them.
+- [ ] Document well that the option label in Routing Form Field and Attribute Option label must be same to connect them.
+    - [ ] Due to the connection requirement b/w Attribute Option and Field Option, we use label(lowercased) to match attributes instead of attribute slug. 
+- [x] Add support for multiselect_contains and multiselect_not_contains operators in attributes
+- [x] Fix bug with Multiselect attribute
+- [x] Connect Form Response to Booking
 - [ ] Test with non option based attributes and form field input
 - [ ] Switching from Select to MultiSelect in attribute removes the selected option from Routing.
     - Warnings are needed with recommendation to create new attribute instead
-- [x] Add support for multiselect_contains and multiselect_not_contains operators in attributes
-- [x] Fix bug with Multiselect attribute
 - [ ] Unit tests for findTeamMembersMatchingAttributesQuery
+    - [x] Basic Tests
     - [ ] Should test performance as well
 - [ ] Test with hundreds of team members and 100s of attributes. Like 2000 is what our biggest customer has.
+- [ ] getAttributes module queries performance testing.
+
+Followup:
+- [ ] Unit Tests for evaluateRAQB???
 
 V2.0
 - Fallback for when no team member matches the criteria.

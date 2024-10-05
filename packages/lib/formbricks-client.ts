@@ -3,7 +3,6 @@ import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-
 export const initFormbricks = ({
   userId,
   attributes,

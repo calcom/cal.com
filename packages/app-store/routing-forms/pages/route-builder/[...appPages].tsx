@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -240,13 +240,13 @@ const Route = ({
         For responses matching the following criteria(matches all by default)
       </span>
       <Query
-        {...formFieldsQueryBuilderConfig}
+        {...(formFieldsQueryBuilderConfig as unknown as Config)}
         value={route.formFieldsQueryBuilderState.tree}
         onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
           onChangeFormFieldsQuery(
             route,
             immutableTree,
-            formFieldsQueryBuilderConfig as FormFieldsQueryBuilderConfigWithRaqbFields
+            formFieldsQueryBuilderConfig as unknown as FormFieldsQueryBuilderConfigWithRaqbFields
           );
         }}
         renderBuilder={renderBuilder}
@@ -266,13 +266,13 @@ const Route = ({
         <div className="mt-2">
           {route.attributesQueryBuilderState && attributesQueryBuilderConfig && (
             <Query
-              {...attributesQueryBuilderConfig}
+              {...(attributesQueryBuilderConfig as unknown as Config)}
               value={route.attributesQueryBuilderState.tree}
               onChange={(immutableTree, attributesQueryBuilderConfig) => {
                 onChangeTeamMembersQuery(
                   route,
                   immutableTree,
-                  attributesQueryBuilderConfig as AttributesQueryBuilderConfigWithRaqbFields
+                  attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
                 );
               }}
               renderBuilder={renderBuilder}
@@ -433,19 +433,21 @@ const Route = ({
   );
 };
 
-const buildState = ({
+const buildState = <
+  T extends
+    | {
+        queryValue: FormFieldsQueryValue;
+        config: FormFieldsQueryBuilderConfigWithRaqbFields;
+      }
+    | {
+        queryValue: AttributesQueryValue;
+        config: AttributesQueryBuilderConfigWithRaqbFields;
+      }
+>({
   queryValue,
   config,
-}:
-  | {
-      queryValue: FormFieldsQueryValue;
-      config: FormFieldsQueryBuilderConfigWithRaqbFields;
-    }
-  | {
-      queryValue: AttributesQueryValue;
-      config: AttributesQueryBuilderConfigWithRaqbFields;
-    }) => ({
-  tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config),
+}: T) => ({
+  tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config as unknown as Config),
   config,
 });
 
@@ -458,19 +460,21 @@ const deserializeRoute = ({
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
 }): Route => {
+  const attributesQueryBuilderState =
+    route.attributesQueryValue && attributesQueryBuilderConfig
+      ? buildState({
+          queryValue: route.attributesQueryValue,
+          config: attributesQueryBuilderConfig,
+        })
+      : null;
+      
   return {
     ...route,
     formFieldsQueryBuilderState: buildState({
       queryValue: route.queryValue,
       config: formFieldsQueryBuilderConfig,
     }),
-    attributesQueryBuilderState:
-      route.attributesQueryValue && attributesQueryBuilderConfig
-        ? buildState({
-            queryValue: route.attributesQueryValue,
-            config: attributesQueryBuilderConfig,
-          })
-        : null,
+    attributesQueryBuilderState,
   };
 };
 

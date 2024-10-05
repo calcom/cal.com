@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
@@ -8,9 +10,8 @@ import { TRPCError } from "@calcom/trpc/server";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
-import { onFormSubmission, findTeamMembersMatchingAttributeLogic } from "./utils";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
+import { onFormSubmission, findTeamMembersMatchingAttributeLogicOfRoute } from "./utils";
+
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/response.handler"] });
 
 interface ResponseHandlerOptions {
@@ -121,23 +122,30 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
-    const teamMembersMatchingAttributeLogic = form.teamId && chosenRouteId
-      ? await findTeamMembersMatchingAttributeLogic({
-          response,
-          routeId: chosenRouteId,
-          form: serializableForm,
-          teamId: form.teamId,
-        })
+    const teamMembersMatchingAttributeLogicWithResult =
+      form.teamId && chosenRouteId
+        ? await findTeamMembersMatchingAttributeLogicOfRoute({
+            response,
+            routeId: chosenRouteId,
+            form: serializableForm,
+            teamId: form.teamId,
+          })
+        : null;
+
+    moduleLogger.debug(
+      "teamMembersMatchingAttributeLogic",
+      safeStringify({ teamMembersMatchingAttributeLogicWithResult })
+    );
+
+    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult
+      ? teamMembersMatchingAttributeLogicWithResult?.map((member) => member.userId)
       : null;
-
-    moduleLogger.debug("teamMembersMatchingAttributeLogic", safeStringify({ teamMembersMatchingAttributeLogic }));
-
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
       dbFormResponse.response as FormResponse
     );
 
-    return { form: dbFormResponse, teamMembersMatchingAttributeLogic };
+    return { formResponse: dbFormResponse, teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {

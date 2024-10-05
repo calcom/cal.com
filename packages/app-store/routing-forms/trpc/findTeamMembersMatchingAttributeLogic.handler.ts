@@ -6,7 +6,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
-import { findTeamMembersMatchingAttributeLogic } from "./utils";
+import { findTeamMembersMatchingAttributeLogicOfRoute } from "./utils";
 
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
   ctx: {
@@ -46,17 +46,17 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
 
   const serializableForm = await getSerializableForm({ form });
 
-  const matchingTeamMembersIds = await findTeamMembersMatchingAttributeLogic({
+  const matchingTeamMembersWithResult = await findTeamMembersMatchingAttributeLogicOfRoute({
     response,
     routeId,
     form: serializableForm,
     teamId: form.teamId,
   });
 
-  if (!matchingTeamMembersIds) {
+  if (!matchingTeamMembersWithResult) {
     return null;
   }
-
+  const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
   const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
   return matchingTeamMembers.map((user) => ({
     id: user.id,

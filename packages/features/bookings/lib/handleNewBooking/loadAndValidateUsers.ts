@@ -26,6 +26,7 @@ type InputProps = {
   eventTypeId: number;
   dynamicUserList: string[];
   logger: Logger<unknown>;
+  routedTeamMemberIds: number[] | null;
 };
 
 export async function loadAndValidateUsers({

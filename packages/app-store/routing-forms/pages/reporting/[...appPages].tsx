@@ -131,7 +131,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
 const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfigForFormFields>) => {
   const uuid = QbUtils.uuid();
   const queryValue: JsonTree = { id: uuid, type: "group" } as JsonTree;
-  const tree = QbUtils.checkTree(QbUtils.loadTree(queryValue), config);
+  const tree = QbUtils.checkTree(QbUtils.loadTree(queryValue), config as unknown as Config);
   return {
     state: { tree, config },
     queryValue,
@@ -149,7 +149,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
         state: { tree: immutableTree, config: config },
         queryValue: jsonTree,
       };
-      setJsonLogicQuery(QbUtils.jsonLogicFormat(newValue.state.tree, config));
+      setJsonLogicQuery(QbUtils.jsonLogicFormat(newValue.state.tree, config as unknown as Config));
       return newValue;
     });
   };
@@ -167,10 +167,10 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   return (
     <div className="cal-query-builder">
       <Query
-        {...config}
+        {...config as unknown as Config}
         value={query.state.tree}
         onChange={(immutableTree, config) => {
-          onChange(immutableTree, config as FormFieldsQueryBuilderConfigWithRaqbFields);
+          onChange(immutableTree, config as unknown as FormFieldsQueryBuilderConfigWithRaqbFields);
         }}
         renderBuilder={renderBuilder}
       />

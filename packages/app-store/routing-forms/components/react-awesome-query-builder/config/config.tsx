@@ -1,19 +1,16 @@
 import type { ChangeEvent } from "react";
 import type { Settings, Widgets, SelectWidgetProps, SelectWidget } from "react-awesome-query-builder";
 
-import { EmailField } from "@calcom/ui";
-
 import widgetsComponents from "../widgets";
 // Figure out why routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-import BasicConfig from "./BasicConfig";
+import BasicConfig, { Operators, Types } from "./BasicConfig";
 
 const enum ConfigFor {
   FormFields = "FormFields",
   Attributes = "Attributes",
 }
-
 const {
   TextWidget,
   TextAreaWidget,
@@ -25,6 +22,7 @@ const {
   Button,
   ButtonGroup,
   Provider,
+  EmailWidget,
 } = widgetsComponents;
 
 const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
@@ -58,8 +56,7 @@ function getSettings(_configFor: ConfigFor) {
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
 // So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
 function getWidgets(_configFor: ConfigFor) {
-  // const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
-  const widgets: Widgets = {
+  const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
     ...BasicConfig.widgets,
     text: {
       ...BasicConfig.widgets.text,
@@ -107,7 +104,7 @@ function getWidgets(_configFor: ConfigFor) {
         }
 
         return (
-          <EmailField
+          <EmailWidget
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
               const val = e.target.value;
               props.setValue(val);
@@ -124,7 +121,7 @@ function getWidgets(_configFor: ConfigFor) {
 }
 
 function getTypes(_configFor: ConfigFor) {
-  return {
+  const types: Types = {
     ...BasicConfig.types,
     phone: {
       ...BasicConfig.types.text,
@@ -145,7 +142,7 @@ function getTypes(_configFor: ConfigFor) {
         multiselect: {
           ...BasicConfig.types.multiselect.widgets.multiselect,
           operators: [
-            ...BasicConfig.types.multiselect.widgets.multiselect.operators,
+            ...(BasicConfig.types.multiselect.widgets.multiselect.operators || []),
             "multiselect_contains",
             "multiselect_not_contains",
           ],
@@ -153,11 +150,12 @@ function getTypes(_configFor: ConfigFor) {
       },
     },
   };
+  return types;
 }
 
 function getOperators(configFor: ConfigFor) {
   // Clone to avoid mutating the original object
-  const operators = {
+  const operators: Operators = {
     ...BasicConfig.operators,
     // Attributes don't need reporting at the moment. So, we can support contains and not contains operators for attributes.
     ...(configFor === ConfigFor.Attributes
@@ -166,7 +164,7 @@ function getOperators(configFor: ConfigFor) {
             label: "Contains",
             labelForFormat: "CONTAINS",
             reversedOp: "multiselect_not_contains",
-            jsonLogic2: "some-in",
+            // jsonLogic2: "some-in",
             jsonLogic: function (e, t, r) {
               return {
                 some: [
@@ -188,7 +186,7 @@ function getOperators(configFor: ConfigFor) {
             label: "Not contains",
             labelForFormat: "NOT CONTAINS",
             reversedOp: "multiselect_contains",
-            jsonLogic2: "!some-in",
+            // jsonLogic2: "!some-in",
             jsonLogic: function (e, t, r) {
               return {
                 "!": {

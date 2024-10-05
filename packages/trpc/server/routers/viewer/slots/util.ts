@@ -410,7 +410,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           };
         });
 
-  let hosts = getRoutedHosts({ hosts: eventHosts, routedTeamMemberIds: input.routedTeamMemberIds });
+  let hosts = getRoutedHosts({ hosts: eventHosts, routedTeamMemberIds: input.routedTeamMemberIds ?? null });
 
   if (
     input.rescheduleUid &&

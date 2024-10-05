@@ -2,4 +2,4 @@ import { FormFieldsConfig, AttributesConfig, BasicConfig } from "../components/r
 
 export const FormFieldsInitialConfig = FormFieldsConfig;
 export const AttributesInitialConfig = AttributesConfig;
-export {BasicConfig}
+export { BasicConfig };

@@ -8,7 +8,7 @@ import type { zodNonRouterRoute } from "../zod";
 import { getQueryBuilderConfigForFormFields } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";
-import { evaluateRaqbLogic } from "./evaluateRaqbLogic";
+import { evaluateRaqbLogic, RaqbLogicResult } from "./evaluateRaqbLogic";
 
 export function findMatchingRoute({
   form,
@@ -55,7 +55,7 @@ export function findMatchingRoute({
       data: responseValues,
     });
     
-    if (result) {
+    if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
       chosenRoute = route;
       break;
     }

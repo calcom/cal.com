@@ -25,7 +25,7 @@ export const loadUsers = async ({
   eventType: EventType;
   dynamicUserList: string[];
   req: IncomingMessage;
-  routedTeamMemberIds?: number[] | undefined | null;
+  routedTeamMemberIds: number[] | null;
 }) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);

@@ -69,3 +69,6 @@ export type Attribute = {
     slug: string;
   }[];
 };
+
+export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
+export type FormFieldsQueryValue = LocalRoute["queryValue"];

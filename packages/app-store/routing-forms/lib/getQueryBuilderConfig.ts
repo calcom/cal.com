@@ -1,10 +1,7 @@
-import { AttributeType } from "@calcom/prisma/client";
-
 import type { RoutingForm, Attribute } from "../types/types";
 import { FieldTypes } from "./FieldTypes";
 import { AttributesInitialConfig, FormFieldsInitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
-
 type RaqbConfigFields = Record<
   string,
   {
@@ -20,13 +17,13 @@ type RaqbConfigFields = Record<
   }
 >;
 
-export type FormFieldsQueryBuilderConfigWithRaqbFields = typeof FormFieldsInitialConfig & {
-  fields: RaqbConfigFields;
-};
+export type FormFieldsQueryBuilderConfigWithRaqbFields = ReturnType<
+  typeof getQueryBuilderConfigForFormFields
+>;
 
-export type AttributesQueryBuilderConfigWithRaqbFields = typeof AttributesInitialConfig & {
-  fields: RaqbConfigFields;
-};
+export type AttributesQueryBuilderConfigWithRaqbFields = ReturnType<
+  typeof getQueryBuilderConfigForAttributes
+>;
 
 export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: RaqbConfigFields = {};
@@ -58,8 +55,11 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
 
   const initialConfigCopy = {
     ...FormFieldsInitialConfig,
-    operators: { ...FormFieldsInitialConfig.operators },
+    operators: { ...FormFieldsInitialConfig.operators } as typeof FormFieldsInitialConfig.operators & {
+      __calReporting?: boolean;
+    },
   };
+
   if (forReporting) {
     // Empty and Not empty doesn't work well with JSON querying in prisma. Try to implement these when we desperately need these operators.
     delete initialConfigCopy.operators.is_empty;

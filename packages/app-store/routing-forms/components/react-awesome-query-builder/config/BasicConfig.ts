@@ -1,5 +1,29 @@
 // This is taken from "react-awesome-query-builder/lib/config/basic";
-const conjunctions = {
+import type {
+  Operators as RAQBOperators,
+  Conjunction as RAQBConjunction,
+  Widget as RAQBWidget,
+  Type as RAQBType,
+  Settings as RAQBSettings,
+  Operator as RAQBOperator,
+} from "react-awesome-query-builder";
+
+export type Conjunction = Omit<RAQBConjunction, "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj">;
+export type Conjunctions = Record<string, Conjunction>;
+export type Operator = RAQBOperator & {
+  _jsonLogicIsExclamationOp?: boolean;
+}
+export type Operators = Record<string, Operator>;
+export type WidgetWithoutFactory = Omit<RAQBWidget, "factory"> & {
+  type: string;
+  jsType: string;
+  toJS: (val: any) => any;
+};
+export type WidgetsWithoutFactory = Record<string, WidgetWithoutFactory>;
+export type Type = RAQBType;
+export type Types = Record<string, Type>;
+export type Settings = RAQBSettings;
+const conjunctions: Conjunctions = {
   AND: {
     label: "And",
     jsonLogicConj: "and",
@@ -12,7 +36,7 @@ const conjunctions = {
   },
 };
 
-const operators = {
+const operators: Operators = {
   equal: {
     label: "Equals",
     labelForFormat: "==",
@@ -85,15 +109,8 @@ const operators = {
     labelForFormat: "BETWEEN",
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
-    textSeparators: [null, "and"],
     reversedOp: "not_between",
     jsonLogic: "<=",
-    validateValues: (values: any) => {
-      if (values[0] != undefined && values[1] != undefined) {
-        return values[0] <= values[1] ? null : "Invalid range";
-      }
-      return null;
-    },
   },
   not_between: {
     isNotOp: true,
@@ -101,14 +118,7 @@ const operators = {
     labelForFormat: "NOT BETWEEN",
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
-    textSeparators: [null, "and"],
     reversedOp: "between",
-    validateValues: (values: any) => {
-      if (values[0] != undefined && values[1] != undefined) {
-        return values[0] <= values[1] ? null : "Invalid range";
-      }
-      return null;
-    },
   },
   is_empty: {
     label: "Is empty",
@@ -172,7 +182,7 @@ const operators = {
     label: "Equals",
     labelForFormat: "==",
     reversedOp: "multiselect_not_equals",
-    jsonLogic2: "all-in",
+    // jsonLogic2: "all-in",
     jsonLogic: (field: any, op: any, vals: any) => ({
       // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
       all: [field, { in: [{ var: "" }, vals] }],
@@ -203,7 +213,7 @@ const operators = {
   },
 };
 
-const widgets = {
+const widgets: WidgetsWithoutFactory = {
   text: {
     type: "text",
     jsType: "string",
@@ -219,7 +229,6 @@ const widgets = {
     valueLabel: "Text",
     valuePlaceholder: "Enter text",
     toJS: (val: any) => val,
-    fullWidth: true,
   },
   number: {
     type: "number",
@@ -227,10 +236,6 @@ const widgets = {
     valueSrc: "value" as const,
     valueLabel: "Number",
     valuePlaceholder: "Enter number",
-    valueLabels: [
-      { label: "Number from", placeholder: "Enter number from" },
-      { label: "Number to", placeholder: "Enter number to" },
-    ],
     toJS: (val: any) => val,
   },
   select: {
@@ -251,7 +256,7 @@ const widgets = {
   },
 };
 
-const types = {
+const types: Types = {
   text: {
     defaultOperator: "equal",
     mainWidget: "text",
@@ -290,7 +295,6 @@ const types = {
         widgetProps: {},
         opProps: {},
       },
-    
     },
   },
   number: {
@@ -350,8 +354,8 @@ const types = {
       },
       multiselect: {
         operators: [
-        //   "select_any_in",
-        //   "select_not_any_in",
+          //   "select_any_in",
+          //   "select_not_any_in",
           // "is_empty",
           // "is_not_empty",
           "is_null",
@@ -436,7 +440,7 @@ const types = {
   //   },
 };
 
-const settings = {
+const settings: Settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
 };
 

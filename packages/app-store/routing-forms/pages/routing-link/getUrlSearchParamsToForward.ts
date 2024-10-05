@@ -9,6 +9,7 @@ export function getUrlSearchParamsToForward({
   fields,
   searchParams,
   teamMembersMatchingAttributeLogic,
+  formResponseId,
 }: {
   formResponse: Record<
     string,
@@ -21,6 +22,7 @@ export function getUrlSearchParamsToForward({
     "id" | "type" | "options" | "identifier" | "label"
   >[];
   searchParams: URLSearchParams;
+  formResponseId: number;
   teamMembersMatchingAttributeLogic: number[] | null;
 }) {
   type Params = Record<string, string | string[]>;
@@ -76,6 +78,7 @@ export function getUrlSearchParamsToForward({
     ...(teamMembersMatchingAttributeLogic
       ? { ['cal.routedTeamMemberIds']: teamMembersMatchingAttributeLogic.join(",") }
       : null),
+    ['cal.routingFormResponseId']: String(formResponseId),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();

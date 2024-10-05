@@ -9,13 +9,15 @@ import slugify from "@calcom/lib/slugify";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
-import { evaluateRaqbLogic } from "../lib/evaluateRaqbLogic";
-import { getAttributesMappedWithTeamMembers } from "../lib/getAttributes";
-import { getAttributesForTeam } from "../lib/getAttributes";
+import { evaluateRaqbLogic, RaqbLogicResult } from "../lib/evaluateRaqbLogic";
+import {
+  getTeamMembersWithAttributeOptionValuePerAttribute,
+  getAttributesForTeam,
+} from "../lib/getAttributes";
 import { getQueryBuilderConfigForAttributes } from "../lib/getQueryBuilderConfig";
 import isRouter from "../lib/isRouter";
 import { Attribute } from "../types/types";
-import type { OrderedResponses } from "../types/types";
+import type { LocalRoute, OrderedResponses, Route } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
@@ -47,6 +49,7 @@ function getFieldResponse({
   }
 
   const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
+  
   const chosenOptions = valueArray.map((idOrLabel) => {
     const foundOptionById = field.options?.find((option) => {
       return option.id === idOrLabel;
@@ -87,79 +90,143 @@ type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
 >;
 
 // We connect Form Field value and Attribute value using the labels lowercased
-function compatibleForAttributeAndFormFieldMatch(stringOrStringArray: string | string[]) {
-  return typeof stringOrStringArray === "string" ? stringOrStringArray.toLowerCase() : stringOrStringArray.map((string) => string.toLowerCase());
+function compatibleForAttributeAndFormFieldMatch<T extends string | string[]>(
+  stringOrStringArray: T
+): T extends string[] ? string[] : string {
+  return (
+    stringOrStringArray instanceof Array
+      ? stringOrStringArray.map((string) => string.toLowerCase())
+      : stringOrStringArray.toLowerCase()
+  ) as T extends string[] ? string[] : string;
 }
 
-function getAttributesCompatibleForMatchingWithFormField(attributes: Record<string, string>) {
+function getAttributesCompatibleForMatchingWithFormField(attributes: Record<string, string | string[]>) {
   return Object.entries(attributes).reduce((acc, [key, value]) => {
     acc[key] = compatibleForAttributeAndFormFieldMatch(value);
     return acc;
-  }, {} as Record<string, string>);
+  }, {} as Record<string, string | string[]>);
 }
 
 /**
- * Replaces the field variable(in format {field:<fieldId>}) with the response value of the field
+ * Replace attribute option Ids with the attribute option label(compatible to be matched with form field value)
  */
-export function replaceFieldVariableInLogicWithResponseValue({
-  logic,
-  fields,
-  response,
+const replaceAttributeOptionIdsWithOptionLabel = ({
+  queryValueString,
   attributes,
 }: {
-  logic: Object;
+  queryValueString: string;
+  attributes: Attribute[];
+}) => {
+  const allAttributesOptions = attributes.map((attribute) => attribute.options).flat();
+  // Because all attribute option Ids are unique, we can reliably identify them along any number of attribute options of different attributes
+  allAttributesOptions.forEach((attributeOption) => {
+    const attributeOptionId = attributeOption.id;
+    queryValueString = queryValueString.replace(
+      new RegExp(`${attributeOptionId}`, "g"),
+      compatibleForAttributeAndFormFieldMatch(attributeOption.value)
+    );
+  });
+  return queryValueString;
+};
+
+/**
+ * Replace {field:<fieldId>} with the field label(compatible to be matched with attribute value)
+ */
+const replaceFieldTemplateVariableWithOptionLabel = ({
+  queryValueString,
+  fields,
+  response,
+}: {
+  queryValueString: string;
   fields: Field[] | undefined;
   response: FormResponse;
+}) => {
+  return queryValueString.replace(/{field:([\w-]+)}/g, (match, fieldId: string) => {
+    const field = fields?.find((f) => f.id === fieldId);
+    if (!field) {
+      moduleLogger.debug("field not found", safeStringify({ fieldId }));
+      return match;
+    }
+    const fieldResponseValue = response[fieldId]?.value;
+    if (!fieldResponseValue) {
+      return match;
+    }
+    const { value: fieldValue } = getFieldResponse({ field, fieldResponseValue });
+    moduleLogger.debug("matchingOptionLabel", safeStringify({ fieldValue, response, fieldId }));
+    if (fieldValue instanceof Array && fieldValue.length > 1) {
+      throw new Error("Array value not supported with 'Value of field'");
+    }
+    return fieldValue ? compatibleForAttributeAndFormFieldMatch(fieldValue.toString()) : match;
+  });
+};
+
+function getAttributesQueryValueCompatibleForMatchingWithFormField({
+  attributesQueryValue,
+  attributes,
+  response,
+  fields,
+}: {
+  attributesQueryValue: LocalRoute["attributesQueryValue"];
   attributes: Attribute[];
+  response: FormResponse;
+  fields: Field[] | undefined;
 }) {
-  const log = moduleLogger.getSubLogger({ prefix: ["replaceFieldVariableInLogicWithResponseValue"] });
-  log.debug(
-    "Replacing field variable in logic with response value",
-    safeStringify({ logic, fields, response })
+  if (!attributesQueryValue) {
+    return null;
+  }
+  const attributesQueryValueCompatibleForMatchingWithFormField = JSON.parse(
+    replaceFieldTemplateVariableWithOptionLabel({
+      queryValueString: replaceAttributeOptionIdsWithOptionLabel({
+        queryValueString: JSON.stringify(attributesQueryValue),
+        attributes,
+      }),
+      fields,
+      response,
+    })
   );
-
-  /**
-   * Replace {field:<fieldId>} with the field label(compatible to be matched with attribute value)
-   */
-  const replaceFieldTemplateVariableWithOptionLabel = (logicString: string) =>
-    logicString.replace(/{field:([\w-]+)}/g, (match, fieldId) => {
-      const field = fields?.find((f) => f.id === fieldId);
-      if (!field) {
-        log.debug("field not found", safeStringify({ fieldId }));
-        return match;
-      }
-      const { value: fieldValue } = getFieldResponse({ field, fieldResponseValue: response[fieldId]?.value });
-      log.debug("matchingOptionLabel", safeStringify({ fieldValue, response, fieldId }));
-      if (fieldValue instanceof Array && fieldValue.length > 1) {
-        throw new Error("Array value not supported with 'Value of field'");
-      }
-      return fieldValue ? compatibleForAttributeAndFormFieldMatch(fieldValue.toString()) : match;
-    });
-
-  /**
-   * Replace attribute option Ids with the attribute option label(compatible to be matched with form field value)
-   */
-  const replaceAttributeOptionIdsWithOptionLabel = (logicString: string) => {
-    const allAttributesOptions = attributes.map((attribute) => attribute.options).flat();
-    // Because all attribute option Ids are unique, we can reliably identify them along any number of attribute options of different attributes
-    allAttributesOptions.forEach((attributeOption) => {
-      const attributeOptionId = attributeOption.id;
-      logicString = logicString.replace(
-        new RegExp(`${attributeOptionId}`, "g"),
-        compatibleForAttributeAndFormFieldMatch(attributeOption.value)
-      );
-    });
-    return logicString;
-  };
-
-  const logicWithFieldValues = JSON.parse(
-    replaceAttributeOptionIdsWithOptionLabel(replaceFieldTemplateVariableWithOptionLabel(JSON.stringify(logic)))
-  );
-
-  return logicWithFieldValues as Object;
+  return attributesQueryValueCompatibleForMatchingWithFormField;
 }
 
-export async function findTeamMembersMatchingAttributeLogic({
+function getAttributesQueryBuilderConfigCompatibleForMatchingWithFormField({
+  form,
+  attributes,
+}: {
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
+  attributes: Attribute[];
+}) {
+  const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
+    attributes,
+    form,
+  });
+
+  const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
+    Object.entries(attributesQueryBuilderConfig.fields).map(([fieldId, field]) => [
+      fieldId,
+      {
+        ...field,
+        fieldSettings: {
+          ...field.fieldSettings,
+          listValues: field.fieldSettings.listValues?.map((option) => {
+            return {
+              ...option,
+              // Use the title(which is the attributeOption.value) as the value of the raqb field so that it can be compatible for matching with the form field value
+              value: compatibleForAttributeAndFormFieldMatch(option.title),
+            };
+          }),
+        },
+      },
+    ])
+  );
+
+  const attributesQueryBuilderConfigWithCompatibleListValues = {
+    ...attributesQueryBuilderConfig,
+    fields: attributesQueryBuilderConfigFieldsWithCompatibleListValues,
+  };
+
+  return attributesQueryBuilderConfigWithCompatibleListValues;
+}
+
+export async function findTeamMembersMatchingAttributeLogicOfRoute({
   form,
   response,
   routeId,
@@ -170,52 +237,66 @@ export async function findTeamMembersMatchingAttributeLogic({
   routeId: string;
   teamId: number;
 }) {
-  moduleLogger.debug(
-    "Finding team members matching attribute logic",
-    safeStringify({ form, response, routeId, teamId })
-  );
   const route = form.routes?.find((route) => route.id === routeId);
   if (!route) {
     return null;
   }
-  let teamMembersMatchingAttributeLogic: number[] = [];
+  let teamMembersMatchingAttributeLogic: {
+    userId: number;
+    result: RaqbLogicResult;
+  }[] = [];
   if (!isRouter(route)) {
-    const attributesQueryValue = route.attributesQueryValue;
+    const attributesForTeam = await getAttributesForTeam({ teamId: teamId });
+    const attributesQueryValue = getAttributesQueryValueCompatibleForMatchingWithFormField({
+      attributesQueryValue: route.attributesQueryValue,
+      attributes: attributesForTeam,
+      response,
+      fields: form.fields,
+    });
+
     if (!attributesQueryValue) {
       return null;
     }
-    const attributes = await getAttributesForTeam({ teamId: teamId });
-    const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({ attributes, form });
-    const teamMembersWithAttributeValues = await getAttributesMappedWithTeamMembers({ teamId: teamId });
 
-    teamMembersWithAttributeValues.forEach((member, index) => {
-      const attributesCompatibleForMatchingWithFormField = getAttributesCompatibleForMatchingWithFormField(
-        member.attributes
-      );
+    const attributesQueryBuilderConfig = getAttributesQueryBuilderConfigCompatibleForMatchingWithFormField({
+      form,
+      attributes: attributesForTeam,
+    });
+
+    moduleLogger.debug(
+      "Finding team members matching attribute logic",
+      safeStringify({
+        form,
+        response,
+        routeId,
+        teamId,
+        attributesQueryBuilderConfigFields: attributesQueryBuilderConfig.fields,
+      })
+    );
+
+    const teamMembersWithAttributeOptionValuePerAttribute =
+      await getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId });
+
+    teamMembersWithAttributeOptionValuePerAttribute.forEach((member, index) => {
+      const attributes = getAttributesCompatibleForMatchingWithFormField(member.attributes);
       moduleLogger.debug(
-        `Checking team member ${member.userId} with index ${index} with attributes logic`,
-        safeStringify({ attributesCompatibleForMatchingWithFormField, attributes: member.attributes })
+        `Checking team member ${member.userId} with attributes logic`,
+        safeStringify({ attributes, attributesQueryValue })
       );
-      const result = evaluateRaqbLogic(
-        {
-          queryValue: attributesQueryValue,
-          queryBuilderConfig: attributesQueryBuilderConfig,
-          data: attributesCompatibleForMatchingWithFormField,
-        },
-        ({ logic }) => {
-          return replaceFieldVariableInLogicWithResponseValue({
-            logic,
-            fields: form.fields,
-            response,
-            attributes,
-          });
-        }
-      );
+      const result = evaluateRaqbLogic({
+        queryValue: attributesQueryValue,
+        queryBuilderConfig: attributesQueryBuilderConfig,
+        data: attributes,
+        beStrictWithEmptyLogic: true,
+      });
 
-      if (result) {
-        teamMembersMatchingAttributeLogic.push(member.userId);
+      if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
+        moduleLogger.debug(`Team member ${member.userId} matches attributes logic`);
+        teamMembersMatchingAttributeLogic.push({ userId: member.userId, result });
       } else {
-        moduleLogger.debug(`Team member ${member.userId} does not match attributes logic with index ${index}`);
+        moduleLogger.debug(
+          `Team member ${member.userId} does not match attributes logic with index ${index}`
+        );
       }
     });
   }

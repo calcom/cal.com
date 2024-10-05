@@ -86,7 +86,13 @@ async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number
       id: true,
       name: true,
       type: true,
-      options: true,
+      options: {
+        select: {
+          id: true,
+          value: true,
+          slug: true,
+        },
+      },
       slug: true,
     },
   });
@@ -98,26 +104,34 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
   return attributes satisfies Attribute[];
 }
 
-export async function getAttributesMappedWithTeamMembers({ teamId }: { teamId: number }) {
+type AttributeId = string;
+type AttributeOptionValue = string | string[];
+
+export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamId }: { teamId: number }) {
   const attributesToUser = await getAttributeToUserWithMembershipAndAttributesForTeam({ teamId });
 
   const teamMembers = attributesToUser.reduce((acc, attributeToUser) => {
     const { userId } = attributeToUser.member;
-    const { attribute, slug } = attributeToUser.attributeOption;
+    const { attribute, value } = attributeToUser.attributeOption;
 
     if (!acc[userId]) {
       acc[userId] = { userId, attributes: {} };
     }
 
-    if (Array.isArray(acc[userId].attributes[attribute.id])) {
-      acc[userId].attributes[attribute.id].push(slug);
-    } else if (acc[userId].attributes[attribute.id]) {
-      acc[userId].attributes[attribute.id] = [acc[userId].attributes[attribute.id], slug];
+    const attributes = acc[userId].attributes;
+    const attributeValue = attributes[attribute.id];
+    if (attributeValue instanceof Array) {
+      // Push to existing array
+      attributeValue.push(value);
+    } else if (attributeValue) {
+      // Make it an array
+      attributes[attribute.id] = [attributeValue, value];
     } else {
-      acc[userId].attributes[attribute.id] = slug;
+      // Set it as a string
+      attributes[attribute.id] = value;
     }
     return acc;
-  }, {} as Record<number, { userId: number; attributes: Record<string, string> }>);
+  }, {} as Record<number, { userId: number; attributes: Record<AttributeId, AttributeOptionValue> }>);
 
   return Object.values(teamMembers);
 }

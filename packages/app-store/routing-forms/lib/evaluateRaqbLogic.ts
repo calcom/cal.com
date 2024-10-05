@@ -3,16 +3,23 @@
 import { Utils as QbUtils, type JsonTree } from "react-awesome-query-builder";
 import jsonLogic from "./jsonLogicOverrides";
 import { safeStringify } from "@calcom/lib/safeStringify";
+export const enum RaqbLogicResult {
+  MATCH = "MATCH",
+  NO_MATCH = "NO_MATCH",
+  LOGIC_NOT_FOUND_SO_MATCHED = "LOGIC_NOT_FOUND_SO_MATCHED",
+}
 
 export const evaluateRaqbLogic = ({
   queryValue,
   queryBuilderConfig,
   data,
+  beStrictWithEmptyLogic = false,
 }: {
   queryValue: JsonTree;
   queryBuilderConfig: any;
   data: Record<string, unknown>;
-}, callback?: (params: { logic: Object }) => Object) => {
+  beStrictWithEmptyLogic?: boolean;
+}): RaqbLogicResult => {
   const state = {
     tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), queryBuilderConfig),
     config: queryBuilderConfig,
@@ -20,12 +27,14 @@ export const evaluateRaqbLogic = ({
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   if (!logic) {
-    console.log("No logic found", safeStringify({ queryValue, queryBuilderConfig }));
+    if (beStrictWithEmptyLogic && queryValue.children1 && Object.keys(queryValue.children1).length > 0) {
+      throw new Error("Couldn't build the logic from the query value");
+    }
+    console.log("No logic found", safeStringify({ queryValue, queryBuilderConfigFields: queryBuilderConfig.fields }));
     // If no logic is provided, then consider it a match
-    return true;
+    return RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED;
   }
-  const updatedLogic = callback ? callback({ logic }) : logic;
-  console.log("Checking logic with data", safeStringify({ updatedLogic, data }));
+  console.log("Checking logic with data", safeStringify({ logic, data }));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return jsonLogic.apply(updatedLogic as any, data);
+  return !!jsonLogic.apply(logic as any, data) ? RaqbLogicResult.MATCH : RaqbLogicResult.NO_MATCH;
 };
