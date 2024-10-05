@@ -71,10 +71,12 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
    **/
 
   const session = useSession();
-  const locale =
-    session?.data?.user.locale ?? typeof window !== "undefined"
-      ? window.document.documentElement.lang || "en"
+  const fallbackLocale =
+    typeof window !== "undefined" && window.document.documentElement.lang
+      ? window.document.documentElement.lang
       : "en";
+  const newLocale = typeof window !== "undefined" && window.calNewLocale ? window.calNewLocale : null;
+  const locale = session?.data?.user.locale ?? newLocale ?? fallbackLocale;
 
   useEffect(() => {
     try {
@@ -139,10 +141,10 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const embedNamespace = searchParams ? getEmbedNamespace(searchParams) : null;
   const isEmbedMode = typeof embedNamespace === "string";
 
-  const themeProviderProps = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+  const { key, ...themeProviderProps } = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
 
   return (
-    <ThemeProvider {...themeProviderProps}>
+    <ThemeProvider key={key} {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
