@@ -231,6 +231,13 @@ export default class Office365CalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    const dateFromParsed = new Date(dateFrom);
+    const dateToParsed = new Date(dateTo);
+
+    const filter = `?startDateTime=${encodeURIComponent(
+      dateFromParsed.toISOString()
+    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+
     const calendarSelectParams = "$select=showAs,start,end";
 
     try {
