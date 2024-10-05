@@ -149,6 +149,7 @@ export const EventAdvancedTab = ({
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
+  const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
     multiplePrivateLinksLocked.disabled = true;
@@ -209,7 +210,7 @@ export const EventAdvancedTab = ({
             <TextField
               label={t("event_name_in_calendar")}
               type="text"
-              {...shouldLockDisableProps("eventName")}
+              {...eventNameLocked}
               placeholder={eventNamePlaceholder}
               {...formMethods.register("eventName")}
               addOnSuffix={
