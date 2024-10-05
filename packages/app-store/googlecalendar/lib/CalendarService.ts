@@ -519,12 +519,13 @@ export default class GoogleCalendarService implements Calendar {
     const selectedCalendarsIds = selectedCalendars.reduce((calendarIds, calendar) => {
       if (calendar.integration === this.integrationName && calendar.externalId)
         calendarIds.push(calendar.externalId);
+      return calendarIds;
     }, [] as string[]);
-    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+    if (selectedCalendarsIds.length === 0 && selectedCalendars.length > 0) {
       // Only calendars of other integrations selected
       return [];
     }
-    if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
+    if (selectedCalendarsIds.length !== 0) return selectedCalendarsIds;
     const calendar = await this.authedCalendar();
     const cals = await calendar.calendarList.list({ fields: "items(id)" });
     if (!cals.data.items) return [];
