@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
 import type { CredentialOwner } from "@calcom/app-store/types";
+import checkAppSetupStatus from "@calcom/lib/apps/checkAppSetupStatus";
 import constructUserTeams from "@calcom/lib/apps/constructUserTeams";
 import getAppDependencyData from "@calcom/lib/apps/getAppDependencyData";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
@@ -10,7 +10,6 @@ import getTeamAppCredentials from "@calcom/lib/apps/getTeamAppCredentials";
 import getUserAvailableTeams from "@calcom/lib/apps/getUserAvailableTeams";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import type { TIntegrationsInputSchema } from "./integrations.schema";
 
@@ -53,11 +52,12 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     sortByMostPopular,
     appId,
   } = input;
+  const isUserPartOfTeam = includeTeamInstalledApps || teamId;
 
   let credentials = await getUsersCredentials(user);
   let userTeams: TeamQuery[] = [];
 
-  if (includeTeamInstalledApps || teamId) {
+  if (isUserPartOfTeam) {
     userTeams = await getUserAvailableTeams(user.id, teamId);
     credentials = getTeamAppCredentials(userTeams, credentials, includeTeamInstalledApps);
   }
@@ -75,6 +75,11 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         .map((c) => c.id);
       const teams = await constructUserTeams(credentials, app.slug, userTeams);
       const dependencyData = getAppDependencyData(enabledApps, app.dependencies);
+      const isSetupAlready = await checkAppSetupStatus(
+        credential,
+        app.categories.includes("payment"),
+        app.dirName
+      );
 
       // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
@@ -82,19 +87,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         avatar: user.avatar,
       };
 
-      // We need to know if app is payment type
-      // undefined it means that app don't require app/setup/page
-      let isSetupAlready = undefined;
-      if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
-        if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
-          const PaymentService = paymentApp.lib.PaymentService;
-          const paymentInstance = new PaymentService(credential);
-          isSetupAlready = paymentInstance.isSetupAlready();
-        }
-      }
-
-      return {
+      const appData = {
         ...app,
         ...(teams.length && {
           credentialOwner,
@@ -106,6 +99,8 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         isSetupAlready,
         ...(app.dependencies && { dependencyData }),
       };
+
+      return appData;
     })
   );
 
