@@ -36,10 +36,6 @@ export type TeamQuery = Prisma.TeamGetPayload<{
   };
 }>;
 
-// type TeamQueryWithParent = TeamQuery & {
-//   parent?: TeamQuery | null;
-// };
-
 export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) => {
   const { user } = ctx;
   const {
