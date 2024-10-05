@@ -4633,6 +4633,7 @@
     "/v2/stripe/connect": {
       "get": {
         "operationId": "StripeController_redirect",
+        "summary": "Get stripe connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -4661,6 +4662,7 @@
     "/v2/stripe/save": {
       "get": {
         "operationId": "StripeController_save",
+        "summary": "Save stripe credentials",
         "parameters": [
           {
             "name": "state",
@@ -4697,6 +4699,7 @@
     "/v2/stripe/check": {
       "get": {
         "operationId": "StripeController_check",
+        "summary": "Check stripe connection",
         "parameters": [],
         "responses": {
           "200": {
