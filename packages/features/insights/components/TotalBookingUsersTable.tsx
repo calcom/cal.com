@@ -1,8 +1,9 @@
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { Avatar } from "@calcom/ui";
+import { Avatar, Icon } from "@calcom/ui";
 
 export const TotalBookingUsersTable = ({
   data,
@@ -18,19 +19,21 @@ export const TotalBookingUsersTable = ({
     | undefined;
 }) => {
   const filteredData = data && data?.length > 0 ? data?.filter((item) => !!item.user) : [];
+  const { t } = useLocale();
   return (
     <Table>
       <TableBody>
         <TableRow>
-          <TableCell className="text-default">Name</TableCell>
-          <TableCell className="text-default">Level</TableCell>
-          <TableCell className="text-default">Meetings</TableCell>
-          <TableCell className="text-default">Cancelled</TableCell>
-          <TableCell className="text-default">No Shows (Host)</TableCell>
-          <TableCell className="text-default">No Shows (Guests)</TableCell>
-          <TableCell className="text-default">Calibration</TableCell>
-          <TableCell className="text-default">Date Activated</TableCell>
-          <TableCell className="text-default">Weights</TableCell>
+          <TableCell className="text-default text-center">Name</TableCell>
+          <TableCell className="text-default text-center">Level</TableCell>
+          <TableCell className="text-default text-center">Completed</TableCell>
+          <TableCell className="text-default text-center">Cancelled</TableCell>
+          <TableCell className="text-default text-center">No Shows (Host)</TableCell>
+          <TableCell className="text-default text-center">No Shows (Guests)</TableCell>
+          <TableCell className="text-default text-center">Calibration</TableCell>
+          <TableCell className="text-default text-center">Date Activated</TableCell>{" "}
+          {/* Not sure if needed */}
+          <TableCell className="text-default text-center">Weights</TableCell>
         </TableRow>
         <TableRow>
           <TableCell className="flex flex-row">
@@ -48,14 +51,20 @@ export const TotalBookingUsersTable = ({
               <p className="-mt-1.5">peer@cal.com</p>
             </div>
           </TableCell>
-          <TableCell className="text-default">11</TableCell>
-          <TableCell className="text-default">20</TableCell>
-          <TableCell className="text-default">4</TableCell>
-          <TableCell className="text-default">1</TableCell>
-          <TableCell className="text-default">2</TableCell>
-          <TableCell className="text-default">1.0</TableCell>
-          <TableCell className="text-default">Oct. 4th 2024</TableCell>
-          <TableCell className="text-default">100%</TableCell>
+          <TableCell className="text-default border-l text-center">11</TableCell>
+          <TableCell className="text-default border-l text-center">20</TableCell>
+          <TableCell className="text-default border-l text-center">4</TableCell>
+          <TableCell className="text-default border-l text-center">1</TableCell>
+          <TableCell className="text-default border-l text-center">2</TableCell>
+          <TableCell className="text-default border-l text-center">
+            <div className="flex w-full justify-center">
+              1.0 <Icon name="pencil" className="mx-2 my-1 h-3 w-3" />{" "}
+              {/* Edit button to change calibration */}
+            </div>
+          </TableCell>
+          <TableCell className="text-default border-l text-center">Oct. 4th 2024</TableCell>
+          <TableCell className="text-default border-l text-center">100%</TableCell>{" "}
+          {/* Not sure what we do here. A global weight? */}
         </TableRow>
         <>
           {filteredData.length > 0 ? (
@@ -82,7 +91,7 @@ export const TotalBookingUsersTable = ({
             ))
           ) : (
             <TableRow>
-              <TableCell>{/* No members found */}</TableCell>
+              <TableCell>{t("no_members_found")}</TableCell>
             </TableRow>
           )}
         </>
