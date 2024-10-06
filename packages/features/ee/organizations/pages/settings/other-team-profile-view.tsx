@@ -9,7 +9,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -262,7 +262,7 @@ const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isPending}>
                 {t("update")}
               </Button>
-              {IS_TEAM_BILLING_ENABLED &&
+              {IS_TEAM_BILLING_ENABLED_CLIENT &&
                 team.slug === null &&
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
