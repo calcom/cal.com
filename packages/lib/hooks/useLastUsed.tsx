@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 
-type LoginType = "saml" | "google" | "credentials" | undefined;
+type LoginType = "saml" | "google" | "credentials";
 
 export function useLastUsed() {
-  const [lastUsed, setLastUsed] = useState<LoginType>(() => {
+  const [lastUsed, setLastUsed] = useState<LoginType>();
+
+  useEffect(() => {
     const storedValue = localStorage.getItem("last_cal_login");
-    return storedValue ? (storedValue as LoginType) : undefined;
-  });
+    if (storedValue) {
+      setLastUsed(storedValue as LoginType);
+    }
+  }, []);
 
   useEffect(() => {
     if (lastUsed) {
@@ -22,7 +27,9 @@ export function useLastUsed() {
   return [lastUsed, setLastUsed] as const;
 }
 
-export const LastUsed = () => {
+export const LastUsed = ({ className }: { className?: string }) => {
   const { t } = useLocale();
-  return <span className="text-subtle absolute right-3 text-xs">{t("last_used")}</span>;
+  return (
+    <span className={classNames("text-subtle absolute right-3 text-xs", className)}>{t("last_used")}</span>
+  );
 };

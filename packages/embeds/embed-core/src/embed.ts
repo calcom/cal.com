@@ -440,16 +440,20 @@ export class Cal {
     return Object.fromEntries(Object.entries(params).filter(([key, value]) => !excludeParam(key, value)));
   }
 
+  private getQueryParamsFromPage() {
+    const queryParamsFromPage = getQueryParamsFromPage();
+    // Ensure valid params are used from the page.
+    return this.filterParams(queryParamsFromPage);
+  }
+
   private buildFilteredQueryParams(queryParamsFromConfig: PrefillAndIframeAttrsConfig): URLSearchParams {
-    const queryParamsFromPageUrl = globalCal.config?.forwardQueryParams ? getQueryParamsFromPage() : {};
+    const queryParamsFromPageUrl = globalCal.config?.forwardQueryParams ? this.getQueryParamsFromPage() : {};
 
     // Query Params via config have higher precedence
     const mergedQueryParams = { ...queryParamsFromPageUrl, ...queryParamsFromConfig };
 
-    const filteredQueryParams = this.filterParams(mergedQueryParams);
-
     const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(filteredQueryParams)) {
+    for (const [key, value] of Object.entries(mergedQueryParams)) {
       if (value === undefined) {
         continue;
       }

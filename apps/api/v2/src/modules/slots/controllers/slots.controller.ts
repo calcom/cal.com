@@ -1,8 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { Throttle, seconds } from "@nestjs/throttler";
+import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -20,6 +19,21 @@ export class SlotsController {
   constructor(private readonly slotsService: SlotsService) {}
 
   @Post("/reserve")
+  @ApiCreatedResponse({
+    description: "Successful response returning uid of reserved slot.",
+    schema: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "success" },
+        data: {
+          type: "object",
+          properties: {
+            uid: { type: "string", example: "e2a7bcf9-cc7b-40a0-80d3-657d391775a6" },
+          },
+        },
+      },
+    },
+  })
   @ApiOperation({ summary: "Reserve a slot" })
   async reserveSlot(
     @Body() body: ReserveSlotInput,
@@ -36,6 +50,15 @@ export class SlotsController {
   }
 
   @Delete("/selected-slot")
+  @ApiOkResponse({
+    description: "Response deleting reserved slot by uid.",
+    schema: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "success" },
+      },
+    },
+  })
   @ApiOperation({ summary: "Delete a selected slot" })
   async deleteSelectedSlot(
     @Query() params: RemoveSelectedSlotInput,
@@ -51,8 +74,46 @@ export class SlotsController {
   }
 
   @Get("/available")
+  @ApiOkResponse({
+    description: "Available time slots retrieved successfully",
+    schema: {
+      type: "object",
+      properties: {
+        status: { type: "string", example: "success" },
+        data: {
+          type: "object",
+          properties: {
+            slots: {
+              type: "object",
+              additionalProperties: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    time: { type: "string", format: "date-time", example: "2024-09-25T08:00:00.000Z" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      example: {
+        status: "success",
+        data: {
+          slots: {
+            "2024-09-25": [{ time: "2024-09-25T08:00:00.000Z" }, { time: "2024-09-25T08:15:00.000Z" }],
+            "2024-09-26": [
+              { time: "2024-09-26T08:00:00.000Z" },
+              { time: "2024-09-26T08:15:00.000Z" },
+              { time: "2024-09-26T08:30:00.000Z" },
+            ],
+          },
+        },
+      },
+    },
+  })
   @ApiOperation({ summary: "Get available slots" })
-  @Throttle({ default: { limit: 300, ttl: seconds(60) } }) // allow 300 requests per minute
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput,
     @Req() req: ExpressRequest
