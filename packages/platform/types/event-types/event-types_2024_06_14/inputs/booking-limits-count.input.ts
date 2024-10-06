@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import { IsBoolean, IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
 
@@ -14,7 +14,7 @@ export class BaseBookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per day",
     example: 1,
   })
@@ -23,7 +23,7 @@ export class BaseBookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per week",
     example: 2,
   })
@@ -32,7 +32,7 @@ export class BaseBookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per month",
     example: 3,
   })
@@ -41,7 +41,7 @@ export class BaseBookingLimitsCount_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The number of bookings per year",
     example: 4,
   })
