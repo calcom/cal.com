@@ -22,8 +22,6 @@ export class AppController {
       },
     });
 
-    return `${SUPABASE_URL}/${scope}?select=*`;
-
     return await supabaseResponse.json();
   }
 
