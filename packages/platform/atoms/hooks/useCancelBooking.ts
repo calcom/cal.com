@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
-import type { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import type { bookingCancelSchema } from "@calcom/prisma/zod-utils";
 
 import http from "../lib/http";
 
@@ -12,7 +12,7 @@ interface IUseCancelBooking {
   onError?: (err: ApiErrorResponse | Error) => void;
 }
 
-type inputParams = z.infer<typeof schemaBookingCancelParams>;
+type inputParams = z.infer<typeof bookingCancelSchema>;
 
 export const useCancelBooking = (
   { onSuccess, onError }: IUseCancelBooking = {

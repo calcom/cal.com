@@ -39,7 +39,7 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon-colored.svg" alt="" />
+  <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
@@ -94,6 +94,12 @@ PageProps & WithNonceProps<{}>) {
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
   callbackUrl = safeCallbackUrl || "";
+
+  const LoginFooter = (
+    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+      {t("dont_have_an_account")}
+    </Link>
+  );
 
   const TwoFactorFooter = (
     <>
@@ -172,27 +178,6 @@ PageProps & WithNonceProps<{}>) {
     ? true
     : isSAMLLoginEnabled && !isPending && data?.connectionExists;
 
-  const LoginFooter = (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex items-center gap-1">
-        <p className="text-subtle">{t("dont_have_an_account")}</p>
-        <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-          {t("sign_up")}
-        </Link>
-      </div>
-      {displaySSOLogin && (
-        <div className="flex items-center gap-1">
-          <p className="text-subtle">Have a SAML account?</p>
-          <SAMLLogin
-            samlTenantID={samlTenantID}
-            samlProductID={samlProductID}
-            setErrorMessage={setErrorMessage}
-          />
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
@@ -231,8 +216,16 @@ PageProps & WithNonceProps<{}>) {
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
                 )}
+                {displaySSOLogin && (
+                  <SAMLLogin
+                    disabled={formState.isSubmitting}
+                    samlTenantID={samlTenantID}
+                    samlProductID={samlProductID}
+                    setErrorMessage={setErrorMessage}
+                  />
+                )}
               </div>
-              {isGoogleLoginEnabled && (
+              {(isGoogleLoginEnabled || displaySSOLogin) && (
                 <div className="my-8">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
@@ -288,9 +281,7 @@ PageProps & WithNonceProps<{}>) {
                 disabled={formState.isSubmitting}
                 className="w-full justify-center">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && (
-                  <span className="absolute right-3 text-xs text-gray-600">{t("last_used")}</span>
-                )}
+                {lastUsed === "credentials" && <LastUsed className="text-gray-600" />}
               </Button>
             </div>
           </form>

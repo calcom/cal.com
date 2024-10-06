@@ -292,6 +292,12 @@ export const createUsersFixture = (
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
         { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
         { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+        {
+          title: "Multiple duration",
+          slug: "multiple-duration",
+          length: 30,
+          metadata: { multipleDuration: [30, 60, 90] },
+        },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
@@ -573,8 +579,6 @@ export const createUsersFixture = (
               await updateChildrenEventTypes({
                 eventTypeId: teamEvent.id,
                 currentUserId: user.id,
-                hashedLink: "",
-                connectedLink: null,
                 oldEventType: {
                   team: null,
                 },

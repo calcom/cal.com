@@ -1,5 +1,5 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
+import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { GetServerSidePropsResult } from "next";
@@ -27,12 +27,12 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
-  const formName = form?.name ?? "Routing Forms";
-  const formDescription = form?.description ?? "";
+  const formName = form?.name;
+  const formDescription = form?.description;
 
   return await _generateMetadata(
-    () => formName,
-    () => formDescription
+    (t) => formName ?? t("routing_forms"),
+    (t) => formDescription ?? t("routing_forms_description")
   );
 };
 

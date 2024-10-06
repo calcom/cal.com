@@ -5,7 +5,6 @@ DROP INDEX "BookingReference_credentialId_idx";
 UPDATE "BookingReference" br
 SET "credentialId" = NULL
 WHERE br."credentialId" IS NOT NULL
-    AND br."credentialId" != 0
     AND NOT EXISTS (
         SELECT 1
         FROM "Credential" c
