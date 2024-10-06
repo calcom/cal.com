@@ -1,16 +1,8 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Param,
-  UseGuards,
-  Version,
-  VERSION_NEUTRAL,
-} from "@nestjs/common";
+import { Controller, Get, Param, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
 
 import { ApiAuthGuard } from "./modules/auth/guards/api-auth/api-auth.guard";
 
-const SUPABASE_URL = process.env.SUPABASE_BASE_URL!;
+const SUPABASE_URL = "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
 
 @Controller()
@@ -24,10 +16,8 @@ export class AppController {
   @Get("/supabase")
   @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
-  async getSupabase(@Param("scope") scope: string): Promise<any> {
-    if (!scope) return new BadRequestException("Please provide a scope");
-
-    const supabaseResponse = await fetch(`${SUPABASE_URL}/${scope}?select=*`, {
+  async getSupabase(@Param("scope") scope: string, @Param("eq") eq: string): Promise<any> {
+    const supabaseResponse = await fetch(`${SUPABASE_URL}?scope=${scope}&eq=${eq}`, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
       },
