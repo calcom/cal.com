@@ -23,8 +23,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiResponse, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
+import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
@@ -73,7 +72,6 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // allow 10 requests per minute (for :scheduleId)
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number

@@ -7,6 +7,7 @@ interface IAddVariablesDropdown {
   addVariable: (variable: string) => void;
   isTextEditor?: boolean;
   variables: string[];
+  addVariableButtonTop?: boolean;
 }
 
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
@@ -22,7 +23,16 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                 {t("add_variable")}
                 <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
               </div>
-              <div className="block sm:hidden">+</div>
+              <div className="block sm:hidden">
+                {props.addVariableButtonTop ? (
+                  <div className="flex">
+                    {t("add_variable")}
+                    <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
+                  </div>
+                ) : (
+                  "+"
+                )}
+              </div>
             </>
           ) : (
             <div className="flex">
