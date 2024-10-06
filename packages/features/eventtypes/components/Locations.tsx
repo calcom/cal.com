@@ -8,6 +8,7 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
@@ -208,6 +209,8 @@ const Locations: React.FC<LocationsProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillLocation, seatsEnabled]);
+
+  const isPlatorm = useIsPlatform();
 
   return (
     <div className="w-full">
@@ -417,7 +420,7 @@ const Locations: React.FC<LocationsProps> = ({
           </li>
         )}
       </ul>
-      {props.showAppStoreLink && (
+      {props.showAppStoreLink && !isPlatorm && (
         <p className="text-default mt-2 text-sm">
           <Trans i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
             Can&apos;t find the right conferencing app? Visit our
