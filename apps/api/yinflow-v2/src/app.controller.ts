@@ -22,7 +22,7 @@ export class AppController {
   }
 
   @Get("/supabase")
-  // @UseGuards(ApiAuthGuard)
+  @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
   async getSupabase(@Param("scope") scope: string): Promise<any> {
     if (!scope) return new BadRequestException("Please provide a scope");
