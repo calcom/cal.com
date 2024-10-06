@@ -2,7 +2,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { Controller, Get, Param, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
 
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
-const SUPABASE_URL = process.env.SUPABASE_ANON_KEY!;
+const SUPABASE_URL = process.env.SUPABASE_BASE_URL!;
 
 @Controller()
 export class AppController {
