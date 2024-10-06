@@ -1193,7 +1193,7 @@
           },
           {
             "name": "eventSlug",
-            "required": false,
+            "required": true,
             "in": "query",
             "description": "Slug of team event type to return.",
             "schema": {
@@ -3639,7 +3639,7 @@
           },
           {
             "name": "username",
-            "required": false,
+            "required": true,
             "in": "query",
             "description": "The username of the user to get event types for. If only username provided will get all event types.",
             "schema": {
@@ -3648,7 +3648,7 @@
           },
           {
             "name": "eventSlug",
-            "required": false,
+            "required": true,
             "in": "query",
             "description": "Slug of event type to return. Notably, if eventSlug is provided then username must be provided too, because multiple users can have event with same slug.",
             "schema": {
@@ -3657,7 +3657,7 @@
           },
           {
             "name": "usernames",
-            "required": false,
+            "required": true,
             "in": "query",
             "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
@@ -4108,6 +4108,147 @@
         ]
       }
     },
+    "/v2/oauth/{clientId}/authorize": {
+      "post": {
+        "operationId": "OAuthFlowController_authorize",
+        "summary": "Authorize an OAuth client",
+        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthAuthorizeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
+          },
+          "400": {
+            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
+          }
+        },
+        "tags": [
+          "oauth"
+        ]
+      }
+    },
+    "/v2/oauth/{clientId}/exchange": {
+      "post": {
+        "operationId": "OAuthFlowController_exchange",
+        "summary": "Exchange authorization code for access tokens",
+        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully exchanged authorization code for access and refresh tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
+          }
+        },
+        "tags": [
+          "oauth"
+        ]
+      }
+    },
+    "/v2/oauth/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuthFlowController_refreshAccessToken",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "required": true,
+            "in": "header",
+            "description": "OAuth client secret key.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "oauth",
+          "Managed users"
+        ]
+      }
+    },
     "/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
@@ -4296,145 +4437,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/authorize": {
-      "post": {
-        "operationId": "OAuthFlowController_authorize",
-        "summary": "Authorize an OAuth client",
-        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OAuthAuthorizeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
-          },
-          "400": {
-            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/exchange": {
-      "post": {
-        "operationId": "OAuthFlowController_exchange",
-        "summary": "Exchange authorization code for access tokens",
-        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExchangeAuthorizationCodeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully exchanged authorization code for access and refresh tokens.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth/{clientId}/refresh": {
-      "post": {
-        "operationId": "OAuthFlowController_refreshAccessToken",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-secret-key",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
                 }
               }
             }
@@ -4826,11 +4828,26 @@
         },
         "responses": {
           "201": {
-            "description": "",
+            "description": "Successful response returning uid of reserved slot.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "uid": {
+                          "type": "string",
+                          "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4845,14 +4862,31 @@
       "delete": {
         "operationId": "SlotsController_deleteSelectedSlot",
         "summary": "Delete a selected slot",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "query",
+            "description": "Unique identifier for the slot to be removed.",
+            "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Response deleting reserved slot by uid.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    }
+                  }
                 }
               }
             }
@@ -4867,14 +4901,128 @@
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
         "summary": "Get available slots",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "startTime",
+            "required": true,
+            "in": "query",
+            "description": "Start date string starting from which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endTime",
+            "required": true,
+            "in": "query",
+            "description": "End date string until which to fetch slots in UTC timezone.",
+            "example": "2022-06-14T23:59:59.999Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "query",
+            "description": "Event Type ID for which slots are being fetched.",
+            "example": 100,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of the event type for which slots are being fetched.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "usernameList",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "duration",
+            "required": true,
+            "in": "query",
+            "description": "Only for dynamic events - length of returned slots.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Available time slots retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "slots": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "time": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "example": "2024-09-25T08:00:00.000Z"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "status": "success",
+                    "data": {
+                      "slots": {
+                        "2024-09-25": [
+                          {
+                            "time": "2024-09-25T08:00:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-25T08:15:00.000Z"
+                          }
+                        ],
+                        "2024-09-26": [
+                          {
+                            "time": "2024-09-26T08:00:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-26T08:15:00.000Z"
+                          },
+                          {
+                            "time": "2024-09-26T08:30:00.000Z"
+                          }
+                        ]
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4882,6 +5030,95 @@
         },
         "tags": [
           "Slots"
+        ]
+      }
+    },
+    "/v2/stripe/connect": {
+      "get": {
+        "operationId": "StripeController_redirect",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
+    "/v2/stripe/save": {
+      "get": {
+        "operationId": "StripeController_save",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
+    "/v2/stripe/check": {
+      "get": {
+        "operationId": "StripeController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
         ]
       }
     },
@@ -5693,7 +5930,8 @@
         "type": "object",
         "properties": {
           "refreshToken": {
-            "type": "string"
+            "type": "string",
+            "description": "Managed user's refresh token."
           }
         },
         "required": [
@@ -6197,7 +6435,8 @@
         },
         "required": [
           "type",
-          "value"
+          "value",
+          "rolling"
         ]
       },
       "CalendarDaysWindow_2024_06_14": {
@@ -6225,7 +6464,8 @@
         },
         "required": [
           "type",
-          "value"
+          "value",
+          "rolling"
         ]
       },
       "RangeWindow_2024_06_14": {
@@ -6255,227 +6495,6 @@
         "required": [
           "type",
           "value"
-        ]
-      },
-      "BaseBookingLimitsCount_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "day": {
-            "type": "number",
-            "description": "The number of bookings per day",
-            "example": 1
-          },
-          "week": {
-            "type": "number",
-            "description": "The number of bookings per week",
-            "example": 2
-          },
-          "month": {
-            "type": "number",
-            "description": "The number of bookings per month",
-            "example": 3
-          },
-          "year": {
-            "type": "number",
-            "description": "The number of bookings per year",
-            "example": 4
-          }
-        }
-      },
-      "Disabled_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "disabled": {
-            "type": "boolean",
-            "description": "Indicates if the option is disabled",
-            "example": true,
-            "default": false
-          }
-        },
-        "required": [
-          "disabled"
-        ]
-      },
-      "BaseBookingLimitsDuration_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "day": {
-            "type": "number",
-            "description": "The duration of bookings per day (must be a multiple of 15)",
-            "example": 60
-          },
-          "week": {
-            "type": "number",
-            "description": "The duration of bookings per week (must be a multiple of 15)",
-            "example": 120
-          },
-          "month": {
-            "type": "number",
-            "description": "The duration of bookings per month (must be a multiple of 15)",
-            "example": 180
-          },
-          "year": {
-            "type": "number",
-            "description": "The duration of bookings per year (must be a multiple of 15)",
-            "example": 240
-          }
-        }
-      },
-      "Recurrence_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "interval": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats every {count} week | month | year"
-          },
-          "occurrences": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats for a maximum of {count} events"
-          },
-          "frequency": {
-            "type": "string",
-            "enum": [
-              "yearly",
-              "monthly",
-              "weekly"
-            ]
-          }
-        },
-        "required": [
-          "interval",
-          "occurrences",
-          "frequency"
-        ]
-      },
-      "NoticeThreshold_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "unit": {
-            "type": "string",
-            "description": "The unit of time for the notice threshold (e.g., minutes, hours)",
-            "example": "minutes"
-          },
-          "count": {
-            "type": "number",
-            "description": "The time value for the notice threshold",
-            "example": 30
-          }
-        },
-        "required": [
-          "unit",
-          "count"
-        ]
-      },
-      "BaseConfirmationPolicy_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "description": "The policy that determines when confirmation is required",
-            "example": "always"
-          },
-          "noticeThreshold": {
-            "description": "The notice threshold required before confirmation is needed. Required when type is 'time'.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/NoticeThreshold_2024_06_14"
-              }
-            ]
-          }
-        },
-        "required": [
-          "type"
-        ]
-      },
-      "Seats_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "seatsPerTimeSlot": {
-            "type": "number",
-            "description": "Number of seats available per time slot",
-            "example": 4
-          },
-          "showAttendeeInfo": {
-            "type": "boolean",
-            "description": "Show attendee information to other guests",
-            "example": true
-          },
-          "showAvailabilityCount": {
-            "type": "boolean",
-            "description": "Display the count of available seats",
-            "example": true
-          }
-        },
-        "required": [
-          "seatsPerTimeSlot",
-          "showAttendeeInfo",
-          "showAvailabilityCount"
-        ]
-      },
-      "BookerLayouts_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "defaultLayout": {
-            "type": "string",
-            "enum": [
-              "month",
-              "week",
-              "column"
-            ]
-          },
-          "enabledLayouts": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "month",
-                "week",
-                "column"
-              ]
-            }
-          }
-        },
-        "required": [
-          "defaultLayout",
-          "enabledLayouts"
-        ]
-      },
-      "EventTypeColor_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lightThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in light theme",
-            "example": "#292929"
-          },
-          "darkThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in dark theme",
-            "example": "#fafafa"
-          }
-        },
-        "required": [
-          "lightThemeHex",
-          "darkThemeHex"
-        ]
-      },
-      "DestinationCalendar_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "integration": {
-            "type": "string",
-            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
-          },
-          "externalId": {
-            "type": "string",
-            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
-          }
-        },
-        "required": [
-          "integration",
-          "externalId"
         ]
       },
       "CreateEventTypeInput_2024_06_14": {
@@ -6583,124 +6602,63 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
+            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
-          "bookerLayouts": {
-            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
-              }
-            ]
-          },
-          "confirmationPolicy": {
-            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "recurrence": {
-            "description": "Create a recurring event type.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "requiresBookerEmailVerification": {
-            "type": "boolean"
-          },
-          "hideCalendarNotes": {
-            "type": "boolean"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "color": {
-            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
-          },
-          "seats": {
-            "description": "Create an event type with multiple seats.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Seats_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
-          },
-          "destinationCalendar": {
-            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
-          },
-          "useDestinationCalendarEmail": {
-            "type": "boolean"
-          },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
           }
         },
         "required": [
           "lengthInMinutes",
           "title",
-          "slug"
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "customName"
         ]
       },
       "EmailDefaultFieldOutput_2024_06_14": {
@@ -7497,6 +7455,104 @@
           "isDefault"
         ]
       },
+      "BaseBookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "minimum": 15,
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "BookerLayouts_2024_06_14": {
+        "type": "object",
+        "properties": {}
+      },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": [
+          "lightThemeHex",
+          "darkThemeHex"
+        ]
+      },
+      "Seats_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "description": "Number of seats available per time slot",
+            "example": 4
+          },
+          "showAttendeeInfo": {
+            "type": "boolean",
+            "description": "Show attendee information to other guests",
+            "example": true
+          },
+          "showAvailabilityCount": {
+            "type": "boolean",
+            "description": "Display the count of available seats",
+            "example": true
+          }
+        },
+        "required": [
+          "seatsPerTimeSlot",
+          "showAttendeeInfo",
+          "showAvailabilityCount"
+        ]
+      },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7708,9 +7764,6 @@
           "useDestinationCalendarEmail": {
             "type": "boolean"
           },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
-          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -7760,7 +7813,6 @@
           "customName",
           "destinationCalendar",
           "useDestinationCalendarEmail",
-          "hideCalendarEventDetails",
           "ownerId",
           "users"
         ]
@@ -7938,120 +7990,64 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
+            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
-          "bookerLayouts": {
-            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
-              }
-            ]
-          },
-          "confirmationPolicy": {
-            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "recurrence": {
-            "description": "Create a recurring event type.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "requiresBookerEmailVerification": {
-            "type": "boolean"
-          },
-          "hideCalendarNotes": {
-            "type": "boolean"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "color": {
-            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
-          },
-          "seats": {
-            "description": "Create an event type with multiple seats.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Seats_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
-          },
-          "destinationCalendar": {
-            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
-          },
-          "useDestinationCalendarEmail": {
-            "type": "boolean"
-          },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "customName"
+        ]
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -9274,32 +9270,6 @@
           "data"
         ]
       },
-      "Host": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "number",
-            "description": "Which user is the host of this event"
-          },
-          "mandatory": {
-            "type": "boolean",
-            "description": "Only relevant for round robin event types. If true then the user must attend round robin event always."
-          },
-          "priority": {
-            "type": "string",
-            "enum": [
-              "lowest",
-              "low",
-              "medium",
-              "high",
-              "highest"
-            ]
-          }
-        },
-        "required": [
-          "userId"
-        ]
-      },
       "CreateTeamEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -9405,118 +9375,42 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
+            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
-          "bookerLayouts": {
-            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
-              }
-            ]
-          },
-          "confirmationPolicy": {
-            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "recurrence": {
-            "description": "Create a recurring event type.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "requiresBookerEmailVerification": {
-            "type": "boolean"
-          },
-          "hideCalendarNotes": {
-            "type": "boolean"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "color": {
-            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
-          },
-          "seats": {
-            "description": "Create an event type with multiple seats.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Seats_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
-          },
-          "destinationCalendar": {
-            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
-          },
-          "useDestinationCalendarEmail": {
-            "type": "boolean"
-          },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
           },
           "schedulingType": {
             "type": "object"
@@ -9524,7 +9418,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "type": "string"
             }
           },
           "assignAllTeamMembers": {
@@ -9536,8 +9430,24 @@
           "lengthInMinutes",
           "title",
           "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "customName",
           "schedulingType",
-          "hosts"
+          "hosts",
+          "assignAllTeamMembers"
         ]
       },
       "CreateTeamEventTypeOutput": {
@@ -9568,6 +9478,38 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "Recurrence_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
+            "enum": [
+              "yearly",
+              "monthly",
+              "weekly"
+            ],
+            "type": "string"
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "interval",
+          "occurrences",
+          "frequency"
         ]
       },
       "TeamEventTypeResponseHost": {
@@ -10132,130 +10074,76 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "description": "Limit how many times this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit how many times this event can be booked"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "description": "Limit total amount of time that this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "type": "object",
+            "description": "Limit total amount of time that this event can be booked"
           },
           "bookingWindow": {
+            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
-          },
-          "bookerLayouts": {
-            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
-              }
-            ]
-          },
-          "confirmationPolicy": {
-            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "recurrence": {
-            "description": "Create a recurring event type.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
-          },
-          "requiresBookerEmailVerification": {
-            "type": "boolean"
-          },
-          "hideCalendarNotes": {
-            "type": "boolean"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "color": {
-            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
-          },
-          "seats": {
-            "description": "Create an event type with multiple seats.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Seats_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/Disabled_2024_06_14"
-              }
-            ]
           },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
-          "destinationCalendar": {
-            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
-          },
-          "useDestinationCalendarEmail": {
-            "type": "boolean"
-          },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
-          },
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "type": "string"
             }
           },
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "slotInterval",
+          "minimumBookingNotice",
+          "beforeEventBuffer",
+          "afterEventBuffer",
+          "scheduleId",
+          "bookingLimitsCount",
+          "onlyShowFirstAvailableSlot",
+          "bookingLimitsDuration",
+          "bookingWindow",
+          "offsetStart",
+          "customName",
+          "hosts",
+          "assignAllTeamMembers"
+        ]
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -11096,6 +10984,60 @@
             "type": "string"
           }
         }
+      },
+      "StripConnectOutputDto": {
+        "type": "object",
+        "properties": {
+          "authUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "authUrl"
+        ]
+      },
+      "StripConnectOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/StripConnectOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "StripCredentialsCheckOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          }
+        },
+        "required": [
+          "status"
+        ]
       },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
@@ -12032,6 +11974,28 @@
           "attendee"
         ]
       },
+      "Host": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/Los_Angeles"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "timeZone"
+        ]
+      },
       "BookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -12468,7 +12432,32 @@
       },
       "ReserveSlotInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event Type ID for which timeslot is being reserved.",
+            "example": 100
+          },
+          "slotUtcStartDate": {
+            "type": "string",
+            "description": "Start date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:00:00.000Z"
+          },
+          "slotUtcEndDate": {
+            "type": "string",
+            "description": "End date of the slot in UTC timezone.",
+            "example": "2022-06-14T00:30:00.000Z"
+          },
+          "bookingUid": {
+            "type": "string",
+            "description": "Optional but only for events with seats. Used to retrieve booking of a seated event."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotUtcStartDate",
+          "slotUtcEndDate"
+        ]
       },
       "UserWebhookOutputDto": {
         "type": "object",

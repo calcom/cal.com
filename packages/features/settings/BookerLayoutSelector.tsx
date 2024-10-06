@@ -8,7 +8,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Label, CheckboxField, Button } from "@calcom/ui";
 
 import SectionBottomActions from "./SectionBottomActions";
@@ -34,6 +34,8 @@ type BookerLayoutSelectorProps = {
   isLoading?: boolean;
   isDisabled?: boolean;
   isOuterBorder?: boolean;
+  user?: RouterOutputs["viewer"]["me"];
+  isUserLoading?: boolean;
 };
 
 const defaultFieldName = "metadata.bookerLayouts";
@@ -47,6 +49,8 @@ export const BookerLayoutSelector = ({
   isDisabled = false,
   isOuterBorder = false,
   isLoading = false,
+  user,
+  isUserLoading,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
@@ -77,6 +81,8 @@ export const BookerLayoutSelector = ({
               onChange={onChange}
               isDark={isDark}
               isOuterBorder={isOuterBorder}
+              user={user}
+              isUserLoading={isUserLoading}
             />
             {!isOuterBorder && (
               <SectionBottomActions align="end">
@@ -98,6 +104,8 @@ type BookerLayoutFieldsProps = {
   showUserSettings: boolean;
   isDark?: boolean;
   isOuterBorder?: boolean;
+  user?: RouterOutputs["viewer"]["me"];
+  isUserLoading?: boolean;
 };
 
 type BookerLayoutState = { [key in BookerLayouts]: boolean };
@@ -108,9 +116,10 @@ const BookerLayoutFields = ({
   showUserSettings,
   isDark,
   isOuterBorder,
+  user,
+  isUserLoading,
 }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
-  const { isPending: isUserLoading, data: user } = useMeQuery();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
 
   const disableFields = showUserSettings && !isOverridingSettings;
