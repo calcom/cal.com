@@ -15,8 +15,8 @@ export class AppController {
   @Get("/supabase")
   @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
-  async getSupabase(@Param("scope") scope: string): Promise<any> {
-    const supabaseResponse = await fetch(`${SUPABASE_URL}?scope=${scope}`, {
+  async getSupabase(@Param("scope") scope: string, @Param("eq") eq: string): Promise<any> {
+    const supabaseResponse = await fetch(`${SUPABASE_URL}?scope=${scope}&eq=${eq}`, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
       },
