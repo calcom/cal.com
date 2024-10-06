@@ -9,7 +9,6 @@ import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom
 import { getEnv } from "../../../../env";
 import { isApiKey } from "../../../../lib/api-key";
 import { BaseStrategy } from "../../../../lib/passport/strategies/types";
-import { ApiKeyRepository } from "../../../api-key/api-key-repository";
 import { DeploymentsService } from "../../../deployments/deployments.service";
 import { OAuthClientRepository } from "../../../oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "../../../oauth-clients/services/oauth-flow.service";
@@ -24,7 +23,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
     private readonly userRepository: UsersRepository,
-    private readonly apiKeyRepository: ApiKeyRepository,
     private readonly oauthRepository: OAuthClientRepository,
     private readonly profilesRepository: ProfilesRepository
   ) {
