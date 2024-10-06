@@ -375,7 +375,7 @@ async function handler(req: CustomRequest) {
     smsReminderNumber: bookingToDelete.smsReminderNumber,
     evt: {
       ...evt,
-      ...(parsedMetadata.success && parsedMetadata.data.videoCallUrl
+      ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
         ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
         : {}),
       bookerUrl,
