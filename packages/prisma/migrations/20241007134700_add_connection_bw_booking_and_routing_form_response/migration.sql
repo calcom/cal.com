@@ -5,8 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE "App_RoutingForms_FormResponse" ADD COLUMN     "routedFromRoutingFormResponseId" INTEGER,
-ADD COLUMN     "routedToBookingUid" TEXT;
+ALTER TABLE "App_RoutingForms_FormResponse" ADD COLUMN     "routedToBookingUid" TEXT;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "App_RoutingForms_FormResponse_routedToBookingUid_key" ON "App_RoutingForms_FormResponse"("routedToBookingUid");

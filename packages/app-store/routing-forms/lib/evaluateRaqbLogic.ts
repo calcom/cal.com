@@ -1,7 +1,7 @@
 "use client";
 
 import { Utils as QbUtils, type JsonTree } from "react-awesome-query-builder";
-import jsonLogic from "./jsonLogicOverrides";
+import jsonLogic from "./jsonLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 export const enum RaqbLogicResult {
   MATCH = "MATCH",

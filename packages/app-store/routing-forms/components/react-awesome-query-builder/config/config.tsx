@@ -143,8 +143,9 @@ function getTypes(_configFor: ConfigFor) {
           ...BasicConfig.types.multiselect.widgets.multiselect,
           operators: [
             ...(BasicConfig.types.multiselect.widgets.multiselect.operators || []),
-            "multiselect_contains",
-            "multiselect_not_contains",
+            // TODO: First verify the definition of multiselect_contains and multiselect_not_contains and then uncomment these operators
+            // "multiselect_contains",
+            // "multiselect_not_contains",
           ],
         },
       },
@@ -219,7 +220,7 @@ function getConjunctions(_configFor: ConfigFor) {
   };
 }
 
-export const FormFieldsConfig = {
+export const FormFieldsBaseConfig = {
   conjunctions: getConjunctions(ConfigFor.FormFields),
   operators: getOperators(ConfigFor.FormFields),
   types: getTypes(ConfigFor.FormFields),
@@ -227,12 +228,10 @@ export const FormFieldsConfig = {
   settings: getSettings(ConfigFor.FormFields),
 };
 
-export const AttributesConfig = {
+export const AttributesBaseConfig = {
   conjunctions: getConjunctions(ConfigFor.Attributes),
   operators: getOperators(ConfigFor.Attributes),
   types: getTypes(ConfigFor.Attributes),
   widgets: getWidgets(ConfigFor.Attributes),
   settings: getSettings(ConfigFor.Attributes),
 };
-
-export { BasicConfig };

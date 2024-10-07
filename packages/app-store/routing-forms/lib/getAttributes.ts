@@ -1,3 +1,4 @@
+// TODO: Queries in this file are not optimized. Need to optimize them.
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";

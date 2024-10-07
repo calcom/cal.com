@@ -10,8 +10,6 @@ import * as getAttributesModule from "../../lib/getAttributes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "../../types/types";
 import { findTeamMembersMatchingAttributeLogicOfRoute } from "../utils";
 
-// console.log({ EmailField });
-
 vi.mock("../../lib/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},

@@ -72,3 +72,4 @@ export type Attribute = {
 
 export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 export type FormFieldsQueryValue = LocalRoute["queryValue"];
+export type SerializableField = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];

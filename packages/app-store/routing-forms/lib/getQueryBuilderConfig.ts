@@ -1,7 +1,9 @@
+import { AttributeType } from "@calcom/prisma/enums";
 import type { RoutingForm, Attribute } from "../types/types";
-import { FieldTypes } from "./FieldTypes";
+import { FieldTypes, RoutingFormFieldType } from "./FieldTypes";
 import { AttributesInitialConfig, FormFieldsInitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
+
 type RaqbConfigFields = Record<
   string,
   {
@@ -16,6 +18,14 @@ type RaqbConfigFields = Record<
     };
   }
 >;
+
+// FIXME: Add TS Magic to ensure all types of attributes are mapped to RoutingFormFieldType
+const attributeTypesMap = new Map<keyof typeof AttributeType, RoutingFormFieldType>([
+  [AttributeType.SINGLE_SELECT, RoutingFormFieldType.SINGLE_SELECT],
+  [AttributeType.MULTI_SELECT, RoutingFormFieldType.MULTI_SELECT],
+  [AttributeType.TEXT, RoutingFormFieldType.TEXT],
+  [AttributeType.NUMBER, RoutingFormFieldType.NUMBER],
+]);
 
 export type FormFieldsQueryBuilderConfigWithRaqbFields = ReturnType<
   typeof getQueryBuilderConfigForFormFields
@@ -80,11 +90,6 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
 }
 
 function transformAttributesToCompatibleFormat(attributes: Attribute[]) {
-  const attributeTypesMap = new Map<string, string>([
-    ["SINGLE_SELECT", "select"],
-    ["MULTI_SELECT", "multiselect"],
-  ]);
-
   return attributes.map((attribute) => {
     const mappedType = attributeTypesMap.get(attribute.type);
     if (!mappedType) {
@@ -129,6 +134,7 @@ export function getQueryBuilderConfigForAttributes({
         })()
       );
 
+      // These are RAQB fields
       fields[attribute.id] = {
         label: attribute.label,
         type: widgetType,
