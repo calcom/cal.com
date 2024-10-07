@@ -81,7 +81,7 @@ export const EventMetaMore = ({
             <button
               className="border-subtle absolute left-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border"
               onClick={onGoBack}>
-              <ArrowLeft className="w-6" />
+              <ArrowLeft className="dark:text-emphasis w-6 text-[#0069FF]" />
             </button>
           )}
           <EventMembersMore
@@ -92,11 +92,13 @@ export const EventMetaMore = ({
           />
           <EventTitle className="my-2 text-center">{event?.title}</EventTitle>
           {event.description && (
-            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+            <EventMetaBlock
+              className="justify-center"
+              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div dangerouslySetInnerHTML={{ __html: event.description }} />
             </EventMetaBlock>
           )}
-          <div className="space-y-4 font-medium rtl:-mr-2">
+          <div className="flex max-w-[500px] flex-wrap items-center justify-center gap-x-8 gap-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
               <EventMetaBlock icon={Calendar}>
                 {t("former_time")}
@@ -112,6 +114,7 @@ export const EventMetaMore = ({
                 </span>
               </EventMetaBlock>
             )}
+            <EventDetails event={event} />
             {selectedTimeslot && (
               <EventMetaBlock icon={Calendar}>
                 <FromToTime
@@ -124,7 +127,6 @@ export const EventMetaMore = ({
                 />
               </EventMetaBlock>
             )}
-            <EventDetails event={event} />
 
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"

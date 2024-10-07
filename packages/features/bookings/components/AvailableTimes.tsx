@@ -117,9 +117,11 @@ const SlotItem = ({
           onClick={onButtonClick}
           className={classNames(
             "min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2",
-            selectedSlots?.includes(slot.time) && "border-brand-default"
+            selectedSlots?.includes(slot.time) && "border-brand-default",
+            (layout === "mobile" || layout === "month_view") &&
+              "dark:border-default dark:hover:border-brand-default border-[#0069FF80] font-bold hover:border-[#0069FF]"
           )}
-          color="secondary">
+          color={layout === "mobile" || layout === "month_view" ? "special" : "secondary"}>
           <div className="flex items-center gap-2">
             {!hasTimeSlots && overlayCalendarToggled && (
               <span
