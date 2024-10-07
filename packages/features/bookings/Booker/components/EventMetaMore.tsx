@@ -98,7 +98,7 @@ export const EventMetaMore = ({
               <div dangerouslySetInnerHTML={{ __html: event.description }} />
             </EventMetaBlock>
           )}
-          <div className="flex max-w-[500px] flex-wrap items-center justify-center gap-x-8 gap-y-4 font-medium rtl:-mr-2">
+          <div className="mx-auto flex max-w-[500px] flex-wrap items-center justify-center gap-x-6 gap-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
               <EventMetaBlock icon={Calendar}>
                 {t("former_time")}

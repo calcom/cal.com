@@ -45,7 +45,7 @@ export const EventMetaLess = ({
             <button
               className="border-subtle absolute left-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border"
               onClick={onGoBack}>
-              <ArrowLeft className="w-6" />
+              <ArrowLeft className="dark:text-emphasis w-6 text-[#0069FF]" />
             </button>
           )}
           <p className="text-text mb-2 text-center text-xl font-semibold">{selectedDate.format("dddd")}</p>

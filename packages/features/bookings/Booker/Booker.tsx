@@ -195,6 +195,7 @@ const BookerComponent = ({
         bookingForm={bookingForm}
         eventQuery={event}
         extraOptions={extraOptions}
+        hideBackButton={!shouldShowFormInDialog}
         rescheduleUid={rescheduleUid}>
         <>
           <VerifyCodeDialog
@@ -249,6 +250,7 @@ const BookerComponent = ({
     verifyCode.setIsPending,
     verifyCode.verifyCodeWithSessionNotRequired,
     verifyCode.verifyCodeWithSessionRequired,
+    shouldShowFormInDialog,
   ]);
 
   if (entity.isUnpublished) {
