@@ -1,0 +1,66 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Cal.com Docs",
+  "logo": {
+    "dark": "https://cal.com/logo-white.svg",
+    "light": "https://cal.com/logo.svg"
+  },
+  "api": {
+    "baseUrl": "https://api.cal.com",
+    "auth": {
+      "method": "bearer"
+    }
+  },
+  "favicon": "/favicon-32x32.png",
+  "colors": {
+    "primary": "#111827",
+    "light": "#d6d6d6",
+    "dark": "#111827",
+    "anchors": {
+      "from": "#111827",
+      "to": "#d6d6d6"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@cal.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.cal.com"
+  },
+  "tabs": [
+    {
+      "name": "API v2 Reference",
+      "openapi": "/api-reference/v2/openapi.json",
+      "url": "api-reference/v2"
+    },
+    {
+      "name": "API v1 Reference",
+      "openapi": "/api-reference/v1/openapi-v1.json",
+      "url": "api-reference/v1"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting started",
+      "pages": ["api-reference/v2/introduction", "api-reference/v2/v1-v2-differences"]
+    },
+    {
+      "group": "Getting started",
+      "pages": [
+        "api-reference/v1/introduction",
+        "api-reference/v1/authentication",
+        "api-reference/v1/errors",
+        "api-reference/v1/rate-limit"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/calcom",
+    "github": "https://github.com/calcom",
+    "linkedin": "https://www.linkedin.com/company/cal-com"
+  }
+}

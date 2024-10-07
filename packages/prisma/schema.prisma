@@ -82,7 +82,7 @@ model EventType {
 
   team                                    Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                                  Int?
-  hashedLink                              HashedLink?
+  hashedLink                              HashedLink[]
   bookings                                Booking[]
   availability                            Availability[]
   webhooks                                Webhook[]
@@ -803,27 +803,43 @@ model Impersonations {
 }
 
 model ApiKey {
-  id         String    @id @unique @default(cuid())
+  id         String      @id @unique @default(cuid())
   userId     Int
   teamId     Int?
   note       String?
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime    @default(now())
   expiresAt  DateTime?
   lastUsedAt DateTime?
-  hashedKey  String    @unique()
-  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team       Team?     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  app        App?      @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  hashedKey  String      @unique()
+  user       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team       Team?       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  app        App?        @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId      String?
+  rateLimits RateLimit[]
 
   @@index([userId])
+}
+
+model RateLimit {
+  id            String   @id @default(uuid())
+  name          String
+  apiKeyId      String
+  ttl           Int
+  limit         Int
+  blockDuration Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId])
 }
 
 model HashedLink {
   id          Int       @id @default(autoincrement())
   link        String    @unique()
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int       @unique
+  eventTypeId Int
 }
 
 model Account {
