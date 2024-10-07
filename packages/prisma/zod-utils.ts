@@ -126,6 +126,7 @@ export type BookingFieldType = FormBuilderFieldType;
 export const bookingResponses = z
   .object({
     email: z.string(),
+    attendeePhoneNumber: z.string().optional(),
     //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
     name: z.union([
       z.string(),
@@ -313,7 +314,7 @@ export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
   bookingCreateSchemaLegacyPropsForApi.partial()
 );
 
-export const schemaBookingCancelParams = z.object({
+export const bookingCancelSchema = z.object({
   id: z.number().optional(),
   uid: z.string().optional(),
   allRemainingBookings: z.boolean().optional(),
@@ -321,6 +322,15 @@ export const schemaBookingCancelParams = z.object({
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
 });
+
+export const bookingCancelAttendeeSeatSchema = z.object({
+  seatReferenceUid: z.string(),
+});
+
+export const bookingCancelInput = bookingCancelSchema.refine(
+  (data) => !!data.id || !!data.uid,
+  "At least one of the following required: 'id', 'uid'."
+);
 
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
@@ -647,6 +657,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   metadata: true,
   children: true,
   hideCalendarNotes: true,
+  hideCalendarEventDetails: true,
   minimumBookingNotice: true,
   beforeEventBuffer: true,
   afterEventBuffer: true,

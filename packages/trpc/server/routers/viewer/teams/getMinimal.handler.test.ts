@@ -71,11 +71,13 @@ describe("getTeamWithMinimalData", () => {
       },
     });
 
-    expect(result).toContain({
-      id: team.id,
-      name: team.name,
-      slug: team.slug,
-      isOrganization: false,
-    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: team.id,
+        name: team.name,
+        slug: team.slug,
+        isOrganization: false,
+      })
+    );
   });
 });

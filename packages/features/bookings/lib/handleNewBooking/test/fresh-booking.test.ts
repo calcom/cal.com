@@ -181,14 +181,18 @@ describe("handleNewBooking", () => {
 
         const createdBooking = await handleNewBooking(req);
 
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
-        expect(createdBooking).toContain({
-          location: BookingLocations.CalVideo,
-        });
+        expect(createdBooking).toEqual(
+          expect.objectContaining({
+            location: BookingLocations.CalVideo,
+          })
+        );
 
         await expectBookingToBeInDatabase({
           description: "",
@@ -345,14 +349,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -507,14 +515,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -648,14 +660,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: "New York",
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: "New York",
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -791,14 +807,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -949,14 +969,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -1078,9 +1102,11 @@ describe("handleNewBooking", () => {
           });
           await createBookingScenario(scenarioData);
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking).toContain({
-            location: BookingLocations.ZoomVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.ZoomVideo,
+            })
+          );
           const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
           expectSuccessfulBookingCreationEmails({
             booking: {
@@ -1163,9 +1189,11 @@ describe("handleNewBooking", () => {
           });
           await createBookingScenario(scenarioData);
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking).toContain({
-            location: "Seoul",
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: "Seoul",
+            })
+          );
           const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
           expectSuccessfulBookingCreationEmails({
             booking: {
@@ -1252,9 +1280,11 @@ describe("handleNewBooking", () => {
           });
           await createBookingScenario(scenarioData);
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking).toContain({
-            location: BookingLocations.ZoomVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.ZoomVideo,
+            })
+          );
           const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
           expectSuccessfulBookingCreationEmails({
             booking: {
@@ -1441,9 +1471,11 @@ describe("handleNewBooking", () => {
           });
           const createdBooking = await handleNewBooking(req);
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
           expectBrokenIntegrationEmails({ organizer, emails });
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
@@ -1772,14 +1804,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -2024,14 +2060,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -2157,14 +2197,18 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -2336,14 +2380,18 @@ describe("handleNewBooking", () => {
         await createBookingScenario(scenarioData);
 
         const createdBooking = await handleNewBooking(req);
-        expect(createdBooking.responses).toContain({
-          email: booker.email,
-          name: booker.name,
-        });
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
 
-        expect(createdBooking).toContain({
-          location: "New York",
-        });
+        expect(createdBooking).toEqual(
+          expect.objectContaining({
+            location: "New York",
+          })
+        );
 
         await expectBookingToBeInDatabase({
           description: "",
@@ -2480,10 +2528,12 @@ describe("handleNewBooking", () => {
           });
           const createdBooking = await handleNewBooking(req);
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-            paymentUid: paymentUid,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+              paymentUid: paymentUid,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
@@ -2636,14 +2686,18 @@ describe("handleNewBooking", () => {
           });
           const createdBooking = await handleNewBooking(req);
 
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-            paymentUid: paymentUid,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+              paymentUid: paymentUid,
+            })
+          );
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -2784,14 +2838,18 @@ describe("handleNewBooking", () => {
 
           const createdBooking = await handleNewBooking(req);
 
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
+          expect(createdBooking.responses).toEqual(
+            expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            })
+          );
 
-          expect(createdBooking).toContain({
-            location: BookingLocations.CalVideo,
-          });
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
 
           await expectBookingToBeInDatabase({
             description: "",
