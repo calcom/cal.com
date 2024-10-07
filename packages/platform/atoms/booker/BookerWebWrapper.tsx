@@ -190,9 +190,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       onClickOverlayContinue={(provider: "google" | "calcom" = "calcom") => {
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set("overlayCalendar", "true");
-        const baseUrl = provider === "google" ? "/getting-started/connected-calendar" : "/login";
+        const redirectBaseUrl = provider === "google" ? "/getting-started/connected-calendar" : "/login";
 
-        const url = new URL(baseUrl, window.location.origin);
+        const url = new URL(redirectBaseUrl, window.location.origin);
         url.searchParams.set("callbackUrl", currentUrl.toString());
 
         provider === "google"
