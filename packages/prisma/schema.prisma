@@ -442,7 +442,7 @@ model Team {
   smsLockReviewedByAdmin   Boolean                 @default(false)
   features                 TeamFeatures[]
   smsCreditCounts          SmsCreditCount[]
-  smsCreditAllocationType  SmsCreditAllocationType @default(SPECIFIC)
+  smsCreditAllocationType  SmsCreditAllocationType @default(CUSTOM)
   smsCreditAllocationValue Int?                    @default(50)
   smsOverageLimit          Int                     @default(0)
 
@@ -1532,7 +1532,7 @@ model SmsCreditCount {
 enum SmsCreditAllocationType {
   ALL
   NONE
-  SPECIFIC
+  CUSTOM
 }
 
 enum AttributeType {

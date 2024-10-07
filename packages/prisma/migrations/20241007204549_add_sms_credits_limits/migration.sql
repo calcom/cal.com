@@ -1,11 +1,11 @@
 -- CreateEnum
-CREATE TYPE "SmsCreditAllocationType" AS ENUM ('ALL', 'NONE', 'SPECIFIC');
+CREATE TYPE "SmsCreditAllocationType" AS ENUM ('ALL', 'NONE', 'CUSTOM');
 
 -- DropIndex
 DROP INDEX "WorkflowReminder_cancelled_scheduledDate_idx";
 
 -- AlterTable
-ALTER TABLE "Team" ADD COLUMN     "smsCreditAllocationType" "SmsCreditAllocationType" NOT NULL DEFAULT 'SPECIFIC',
+ALTER TABLE "Team" ADD COLUMN     "smsCreditAllocationType" "SmsCreditAllocationType" NOT NULL DEFAULT 'CUSTOM',
 ADD COLUMN     "smsCreditAllocationValue" INTEGER DEFAULT 50,
 ADD COLUMN     "smsOverageLimit" INTEGER NOT NULL DEFAULT 0;
 
