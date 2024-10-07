@@ -85,4 +85,40 @@ export class ScheduleRepository {
       readOnly: schedule.userId !== userId && !isManagedEventType,
     };
   }
+  static async listSchedules(userId: number, userDefaultScheduleId: number | null) {
+    const schedules = await prisma.schedule.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        availability: true,
+        timeZone: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+    const defaultScheduleId = await getDefaultScheduleId(userId, prisma);
+
+    if (!userDefaultScheduleId) {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          defaultScheduleId,
+        },
+      });
+    }
+
+    return {
+      schedules: schedules.map((schedule) => ({
+        ...schedule,
+        isDefault: schedule.id === defaultScheduleId,
+      })),
+    };
+  }
 }
