@@ -33,6 +33,8 @@ export class AppController {
       },
     });
 
+    return await `${SUPABASE_URL}/${scope}`;
+
     return await supabaseResponse.json();
   }
 
