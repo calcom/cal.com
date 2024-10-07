@@ -342,7 +342,7 @@ export default function Success(props: PageProps) {
 
       fetch(getEventTypeSlugUrl, {
         mode: "no-cors",
-        headers: { Authorization: process.env.SUPABASE_ANON_KEY! },
+        headers: { Authorization: process.env.V2_API_KEY! },
       })
         .then((data) => {
           data.json().then(({ data }: { data: { id: number; slug: string }[] }) => {
@@ -360,7 +360,7 @@ export default function Success(props: PageProps) {
           console.error(error);
         });
 
-      fetch(getBookedTimeUrl, { mode: "no-cors", headers: { Authorization: process.env.SUPABASE_ANON_KEY! } })
+      fetch(getBookedTimeUrl, { mode: "no-cors", headers: { Authorization: process.env.V2_API_KEY! } })
         .then((data) => {
           data.json().then(({ data }: { data: BookingInfo[] }) => {
             const findedBooking = data.find(({ uid }) => uid === bookingUID);
