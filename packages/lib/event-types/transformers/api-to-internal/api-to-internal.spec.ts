@@ -1,12 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { FrequencyInput } from "@calcom/platform-enums/monorepo";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookerLayoutsOutputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+  FrequencyInput,
+} from "@calcom/platform-enums/monorepo";
 import type {
   InputBookingField_2024_06_14,
   Location_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
+  BookerLayouts_2024_06_14,
+  ConfirmationPolicy_2024_06_14,
+  EventTypeColor_2024_06_14,
   Recurrence_2024_06_14,
+  CreateEventTypeInput_2024_06_14,
+  SeatOptionsTransformedSchema,
+  SeatOptionsDisabledSchema,
 } from "@calcom/platform-types";
 
 import type { CustomField } from "../internal-to-api/booking-fields";
@@ -17,6 +29,10 @@ import {
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
+  transformSeatsApiToInternal,
+  transformEventColorsApiToInternal,
+  transformBookerLayoutsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
 } from "./index";
 
 describe("transformLocationsApiToInternal", () => {
@@ -585,6 +601,152 @@ describe("transformFutureBookingLimitsApiToInternal", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should transform disabled", () => {
+    const input: BookingWindow_2024_06_14 = {
+      disabled: true,
+    };
+
+    const expectedOutput = {
+      periodType: "UNLIMITED",
+    };
+
+    const result = transformFutureBookingLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformBookerLayoutsApiToInternal", () => {
+  it("should transform booker layouts", () => {
+    const input: BookerLayouts_2024_06_14 = {
+      enabledLayouts: [
+        BookerLayoutsInputEnum_2024_06_14.column,
+        BookerLayoutsInputEnum_2024_06_14.month,
+        BookerLayoutsInputEnum_2024_06_14.week,
+      ],
+      defaultLayout: BookerLayoutsInputEnum_2024_06_14.week,
+    };
+
+    const expectedOutput = {
+      enabledLayouts: [
+        BookerLayoutsOutputEnum_2024_06_14.column_view,
+        BookerLayoutsOutputEnum_2024_06_14.month_view,
+        BookerLayoutsOutputEnum_2024_06_14.week_view,
+      ],
+      defaultLayout: BookerLayoutsOutputEnum_2024_06_14.week_view,
+    };
+    const result = transformBookerLayoutsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformConfirmationPolicyApiToInternal", () => {
+  it("should transform requires confirmation - time", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      type: ConfirmationPolicyEnum.TIME,
+      noticeThreshold: {
+        count: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+      blockUnconfirmedBookingsInBooker: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: true,
+      requiresConfirmationThreshold: {
+        time: 60,
+        unit: NoticeThresholdUnitEnum.MINUTES,
+      },
+      requiresConfirmationWillBlockSlot: true,
+    };
+    const result = transformConfirmationPolicyApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform requires confirmation - always", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      type: ConfirmationPolicyEnum.ALWAYS,
+      blockUnconfirmedBookingsInBooker: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
+    };
+    const result = transformConfirmationPolicyApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform requires confirmation - disabled", () => {
+    const input: ConfirmationPolicy_2024_06_14 = {
+      disabled: true,
+    };
+
+    const expectedOutput = {
+      requiresConfirmation: false,
+      requiresConfirmationWillBlockSlot: false,
+      requiresConfirmationThreshold: undefined,
+    };
+    const result = transformConfirmationPolicyApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformEventColorsApiToInternal", () => {
+  it("should transform event type colors", () => {
+    const input: EventTypeColor_2024_06_14 = {
+      darkThemeHex: "#292929",
+      lightThemeHex: "#fafafa",
+    };
+
+    const expectedOutput = {
+      darkEventTypeColor: "#292929",
+      lightEventTypeColor: "#fafafa",
+    };
+
+    const result = transformEventColorsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformSeatsApiToInternal", () => {
+  it("should transform seat options", () => {
+    const input: CreateEventTypeInput_2024_06_14["seats"] = {
+      seatsPerTimeSlot: 20,
+      showAttendeeInfo: true,
+      showAvailabilityCount: false,
+    };
+
+    const expectedOutput: SeatOptionsTransformedSchema = {
+      seatsPerTimeSlot: 20,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: false,
+    };
+
+    const result = transformSeatsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform seat options - disabled", () => {
+    const input: CreateEventTypeInput_2024_06_14["seats"] = {
+      disabled: true,
+    };
+
+    const expectedOutput: SeatOptionsDisabledSchema = {
+      seatsPerTimeSlot: null,
+    };
+
+    const result = transformSeatsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformRecurrenceApiToInternal", () => {
@@ -600,7 +762,15 @@ describe("transformRecurrenceApiToInternal", () => {
       freq: 2,
     };
     const result = transformRecurrenceApiToInternal(input);
+    expect(result).toEqual(expectedOutput);
+  });
 
+  it("should transform recurrence - disabled", () => {
+    const input: CreateEventTypeInput_2024_06_14["recurrence"] = {
+      disabled: true,
+    };
+    const expectedOutput = undefined;
+    const result = transformRecurrenceApiToInternal(input);
     expect(result).toEqual(expectedOutput);
   });
 });

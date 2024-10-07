@@ -1,6 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { apiLogin } from "playwright/fixtures/users";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 

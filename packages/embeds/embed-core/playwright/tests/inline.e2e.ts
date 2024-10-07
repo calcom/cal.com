@@ -6,29 +6,23 @@ import {
   assertNoRequestIsBlocked,
   bookFirstEvent,
   deleteAllBookingsByEmail,
-  getEmbedIframe,
+  ensureEmbedIframe,
 } from "../lib/testUtils";
 
 test.describe("Inline Iframe", () => {
-  test("Inline Iframe - Configured with Dark Theme. Do booking and verify that COEP/CORP headers are correctly set", async ({
+  test("Configured with Dark Theme. Do booking and verify that COEP/CORP headers are correctly set", async ({
     page,
-    embeds: { addEmbedListeners, getActionFiredDetails },
+    embeds,
   }) => {
     await deleteAllBookingsByEmail("embed-user@example.com");
-    await addEmbedListeners("");
-    await page.goto("/?only=ns:default");
+    await embeds.gotoPlayground({ calNamespace: "", url: "/?only=ns:default" });
     const calNamespace = "";
-    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-    expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
-      pathname: "/pro",
+    const embedIframe = await ensureEmbedIframe({ calNamespace, page, pathname: "/pro" });
+    expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       searchParams: {
         theme: "dark",
       },
     });
-    // expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
-    if (!embedIframe) {
-      throw new Error("Embed iframe not found");
-    }
 
     assertNoRequestIsBlocked(page);
 
@@ -55,6 +49,17 @@ test.describe("Inline Iframe", () => {
     await embedBlockedPromise.then((isBlocked) => {
       expect(isBlocked).toBe(true);
     });
+  });
+
+  test("Ensure iframe doesn't hijack scroll in embed mode", async ({ page, embeds, users }) => {
+    const user = await users.create();
+    const calNamespace = "autoScrollTest";
+    await embeds.gotoPlayground({ calNamespace, url: `?only=ns:autoScrollTest` });
+    const calLink = `${user.username}/multiple-duration`;
+    await page.goto(`/?only=ns:autoScrollTest&cal-link=${calLink}`);
+    const embedIframe = await ensureEmbedIframe({ calNamespace, page, pathname: `/${calLink}` });
+    const finalScrollPosition = await page.evaluate(() => window.scrollY);
+    expect(finalScrollPosition).toBe(0);
   });
 
   todo(
