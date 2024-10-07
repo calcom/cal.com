@@ -23,6 +23,8 @@ export class AppController {
       },
     });
 
+    return `${SUPABASE_URL}/${scope}`;
+
     return await supabaseResponse.json();
   }
 
