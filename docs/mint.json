@@ -178,5 +178,10 @@
     "x": "https://x.com/calcom",
     "github": "https://github.com/calcom",
     "linkedin": "https://www.linkedin.com/company/cal-com"
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
   }
 }
