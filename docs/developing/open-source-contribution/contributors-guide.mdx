@@ -34,11 +34,11 @@ Cal.com can be set up and run on your machine locally. Please take a look at [th
 
 Cal.com makes use of Turborepo for a monorepo structure. This allows us to manage multiple code projects (like libraries, apps, services) and share code and resources effectively.
 
-You can look at [turbo.json](https://github.com/calcom/cal.com/blob/main/turbo.json) to see how we use it. In simple terms, 
+You can look at [turbo.json](https://github.com/calcom/cal.com/blob/main/turbo.json) to see how we use it. In simple terms,
 - Each entry in the `pipeline` section corresponds to a different part of the project. Understanding these will help in navigating the codebase.
 - Knowing which tasks depend on others is crucial for understanding the build process.
 - The `env` entries under each task highlight the need for specific configuration settings, which you will need to set up in your development environment.
-- You should focus on the tasks related to the area you are contributing to. For example, if working on the Prisma schema, look at tasks prefixed with `@calcom/prisma` 
+- You should focus on the tasks related to the area you are contributing to. For example, if working on the Prisma schema, look at tasks prefixed with `@calcom/prisma`
 - The various packages can be found in the [/packages](https://github.com/calcom/cal.com/tree/main/packages) folder from the root.
 - The various pages and components for the web can be found in the [/apps/web](https://github.com/calcom/cal.com/tree/main/apps/web) folder from the root.
 - The public API related codebase can be found in the [/apps/api](https://github.com/calcom/cal.com/tree/main/apps/api) folder from the root.
@@ -46,7 +46,7 @@ You can look at [turbo.json](https://github.com/calcom/cal.com/blob/main/turbo.j
 
 ## How we use TRPC at cal.com
 
-Cal.com makes use of the TRPC calls for CRUD operations on the database by utilizing the [useQuery()](https://trpc.io/docs/client/react/useQuery) & [useMutation()](https://trpc.io/docs/client/react/useMutation) hooks. These are essentially wrappers around @tanstack/react-query and you can learn more about them here, respectively: [queries](https://tanstack.com/query/v4/docs/react/guides/queries), [mutations](https://tanstack.com/query/v4/docs/react/guides/mutations). 
+Cal.com makes use of the TRPC calls for CRUD operations on the database by utilizing the [useQuery()](https://trpc.io/docs/client/react/useQuery) & [useMutation()](https://trpc.io/docs/client/react/useMutation) hooks. These are essentially wrappers around @tanstack/react-query and you can learn more about them here, respectively: [queries](https://tanstack.com/query/v4/docs/react/guides/queries), [mutations](https://tanstack.com/query/v4/docs/react/guides/mutations).
 
 Here’s an example usage of useQuery at cal.com:
 ```JS
@@ -71,11 +71,11 @@ Here’s an example usage of useMutation at cal.com:
 ```
 Both the examples are taken from [packages/features/webhooks/pages/webhook-new-view.tsx](https://github.com/calcom/cal.com/blob/main/packages/features/webhooks/pages/webhook-new-view.tsx) file. We use the useQuery hook for fetching data from the database. On the contrary, the useMutation hook is used for Creating/Updating/Deleting data from the database.
 
-The path prior to the useQuery or useMutation hook represents the actual path of the procedure: in this case, [packages/trpc/server/routers/viewer/webhook](https://github.com/calcom/cal.com/tree/main/packages/trpc/server/routers/viewer/webhook). You will find `create.handler.ts` in case of 
+The path prior to the useQuery or useMutation hook represents the actual path of the procedure: in this case, [packages/trpc/server/routers/viewer/webhook](https://github.com/calcom/cal.com/tree/main/packages/trpc/server/routers/viewer/webhook). You will find `create.handler.ts` in case of
 ```js
 trpc.viewer.webhook.create.useMutation()
 ```
-& `list.handler.ts` in case of 
+& `list.handler.ts` in case of
 ```js
 trpc.viewer.webhook.list.useQuery()
 ```
@@ -83,7 +83,7 @@ in the path mentioned above. There is usually a schema file in the same director
 
 ## The Cal.com API V1
 
-Our [API V1](https://github.com/calcom/cal.com/tree/main/apps/api) uses [zod validations](https://zod.dev/) to keep us typesafe and give us extensive parsing control and error handling. These validations reside in [/apps/api/lib/validations](https://github.com/calcom/cal.com/tree/main/apps/api/lib/validations). We also have [helper](https://github.com/calcom/cal.com/tree/main/apps/api/lib/helpers) and [utility](https://github.com/calcom/cal.com/tree/main/apps/api/lib/utils) functions which are used primarily within our API endpoints. 
+Our [API V1](https://github.com/calcom/cal.com/tree/main/apps/api) uses [zod validations](https://zod.dev/) to keep us typesafe and give us extensive parsing control and error handling. These validations reside in [/apps/api/lib/validations](https://github.com/calcom/cal.com/tree/main/apps/api/lib/validations). We also have [helper](https://github.com/calcom/cal.com/tree/main/apps/api/lib/helpers) and [utility](https://github.com/calcom/cal.com/tree/main/apps/api/lib/utils) functions which are used primarily within our API endpoints.
 Here’s an example usage of our [zod validation in action with the respective API endpoint](https://github.com/calcom/cal.com/blob/main/apps/api/lib/validations/destination-calendar.ts):
 ```js
 export const schemaDestinationCalendarBaseBodyParams = DestinationCalendar.pick({
@@ -120,7 +120,7 @@ This is the general approach of validation and parsing in our API submodule.
 
 ## Building Apps for Cal.com
 
-We’ve got an app store containing apps which complement the scheduling platform. From video conferencing apps such as Zoom, Google Meet, etc. to Calendar Apps such as Google Calendar, Apple Calendar, CalDAV, etc. and even payment, automation, analytics and other miscellaneous apps, it is an amazing space to improve the scheduling experience. 
+We’ve got an app store containing apps which complement the scheduling platform. From video conferencing apps such as Zoom, Google Meet, etc. to Calendar Apps such as Google Calendar, Apple Calendar, CalDAV, etc. and even payment, automation, analytics and other miscellaneous apps, it is an amazing space to improve the scheduling experience.
 
 We have a CLI script in place that makes building apps a breeze. [You can learn more about it here](https://cal.com/docs/how-to-guides/how-to-build-an-app).
 
@@ -160,5 +160,5 @@ to download test browsers.
 
 ## Contribution and Collaboration Guides
 
-- [Code Styling Guide](/developing-with-cal.com/open-source-contribution/code-styling)
-- [Pull Requests Guide](/developing-with-cal.com/open-source-contribution/pull-requests)
+- [Code Styling Guide](/developing/open-source-contribution/code-styling)
+- [Pull Requests Guide](/developing/open-source-contribution/pull-requests)

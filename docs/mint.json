@@ -33,11 +33,11 @@
   },
   "tabs": [
     {
-      "name": "Developing with Cal.com",
-      "url": "developing-with-cal.com"
+      "name": "Developing",
+      "url": "developing"
     },
     {
-      "name": "Self Hosting Cal.com",
+      "name": "Self Hosting",
       "url": "self-hosting"
     },
     {
@@ -58,15 +58,15 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["developing-with-cal.com/introduction", "developing-with-cal.com/local-development"]
+      "pages": ["developing/introduction", "developing/local-development"]
     },
     {
       "group": "Open Source Contribution",
       "pages": [
-        "developing-with-cal.com/open-source-contribution/index",
-        "developing-with-cal.com/open-source-contribution/code-styling",
-        "developing-with-cal.com/open-source-contribution/pull-requests",
-        "developing-with-cal.com/open-source-contribution/contributors-guide"
+        "developing/open-source-contribution/index",
+        "developing/open-source-contribution/code-styling",
+        "developing/open-source-contribution/pull-requests",
+        "developing/open-source-contribution/contributors-guide"
       ]
     },
     {
@@ -75,38 +75,38 @@
         {
           "group": "API Development",
           "icon": "brackets-curly",
-          "pages": ["developing-with-cal.com/guides/api/how-to-setup-api-in-a-local-instance"]
+          "pages": ["developing/guides/api/how-to-setup-api-in-a-local-instance"]
         },
         {
           "group": "App Store and Integration",
           "icon": "grid",
           "pages": [
-            "developing-with-cal.com/guides/appstore-and-integration/adding-your-first-app",
-            "developing-with-cal.com/guides/appstore-and-integration/build-a-greeter-app",
-            "developing-with-cal.com/guides/appstore-and-integration/build-an-app",
-            "developing-with-cal.com/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
-            "developing-with-cal.com/guides/appstore-and-integration/how-to-use-cal.com-with-hubspot",
-            "developing-with-cal.com/guides/appstore-and-integration/oauth"
+            "developing/guides/appstore-and-integration/adding-your-first-app",
+            "developing/guides/appstore-and-integration/build-a-greeter-app",
+            "developing/guides/appstore-and-integration/build-an-app",
+            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
+            "developing/guides/appstore-and-integration/how-to-use-cal.com-with-hubspot",
+            "developing/guides/appstore-and-integration/oauth"
           ]
         },
         {
           "group": "Auth and Provision",
           "icon": "user-shield",
           "pages": [
-            "developing-with-cal.com/guides/auth-and-provision/how-to-setup-oidc-with-okta",
-            "developing-with-cal.com/guides/auth-and-provision/how-to-setup-scim-with-okta",
-            "developing-with-cal.com/guides/auth-and-provision/sso-setup"
+            "developing/guides/auth-and-provision/how-to-setup-oidc-with-okta",
+            "developing/guides/auth-and-provision/how-to-setup-scim-with-okta",
+            "developing/guides/auth-and-provision/sso-setup"
           ]
         },
         {
           "group": "Email",
           "icon": "inbox",
-          "pages": ["developing-with-cal.com/guides/email/setup-mailtrap-for-email-testing"]
+          "pages": ["developing/guides/email/setup-mailtrap-for-email-testing"]
         },
         {
           "group": "Embeds",
           "icon": "code-simple",
-          "pages": ["developing-with-cal.com/guides/embeds/embed-events"]
+          "pages": ["developing/guides/embeds/embed-events"]
         }
       ]
     },
