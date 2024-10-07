@@ -1,6 +1,3 @@
-/**
- * Docs: https://stripe.com/docs/currencies#zero-decimal
- * */
 const zeroDecimalCurrencies = [
   "BIF",
   "CLP",
