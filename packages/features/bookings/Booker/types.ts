@@ -110,6 +110,6 @@ export type WrappedBookerProps = {
   verifyCode: UseVerifyCodeReturnType;
 };
 
-export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
+export type BookerState = "loading" | "selecting_date" | "selecting_time" | "selecting_time_alt" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
