@@ -337,8 +337,8 @@ export default function Success(props: PageProps) {
     if (pathname && pathname.includes("/booking/")) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
-      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase?scope=EventType`;
-      const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase?scope=Booking`;
+      const getEventTypeSlugUrl = `https://api.agenda.yinflow.life/supabase/EventType`;
+      const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase/Booking`;
 
       fetch(getEventTypeSlugUrl, { headers: { Authorization: process.env.SUPABASE_ANON_KEY! } })
         .then((data) => {

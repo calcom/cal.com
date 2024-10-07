@@ -27,13 +27,11 @@ export class AppController {
   async getSupabase(@Param("scope") scope: string): Promise<any> {
     if (!scope) return new BadRequestException("Scope is required");
 
-    const supabaseResponse = await fetch(`${SUPABASE_URL}/${scope}`, {
+    const supabaseResponse = await fetch(`${SUPABASE_URL}/${scope}?select=*`, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
       },
     });
-
-    return await `${SUPABASE_URL}/${scope}`;
 
     return await supabaseResponse.json();
   }
