@@ -442,7 +442,8 @@ model Team {
   features               TeamFeatures[]
 
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits Json?
+  bookingLimits                Json?
+  includeManagedEventsInLimits Boolean @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])
