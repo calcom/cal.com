@@ -12538,6 +12538,12 @@
             "type": "number",
             "example": 30
           },
+          "eventTypeId": {
+            "type": "number",
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
           "eventType": {
             "$ref": "#/components/schemas/EventType"
           },
@@ -12560,6 +12566,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
           },
           "location": {
             "type": "string",
@@ -12587,6 +12599,7 @@
           "start",
           "end",
           "duration",
+          "eventTypeId",
           "eventType",
           "recurringBookingUid",
           "attendees",
