@@ -11,8 +11,8 @@ import CategoryPage, { type PageProps } from "~/apps/categories/[category]/categ
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => "Apps Store",
-    () => "Connecting people, technology and the workplace."
+    (t) => t("app_store"),
+    (t) => t("app_store_description")
   );
 };
 

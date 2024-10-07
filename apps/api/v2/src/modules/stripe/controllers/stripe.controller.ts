@@ -22,7 +22,7 @@ import {
   BadRequestException,
   Headers,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiTags as DocsTags, ApiOperation } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { stringify } from "querystring";
@@ -40,6 +40,7 @@ export class StripeController {
   @Get("/connect")
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get stripe connect URL" })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -72,6 +73,7 @@ export class StripeController {
   @Get("/save")
   @UseGuards()
   @Redirect(undefined, 301)
+  @ApiOperation({ summary: "Save stripe credentials" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -95,6 +97,7 @@ export class StripeController {
   @Get("/check")
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Check stripe connection" })
   async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
     return await this.stripeService.checkIfStripeAccountConnected(user.id);
   }
