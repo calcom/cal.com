@@ -1,10 +1,10 @@
 "use client";
 
+import type { ManipulateType as DayjsManipulateType } from "dayjs";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import type { ManipulateType as DayjsManipulateType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
