@@ -7,8 +7,7 @@ import prisma, { readonlyPrisma } from "@calcom/prisma";
 import { createServerSideHelpers } from "@calcom/trpc/react/server";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { i18n } = require("@calcom/config/next-i18next.config");
+import { i18n } from "@calcom/config/next-i18next.config";
 
 /**
  * Initialize static site rendering tRPC helpers.

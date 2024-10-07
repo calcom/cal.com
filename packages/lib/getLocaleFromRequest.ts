@@ -6,7 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 type Maybe<T> = T | null | undefined;
 
-const { i18n } = require("@calcom/config/next-i18next.config");
+import { i18n } from "@calcom/config/next-i18next.config";
 
 export async function getLocaleFromRequest(
   req: NextApiRequest | GetServerSidePropsContext["req"]

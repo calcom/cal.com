@@ -1,8 +1,7 @@
 import type { GetStaticPropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { i18n } = require("@calcom/config/next-i18next.config");
+import { i18n } from "@calcom/config/next-i18next.config";
 
 export async function getTranslations<TParams extends { locale?: string }>(
   opts: GetStaticPropsContext<TParams>
