@@ -4,6 +4,7 @@ import { IS_SELF_HOSTED, SMS_CREDITS_PER_MEMBER } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 import { SmsCreditAllocationType, WorkflowMethods } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
@@ -20,6 +21,7 @@ export const smsCreditCountSelect = {
   overageCharges: true,
   user: {
     select: {
+      id: true,
       name: true,
       email: true,
       locale: true,
@@ -31,6 +33,8 @@ export const smsCreditCountSelect = {
       name: true,
       smsOverageLimit: true,
       parent: true,
+      smsCreditAllocationType: true,
+      smsCreditAllocationValue: true,
       members: {
         select: {
           accepted: true,
@@ -161,6 +165,23 @@ export async function addCredits(
           select: smsCreditCountSelect,
         });
       }
+
+      if (
+        smsCreditCount.team?.smsCreditAllocationType === SmsCreditAllocationType.NONE ||
+        (smsCreditCount.team?.smsCreditAllocationType === SmsCreditAllocationType.CUSTOM &&
+          (smsCreditCount.team?.smsCreditAllocationValue ?? 0) >= smsCreditCount.credits)
+      ) {
+        await prisma.smsCreditCount.update({
+          where: {
+            id: smsCreditCount.id,
+          },
+          data: {
+            limitReached: true,
+          },
+        });
+
+        return { isFree: true }; // still allow sending last sms
+      }
     }
 
     const existingSMSCreditCountTeam = await prisma.smsCreditCount.findFirst({
@@ -241,6 +262,7 @@ export async function addCredits(
   if (smsCreditCount.credits > freeCredits) {
     if (!team || team.smsOverageLimit === 0) {
       const user = !team ? await getUserInfoWithTranslation(smsCreditCount.user) : undefined;
+
       await sendSmsLimitReachedEmails(
         team ? { team: { id: team.id, name: team.name, ownersAndAdmins } } : { user }
       );
@@ -255,7 +277,10 @@ export async function addCredits(
       });
 
       // no more credits available for team/user, cancel all already scheduled sms and schedule emails instead
-      await cancelScheduledSmsAndScheduleEmails({ teamId: team?.id, userId });
+      await cancelScheduledSmsAndScheduleEmails({
+        teamId: team?.id,
+        userId: smsCreditCount.user?.id,
+      });
 
       return { isFree: true }; // still allow sending last sms
     }
@@ -366,26 +391,51 @@ export async function cancelScheduledSmsAndScheduleEmails({
   teamId?: number | null;
   userId?: number | null;
 }) {
-  //todo: if only userId is given cancel for user only\
-  // also this might be wrong
-  const smsRemindersToCancel = await prisma.workflowReminder.findMany({
-    where: {
-      OR: [{ method: WorkflowMethods.SMS }, { method: WorkflowMethods.WHATSAPP }],
-      scheduledDate: {
-        gte: dayjs().utc().startOf("month").toDate(),
-        lt: dayjs().utc().endOf("month").toDate(),
-      },
-      workflowStep: {
-        workflow: {
-          ...(userId && { userId }),
-          ...(teamId && { teamId }),
+  // if userId is given and teamId is undefined then the premium username user is full and we
+  let smsRemindersToCancel: {
+    workflowStep: {
+      action: WorkflowActions;
+    } | null;
+    id: number;
+    referenceId: string | null;
+  }[] = [];
+
+  if (teamId) {
+    smsRemindersToCancel = await prisma.workflowReminder.findMany({
+      where: {
+        OR: [{ method: WorkflowMethods.SMS }, { method: WorkflowMethods.WHATSAPP }],
+        scheduledDate: {
+          gte: dayjs().utc().startOf("month").toDate(),
+          lt: dayjs().utc().endOf("month").toDate(),
+        },
+        workflowStep: {
+          workflow: {
+            teamId,
+          },
         },
       },
-    },
-    select: { referenceId: true, id: true, workflowStep: { select: { action: true } } },
-  });
+      select: { referenceId: true, id: true, workflowStep: { select: { action: true } } },
+    });
+  } else if (userId) {
+    // for user's not on the team plan (premium usernames)
+    smsRemindersToCancel = await prisma.workflowReminder.findMany({
+      where: {
+        OR: [{ method: WorkflowMethods.SMS }, { method: WorkflowMethods.WHATSAPP }],
+        scheduledDate: {
+          gte: dayjs().utc().startOf("month").toDate(),
+          lt: dayjs().utc().endOf("month").toDate(),
+        },
+        workflowStep: {
+          workflow: {
+            userId,
+          },
+        },
+      },
+      select: { referenceId: true, id: true, workflowStep: { select: { action: true } } },
+    });
+  }
 
-  if (smsRemindersToCancel?.length) {
+  if (smsRemindersToCancel.length) {
     await Promise.all(
       smsRemindersToCancel?.map(async (reminder) => {
         // Cancel already scheduled SMS
@@ -400,6 +450,13 @@ export async function cancelScheduledSmsAndScheduleEmails({
               method: WorkflowMethods.EMAIL,
               referenceId: null,
               scheduled: false,
+            },
+          });
+        } else {
+          // cancel reminders to specific phone numbers, we don't have an email for it
+          await prisma.workflowReminder.delete({
+            where: {
+              id: reminder.id,
             },
           });
         }

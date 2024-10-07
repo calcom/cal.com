@@ -36,7 +36,7 @@ const smsCreditAllocationSchema = z.object({
   smsCreditAllocationType: z.enum([
     SmsCreditAllocationType.ALL,
     SmsCreditAllocationType.NONE,
-    SmsCreditAllocationType.SPECIFIC,
+    SmsCreditAllocationType.CUSTOM,
   ]),
   smsCreditAllocationValue: z.number().optional(),
   smsOverageLimit: z.number(),
@@ -56,7 +56,7 @@ const SmsCreditsView = ({ team }: ProfileViewProps) => {
   const allcationOptions = [
     { value: SmsCreditAllocationType.ALL, label: t("no_limit") },
     { value: SmsCreditAllocationType.NONE, label: t("none") },
-    { value: SmsCreditAllocationType.SPECIFIC, label: t("specific") },
+    { value: SmsCreditAllocationType.CUSTOM, label: t("custom") },
   ];
 
   const utils = trpc.useUtils();

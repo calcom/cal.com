@@ -289,7 +289,7 @@ describe("handleNewBooking", () => {
                 id: 1,
                 name: "Team 1",
                 slug: "team-1",
-                smsCreditAllocationType: SmsCreditAllocationType.SPECIFIC,
+                smsCreditAllocationType: SmsCreditAllocationType.CUSTOM,
                 smsCreditAllocationValue: 50,
                 smsCreditCount: {
                   userId: 101,
@@ -711,7 +711,7 @@ describe("handleNewBooking", () => {
                 id: 1,
                 name: "Team 1",
                 slug: "team-1",
-                smsCreditAllocationType: SmsCreditAllocationType.SPECIFIC,
+                smsCreditAllocationType: SmsCreditAllocationType.CUSTOM,
                 smsCreditAllocationValue: 50,
                 smsCreditCount: {
                   userId: null,

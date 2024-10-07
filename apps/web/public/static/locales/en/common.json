@@ -2629,7 +2629,6 @@
   "managed_sms_credit_allocation": "Manage your team's SMS credit (includes Whatsapp messages)",
   "no_limit": "No limit",
   "none": "None",
-  "specific": "Specific",
   "sms_usage": "Usage",
   "sms_usage_description": "Your team has 250 credits per member available. More information to sms credits <1>here</1>",
   "total_sms_credits_per_month": "Total SMS credits per month: {{credits}}",
