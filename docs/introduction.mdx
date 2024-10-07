@@ -68,18 +68,29 @@ Dive a little deeper and start exploring our API reference to get an idea of eve
 ## Join the community
 
 <div className="not-prose grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-6">
-    <PlainCard
-      href={config?.links?.discord}
-      cta="Join Discord"
-      description="Ask questions, give feedback, contribute"
-      customBackground="#141414"
-      Icon={Discord} />
-    <PlainCard
-      href={config?.links?.twitter}
-      cta="Follow on Twitter"
-      description="Follow for releases, announcements, demos"
-      customBackground="#141414"
-      Icon={Twitter} />
+   <PlainCard
+  href={config?.links?.twitter} // Link to your Twitter/X profile
+  cta="Follow on X"
+  description="Follow for releases, announcements, demos"
+  customBackground="#141414"
+  Icon={() => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24" // Standard icon size, adjust if needed
+      height="24"
+      viewBox="0 0 1226.37 1226.37"
+      fill="currentColor"
+    >
+      <g>
+        <path
+          d="M727.348 519.284 1174.075 0h-105.86L680.322 450.887 370.513 0H13.185l468.492 681.821L13.185 1226.37h105.866l409.625-476.152 327.181 476.152h357.328L727.322 519.284zM582.35 687.828l-47.468-67.894-377.686-540.24H319.8l304.797 435.991 47.468 67.894 396.2 566.721H905.661L582.35 687.854z"
+          fill="#ffffff"
+        />
+      </g>
+    </svg>
+  )}
+/>
+
     <PlainCard
       href={config?.links?.github}
       cta="Fork us on GitHub"
