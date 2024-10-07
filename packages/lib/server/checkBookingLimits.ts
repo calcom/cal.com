@@ -79,7 +79,7 @@ export async function checkBookingLimit({
         teamId,
         startDate: startDate,
         endDate: endDate,
-        returnCount: true,
+        shouldReturnCount: true,
         excludedUid: rescheduleUid,
         includeManagedEvents,
       });

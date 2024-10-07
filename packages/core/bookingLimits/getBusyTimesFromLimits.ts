@@ -27,7 +27,7 @@ const _getBusyTimesFromLimits = async (
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   bookings: EventBusyDetails[],
-  timeZone?: string | null,
+  timeZone: string,
   rescheduleUid?: string
 ) => {
   performance.mark("limitsStart");
@@ -240,8 +240,8 @@ const _getBusyTimesFromTeamLimits = async (
   dateTo: Dayjs,
   teamId: number,
   includeManagedEvents: boolean,
-  rescheduleUid?: string,
-  timeZone?: string | null
+  timeZone: string,
+  rescheduleUid?: string
 ) => {
   const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
     dateFrom.toISOString(),

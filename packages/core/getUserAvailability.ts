@@ -298,8 +298,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           duration,
           eventType,
           initialData?.busyTimesFromLimitsBookings ?? [],
-          initialData?.rescheduleUid ?? undefined,
-          timeZone
+          timeZone,
+          initialData?.rescheduleUid ?? undefined
         )
       : [];
 
@@ -318,8 +318,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo.tz(timeZone),
           teamForBookingLimits.id,
           teamForBookingLimits.includeManagedEventsInLimits,
-          initialData?.rescheduleUid ?? undefined,
-          timeZone
+          timeZone,
+          initialData?.rescheduleUid ?? undefined
         )
       : [];
 

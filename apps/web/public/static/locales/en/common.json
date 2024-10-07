@@ -1525,7 +1525,7 @@
   "workflow_example_4": "Send email reminder 1 hour before events starts to attendee",
   "workflow_example_5": "Send custom email when event is rescheduled to host",
   "workflow_example_6": "Send custom SMS when new event is booked to host",
-  "count_managed_to_limit": "Count bookings from managed event types",
+  "count_managed_to_limit": "Include booking counts from managed event types",
   "welcome_to_cal_header": "Welcome to {{appName}}!",
   "edit_form_later_subtitle": "You’ll be able to edit this later.",
   "connect_calendar_later": "I'll connect my calendar later",

@@ -160,7 +160,7 @@ describe(
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-08T04:00:00.000Z`,
             end: `2024-08-08T04:30:00.000Z`,
@@ -175,7 +175,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -187,7 +187,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-08T04:00:00.000Z`,
             end: `2024-08-08T04:30:00.000Z`,
@@ -202,10 +202,10 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData2,
+          body: mockBookingAboveLimit,
         });
 
-        // this is the thrid team booking of this week for user 101, limit reached
+        // this is the third team booking of this week for user 101, limit reached
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
           "no_available_users_found_error"
         );
@@ -251,7 +251,7 @@ describe(
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-07T04:30:00.000Z`,
             end: `2024-08-07T05:00:00.000Z`,
@@ -266,7 +266,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -278,7 +278,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-07T04:00:00.000Z`,
             end: `2024-08-07T04:30:00.000Z`,
@@ -293,7 +293,7 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingAboveLimit,
         });
 
         // this is the second team booking of this day for user 101, limit reached
@@ -387,7 +387,7 @@ describe(
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-29T04:30:00.000Z`,
             end: `2024-08-29T05:00:00.000Z`,
@@ -402,7 +402,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -414,7 +414,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-25T04:00:00.000Z`,
             end: `2024-08-25T04:30:00.000Z`,
@@ -429,7 +429,7 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData2,
+          body: mockBookingAboveLimit,
         });
 
         // this is the firth team booking (incl. managed) of this month for user 101, limit reached
@@ -515,7 +515,7 @@ describe(
           })
         );
 
-        const mockBookingData1 = getMockRequestDataForBooking({
+        const mockBookingWithinLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-08-29T04:30:00.000Z`,
             end: `2024-08-29T05:00:00.000Z`,
@@ -530,7 +530,7 @@ describe(
 
         const { req: req1 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData1,
+          body: mockBookingWithinLimit,
         });
 
         const createdBooking = await handleNewBooking(req1);
@@ -542,7 +542,7 @@ describe(
           })
         );
 
-        const mockBookingData2 = getMockRequestDataForBooking({
+        const mockBookingAboveLimit = getMockRequestDataForBooking({
           data: {
             start: `2024-11-25T04:00:00.000Z`,
             end: `2024-11-25T04:30:00.000Z`,
@@ -557,7 +557,7 @@ describe(
 
         const { req: req2 } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData2,
+          body: mockBookingAboveLimit,
         });
 
         await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(

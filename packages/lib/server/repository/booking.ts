@@ -13,11 +13,11 @@ type TeamBookingsParamsBase = {
   endDate: Date;
   excludedUid?: string | null;
   includeManagedEvents: boolean;
-  returnCount?: boolean;
+  shouldReturnCount?: boolean;
 };
 
 type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
-  returnCount: true;
+  shouldReturnCount: true;
 };
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
@@ -274,7 +274,7 @@ export class BookingRepository {
   ): Promise<Array<Booking>>;
 
   static async getAllAcceptedTeamBookingsOfUser(params: TeamBookingsParamsBase) {
-    const { user, teamId, startDate, endDate, excludedUid, returnCount, includeManagedEvents } = params;
+    const { user, teamId, startDate, endDate, excludedUid, shouldReturnCount, includeManagedEvents } = params;
 
     const baseWhere: Prisma.BookingWhereInput = {
       status: BookingStatus.ACCEPTED,
@@ -321,7 +321,7 @@ export class BookingRepository {
       },
     };
 
-    if (returnCount) {
+    if (shouldReturnCount) {
       const collectiveRoundRobinBookingsOwner = await prisma.booking.count({
         where: whereCollectiveRoundRobinOwner,
       });
