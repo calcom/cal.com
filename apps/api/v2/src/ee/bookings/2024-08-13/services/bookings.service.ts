@@ -165,6 +165,7 @@ export class BookingsService_2024_08_13 {
       const formatted = {
         ...booking,
         eventType: booking.eventType,
+        eventTypeId: booking.eventTypeId,
         startTime: new Date(booking.startTime),
         endTime: new Date(booking.endTime),
         absentHost: !!booking.noShowHost,
