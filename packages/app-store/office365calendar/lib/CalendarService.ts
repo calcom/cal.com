@@ -231,56 +231,16 @@ export default class Office365CalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    const dateFromParsed = new Date(dateFrom);
-    const dateToParsed = new Date(dateTo);
-
-    const filter = `?startDateTime=${encodeURIComponent(
-      dateFromParsed.toISOString()
-    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
-
     const calendarSelectParams = "$select=showAs,start,end";
 
     try {
-      const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
-        if (calendar.integration === this.integrationName && calendar.externalId)
-          calendarIds.push(calendar.externalId);
-
-        return calendarIds;
-      }, [] as string[]);
-
-      if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-        // Only calendars of other integrations selected
-        return Promise.resolve([]);
-      }
-
-      const ids = await (selectedCalendarIds.length === 0
-        ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
-        : Promise.resolve(selectedCalendarIds));
-      const requests = ids.map((calendarId, id) => ({
-        id,
-        method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
-      }));
-      const response = await this.apiGraphBatchCall(requests);
-      const responseBody = await this.handleErrorJsonOffice365Calendar(response);
-      let responseBatchApi: IBatchResponse = { responses: [] };
-      if (typeof responseBody === "string") {
-        responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
-      }
-      let alreadySuccessResponse = [] as ISettledResponse[];
-
-      // Validate if any 429 status Retry-After is present
-      const retryAfter =
-        !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
-
-      if (retryAfter && responseBatchApi.responses) {
-        responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
-      }
-
-      // Recursively fetch nextLink responses
-      alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+      const freebusyData = await this.fetchCalendarData(
+        dateFrom,
+        dateTo,
+        selectedCalendars,
+        calendarSelectParams
+      );
+      return freebusyData;
     } catch (err) {
       console.log(err);
       return Promise.reject([]);
