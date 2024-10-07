@@ -319,6 +319,9 @@ export default function Signup({
             </>
           )}
           <DubAnalytics
+            apiKey={process.env.NEXT_PUBLIC_DUB_PUBLISHABLE_KEY}
+            apiHost="/_proxy/dub"
+            queryParam="referral"
             cookieOptions={{
               domain: isENVDev ? undefined : `.${new URL(WEBSITE_URL).hostname}`,
             }}
