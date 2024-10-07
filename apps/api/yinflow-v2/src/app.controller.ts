@@ -1,4 +1,12 @@
-import { Controller, Get, Param, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  Version,
+  VERSION_NEUTRAL,
+} from "@nestjs/common";
 
 import { ApiAuthGuard } from "./modules/auth/guards/api-auth/api-auth.guard";
 
@@ -13,17 +21,17 @@ export class AppController {
     return "OK";
   }
 
-  @Get("/supabase")
+  @Get("/supabase/:scope")
   @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
-  async getSupabase(@Param("scope") scope: string, @Param("eq") eq: string): Promise<any> {
+  async getSupabase(@Param("scope") scope: string): Promise<any> {
+    if (!scope) return new BadRequestException("Scope is required");
+
     const supabaseResponse = await fetch(`${SUPABASE_URL}/${scope}`, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
       },
     });
-
-    return `${SUPABASE_URL}/${scope}`;
 
     return await supabaseResponse.json();
   }
