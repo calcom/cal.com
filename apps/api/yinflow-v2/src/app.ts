@@ -42,17 +42,9 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
 
   app.enableCors({
     origin: "*",
-    methods: ["GET", "PATCH", "DELETE", "HEAD", "POST", "PUT", "OPTIONS"],
-    allowedHeaders: [
-      X_CAL_CLIENT_ID,
-      X_CAL_SECRET_KEY,
-      CAL_API_VERSION_HEADER,
-      "Accept",
-      "Authorization",
-      "Content-Type",
-      "Origin",
-    ],
-    maxAge: 86_400,
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: "*",
+    credentials: true,
   });
 
   app.useGlobalPipes(
