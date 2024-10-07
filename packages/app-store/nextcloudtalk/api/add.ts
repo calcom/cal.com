@@ -23,7 +23,7 @@ async function handler(req: NextApiRequest) {
     response_type: "code",
     client_id,
     client_secret,
-    redirect_uri: `${WEBAPP_URL}/api/integrations/campsite/callback`,
+    redirect_uri: `${WEBAPP_URL}/api/integrations/nextcloudtalk/callback`,
     state,
   };
   const query = stringify(params);
