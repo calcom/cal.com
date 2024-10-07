@@ -89,7 +89,7 @@ export class InputBookingsService_2024_08_13 {
       ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
 
-    const location = request.body.location;
+    const location = request.body.location || request.body.meetingUrl;
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
@@ -147,7 +147,7 @@ export class InputBookingsService_2024_08_13 {
       ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
 
-    const location = request.body.location;
+    const location = request.body.location || request.body.meetingUrl;
     Object.assign(newRequest, {
       userId,
       ...oAuthParams,

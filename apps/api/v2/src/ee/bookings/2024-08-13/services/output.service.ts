@@ -55,6 +55,8 @@ export class OutputBookingsService_2024_08_13 {
       end: databaseBooking.endTime,
       duration,
       eventType: databaseBooking.eventType,
+      // note(Lauris): eventTypeId is deprecated
+      eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
         email: attendee.email,
@@ -64,6 +66,8 @@ export class OutputBookingsService_2024_08_13 {
       })),
       guests: bookingResponses.guests,
       location: databaseBooking.location,
+      // note(Lauris): meetingUrl is deprecated
+      meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
     };
 
@@ -108,6 +112,8 @@ export class OutputBookingsService_2024_08_13 {
       end: databaseBooking.endTime,
       duration,
       eventType: databaseBooking.eventType,
+      // note(Lauris): eventTypeId is deprecated
+      eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
         email: attendee.email,
@@ -117,6 +123,8 @@ export class OutputBookingsService_2024_08_13 {
       })),
       guests: bookingResponses.guests,
       location: databaseBooking.location,
+      // note(Lauris): meetingUrl is deprecated
+      meetingUrl: databaseBooking.location,
       recurringBookingUid: databaseBooking.recurringEventId,
       absentHost: !!databaseBooking.noShowHost,
       bookingFieldsResponses: databaseBooking.responses,

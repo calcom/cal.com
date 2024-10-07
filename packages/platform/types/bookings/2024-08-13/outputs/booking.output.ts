@@ -10,6 +10,7 @@ import {
   IsOptional,
   IsString,
   IsTimeZone,
+  IsUrl,
   ValidateNested,
 } from "class-validator";
 
@@ -133,6 +134,16 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   duration!: number;
 
+  @ApiProperty({
+    type: Number,
+    example: 50,
+    deprecated: true,
+    description: "Deprecated - rely on 'eventType' object containing the id instead.",
+  })
+  @IsInt()
+  @Expose()
+  eventTypeId!: number;
+
   @ApiProperty({ type: EventType })
   @Type(() => EventType)
   @Expose()
@@ -150,6 +161,18 @@ export class BookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   guests?: string[];
+
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Deprecated - rely on 'location' field instead.",
+    example: "https://example.com/recurring-meeting",
+    deprecated: true,
+  })
+  @IsUrl()
+  @IsOptional()
+  @Expose()
+  meetingUrl?: string;
 
   @ApiProperty({ type: String, required: false, example: "https://example.com/meeting" })
   @IsOptional()
