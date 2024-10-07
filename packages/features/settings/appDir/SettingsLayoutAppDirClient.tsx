@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { useEffect, useState, useMemo } from "react";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
@@ -14,7 +15,7 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -150,6 +151,7 @@ const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "di
 
 const useTabs = () => {
   const session = useSession();
+  const t = useTranslations();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
@@ -244,7 +246,7 @@ interface SettingsSidebarContainerProps {
 
 const TeamListCollapsible = () => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { t } = useLocale();
+  const t = useTranslations();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
   const searchParams = useCompatSearchParams();
@@ -397,7 +399,7 @@ const SettingsSidebarContainer = ({
   otherTeams,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
-  const { t } = useLocale();
+  const t = useTranslations();
   const tabsWithPermissions = useTabs();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
@@ -462,7 +464,7 @@ const SettingsSidebarContainer = ({
                         />
                       )}
                       <Skeleton
-                        title={tab.name}
+                        title={t(tab.name)}
                         as="p"
                         className="text-subtle truncate text-sm font-medium leading-5"
                         loadingClassName="ms-3">
@@ -630,7 +632,7 @@ const SettingsSidebarContainer = ({
 };
 
 const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
-  const { t } = useLocale();
+  const t = useTranslations();
   const router = useRouter();
 
   return (
@@ -723,7 +725,7 @@ const SidebarContainerElement = ({
   currentOrg,
   otherTeams,
 }: SidebarContainerElementProps) => {
-  const { t } = useLocale();
+  const t = useTranslations();
   return (
     <>
       {/* Mobile backdrop */}

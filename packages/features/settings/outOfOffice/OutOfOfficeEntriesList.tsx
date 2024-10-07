@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -24,7 +24,7 @@ import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModa
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
 
 export const OutOfOfficeEntriesList = () => {
-  const { t } = useLocale();
+  const t = useTranslations();
   const utils = trpc.useUtils();
   const { data, isPending } = trpc.viewer.outOfOfficeEntriesList.useQuery();
   const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({

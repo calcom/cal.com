@@ -1,6 +1,5 @@
 import { _generateMetadata } from "app/_utils";
-import { getFixedT } from "app/_utils";
-
+import { getTranslations } from "next-intl/server";
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -15,7 +14,7 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslations();
 
   return (
     <SettingsHeader

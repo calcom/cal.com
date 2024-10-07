@@ -32,6 +32,12 @@ module.exports = {
   ],
   overrides: [
     {
+      files: ["*.js", "*.ts", "*.jsx", "*.tsx"],
+      options: {
+        parser: "babel-ts",
+      },
+    },
+    {
       files: ["apps/website/lib/utils/wordlist/wordlist.ts"],
       options: {
         quoteProps: "consistent",

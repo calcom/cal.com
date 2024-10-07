@@ -13,7 +13,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -88,7 +88,7 @@ export type FormValues = {
 };
 
 const ProfileView = () => {
-  const { t } = useLocale();
+  const t = useTranslations();
   const utils = trpc.useUtils();
   const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
@@ -510,7 +510,7 @@ const ProfileForm = ({
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
-  const { t } = useLocale();
+  const t = useTranslations();
   const [firstRender, setFirstRender] = useState(true);
 
   const profileFormSchema = z.object({

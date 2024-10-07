@@ -1,7 +1,6 @@
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type SkeletonBaseProps = {
   className?: string;
@@ -34,7 +33,7 @@ type SkeletonProps<T> = {
   ? JSX.IntrinsicElements[T]
   : never);
 
-const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
+const Skeleton = async <T extends keyof JSX.IntrinsicElements | React.FC>({
   as,
   className = "",
   children,
@@ -49,8 +48,10 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   loadingClassName = "",
   ...rest
 }: SkeletonProps<T>) => {
-  const { isLocaleReady } = useLocale();
-  loading = (waitForTranslation ? !isLocaleReady : false) || loading;
+  /*if (waitForTranslation) {
+    const { isLocaleReady } = (await import("@calcom/lib/hooks/useLocale")).useLocale();
+    loading = !isLocaleReady;
+  }*/
   const Component = as;
   return (
     <Component

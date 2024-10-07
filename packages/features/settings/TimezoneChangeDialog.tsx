@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
 
@@ -15,7 +15,8 @@ const TimezoneChangeDialogContent = ({
   browserTimezone: string;
   onAction: (action?: "update" | "cancel") => void;
 }) => {
-  const { t } = useLocale();
+  console.log("Translations are being loaded..");
+  const t = useTranslations();
   const utils = trpc.useUtils();
   const formattedCurrentTz = browserTimezone.replace("_", " ");
 
@@ -76,16 +77,10 @@ export function useOpenTimezoneDialog() {
   const { data: user } = trpc.viewer.me.useQuery();
   const [showDialog, setShowDialog] = useState(false);
   const browserTimezone = dayjs.tz.guess() || "Europe/London";
-  const { isLocaleReady } = useLocale();
   const { data: userSession, status } = useSession();
 
   useEffect(() => {
-    if (
-      !isLocaleReady ||
-      !user?.timeZone ||
-      status !== "authenticated" ||
-      userSession?.user?.impersonatedBy
-    ) {
+    if (!user?.timeZone || status !== "authenticated" || userSession?.user?.impersonatedBy) {
       return;
     }
     const cookie = document.cookie
@@ -97,7 +92,7 @@ export function useOpenTimezoneDialog() {
     ) {
       setShowDialog(true);
     }
-  }, [user, isLocaleReady, status, browserTimezone, userSession?.user?.impersonatedBy]);
+  }, [user, status, browserTimezone, userSession?.user?.impersonatedBy]);
 
   return { open: showDialog, setOpen: setShowDialog, browserTimezone };
 }

@@ -13,7 +13,7 @@ import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
@@ -88,7 +88,7 @@ const AppearanceView = ({
   user: RouterOutputs["viewer"]["me"];
   hasPaidPlan: boolean;
 }) => {
-  const { t } = useLocale();
+  const t = useTranslations();
   const utils = trpc.useUtils();
   const session = useSession();
   const isApartOfOrganization = session.data?.user.org?.id;

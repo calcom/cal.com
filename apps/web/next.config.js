@@ -1,9 +1,12 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
+
+const createNextIntlPlugin = require("next-intl/plugin");
+const withNextIntl = createNextIntlPlugin();
+
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
-const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
 const {
@@ -109,16 +112,6 @@ const informAboutDuplicateTranslations = () => {
 };
 
 informAboutDuplicateTranslations();
-const plugins = [];
-if (process.env.ANALYZE === "true") {
-  // only load dependency if env `ANALYZE` was set
-  const withBundleAnalyzer = require("@next/bundle-analyzer")({
-    enabled: true,
-  });
-  plugins.push(withBundleAnalyzer);
-}
-
-plugins.push(withAxiom);
 
 const matcherConfigRootPath = {
   has: [
@@ -179,10 +172,6 @@ const nextConfig = {
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
     serverActions: true,
-  },
-  i18n: {
-    ...i18n,
-    localeDetection: false,
   },
   productionBrowserSourceMaps: false,
   /* We already do type check on GH actions */
@@ -663,7 +652,11 @@ const nextConfig = {
   },
 };
 
+// Register standard plugins
+const plugins = [withNextIntl, withAxiom];
+// START Register dynamic plugins
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  const withSentryConfig = require("@sentry/nextjs").withSentryConfig;
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
       autoInstrumentServerFunctions: true,
@@ -673,5 +666,13 @@ if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
     })
   );
 }
+if (process.env.ANALYZE === "true") {
+  // only load dependency if env `ANALYZE` was set
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  plugins.push(withBundleAnalyzer);
+}
+// END Register dynamic plugins
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

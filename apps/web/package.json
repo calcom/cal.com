@@ -102,6 +102,7 @@
     "next-axiom": "^0.17.0",
     "next-collect": "^0.2.1",
     "next-i18next": "^13.2.2",
+    "next-intl": "^3.20.0",
     "next-seo": "^6.0.0",
     "next-themes": "^0.2.0",
     "nodemailer": "^6.7.8",

@@ -1,17 +1,13 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { TrpcProvider } from "app/_trpc/trpc-provider";
-import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
-import type { SSRConfig } from "next-i18next";
-import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
-import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -22,28 +18,17 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
-import { useViewerI18n } from "@components/I18nLanguageHandler";
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
-
-const I18nextAdapter = appWithTranslation<
-  NextJsAppProps<SSRConfig> & {
-    children: React.ReactNode;
-  }
->(({ children }) => <>{children}</>);
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithLocaleProps<
-      WithNonceProps<{
-        themeBasis?: string;
-        session: Session;
-        i18n?: SSRConfig;
-      }>
-    >
+    WithNonceProps<{
+      themeBasis?: string;
+      session: Session;
+    }>
   >,
   "Component"
 > & {
@@ -63,57 +48,6 @@ const getEmbedNamespace = (searchParams: ReadonlyURLSearchParams) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
   return typeof window !== "undefined" ? window.getEmbedNamespace() : searchParams.get("embed") ?? null;
-};
-
-const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSRConfig }) => {
-  /**
-   * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-   **/
-
-  const session = useSession();
-  const fallbackLocale =
-    typeof window !== "undefined" && window.document.documentElement.lang
-      ? window.document.documentElement.lang
-      : "en";
-  const newLocale = typeof window !== "undefined" && window.calNewLocale ? window.calNewLocale : null;
-  const locale = session?.data?.user.locale ?? newLocale ?? fallbackLocale;
-
-  useEffect(() => {
-    try {
-      // @ts-expect-error TS2790: The operand of a 'delete' operator must be optional.
-      delete window.document.documentElement["lang"];
-
-      window.document.documentElement.lang = locale;
-
-      // Next.js writes the locale to the same attribute
-      // https://github.com/vercel/next.js/blob/1609da2d9552fed48ab45969bdc5631230c6d356/packages/next/src/shared/lib/router/router.ts#L1786
-      // which can result in a race condition
-      // this property descriptor ensures this never happens
-      Object.defineProperty(window.document.documentElement, "lang", {
-        configurable: true,
-        // value: locale,
-        set: function (this) {
-          // empty setter on purpose
-        },
-        get: function () {
-          return locale;
-        },
-      });
-    } catch (error) {
-      console.error(error);
-
-      window.document.documentElement.lang = locale;
-    }
-    window.document.dir = dir(locale);
-  }, [locale]);
-
-  const clientViewerI18n = useViewerI18n(locale);
-  const i18n = clientViewerI18n.data?.i18n ?? props.i18n;
-
-  return (
-    // @ts-expect-error AppWithTranslationHoc expects AppProps
-    <I18nextAdapter pageProps={{ _nextI18Next: i18n?._nextI18Next }}>{props.children}</I18nextAdapter>
-  );
 };
 
 const enum ThemeSupport {
@@ -269,25 +203,23 @@ const AppProviders = (props: PageWrapperProps) => {
     <TrpcProvider dehydratedState={props.dehydratedState}>
       <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
         <SessionProvider>
-          <CustomI18nextProvider i18n={props.i18n}>
-            <TooltipProvider>
-              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-              <CalcomThemeProvider
-                themeBasis={props.themeBasis}
-                nonce={props.nonce}
-                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
-                isBookingPage={props.isBookingPage || isBookingPage}>
-                <FeatureFlagsProvider>
-                  <OrgBrandProvider>
-                    {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                    <CacheProvider>
-                      <MetaProvider>{props.children}</MetaProvider>
-                    </CacheProvider>
-                  </OrgBrandProvider>
-                </FeatureFlagsProvider>
-              </CalcomThemeProvider>
-            </TooltipProvider>
-          </CustomI18nextProvider>
+          <TooltipProvider>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+            <CalcomThemeProvider
+              themeBasis={props.themeBasis}
+              nonce={props.nonce}
+              isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
+              isBookingPage={props.isBookingPage || isBookingPage}>
+              <FeatureFlagsProvider>
+                <OrgBrandProvider>
+                  {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+                  <CacheProvider>
+                    <MetaProvider>{props.children}</MetaProvider>
+                  </CacheProvider>
+                </OrgBrandProvider>
+              </FeatureFlagsProvider>
+            </CalcomThemeProvider>
+          </TooltipProvider>
         </SessionProvider>
       </EventCollectionProvider>
     </TrpcProvider>

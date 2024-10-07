@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { classNames } from "@calcom/lib";
 import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -76,7 +76,7 @@ type GeneralQueryViewProps = {
 };
 
 const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
-  const { t } = useLocale();
+  const { t } = useTranslations();
 
   const { data: user, isPending } = trpc.viewer.me.useQuery();
 
@@ -99,10 +99,7 @@ const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
 
 const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: GeneralViewProps) => {
   const utils = trpc.useContext();
-  const {
-    t,
-    i18n: { language },
-  } = useLocale();
+  const t = useTranslations();
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
@@ -113,9 +110,11 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
       await update(res);
-
+      // @deprecated: Remove `calNewLocale` after appDir migration is completed.
       if (res.locale) {
         window.calNewLocale = res.locale;
+        // if updated, store new locale in cookie.
+        document.cookie = `calcom-locale=${res.locale};max-age=31536000`;
       }
       await revalidatePage();
     },

@@ -11,7 +11,6 @@ import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
-
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -23,7 +22,9 @@ import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
+import { I18nClientProvider } from "@calcom/lib/i18n/context/provider";
 import { useViewerI18n } from "@components/I18nLanguageHandler";
+import { nextI18nInterop } from "@calcom/lib/i18n/_utils/nextI18nInterop";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -121,7 +122,14 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
     },
   };
 
-  return <I18nextAdapter {...passedProps} />;
+  const messages = i18n?._nextI18Next?.initialI18nStore[locale].common;
+  nextI18nInterop(messages);
+
+  return (
+    <I18nClientProvider locale={locale} messages={messages}>
+      <I18nextAdapter {...passedProps} />
+    </I18nClientProvider>
+  );
 };
 
 const enum ThemeSupport {

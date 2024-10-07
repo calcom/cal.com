@@ -1,5 +1,5 @@
 import { _generateMetadata } from "app/_utils";
-import { getFixedT } from "app/_utils";
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
@@ -16,7 +16,7 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const session = await getServerSessionForAppDir();
 
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslations();
   const revalidatePage = async () => {
     "use server";
     revalidatePath("settings/my-account/general");

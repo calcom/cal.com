@@ -3,7 +3,7 @@
 import { useReducer } from "react";
 
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
@@ -28,7 +28,7 @@ type ModalState = {
 };
 
 const ConferencingView = () => {
-  const { t } = useLocale();
+  const t = useTranslations();
 
   const [modal, updateModal] = useReducer(
     (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
@@ -58,7 +58,6 @@ const ConferencingView = () => {
           query={query}
           customLoader={<SkeletonLoader />}
           success={({ data }) => {
-            console.log(data);
             if (!data.items.length) {
               return (
                 <EmptyScreen

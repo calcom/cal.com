@@ -1,10 +1,11 @@
-import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import React from "react";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { I18nClientProvider } from "@calcom/lib/i18n/context/provider";
+import { getLocale, getMessages } from "@calcom/lib/i18n/server";
+
 import { IconSprites } from "@calcom/ui";
 
 import { prepareRootMetadata } from "@lib/metadata";
@@ -37,14 +38,11 @@ const getInitialProps = async (url: string) => {
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
   const req = { headers: headers(), cookies: cookies() };
-  const newLocale = await getLocale(req);
-  const direction = dir(newLocale);
 
   return { isEmbed, embedColorScheme, locale: newLocale, direction };
 };
 
 const getFallbackProps = () => ({
-  locale: "en",
   direction: "ltr",
   isEmbed: false,
   embedColorScheme: false,
@@ -58,9 +56,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const isSSG = !fullUrl;
 
-  const { locale, direction, isEmbed, embedColorScheme } = isSSG
+  const { direction, isEmbed, embedColorScheme } = isSSG
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
+
+  const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
     <html
@@ -109,7 +110,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        {children}
+        <I18nClientProvider messages={messages}>{children}</I18nClientProvider>
       </body>
     </html>
   );

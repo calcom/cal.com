@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslations } from "@calcom/lib/i18n/hooks/useTranslations";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -53,7 +53,7 @@ export const BookerLayoutSelector = ({
   isUserLoading,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
-  const { t } = useLocale();
+  const t = useTranslations();
   // Only fallback if event current does not have any settings, and the fallbackToUserSettings boolean is set.
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
 
@@ -119,7 +119,7 @@ const BookerLayoutFields = ({
   user,
   isUserLoading,
 }: BookerLayoutFieldsProps) => {
-  const { t } = useLocale();
+  const t = useTranslations();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
 
   const disableFields = showUserSettings && !isOverridingSettings;
