@@ -151,6 +151,24 @@
       ]
     },
     {
+      "group": "Guides",
+      "pages": [
+        {
+          "group": "App Store and Integration",
+          "icon": "grid",
+          "pages": ["/self-hosting/guides/appstore-and-integration/syncing-third-party-apps"]
+        },
+        {
+          "group": "White Labeling",
+          "icon": "tag",
+          "pages": [
+            "/self-hosting/guides/white-labeling/introduction",
+            "/self-hosting/guides/white-labeling/custom-css"
+          ]
+        }
+      ]
+    },
+    {
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
