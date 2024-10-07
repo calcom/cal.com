@@ -341,7 +341,6 @@ export default function Success(props: PageProps) {
       const getBookedTimeUrl = `https://api.agenda.yinflow.life/supabase/Booking`;
 
       fetch(getEventTypeSlugUrl, {
-        mode: "no-cors",
         headers: { Authorization: process.env.V2_API_KEY! },
       })
         .then((data) => {
@@ -355,6 +354,7 @@ export default function Success(props: PageProps) {
             }, eventTypes);
             setEventTypes(eventSlugs);
           });
+          console.error(data);
         })
         .catch((error) => {
           console.error(error);
@@ -380,6 +380,7 @@ export default function Success(props: PageProps) {
               }
             });
           });
+          console.error(data);
         })
         .catch((error) => {
           console.error({ error });
