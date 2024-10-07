@@ -1,5 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useMemo, useCallback } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -86,6 +87,12 @@ const BookerComponent = ({
     isEmbed,
     bookerLayouts,
   } = bookerLayout;
+  const searchParams = useSearchParams();
+
+  const showEventDetailsQueryParamValue = useMemo(
+    () => searchParams?.get("showEventDetails") ?? "",
+    [searchParams]
+  );
 
   const [seatedEventData, setSeatedEventData] = useBookerStore(
     (state) => [state.seatedEventData, state.setSeatedEventData],
@@ -157,7 +164,7 @@ const BookerComponent = ({
         });
       }
     }
-    if (bookerState === "selecting_time") {
+    if (bookerState === "selecting_time" || bookerState === "selecting_time_alt") {
       setSelectedDate(null);
       setBookerState("selecting_date");
     }
@@ -173,9 +180,14 @@ const BookerComponent = ({
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot) return setBookerState("selecting_time");
+    if (!selectedTimeslot) {
+      if (showEventDetailsQueryParamValue === "true" && layout === BookerLayouts.MONTH_VIEW) {
+        return setBookerState("selecting_time_alt");
+      }
+      return setBookerState("selecting_time");
+    }
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState]);
+  }, [event, showEventDetailsQueryParamValue, layout, selectedDate, selectedTimeslot, setBookerState]);
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -379,12 +391,16 @@ const BookerComponent = ({
                 visible={
                   layout === BookerLayouts.WEEK_VIEW ||
                   layout === BookerLayouts.COLUMN_VIEW ||
-                  (layout === BookerLayouts.MONTH_VIEW && bookerState === "booking")
+                  (layout === BookerLayouts.MONTH_VIEW && bookerState === "booking") ||
+                  (layout === BookerLayouts.MONTH_VIEW && bookerState === "selecting_time_alt")
                 }>
+                {layout === BookerLayouts.MONTH_VIEW && bookerState === "selecting_time_alt" && (
+                  <EventMeta event={event.data} isPending={event.isPending} />
+                )}
                 {(layout === BookerLayouts.WEEK_VIEW || layout === BookerLayouts.COLUMN_VIEW) && (
                   <EventMeta event={event.data} isPending={event.isPending} />
                 )}
-                {layout === BookerLayouts.MONTH_VIEW && (
+                {layout === BookerLayouts.MONTH_VIEW && bookerState === "booking" && (
                   <EventMetaMore event={event.data} isPending={event.isPending} onGoBack={onGoBack} />
                 )}
                 {layout !== BookerLayouts.MONTH_VIEW && bookerState !== "booking" && (
@@ -469,6 +485,7 @@ const BookerComponent = ({
               area={{ default: "main", month_view: "timeslots" }}
               visible={
                 (layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
+                (layout == BookerLayouts.MONTH_VIEW && bookerState === "selecting_time_alt") ||
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
