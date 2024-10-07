@@ -22,18 +22,23 @@ const rateLimitSchema = z.object({
   ttl: z.number(),
   blockDuration: z.number(),
 });
-
 type RateLimitType = z.infer<typeof rateLimitSchema>;
-
 const rateLimitsSchema = z.array(rateLimitSchema);
+
+const sixtySecondsMs = 60 * 1000;
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
   private logger = new Logger("CustomThrottlerGuard");
 
-  private defaultTttl = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", 60 * 1000));
+  private defaultTttl = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", sixtySecondsMs));
+
+  private defaultLimitApiKey = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_API_KEY", 120));
+  private defaultLimitOAuthClient = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT", 500));
+  private defaultLimitAccessToken = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN", 500));
   private defaultLimit = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 120));
-  private defaultBlockDuration = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", 60 * 1000));
+
+  private defaultBlockDuration = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", sixtySecondsMs));
 
   constructor(
     options: ThrottlerModuleOptions,
@@ -78,7 +83,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   }
 
   private async handleNonApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
-    const rateLimit = this.getDefaultRateLimit();
+    const rateLimit = this.getDefaultRateLimit(tracker);
 
     const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
     if (isBlocked) {
@@ -88,17 +93,25 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     return true;
   }
 
-  private getDefaultRateLimit() {
+  private getDefaultRateLimit(tracker: string) {
     return {
       name: "default",
-      limit: this.getDefaultLimit(),
+      limit: this.getDefaultLimit(tracker),
       ttl: this.getDefaultTtl(),
       blockDuration: this.getDefaultBlockDuration(),
     };
   }
 
-  getDefaultLimit() {
-    return this.defaultLimit;
+  getDefaultLimit(tracker: string) {
+    if (tracker.startsWith("api_key_")) {
+      return this.defaultLimitApiKey;
+    } else if (tracker.startsWith("oauth_client_")) {
+      return this.defaultLimitOAuthClient;
+    } else if (tracker.startsWith("access_token_")) {
+      return this.defaultLimitAccessToken;
+    } else {
+      return this.defaultLimit;
+    }
   }
 
   getDefaultTtl() {
@@ -134,7 +147,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     });
 
     if (!rateLimits || rateLimits.length === 0) {
-      rateLimits = [this.getDefaultRateLimit()];
+      rateLimits = [this.getDefaultRateLimit(tracker)];
     }
 
     await this.storageService.redis.setex(cacheKey, 3600, JSON.stringify(rateLimits));
