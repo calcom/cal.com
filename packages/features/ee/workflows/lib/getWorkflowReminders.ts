@@ -27,9 +27,11 @@ type PartialBooking =
       | "attendees"
       | "userPrimaryEmail"
       | "smsReminderNumber"
+      | "title"
     > & {
       eventType:
         | (Partial<EventType> & {
+            slug: string;
             team: { parentId?: number };
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
