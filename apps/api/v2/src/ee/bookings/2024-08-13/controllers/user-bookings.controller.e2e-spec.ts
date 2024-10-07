@@ -57,6 +57,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let user: User;
 
     let eventTypeId: number;
+    const eventTypeSlug = "peer-coding";
     let recurringEventTypeId: number;
 
     let createdBooking: BookingOutput_2024_08_13;
@@ -99,7 +100,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: "peer-coding", length: 60 },
+        { title: "peer coding", slug: eventTypeSlug, length: 60 },
         user.id
       );
       eventTypeId = event.id;
@@ -210,6 +211,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(eventTypeId);
+              expect(data.event).toEqual({
+                id: eventTypeId,
+                slug: eventTypeSlug,
+              });
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 timeZone: body.attendee.timeZone,
@@ -217,6 +222,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 absent: false,
               });
               expect(data.location).toEqual(body.location);
+              expect(data.meetingUrl).toEqual(body.location);
               expect(data.absentHost).toEqual(false);
               expect(data.bookingFieldsResponses).toEqual({
                 name: body.attendee.name,
