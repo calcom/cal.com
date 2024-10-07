@@ -211,7 +211,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(eventTypeId);
-              expect(data.event).toEqual({
+              expect(data.eventType).toEqual({
                 id: eventTypeId,
                 slug: eventTypeSlug,
               });
