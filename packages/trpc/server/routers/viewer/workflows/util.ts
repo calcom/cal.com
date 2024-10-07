@@ -635,6 +635,7 @@ export async function scheduleBookingReminders(
         },
         metadata: booking.metadata,
       };
+      const attendees = bookingInfo.attendees.map((attendee) => attendee.email);
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
         step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -657,7 +658,7 @@ export async function scheduleBookingReminders(
             }
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
-            sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
+            sendTo = attendees;
             break;
           case WorkflowActions.EMAIL_ADDRESS:
             await verifyEmailSender(step.sendTo || "", userId, teamId);
@@ -695,7 +696,7 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           userId: userId,
           teamId: teamId,
-          teamIdToCharge: 0, //todo
+          fallBackEmail: attendees[0],
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -712,7 +713,7 @@ export async function scheduleBookingReminders(
           template: step.template,
           userId: userId,
           teamId: teamId,
-          teamIdToCharge: 0, //todo
+          fallBackEmail: attendees[0],
         });
       }
     });

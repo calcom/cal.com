@@ -4,6 +4,7 @@ import twilio from "twilio";
 
 import dayjs from "@calcom/dayjs";
 import { createTwilioClient } from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import type { TeamOrUserId } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import {
   addCredits,
   cancelScheduledSmsAndScheduleEmails,
@@ -29,47 +30,55 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (valid) {
       const messageStatus = req.body.MessageStatus;
-      const { userId, teamId, teamToCharge } = req.query;
+      const { userId, teamId, teamIdToCharge, userIdToCharge } = req.query;
 
       if (messageStatus === "delivered" || messageStatus === "undelivered") {
         const parsedUserId = userId ? (Array.isArray(userId) ? Number(userId[0]) : Number(userId)) : null;
         const parsedTeamId = teamId ? (Array.isArray(teamId) ? Number(teamId[0]) : Number(teamId)) : null;
-        const parsedTeamToCharge = teamToCharge
-          ? Array.isArray(teamToCharge)
-            ? Number(teamToCharge[0])
-            : Number(teamToCharge)
+        const parsedTeamIdToCharge = teamIdToCharge
+          ? Array.isArray(teamIdToCharge)
+            ? Number(teamIdToCharge[0])
+            : Number(teamIdToCharge)
           : null;
 
-        //at this point of time I don't know the paying team yet
-        let teamOrUserToCharge =
-          parsedTeamToCharge || parsedTeamId ? { teamId: parsedTeamToCharge ?? parsedTeamId } : null;
+        const parsedUserIdToCharge = userIdToCharge
+          ? Array.isArray(userIdToCharge)
+            ? Number(userIdToCharge[0])
+            : Number(userIdToCharge)
+          : null;
 
-        if (!teamIdToCharge && userId) {
-          teamOrUserToCharge = await getTeamIdToBeCharged(parsedUserId, teamIdToCharge);
+        let teamOrUserToCharge: TeamOrUserId | null = parsedTeamIdToCharge
+          ? { teamId: parsedTeamIdToCharge }
+          : parsedUserIdToCharge
+          ? { userId: parsedUserIdToCharge }
+          : null;
+
+        if (!teamOrUserToCharge) {
+          teamOrUserToCharge = await getTeamIdToBeCharged({ userId: parsedUserId, teamId: parsedTeamId });
         }
 
         if (teamOrUserToCharge) {
-          const isFree = await addCredits(
-            req.body.To,
-            teamOrUserToCharge,
-            !parsedTeamId ? parsedUserId : null
-          );
+          const isFree = await addCredits(req.body.To, teamOrUserToCharge, parsedUserId);
 
-          if (!isFree) {
+          if (!isFree && parsedTeamIdToCharge) {
             const costsString = (await twilioClient.messages(req.body.MessageSid).fetch()).price;
 
             const costs = Math.abs(parseFloat(costsString));
 
             const teamCredits = await prisma.smsCreditCount.findFirst({
               where: {
-                teamId: teamIdToCharge,
+                teamId: parsedTeamIdToCharge,
                 userId: null,
                 month: dayjs().utc().startOf("month").toDate(),
               },
               select: smsCreditCountSelect,
             });
 
-            if (teamCredits && teamCredits.overageCharges + costs < teamCredits.team.smsOverageLimit) {
+            if (
+              teamCredits &&
+              teamCredits.team &&
+              teamCredits.overageCharges + costs < teamCredits.team.smsOverageLimit
+            ) {
               await prisma.smsCreditCount.update({
                 where: {
                   id: teamCredits.id,

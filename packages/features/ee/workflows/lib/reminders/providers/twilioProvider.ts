@@ -87,7 +87,7 @@ export const sendSMS = async (params: {
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: getSMSNumber(phoneNumber, whatsapp),
     from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?teamId=teamId&userId=userId&userIdToCharge=${teamOrUserToCharge.userId}&teamToCharge=${teamOrUserToCharge.teamId}`,
+    statusCallback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/twilio/statusCallback?userIdToCharge=${teamOrUserToCharge.userId}&teamIdToCharge=${teamOrUserToCharge.teamId}`,
   });
   return { ...response };
 };

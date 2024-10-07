@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -11,7 +11,8 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
-import type { ScheduleReminderArgs } from "./emailReminderManager";
+import { getTeamIdToBeCharged } from "../smsCredits/smsCreditsUtils";
+import { scheduleEmailReminder, type ScheduleReminderArgs } from "./emailReminderManager";
 import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -77,7 +78,7 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   reminderPhone: string | null;
   message: string;
   action: ScheduleTextReminderAction;
-  teamOrUserToCharge: TeamOrUserId;
+  fallBackEmail: string | null;
   userId?: number | null;
   teamId?: number | null;
   isVerificationPending?: boolean;
@@ -99,8 +100,30 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
-    teamOrUserToCharge,
+    fallBackEmail,
   } = args;
+
+  const teamOrUserToCharge = await getTeamIdToBeCharged({ userId, teamId });
+
+  if (!teamOrUserToCharge) {
+    if (fallBackEmail) {
+      // schedule/send as email instead
+      await scheduleEmailReminder({
+        evt,
+        triggerEvent: triggerEvent,
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        timeSpan,
+        sendTo: fallBackEmail,
+        emailSubject: "Booking notification",
+        emailBody: message,
+        template: template,
+        sender: SENDER_NAME,
+        workflowStepId: workflowStepId,
+        seatReferenceUid,
+      });
+    }
+    return;
+  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;

@@ -9,7 +9,6 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getTeamIdToBeCharged } from "../smsCredits/smsCreditsUtils";
 import type { ScheduleEmailReminderAction } from "./emailReminderManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
@@ -53,28 +52,20 @@ const processWorkflowStep = async (
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
-  const { userId } = workflow;
   const teamId = evt.eventType.parent?.teamId ?? workflow.teamId;
-  let teamOrUserToCharge;
-
-  let fallbackEmail;
 
   if (isSMSOrWhatsappAction(step.action)) {
-    teamOrUserToCharge = await getTeamIdToBeCharged(userId, teamId);
-
-    const attendeeEmail = !!emailAttendeeSendToOverride
-      ? emailAttendeeSendToOverride
-      : evt.attendees[0].email;
-
-    fallbackEmail = !teamOrUserToCharge ? attendeeEmail : undefined;
-
     await checkSMSRateLimit({
       identifier: `sms:${teamId ? "team:" : "user:"}${teamId || workflow.userId}`,
       rateLimitingType: "sms",
     });
   }
 
-  if (isSMSAction(step.action) && teamOrUserToCharge) {
+  const attendees = !!emailAttendeeSendToOverride
+    ? [emailAttendeeSendToOverride]
+    : evt.attendees?.map((attendee) => attendee.email);
+
+  if (isSMSAction(step.action)) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder({
       evt,
@@ -93,41 +84,32 @@ const processWorkflowStep = async (
       teamId: teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
-      teamOrUserToCharge,
+      fallBackEmail: attendees[0],
     });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
     step.action === WorkflowActions.EMAIL_HOST ||
-    step.action === WorkflowActions.EMAIL_ADDRESS ||
-    fallbackEmail
+    step.action === WorkflowActions.EMAIL_ADDRESS
   ) {
     let sendTo: string[] = [];
 
-    if (!fallbackEmail) {
-      switch (step.action) {
-        case WorkflowActions.EMAIL_ADDRESS:
-          sendTo = [step.sendTo || ""];
-          break;
-        case WorkflowActions.EMAIL_HOST:
-          sendTo = [evt.organizer?.email || ""];
+    switch (step.action) {
+      case WorkflowActions.EMAIL_ADDRESS:
+        sendTo = [step.sendTo || ""];
+        break;
+      case WorkflowActions.EMAIL_HOST:
+        sendTo = [evt.organizer?.email || ""];
 
-          const schedulingType = evt.eventType.schedulingType;
-          const isTeamEvent =
-            schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
-          if (isTeamEvent && evt.team?.members) {
-            sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
-          }
-          break;
-        case WorkflowActions.EMAIL_ATTENDEE:
-          const attendees = !!emailAttendeeSendToOverride
-            ? [emailAttendeeSendToOverride]
-            : evt.attendees?.map((attendee) => attendee.email);
-
-          sendTo = attendees;
-          break;
-      }
-    } else {
-      sendTo = [fallbackEmail];
+        const schedulingType = evt.eventType.schedulingType;
+        const isTeamEvent =
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+        if (isTeamEvent && evt.team?.members) {
+          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
+        }
+        break;
+      case WorkflowActions.EMAIL_ATTENDEE:
+        sendTo = attendees;
+        break;
     }
 
     const action = (
@@ -143,7 +125,7 @@ const processWorkflowStep = async (
         timeUnit: workflow.timeUnit,
       },
       sendTo,
-      emailSubject: fallbackEmail ? "Booking notification" : step.emailSubject || "",
+      emailSubject: step.emailSubject || "",
       emailBody: step.reminderBody || "",
       template: step.template,
       sender: step.sender || SENDER_NAME,
@@ -152,7 +134,7 @@ const processWorkflowStep = async (
       seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
     });
-  } else if (isWhatsappAction(step.action) && teamOrUserToCharge) {
+  } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleWhatsappReminder({
       evt,
@@ -170,7 +152,7 @@ const processWorkflowStep = async (
       teamId: teamId,
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
-      teamOrUserToCharge,
+      fallBackEmail: attendees[0],
     });
   }
 };

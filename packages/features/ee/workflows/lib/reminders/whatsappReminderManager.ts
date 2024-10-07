@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import {
@@ -8,6 +9,8 @@ import {
   WorkflowMethods,
 } from "@calcom/prisma/enums";
 
+import { getTeamIdToBeCharged } from "../smsCredits/smsCreditsUtils";
+import { scheduleEmailReminder } from "./emailReminderManager";
 import * as twilio from "./providers/twilioProvider";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import { deleteScheduledSMSReminder } from "./smsReminderManager";
@@ -34,8 +37,30 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     teamId,
     isVerificationPending = false,
     seatReferenceUid,
-    teamOrUserToCharge,
+    fallBackEmail,
   } = args;
+
+  const teamOrUserToCharge = await getTeamIdToBeCharged({ userId, teamId });
+
+  if (!teamOrUserToCharge) {
+    if (fallBackEmail) {
+      // schedule/send as email instead
+      await scheduleEmailReminder({
+        evt,
+        triggerEvent: triggerEvent,
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        timeSpan,
+        sendTo: fallBackEmail,
+        emailSubject: "Booking notification",
+        emailBody: message,
+        template: template,
+        sender: SENDER_NAME,
+        workflowStepId: workflowStepId,
+        seatReferenceUid,
+      });
+    }
+    return;
+  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;

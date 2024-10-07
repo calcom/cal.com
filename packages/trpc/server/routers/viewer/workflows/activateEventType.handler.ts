@@ -257,6 +257,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
         metadata: booking.metadata,
       };
+
+      const attendees = bookingInfo.attendees
+        .map((attendee) => attendee.email)
+        .filter((email): email is string => !!email);
+
       for (const step of eventTypeWorkflow.steps) {
         if (
           step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -283,9 +288,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               }
               break;
             case WorkflowActions.EMAIL_ATTENDEE:
-              sendTo = bookingInfo.attendees
-                .map((attendee) => attendee.email)
-                .filter((email): email is string => !!email);
+              sendTo = attendees;
               break;
             case WorkflowActions.EMAIL_ADDRESS:
               sendTo = step.sendTo ? [step.sendTo] : [];
@@ -323,7 +326,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             sender: step.sender,
             userId: booking.userId,
             teamId: eventTypeWorkflow.teamId,
-            teamIdToCharge: 0, //todo
+            fallBackEmail: attendees[0],
           });
         } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
           await scheduleWhatsappReminder({
@@ -340,7 +343,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             template: step.template,
             userId: booking.userId,
             teamId: eventTypeWorkflow.teamId,
-            teamIdToCharge: 0, //todo
+            fallBackEmail: attendees[0],
           });
         }
       }
