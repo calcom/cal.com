@@ -80,6 +80,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
+  hideEventTypeDetails?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -187,7 +188,7 @@ export const BookerPlatformWrapper = (
     event.data.length = props.duration;
   }
 
-  const bookerLayout = useBookerLayout(event.data);
+  const bookerLayout = useBookerLayout(event.data, { hideEventTypeDetails: props.hideEventTypeDetails });
   useInitializeBookerStore({
     ...props,
     eventId: event.data?.id,

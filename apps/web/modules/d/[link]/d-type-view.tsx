@@ -16,6 +16,7 @@ export default function Type({
   entity,
   duration,
   hashedLink,
+  durationConfig,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -35,6 +36,7 @@ export default function Type({
         entity={entity}
         duration={duration}
         hashedLink={hashedLink}
+        durationConfig={durationConfig}
       />
     </main>
   );
