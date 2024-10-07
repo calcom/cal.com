@@ -26,8 +26,6 @@ export const DatePicker = ({
   );
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
-  console.log({ month, selectedDate });
-
   return (
     <DatePickerComponent
       isPending={schedule.isPending}

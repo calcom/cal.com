@@ -6,6 +6,7 @@ import type {
   TextLikeComponentProps,
   SelectLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   PhoneInput,
@@ -20,7 +21,7 @@ import {
   CheckboxField,
 } from "@calcom/ui";
 import { InfoBadge } from "@calcom/ui";
-import { UserPlus, X } from "@calcom/ui/components/icon";
+import { X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -277,9 +278,10 @@ export const Components: Record<FieldType, Component> = {
                 <Button
                   data-testid="add-another-guest"
                   type="button"
-                  color="minimal"
-                  StartIcon={UserPlus}
-                  className="my-2.5"
+                  className={classNames(
+                    "min-h-9 hover:border-brand-default dark:border-default dark:hover:border-brand-default my-2.5 mb-2 mr-auto flex h-auto flex-grow flex-col justify-center border-[#0069FF80] py-2 hover:border-[#0069FF]"
+                  )}
+                  color="special"
                   onClick={() => {
                     value.push("");
                     setValue(value);
@@ -295,14 +297,15 @@ export const Components: Record<FieldType, Component> = {
           {!value.length && !readOnly && (
             <Button
               data-testid="add-guests"
-              color="minimal"
+              className={classNames(
+                "min-h-9 hover:border-brand-default dark:border-default dark:hover:border-brand-default mb-2 mr-auto flex h-auto flex-grow flex-col justify-center border-[#0069FF80] py-2 hover:border-[#0069FF]"
+              )}
+              color="special"
               variant="button"
-              StartIcon={UserPlus}
               onClick={() => {
                 value.push("");
                 setValue(value);
-              }}
-              className="mr-auto">
+              }}>
               {label}
             </Button>
           )}

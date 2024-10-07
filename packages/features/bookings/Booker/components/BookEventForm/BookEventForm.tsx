@@ -27,6 +27,8 @@ type BookEventFormProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
+  hidePrivacy?: boolean;
+  hideBackButton?: boolean;
 };
 
 export const BookEventForm = ({
@@ -41,6 +43,8 @@ export const BookEventForm = ({
   bookingForm,
   children,
   extraOptions,
+  hidePrivacy = true,
+  hideBackButton = true,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: useEventReturnType;
   rescheduleUid: string | null;
@@ -120,8 +124,9 @@ export const BookEventForm = ({
 
   return (
     <div className="flex h-full flex-col">
+      <p className="text-text mb-4 text-xl font-semibold">Enter Details</p>
       <Form
-        className="flex h-full flex-col"
+        className="flex flex-col" // Having h-full class is causing a layout issue in Safari
         onChange={() => {
           // Form data is saved in store. This way when user navigates back to
           // still change the timeslot, and comes back to the form, all their values
@@ -150,19 +155,21 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        <div className="text-subtle my-3 w-full text-xs opacity-80">
-          <Trans i18nKey="signing_up_terms">
-            By proceeding, you agree to our{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-              <a>Terms</a>
-            </Link>{" "}
-            and{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-              <a>Privacy Policy</a>
-            </Link>
-            .
-          </Trans>
-        </div>
+        {!hidePrivacy && (
+          <div className="text-subtle my-3 w-full text-xs opacity-80">
+            <Trans i18nKey="signing_up_terms">
+              By proceeding, you agree to our{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
+                <a>Terms</a>
+              </Link>{" "}
+              and{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
+                <a>Privacy Policy</a>
+              </Link>
+              .
+            </Trans>
+          </div>
+        )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
@@ -170,14 +177,14 @@ export const BookEventForm = ({
             </Button>
           ) : (
             <>
-              {!!onCancel && (
+              {!!onCancel && !hideBackButton && (
                 <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
                   {t("back")}
                 </Button>
               )}
               <Button
                 type="submit"
-                color="primary"
+                color="primaryAlt"
                 loading={loadingStates.creatingBooking || loadingStates.creatingRecurringBooking}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"

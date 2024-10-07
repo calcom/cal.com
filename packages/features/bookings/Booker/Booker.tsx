@@ -526,7 +526,7 @@ export const Booker = (props: BookerProps & WrappedBookerProps) => {
 
   return (
     <LazyMotion strict features={loadFramerFeatures}>
-      <BookerComponent {...props} />
+      <BookerComponent {...props} hideBranding />
     </LazyMotion>
   );
 };
