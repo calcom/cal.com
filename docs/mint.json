@@ -117,23 +117,37 @@
         "self-hosting/database-migrations",
         "self-hosting/upgrading",
         "self-hosting/sso-setup",
-        "self-hosting/docker",
-        "self-hosting/vercel"
+        "self-hosting/docker"
       ]
     },
     {
-      "group": "Install Apps",
+      "group": "Deployments",
       "pages": [
-        "self-hosting/install-apps/introduction",
-        "self-hosting/install-apps/google",
-        "self-hosting/install-apps/microsoft",
-        "self-hosting/install-apps/zoom",
-        "self-hosting/install-apps/daily",
-        "self-hosting/install-apps/hubspot",
-        "self-hosting/install-apps/sendgrid",
-        "self-hosting/install-apps/stripe",
-        "self-hosting/install-apps/twilio",
-        "self-hosting/install-apps/zoho"
+        "self-hosting/deployments/aws",
+        "self-hosting/deployments/azure",
+        "self-hosting/deployments/gcp",
+        "self-hosting/deployments/vercel"
+      ]
+    },
+    {
+      "group": "Apps",
+      "pages": [
+        {
+          "group": "Install Apps",
+          "icon": "grid-2-plus",
+          "pages": [
+            "self-hosting/apps/install-apps/introduction",
+            "self-hosting/apps/install-apps/google",
+            "self-hosting/apps/install-apps/microsoft",
+            "self-hosting/apps/install-apps/zoom",
+            "self-hosting/apps/install-apps/daily",
+            "self-hosting/apps/install-apps/hubspot",
+            "self-hosting/apps/install-apps/sendgrid",
+            "self-hosting/apps/install-apps/stripe",
+            "self-hosting/apps/install-apps/twilio",
+            "self-hosting/apps/install-apps/zoho"
+          ]
+        }
       ]
     },
     {
