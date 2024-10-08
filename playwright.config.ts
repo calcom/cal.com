@@ -118,10 +118,7 @@ const config: PlaywrightTestConfig = {
       },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TS definitions for USE are wrong.
-      use: {
-        ...DEFAULT_CHROMIUM,
-        baseURL: "http://localhost:3000/",
-      },
+      use: DEFAULT_CHROMIUM,
     },
     {
       name: "@calcom/app-store",
@@ -132,10 +129,7 @@ const config: PlaywrightTestConfig = {
       },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TS definitions for USE are wrong.
-      use: {
-        ...DEFAULT_CHROMIUM,
-        baseURL: "http://localhost:3000/",
-      },
+      use: DEFAULT_CHROMIUM,
     },
     {
       name: "@calcom/embed-core",
