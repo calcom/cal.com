@@ -64,7 +64,10 @@ export function sendWebhookPayload(
       bookingUid: booking.uid,
       startTime: booking.startTime,
       endTime: booking.endTime,
-      eventType: booking.eventType,
+      eventType: {
+        ...booking.eventType,
+        id: booking.eventTypeId,
+      },
       message:
         triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
           ? `Guest did't join the call or didn't joined before ${maxStartTimeHumanReadable}`

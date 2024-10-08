@@ -19,7 +19,6 @@ export const getBooking = async (bookingId: number) => {
       eventTypeId: true,
       eventType: {
         select: {
-          id: true,
           teamId: true,
           parentId: true,
         },
