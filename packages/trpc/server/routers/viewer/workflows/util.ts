@@ -629,7 +629,7 @@ export async function scheduleBookingReminders(
         title: booking.title,
         language: { locale: booking?.user?.locale || defaultLocale },
         eventType: {
-          slug: booking.eventType?.slug,
+          slug: booking.eventType?.slug || "",
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },
@@ -664,6 +664,7 @@ export async function scheduleBookingReminders(
             sendTo = [step.sendTo || ""];
             break;
         }
+
         await scheduleEmailReminder({
           evt: bookingInfo,
           triggerEvent: trigger,
