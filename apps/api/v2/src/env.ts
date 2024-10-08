@@ -20,6 +20,9 @@ export type Environment = {
   GET_LICENSE_KEY_URL: string;
   API_KEY_PREFIX: string;
   DOCS_URL: string;
+  RATE_LIMIT_DEFAULT_TTL_MS: number;
+  RATE_LIMIT_DEFAULT_LIMIT: number;
+  RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: number;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
