@@ -1,10 +1,5 @@
 import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
-import type { NextApiRequest } from "next";
-import short, { uuid } from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
-
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
@@ -61,13 +56,20 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma from "@calcom/prisma";
+import prisma, { userSelect } from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
+import { cloneDeep } from "lodash";
+import type { NextApiRequest } from "next";
+import short, { uuid } from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { MembershipRole } from "@calcom/prisma/client";
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -79,21 +81,21 @@ import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
+import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
-import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
+import { getRequiresConfirmationFlags, isUserReschedulingOwner } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import type {
-  Invitee,
-  IEventTypePaymentCredentialType,
-  IsFixedAwareUser,
-  BookingType,
   Booking,
+  BookingType,
+  IEventTypePaymentCredentialType,
+  Invitee,
+  IsFixedAwareUser,
 } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
@@ -296,7 +298,36 @@ async function handler(
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
-
+  let attendeeUsers: IsFixedAwareUser[] = [];
+    if (originalRescheduledBooking) {
+    const isUserEventOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
+    const membership = eventType?.team?.members.find((membership) => membership.userId === userId);
+    const isUserTeamAdminOrOwner = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+    if (isUserEventOwner || isUserTeamAdminOrOwner || (await isOrganisationAdmin(userId || 0, eventType?.team?.id || 0))) {
+      const attendeesEmails = originalRescheduledBooking?.attendees?.map((a) => a.email);
+      if (attendeesEmails?.length) {
+        let attendees = await prisma.user.findMany({
+          where: {
+            email: {
+              in: attendeesEmails,
+            },
+          },
+          select: {
+            ...userSelect.select,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
+          }
+        });
+        attendeeUsers = attendees.map((u) => {
+          return {
+            ...u,
+            isFixed: true,
+          };
+        });
+      }
+    }
+  }
   let luckyUserResponse;
   let isFirstSeat = true;
 
@@ -373,7 +404,7 @@ async function handler(
 
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
       const availableUsers = await ensureAvailableUsers(
-        eventTypeWithUsers,
+        {...eventTypeWithUsers, users:[...eventTypeWithUsers.users, ...attendeeUsers] },
         {
           dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
           dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
@@ -467,7 +498,7 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
+      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length + attendeeUsers.length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.

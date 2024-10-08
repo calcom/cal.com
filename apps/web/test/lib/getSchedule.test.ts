@@ -1,19 +1,19 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
 
 import {
+  createBookingScenario,
+  createCredentials,
+  createOrganization,
   getDate,
   getGoogleCalendarCredential,
-  createBookingScenario,
-  createOrganization,
   getOrganizer,
   getScenarioData,
-  Timezones,
-  TestData,
-  createCredentials,
   mockCrmApp,
+  TestData,
+  Timezones,
 } from "../utils/bookingScenario/bookingScenario";
 
-import { describe, vi, test } from "vitest";
+import { describe, test, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
@@ -1895,5 +1895,193 @@ describe("getSchedule", () => {
         { dateString: plus2DateString }
       );
     });
+  });
+
+  describe("Rescheduling with multiple attendees", () => {
+    test("correctly identifies unavailable slots when rescheduling with multiple attendees who have Cal accounts", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            slotInterval: 60,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          {
+            id: 2,
+            length: 60,
+            slotInterval: 60,
+            users: [
+              {
+                id: 102,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            email: "attendee1@example.com",
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 103,
+            email: "attendee2@example.com",
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+        bookings: [
+          {
+            uid: "some-uid",
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T07:00:00.000Z`,
+            endTime: `${plus2DateString}T08:00:00.000Z`,
+            attendees: [{ email: "attendee1@example.com" }, { email: "attendee2@example.com" }],
+          },
+          {
+            uid: "other-uid",
+            eventTypeId: 2,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
+            attendees: [{ email: "attendee2@example.com" }],
+          },
+        ],
+      });
+
+      const scheduleForRescheduleWithMultipleAttendees = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          rescheduleUid: "some-uid",
+        },
+      });
+
+      expect(scheduleForRescheduleWithMultipleAttendees).toHaveTimeSlots(
+        [
+          `04:30:00.000Z`,
+          `05:30:00.000Z`,
+          `06:30:00.000Z`,
+          `07:30:00.000Z`,
+          `10:00:00.000Z`,
+          `11:00:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+    test("correctly identifies unavailable slots when rescheduling with multiple attendees who do not have Cal accounts", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            slotInterval: 60,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          {
+            id: 2,
+            length: 60,
+            slotInterval: 60,
+            users: [
+              {
+                id: 102,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+          }
+        ],
+
+        bookings: [
+          {
+            uid: "some-uid",
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T07:00:00.000Z`,
+            endTime: `${plus2DateString}T08:00:00.000Z`,
+            attendees: [{ email: "attendee1@example.com" }, { email: "attendee2@example.com" }],
+          },
+          {
+            uid: "other-uid",
+            eventTypeId: 2,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
+            attendees: [{ email: "attendee2@example.com" }],
+          },
+        ],
+      });
+
+      const scheduleForRescheduleWithMultipleAttendees = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          rescheduleUid: "some-uid",
+        },
+      });
+
+      // 101 schedules event 1 with attendee1 and attendee 2 who are not cal users
+      // 102 schedules event 2 with attendee2
+      // Since attendee2 is not a cal user, when 101 reschedules the first event, all the slots are shown as available
+
+      expect(scheduleForRescheduleWithMultipleAttendees).toHaveTimeSlots(
+        [
+          `04:30:00.000Z`,
+          `05:30:00.000Z`,
+          `06:30:00.000Z`,
+          `07:30:00.000Z`,
+          `08:30:00.000Z`,
+          `09:30:00.000Z`,
+          `10:30:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
   });
 });
