@@ -145,7 +145,18 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       dbFormResponse.response as FormResponse
     );
 
-    return { formResponse: dbFormResponse, teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic };
+    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
+    if (!chosenRoute) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Chosen route not found",
+      });
+    }
+    return {
+      formResponse: dbFormResponse,
+      teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+      attributeRoutingConfig: "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+    };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {

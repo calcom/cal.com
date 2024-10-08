@@ -25,12 +25,13 @@ export type EventNameObjectType = {
   location?: string;
   eventDuration: number;
   bookingFields?: Prisma.JsonObject;
+  routingFormResponses?: Record<string, string>;
   t: TFunction;
 };
 
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   const attendeeName = parseName(eventNameObj.attendeeName);
-
+  console.log("getEventName called", { eventNameObj });
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
@@ -65,7 +66,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
     .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`);
 
-  const { bookingFields } = eventNameObj || {};
+  const { bookingFields, routingFormResponses } = eventNameObj || {};
   const { name } = bookingFields || {};
 
   if (name && typeof name === "object" && !Array.isArray(name) && typeof name.firstName === "string") {
@@ -94,6 +95,19 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
             }
           }
           dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
+        }
+      });
+    }
+
+    if (routingFormResponses) {
+      Object.keys(routingFormResponses).forEach((responseKey) => {
+        const expectedVariableName = `routingForm.${responseKey}`;
+        if (variable === expectedVariableName) {
+          console.log("expectedVariableName Replacing", expectedVariableName);
+          dynamicEventName = dynamicEventName.replace(
+            `{${expectedVariableName}}`,
+            routingFormResponses[responseKey]
+          );
         }
       });
     }
@@ -126,11 +140,15 @@ export const validateCustomEventName = (value: string, bookingFields?: Prisma.Js
     "{ATTENDEE}",
     "{USER}",
   ]);
-  const matches = value.match(/\{([^}]+)\}/g);
-  if (matches?.length) {
-    for (const item of matches) {
-      if (!validVariables.includes(item)) {
-        return item;
+  const variablesUsed = value.match(/\{([^}]+)\}/g);
+  if (variablesUsed?.length) {
+    for (const variableUsed of variablesUsed) {
+      console.log("variableUsed", variableUsed);
+      if (variableUsed.startsWith("{routingForm.")) {
+        continue;
+      }
+      if (!validVariables.includes(variableUsed)) {
+        return variableUsed;
       }
     }
   }

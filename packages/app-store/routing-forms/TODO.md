@@ -13,6 +13,9 @@
     - [ ] Warnings are needed with recommendation to create new attribute instead in unsupported scenarios. We need to test for more such changes to Attribute types.
 - [ ] When choosing 'Value of Field' option in RAQB, show a warning somewhere if all options of the Form field aren't present in the attribute option.
       - So, if Form Field is 'What is Comapny Size' with options Enterprise, Large, Medium, Small and Attribute for which Value of 'What is compnay size' has options Enterprise, Large, Medium. It would show a warning that 'Small' option is not present in the attribute.
+- [ ] Contact owner in the picture
+    - [ ] Ability to override owner of the contact during attribute routing
+    - [ ] Have the owner as well during availability and booking
 
 ### Performance Tests and Improvements
 - [ ] Test with ~1000 team members and ~100 attributes.

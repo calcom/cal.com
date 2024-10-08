@@ -11,6 +11,7 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
+import { getRoutedHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -31,7 +32,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-import { getRoutedHosts } from "@calcom/lib/bookings/getRoutedUsers";
+
 import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
@@ -342,6 +343,45 @@ export interface IGetAvailableSlots {
   >;
 }
 
+function getUsersWithCredentials({
+  skipContactOwner,
+  contactOwnerEmail,
+  hosts,
+}: {
+  skipContactOwner: boolean | null | undefined;
+  contactOwnerEmail: string | null | undefined;
+  hosts: {
+    isFixed: boolean;
+    user: GetAvailabilityUser;
+  }[];
+}) {
+  const contactOwnerHost = hosts.find((host) => host.user.email === contactOwnerEmail);
+  /**
+   * It could still have contact owner, if it was one of the assigned hosts of the event.
+   * In case of routedTeamMemberIds, hosts will only have the Routed Team Members and in that case, contact owner would be here only if it matches
+   */
+  let hostsWithoutExplicitContactOwner = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+
+  if (skipContactOwner) {
+    return hostsWithoutExplicitContactOwner;
+  }
+
+  let contactOwnerExists = contactOwnerEmail && contactOwnerHost;
+
+  if (!contactOwnerExists || contactOwnerHost?.isFixed) {
+    return hostsWithoutExplicitContactOwner;
+  }
+
+  const hostsWithExplicitContactOwner = hosts.reduce((usersArray, host) => {
+    if (host.isFixed || host.user.email === contactOwnerEmail)
+      usersArray.push({ ...host.user, isFixed: host.isFixed });
+
+    return usersArray;
+  }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
+
+  return hostsWithExplicitContactOwner;
+}
+
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const orgDetails = input?.orgSlug
     ? {
@@ -408,11 +448,19 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       : eventType.users.map((user) => {
           return {
             isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+            email: user.email,
             user: user,
           };
         });
 
-  let hosts = getRoutedHosts({ hosts: eventHosts, routedTeamMemberIds: input.routedTeamMemberIds ?? null });
+  const contactOwnerEmail = input.teamMemberEmail;
+  const skipContactOwner = input.skipContactOwner;
+
+  let hosts = getRoutedHosts({
+    hosts: eventHosts,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+    contactOwnerEmail: skipContactOwner ? null : contactOwnerEmail,
+  });
 
   if (
     input.rescheduleUid &&
@@ -433,18 +481,13 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
 
-  const teamMemberHost = hosts.find((host) => host.user.email === input?.teamMemberEmail);
+  const usersWithCredentials = getUsersWithCredentials({
+    skipContactOwner,
+    contactOwnerEmail,
+    hosts,
+  });
 
-  // If the requested team member is a fixed host proceed as normal else get availability like the requested member is a fixed host
-  const usersWithCredentials =
-    !input.teamMemberEmail || !teamMemberHost || teamMemberHost.isFixed
-      ? hosts.map(({ isFixed, user }) => ({ isFixed, ...user }))
-      : hosts.reduce((usersArray, host) => {
-          if (host.isFixed || host.user.email === input.teamMemberEmail)
-            usersArray.push({ ...host.user, isFixed: host.isFixed });
-
-          return usersArray;
-        }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
+  console.log("Using users", { usersWithCredentials: usersWithCredentials.map((user) => user.email) });
 
   const durationToUse = input.duration || 0;
 
