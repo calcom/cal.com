@@ -43,8 +43,8 @@ const LayoutHandlerWrapper = ({ page }: { page: React.ReactElement }) => {
     : params.pages?.split("/")[0] ?? DEFAULT_ROUTE;
 
   const component = getComponent(pageKey).default;
-  if (component.getLayout) {
-    return component.getLayout(page) as React.ReactElement;
+  if (component && "getLayout" in component) {
+    return component.getLayout?.(page) as React.ReactElement;
   }
   return page;
 };
