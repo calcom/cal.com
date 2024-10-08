@@ -141,8 +141,7 @@ describe("Trigger Host No Show:", () => {
         },
       });
 
-      await triggerHostNoShow(payload);
-
+      await triggerHostNoShow({ payload, id: 0 });
       const maxStartTime = calculateMaxStartTime(bookingStartTime, 5, TimeUnit.MINUTE);
       const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
@@ -292,7 +291,7 @@ describe("Trigger Host No Show:", () => {
         },
       });
 
-      await triggerHostNoShow(payload);
+      await triggerHostNoShow({ payload, id: 0 });
 
       const maxStartTime = calculateMaxStartTime(bookingStartTime as unknown as Date, 5, TimeUnit.MINUTE);
       const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");

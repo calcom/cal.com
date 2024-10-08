@@ -64,13 +64,14 @@ export function sendWebhookPayload(
       bookingUid: booking.uid,
       startTime: booking.startTime,
       endTime: booking.endTime,
+      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ? { email: hostEmail } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
       },
       message:
         triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-          ? `Guest did't join the call or didn't joined before ${maxStartTimeHumanReadable}`
+          ? `Guest didn't join the call or didn't join before ${maxStartTimeHumanReadable}`
           : `Host with email ${hostEmail} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
     },
   }).catch((e) => {

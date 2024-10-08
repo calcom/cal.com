@@ -58,9 +58,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const triggerEvent = JSON.parse(job.payload)?.triggerEvent;
 
     if (triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
-      triggerPromises.push(triggerHostNoShow(job.payload));
+      triggerPromises.push(triggerHostNoShow(job));
     } else if (triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
-      triggerPromises.push(triggerGuestNoShow(job.payload));
+      triggerPromises.push(triggerGuestNoShow(job));
     }
   }
 
