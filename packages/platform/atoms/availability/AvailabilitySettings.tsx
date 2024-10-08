@@ -84,7 +84,7 @@ type AvailabilitySettingsProps = {
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
     schedule: Availability[];
-    timeBlocks: { value: string }[];
+    timeBlocks?: { value: string }[];
   };
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
