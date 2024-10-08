@@ -34,11 +34,8 @@ const webServer: PlaywrightTestConfig["webServer"] = [
     reuseExistingServer: !process.env.CI,
   },
 ];
-ensureWebServerIsReady(webServer[0]);
 
 if (IS_EMBED_TEST) {
-  ensureAppServerIsReadyToServeEmbed(webServer[0]);
-
   webServer.push({
     command: "yarn workspace @calcom/embed-core dev",
     port: 3100,
@@ -48,8 +45,6 @@ if (IS_EMBED_TEST) {
 }
 
 if (IS_EMBED_REACT_TEST) {
-  ensureAppServerIsReadyToServeEmbed(webServer[0]);
-
   webServer.push({
     command: "yarn workspace @calcom/embed-react dev",
     port: 3101,
@@ -320,9 +315,4 @@ function ensureAppServerIsReadyToServeEmbed(webServer: { port?: number; url?: st
   delete webServer.port;
   webServer.url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/embed/embed.js`;
   console.log("Ensuring that /embed/embed.js is 200 before starting tests");
-}
-function ensureWebServerIsReady(webServer: { port?: number; url?: string }) {
-  delete webServer.port;
-  webServer.url = process.env.NEXT_PUBLIC_WEBAPP_URL;
-  console.log("Ensuring that web is 200 before starting tests");
 }
