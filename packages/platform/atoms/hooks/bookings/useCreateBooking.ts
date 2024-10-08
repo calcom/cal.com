@@ -5,14 +5,16 @@ import type { BookingResponse } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
-import http from "../lib/http";
+import http from "../../lib/http";
 
-interface IUseCreateInstantBooking {
+export type UseCreateBookingInput = BookingCreateBody & { locationUrl?: string };
+
+interface IUseCreateBooking {
   onSuccess?: (res: ApiSuccessResponse<BookingResponse>) => void;
   onError?: (err: ApiErrorResponse | Error) => void;
 }
-export const useCreateInstantBooking = (
-  { onSuccess, onError }: IUseCreateInstantBooking = {
+export const useCreateBooking = (
+  { onSuccess, onError }: IUseCreateBooking = {
     onSuccess: () => {
       return;
     },
@@ -21,9 +23,9 @@ export const useCreateInstantBooking = (
     },
   }
 ) => {
-  const createInstantBooking = useMutation<ApiResponse<BookingResponse>, Error, BookingCreateBody>({
+  const createBooking = useMutation<ApiResponse<BookingResponse>, Error, UseCreateBookingInput>({
     mutationFn: (data) => {
-      return http.post<ApiResponse<BookingResponse>>("/bookings/instant", data).then((res) => {
+      return http.post<ApiResponse<BookingResponse>>("/bookings", data).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return res.data;
         }
@@ -41,5 +43,5 @@ export const useCreateInstantBooking = (
       onError?.(err);
     },
   });
-  return createInstantBooking;
+  return createBooking;
 };
