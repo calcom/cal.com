@@ -447,6 +447,7 @@ export class EventTypeRepository {
       requiresBookerEmailVerification: true,
       recurringEvent: true,
       hideCalendarNotes: true,
+      hideCalendarEventDetails: true,
       disableGuests: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
@@ -516,6 +517,12 @@ export class EventTypeRepository {
       },
       schedulingType: true,
       schedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      instantMeetingSchedule: {
         select: {
           id: true,
           name: true,

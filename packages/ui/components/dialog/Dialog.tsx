@@ -89,11 +89,15 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   actionDisabled?: boolean;
   Icon?: IconName;
   enableOverflow?: boolean;
+  forceOverlayWhenNoModal?: boolean;
 };
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon: icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
+  (
+    { children, title, Icon: icon, enableOverflow, forceOverlayWhenNoModal, type = "creation", ...props },
+    forwardedRef
+  ) => {
     const isPlatform = useIsPlatform();
     const [Portal, Overlay, Content] = useMemo(
       () =>
@@ -108,7 +112,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     );
     return (
       <Portal>
-        <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        {forceOverlayWhenNoModal ? (
+          <div className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        ) : (
+          <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        )}
         <Content
           {...props}
           className={classNames(

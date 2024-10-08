@@ -3,14 +3,19 @@ import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsOptionsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes-options.controller";
+import { OrganizationsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes.controller";
 import { OrganizationsEventTypesController } from "@/modules/organizations/controllers/event-types/organizations-event-types.controller";
 import { OrganizationsMembershipsController } from "@/modules/organizations/controllers/memberships/organizations-membership.controller";
+import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/controllers/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsWebhooksController } from "@/modules/organizations/controllers/webhooks/organizations-webhooks.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OrganizationAttributeOptionRepository } from "@/modules/organizations/repositories/attributes/organization-attribute-option.repository";
+import { OrganizationAttributesRepository } from "@/modules/organizations/repositories/attributes/organization-attribute.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/repositories/organizations-membership.repository";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/repositories/organizations-schedules.repository";
@@ -18,6 +23,8 @@ import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/repositories/organizations-webhooks.repository";
+import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attributes-option.service";
+import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
@@ -65,10 +72,15 @@ import { Module } from "@nestjs/common";
     OrganizationsEventTypesRepository,
     OrganizationsTeamsMembershipsRepository,
     OrganizationsTeamsMembershipsService,
+    OrganizationAttributesService,
+    OrganizationAttributeOptionService,
+    OrganizationAttributeOptionRepository,
+    OrganizationAttributesRepository,
     OrganizationsWebhooksRepository,
     OrganizationsWebhooksService,
     WebhooksRepository,
     WebhooksService,
+    OutputTeamEventTypesResponsePipe,
   ],
   exports: [
     OrganizationsService,
@@ -80,6 +92,10 @@ import { Module } from "@nestjs/common";
     OrganizationsMembershipService,
     OrganizationsTeamsMembershipsRepository,
     OrganizationsTeamsMembershipsService,
+    OrganizationAttributesService,
+    OrganizationAttributeOptionService,
+    OrganizationAttributeOptionRepository,
+    OrganizationAttributesRepository,
     OrganizationsWebhooksRepository,
     OrganizationsWebhooksService,
     WebhooksRepository,
@@ -92,6 +108,8 @@ import { Module } from "@nestjs/common";
     OrganizationsMembershipsController,
     OrganizationsEventTypesController,
     OrganizationsTeamsMembershipsController,
+    OrganizationsAttributesController,
+    OrganizationsOptionsAttributesController,
     OrganizationsWebhooksController,
   ],
 })

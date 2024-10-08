@@ -507,11 +507,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           )}
         </>
         {props.variables && (
-          <div className="ml-auto">
+          <div className={`${props.addVariableButtonTop ? "-mt-10" : ""} ml-auto`}>
             <AddVariablesDropdown
               addVariable={addVariable}
               isTextEditor={true}
               variables={props.variables || []}
+              addVariableButtonTop={props.addVariableButtonTop}
             />
           </div>
         )}

@@ -4,12 +4,14 @@ import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
-import { appWithTranslation, type SSRConfig } from "next-i18next";
+import type { SSRConfig } from "next-i18next";
+import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
-import type { AppProps as NextAppProps } from "next/app";
+import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -20,18 +22,28 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
 
+const I18nextAdapter = appWithTranslation<
+  NextJsAppProps<SSRConfig> & {
+    children: React.ReactNode;
+  }
+>(({ children }) => <>{children}</>);
+
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithNonceProps<{
-      themeBasis?: string;
-      session: Session;
-    }>
+    WithLocaleProps<
+      WithNonceProps<{
+        themeBasis?: string;
+        session: Session;
+        i18n?: SSRConfig;
+      }>
+    >
   >,
   "Component"
 > & {
@@ -53,22 +65,18 @@ const getEmbedNamespace = (searchParams: ReadonlyURLSearchParams) => {
   return typeof window !== "undefined" ? window.getEmbedNamespace() : searchParams.get("embed") ?? null;
 };
 
-// @ts-expect-error appWithTranslation expects AppProps
-const AppWithTranslationHoc = appWithTranslation(({ children }) => <>{children}</>);
-
 const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSRConfig }) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
-  // @TODO
 
   const session = useSession();
-
-  // window.document.documentElement.lang can be empty in some cases, for instance when we rendering GlobalError (not-found) page.
-  const locale =
-    session?.data?.user.locale ?? typeof window !== "undefined"
-      ? window.document.documentElement.lang || "en"
+  const fallbackLocale =
+    typeof window !== "undefined" && window.document.documentElement.lang
+      ? window.document.documentElement.lang
       : "en";
+  const newLocale = typeof window !== "undefined" && window.calNewLocale ? window.calNewLocale : null;
+  const locale = session?.data?.user.locale ?? newLocale ?? fallbackLocale;
 
   useEffect(() => {
     try {
@@ -104,9 +112,7 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
 
   return (
     // @ts-expect-error AppWithTranslationHoc expects AppProps
-    <AppWithTranslationHoc pageProps={{ _nextI18Next: i18n?._nextI18Next }}>
-      {props.children}
-    </AppWithTranslationHoc>
+    <I18nextAdapter pageProps={{ _nextI18Next: i18n?._nextI18Next }}>{props.children}</I18nextAdapter>
   );
 };
 
@@ -114,30 +120,31 @@ const enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages
-  App = "userConfigured",
+  App = "appConfigured",
   // Booking Pages(including Routing Forms)
-  Booking = "userConfigured",
+  Booking = "bookingConfigured",
 }
 
 type CalcomThemeProps = Readonly<{
   isBookingPage: boolean;
   themeBasis: string | null;
   nonce: string | undefined;
-  isThemeSupported: boolean;
   children: React.ReactNode;
+  isThemeSupported?: boolean;
 }>;
 
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
-
   const searchParams = useSearchParams();
   const embedNamespace = searchParams ? getEmbedNamespace(searchParams) : null;
   const isEmbedMode = typeof embedNamespace === "string";
 
+  const { key, ...themeProviderProps } = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+
   return (
-    <ThemeProvider {...getThemeProviderProps({ ...props, isEmbedMode, embedNamespace })}>
+    <ThemeProvider key={key} {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -179,13 +186,14 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
  *    - t4 -> Receives storageEvent(B) & thus setItem(B) & thus fires storageEvent(B) (On Page A) - Current State(B)
  *    - ... and so on ...
  */
-function getThemeProviderProps(props: {
-  isBookingPage: boolean;
-  themeBasis: string | null;
-  nonce: string | undefined;
+function getThemeProviderProps({
+  props,
+  isEmbedMode,
+  embedNamespace,
+}: {
+  props: Omit<CalcomThemeProps, "children">;
   isEmbedMode: boolean;
   embedNamespace: string | null;
-  isThemeSupported: boolean;
 }) {
   const themeSupport = props.isBookingPage
     ? ThemeSupport.Booking
@@ -195,18 +203,15 @@ function getThemeProviderProps(props: {
     : ThemeSupport.App;
 
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
+  const themeBasis = props.themeBasis;
 
-  if (
-    !process.env.NEXT_PUBLIC_IS_E2E &&
-    (isBookingPageThemeSupportRequired || props.isEmbedMode) &&
-    !props.themeBasis
-  ) {
+  if (!process.env.NEXT_PUBLIC_IS_E2E && (isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
     console.warn(
       "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
     );
   }
 
-  const appearanceIdSuffix = props.themeBasis ? `:${props.themeBasis}` : "";
+  const appearanceIdSuffix = themeBasis ? `:${themeBasis}` : "";
   const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
   let embedExplicitlySetThemeSuffix = "";
 
@@ -217,10 +222,10 @@ function getThemeProviderProps(props: {
     }
   }
 
-  const storageKey = props.isEmbedMode
+  const storageKey = isEmbedMode
     ? // Same Namespace, Same Organizer but different themes would still work seamless and not cause theme flicker
       // Even though it's recommended to use different namespaces when you want to theme differently on the same page but if the embeds are on different pages, the problem can still arise
-      `embed-theme-${props.embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
+      `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
     : themeSupport === ThemeSupport.App
     ? "app-theme"
     : isBookingPageThemeSupportRequired
@@ -270,7 +275,7 @@ const AppProviders = (props: PageWrapperProps) => {
               <CalcomThemeProvider
                 themeBasis={props.themeBasis}
                 nonce={props.nonce}
-                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported ?? true}
+                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
                 isBookingPage={props.isBookingPage || isBookingPage}>
                 <FeatureFlagsProvider>
                   <OrgBrandProvider>

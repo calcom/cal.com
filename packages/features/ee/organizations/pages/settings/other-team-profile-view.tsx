@@ -9,7 +9,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,7 +38,6 @@ import {
   TextField,
 } from "@calcom/ui";
 
-import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
@@ -55,7 +54,7 @@ const teamProfileFormSchema = z.object({
   bio: z.string(),
 });
 
-const OtherTeamProfileView = () => {
+const OtherTeamProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -170,7 +169,7 @@ const OtherTeamProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} />
+      {!isAppDir ? <Meta title={t("profile")} description={t("profile_team_description")} /> : null}
       {!isPending ? (
         <>
           {isAdmin ? (
@@ -263,7 +262,7 @@ const OtherTeamProfileView = () => {
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isPending}>
                 {t("update")}
               </Button>
-              {IS_TEAM_BILLING_ENABLED &&
+              {IS_TEAM_BILLING_ENABLED_CLIENT &&
                 team.slug === null &&
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
@@ -368,7 +367,5 @@ const OtherTeamProfileView = () => {
     </>
   );
 };
-
-OtherTeamProfileView.getLayout = getLayout;
 
 export default OtherTeamProfileView;

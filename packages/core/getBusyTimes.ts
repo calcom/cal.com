@@ -157,29 +157,31 @@ export async function getBusyTimes(params: {
       select: bookingsSelect,
     });
 
-    const currentBookingsAllUsersQueryThree = prisma.booking.findMany({
-      where: {
-        startTime: { lte: endTimeDate },
-        endTime: { gte: startTimeDate },
-        eventType: {
-          id: eventTypeId,
-          requiresConfirmation: true,
-          requiresConfirmationWillBlockSlot: true,
-        },
-        status: {
-          in: [BookingStatus.PENDING],
-        },
-      },
-      select: bookingsSelect,
-    });
+    const unconfirmedBookingsBlockingSlots = eventTypeId
+      ? prisma.booking.findMany({
+          where: {
+            startTime: { lte: endTimeDate },
+            endTime: { gte: startTimeDate },
+            eventType: {
+              id: eventTypeId,
+              requiresConfirmation: true,
+              requiresConfirmationWillBlockSlot: true,
+            },
+            status: {
+              in: [BookingStatus.PENDING],
+            },
+          },
+          select: bookingsSelect,
+        })
+      : null;
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([
       currentBookingsAllUsersQueryOne,
       currentBookingsAllUsersQueryTwo,
-      currentBookingsAllUsersQueryThree,
+      unconfirmedBookingsBlockingSlots,
     ]);
 
-    bookings = [...resultOne, ...resultTwo, ...resultThree];
+    bookings = [...resultOne, ...resultTwo, ...(resultThree ?? [])];
   }
 
   const bookingSeatCountMap: { [x: string]: number } = {};
@@ -321,26 +323,14 @@ export async function getBusyTimes(params: {
   return { busyTimes, timeBlocks };
 }
 
-export async function getBusyTimesForLimitChecks(params: {
-  userIds: number[];
-  eventTypeId: number;
-  startDate: string;
-  endDate: string;
-  rescheduleUid?: string | null;
-  bookingLimits?: IntervalLimit | null;
-  durationLimits?: IntervalLimit | null;
-}) {
-  const { userIds, eventTypeId, startDate, endDate, rescheduleUid, bookingLimits, durationLimits } = params;
+export function getStartEndDateforLimitCheck(
+  startDate: string,
+  endDate: string,
+  bookingLimits?: IntervalLimit | null,
+  durationLimits?: IntervalLimit | null
+) {
   const startTimeAsDayJs = stringToDayjs(startDate);
   const endTimeAsDayJs = stringToDayjs(endDate);
-
-  performance.mark("getBusyTimesForLimitChecksStart");
-
-  let busyTimes: EventBusyDetails[] = [];
-
-  if (!bookingLimits && !durationLimits) {
-    return busyTimes;
-  }
 
   let limitDateFrom = stringToDayjs(startDate);
   let limitDateTo = stringToDayjs(endDate);
@@ -354,6 +344,36 @@ export async function getBusyTimesForLimitChecks(params: {
       limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
     }
   }
+
+  return { limitDateFrom, limitDateTo };
+}
+
+export async function getBusyTimesForLimitChecks(params: {
+  userIds: number[];
+  eventTypeId: number;
+  startDate: string;
+  endDate: string;
+  rescheduleUid?: string | null;
+  bookingLimits?: IntervalLimit | null;
+  durationLimits?: IntervalLimit | null;
+}) {
+  const { userIds, eventTypeId, startDate, endDate, rescheduleUid, bookingLimits, durationLimits } = params;
+
+  performance.mark("getBusyTimesForLimitChecksStart");
+
+  let busyTimes: EventBusyDetails[] = [];
+
+  if (!bookingLimits && !durationLimits) {
+    return busyTimes;
+  }
+
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    startDate,
+    endDate,
+    bookingLimits,
+    durationLimits
+  );
+
   logger.silly(
     `Fetch limit checks bookings in range ${limitDateFrom} to ${limitDateTo} for input ${JSON.stringify({
       eventTypeId,
