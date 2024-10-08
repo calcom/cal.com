@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "Korlátozza, hogy a tagok hányszor foglalhatók le az összes csapat eseménytípuson belül",
   "booking_limits_updated_successfully": "A foglalási korlátok sikeresen frissítve",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nincs jogosultsága a foglalás módosításához",
+  "matching_members": "Megfelelő tagok",
+  "no_matching_members": "Nincsenek megfelelő tagok. Az eseménytípushoz rendelt csapattagok kerülnek felhasználásra.",
   "hide_calendar_event_details": "Naptáresemény részleteinek elrejtése megosztott naptárakon",
   "description_hide_calendar_event_details": "Amikor egy naptár meg van osztva, az események láthatóak az olvasók számára, de a részletek rejtve maradnak azok elől, akiknek nincs írási hozzáférésük.",
   "last_number_of_days": "az elmúlt {{count}} nap",

@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "تحديد عدد المرات التي يمكن فيها حجز الأعضاء عبر جميع أنواع فعاليات الفريق",
   "booking_limits_updated_successfully": "تم تحديث حدود الحجز بنجاح",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "أنت غير مخول لإجراء هذا التغيير على الحجز",
+  "matching_members": "الأعضاء المطابقون",
+  "no_matching_members": "لا يوجد أعضاء مطابقون. سيتم الرجوع إلى استخدام أعضاء الفريق المعينين لنوع الحدث.",
   "hide_calendar_event_details": "إخفاء تفاصيل الأحداث في التقويمات المشتركة",
   "description_hide_calendar_event_details": "عند مشاركة التقويم، تكون الأحداث مرئية للقراء ولكن تفاصيلها تكون مخفية عن أولئك الذين ليس لديهم صلاحية الكتابة.",
   "last_number_of_days": "آخر {{count}} يوم",
