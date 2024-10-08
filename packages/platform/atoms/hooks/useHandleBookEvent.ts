@@ -1,5 +1,6 @@
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
@@ -73,6 +74,8 @@ export const useHandleBookEvent = ({
         : duration && event.data.metadata?.multipleDuration?.includes(duration)
         ? duration
         : event.data.length;
+
+      setLastBookingResponse(values.responses);
 
       const bookingInput = {
         values,
