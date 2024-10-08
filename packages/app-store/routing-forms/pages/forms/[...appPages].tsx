@@ -345,6 +345,7 @@ export default function RoutingForms({
 }
 
 RoutingForms.getLayout = (page: React.ReactElement) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { t } = useLocale();
 
   return (

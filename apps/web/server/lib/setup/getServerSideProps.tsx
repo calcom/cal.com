@@ -1,11 +1,18 @@
 import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
+import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { ssrInit } from "@server/lib/ssr";
+
+export enum LicenseStatus {
+  UNSET = "UNSET",
+  VALID = "VALID",
+  INVALID = "INVALID",
+}
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
@@ -24,33 +31,36 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const deploymentKey = await prisma.deployment.findUnique({
-    where: { id: 1 },
-    select: { licenseKey: true },
+  const deployment = await prisma.deployment.findUnique({
+    where: {
+      id: 1,
+    },
   });
 
-  // Check existant CALCOM_LICENSE_KEY env var and acccount for it
-  if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey?.licenseKey) {
-    await prisma.deployment.upsert({
-      where: { id: 1 },
-      update: {
-        licenseKey: process.env.CALCOM_LICENSE_KEY,
-        agreedLicenseAt: new Date(),
-      },
-      create: {
-        licenseKey: process.env.CALCOM_LICENSE_KEY,
-        agreedLicenseAt: new Date(),
-      },
+  if (deployment?.licenseKey) {
+    // Hit goblin to check if the license key is valid
+    const response = await fetch(`${CALCOM_PRIVATE_API_ROUTE}/v1/license/${deployment.licenseKey}`);
+    const data = await response.json();
+    const responseSchema = z.object({
+      status: z.boolean(),
     });
-  }
 
-  const isFreeLicense = (await getDeploymentKey(prisma)) === "";
+    const parsedResponse = responseSchema.safeParse(data);
+
+    return {
+      props: {
+        trpcState: ssr.dehydrate(),
+        userCount,
+        licenseStatus: parsedResponse.success ? LicenseStatus.VALID : LicenseStatus.INVALID,
+      },
+    };
+  }
 
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      isFreeLicense,
       userCount,
+      licenseStatus: LicenseStatus.UNSET,
     },
   };
 }
