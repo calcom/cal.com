@@ -1,7 +1,7 @@
 {
   "name": "@calcom/embed-react",
   "sideEffects": false,
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Embed Cal Link as a React Component",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -44,7 +44,7 @@
     }
   },
   "devDependencies": {
-    "@playwright/test": "^1.31.2",
+    "@playwright/test": "^1.45.3",
     "@types/react": "18.0.26",
     "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^2.2.0",

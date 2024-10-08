@@ -21,7 +21,7 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
     {
       name: "analytics",
       href: getHref(baseURL, "analytics", useQueryParam),
-      icon: "bar-chart",
+      icon: "chart-bar",
     },
     {
       name: "automation",

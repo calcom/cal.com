@@ -39,7 +39,7 @@ export default class CrmManager {
     const contactsToCreate = event.attendees.filter(
       (attendee) => !contacts.some((contact) => contact.email === attendee.email)
     );
-    const createdContacts = await this.createContacts(contactsToCreate);
+    const createdContacts = await this.createContacts(contactsToCreate, event.organizer?.email);
     contacts = contacts.concat(createdContacts);
     return await crmService?.createEvent(event, contacts);
   }
@@ -60,9 +60,9 @@ export default class CrmManager {
     return contacts;
   }
 
-  public async createContacts(contactsToCreate: ContactCreateInput[]) {
+  public async createContacts(contactsToCreate: ContactCreateInput[], organizerEmail?: string) {
     const crmService = await this.getCrmService(this.credential);
-    const createdContacts = (await crmService?.createContacts(contactsToCreate)) || [];
+    const createdContacts = (await crmService?.createContacts(contactsToCreate, organizerEmail)) || [];
     return createdContacts;
   }
 }

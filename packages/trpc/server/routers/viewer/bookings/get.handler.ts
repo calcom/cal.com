@@ -1,4 +1,4 @@
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
@@ -23,7 +23,8 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const take = input.limit ?? 10;
   const skip = input.cursor ?? 0;
   const { prisma, user } = ctx;
-  const bookingListingByStatus = input.filters.status;
+  const defaultStatus = "upcoming";
+  const bookingListingByStatus = [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
     ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
@@ -68,9 +69,10 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  // TODO: Fix record typing
-  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
-    teamIds: {
+  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
+
+  if (filters?.teamIds && filters.teamIds.length > 0) {
+    bookingWhereInputFilters.teamIds = {
       AND: [
         {
           OR: [
@@ -78,7 +80,7 @@ export async function getBookings({
               eventType: {
                 team: {
                   id: {
-                    in: filters?.teamIds,
+                    in: filters.teamIds,
                   },
                 },
               },
@@ -88,7 +90,7 @@ export async function getBookings({
                 parent: {
                   team: {
                     id: {
-                      in: filters?.teamIds,
+                      in: filters.teamIds,
                     },
                   },
                 },
@@ -97,8 +99,11 @@ export async function getBookings({
           ],
         },
       ],
-    },
-    userIds: {
+    };
+  }
+
+  if (filters?.userIds && filters.userIds.length > 0) {
+    bookingWhereInputFilters.userIds = {
       AND: [
         {
           OR: [
@@ -107,7 +112,7 @@ export async function getBookings({
                 hosts: {
                   some: {
                     userId: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
                   },
                 },
@@ -115,7 +120,7 @@ export async function getBookings({
             },
             {
               userId: {
-                in: filters?.userIds,
+                in: filters.userIds,
               },
             },
             {
@@ -123,7 +128,7 @@ export async function getBookings({
                 users: {
                   some: {
                     id: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
                   },
                 },
@@ -132,21 +137,24 @@ export async function getBookings({
           ],
         },
       ],
-    },
-    eventTypeIds: {
+    };
+  }
+
+  if (filters?.eventTypeIds && filters.eventTypeIds.length > 0) {
+    bookingWhereInputFilters.eventTypeIds = {
       AND: [
         {
           OR: [
             {
               eventTypeId: {
-                in: filters?.eventTypeIds,
+                in: filters.eventTypeIds,
               },
             },
             {
               eventType: {
                 parent: {
                   id: {
-                    in: filters?.eventTypeIds,
+                    in: filters.eventTypeIds,
                   },
                 },
               },
@@ -154,8 +162,44 @@ export async function getBookings({
           ],
         },
       ],
-    },
-  };
+    };
+  }
+
+  if (filters?.attendeeEmail) {
+    bookingWhereInputFilters.attendeeEmail = {
+      attendees: {
+        some: {
+          email: filters.attendeeEmail.trim(),
+        },
+      },
+    };
+  }
+
+  if (filters?.attendeeName) {
+    bookingWhereInputFilters.attendeeName = {
+      attendees: {
+        some: {
+          name: filters.attendeeName.trim(),
+        },
+      },
+    };
+  }
+
+  if (filters?.afterStartDate) {
+    bookingWhereInputFilters.afterStartDate = {
+      startTime: {
+        gte: new Date(filters.afterStartDate),
+      },
+    };
+  }
+
+  if (filters?.beforeEndDate) {
+    bookingWhereInputFilters.beforeEndDate = {
+      endTime: {
+        lte: new Date(filters.beforeEndDate),
+      },
+    };
+  }
 
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
@@ -179,6 +223,8 @@ export async function getBookings({
         metadata: true,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
+        eventTypeColor: true,
+        schedulingType: true,
         team: {
           select: {
             id: true,
@@ -407,6 +453,7 @@ export async function getBookings({
       eventType: {
         ...booking.eventType,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+        eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
         price: booking.eventType?.price || 0,
         currency: booking.eventType?.currency || "usd",
         metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),

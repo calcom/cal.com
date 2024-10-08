@@ -10,6 +10,7 @@ import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
+import CacheProvider from "react-inlinesvg/provider";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -144,10 +145,10 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const embedNamespace = getEmbedNamespace(props.router.query);
   const isEmbedMode = typeof embedNamespace === "string";
 
-  const themeProviderProps = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+  const { key, ...themeProviderProps } = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
 
   return (
-    <ThemeProvider {...themeProviderProps}>
+    <ThemeProvider key={key} {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -299,7 +300,10 @@ const AppProviders = (props: AppPropsWithChildren) => {
               router={props.router}>
               <FeatureFlagsProvider>
                 <OrgBrandProvider>
-                  <MetaProvider>{props.children}</MetaProvider>
+                  {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+                  <CacheProvider>
+                    <MetaProvider>{props.children}</MetaProvider>
+                  </CacheProvider>
                 </OrgBrandProvider>
               </FeatureFlagsProvider>
             </CalcomThemeProvider>

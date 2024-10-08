@@ -15,7 +15,7 @@ env:
   IS_E2E: true
   NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
   NEXTAUTH_URL: ${{ secrets.CI_NEXTAUTH_URL }}
-  NODE_OPTIONS: --max-old-space-size=4096
+  NODE_OPTIONS: --max-old-space-size=29000
   REDIS_URL: "redis://localhost:6379"
   STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
@@ -45,6 +45,9 @@ jobs:
           - 5432:5432
       redis:
         image: redis:latest
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         ports:
           - 6379:6379
         options: >-

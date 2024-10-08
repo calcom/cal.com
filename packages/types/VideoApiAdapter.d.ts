@@ -34,6 +34,8 @@ export type VideoApiAdapter =
 
       getAllTranscriptsAccessLinkFromRoomName?(roomName: string): Promise<Array<string>>;
 
+      getAllTranscriptsAccessLinkFromMeetingId?(meetingId: string): Promise<Array<string>>;
+
       submitBatchProcessorJob?(body: batchProcessorBody): Promise<TSubmitBatchProcessorJobRes>;
 
       getTranscriptsAccessLinkFromRecordingId?(

@@ -172,12 +172,13 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
+    serverActions: true,
   },
   i18n: {
     ...i18n,
@@ -205,7 +206,6 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -366,6 +366,10 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      {
+        source: "/icons/sprite.svg",
+        destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
+      },
 
       // When updating this also update pagesAndRewritePaths.js
       ...[
@@ -435,6 +439,22 @@ const nextConfig = {
         // COEP require-corp header is set conditionally when flag.coep is set to true
         headers: [CORP_CROSS_ORIGIN_HEADER],
       },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "cal.com",
+          },
+        ],
+        headers: [
+          // make sure to pass full referer URL for booking pages
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer-when-downgrade",
+          },
+        ],
+      },
       // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
       ...[
         {
@@ -443,6 +463,10 @@ const nextConfig = {
         },
         {
           source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg",
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
       ],

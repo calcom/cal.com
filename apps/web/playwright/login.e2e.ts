@@ -10,7 +10,7 @@ test.describe.configure({ mode: "parallel" });
 // a test to logout requires both a succesfull login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
 testBothFutureAndLegacyRoutes.describe("user can login & logout succesfully", async () => {
-  test.afterAll(async ({ users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
@@ -46,7 +46,7 @@ testBothFutureAndLegacyRoutes.describe("user can login & logout succesfully", as
 });
 
 testBothFutureAndLegacyRoutes.describe("Login and logout tests", () => {
-  test.afterAll(async ({ users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 

@@ -39,6 +39,7 @@ async function seedAppData() {
     return;
   }
 
+  const multiSelectLegacyFieldId = "d2292635-9f12-17b1-9153-c3a854649182";
   await prisma.app_RoutingForms_Form.create({
     data: {
       id: seededForm.id,
@@ -85,7 +86,7 @@ async function seedAppData() {
         },
         {
           id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-          action: { type: "externalRedirectUrl", value: "https://google.com" },
+          action: { type: "externalRedirectUrl", value: "https://cal.com" },
           queryValue: {
             id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
             type: "group",
@@ -113,7 +114,7 @@ async function seedAppData() {
               "b98a8abb-cdef-4012-b456-718262343d27": {
                 type: "rule",
                 properties: {
-                  field: "d4292635-9f12-17b1-9153-c3a854649182",
+                  field: multiSelectLegacyFieldId,
                   value: [["Option-2"]],
                   operator: "multiselect_equals",
                   valueSrc: ["value"],
@@ -131,13 +132,30 @@ async function seedAppData() {
         },
       ],
       fields: [
-        { id: "c4296635-9f12-47b1-8153-c3a854649182", type: "text", label: "Test field", required: true },
+        { id: "c1296635-9f12-47b1-8153-c3a854649182", type: "text", label: "Test field", required: true },
         {
-          id: "d4292635-9f12-17b1-9153-c3a854649182",
+          id: multiSelectLegacyFieldId,
+          type: "multiselect",
+          label: "Multi Select(with legacy `selectText`)",
+          identifier: "multi",
+          selectText: "Option-1\nOption-2",
+          required: false,
+        },
+        {
+          id: "d3292635-9f12-17b1-9153-c3a854649182",
           type: "multiselect",
           label: "Multi Select",
           identifier: "multi",
-          selectText: "Option-1\nOption-2",
+          options: [
+            {
+              id: "d1234635-9f12-17b1-9153-c3a854649182",
+              label: "Option-1",
+            },
+            {
+              id: "d1235635-9f12-17b1-9153-c3a854649182",
+              label: "Option-2",
+            },
+          ],
           required: false,
         },
       ],

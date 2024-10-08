@@ -58,7 +58,7 @@ describe("isAdmin guard", () => {
     expect(scope).toBe(ScopeOfAdmin.SystemWide);
   });
 
-  it("Returns org-wide admin when user is set as such", async () => {
+  it("Returns org-wide admin when user is set as such & admin API access is granted", async () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {},
@@ -67,10 +67,21 @@ describe("isAdmin guard", () => {
     const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
 
     req.userId = adminUser.id;
-
     const { isAdmin, scope } = await isAdminGuard(req);
-
     expect(isAdmin).toBe(true);
     expect(scope).toBe(ScopeOfAdmin.OrgOwnerOrAdmin);
+  });
+
+  it("Returns no admin when user is set as org admin but admin API access is revoked", async () => {
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {},
+    });
+
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-dunder@example.com" } });
+
+    req.userId = adminUser.id;
+    const { isAdmin } = await isAdminGuard(req);
+    expect(isAdmin).toBe(false);
   });
 });

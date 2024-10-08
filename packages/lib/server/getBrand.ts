@@ -15,11 +15,18 @@ export const getBrand = async (orgId: number | null) => {
       name: true,
       slug: true,
       metadata: true,
+      isPlatform: true,
     },
   });
   if (!org) {
     return null;
   }
+
+  // platform orgs don't have a brand nor a domain
+  if (org.isPlatform) {
+    return null;
+  }
+
   const metadata = teamMetadataSchema.parse(org.metadata);
   const slug = (org.slug || metadata?.requestedSlug) as string;
   const fullDomain = getOrgFullOrigin(slug);

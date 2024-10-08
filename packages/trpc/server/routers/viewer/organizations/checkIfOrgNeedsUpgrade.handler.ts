@@ -22,6 +22,7 @@ export async function checkIfOrgNeedsUpgradeHandler({ ctx }: GetUpgradeableOptio
       },
       role: MembershipRole.OWNER,
       team: {
+        isPlatform: false,
         parentId: null, // Since ORGS relay on their parent's subscription, we don't need to return them
       },
     },
