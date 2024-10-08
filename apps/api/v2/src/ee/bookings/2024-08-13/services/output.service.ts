@@ -7,14 +7,20 @@ import { z } from "zod";
 import { BookingOutput_2024_08_13, RecurringBookingOutput_2024_08_13 } from "@calcom/platform-types";
 import { Booking } from "@calcom/prisma/client";
 
-export const bookingResponsesSchema = z.object({
-  email: z.string(),
-  name: z.string(),
-  guests: z.array(z.string()).optional(),
-  rescheduledReason: z.string().optional(),
-});
+export const bookingResponsesSchema = z
+  .object({
+    email: z.string(),
+    name: z.string(),
+    guests: z.array(z.string()).optional(),
+    rescheduledReason: z.string().optional(),
+  })
+  .passthrough();
 
 type DatabaseBooking = Booking & {
+  eventType: {
+    id: number;
+    slug: string;
+  } | null;
   attendees: {
     name: string;
     email: string;
@@ -38,6 +44,8 @@ export class OutputBookingsService_2024_08_13 {
     const booking = {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
+      title: databaseBooking.title,
+      description: databaseBooking.description,
       hosts: [databaseBooking.user],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
@@ -46,6 +54,8 @@ export class OutputBookingsService_2024_08_13 {
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
       duration,
+      eventType: databaseBooking.eventType,
+      // note(Lauris): eventTypeId is deprecated
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
@@ -55,18 +65,22 @@ export class OutputBookingsService_2024_08_13 {
         absent: !!attendee.noShow,
       })),
       guests: bookingResponses.guests,
+      location: databaseBooking.location,
+      // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
       absentHost: !!databaseBooking.noShowHost,
     };
 
-    return plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+    const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+    bookingTransformed.bookingFieldsResponses = bookingResponses;
+    return bookingTransformed;
   }
 
   async getOutputRecurringBookings(databaseBookings: DatabaseBooking[]) {
     const transformed = [];
 
     for (const booking of databaseBookings) {
-      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUser(booking.id);
+      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(booking.id);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${booking.id} was not found in the database`);
       }
@@ -87,6 +101,8 @@ export class OutputBookingsService_2024_08_13 {
     const booking = {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
+      title: databaseBooking.title,
+      description: databaseBooking.description,
       hosts: [databaseBooking.user],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
@@ -95,6 +111,8 @@ export class OutputBookingsService_2024_08_13 {
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
       duration,
+      eventType: databaseBooking.eventType,
+      // note(Lauris): eventTypeId is deprecated
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
@@ -104,9 +122,12 @@ export class OutputBookingsService_2024_08_13 {
         absent: !!attendee.noShow,
       })),
       guests: bookingResponses.guests,
+      location: databaseBooking.location,
+      // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
       recurringBookingUid: databaseBooking.recurringEventId,
       absentHost: !!databaseBooking.noShowHost,
+      bookingFieldsResponses: databaseBooking.responses,
     };
 
     return plainToClass(RecurringBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });

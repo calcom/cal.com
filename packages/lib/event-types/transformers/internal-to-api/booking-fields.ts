@@ -227,7 +227,7 @@ const CustomFieldsSchema = z.object({
 const SystemFieldSchema = z.object({
   defaultLabel: z.string(),
   label: z.string().optional(),
-  editable: z.enum(["system-but-optional", "system"]),
+  editable: z.enum(["system-but-optional", "system", "user-readonly"]),
   sources: z.array(
     z.object({
       id: z.literal("default"),
@@ -352,12 +352,42 @@ export const systemBeforeFieldName: NameSystemField = {
   ],
 };
 
+export const systemBeforeFieldNameReadOnly: NameSystemField = {
+  type: "name",
+  name: "name",
+  editable: "user-readonly",
+  defaultLabel: "your_name",
+  required: true,
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
 export const systemBeforeFieldEmail: EmailSystemField = {
   defaultLabel: "email_address",
   type: "email",
   name: "email",
   required: true,
   editable: "system",
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
+export const systemBeforeFieldEmailReadOnly: EmailSystemField = {
+  defaultLabel: "email_address",
+  type: "email",
+  name: "email",
+  required: true,
+  editable: "user-readonly",
   sources: [
     {
       label: "Default",

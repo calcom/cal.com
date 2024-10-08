@@ -56,6 +56,11 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
     const tracker = await this.getTracker(request);
+    this.logger.log(
+      `Tracker "${tracker}" generated based on: Bearer token "${request.get(
+        "Authorization"
+      )}", OAuth client ID "${request.get(X_CAL_CLIENT_ID)}" and IP "${request.ip}"`
+    );
 
     if (tracker.startsWith("api_key_")) {
       return this.handleApiKeyRequest(tracker, response);
@@ -84,6 +89,9 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
   private async handleNonApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
     const rateLimit = this.getDefaultRateLimit(tracker);
+    this.logger.log(`Tracker "${tracker}" uses default rate limits because it is not tracking api key:
+      ${JSON.stringify(rateLimit, null, 2)}
+    `);
 
     const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
     if (isBlocked) {
@@ -127,6 +135,9 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     const cachedRateLimits = await this.storageService.redis.get(cacheKey);
     if (cachedRateLimits) {
+      this.logger.log(`Tracker "${tracker}" rate limits retrieved from redis cache:
+        ${cachedRateLimits}
+      `);
       return rateLimitsSchema.parse(JSON.parse(cachedRateLimits));
     }
 
@@ -146,11 +157,18 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       select: { name: true, limit: true, ttl: true, blockDuration: true },
     });
 
-    if (!rateLimits || rateLimits.length === 0) {
-      rateLimits = [this.getDefaultRateLimit(tracker)];
+    if (rateLimits) {
+      this.logger.log(`Tracker "${tracker}" rate limits retrieved from database:
+        ${JSON.stringify(rateLimits, null, 2)}`);
     }
 
-    await this.storageService.redis.setex(cacheKey, 3600, JSON.stringify(rateLimits));
+    if (!rateLimits || rateLimits.length === 0) {
+      rateLimits = [this.getDefaultRateLimit(tracker)];
+      this.logger.log(`Tracker "${tracker}" rate limits not found in database. Using default rate limits:
+        ${JSON.stringify(rateLimits, null, 2)}`);
+    }
+
+    await this.storageService.redis.set(cacheKey, JSON.stringify(rateLimits), "EX", 3600);
 
     return rateLimits;
   }
@@ -176,7 +194,15 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     );
     response.setHeader(`X-RateLimit-Reset-${nameFirstUpper}`, timeToBlockExpire || timeToExpire);
 
-    this.logger.log(`Rate limit for ${tracker} incremented. Remaining: ${limit - totalHits}`);
+    this.logger.log(
+      `Tracker "${tracker}" rate limit "${name}" incremented. isBlocked ${isBlocked}, totalHits ${totalHits}, timeToExpire ${timeToExpire}, timeToBlockExpire ${timeToBlockExpire}`
+    );
+    this.logger.log(
+      `Tracker "${tracker}" rate limit "${name}" response headers:
+        X-RateLimit-Limit-${nameFirstUpper}: ${limit},
+        X-RateLimit-Remaining-${nameFirstUpper}: ${timeToBlockExpire ? 0 : Math.max(0, limit - totalHits)},
+        X-RateLimit-Reset-${nameFirstUpper}: ${timeToBlockExpire || timeToExpire}`
+    );
 
     return { isBlocked };
   }
