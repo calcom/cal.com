@@ -345,14 +345,8 @@ export default function RoutingForms({
 }
 
 RoutingForms.getLayout = (page: React.ReactElement) => {
-  const { t } = useLocale();
-
   return (
-    <Shell
-      title={t("routing_forms")}
-      description={t("routing_forms_description")}
-      withoutMain={true}
-      hideHeadingOnMobile>
+    <Shell withoutMain={true} hideHeadingOnMobile>
       {page}
     </Shell>
   );
