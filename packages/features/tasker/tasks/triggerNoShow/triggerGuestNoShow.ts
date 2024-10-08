@@ -1,9 +1,8 @@
-import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger } from "./common";
 
-export async function triggerGuestNoShow({ id, payload }: { id: string; payload: string }): Promise<void> {
+export async function triggerGuestNoShow(payload: string): Promise<void> {
   const result = await prepareNoShowTrigger(payload);
   if (!result) return;
 
@@ -19,10 +18,4 @@ export async function triggerGuestNoShow({ id, payload }: { id: string; payload:
       maxStartTime
     );
   }
-
-  await prisma.webhookScheduledTriggers.delete({
-    where: {
-      id,
-    },
-  });
 }

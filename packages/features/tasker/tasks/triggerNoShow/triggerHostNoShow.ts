@@ -33,7 +33,7 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
   }
 };
 
-export async function triggerHostNoShow({ id, payload }: { id: string; payload: string }): Promise<void> {
+export async function triggerHostNoShow(payload: string): Promise<void> {
   const result = await prepareNoShowTrigger(payload);
   if (!result) return;
 
@@ -54,10 +54,4 @@ export async function triggerHostNoShow({ id, payload }: { id: string; payload: 
   await Promise.all(hostsNoShowPromises);
 
   await markHostsAsNoShowInBooking(booking, hostsThatDidntJoinTheCall);
-
-  await prisma.webhookScheduledTriggers.delete({
-    where: {
-      id,
-    },
-  });
 }

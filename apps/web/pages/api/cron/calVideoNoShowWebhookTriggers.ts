@@ -58,13 +58,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const triggerEvent = JSON.parse(job.payload)?.triggerEvent;
 
     if (triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
-      triggerPromises.push(triggerHostNoShow(job));
+      triggerPromises.push(triggerHostNoShow(job.payload));
     } else if (triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
-      triggerPromises.push(triggerGuestNoShow(job));
+      triggerPromises.push(triggerGuestNoShow(job.payload));
     }
   }
 
   await Promise.all(triggerPromises);
+
+  const jobIdsToDelete = jobsToRun.map((job) => job.id);
+
+  await prisma.webhookScheduledTriggers.deleteMany({
+    where: {
+      id: {
+        in: jobIdsToDelete,
+      },
+    },
+  });
 
   res.json({ ok: true });
 }
