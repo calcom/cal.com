@@ -346,6 +346,7 @@ export default function RoutingForms({
 
 const ShellContainer = ({ page }: { page: React.ReactElement }) => {
   const { t } = useLocale();
+
   return (
     <Shell
       title={t("routing_forms")}
