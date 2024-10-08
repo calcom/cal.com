@@ -105,6 +105,7 @@
     "next-seo": "^6.0.0",
     "next-themes": "^0.2.0",
     "nodemailer": "^6.7.8",
+    "nuqs": "^1.20.0",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.1",
     "raw-body": "^2.5.1",
