@@ -71,16 +71,15 @@ type WorkflowStepProps = {
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
-  if (trigger === WorkflowTriggerEvents.AFTER_EVENT) {
-    return t("how_long_after");
-  } else if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
-    return t("how_long_before");
-  } else if (trigger === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
-    return t("how_long_after_hosts_no_show");
-  } else if (trigger === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
-    return t("how_long_after_guests_no_show");
-  }
-  return null;
+  const triggerMap = {
+    [WorkflowTriggerEvents.AFTER_EVENT]: "how_long_after",
+    [WorkflowTriggerEvents.BEFORE_EVENT]: "how_long_before",
+    [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]:
+      "how_long_after_hosts_no_show",
+    [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]:
+      "how_long_after_guests_no_show",
+  };
+  return triggerMap[trigger] ? t(triggerMap[trigger]) : null;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
