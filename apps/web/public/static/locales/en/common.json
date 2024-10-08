@@ -2635,5 +2635,6 @@
   "month_to_date": "month to date",
   "year_to_date": "year to date",
   "custom_range": "custom range",
+  "mass_assign_attributes": "Mass assign attributes",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
