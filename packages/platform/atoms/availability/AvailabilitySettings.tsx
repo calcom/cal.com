@@ -173,13 +173,13 @@ const TimeBlocks = ({ control }: { control: Control<AvailabilityFormValues> }) =
       <h3 className="text-emphasis font-medium leading-6">{t("time_blocks")}</h3>
       <p className="text-subtle mb-4 text-sm">{t("time_blocks_subtitle")}</p>
       <div className="space-y-2">
-        <TimeBlocksList fields={fields} remove={remove} control={control} />
+        {fields?.length > 0 && <TimeBlocksList fields={fields} remove={remove} control={control} />}
         <Button
           color="secondary"
           StartIcon="plus"
           data-testid="add-override"
           onClick={() => append({ value: "" })}>
-          {t("add_time_block")}
+          {t("add")}
         </Button>
       </div>
     </div>

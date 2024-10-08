@@ -19,10 +19,6 @@ const TimeBlocksList = ({
   if (!methods) return null;
   const { formState } = methods;
 
-  if (fields.length === 0) {
-    return <div />;
-  }
-
   return (
     <div>
       {fields.map((field, index) => {
@@ -30,21 +26,21 @@ const TimeBlocksList = ({
         // @ts-ignore
         const fieldErrors: FieldErrors<T> | undefined = formState.errors.timeBlocks?.[index]?.value;
         return (
-          <div key={field.id} className="mb-2 flex-col items-center space-y-2">
+          <div key={field.id} className="flex-col items-center space-y-2">
             {index !== 0 && (
               <div>
                 <p>{t("or")}</p>
               </div>
             )}
             <div>
-              <div className="flex items-center space-x-4">
+              <div className="flex space-x-4">
                 <div className="w-full">
                   <Controller
                     control={control}
                     name={`timeBlocks.${index}.value`}
                     rules={{ required: t("time_block_empty_error") }}
                     render={({ field }) => (
-                      <TextField label={false} placeholder="Time block" type="standard" {...field} />
+                      <TextField labelSrOnly placeholder="Time block" type="standard" {...field} />
                     )}
                   />
                 </div>
@@ -56,7 +52,11 @@ const TimeBlocksList = ({
                   onClick={() => remove(index)}
                 />
               </div>
-              {fieldErrors && <InputError message={fieldErrors.message} />}
+              {fieldErrors && (
+                <div className="mb-2">
+                  <InputError message={fieldErrors.message} />
+                </div>
+              )}
             </div>
           </div>
         );
