@@ -19,6 +19,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  showToast,
 } from "@calcom/ui";
 
 import type { User } from "../UserListTable";
@@ -118,7 +119,7 @@ function SelectedAttributeToAssign() {
           <>
             <CommandItem>
               <Input
-                value={selectedAttributeOption[0]}
+                value={selectedAttributeOption[0] || ""}
                 type={foundAttribute.type === "TEXT" ? "text" : "number"}
                 onChange={(e) => {
                   setSelectedAttributeOption([e.target.value]);
@@ -134,10 +135,18 @@ function SelectedAttributeToAssign() {
 
 export function MassAssignAttributesBulkAction({ table }: Props) {
   const { selectedAttribute, setSelectedAttribute, foundAttributeInCache } = useSelectedAttributes();
-  const [_, setSelectedAttributeOption] = useSelectedAttributeOption();
+  const [selectedAttributeOptions, setSelectedAttributeOptions] = useSelectedAttributeOption();
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
+  const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
+    onSuccess: (success) => {
+      showToast(success.message, "success");
+    },
+    onError: (error) => {
+      showToast(`Error assigning attributes: ${error.message}`, "error");
+    },
+  });
+  const { data } = trpc.viewer.attributes.list.useQuery();
 
   function Content() {
     if (!selectedAttribute) {
@@ -209,13 +218,14 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
                   size="sm"
                   onClick={() => {
                     setSelectedAttribute(null);
-                    setSelectedAttributeOption([]);
+                    setSelectedAttributeOptions([]);
                     setShowMultiSelectWarning(false);
                   }}>
                   {t("clear")}
                 </Button>
                 <Button
                   className="rounded-md"
+                  loading={bulkAssignAttributes.isPending}
                   size="sm"
                   onClick={() => {
                     if (
@@ -225,7 +235,36 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
                     ) {
                       setShowMultiSelectWarning(true);
                     } else {
+                      if (!foundAttributeInCache) {
+                        return;
+                      }
                       setShowMultiSelectWarning(false);
+                      let attributesToAssign;
+                      if (
+                        foundAttributeInCache?.type === "MULTI_SELECT" ||
+                        foundAttributeInCache?.type === "SINGLE_SELECT"
+                      ) {
+                        attributesToAssign = [
+                          {
+                            id: foundAttributeInCache.id,
+                            options: selectedAttributeOptions.map((v) => ({
+                              value: v,
+                            })),
+                          },
+                        ];
+                      } else {
+                        attributesToAssign = [
+                          { id: foundAttributeInCache.id, value: selectedAttributeOptions[0] },
+                        ];
+                      }
+
+                      bulkAssignAttributes.mutate({
+                        attributes: attributesToAssign,
+                        userIds: table.getSelectedRowModel().rows.map((row) => row.original.id),
+                      });
+
+                      setSelectedAttribute(null);
+                      setSelectedAttributeOptions([]);
                     }
                   }}>
                   {t("apply")}
