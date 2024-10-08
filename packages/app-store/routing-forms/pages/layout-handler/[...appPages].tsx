@@ -36,19 +36,21 @@ export default function LayoutHandler(props: { [key: string]: unknown }) {
   );
 }
 
-LayoutHandler.getLayout = (page: React.ReactElement) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+const LayoutHandlerWrapper = ({ page }: { page: React.ReactElement }) => {
   const params = useParamsWithFallback();
   const pageKey = Array.isArray(params.pages)
     ? params.pages[0]
     : params.pages?.split("/")[0] ?? DEFAULT_ROUTE;
 
   const component = getComponent(pageKey).default;
-  if (component && "getLayout" in component) {
-    return component.getLayout?.(page);
-  } else {
-    return page;
+  if (component.getLayout) {
+    return component.getLayout(page) as React.ReactElement;
   }
+  return page;
+};
+
+LayoutHandler.getLayout = (page: React.ReactElement) => {
+  return <LayoutHandlerWrapper page={page} />;
 };
 
 export async function getServerSideProps(
