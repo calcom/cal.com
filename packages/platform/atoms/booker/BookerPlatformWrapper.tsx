@@ -25,21 +25,21 @@ import {
   transformApiEventTypeForAtom,
   transformApiTeamEventTypeForAtom,
 } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
+import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
+import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
+import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
+import {
+  useGetBookingForReschedule,
+  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+} from "../hooks/bookings/useGetBookingForReschedule";
+import { useHandleBookEvent } from "../hooks/bookings/useHandleBookEvent";
 import { useEventType } from "../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../hooks/event-types/public/useTeamEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
-import type { UseCreateBookingInput } from "../hooks/useCreateBooking";
-import { useCreateBooking } from "../hooks/useCreateBooking";
-import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
-import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
-import {
-  useGetBookingForReschedule,
-  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
-} from "../hooks/useGetBookingForReschedule";
-import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
