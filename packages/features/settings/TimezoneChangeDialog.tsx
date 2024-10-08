@@ -18,11 +18,11 @@ function hideDialogFor(hideFor: [number, DayjsManipulateType], toastContent: str
 
 const TimezoneChangeDialogContent = () => {
   const { t, isLocaleReady } = useLocale();
-  const { open, setOpen, browserTimezone } = useOpenTimezoneDialog();
-
   if (!isLocaleReady) return null;
 
   const utils = trpc.useUtils();
+
+  const browserTimezone = dayjs.tz.guess() || "Europe/London";
   const formattedCurrentTz = browserTimezone.replace("_", " ");
 
   const onMutationSuccess = async () => {
@@ -73,18 +73,17 @@ export function useOpenTimezoneDialog() {
   const [showDialog, setShowDialog] = useState(false);
   const { data: userSession, status } = useSession();
 
-  const browserTimezone = dayjs.tz.guess() || "Europe/London";
-
   useEffect(() => {
     if (!user?.timeZone || status !== "authenticated" || userSession?.user?.impersonatedBy) {
       return;
     }
+    const browserTimezone = dayjs.tz.guess() || "Europe/London";
     if (dayjs.tz(undefined, browserTimezone).utcOffset() !== dayjs.tz(undefined, user.timeZone).utcOffset()) {
       setShowDialog(true);
     }
   }, [user?.timeZone, status, userSession?.user?.impersonatedBy]);
 
-  return { open: showDialog, setOpen: setShowDialog, browserTimezone };
+  return { open: showDialog, setOpen: setShowDialog };
 }
 
 function TimezoneChangeDialogContainer() {
