@@ -31,7 +31,7 @@ export const triggerNoShowPayloadSchema = z.object({
       .object({
         id: z.string(),
         room: z.string(),
-        start_time: z.string(),
+        start_time: z.number(),
         duration: z.number(),
         max_participants: z.number(),
         participants: z.array(
