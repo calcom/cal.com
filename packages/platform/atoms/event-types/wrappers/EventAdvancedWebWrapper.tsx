@@ -4,7 +4,13 @@ import { trpc } from "@calcom/trpc/react";
 
 const EventAdvancedWebWrapper = ({ ...props }: EventAdvancedBaseProps) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
-  return <EventAdvancedTab {...props} calendarsQueryData={connectedCalendarsQuery.data} />;
+  return (
+    <EventAdvancedTab
+      {...props}
+      calendarsQueryData={connectedCalendarsQuery.data}
+      showBookerLayoutSelector={true}
+    />
+  );
 };
 
 export default EventAdvancedWebWrapper;

@@ -56,6 +56,8 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
 
 export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
+  showBookerLayoutSelector: boolean;
+  isPlatform?: boolean;
 };
 
 export const EventAdvancedTab = ({
@@ -65,6 +67,8 @@ export const EventAdvancedTab = ({
   user,
   isUserLoading,
   showToast,
+  showBookerLayoutSelector,
+  isPlatform = false,
 }: EventAdvancedTabProps) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
@@ -172,7 +176,7 @@ export const EventAdvancedTab = ({
   const displayDestinationCalendarSelector =
     !!calendarsQueryData?.connectedCalendars?.length && (!team || isChildrenManagedEventType);
 
-  const verifiedSecondaryEmails = [
+  let verifiedSecondaryEmails = [
     {
       label: user?.email || "",
       value: -1,
@@ -181,6 +185,19 @@ export const EventAdvancedTab = ({
       .filter((secondaryEmail) => !!secondaryEmail.emailVerified)
       .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
   ];
+
+  const removePlatformClientIdFromEmail = (email) => email.replace(/\+[^@]+/, "");
+
+  let userEmail = user?.email || "";
+
+  if (isPlatform) {
+    verifiedSecondaryEmails = verifiedSecondaryEmails.map((email) => ({
+      ...email,
+      label: removePlatformClientIdFromEmail(email.label),
+    }));
+    userEmail = removePlatformClientIdFromEmail(userEmail);
+  }
+
   const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
   return (
     <div className="flex flex-col space-y-4">
@@ -260,7 +277,7 @@ export const EventAdvancedTab = ({
                 placeholder={
                   selectedSecondaryEmailId === -1 && (
                     <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                      <Badge variant="blue">{t("default")}</Badge> {user?.email || ""}
+                      <Badge variant="blue">{t("default")}</Badge> {userEmail}
                     </span>
                   )
                 }
@@ -278,13 +295,15 @@ export const EventAdvancedTab = ({
           )}
         </div>
       </div>
-      <BookerLayoutSelector
-        fallbackToUserSettings
-        isDark={selectedThemeIsDark}
-        isOuterBorder={true}
-        user={user}
-        isUserLoading={isUserLoading}
-      />
+      {showBookerLayoutSelector && (
+        <BookerLayoutSelector
+          fallbackToUserSettings
+          isDark={selectedThemeIsDark}
+          isOuterBorder={true}
+          user={user}
+          isUserLoading={isUserLoading}
+        />
+      )}
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <FormBuilder
           title={t("booking_questions_title")}

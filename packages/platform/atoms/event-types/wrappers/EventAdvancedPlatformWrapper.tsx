@@ -5,7 +5,14 @@ import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 
 const EventAdvancedPlatformWrapper = (props: EventAdvancedBaseProps) => {
   const { data: connectedCalendarsQuery } = useConnectedCalendars({});
-  return <EventAdvancedTab {...props} calendarsQueryData={connectedCalendarsQuery} />;
+  return (
+    <EventAdvancedTab
+      {...props}
+      calendarsQueryData={connectedCalendarsQuery}
+      showBookerLayoutSelector={false}
+      isPlatform={true}
+    />
+  );
 };
 
 export default EventAdvancedPlatformWrapper;
