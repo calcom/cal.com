@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "Begrens hvor mange ganger medlemmer kan bookes på tvers av alle teamhendelsestyper",
   "booking_limits_updated_successfully": "Bestillingsgrenser oppdatert vellykket",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Du har ikke tillatelse til å gjøre denne endringen i bestillingen",
+  "matching_members": "Matchende medlemmer",
+  "no_matching_members": "Ingen matchende medlemmer. Det vil falle tilbake til å bruke teammedlemmene som er tildelt hendelsestypen.",
   "hide_calendar_event_details": "Skjul kalenderhendelsesdetaljer på delte kalendere",
   "description_hide_calendar_event_details": "Når en kalender deles, er hendelser synlige for lesere, men detaljene er skjult for de uten skriveadgang.",
   "last_number_of_days": "siste {{count}} dager",
