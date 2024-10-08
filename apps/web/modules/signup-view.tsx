@@ -208,10 +208,10 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
-  const [COOKIE_CONSENT, setCOOKIE_CONSENT] = useState(false);
+  const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
 
   function handleConsentChange(consent: boolean) {
-    setCOOKIE_CONSENT(!consent);
+    setUserConsentToCookie(!consent);
   }
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
@@ -326,7 +326,7 @@ export default function Signup({
 
   return (
     <>
-      {IS_CALCOM && (!IS_EUROPE || COOKIE_CONSENT) ? (
+      {IS_CALCOM && (!IS_EUROPE || userConsentToCookie) ? (
         <>
           {process.env.NEXT_PUBLIC_GTM_ID && (
             <>
@@ -371,6 +371,7 @@ export default function Signup({
                   color="minimal"
                   className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
                   StartIcon="arrow-left"
+                  data-testid="signup-back-button"
                   onClick={() => {
                     setDisplayEmailForm(false);
                     setIsSamlSignup(false);
@@ -461,7 +462,8 @@ export default function Signup({
                   ) : null}
 
                   <CheckboxField
-                    onChange={() => handleConsentChange(COOKIE_CONSENT)}
+                    data-testid="signup-cookie-content-checkbox"
+                    onChange={() => handleConsentChange(userConsentToCookie)}
                     description={t("cookie_consent_checkbox")}
                   />
                   {errors.apiError && (
@@ -474,6 +476,7 @@ export default function Signup({
                   )}
                   {isSamlSignup ? (
                     <Button
+                      data-testid="saml-submit-button"
                       color="primary"
                       disabled={
                         !!formMethods.formState.errors.username ||
@@ -486,6 +489,7 @@ export default function Signup({
                       onClick={() => {
                         const username = formMethods.getValues("username");
                         if (!username) {
+                          // should not be reached but needed to bypass type errors
                           showToast("error", t("username_required"));
                           return;
                         }
@@ -604,6 +608,7 @@ export default function Signup({
                   </Button>
                   {isSAMLLoginEnabled && (
                     <Button
+                      data-testid="continue-with-saml-button"
                       color="minimal"
                       disabled={isGoogleLoading || isMicrosoftLoading}
                       className={classNames("w-full justify-center rounded-md text-center")}

@@ -26,12 +26,12 @@ test.describe("hash my url", () => {
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
     // ignore if it is already checked, and click if unchecked
-    const hashedLinkCheck = await page.locator('[data-testid="hashedLinkCheck"]');
+    const hashedLinkCheck = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
 
     await hashedLinkCheck.click();
 
     // we wait for the hashedLink setting to load
-    const $url = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
+    const $url = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
 
     // click update
     await page.locator('[data-testid="update-eventtype"]').press("Enter");
@@ -50,8 +50,12 @@ test.describe("hash my url", () => {
     await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
+
+    const hashedLinkCheck2 = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
+    await hashedLinkCheck2.click();
+
     // we wait for the hashedLink setting to load
-    const $newUrl = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
+    const $newUrl = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
     expect($url !== $newUrl).toBeTruthy();
 
     // Ensure that private URL is enabled after modifying the event type.
@@ -63,7 +67,7 @@ test.describe("hash my url", () => {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     await page.locator(".primary-navigation >> text=Advanced").click();
-    const $url2 = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
+    const $url2 = await page.locator('//*[@data-testid="generated-hash-url-0"]').inputValue();
     expect($url2.includes("somethingrandom")).toBeTruthy();
   });
 });

@@ -314,7 +314,7 @@ export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
   bookingCreateSchemaLegacyPropsForApi.partial()
 );
 
-export const schemaBookingCancelParams = z.object({
+export const bookingCancelSchema = z.object({
   id: z.number().optional(),
   uid: z.string().optional(),
   allRemainingBookings: z.boolean().optional(),
@@ -322,6 +322,15 @@ export const schemaBookingCancelParams = z.object({
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
 });
+
+export const bookingCancelAttendeeSeatSchema = z.object({
+  seatReferenceUid: z.string(),
+});
+
+export const bookingCancelInput = bookingCancelSchema.refine(
+  (data) => !!data.id || !!data.uid,
+  "At least one of the following required: 'id', 'uid'."
+);
 
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
