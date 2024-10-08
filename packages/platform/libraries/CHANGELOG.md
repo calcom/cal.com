@@ -1,3 +1,6 @@
+## 0.0.41
+Released to support handle cancel booking passing oauth client id to webhooks.
+
 ## 0.0.38
 #### Feature: Added Support for AdvancedTab Event-Type Attributes in API
 - **Booker Layouts**: 

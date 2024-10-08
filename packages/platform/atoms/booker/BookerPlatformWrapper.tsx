@@ -62,6 +62,10 @@ export type BookerPlatformWrapperAtomProps = Omit<
     notes?: string;
     rescheduleReason?: string;
   } & Record<string, string | string[]>;
+  readOnlyFormValues?: {
+    name?: boolean;
+    email?: boolean;
+  };
   handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
@@ -76,16 +80,17 @@ export type BookerPlatformWrapperAtomProps = Omit<
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
+  hideEventTypeDetails?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
 
-type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
+export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
 };
 
-type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
+export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
@@ -149,7 +154,7 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
+            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.readOnlyFormValues)
             : undefined,
       };
     }
@@ -158,7 +163,10 @@ export const BookerPlatformWrapper = (
       isSuccess,
       isError,
       isPending,
-      data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
+      data:
+        data && data.length > 0
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.readOnlyFormValues)
+          : undefined,
     };
   }, [
     props.isTeamEvent,
@@ -180,7 +188,7 @@ export const BookerPlatformWrapper = (
     event.data.length = props.duration;
   }
 
-  const bookerLayout = useBookerLayout(event.data);
+  const bookerLayout = useBookerLayout(event.data, { hideEventTypeDetails: props.hideEventTypeDetails });
   useInitializeBookerStore({
     ...props,
     eventId: event.data?.id,
