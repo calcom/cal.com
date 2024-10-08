@@ -5,7 +5,7 @@ import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
@@ -57,9 +57,9 @@ export enum Frequency {
 
 const recurringEventSchema = z.object({
   dtstart: z.string().optional(),
-  interval: z.number().int().optional(),
-  count: z.number().int().optional(),
-  freq: z.nativeEnum(Frequency).optional(),
+  interval: z.number().int(),
+  count: z.number().int(),
+  freq: z.nativeEnum(Frequency),
   until: z.string().optional(),
 });
 
@@ -179,8 +179,10 @@ export class InputBookingsService_2024_08_13 {
     // note(Lauris): timeBetween 0=yearly, 1=monthly and 2=weekly
     const timeBetween = occurrence.freq;
 
-    if (!repeatsTimes) {
-      throw new Error("Repeats times is required");
+    if (inputBooking.recurrenceCount && inputBooking?.recurrenceCount > occurrence.count) {
+      throw new BadRequestException(
+        "Provided recurrence count is higher than the event type's recurring event count."
+      );
     }
 
     const events = [];
