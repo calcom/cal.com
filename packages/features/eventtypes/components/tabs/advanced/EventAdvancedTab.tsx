@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import { useAtomsContext, useIsPlatform } from "@calcom/atoms/monorepo";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
@@ -57,7 +58,6 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
 export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
   showBookerLayoutSelector: boolean;
-  isPlatform?: boolean;
 };
 
 export const EventAdvancedTab = ({
@@ -68,8 +68,9 @@ export const EventAdvancedTab = ({
   isUserLoading,
   showToast,
   showBookerLayoutSelector,
-  isPlatform = false,
 }: EventAdvancedTabProps) => {
+  const isPlatform = useIsPlatform();
+  const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
@@ -186,16 +187,17 @@ export const EventAdvancedTab = ({
       .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
   ];
 
-  const removePlatformClientIdFromEmail = (email) => email.replace(/\+[^@]+/, "");
+  const removePlatformClientIdFromEmail = (email: string, clientId: string) =>
+    email.replace(`+${clientId}`, "");
 
   let userEmail = user?.email || "";
 
-  if (isPlatform) {
+  if (isPlatform && platformContext.clientId) {
     verifiedSecondaryEmails = verifiedSecondaryEmails.map((email) => ({
       ...email,
-      label: removePlatformClientIdFromEmail(email.label),
+      label: removePlatformClientIdFromEmail(email.label, platformContext.clientId),
     }));
-    userEmail = removePlatformClientIdFromEmail(userEmail);
+    userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
 
   const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;

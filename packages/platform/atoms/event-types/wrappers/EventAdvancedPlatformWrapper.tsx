@@ -10,7 +10,6 @@ const EventAdvancedPlatformWrapper = (props: EventAdvancedBaseProps) => {
       {...props}
       calendarsQueryData={connectedCalendarsQuery}
       showBookerLayoutSelector={false}
-      isPlatform={true}
     />
   );
 };
