@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmailField, Form, PasswordField, SelectField, Switch, TextField } from "@calcom/ui";
+import { Alert, Button, EmailField, Form, PasswordField, SelectField, TextField } from "@calcom/ui";
 
 import { ExchangeAuthentication, ExchangeVersion } from "../../enums";
 
@@ -149,13 +149,6 @@ export default function ExchangeSetup() {
                         )}
                       />
                     ) : null}
-                    <Switch
-                      label={t("exchange_compression")}
-                      name="useCompression"
-                      onCheckedChange={async (alt) => {
-                        form.setValue("useCompression", alt);
-                      }}
-                    />
                   </fieldset>
                   {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
                   <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
