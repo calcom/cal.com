@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "Limitar cuántas veces se puede reservar a los miembros en todos los tipos de eventos del equipo",
   "booking_limits_updated_successfully": "Límites de reservas actualizados con éxito",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "No tienes autorización para realizar este cambio en la reserva",
+  "matching_members": "Miembros coincidentes",
+  "no_matching_members": "No hay miembros coincidentes. Se utilizarán los miembros del equipo asignados al tipo de evento como alternativa.",
   "hide_calendar_event_details": "Ocultar detalles de eventos del calendario en calendarios compartidos",
   "description_hide_calendar_event_details": "Cuando se comparte un calendario, los eventos son visibles para los lectores, pero sus detalles están ocultos para aquellos sin acceso de escritura.",
   "last_number_of_days": "últimos {{count}} días",
