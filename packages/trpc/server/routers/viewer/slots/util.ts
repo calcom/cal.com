@@ -9,11 +9,14 @@ import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { isUserReschedulingOwner } from "@calcom/features/bookings/lib/handleNewBooking/getRequiresConfirmationFlags";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import {
   isTimeOutOfBounds,
   calculatePeriodLimits,
@@ -25,7 +28,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { PeriodType, Prisma } from "@calcom/prisma/client";
+import { MembershipRole, PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -349,7 +352,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
       }
     : orgDomainConfig(ctx?.req);
-
+  const session = ctx?.req ? await getServerSession({ req: ctx?.req }) : null;
+  const user = session?.user;
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
   }
@@ -412,11 +416,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           };
         });
 
-  if (
-    input.rescheduleUid &&
-    eventType.rescheduleWithSameRoundRobinHost &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN
-  ) {
+  const guests: (GetAvailabilityUser & { isFixed: boolean })[] = [];
+
+  if (input.rescheduleUid) {
     const originalRescheduledBooking = await prisma.booking.findFirst({
       where: {
         uid: input.rescheduleUid,
@@ -426,15 +428,78 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       },
       select: {
         userId: true,
+        eventType: {
+          select: {
+            teamId: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
-    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    if (
+      eventType.rescheduleWithSameRoundRobinHost &&
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    ) {
+      hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    }
+    const userReschedulingIsOwner = isUserReschedulingOwner(
+      user?.id,
+      originalRescheduledBooking?.userId || 0
+    );
+    let isDynamicEventAndUserIsOwner = false;
+    if (input.usernameList && input.usernameList.length > 1 && user) {
+      isDynamicEventAndUserIsOwner = eventType.users.some((eventUser) => eventUser.id === user.id);
+    }
+    let isTeamOrOrgOwnerOrAdmin = false;
+    const orgId = user?.id && (await getOrgIdFromMemberOrTeamId({ memberId: user?.id }));
+    if ((input?.isTeamEvent && originalRescheduledBooking?.eventType?.teamId) || orgId) {
+      const teamIdFilter = [originalRescheduledBooking?.eventType?.teamId, orgId].filter(Boolean) as number[];
+      const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
+        where: {
+          teamId: {
+            in: teamIdFilter,
+          },
+          userId: user?.id,
+          role: {
+            in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+        select: {
+          userId: true,
+        },
+      });
+      isTeamOrOrgOwnerOrAdmin = !!teamOrOrgOwnerOrAdmin;
+    }
+    if (userReschedulingIsOwner || isDynamicEventAndUserIsOwner || isTeamOrOrgOwnerOrAdmin) {
+      const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
+      const attendees = await prisma.user.findMany({
+        where: {
+          email: {
+            in: attendeesEmailList,
+          },
+        },
+        select: {
+          credentials: { select: credentialForCalendarServiceSelect },
+          ...availabilityUserSelect,
+        },
+      });
+      attendees.forEach((user) => {
+        guests.push({
+          ...user,
+          isFixed: true,
+        });
+      });
+    }
   }
 
   const teamMemberHost = hosts.find((host) => host.user.email === input?.teamMemberEmail);
 
   // If the requested team member is a fixed host proceed as normal else get availability like the requested member is a fixed host
-  const usersWithCredentials =
+  let usersWithCredentials =
     !input.teamMemberEmail || !teamMemberHost || teamMemberHost.isFixed
       ? hosts.map(({ isFixed, user }) => ({ isFixed, ...user }))
       : hosts.reduce((usersArray, host) => {
@@ -443,6 +508,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
           return usersArray;
         }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
+
+  if (guests.length) {
+    usersWithCredentials = [...usersWithCredentials, ...guests];
+  }
 
   const durationToUse = input.duration || 0;
 

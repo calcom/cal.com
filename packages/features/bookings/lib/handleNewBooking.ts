@@ -61,8 +61,10 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma from "@calcom/prisma";
+import prisma, { userSelect } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -83,7 +85,10 @@ import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
-import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
+import {
+  getRequiresConfirmationFlags,
+  isUserReschedulingOwner,
+} from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
@@ -297,6 +302,58 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
+  const guestsList: IsFixedAwareUser[] = [];
+
+  if (rescheduleUid) {
+    const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.user?.id);
+    let isTeamOrOrgOwnerOrAdmin = false;
+    const orgId = userId && (await getOrgIdFromMemberOrTeamId({ memberId: userId }));
+    if ((isTeamEventType && eventType?.teamId) || orgId) {
+      const teamIdFilter = [eventType?.teamId, orgId].filter(Boolean) as number[];
+      const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
+        where: {
+          teamId: {
+            in: teamIdFilter,
+          },
+          userId,
+          role: {
+            in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+        select: {
+          userId: true,
+        },
+      });
+      isTeamOrOrgOwnerOrAdmin = !!teamOrOrgOwnerOrAdmin;
+    }
+    let isDynamicEventAndUserIsOwner = false;
+    if (dynamicUserList.length > 1 && userId) {
+      isDynamicEventAndUserIsOwner = users.some((eventUser) => eventUser.id === userId);
+    }
+    if (userReschedulingIsOwner || isTeamOrOrgOwnerOrAdmin || isDynamicEventAndUserIsOwner) {
+      const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
+      const attendees = await prisma.user.findMany({
+        where: {
+          email: {
+            in: attendeesEmailList,
+          },
+        },
+        select: {
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
+          ...userSelect.select,
+        },
+      });
+      attendees.forEach((user) => {
+        guestsList.push({
+          ...user,
+          isFixed: true,
+        });
+      });
+    }
+  }
+
   let luckyUserResponse;
   let isFirstSeat = true;
 
@@ -373,7 +430,7 @@ async function handler(
 
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
       const availableUsers = await ensureAvailableUsers(
-        eventTypeWithUsers,
+        { ...eventTypeWithUsers, users: [...eventTypeWithUsers.users, ...guestsList] },
         {
           dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
           dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
@@ -467,7 +524,7 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
+      if (fixedUserPool.length !== [...users, ...guestsList].filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
