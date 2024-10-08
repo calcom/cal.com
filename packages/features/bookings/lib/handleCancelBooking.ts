@@ -381,7 +381,7 @@ async function handler(req: CustomRequest) {
       bookerUrl,
       ...{
         eventType: {
-          slug: bookingToDelete.eventType?.slug,
+          slug: bookingToDelete.eventType?.slug as string,
           schedulingType: bookingToDelete.eventType?.schedulingType,
           hosts: bookingToDelete.eventType?.hosts,
         },

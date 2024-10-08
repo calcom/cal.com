@@ -4142,7 +4142,7 @@
           }
         },
         "tags": [
-          "oauth"
+          "OAuth"
         ]
       }
     },
@@ -4195,7 +4195,7 @@
           }
         },
         "tags": [
-          "oauth"
+          "OAuth"
         ]
       }
     },
@@ -4244,7 +4244,7 @@
           }
         },
         "tags": [
-          "oauth",
+          "OAuth",
           "Managed users"
         ]
       }
@@ -5030,6 +5030,98 @@
         },
         "tags": [
           "Slots"
+        ]
+      }
+    },
+    "/v2/stripe/connect": {
+      "get": {
+        "operationId": "StripeController_redirect",
+        "summary": "Get stripe connect URL",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
+    "/v2/stripe/save": {
+      "get": {
+        "operationId": "StripeController_save",
+        "summary": "Save stripe credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
+        ]
+      }
+    },
+    "/v2/stripe/check": {
+      "get": {
+        "operationId": "StripeController_check",
+        "summary": "Check stripe connection",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Stripe"
         ]
       }
     },
@@ -11246,6 +11338,60 @@
           }
         }
       },
+      "StripConnectOutputDto": {
+        "type": "object",
+        "properties": {
+          "authUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "authUrl"
+        ]
+      },
+      "StripConnectOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/StripConnectOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "StripCredentialsCheckOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -12056,12 +12202,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -12107,12 +12259,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -12162,9 +12320,9 @@
               "type": "string"
             }
           },
-          "meetingUrl": {
+          "location": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
@@ -12181,6 +12339,23 @@
           "attendee"
         ]
       },
+      "EventType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "slug": {
+            "type": "string",
+            "example": "some-event"
+          }
+        },
+        "required": [
+          "id",
+          "slug"
+        ]
+      },
       "BookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -12191,6 +12366,14 @@
           "uid": {
             "type": "string",
             "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -12235,7 +12418,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 45
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "attendees": {
             "type": "array",
@@ -12255,22 +12443,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "attendees",
           "absentHost"
         ]
@@ -12285,6 +12489,14 @@
           "uid": {
             "type": "string",
             "example": "recurring_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Recurring meeting"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -12328,7 +12540,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 50
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "recurringBookingUid": {
             "type": "string",
@@ -12352,22 +12569,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/recurring-meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": false
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "recurringBookingUid",
           "attendees",
           "absentHost"
@@ -12431,6 +12664,9 @@
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [
@@ -12462,6 +12698,9 @@
               ]
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [
