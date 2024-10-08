@@ -204,6 +204,7 @@ async function handler(
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
+    routedTeamMemberIds,
     ...reqBody
   } = bookingData;
 
@@ -278,6 +279,7 @@ async function handler(
     eventTypeId,
     dynamicUserList,
     logger: loggerWithEventDetails,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
   });
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
@@ -903,6 +905,7 @@ async function handler(
   try {
     booking = await createBooking({
       uid,
+      routedFromRoutingFormResponseId: reqBody.routingFormResponseId,
       reqBody: {
         user: reqBody.user,
         metadata: reqBody.metadata,

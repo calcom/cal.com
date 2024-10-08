@@ -63,7 +63,7 @@
     {
       "group": "Open Source Contribution",
       "pages": [
-        "developing/open-source-contribution/index",
+        "developing/open-source-contribution/introduction",
         "developing/open-source-contribution/code-styling",
         "developing/open-source-contribution/pull-requests",
         "developing/open-source-contribution/contributors-guide"
@@ -81,12 +81,9 @@
           "group": "App Store and Integration",
           "icon": "grid",
           "pages": [
-            "developing/guides/appstore-and-integration/adding-your-first-app",
             "developing/guides/appstore-and-integration/build-a-greeter-app",
             "developing/guides/appstore-and-integration/build-an-app",
-            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
-            "developing/guides/appstore-and-integration/integration-with-hubspot",
-            "developing/guides/appstore-and-integration/oauth"
+            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm"
           ]
         },
         {
@@ -163,7 +160,8 @@
           "icon": "tag",
           "pages": [
             "/self-hosting/guides/white-labeling/introduction",
-            "/self-hosting/guides/white-labeling/custom-css"
+            "/self-hosting/guides/white-labeling/custom-css",
+            "/self-hosting/guides/white-labeling/color-tokens"
           ]
         },
         {
