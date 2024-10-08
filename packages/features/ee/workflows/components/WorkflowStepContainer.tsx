@@ -10,6 +10,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import turndown from "@calcom/lib/turndownService";
 import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -913,22 +914,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
                   }}
                   setText={(text: string) => {
-                    props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                    if (isSMSOrWhatsappAction(step.action)) {
+                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, turndown(text));
+                    } else {
+                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                    }
                     props.form.clearErrors();
                   }}
                   variables={DYNAMIC_TEXT_VARIABLES}
-                  addVariableButtonTop={
-                    step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER
-                  }
+                  addVariableButtonTop={isSMSAction(step.action)}
                   height="200px"
                   updateTemplate={updateTemplate}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
                   editable={!props.readOnly && !isWhatsappAction(step.action)}
                   excludedToolbarItems={
-                    step.action !== WorkflowActions.SMS_ATTENDEE && step.action !== WorkflowActions.SMS_NUMBER
-                      ? []
-                      : ["blockType", "bold", "italic", "link"]
+                    !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                   }
                 />
 
