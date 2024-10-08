@@ -1,73 +1,26 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef, Table } from "@tanstack/react-table";
-import { m } from "framer-motion";
+import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
+import { Avatar, Badge, Checkbox, DataTable, DataTableToolbar } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
-import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
-import { EventTypesList } from "./BulkActions/EventTypesList";
-import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
+import type { UserTableState, UserTableAction, UserTableUser } from "./types";
+import { useFetchMoreOnBottomReached } from "./useFetchMoreOnBottomReached";
 
-export interface User {
-  id: number;
-  username: string | null;
-  email: string;
-  timeZone: string;
-  role: MembershipRole;
-  avatarUrl: string | null;
-  accepted: boolean;
-  disableImpersonation: boolean;
-  completedOnboarding: boolean;
-  teams: {
-    id: number;
-    name: string;
-    slug: string | null;
-  }[];
-}
-
-type Payload = {
-  showModal: boolean;
-  user?: User;
-};
-
-export type State = {
-  changeMemberRole: Payload;
-  deleteMember: Payload;
-  impersonateMember: Payload;
-  inviteMember: Payload;
-  editSheet: Payload & { user?: User };
-};
-
-export type Action =
-  | {
-      type:
-        | "SET_CHANGE_MEMBER_ROLE_ID"
-        | "SET_DELETE_ID"
-        | "SET_IMPERSONATE_ID"
-        | "INVITE_MEMBER"
-        | "EDIT_USER_SHEET";
-      payload: Payload;
-    }
-  | {
-      type: "CLOSE_MODAL";
-    };
-
-const initialState: State = {
+const initialState: UserTableState = {
   changeMemberRole: {
     showModal: false,
   },
@@ -85,7 +38,7 @@ const initialState: State = {
   },
 };
 
-function reducer(state: State, action: Action): State {
+function reducer(state: UserTableState, action: UserTableAction): UserTableState {
   switch (action.type) {
     case "SET_CHANGE_MEMBER_ROLE_ID":
       return { ...state, changeMemberRole: action.payload };
@@ -115,6 +68,7 @@ export function UserListTable() {
   const { data: session } = useSession();
   const { copyToClipboard, isCopied } = useCopy();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -127,12 +81,14 @@ export function UserListTable() {
       {
         limit: 10,
         searchTerm: debouncedSearchTerm,
+        expand: ["attributes"],
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: keepPreviousData,
       }
     );
+
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -144,7 +100,28 @@ export function UserListTable() {
       canResendInvitation: adminOrOwner,
       canImpersonate: false,
     };
-    const cols: ColumnDef<User>[] = [
+    const generateAttributeColumns = () => {
+      if (!attributes?.length) {
+        return [];
+      }
+      return (
+        attributes?.map((attribute) => ({
+          id: attribute.id,
+          header: attribute.name,
+          cell: ({ row }) => {
+            const attributeValue = row.original.attributes.find((attr) => attr.attributeId === attribute.id);
+            console.log({
+              attributesOnRow: row.original.attributes,
+              attributeId: attribute.id,
+              attributeValue: attributeValue?.value,
+            });
+            if (!attributeValue) return null;
+            return <Badge variant="gray">{attributeValue?.value}</Badge>;
+          },
+        })) ?? []
+      );
+    };
+    const cols: ColumnDef<UserTableUser>[] = [
       // Disabling select for this PR: Will work on actions etc in a follow up
       {
         id: "select",
@@ -267,6 +244,7 @@ export function UserListTable() {
           return filterValue.some((value: string) => teamNames.includes(value));
         },
       },
+      ...generateAttributeColumns(),
       {
         id: "actions",
         cell: ({ row }) => {
@@ -296,164 +274,42 @@ export function UserListTable() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount, attributes]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
   const totalFetched = flatData.length;
 
-  //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
-  const fetchMoreOnBottomReached = useCallback(
-    (containerRefElement?: HTMLDivElement | null) => {
-      if (containerRefElement) {
-        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-        //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
-          fetchNextPage();
-        }
-      }
-    },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
-  );
+  const table = useReactTable({
+    data: flatData,
+    columns: memorisedColumns,
+    enableRowSelection: true,
+    debugTable: true,
+    manualPagination: true,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
-  useEffect(() => {
-    fetchMoreOnBottomReached(tableContainerRef.current);
-  }, [fetchMoreOnBottomReached]);
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+    tableContainerRef,
+    fetchNextPage,
+    isFetching,
+    totalFetched,
+    totalDBRowCount
+  );
 
   return (
     <>
       <DataTable
-        onRowMouseclick={(row) => {
-          const user = row.original;
-          const canEdit = adminOrOwner;
-          if (canEdit) {
-            // dispatch({
-            //   type: "EDIT_USER_SHEET",
-            //   payload: {
-            //     showModal: true,
-            //     user,
-            //   },
-            // });
-          }
-        }}
         data-testid="user-list-data-table"
-        onSearch={(value) => setDebouncedSearchTerm(value)}
-        selectionOptions={[
-          {
-            type: "render",
-            render: (table) => <TeamListBulkAction table={table} />,
-          },
-          {
-            type: "action",
-            icon: "handshake",
-            label: "Group Meeting",
-            needsXSelected: 2,
-            onClick: () => {
-              setDynamicLinkVisible((old) => !old);
-            },
-          },
-          {
-            type: "render",
-            render: (table) => <EventTypesList table={table} orgTeams={teams} />,
-          },
-          {
-            type: "render",
-            render: (table) => (
-              <DeleteBulkUsers
-                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-                onRemove={() => table.toggleAllPageRowsSelected(false)}
-              />
-            ),
-          },
-        ]}
-        renderAboveSelection={(table: Table<User>) => {
-          const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
-          const isVisible = numberOfSelectedRows >= 2 && dynamicLinkVisible;
-
-          const users = table
-            .getSelectedRowModel()
-            .flatRows.map((row) => row.original.username)
-            .filter((u) => u !== null);
-
-          const usersNameAsString = users.join("+");
-
-          const dynamicLinkOfSelectedUsers = `${domain}/${usersNameAsString}`;
-          const domainWithoutHttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
-
-          return (
-            <>
-              {isVisible ? (
-                <m.div
-                  layout
-                  className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
-                  <div className="w-[300px] items-center truncate p-2">
-                    <p>{domainWithoutHttps}</p>
-                  </div>
-                  <div className="ml-auto flex items-center">
-                    <Button
-                      StartIcon="copy"
-                      size="sm"
-                      onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
-                      {!isCopied ? t("copy") : t("copied")}
-                    </Button>
-                    <Button
-                      EndIcon="external-link"
-                      size="sm"
-                      href={dynamicLinkOfSelectedUsers}
-                      target="_blank"
-                      rel="noopener noreferrer">
-                      Open
-                    </Button>
-                  </div>
-                </m.div>
-              ) : null}
-            </>
-          );
-        }}
+        table={table}
         tableContainerRef={tableContainerRef}
-        tableCTA={
-          adminOrOwner && (
-            <Button
-              type="button"
-              color="primary"
-              StartIcon="plus"
-              size="sm"
-              className="rounded-md"
-              onClick={() =>
-                dispatch({
-                  type: "INVITE_MEMBER",
-                  payload: {
-                    showModal: true,
-                  },
-                })
-              }
-              data-testid="new-organization-member-button">
-              {t("add")}
-            </Button>
-          )
-        }
-        columns={memorisedColumns}
-        data={flatData}
         isPending={isPending}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-        filterableItems={[
-          {
-            tableAccessor: "role",
-            title: "Role",
-            options: [
-              { label: "Owner", value: "OWNER" },
-              { label: "Admin", value: "ADMIN" },
-              { label: "Member", value: "MEMBER" },
-              { label: "Pending", value: "PENDING" },
-            ],
-          },
-          {
-            tableAccessor: "teams",
-            title: "Teams",
-            options: teams ? teams.map((team) => ({ label: team.name, value: team.name })) : [],
-          },
-        ]}
-      />
+        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+        <DataTableToolbar>
+          <DataTableToolbar.SearchBar table={table} searchKey="member" />
+        </DataTableToolbar>
+        <div style={{ gridArea: "footer" }}>Hello</div>
+      </DataTable>
 
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}

@@ -16,6 +16,7 @@ type GetOptions = {
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId;
   const searchTerm = input.searchTerm;
+  const expand = input.expand;
 
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
@@ -103,6 +104,25 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
       const user = await UserRepository.enrichUserWithItsProfile({ user: membership.user });
+      let attributes;
+
+      if (expand?.includes("attributes")) {
+        attributes = await prisma.attributeOption.findMany({
+          where: {
+            assignedUsers: {
+              some: {
+                memberId: membership.id,
+              },
+            },
+          },
+          orderBy: {
+            attribute: {
+              name: "asc",
+            },
+          },
+        });
+      }
+
       return {
         id: user.id,
         username: user.username,
@@ -123,6 +143,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               slug: team.team.slug,
             };
           }),
+        attributes,
       };
     }) || []
   );
