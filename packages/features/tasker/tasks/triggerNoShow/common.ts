@@ -71,7 +71,7 @@ export function sendWebhookPayload(
       message:
         triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
           ? `Guest did't join the call or didn't joined before ${maxStartTimeHumanReadable}`
-          : `Host with email ${hostEmail} did't join the call or didn't joined before ${maxStartTimeHumanReadable}`,
+          : `Host with email ${hostEmail} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
     },
   }).catch((e) => {
     console.error(
