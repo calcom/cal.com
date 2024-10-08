@@ -10,17 +10,25 @@ You can create an app by simply running the following command. It creates a new 
 yarn create-app
 ```
 
-You just need to provide a few inputs and then you will have your app created within a few seconds. [See, how you can build a very simple app that greets your users.]()
+
+You just need to provide a few inputs and then you will have your app created within a few seconds. [See, how you can build a very simple app that greets your users.](/developing/guides/appstore-and-integration/build-a-greeter-app)
 
 ### Steps in creating an app
 
-* Create the app using the `create-app` command
-* The app can be installed now. But at this moment it isn't doing anything. It is just installed and ready to do what you want it to do.
-* There is pretty much no restriction on what an App can do. Some of the examples are:
-    * Hooking into existing functionalities to enhance them - _In all these cases you need to first check if the app is installed or not. There is_ `_useApp(appSlug)_` _react hook to do that. It gives you the app details if the app is installed._
-* Apps that need to connect with third parties like Google Calendar, Apple Calendar, Google Meet.
-* A super powerful app that has its own data and pages - [Routing Forms App](https://github.com/calcom/cal.com/tree/main/packages/app-store/ee/routing_forms) is a great example of this.
-* There are so many powerful apps already in the [App Store](https://app.cal.com/apps) for time. You can get an idea of what the apps can do from it.
+<Steps>
+    <Step title="Create app">
+        Create the app using the `create-app` command. The app can be installed now, but at this moment it isn't doing anything. It is just installed and ready to do what you want it to do.
+    </Step>
+    <Step title="Adding the functionalities">
+        There is pretty much no restriction on what an App can do. For example:
+            
+            - Hooking into existing functionalities to enhance them - _In all these cases you need to first check if the app is installed or not. There is_ `_useApp(appSlug)_` _react hook to do that. It gives you the app details if the app is installed._
+            - Apps that need to connect with third parties like Google Calendar, Apple Calendar, Google Meet.
+            - A very powerful app that has its own data and pages - [Routing Forms App](https://github.com/calcom/cal.com/tree/main/packages/app-store/ee/routing_forms) is a great example of this.
+            - There are other powerful apps already in the [App Store](https://app.cal.com/apps) that you can get an idea of the capabilities of apps.
+    </Step>
+</Steps>
+
 
 ### Structure
 

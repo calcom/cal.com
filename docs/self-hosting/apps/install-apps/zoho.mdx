@@ -1,45 +1,125 @@
 ---
 title: "Zoho"
 ---
+#### Obtaining ZohoCRM Client ID and Secret
 
-## Obtaining ZohoCRM Client ID and Secret
+<Steps>
+    <Step title="Sign into Zoho API Console">
+        Go to [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
+    </Step>
+    <Step title="Go to Applications">
+        From the API console page, navigate to "Applications".
+    </Step>
+    <Step title="Add a New Client">
+        Click the "ADD CLIENT" button at the top right and select "Server-based Applications".
+    </Step>
+    <Step title="Fill in Client Details">
+        Enter any desired information in the "Client Details" tab.
+    </Step>
+    <Step title="Go to the Client Secret tab">
+        Navigate to the "Client Secret" tab.
+    </Step>
+    <Step title="Save Client ID and Secret to .env">
+        Copy the Client ID and Client Secret into your `.env` file under:
+        ```
+        ZOHOCRM_CLIENT_ID
+        ZOHOCRM_CLIENT_SECRET
+        ```
+    </Step>
+    <Step title="Set the Redirect URL for OAuth">
+        Set the Redirect URL for OAuth to:
+        ```
+        <Cal.com URL>/api/integrations/zohocrm/callback
+        ```
+        Replace `<Cal.com URL>` with your application URL.
+    </Step>
+    <Step title="Enable Multi-DC Option">
+        In the "Settings" section, check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers.
+    </Step>
+    <Step title="Save your settings">
+        Click "Save" or "UPDATE" at the bottom of the page.
+    </Step>
+    <Step title="Integration is Ready">
+        Your ZohoCRM integration can now be easily added in the Cal.com settings.
+    </Step>
+</Steps>
 
+#### Obtaining Zoho Calendar Client ID and Secret
 
-1. Open [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
-2. From within the API console page, go to "Applications".
-3. Click "ADD CLIENT" button top right and select "Server-based Applications".
-4. Fill in any information you want in the "Client Details" tab
-5. Go to tab "Client Secret" tab.
-6. Now copy the Client ID and Client Secret to your `.env` file into the `ZOHOCRM_CLIENT_ID` and `ZOHOCRM_CLIENT_SECRET` fields.
-7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zohocrm/callback` replacing Cal.com URL with the URI at which your application runs.
-8. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers.
-9. Click the "Save"/ "UPDATE" button at the bottom footer.
-10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
-
-## Obtaining Zoho Calendar Client ID and Secret
-
-1. Open [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
-2. Create a "Server-based Applications", set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zohocalendar/callback` replacing Cal.com URL with the URI at which your application runs.
-3. Fill in any information you want in the "Client Details" tab
-4. Go to tab "Client Secret" tab.
-5. Now copy the Client ID and Client Secret into your app keys in the Cal.com admin panel (`<Cal.com>/settings/admin/apps`).
-6. Back in Zoho API Console,
-7. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers.
-8. Click the "Save"/ "UPDATE" button at the bottom footer.
-9. You're good to go. Now you can easily add your Zoho Calendar integration in the Cal.com settings at `/settings/my-account/calendars`.
-10. You can access your Zoho calendar at [https://calendar.zoho.com/](https://calendar.zoho.com/)
+<Steps>
+    <Step title="Sign into Zoho API Console">
+        Go to [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
+    </Step>
+    <Step title="Create a New Server-based Application">
+        Choose "Server-based Applications" and set the Redirect URL for OAuth to:
+        ```
+        <Cal.com URL>/api/integrations/zohocalendar/callback
+        ```
+        Replace `<Cal.com URL>` with your application URL.
+    </Step>
+    <Step title="Fill in Client Details">
+        Enter any information you want in the "Client Details" tab.
+    </Step>
+    <Step title="Go to the Client Secret tab">
+        Navigate to the "Client Secret" tab.
+    </Step>
+    <Step title="Save Credentials in Cal.com Admin Panel">
+        Copy the Client ID and Client Secret to your app keys in the Cal.com admin panel at:
+        ```
+        <Cal.com>/settings/admin/apps
+        ```
+    </Step>
+    <Step title="Enable Multi-DC Option">
+        In the "Settings" section of Zoho API Console, check the "Multi-DC" option if you wish to use the same OAuth credentials across data centers.
+    </Step>
+    <Step title="Save Settings">
+        Click "Save" or "UPDATE" at the bottom of the page.
+    </Step>
+    <Step title="Complete Zoho Calendar Integration">
+        Your Zoho Calendar integration is now ready and can be managed at:
+        ```
+        /settings/my-account/calendars
+        ```
+    </Step>
+    <Step title="Access Zoho Calendar">
+        You can access your Zoho calendar at [https://calendar.zoho.com/](https://calendar.zoho.com/).
+    </Step>
+</Steps>
 
 <Note>
-If you use multiple calendars with Cal, make sure you enable the toggle to prevent double-bookings across calendar. This is in `/settings/my-account/calendars` 
+If you use multiple calendars with Cal, make sure to enable the toggle to prevent double-bookings across calendars. This setting can be found at `/settings/my-account/calendars`.
 </Note>
 
-## Obtaining Zoho Bigin Client ID and Secret
+#### Obtaining Zoho Bigin Client ID and Secret
 
-
-1. Open [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
-2. Click "ADD CLIENT" button top right and select "Server-based Applications".
-3. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zoho-bigin/callback` replacing Cal.com URL with the URI at which your application runs.
-4. Go to tab "Client Secret" tab.
-5. Now copy the Client ID and Client Secret to your .env.appStore file into the `ZOHO_BIGIN_CLIENT_ID` and `ZOHO_BIGIN_CLIENT_SECRET` fields.
-6. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers.
-7. You're good to go. Now you can easily add Zoho Bigin from the Cal.com app store.
+<Steps>
+    <Step title="Sign into Zoho API Console">
+        Go to [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
+    </Step>
+    <Step title="Add a New Client for Zoho Bigin">
+        Click the "ADD CLIENT" button at the top right, and select "Server-based Applications".
+    </Step>
+    <Step title="Set the Redirect URL for OAuth">
+        Set the Redirect URL for OAuth to:
+        ```
+        <Cal.com URL>/api/integrations/zoho-bigin/callback
+        ```
+        Replace `<Cal.com URL>` with your application URL.
+    </Step>
+    <Step title="Go to the Client Secret tab">
+        Navigate to the "Client Secret" tab.
+    </Step>
+    <Step title="Save Client ID and Secret to .env.appStore">
+        Copy the Client ID and Client Secret into the `.env.appStore` file under:
+        ```
+        ZOHO_BIGIN_CLIENT_ID
+        ZOHO_BIGIN_CLIENT_SECRET
+        ```
+    </Step>
+    <Step title="Enable Multi-DC Option">
+        In the "Settings" section, check the "Multi-DC" option if you wish to use the same OAuth credentials across data centers.
+    </Step>
+    <Step title="Complete Zoho Bigin Integration">
+        Your Zoho Bigin integration is now ready and can be added from the Cal.com app store.
+    </Step>
+</Steps>

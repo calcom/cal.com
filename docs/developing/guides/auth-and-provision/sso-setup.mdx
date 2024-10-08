@@ -6,23 +6,33 @@ Cal.com supports both Security Assertion Markup Language (SAML) and OpenID Conne
 
 ### Setting up SAML login
 
-1. Create a SAML application with your Identity Provider (IdP) using the instructions here - [SAML Setup](/developing/guides/auth-and-provision/sso-setup#saml-registration-with-identity-providers)
-
-2. Remember to configure access to the IdP SAML app for all your users (who need access to Cal).
-
-3. You will need the XML metadata from your IdP later, so keep it accessible.
-
-4. Log in to your Organization Admin account and visit `settings/organizations/sso`.
-
-5. Click on the `Configure` button for `SSO with SAML`.
-
-6. You should see a SAML configuration section, copy and paste the XML metadata from step 3 and click on Save.
-
-7. Your provisioned users can now log into Cal using SAML.
+<Steps>
+    <Step title="Create a SAML application with your Identity Provider (IdP)">
+        Follow the instructions here - [SAML Setup](/developing/guides/auth-and-provision/sso-setup#saml-registration-with-identity-providers)
+    </Step>
+    <Step title="Configure access to the IdP SAML app">
+        Ensure that all users who need access to Cal.com have access to the IdP SAML app.
+    </Step>
+    <Step title="Retrieve XML metadata from your IdP">
+        Keep the XML metadata from your IdP accessible, as you will need it later.
+    </Step>
+    <Step title="Log in to your Organization Admin account">
+        Visit `settings/organizations/sso`.
+    </Step>
+    <Step title="Configure SSO with SAML">
+        Click on the `Configure` button for `SSO with SAML`.
+    </Step>
+    <Step title="Paste the XML metadata and Save">
+        In the SAML configuration section, copy and paste the XML metadata from step 3 and click on Save.
+    </Step>
+    <Step title="Your users can now log into Cal using SAML">
+        Once setup is complete, provisioned users can log into Cal.com using SAML.
+    </Step>
+</Steps>
 
 ### SAML Registration with Identity Providers
 
-This guide explains the settings you need to use to configure SAML with your Identity Provider. Once this is set up you should get an XML metadata file that should then be uploaded on your Cal.com self-hosted instance.
+This guide explains the settings you need to use to configure SAML with your Identity Provider. Once configured, obtain an XML metadata file and upload it on your Cal.com instance.
 
 > **Note:** Please do not add a trailing slash at the end of the URLs. Create them exactly as shown below.
 
@@ -40,19 +50,26 @@ This guide explains the settings you need to use to configure SAML with your Ide
 
 **Mapping Attributes / Attribute Statements:**
 
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier -> id
-
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress -> email
-
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname -> firstName
-
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname -> lastName
+- http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier -> id
+- http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress -> email
+- http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname -> firstName
+- http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname -> lastName
 
 ### Setting up OIDC login
 
-1. Keep handy the Client Secret, Client ID and Well Known URL with you for the next step.
-2. Visit `/settings/organizations/sso` and you should see something like this:
-    <img src="./images/i1600x900-8ufcUyCOVwV6_hdudno.png" />
-3. Click on Configure SSO with OIDC, and then enter the Client Secret, Client ID and Well known URL from the Step 1, and click save.
-    <img src="./images/i1600x900-GN1NLgrcf5r4_tmhni3.png" />
-4. That's it. Now when you try to login with SSO, your OIDC provider will handle the auth.
+<Steps>
+    <Step title="Gather necessary credentials">
+        Keep handy the Client Secret, Client ID, and Well Known URL for the next steps.
+    </Step>
+    <Step title="Log in and go to Organization SSO Settings">
+        Visit `/settings/organizations/sso` and you should see something like this:
+        <img src="./images/i1600x900-8ufcUyCOVwV6_hdudno.png" />
+    </Step>
+    <Step title="Configure SSO with OIDC">
+        Click on Configure SSO with OIDC, enter the Client Secret, Client ID, and Well Known URL from Step 1, and click save.
+        <img src="./images/i1600x900-GN1NLgrcf5r4_tmhni3.png" />
+    </Step>
+    <Step title="Complete OIDC setup">
+        Now, when you try to login with SSO, your OIDC provider will handle the authentication.
+    </Step>
+</Steps>
