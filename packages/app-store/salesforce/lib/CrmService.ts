@@ -119,7 +119,7 @@ export default class SalesforceCRMService implements CRM {
     });
   };
 
-  private getSalesforceUserFromEmail = async (email: string) => {
+  private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
     const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
     if (query.records.length > 0) {
@@ -145,7 +145,7 @@ export default class SalesforceCRMService implements CRM {
     options: { [key: string]: unknown }
   ) => {
     const conn = await this.conn;
-    const ownerId = await this.getSalesforceUserFromEmail(event.organizer.email);
+    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
 
     return await conn.sobject("Event").create({
       StartDateTime: new Date(event.startTime).toISOString(),
@@ -306,7 +306,7 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
 
     // See if the organizer exists in the CRM
-    const organizerId = organizerEmail ? await this.getSalesforceUserFromEmail(organizerEmail) : undefined;
+    const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
     const createdContacts = await Promise.all(
       contactsToCreate.map(async (attendee) => {
         const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
