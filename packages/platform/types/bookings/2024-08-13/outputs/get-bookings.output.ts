@@ -23,4 +23,6 @@ export class GetBookingsOutput_2024_08_13 {
   })
   @ValidateNested({ each: true })
   data!: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[];
+
+  error?: Error;
 }

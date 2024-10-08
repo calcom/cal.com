@@ -4,8 +4,8 @@ import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { getBookingForReschedule } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
-import http from "../lib/http";
-import { useAtomsContext } from "./useAtomsContext";
+import http from "../../lib/http";
+import { useAtomsContext } from "../useAtomsContext";
 
 export const QUERY_KEY = "user-booking";
 
