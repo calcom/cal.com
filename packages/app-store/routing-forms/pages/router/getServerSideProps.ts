@@ -7,7 +7,7 @@ import { TRPCError } from "@calcom/trpc/server";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
-import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { findMatchingRoute } from "../../lib/processRoute";
@@ -27,11 +27,24 @@ const querySchema = z
   })
   .catchall(z.string().or(z.array(z.string())));
 
+function getNamedParams(params: { appPages: string[] } | undefined) {
+  const [embed] = params?.appPages || [];
+  return {
+    // There might not be item at index 0, so explicit assertion is needed
+    embed: embed as typeof embed | undefined,
+  };
+}
+
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma
 ) {
   const queryParsed = querySchema.safeParse(context.query);
+  const { embed } = getNamedParams(context.params);
+  const pageProps = {
+    isEmbed: !!embed,
+  };
+
   if (!queryParsed.success) {
     log.warn("Error parsing query", queryParsed.error);
     return {
@@ -139,6 +152,7 @@ export const getServerSideProps = async function getServerSideProps(
     if (e instanceof TRPCError) {
       return {
         props: {
+          ...pageProps,
           form: serializableForm,
           message: e.message,
         },
@@ -150,6 +164,7 @@ export const getServerSideProps = async function getServerSideProps(
   if (decidedAction.type === "customPageMessage") {
     return {
       props: {
+        ...pageProps,
         form: serializableForm,
         message: decidedAction.value,
       },
@@ -163,7 +178,7 @@ export const getServerSideProps = async function getServerSideProps(
 
     return {
       redirect: {
-        destination: getAbsoluteEventTypeRedirectUrl({
+        destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
           eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
           form: serializableForm,
           allURLSearchParams: getUrlSearchParamsToForward({
@@ -174,6 +189,7 @@ export const getServerSideProps = async function getServerSideProps(
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
           }),
+          isEmbed: pageProps.isEmbed,
         }),
         permanent: false,
       },
@@ -187,9 +203,12 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
+  // TODO: Consider throwing error here as there is no value of decidedAction.type that would cause the flow to be here
   return {
     props: {
+      ...pageProps,
       form: serializableForm,
+      message: "Unhandled type of action",
     },
   };
 };
