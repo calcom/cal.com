@@ -36,7 +36,7 @@ const querySchema = z.object({
   parentId: z.coerce.number().optional().nullable(),
 });
 
-const DuplicateDialog = ({ isInfiniteScrollEnabled }: { isInfiniteScrollEnabled?: boolean }) => {
+const DuplicateDialog = () => {
   const utils = trpc.useUtils();
 
   const searchParams = useCompatSearchParams();
@@ -74,15 +74,11 @@ const DuplicateDialog = ({ isInfiniteScrollEnabled }: { isInfiniteScrollEnabled?
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}`);
 
-      if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getUserEventGroups.invalidate();
-        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
-          limit: 10,
-          group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
-        });
-      } else {
-        await utils.viewer.eventTypes.getByViewer.invalidate();
-      }
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+        limit: 10,
+        group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
+      });
 
       showToast(
         t("event_type_created_successfully", {

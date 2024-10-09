@@ -10,7 +10,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Meta } from "@calcom/ui";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
@@ -18,7 +17,7 @@ import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitat
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
 
-const MembersView = () => {
+const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
   const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
@@ -63,7 +62,9 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
+      {!isAppDir ? (
+        <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
+      ) : null}
       {!isPending && (
         <>
           <div>
@@ -139,7 +140,5 @@ const MembersView = () => {
     </>
   );
 };
-
-MembersView.getLayout = getLayout;
 
 export default MembersView;

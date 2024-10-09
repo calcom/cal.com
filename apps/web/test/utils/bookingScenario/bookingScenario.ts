@@ -153,12 +153,15 @@ export type InputEventType = {
   users?: { id: number }[];
   hosts?: InputHost[];
   schedulingType?: SchedulingType;
+  parent?: { id: number };
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   teamId?: number | null;
   team?: {
     id?: number | null;
     parentId?: number | null;
+    bookingLimits?: IntervalLimit;
+    includeManagedEventsInLimits?: boolean;
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
@@ -245,6 +248,7 @@ export async function addEventTypesToDb(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
+    team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -284,6 +288,22 @@ export async function addEventTypesToDb(
         },
       });
     }
+
+    if (eventType.team?.id) {
+      const createdTeam = await prismock.team.create({
+        data: {
+          id: eventType.team?.id,
+          bookingLimits: eventType.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType.team?.includeManagedEventsInLimits,
+          name: "",
+        },
+      });
+
+      await prismock.eventType.update({
+        where: { id: eventType.id },
+        data: { teamId: createdTeam.id },
+      });
+    }
   }
   /***
    *  HACK ENDS
@@ -306,6 +326,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     bookingLimits: {},
+    includeManagedEventsInLimits: false,
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
@@ -361,6 +382,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
         : eventType.schedule,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
       schedulingType: eventType.schedulingType,
+      parent: eventType.parent ? { connect: { id: eventType.parent.id } } : undefined,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
     };
   });
@@ -1265,8 +1287,10 @@ export function getScenarioData(
         ...eventType,
         teamId: eventType.teamId || null,
         team: {
-          id: eventType.teamId,
+          id: eventType.teamId ?? eventType.team?.id,
           parentId: org ? org.id : null,
+          bookingLimits: eventType?.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType?.team?.includeManagedEventsInLimits,
         },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
@@ -1298,10 +1322,10 @@ export function enableEmailFeature() {
 
 export function mockNoTranslations() {
   log.silly("Mocking i18n.getTranslation to return identity function");
-  // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
       const identityFn = (key: string) => key;
+      // @ts-expect-error FIXME
       resolve(identityFn);
     });
   });

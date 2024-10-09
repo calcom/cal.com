@@ -18,5 +18,5 @@ export function getPerSeatPlanPrice(): string {
 }
 
 export function getPremiumPlanPriceValue() {
-  return "$29/mo";
+  return "$29/month";
 }

@@ -119,9 +119,12 @@ export default class SalesforceCRMService implements CRM {
     });
   };
 
-  private getSalesforceUserFromEmail = async (email: string) => {
+  private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
-    return await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
+    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
+    if (query.records.length > 0) {
+      return (query.records[0] as { Email: string; Id: string }).Id;
+    }
   };
 
   private getSalesforceUserFromOwnerId = async (ownerId: string) => {
@@ -142,6 +145,8 @@ export default class SalesforceCRMService implements CRM {
     options: { [key: string]: unknown }
   ) => {
     const conn = await this.conn;
+    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
+
     return await conn.sobject("Event").create({
       StartDateTime: new Date(event.startTime).toISOString(),
       EndDateTime: new Date(event.endTime).toISOString(),
@@ -153,6 +158,7 @@ export default class SalesforceCRMService implements CRM {
         IsRecurrence2: true,
         Recurrence2PatternText: new RRule(event.recurringEvent).toString(),
       }),
+      ...(ownerId && { OwnerId: ownerId }),
     });
   };
 
@@ -300,13 +306,7 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
 
     // See if the organizer exists in the CRM
-    let organizerId: string;
-    if (organizerEmail) {
-      const userQuery = await this.getSalesforceUserFromEmail(organizerEmail);
-      if (userQuery) {
-        organizerId = (userQuery.records[0] as { Email: string; Id: string }).Id;
-      }
-    }
+    const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
     const createdContacts = await Promise.all(
       contactsToCreate.map(async (attendee) => {
         const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
