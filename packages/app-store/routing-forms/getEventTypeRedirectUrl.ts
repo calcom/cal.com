@@ -1,5 +1,5 @@
 import { CAL_URL } from "@calcom/lib/constants";
-import type { Ensure } from "@calcom/types/utils";
+import { Ensure } from "@calcom/types/utils";
 
 function getUserAndEventTypeSlug(eventTypeRedirectUrl: string) {
   if (eventTypeRedirectUrl.startsWith("/")) {

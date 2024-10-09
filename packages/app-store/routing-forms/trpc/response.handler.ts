@@ -145,10 +145,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       dbFormResponse.response as FormResponse
     );
 
-    return {
-      formResponse: dbFormResponse,
-      teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
-    };
+    return { formResponse: dbFormResponse, teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {

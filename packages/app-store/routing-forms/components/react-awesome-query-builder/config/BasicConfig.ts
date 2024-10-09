@@ -1,5 +1,6 @@
 // This is taken from "react-awesome-query-builder/lib/config/basic";
 import type {
+  Operators as RAQBOperators,
   Conjunction as RAQBConjunction,
   Widget as RAQBWidget,
   Type as RAQBType,
@@ -7,14 +8,11 @@ import type {
   Operator as RAQBOperator,
 } from "react-awesome-query-builder";
 
-export type Conjunction = Omit<
-  RAQBConjunction,
-  "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj"
->;
+export type Conjunction = Omit<RAQBConjunction, "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj">;
 export type Conjunctions = Record<string, Conjunction>;
 export type Operator = RAQBOperator & {
   _jsonLogicIsExclamationOp?: boolean;
-};
+}
 export type Operators = Record<string, Operator>;
 export type WidgetWithoutFactory = Omit<RAQBWidget, "factory"> & {
   type: string;

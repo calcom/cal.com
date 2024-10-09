@@ -1,11 +1,8 @@
 "use client";
 
 import { Utils as QbUtils, type JsonTree } from "react-awesome-query-builder";
-
-import { safeStringify } from "@calcom/lib/safeStringify";
-
 import jsonLogic from "./jsonLogic";
-
+import { safeStringify } from "@calcom/lib/safeStringify";
 export const enum RaqbLogicResult {
   MATCH = "MATCH",
   NO_MATCH = "NO_MATCH",
@@ -33,10 +30,7 @@ export const evaluateRaqbLogic = ({
     if (beStrictWithEmptyLogic && queryValue.children1 && Object.keys(queryValue.children1).length > 0) {
       throw new Error("Couldn't build the logic from the query value");
     }
-    console.log(
-      "No logic found",
-      safeStringify({ queryValue, queryBuilderConfigFields: queryBuilderConfig.fields })
-    );
+    console.log("No logic found", safeStringify({ queryValue, queryBuilderConfigFields: queryBuilderConfig.fields }));
     // If no logic is provided, then consider it a match
     return RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED;
   }

@@ -68,7 +68,7 @@ export const mapBookingToMutationInput = ({
     teamMemberEmail,
     orgSlug,
     routedTeamMemberIds,
-    routingFormResponseId,
+    routingFormResponseId
   };
 };
 

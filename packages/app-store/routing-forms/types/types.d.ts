@@ -1,7 +1,7 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type z from "zod";
+import { AttributeType } from "@calcom/prisma/client";
 
-import type { AttributeType } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";

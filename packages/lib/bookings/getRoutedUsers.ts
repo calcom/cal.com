@@ -1,5 +1,5 @@
-import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import logger from "@calcom/lib/logger";
 
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
 
@@ -27,7 +27,7 @@ export const getRoutedUsers = <T extends { id: number; isFixed?: boolean }>({
   routedTeamMemberIds: number[] | null;
   users: T[];
 }) => {
-  // We don't want to enter a scenario where we have no team members to be booked
+ // We don't want to enter a scenario where we have no team members to be booked
   // So, let's just fallback to regular flow if no routedTeamMemberIds are provided
   if (!routedTeamMemberIds || !routedTeamMemberIds.length) {
     return users;

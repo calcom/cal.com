@@ -224,7 +224,7 @@ describe("getUrlSearchParamsToForward", () => {
       fields,
       searchParams,
       teamMembersMatchingAttributeLogic: null,
-      formResponseId: 1,
+      formResponseId: 1
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
