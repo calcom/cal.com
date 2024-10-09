@@ -2,7 +2,7 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
-import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
@@ -17,7 +17,7 @@ type Props = {
 export default function FormInputFields(props: Props) {
   const { form, response, setResponse } = props;
 
-  const queryBuilderConfig = getQueryBuilderConfig(form);
+  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
   return (
     <>
@@ -26,7 +26,7 @@ export default function FormInputFields(props: Props) {
           // @ts-expect-error FIXME @hariombalhara
           field = field.routerField;
         }
-        const widget = queryBuilderConfig.widgets[field.type];
+        const widget = formFieldsQueryBuilderConfig.widgets[field.type];
         if (!("factory" in widget)) {
           return null;
         }

@@ -442,7 +442,8 @@ model Team {
   features               TeamFeatures[]
 
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits Json?
+  bookingLimits                Json?
+  includeManagedEventsInLimits Boolean @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -623,6 +624,7 @@ model Booking {
   cancelledBy           String?
   /// @zod.email()
   rescheduledBy         String?
+  routedFromRoutingFormReponse App_RoutingForms_FormResponse?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -939,7 +941,9 @@ model App_RoutingForms_FormResponse {
   formId       String
   response     Json
   createdAt    DateTime              @default(now())
-
+  routedToBookingUid String? @unique
+  // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
+  routedToBooking Booking? @relation(fields: [routedToBookingUid], references: [uid])
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
@@ -1525,8 +1529,6 @@ model AttributeOption {
   value         String
   slug          String
   assignedUsers AttributeToUser[]
-
-  @@unique([attributeId, value])
 }
 
 model Attribute {

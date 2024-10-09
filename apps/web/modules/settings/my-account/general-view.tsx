@@ -68,14 +68,9 @@ interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"];
   travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
-  revalidatePage: GeneralQueryViewProps["revalidatePage"];
 }
 
-type GeneralQueryViewProps = {
-  revalidatePage: () => Promise<void>;
-};
-
-const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
+const GeneralQueryView = () => {
   const { t } = useLocale();
 
   const { data: user, isPending } = trpc.viewer.me.useQuery();
@@ -87,17 +82,10 @@ const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
-  return (
-    <GeneralView
-      user={user}
-      travelSchedules={travelSchedules || []}
-      localeProp={user.locale}
-      revalidatePage={revalidatePage}
-    />
-  );
+  return <GeneralView user={user} travelSchedules={travelSchedules || []} localeProp={user.locale} />;
 };
 
-const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: GeneralViewProps) => {
+const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const {
     t,
@@ -117,7 +105,6 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
       if (res.locale) {
         window.calNewLocale = res.locale;
       }
-      await revalidatePage();
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
@@ -190,7 +177,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
     <div>
       <Form
         form={formMethods}
-        handleSubmit={async (values) => {
+        handleSubmit={(values) => {
           setIsUpdateBtnLoading(true);
           mutation.mutate({
             ...values,
