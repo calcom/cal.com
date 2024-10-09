@@ -362,18 +362,18 @@ export default class SalesforceCRMService implements CRM {
         return [{ id: "Do not create event", email: "placeholder" }];
       }
 
-      if (appOptions.createNewContactUnderAccount) {
-        // Base this off of the first contact
-        const attendee = contactsToCreate[0];
+      // Base this off of the first contact
+      const attendee = contactsToCreate[0];
 
-        const emailDomain = attendee.email.split("@")[1];
+      const emailDomain = attendee.email.split("@")[1];
 
-        const response = await conn.query(
-          `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
-        );
+      const response = await conn.query(
+        `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
+      );
 
-        const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
+      const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
 
+      if (accountId && appOptions.createNewContactUnderAccount) {
         // First see if the contact already exists and connect it to the account
         const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
         if (userQuery.records.length) {
@@ -403,6 +403,31 @@ export default class SalesforceCRMService implements CRM {
           });
 
         return [contactCreation];
+      }
+
+      if (appOptions.createLeadIfAccountNull) {
+        const createdContacts = await Promise.all(
+          contactsToCreate.map(async (attendee) => {
+            const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+            // Assume that the first part of the email domain is the company title
+            const company = attendee.email.split("@")[1].split(".")[0];
+            return await conn
+              .sobject("Lead")
+              .create({
+                FirstName,
+                LastName: LastName || "-",
+                Email: attendee.email,
+                Company: company,
+                ...(organizerId && { OwnerId: organizerId }),
+              })
+              .then((result) => {
+                if (result.success) {
+                  return { id: result.id, email: attendee.email };
+                }
+              });
+          })
+        );
+        return createdContacts.filter((contact): contact is Contact => contact !== undefined);
       }
     }
   }
