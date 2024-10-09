@@ -335,6 +335,7 @@ export function UserListTable() {
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
           <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+          <DataTableFilters.FilterButton table={table} />
           <DataTableFilters.ColumnVisibilityButton table={table} />
           {adminOrOwner && (
             <DataTableToolbar.CTA
