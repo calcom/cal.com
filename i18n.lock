@@ -2635,4 +2635,5 @@ checksums:
     month_to_date: 7f7e4653c67cdaab178faa332007b1a0
     year_to_date: 1de1bfcb57fc841987305d851383042a
     custom_range: c489facbacd8b2b232c9ea6aae568ae3
+    mass_assign_attributes: 92df3a9cc0a1d55a616c014517c5bee5
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

@@ -2633,5 +2633,6 @@
   "month_to_date": "mois en cours",
   "year_to_date": "année en cours",
   "custom_range": "période personnalisée",
+  "mass_assign_attributes": "Attribuer des attributs en masse",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

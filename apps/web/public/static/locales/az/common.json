@@ -2633,5 +2633,6 @@
   "month_to_date": "bu ayın tarixinə qədər",
   "year_to_date": "bu ilin tarixinə qədər",
   "custom_range": "xüsusi aralıq",
+  "mass_assign_attributes": "Atributları kütləvi təyin et",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
