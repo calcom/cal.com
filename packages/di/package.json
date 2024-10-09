@@ -1,0 +1,10 @@
+{
+  "name": "@calcom/di",
+  "description": "Dependency Injection pattern for Cal.com",
+  "authors": "zomars",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "inversify": "^6.0.2"
+  }
+}

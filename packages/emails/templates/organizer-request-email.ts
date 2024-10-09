@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { checkIfUserHasFeatureController } from "@calcom/features/flags/operations/check-if-user-has-feature.controller";
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
@@ -8,11 +8,7 @@ import OrganizerScheduledEmail from "./organizer-scheduled-email";
  * TODO: Remove once fully migrated to V2
  */
 async function getOrganizerRequestTemplate(args: { teamId?: number; userId?: number }) {
-  const featuresRepository = new FeaturesRepository();
-  const hasNewTemplate = await featuresRepository.checkIfTeamOrUserHasFeature(
-    args,
-    "organizer-request-email-v2"
-  );
+  const hasNewTemplate = checkIfUserHasFeatureController(args, "organizer-request-email-v2");
   return hasNewTemplate ? ("OrganizerRequestEmailV2" as const) : ("OrganizerRequestEmail" as const);
 }
 
