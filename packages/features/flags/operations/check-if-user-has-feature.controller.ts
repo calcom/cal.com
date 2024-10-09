@@ -21,10 +21,11 @@ function presenter(userHasFeature: boolean) {
  * logic, but define the whole operations using use cases.
  */
 export async function checkIfUserHasFeatureController(
-  userId: number,
+  userId: number | undefined,
   slug: string
 ): Promise<ReturnType<typeof presenter>> {
   return await startSpan({ name: "checkIfUserHasFeature Controller" }, async () => {
+    if (!userId) throw new Error("Missing userId in checkIfUserHasFeatureController");
     const userHasFeature = await checkIfUserHasFeatureUseCase(userId, slug);
     return presenter(userHasFeature);
   });
