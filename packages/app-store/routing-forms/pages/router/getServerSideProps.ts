@@ -139,6 +139,7 @@ export const getServerSideProps = async function getServerSideProps(
   const { v4: uuidv4 } = await import("uuid");
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
+  let attributeRoutingConfig = null;
   try {
     const result = await caller.public.response({
       formId: form.id,
@@ -148,6 +149,7 @@ export const getServerSideProps = async function getServerSideProps(
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
+    attributeRoutingConfig = result.attributeRoutingConfig;
   } catch (e) {
     if (e instanceof TRPCError) {
       return {
@@ -188,6 +190,7 @@ export const getServerSideProps = async function getServerSideProps(
             teamMembersMatchingAttributeLogic,
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
+            attributeRoutingConfig: attributeRoutingConfig ?? null,
           }),
           isEmbed: pageProps.isEmbed,
         }),

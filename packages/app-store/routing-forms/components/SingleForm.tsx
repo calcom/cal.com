@@ -259,7 +259,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
-    
+
     if (route?.action?.type === "eventTypeRedirectUrl") {
       setEventTypeUrl(
         enrichedWithUserProfileForm
@@ -271,9 +271,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           : ""
       );
     }
-    
+
     setChosenRoute(route || null);
-    
+
     if (!route) return;
 
     findTeamMembersMatchingAttributeLogicMutation.mutate({
