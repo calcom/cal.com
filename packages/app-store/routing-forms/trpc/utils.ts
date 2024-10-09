@@ -18,8 +18,11 @@ import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity } from "./raqbUtils";
 
-const { getAttributesData: getAttributes, getAttributesQueryBuilderConfig, getAttributesQueryValue } =
-  acrossQueryValueCompatiblity;
+const {
+  getAttributesData: getAttributes,
+  getAttributesQueryBuilderConfig,
+  getAttributesQueryValue,
+} = acrossQueryValueCompatiblity;
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
@@ -104,7 +107,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute({
   if (!route) {
     return null;
   }
-  let teamMembersMatchingAttributeLogic: {
+  const teamMembersMatchingAttributeLogic: {
     userId: number;
     result: RaqbLogicResult;
   }[] = [];
@@ -162,9 +165,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute({
         moduleLogger.debug(`Team member ${member.userId} matches attributes logic`);
         teamMembersMatchingAttributeLogic.push({ userId: member.userId, result });
       } else {
-        moduleLogger.debug(
-          `Team member ${member.userId} does not match attributes logic`
-        );
+        moduleLogger.debug(`Team member ${member.userId} does not match attributes logic`);
       }
     });
   }

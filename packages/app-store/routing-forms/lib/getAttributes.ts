@@ -2,10 +2,11 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+
 import type { Attribute } from "../types/types";
 
 async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: { teamId: number }) {
-  let log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
+  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
 
   const whereClauseForAttributesAssignedToMembersOfTeam = {
     member: {
@@ -52,9 +53,9 @@ async function getAttributeToUserWithMembershipAndAttributesForTeam({ teamId }: 
 }
 
 async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number }) {
-  let log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
+  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
 
-  const whereClauseForAttributesAssignedToMembersOfTeam =  {
+  const whereClauseForAttributesAssignedToMembersOfTeam = {
     options: {
       some: {
         assignedUsers: {
@@ -72,7 +73,7 @@ async function getAttributesAssignedToMembersOfTeam({ teamId }: { teamId: number
         },
       },
     },
-  }
+  };
 
   log.debug(
     safeStringify({

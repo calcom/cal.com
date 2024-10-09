@@ -2633,5 +2633,6 @@
   "month_to_date": "từ đầu tháng đến nay",
   "year_to_date": "từ đầu năm đến nay",
   "custom_range": "phạm vi tùy chỉnh",
+  "mass_assign_attributes": "Gán thuộc tính hàng loạt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
