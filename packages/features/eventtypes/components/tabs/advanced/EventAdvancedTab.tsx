@@ -419,45 +419,47 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
-      <Controller
-        name="multiplePrivateLinks"
-        render={() => {
-          return (
-            <SettingsToggle
-              labelClassName="text-sm"
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                multiplePrivateLinksVisible && "rounded-b-none"
-              )}
-              childrenClassName="lg:ml-0"
-              data-testid="multiplePrivateLinksCheck"
-              title={t("multiple_private_links_title")}
-              {...multiplePrivateLinksLocked}
-              description={t("multiple_private_links_description", { appName: APP_NAME })}
-              tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
-              checked={multiplePrivateLinksVisible}
-              onCheckedChange={(e) => {
-                if (!e) {
-                  formMethods.setValue("multiplePrivateLinks", [], { shouldDirty: true });
-                } else {
-                  formMethods.setValue(
-                    "multiplePrivateLinks",
-                    [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
-                    { shouldDirty: true }
-                  );
-                }
-                setMultiplePrivateLinksVisible(e);
-              }}>
-              {!isManagedEventType && (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
-                </div>
-              )}
-            </SettingsToggle>
-          );
-        }}
-      />
+      {!isPlatform && (
+        <Controller
+          name="multiplePrivateLinks"
+          render={() => {
+            return (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  multiplePrivateLinksVisible && "rounded-b-none"
+                )}
+                childrenClassName="lg:ml-0"
+                data-testid="multiplePrivateLinksCheck"
+                title={t("multiple_private_links_title")}
+                {...multiplePrivateLinksLocked}
+                description={t("multiple_private_links_description", { appName: APP_NAME })}
+                tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
+                checked={multiplePrivateLinksVisible}
+                onCheckedChange={(e) => {
+                  if (!e) {
+                    formMethods.setValue("multiplePrivateLinks", [], { shouldDirty: true });
+                  } else {
+                    formMethods.setValue(
+                      "multiplePrivateLinks",
+                      [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
+                      { shouldDirty: true }
+                    );
+                  }
+                  setMultiplePrivateLinksVisible(e);
+                }}>
+                {!isManagedEventType && (
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                  </div>
+                )}
+              </SettingsToggle>
+            );
+          }}
+        />
+      )}
       <Controller
         name="seatsPerTimeSlotEnabled"
         render={({ field: { value, onChange } }) => (
