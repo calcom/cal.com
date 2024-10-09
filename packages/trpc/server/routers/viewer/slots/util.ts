@@ -346,7 +346,7 @@ export interface IGetAvailableSlots {
 /**
  * Returns (Contact Owner plus Fixed Hosts) OR All Hosts
  */
-function getUsersWithCredentialsConsideringContactOwner({
+export function getUsersWithCredentialsConsideringContactOwner({
   contactOwnerEmail,
   hosts,
 }: {
@@ -481,7 +481,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         userId: true,
       },
     });
-    routedHostsWithContactOwnerAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    routedHostsWithContactOwnerAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter(
+      (host) => host.user.id === originalRescheduledBooking?.userId || 0
+    );
   }
 
   const usersWithCredentials = getUsersWithCredentialsConsideringContactOwner({
