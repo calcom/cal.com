@@ -285,7 +285,6 @@ export default class SalesforceCRMService implements CRM {
     if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
       // For an account let's assume that the first email is the one we should be querying against
       const attendeeEmail = emails[0];
-
       soql = `SELECT Id, Email FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
       // If creating events on contacts or leads
     } else {
@@ -334,18 +333,15 @@ export default class SalesforceCRMService implements CRM {
       // See if the organizer exists in the CRM
       const createdContacts = await Promise.all(
         contactsToCreate.map(async (attendee) => {
-          const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-          // Assume that the first part of the email domain is the company title
-          const company = attendee.email.split("@")[1].split(".")[0];
           return await conn
             .sobject(createEventOn)
-            .create({
-              FirstName,
-              LastName: LastName || "-",
-              Email: attendee.email,
-              ...(organizerId && { OwnerId: organizerId }),
-              ...(createEventOn === SalesforceRecordEnum.LEAD && { company }),
-            })
+            .create(
+              this.generateCreateRecordBody({
+                attendee,
+                recordType: createEventOn,
+                organizerId,
+              })
+            )
             .then((result) => {
               if (result.success) {
                 return { id: result.id, email: attendee.email };
@@ -378,7 +374,7 @@ export default class SalesforceCRMService implements CRM {
         const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
         if (userQuery.records.length) {
           const contact = userQuery.records[0] as { Id: string; Email: string };
-          await conn.sobject("Contact").update({
+          await conn.sobject(SalesforceRecordEnum.CONTACT).update({
             // The first argument is the WHERE clause
             Id: contact.Id,
             AccountId: accountId,
@@ -388,13 +384,14 @@ export default class SalesforceCRMService implements CRM {
 
         const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
         const contactCreation = await conn
-          .sobject("Contact")
+          .sobject(SalesforceRecordEnum.CONTACT)
           .create({
-            FirstName,
-            LastName: LastName || "-",
-            Email: attendee.email,
+            ...this.generateCreateRecordBody({
+              attendee,
+              recordType: SalesforceRecordEnum.CONTACT,
+              organizerId,
+            }),
             AccountId: accountId,
-            ...(organizerId && { OwnerId: organizerId }),
           })
           .then((result) => {
             if (result.success) {
@@ -408,18 +405,15 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createLeadIfAccountNull) {
         const createdContacts = await Promise.all(
           contactsToCreate.map(async (attendee) => {
-            const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-            // Assume that the first part of the email domain is the company title
-            const company = attendee.email.split("@")[1].split(".")[0];
             return await conn
-              .sobject("Lead")
-              .create({
-                FirstName,
-                LastName: LastName || "-",
-                Email: attendee.email,
-                Company: company,
-                ...(organizerId && { OwnerId: organizerId }),
-              })
+              .sobject(SalesforceRecordEnum.LEAD)
+              .create(
+                this.generateCreateRecordBody({
+                  attendee,
+                  recordType: SalesforceRecordEnum.LEAD,
+                  organizerId,
+                })
+              )
               .then((result) => {
                 if (result.success) {
                   return { id: result.id, email: attendee.email };
@@ -465,5 +459,29 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return dominantAccountId;
+  }
+
+  private generateCreateRecordBody({
+    attendee,
+    recordType,
+    organizerId,
+  }: {
+    attendee: { email: string; name: string };
+    recordType: SalesforceRecordEnum;
+    organizerId?: string;
+  }) {
+    const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+
+    // Assume that the first part of the email domain is the company title
+    const company = attendee.email.split("@")[1].split(".")[0];
+
+    return {
+      LastName: LastName || "-",
+      FirstName,
+      Company: company,
+      Email: attendee.email,
+      ...(organizerId && { OwnerId: organizerId }),
+      ...(recordType === SalesforceRecordEnum.LEAD && { Company: company }),
+    };
   }
 }
