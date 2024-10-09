@@ -36,6 +36,10 @@ const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
 });
 
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
+const organizationSettingsSelect = Prisma.validator<Prisma.OrganizationSettingsSelect>()({
+  allowSEOIndexing: true,
+  orgProfileRedirectsToVerifiedDomain: true,
+});
 const organizationSelect = {
   id: true,
   slug: true,
@@ -45,6 +49,12 @@ const organizationSelect = {
   calVideoLogo: true,
   bannerUrl: true,
   isPlatform: true,
+};
+const organizationWithSettingsSelect = {
+  ...organizationSelect,
+  organizationSettings: {
+    select: organizationSettingsSelect,
+  },
 };
 
 export enum LookupTarget {
@@ -375,6 +385,7 @@ export class ProfileRepository {
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
+                allowSEOIndexing: true,
               },
             },
             members: {
@@ -412,7 +423,7 @@ export class ProfileRepository {
           select: userSelect,
         },
         organization: {
-          select: organizationSelect,
+          select: organizationWithSettingsSelect,
         },
       },
     });

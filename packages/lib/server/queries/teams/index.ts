@@ -101,6 +101,13 @@ export async function getTeamWithMembers(args: {
           isOrganization: true,
           logoUrl: true,
           metadata: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+              orgProfileRedirectsToVerifiedDomain: true,
+              orgAutoAcceptEmail: true,
+            },
+          },
         },
       },
       parentId: true,
@@ -156,6 +163,13 @@ export async function getTeamWithMembers(args: {
           expires: true,
           expiresInDays: true,
           identifier: true,
+        },
+      },
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
+          orgProfileRedirectsToVerifiedDomain: true,
+          orgAutoAcceptEmail: true,
         },
       },
     },

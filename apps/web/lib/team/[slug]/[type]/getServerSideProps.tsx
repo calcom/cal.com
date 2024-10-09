@@ -6,6 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
@@ -57,6 +58,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       id: true,
       hideBranding: true,
+      isOrganization: true,
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
+        },
+      },
+      parent: {
+        select: {
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -88,6 +104,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
+  const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
   return {
     props: {
       eventData: {
@@ -105,6 +124,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       themeBasis: null,
       orgBannerUrl: eventData?.team?.parent?.bannerUrl ?? "",
       teamMemberEmail: await getTeamMemberEmail(eventData, email as string),
+      isSEOIndexable: allowSEOIndexing,
     },
   };
 };
