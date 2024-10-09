@@ -8,7 +8,7 @@ export async function addForm(
     forTeam,
   }: {
     name?: string;
-    forTeam: boolean;
+    forTeam?: boolean;
   } = {}
 ) {
   await page.goto(`/routing-forms/forms`);
