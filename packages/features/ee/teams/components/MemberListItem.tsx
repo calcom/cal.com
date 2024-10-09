@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { useMemo, useRef, useReducer, useState, useEffect, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -115,6 +116,8 @@ export default function MemberListItem(props: Props) {
   const { data: session } = useSession();
   const utils = trpc.useUtils();
   const [state, dispatch] = useReducer(reducer, initialState);
+  const orgBranding = useOrgBranding();
+  const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dynamicLinkVisible, setDynamicLinkVisible] = useState(false);
@@ -606,7 +609,7 @@ export default function MemberListItem(props: Props) {
 
           const usersNameAsString = users.join("+");
 
-          const dynamicLinkOfSelectedUsers = `${WEBAPP_URL}/${usersNameAsString}`;
+          const dynamicLinkOfSelectedUsers = `${domain}/${usersNameAsString}`;
           const domainWithoutHttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
 
           return (
