@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import fs from "node:fs/promises";
-import path from "path";
+import path from "node:path";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
