@@ -4,8 +4,8 @@ import checkAppSetupStatus from "@calcom/lib/apps/checkAppSetupStatus";
 import constructUserTeams from "@calcom/lib/apps/constructUserTeams";
 import getAppDependencyData from "@calcom/lib/apps/getAppDependencyData";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
-import getTeamAppCredentials from "@calcom/lib/apps/getTeamAppCredentials";
 import getUserAvailableTeams from "@calcom/lib/apps/getUserAvailableTeams";
+import mergeUserAndTeamAppCredentials from "@calcom/lib/apps/mergeUserAndTeamAppCredentials";
 import transformAppsBasedOnInput from "@calcom/lib/apps/transformAppsBasedOnInput";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -38,7 +38,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
 
   if (isUserPartOfTeam) {
     userTeams = await getUserAvailableTeams(user.id, teamId);
-    credentials = getTeamAppCredentials(userTeams, credentials, includeTeamInstalledApps);
+    credentials = mergeUserAndTeamAppCredentials(userTeams, credentials, includeTeamInstalledApps);
   }
 
   const enabledApps = await getEnabledAppsFromCredentials(credentials, {
