@@ -5,7 +5,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 import type { bookingCancelSchema } from "@calcom/prisma/zod-utils";
 
-import http from "../lib/http";
+import http from "../../lib/http";
 
 interface IUseCancelBooking {
   onSuccess?: () => void;

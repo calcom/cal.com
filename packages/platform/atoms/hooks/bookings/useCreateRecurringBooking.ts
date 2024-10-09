@@ -4,7 +4,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { BookingResponse, RecurringBookingCreateBody } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
-import http from "../lib/http";
+import http from "../../lib/http";
 
 interface IUseCreateRecurringBooking {
   onSuccess?: (res: ApiSuccessResponse<BookingResponse[]>) => void;

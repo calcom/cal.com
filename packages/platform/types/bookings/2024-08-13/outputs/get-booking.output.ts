@@ -23,4 +23,6 @@ export class GetBookingOutput_2024_08_13 {
   })
   @Type(() => Object)
   data!: BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13[];
+
+  error?: Error;
 }

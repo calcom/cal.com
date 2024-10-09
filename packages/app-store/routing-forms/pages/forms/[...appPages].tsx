@@ -344,8 +344,7 @@ export default function RoutingForms({
   );
 }
 
-RoutingForms.getLayout = (page: React.ReactElement) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+const ShellContainer = ({ page }: { page: React.ReactElement }) => {
   const { t } = useLocale();
 
   return (
@@ -357,6 +356,10 @@ RoutingForms.getLayout = (page: React.ReactElement) => {
       {page}
     </Shell>
   );
+};
+
+RoutingForms.getLayout = (page: React.ReactElement) => {
+  return <ShellContainer page={page} />;
 };
 
 export { getServerSideProps };

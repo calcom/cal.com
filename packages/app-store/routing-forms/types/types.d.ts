@@ -1,6 +1,7 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type z from "zod";
 
+import type { AttributeType } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
@@ -22,7 +23,7 @@ export type FormResponse = Record<
 export type Fields = z.infer<typeof zodFieldsView>;
 export type Field = NonNullable<Fields>[number];
 export type Routes = z.infer<typeof zodRoutesView>;
-export type Route = Routes[0];
+export type Route = NonNullable<Routes>[0];
 export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
 
 export type SerializableFormTeamMembers = {
@@ -56,3 +57,19 @@ export type SerializableRoute =
   | GlobalRoute;
 
 export type OrderedResponses = FormResponse[string][];
+
+export type Attribute = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
+  }[];
+};
+
+export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
+export type FormFieldsQueryValue = LocalRoute["queryValue"];
+export type SerializableField = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];

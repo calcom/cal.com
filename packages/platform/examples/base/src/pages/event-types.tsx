@@ -30,7 +30,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!isLoadingEvents && !eventTypeId && Boolean(eventTypes?.length) && !rescheduleUid && (
           <div className="flex flex-col gap-4">
-            <h1>User event types</h1>
             {eventTypes?.map(
               (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
                 const formatEventSlug = event.slug
