@@ -32,7 +32,12 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
   };
 
   // const customEventName = watch("customEventName");
-  const previewText = getEventName({ ...event, eventName: watch("customEventName") });
+  const previewText = getEventName({
+    ...event,
+    eventName: watch("customEventName"),
+    // No Routing Form is available at this point
+    routingFormResponses: null,
+  });
   const placeHolder_ = watch("customEventName") === "" ? previewText : placeHolder;
 
   return (

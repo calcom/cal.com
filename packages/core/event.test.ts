@@ -218,6 +218,7 @@ describe("event tests", () => {
         bookingFields: {
           customField: "example custom field",
         },
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -387,6 +388,23 @@ describe("event tests", () => {
     expect(result).toBe("event duration: 15 mins");
   });
 
+  it("should support templating of routingFormResponses", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: "example attendee",
+      eventType: "example event type",
+      host: "example host",
+      eventName: "Event Title: {routingForm.companySize}",
+      routingFormResponses: {
+        companySize: "Large",
+      },
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+    expect(result).toBe("Event Title: Large");
+  });
+
   describe("fn: validateCustomEventName", () => {
     it("should be valid when no variables used", () => {
       expect(event.validateCustomEventName("foo")).toBe(true);
@@ -423,6 +441,13 @@ describe("event tests", () => {
 
     it("should return variable when invalid variable used", () => {
       expect(event.validateCustomEventName("foo{nonsenseField}bar")).toBe("{nonsenseField}");
+    });
+
+    it("should support any random Routing form field variable ", () => {
+      // routingForm. namespace allows any random field to be used
+      expect(event.validateCustomEventName("foo{routingForm.randomField}bar")).toBe(true);
+      // Any other namespace should cause error - Error is identified by a string value that tells the template variable that is invalid
+      expect(event.validateCustomEventName("foo{abc.companySize}bar")).toBe("{abc.companySize}");
     });
   });
 });
