@@ -55,7 +55,7 @@ export class ConferencingController {
 
       default:
         throw new BadRequestException(
-          "Invalid calendar type, available calendars are: ",
+          "Invalid conferencing app, available apps are: ",
           CONFERENCING_APPS.join(", ")
         );
     }
@@ -91,7 +91,7 @@ export class ConferencingController {
 
       default:
         throw new BadRequestException(
-          "Invalid calendar type, available calendars are: ",
+          "Invalid conferencing app, available apps are: ",
           CONFERENCING_APPS.join(", ")
         );
     }
@@ -113,7 +113,7 @@ export class ConferencingController {
 
       default:
         throw new BadRequestException(
-          "Invalid calendar type, available calendars are: ",
+          "Invalid conferencing app, available apps are: ",
           CONFERENCING_APPS.join(", ")
         );
     }
