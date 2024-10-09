@@ -15,6 +15,12 @@ Test mode secret keys have the prefix `cal_` and live mode secret keys have the 
 
 Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.
 
-Authentication to the API is performed via the Authentication header like: `Bearer: cal_live_xxxxxx`
+Authentication to the API is performed via the Authorization header. For example, the request would go something like:
+
+```
+'Authorization': 'Bearer YOUR_API_KEY'
+```
+
+in your request header.
 
 All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
