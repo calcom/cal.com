@@ -1,5 +1,4 @@
 import { type Table } from "@tanstack/react-table";
-import { useQueryState, parseAsArrayOf, parseAsString } from "nuqs";
 import { forwardRef, useState, useMemo } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -21,6 +20,8 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import { useFiltersSearchState } from "./utils";
+
 interface ColumnVisiblityProps<TData> {
   table: Table<TData>;
 }
@@ -31,6 +32,7 @@ function ColumnVisibilityButtonComponent<TData>(
     color = "secondary",
     EndIcon = "sliders-vertical",
     table,
+    size,
     ...rest
   }: ColumnVisiblityProps<TData> & ButtonProps,
   ref: React.Ref<HTMLButtonElement>
@@ -42,7 +44,7 @@ function ColumnVisibilityButtonComponent<TData>(
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button ref={ref} color={color} EndIcon={EndIcon} {...rest} className="border-subtle h-8 rounded-md">
+        <Button ref={ref} color={color} EndIcon={EndIcon} {...rest}>
           {children ? children : t("View")}
         </Button>
       </PopoverTrigger>
@@ -71,18 +73,18 @@ function ColumnVisibilityButtonComponent<TData>(
                 );
               })}
             </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup>
-              <CommandItem
-                onSelect={() => allColumns.forEach((column) => column.toggleVisibility(true))}
-                className={classNames(
-                  "w-full justify-center text-center",
-                  buttonClasses({ color: "secondary" })
-                )}>
-                {t("show_all_columns")}
-              </CommandItem>
-            </CommandGroup>
           </CommandList>
+          <CommandSeparator />
+          <CommandGroup>
+            <CommandItem
+              onSelect={() => allColumns.forEach((column) => column.toggleVisibility(true))}
+              className={classNames(
+                "w-full justify-center text-center",
+                buttonClasses({ color: "secondary" })
+              )}>
+              {t("show_all_columns")}
+            </CommandItem>
+          </CommandGroup>
         </Command>
       </PopoverContent>
     </Popover>
@@ -94,7 +96,6 @@ const ColumnVisibilityButton = forwardRef(ColumnVisibilityButtonComponent) as <T
 ) => ReturnType<typeof ColumnVisibilityButtonComponent>;
 
 // Filters
-
 interface FilterButtonProps<TData> {
   table: Table<TData>;
 }
@@ -104,10 +105,10 @@ function FilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const [activeFilters, setActiveFilters] = useQueryState<string[]>("activeFilters", {
-    defaultValue: [],
-    parse: parseAsArrayOf(parseAsString),
-  });
+  const [_state, _setState] = useFiltersSearchState();
+
+  const activeFilters = _state.activeFilters;
+
   const columns = table.getAllColumns().filter((column) => column.getCanFilter());
 
   const filterableColumns = useMemo(() => {
@@ -120,20 +121,15 @@ function FilterButtonComponent<TData>(
 
   const handleAddFilter = (columnId: string) => {
     if (!activeFilters.includes(columnId)) {
-      setActiveFilters([...activeFilters, columnId]);
+      _setState({ activeFilters: [...activeFilters, columnId] });
     }
-  };
-
-  const handleRemoveFilter = (columnId: string) => {
-    setActiveFilters(activeFilters.filter((id) => id !== columnId));
-    table.getColumn(columnId)?.setFilterValue(undefined);
   };
 
   return (
     <div className="flex items-center space-x-2">
       <Popover>
         <PopoverTrigger asChild>
-          <Button ref={ref} color="secondary" className="h-8 border-dashed">
+          <Button ref={ref} color="secondary" className="border-dashed">
             <Icon name="filter" className="mr-2 h-4 w-4" />
             {t("add_filter")}
           </Button>
@@ -143,73 +139,18 @@ function FilterButtonComponent<TData>(
             <CommandInput placeholder={t("search_columns")} />
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
-              {filterableColumns.map((column) => (
-                <CommandItem key={column.id} onSelect={() => handleAddFilter(column.id)}>
-                  {column.title}
-                </CommandItem>
-              ))}
+              {filterableColumns.map((column) => {
+                if (activeFilters.includes(column.id)) return null;
+                return (
+                  <CommandItem key={column.id} onSelect={() => handleAddFilter(column.id)}>
+                    {column.title}
+                  </CommandItem>
+                );
+              })}
             </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
-      {activeFilters.map((columnId) => {
-        const column = filterableColumns.find((col) => col.id === columnId);
-        if (!column) return null;
-        return (
-          <Popover key={columnId}>
-            <PopoverTrigger asChild>
-              <Button color="secondary" className="h-8">
-                {column.title}
-                <Icon name="chevron-down" className="ml-2 h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0" align="start">
-              <Command>
-                <CommandInput placeholder={t("search_options")} />
-                <CommandList>
-                  <CommandEmpty>{t("no_options_found")}</CommandEmpty>
-                  {Array.from(column.options).map(([option]) => (
-                    <CommandItem
-                      key={option}
-                      onSelect={() => {
-                        const filterValue = table.getColumn(columnId)?.getFilterValue() as
-                          | string[]
-                          | undefined;
-                        const newFilterValue = filterValue?.includes(option)
-                          ? filterValue.filter((value) => value !== option)
-                          : [...(filterValue || []), option];
-                        table
-                          .getColumn(columnId)
-                          ?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
-                      }}>
-                      <div
-                        className={classNames(
-                          "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                          Array.isArray(table.getColumn(columnId)?.getFilterValue()) &&
-                            (table.getColumn(columnId)?.getFilterValue() as string[])?.includes(option)
-                            ? "bg-primary"
-                            : "opacity-50"
-                        )}>
-                        {Array.isArray(table.getColumn(columnId)?.getFilterValue()) &&
-                          (table.getColumn(columnId)?.getFilterValue() as string[])?.includes(option) && (
-                            <Icon name="check" className="text-primary-foreground h-4 w-4" />
-                          )}
-                      </div>
-                      {option}
-                    </CommandItem>
-                  ))}
-                </CommandList>
-              </Command>
-              <Button
-                color="destructive"
-                className="mt-2 w-full"
-                onClick={() => handleRemoveFilter(columnId)}>
-                {t("remove_filter")}
-              </Button>
-            </PopoverContent>
-          </Popover>
-        );
-      })}
     </div>
   );
 }
@@ -218,4 +159,104 @@ const FilterButton = forwardRef(FilterButtonComponent) as <TData>(
   props: FilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
 ) => ReturnType<typeof FilterButtonComponent>;
 
-export { ColumnVisibilityButton, FilterButton };
+// Add the new ActiveFilters component
+interface ActiveFiltersProps<TData> {
+  table: Table<TData>;
+}
+
+function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
+  const { t } = useLocale();
+  const [_state, _setState] = useFiltersSearchState();
+
+  const columns = table.getAllColumns().filter((column) => column.getCanFilter());
+
+  const filterableColumns = useMemo(() => {
+    return columns.map((column) => {
+      return {
+        id: column.id,
+        title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
+        options: column.getFacetedUniqueValues(),
+      };
+    });
+  }, [columns]);
+
+  const handleRemoveFilter = (columnId: string) => {
+    _setState({ activeFilters: _state.activeFilters.filter((id) => id !== columnId) });
+    table.getColumn(columnId)?.setFilterValue(undefined);
+  };
+
+  return (
+    <>
+      {_state.activeFilters.map((columnId) => {
+        const column = filterableColumns.find((col) => col.id === columnId);
+        if (!column) return null;
+        return (
+          <Popover key={columnId}>
+            <PopoverTrigger asChild>
+              <Button color="secondary">
+                {column.title}
+                <Icon name="chevron-down" className="ml-2 h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" align="start">
+              <Command>
+                <CommandInput placeholder={t("search_options")} />
+                <CommandList>
+                  <CommandEmpty>{t("no_options_found")}</CommandEmpty>
+                  {Array.from(column.options).map(([option]) => {
+                    return (
+                      <CommandItem
+                        key={option}
+                        onSelect={() => {
+                          const filterValue = table.getColumn(columnId)?.getFilterValue() as
+                            | string[]
+                            | undefined;
+                          const newFilterValue = filterValue?.includes(option)
+                            ? filterValue.filter((value) => value !== option)
+                            : [...(filterValue || []), option];
+                          table
+                            .getColumn(columnId)
+                            ?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
+                        }}>
+                        <div
+                          className={classNames(
+                            "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
+                            Array.isArray(table.getColumn(columnId)?.getFilterValue()) &&
+                              (table.getColumn(columnId)?.getFilterValue() as string[])?.includes(option)
+                              ? "bg-primary"
+                              : "opacity-50"
+                          )}>
+                          {Array.isArray(table.getColumn(columnId)?.getFilterValue()) &&
+                            (table.getColumn(columnId)?.getFilterValue() as string[])?.includes(option) && (
+                              <Icon name="check" className="text-primary-foreground h-4 w-4" />
+                            )}
+                        </div>
+                        {option}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandList>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => {
+                      handleRemoveFilter(columnId);
+                    }}
+                    className={classNames(
+                      "w-full justify-center text-center",
+                      buttonClasses({ color: "secondary" })
+                    )}>
+                    {t("clear")}
+                  </CommandItem>
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        );
+      })}
+    </>
+  );
+}
+
+// Update the export to include ActiveFilters
+export { ColumnVisibilityButton, FilterButton, ActiveFilters };

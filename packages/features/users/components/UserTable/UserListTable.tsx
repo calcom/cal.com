@@ -4,6 +4,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  getFacetedUniqueValues,
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
@@ -191,9 +192,8 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore Weird typing issue
-          return rows.getValue(id).includes(filterValue);
+          const userEmail = rows.original.email;
+          return filterValue.includes(userEmail);
         },
       },
       {
@@ -315,6 +315,7 @@ export function UserListTable() {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
@@ -334,28 +335,32 @@ export function UserListTable() {
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
-          <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-          <DataTableFilters.FilterButton table={table} />
-          <DataTableFilters.ColumnVisibilityButton table={table} />
-          {adminOrOwner && (
-            <DataTableToolbar.CTA
-              type="button"
-              color="primary"
-              StartIcon="plus"
-              size="sm"
-              className="rounded-md"
-              onClick={() =>
-                dispatch({
-                  type: "INVITE_MEMBER",
-                  payload: {
-                    showModal: true,
-                  },
-                })
-              }
-              data-testid="new-organization-member-button">
-              {t("add")}
-            </DataTableToolbar.CTA>
-          )}
+          <div className="flex w-full gap-2">
+            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableFilters.FilterButton table={table} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            {adminOrOwner && (
+              <DataTableToolbar.CTA
+                type="button"
+                color="primary"
+                StartIcon="plus"
+                className="rounded-md"
+                onClick={() =>
+                  dispatch({
+                    type: "INVITE_MEMBER",
+                    payload: {
+                      showModal: true,
+                    },
+                  })
+                }
+                data-testid="new-organization-member-button">
+                {t("add")}
+              </DataTableToolbar.CTA>
+            )}
+          </div>
+          <div className="flex gap-2 justify-self-start">
+            <DataTableFilters.ActiveFilters table={table} />
+          </div>
         </DataTableToolbar.Root>
         <div style={{ gridArea: "footer" }}>Hello</div>
       </DataTable>

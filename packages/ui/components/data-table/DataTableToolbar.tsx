@@ -16,7 +16,7 @@ interface DataTableToolbarProps {
 
 const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar({ children }, ref) {
   return (
-    <div ref={ref} className="flex items-center justify-end gap-2 py-4" style={{ gridArea: "header" }}>
+    <div ref={ref} className="grid w-full items-center gap-2 py-4" style={{ gridArea: "header" }}>
       {children}
     </div>
   );
