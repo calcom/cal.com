@@ -185,13 +185,11 @@ export const viewerTeamsRouter = router({
     );
     return handler(opts);
   }),
-  checkIfMembershipExists: authedProcedure
-    .input(ZCheckIfMembershipExistsInputSchema)
-    .mutation(async (opts) => {
-      const handler = await importHandler(
-        namespaced("checkIfMembershipExists"),
-        () => import("./checkIfMembershipExists.handler")
-      );
-      return handler(opts);
-    }),
+  checkIfMembershipExists: authedProcedure.input(ZCheckIfMembershipExistsInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("checkIfMembershipExists"),
+      () => import("./checkIfMembershipExists.handler")
+    );
+    return handler(opts);
+  }),
 });

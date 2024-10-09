@@ -10,7 +10,7 @@ type CheckIfMembershipExistsOptions = {
   input: TCheckIfMembershipExistsInputSchema;
 };
 
-const checkIfMembershipExistsHandler = async ({ ctx, input }: CheckIfMembershipExistsOptions) => {
+const checkIfMembershipExistsHandler = async ({ input }: CheckIfMembershipExistsOptions) => {
   const { teamId, value } = input;
 
   const membership = await prisma.membership.findFirst({
