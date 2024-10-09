@@ -1,20 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import fs from "node:fs/promises";
+import path from "path";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 
-const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
-  res.arrayBuffer()
-);
-
-const interFont = fetch(new URL("../../../../public/fonts/Inter-Regular.ttf", import.meta.url)).then((res) =>
-  res.arrayBuffer()
-);
-
-const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf", import.meta.url)).then(
-  (res) => res.arrayBuffer()
-);
+const calFont = fs.readFile(path.join(process.cwd(), "public/fonts/cal.ttf"));
+const interFont = fs.readFile(path.join(process.cwd(), "public/fonts/Inter-Regular.ttf"));
+const interFontMedium = fs.readFile(path.join(process.cwd(), "public/fonts/Inter-Medium.ttf"));
 
 export const config = {
   runtime: "nodejs",
@@ -43,7 +37,9 @@ const genericSchema = z.object({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { searchParams } = new URL(`${req.url}`);
+  const host = req.headers.host;
+  const protocol = req.headers["x-forwarded-proto"] || "http";
+  const { searchParams } = new URL(`${protocol}://${host}${req.url}`);
   const imageType = searchParams.get("type");
 
   const [calFontData, interFontData, interFontMediumData] = await Promise.all([
