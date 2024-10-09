@@ -1,14 +1,12 @@
-import type { App_RoutingForms_Form, User } from "@prisma/client";
-import { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
+import type { App_RoutingForms_Form } from "@prisma/client";
+import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
-import {
-  AttributesQueryBuilderConfigWithRaqbFields,
-  getQueryBuilderConfigForAttributes,
-} from "../lib/getQueryBuilderConfig";
-import { Attribute } from "../types/types";
+import type { AttributesQueryBuilderConfigWithRaqbFields } from "../lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForAttributes } from "../lib/getQueryBuilderConfig";
+import type { Attribute } from "../types/types";
 import type { LocalRoute } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import type { SerializableField } from "../types/types";
@@ -175,10 +173,11 @@ const attributeChangeCompatibility = {
     attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
     attributeId: string;
   }) {
-    const fieldTypeFromAttributesQueryValue = raqbQueryValueUtils.getValueTypeFromAttributesQueryValueForRaqbField({
-      attributesQueryValue,
-      raqbFieldId: attributeId,
-    });
+    const fieldTypeFromAttributesQueryValue =
+      raqbQueryValueUtils.getValueTypeFromAttributesQueryValueForRaqbField({
+        attributesQueryValue,
+        raqbFieldId: attributeId,
+      });
 
     if (fieldTypeFromAttributesQueryValue === "multiselect") {
       return ensureArray(attributeValue);
@@ -195,7 +194,7 @@ function getAttributesData({
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
   return Object.entries(attributesData).reduce((acc, [attributeId, value]) => {
-    let compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
+    const compatibleValueForAttributeAndFormFieldMatching = compatibleForAttributeAndFormFieldMatch(value);
 
     // We do this to ensure that correct jsonLogic is generated for an existing route even if the attribute's type changes
     acc[attributeId] = attributeChangeCompatibility.ensureAttributeValueToBeOfRaqbFieldValueType({
@@ -264,7 +263,7 @@ function getAttributesQueryBuilderConfig({
 
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
-      let raqbFieldType = attributeChangeCompatibility.getRaqbFieldTypeCompatibleWithQueryValue({
+      const raqbFieldType = attributeChangeCompatibility.getRaqbFieldTypeCompatibleWithQueryValue({
         attributesQueryValue,
         raqbField,
         raqbFieldId,
