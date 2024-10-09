@@ -17,22 +17,26 @@ export type Credentials = {
 }[];
 
 const getTeamAppCredentials = (
-  userTeams: TeamQuery[],
-  userCredentialIds: Credentials,
-  includeTeamInstalledApps?: boolean
+  userTeams: TeamQuery[]
+  // userCredentialIds: Credentials,
+  // includeTeamInstalledApps?: boolean
 ) => {
-  let credentials: Credentials = userCredentialIds;
+  // let credentials: Credentials = userCredentialIds;
+  // const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
+  //   return teamApp.credentials ? teamApp.credentials.flat() : [];
+  // });
+
+  // if (!includeTeamInstalledApps) {
+  //   credentials = teamAppCredentials;
+  // } else {
+  //   credentials = userCredentialIds.concat(teamAppCredentials);
+  // }
+
   const teamAppCredentials: CredentialPayload[] = userTeams.flatMap((teamApp) => {
     return teamApp.credentials ? teamApp.credentials.flat() : [];
   });
 
-  if (!includeTeamInstalledApps) {
-    credentials = teamAppCredentials;
-  } else {
-    credentials = userCredentialIds.concat(teamAppCredentials);
-  }
-
-  return credentials;
+  return teamAppCredentials;
 };
 
 export default getTeamAppCredentials;
