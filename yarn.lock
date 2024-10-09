@@ -3905,10 +3905,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/di@workspace:packages/di":
+"@calcom/di@*, @calcom/di@workspace:packages/di":
   version: 0.0.0-use.local
   resolution: "@calcom/di@workspace:packages/di"
   dependencies:
+    "@types/reflect-metadata": ^0.1.0
     inversify: ^6.0.2
     reflect-metadata: ^0.2.2
   languageName: unknown
@@ -4137,6 +4138,7 @@ __metadata:
   resolution: "@calcom/features@workspace:packages/features"
   dependencies:
     "@calcom/dayjs": "*"
+    "@calcom/di": "*"
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
@@ -16103,6 +16105,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/reflect-metadata@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@types/reflect-metadata@npm:0.1.0"
+  dependencies:
+    reflect-metadata: "*"
+  checksum: 9325a43186aafdf72f14977bdaed95b4a40005a919c8a96622de14bb2f2dbf41d9882e50bfcff4169f9a00df0d9dcee931fdd999d15776f8e5485fba40ff5b99
+  languageName: node
+  linkType: hard
+
 "@types/remove-markdown@npm:^0.3.1":
   version: 0.3.1
   resolution: "@types/remove-markdown@npm:0.3.1"
@@ -19514,6 +19525,7 @@ __metadata:
     "@testing-library/react": ^16.0.1
     "@types/jsdom": ^21.1.3
     "@types/jsonwebtoken": ^9.0.3
+    "@types/reflect-metadata": ^0.1.0
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.1
     c8: ^7.13.0
@@ -19523,6 +19535,7 @@ __metadata:
     eslint: ^8.34.0
     husky: ^8.0.0
     i18n-unused: ^0.13.0
+    inversify: ^6.0.2
     jest-diff: ^29.5.0
     jest-summarizing-reporter: ^1.1.4
     jsdom: ^22.0.0
@@ -19532,6 +19545,7 @@ __metadata:
     node-ical: ^0.16.1
     prettier: ^2.8.6
     prismock: ^1.21.1
+    reflect-metadata: ^0.2.2
     resize-observer-polyfill: ^1.5.1
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
@@ -37298,6 +37312,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"reflect-metadata@npm:*, reflect-metadata@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "reflect-metadata@npm:0.2.2"
+  checksum: a66c7b583e4efdd8f3c3124fbff33da2d0c86d8280617516308b32b2159af7a3698c961db3246387f56f6316b1d33a608f39bb2b49d813316dfc58f6d3bf3210
+  languageName: node
+  linkType: hard
+
 "reflect-metadata@npm:0.2.1, reflect-metadata@npm:^0.2.1":
   version: 0.2.1
   resolution: "reflect-metadata@npm:0.2.1"
@@ -37309,13 +37330,6 @@ __metadata:
   version: 0.1.14
   resolution: "reflect-metadata@npm:0.1.14"
   checksum: 155ad339319cec3c2d9d84719f730f8b6a6cd2a074733ec29dbae6c89d48a2914c7d07a2350212594f3aae160fa4da4f903e6512f27ceaf968443a7c692bcad0
-  languageName: node
-  linkType: hard
-
-"reflect-metadata@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "reflect-metadata@npm:0.2.2"
-  checksum: a66c7b583e4efdd8f3c3124fbff33da2d0c86d8280617516308b32b2159af7a3698c961db3246387f56f6316b1d33a608f39bb2b49d813316dfc58f6d3bf3210
   languageName: node
   linkType: hard
 

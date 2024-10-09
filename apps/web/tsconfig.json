@@ -16,6 +16,7 @@
       }
     ],
     "strictNullChecks": true,
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },
   "include": [
