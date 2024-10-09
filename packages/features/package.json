@@ -8,6 +8,7 @@
   "main": "index.ts",
   "dependencies": {
     "@calcom/dayjs": "*",
+    "@calcom/di": "*",
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
     "@calcom/ui": "*",

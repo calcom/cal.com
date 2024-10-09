@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
         "@calcom/features",
         "@calcom/prisma",
         "@calcom/dayjs",
+        "@calcom/di",
         "@calcom/platform-constants",
         "@calcom/platform-types",
         "@calcom/platform-utils",

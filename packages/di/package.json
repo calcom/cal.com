@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "inversify": "^6.0.2"
+    "inversify": "^6.0.2",
+    "reflect-metadata": "^0.2.2"
   }
 }
