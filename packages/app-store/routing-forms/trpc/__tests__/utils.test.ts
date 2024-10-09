@@ -1,7 +1,7 @@
-import { BaseWidget, JsonTree } from "react-awesome-query-builder";
+import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { AttributeType } from "@calcom/prisma/enums";
+import type { AttributeType } from "@calcom/prisma/enums";
 
 import { RoutingFormFieldType } from "../../lib/FieldTypes";
 import { RaqbLogicResult } from "../../lib/evaluateRaqbLogic";
@@ -14,7 +14,7 @@ vi.mock("../../lib/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui");
+vi.mock("@calcom/ui", () => ({}));
 
 function mockAttributesScenario({
   attributes,
