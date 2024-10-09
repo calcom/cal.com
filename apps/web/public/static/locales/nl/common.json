@@ -2633,5 +2633,6 @@
   "month_to_date": "maand tot nu toe",
   "year_to_date": "jaar tot nu toe",
   "custom_range": "aangepast bereik",
+  "mass_assign_attributes": "Attribuuttoewijzing in bulk",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

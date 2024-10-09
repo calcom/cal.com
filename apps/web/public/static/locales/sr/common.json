@@ -2633,5 +2633,6 @@
   "month_to_date": "od početka meseca do danas",
   "year_to_date": "od početka godine do danas",
   "custom_range": "prilagođeni opseg",
+  "mass_assign_attributes": "Masovno dodeljivanje atributa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
