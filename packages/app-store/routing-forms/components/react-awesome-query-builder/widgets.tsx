@@ -8,7 +8,7 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, TextField, TextArea, EmailField } from "@calcom/ui";
+import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 const Select = dynamic(
@@ -371,7 +371,6 @@ const widgets = {
   ButtonGroup,
   Conjs,
   Provider,
-  EmailWidget: EmailField,
 };
 
 export default widgets;

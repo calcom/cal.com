@@ -2625,11 +2625,14 @@
   "limit_team_booking_frequency_description": "Ograniči koliko puta članovi tima mogu biti rezervisani za sve timske tipove događaja",
   "booking_limits_updated_successfully": "Ograničenja zakazivanja su uspešno ažurirana",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nemate ovlašćenje da izvršite ovu promenu u rezervaciji",
+  "matching_members": "Одговарајући чланови",
+  "no_matching_members": "Нема одговарајућих чланова. Систем ће се вратити на коришћење чланова тима додељених типу догађаја.",
   "hide_calendar_event_details": "Sakrij detalje događaja u deljenim kalendarima",
   "description_hide_calendar_event_details": "Kada je kalendar podeljen, događaji su vidljivi čitaocima, ali su njihovi detalji skriveni od onih koji nemaju pravo izmene.",
   "last_number_of_days": "poslednjih {{count}} dana",
   "month_to_date": "od početka meseca do danas",
   "year_to_date": "od početka godine do danas",
   "custom_range": "prilagođeni opseg",
+  "mass_assign_attributes": "Masovno dodeljivanje atributa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

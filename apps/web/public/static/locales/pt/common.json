@@ -2625,11 +2625,14 @@
   "limit_team_booking_frequency_description": "Limitar quantas vezes os membros podem ser reservados em todos os tipos de eventos da equipa",
   "booking_limits_updated_successfully": "Limites de reservas atualizados com sucesso",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Não tem autorização para fazer esta alteração na reserva",
+  "matching_members": "Membros correspondentes",
+  "no_matching_members": "Nenhum membro correspondente. Será utilizado como alternativa os membros da equipa atribuídos ao tipo de evento.",
   "hide_calendar_event_details": "Ocultar detalhes dos eventos do calendário em calendários partilhados",
   "description_hide_calendar_event_details": "Quando um calendário é partilhado, os eventos são visíveis para os leitores, mas os seus detalhes são ocultados para aqueles que não têm acesso de escrita.",
   "last_number_of_days": "últimos {{count}} dias",
   "month_to_date": "mês até à data",
   "year_to_date": "ano até à data",
   "custom_range": "intervalo personalizado",
+  "mass_assign_attributes": "Atribuir atributos em massa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

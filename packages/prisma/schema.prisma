@@ -1535,8 +1535,6 @@ model AttributeOption {
   value         String
   slug          String
   assignedUsers AttributeToUser[]
-
-  @@unique([attributeId, value])
 }
 
 model Attribute {
