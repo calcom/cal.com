@@ -132,7 +132,6 @@ export default class EventManager {
       (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
     );
 
-    // this.appOptions = this.generateAppOptions(eventTypeAppMetadata);
     this.appOptions = eventTypeAppMetadata;
   }
 
@@ -975,7 +974,6 @@ export default class EventManager {
       const crm = new CrmManager(credential, currentAppOption);
 
       let success = true;
-      // const skipContactCreation = this.appOptions.crm.skipContactCreation.includes(credential.appId || "");
       const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
         success = false;
         log.warn(`Error creating crm event for ${credential.type}`, error);
