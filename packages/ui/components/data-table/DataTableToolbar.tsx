@@ -8,25 +8,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
 import { Input } from "../form";
-import type { IconName } from "../icon/icon-names";
 
-export type FilterableItems = {
-  title: string;
-  tableAccessor: string;
-  options: {
-    label: string;
-    value: string;
-    icon?: IconName;
-  }[];
-}[];
 interface DataTableToolbarProps {
   children: React.ReactNode;
 }
 
-export const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar(
-  { children },
-  ref
-) {
+const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar({ children }, ref) {
   return (
     <div ref={ref} className="flex items-center justify-end gap-2 py-4" style={{ gridArea: "header" }}>
       {children}
@@ -74,7 +61,7 @@ function SearchBarComponent<TData>(
   );
 }
 
-export const SearchBar = forwardRef(SearchBarComponent) as <TData>(
+const SearchBar = forwardRef(SearchBarComponent) as <TData>(
   props: SearchBarProps<TData> & { ref?: React.Ref<HTMLInputElement> }
 ) => ReturnType<typeof SearchBarComponent>;
 
@@ -101,6 +88,8 @@ function ClearFiltersButtonComponent<TData>(
   );
 }
 
-export const ClearFiltersButton = forwardRef(ClearFiltersButtonComponent) as <TData>(
+const ClearFiltersButton = forwardRef(ClearFiltersButtonComponent) as <TData>(
   props: ClearFiltersButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
 ) => ReturnType<typeof ClearFiltersButtonComponent>;
+
+export { Root, SearchBar, ClearFiltersButton };

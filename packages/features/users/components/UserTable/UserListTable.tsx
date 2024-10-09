@@ -1,5 +1,12 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useMemo, useReducer, useRef, useState } from "react";
 
@@ -88,7 +95,7 @@ export function UserListTable() {
         placeholderData: keepPreviousData,
       }
     );
-
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -286,7 +293,13 @@ export function UserListTable() {
     enableRowSelection: true,
     debugTable: true,
     manualPagination: true,
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
@@ -305,7 +318,9 @@ export function UserListTable() {
         tableContainerRef={tableContainerRef}
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root style={{ gridArea: "header" }}>Hello</DataTableToolbar.Root>
+        <DataTableToolbar.Root>
+          <DataTableToolbar.SearchBar table={table} searchKey="email" />
+        </DataTableToolbar.Root>
         <div style={{ gridArea: "footer" }}>Hello</div>
       </DataTable>
 

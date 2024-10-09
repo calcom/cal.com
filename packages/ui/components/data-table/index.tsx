@@ -7,6 +7,7 @@ import { useVirtual } from "react-virtual";
 
 import classNames from "@calcom/lib/classNames";
 
+import Icon from "../icon/Icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
 
 export interface DataTableProps<TData, TValue> {
@@ -57,10 +58,28 @@ export function DataTable<TData, TValue>({
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                <TableHead
+                  key={header.id}
+                  {...{
+                    className: header.column.getCanSort() ? "cursor-pointer select-none " : "",
+                    onClick: header.column.getToggleSortingHandler(),
+                  }}>
+                  <div className="flex items-center">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.column.getIsSorted() && (
+                      <Icon
+                        name="arrow-up"
+                        className="ml-2 h-4 w-4"
+                        style={{
+                          transform:
+                            header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                          transition: "transform 0.2s ease-in-out",
+                        }}
+                      />
+                    )}
+                  </div>
                 </TableHead>
               ))}
             </TableRow>
