@@ -30,7 +30,7 @@ export type EventTypePlatformWrapperProps = {
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced"],
+  tabs = ["setup", "availability", "team", "limits", "advanced", "payments"],
   onSuccess,
   onError,
   ...props
