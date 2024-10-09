@@ -11,7 +11,6 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { getRoutedHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -32,7 +31,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-
+import { getRoutedHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
@@ -403,7 +402,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  const eventHosts =
+  let eventHosts =
     eventType.hosts?.length && eventType.schedulingType
       ? eventType.hosts
       : eventType.users.map((user) => {

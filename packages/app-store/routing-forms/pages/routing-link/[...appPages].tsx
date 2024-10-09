@@ -24,7 +24,7 @@ import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
-import type { NonRouterRoute, FormResponse } from "../../types/types";
+import type { NonRouterRoute, FormResponse, Route } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
@@ -94,7 +94,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: async (data) => {
-      const { teamMembersMatchingAttributeLogic, formResponse } = data;
+      const {teamMembersMatchingAttributeLogic, formResponse} = data;
       const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;
       if (!chosenRouteWithFormResponse) {
         return;
@@ -126,7 +126,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
             form,
             eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
             allURLSearchParams,
-            isEmbed: !!isEmbed,
+            isEmbed: !!isEmbed
           })
         );
       } else if (decidedAction.type === "externalRedirectUrl") {

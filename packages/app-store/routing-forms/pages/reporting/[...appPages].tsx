@@ -22,14 +22,13 @@ import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
+import type {FormFieldsBaseConfig} from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import type { JsonLogicQuery } from "../../jsonLogicToPrisma";
-import {
-  getQueryBuilderConfigForFormFields,
-  type FormFieldsQueryBuilderConfigWithRaqbFields,
-} from "../../lib/getQueryBuilderConfig";
+import { getQueryBuilderConfigForFormFields,type FormFieldsQueryBuilderConfigWithRaqbFields } from "../../lib/getQueryBuilderConfig";
 
 export { getServerSideProps };
+
 
 const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: JsonLogicQuery | null }) => {
   const { t } = useLocale();
@@ -168,7 +167,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   return (
     <div className="cal-query-builder">
       <Query
-        {...(config as unknown as Config)}
+        {...config as unknown as Config}
         value={query.state.tree}
         onChange={(immutableTree, config) => {
           onChange(immutableTree, config as unknown as FormFieldsQueryBuilderConfigWithRaqbFields);
