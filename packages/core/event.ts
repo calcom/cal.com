@@ -31,7 +31,6 @@ export type EventNameObjectType = {
 
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   const attendeeName = parseName(eventNameObj.attendeeName);
-  console.log("getEventName called", { eventNameObj });
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
@@ -103,7 +102,6 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
       Object.keys(routingFormResponses).forEach((responseKey) => {
         const expectedVariableName = `routingForm.${responseKey}`;
         if (variable === expectedVariableName) {
-          console.log("expectedVariableName Replacing", expectedVariableName);
           dynamicEventName = dynamicEventName.replace(
             `{${expectedVariableName}}`,
             routingFormResponses[responseKey]
@@ -143,7 +141,6 @@ export const validateCustomEventName = (value: string, bookingFields?: Prisma.Js
   const variablesUsed = value.match(/\{([^}]+)\}/g);
   if (variablesUsed?.length) {
     for (const variableUsed of variablesUsed) {
-      console.log("variableUsed", variableUsed);
       if (variableUsed.startsWith("{routingForm.")) {
         continue;
       }

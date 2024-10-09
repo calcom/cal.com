@@ -22,7 +22,6 @@ import {
   Badge,
   Divider,
   Switch,
-  Tooltip,
 } from "@calcom/ui";
 
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
@@ -303,7 +302,9 @@ const Route = ({
                   ? "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)"
                   : "Contact owner will be the Round Robin host if available"
               }
-              tooltip={"Contact owner can only be used if the routed event has it enabled through Salesforce app"}
+              tooltip={
+                "Contact owner can only be used if the routed event has it enabled through Salesforce app"
+              }
               checked={route.attributeRoutingConfig?.skipContactOwner ?? false}
               onCheckedChange={(skipContactOwner) => {
                 setAttributeRoutingConfig(route.id, {
@@ -685,6 +686,7 @@ const Routes = ({
 
     const existingAttributeRoutingConfig =
       "attributeRoutingConfig" in existingRoute ? existingRoute.attributeRoutingConfig : {};
+
     setRoute(id, {
       attributeRoutingConfig: { ...existingAttributeRoutingConfig, ...attributeRoutingConfig },
     });

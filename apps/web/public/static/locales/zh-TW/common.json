@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "限制成員在所有團隊事件類型中可被預訂的次數",
   "booking_limits_updated_successfully": "預約限制更新成功",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "您無權更改此預訂",
+  "matching_members": "符合條件的成員",
+  "no_matching_members": "沒有符合條件的成員。將回退使用分配給事件類型的團隊成員。",
   "hide_calendar_event_details": "隱藏共享行事曆中的事件詳情",
   "description_hide_calendar_event_details": "當行事曆被共享時，事件對讀者可見，但其詳情對沒有寫入權限的人隱藏。",
   "last_number_of_days": "過去 {{count}} 天",

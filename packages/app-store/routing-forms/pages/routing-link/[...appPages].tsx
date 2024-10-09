@@ -109,7 +109,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         fields,
         searchParams: new URLSearchParams(window.location.search),
         teamMembersMatchingAttributeLogic,
-        attributeRoutingConfig: chosenRouteWithFormResponse.route.attributeRoutingConfig,
       });
       const chosenRoute = chosenRouteWithFormResponse.route;
       const decidedAction = chosenRoute.action;

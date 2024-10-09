@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "הגבל את מספר הפעמים שניתן להזמין חברים בכל סוגי האירועים של הצוות",
   "booking_limits_updated_successfully": "מגבלות ההזמנה עודכנו בהצלחה",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "אין לך הרשאה לבצע שינוי זה בהזמנה",
+  "matching_members": "חברים תואמים",
+  "no_matching_members": "אין חברים תואמים. המערכת תשתמש בחברי הצוות שהוקצו לסוג האירוע.",
   "hide_calendar_event_details": "הסתר פרטי אירועי לוח שנה בלוחות שנה משותפים",
   "description_hide_calendar_event_details": "כאשר לוח שנה משותף, האירועים נראים לקוראים אך פרטיהם מוסתרים מאלו שאין להם גישת כתיבה.",
   "last_number_of_days": "ב{{count}} הימים האחרונים",

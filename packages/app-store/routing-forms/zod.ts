@@ -57,9 +57,6 @@ const queryValueSchema = z.object({
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),
-  attributeRoutingConfig: z.object({
-    skipContactOwner: z.boolean().optional(),
-  }).nullish(),
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
   /**
    * RAQB query value for form fields

@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "Limitează de câte ori pot fi rezervați membrii în toate tipurile de evenimente ale echipei",
   "booking_limits_updated_successfully": "Limitele de rezervare au fost actualizate cu succes",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Nu aveți autorizația necesară pentru a face această modificare în rezervare",
+  "matching_members": "Membri corespunzători",
+  "no_matching_members": "Nu există membri corespunzători. Se va reveni la utilizarea membrilor echipei alocați tipului de eveniment.",
   "hide_calendar_event_details": "Ascunde detaliile evenimentelor din calendar pe calendarele partajate",
   "description_hide_calendar_event_details": "Când un calendar este partajat, evenimentele sunt vizibile pentru cititori, dar detaliile lor sunt ascunse celor fără acces de scriere.",
   "last_number_of_days": "ultimele {{count}} zile",

@@ -2625,6 +2625,8 @@
   "limit_team_booking_frequency_description": "모든 팀 이벤트 유형에서 멤버가 예약될 수 있는 횟수를 제한합니다.",
   "booking_limits_updated_successfully": "예약 제한이 성공적으로 업데이트되었습니다",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "이 예약을 변경할 권한이 없습니다",
+  "matching_members": "일치하는 멤버",
+  "no_matching_members": "일치하는 멤버가 없습니다. 이벤트 유형에 할당된 팀 멤버를 사용할 것입니다.",
   "hide_calendar_event_details": "공유 캘린더에서 이벤트 세부 정보 숨기기",
   "description_hide_calendar_event_details": "캘린더가 공유되면 이벤트는 읽기 권한이 있는 사람에게 보이지만, 쓰기 권한이 없는 사람에게는 세부 정보가 숨겨집니다.",
   "last_number_of_days": "지난 {{count}}일",
