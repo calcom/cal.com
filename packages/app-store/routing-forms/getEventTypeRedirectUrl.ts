@@ -14,6 +14,8 @@ function getUserAndEventTypeSlug(eventTypeRedirectUrl: string) {
 }
 
 /**
+ * @param eventTypeRedirectUrl - The event path without a starting slash
+ *
  * Handles the following cases
  * 1. A team form where the team isn't a sub-team
  *    1.1 A team form where team isn't a sub-team and the user is migrated. i.e. User has been migrated but not the team

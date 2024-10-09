@@ -12,6 +12,7 @@ import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/client";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
@@ -57,7 +58,36 @@ type LocalRouteWithRaqbStates = LocalRoute & {
   attributesQueryBuilderState: AttributesQueryBuilderState | null;
 };
 
+type Form = inferSSRProps<typeof getServerSideProps>["form"];
+
 type Route = LocalRouteWithRaqbStates | GlobalRoute;
+
+const RoundRobinContactOwnerOverrideSwitch = ({
+  route,
+  setAttributeRoutingConfig,
+}: {
+  route: LocalRouteWithRaqbStates;
+  setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
+}) => {
+  return (
+    <div className="mt-4 flex flex-col">
+      <Switch
+        label={
+          route.attributeRoutingConfig?.skipContactOwner
+            ? "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)"
+            : "Contact owner will be the Round Robin host if available"
+        }
+        tooltip="Contact owner can only be used if the routed event has it enabled through Salesforce app"
+        checked={route.attributeRoutingConfig?.skipContactOwner ?? false}
+        onCheckedChange={(skipContactOwner) => {
+          setAttributeRoutingConfig(route.id, {
+            skipContactOwner,
+          });
+        }}
+      />
+    </div>
+  );
+};
 
 type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
@@ -85,43 +115,15 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   };
 };
 
-const Route = ({
+const buildEventsData = ({
+  eventTypesByGroup,
   form,
   route,
-  routes,
-  setRoute,
-  setAttributeRoutingConfig,
-  formFieldsQueryBuilderConfig,
-  attributesQueryBuilderConfig,
-  setRoutes,
-  moveUp,
-  moveDown,
-  appUrl,
-  disabled = false,
-  fieldIdentifiers,
 }: {
-  form: inferSSRProps<typeof getServerSideProps>["form"];
+  eventTypesByGroup: RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
+  form: Form;
   route: Route;
-  routes: Route[];
-  setRoute: (id: string, route: Partial<Route>) => void;
-  setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
-  formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
-  attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
-  setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
-  fieldIdentifiers: string[];
-  moveUp?: { fn: () => void; check: () => boolean } | null;
-  moveDown?: { fn: () => void; check: () => boolean } | null;
-  appUrl: string;
-  disabled?: boolean;
 }) => {
-  const { t } = useLocale();
-  const isTeamForm = form.teamId !== null;
-  const index = routes.indexOf(route);
-
-  const { data: eventTypesByGroup, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery({
-    forRoutingForms: true,
-  });
-
   const eventOptions: { label: string; value: string; eventTypeId: number }[] = [];
   const eventTypesMap = new Map<
     number,
@@ -160,6 +162,48 @@ const Route = ({
       });
     });
   });
+
+  return { eventOptions, eventTypesMap };
+};
+
+const Route = ({
+  form,
+  route,
+  routes,
+  setRoute,
+  setAttributeRoutingConfig,
+  formFieldsQueryBuilderConfig,
+  attributesQueryBuilderConfig,
+  setRoutes,
+  moveUp,
+  moveDown,
+  appUrl,
+  disabled = false,
+  fieldIdentifiers,
+}: {
+  form: Form;
+  route: Route;
+  routes: Route[];
+  setRoute: (id: string, route: Partial<Route>) => void;
+  setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
+  formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
+  attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
+  setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
+  fieldIdentifiers: string[];
+  moveUp?: { fn: () => void; check: () => boolean } | null;
+  moveDown?: { fn: () => void; check: () => boolean } | null;
+  appUrl: string;
+  disabled?: boolean;
+}) => {
+  const { t } = useLocale();
+  const isTeamForm = form.teamId !== null;
+  const index = routes.indexOf(route);
+
+  const { data: eventTypesByGroup, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery({
+    forRoutingForms: true,
+  });
+
+  const { eventOptions, eventTypesMap } = buildEventsData({ eventTypesByGroup, form, route });
 
   // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
   const eventTypePrefix =
@@ -263,9 +307,12 @@ const Route = ({
         }
       : undefined;
 
-  const chosenEventType = eventTypeRedirectUrlSelectedOption?.eventTypeId
+  const chosenEventTypeForRedirect = eventTypeRedirectUrlSelectedOption?.eventTypeId
     ? eventTypesMap.get(eventTypeRedirectUrlSelectedOption.eventTypeId)
     : null;
+
+  const isRoundRobinEventSelectedForRedirect =
+    chosenEventTypeForRedirect?.schedulingType === SchedulingType.ROUND_ROBIN;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
     <div>
@@ -295,23 +342,11 @@ const Route = ({
           and use only the Team Members that match the following criteria(matches all by default)
         </span>
 
-        {chosenEventType?.schedulingType === SchedulingType.ROUND_ROBIN ? (
-          <div className="mt-4 flex flex-col">
-            <Switch
-              label={
-                route.attributeRoutingConfig?.skipContactOwner
-                  ? "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)"
-                  : "Contact owner will be the Round Robin host if available"
-              }
-              tooltip="Contact owner can only be used if the routed event has it enabled through Salesforce app"
-              checked={route.attributeRoutingConfig?.skipContactOwner ?? false}
-              onCheckedChange={(skipContactOwner) => {
-                setAttributeRoutingConfig(route.id, {
-                  skipContactOwner,
-                });
-              }}
-            />
-          </div>
+        {isRoundRobinEventSelectedForRedirect ? (
+          <RoundRobinContactOwnerOverrideSwitch
+            route={route}
+            setAttributeRoutingConfig={setAttributeRoutingConfig}
+          />
         ) : null}
 
         <div className="mt-2">

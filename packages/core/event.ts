@@ -3,6 +3,7 @@ import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Prisma } from "@calcom/prisma/client";
+import { entries } from "@calcom/prisma/zod-utils";
 
 export const nameObjectSchema = z.object({
   firstName: z.string(),
@@ -25,7 +26,7 @@ export type EventNameObjectType = {
   location?: string;
   eventDuration: number;
   bookingFields?: Prisma.JsonObject;
-  routingFormResponses?: Record<string, string>;
+  routingFormResponses: Record<string, string> | null
   t: TFunction;
 };
 
@@ -99,19 +100,35 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     }
 
     if (routingFormResponses) {
-      Object.keys(routingFormResponses).forEach((responseKey) => {
-        const expectedVariableName = `routingForm.${responseKey}`;
-        if (variable === expectedVariableName) {
-          dynamicEventName = dynamicEventName.replace(
-            `{${expectedVariableName}}`,
-            routingFormResponses[responseKey]
-          );
-        }
+      dynamicEventName = replaceRoutingFormVariables({
+        variableNameInTemplate: variable,
+        dynamicEventName,
+        routingFormResponses,
       });
     }
   });
-
   return dynamicEventName;
+
+  function replaceRoutingFormVariables({
+    variableNameInTemplate,
+    dynamicEventName,
+    routingFormResponses,
+  }: {
+    variableNameInTemplate: string;
+    dynamicEventName: string;
+    routingFormResponses: Record<string, string>;
+  }) {
+    entries(routingFormResponses).forEach(([formFieldIdentifier, formFieldValue]) => {
+      const expectedVariableName = `routingForm.${formFieldIdentifier}`;
+      if (variableNameInTemplate === expectedVariableName) {
+        dynamicEventName = dynamicEventName.replace(
+          `{${expectedVariableName}}`,
+          formFieldValue
+        );
+      }
+    });
+    return dynamicEventName;
+  }
 }
 
 export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject) => {

@@ -154,22 +154,28 @@ type BookingDataSchemaGetter =
  * Adds the contact owner to be the only lucky user
  * @returns
  */
-function buildLuckyUsersWithContactOwner({
+function buildLuckyUsersWithJustContactOwner({
   contactOwnerEmail,
   availableUsers,
   fixedUserPool,
 }: {
-  contactOwnerEmail: string;
+  contactOwnerEmail: string | null;
   availableUsers: IsFixedAwareUser[];
   fixedUserPool: IsFixedAwareUser[];
 }) {
   const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>> = [];
-  // If contact owner is not a fixed host, assign the lucky user as the team member
-  if (!fixedUserPool.some((user) => user.email === contactOwnerEmail)) {
-    const teamMember = availableUsers.find((user) => user.email === contactOwnerEmail);
-    if (teamMember) {
-      luckyUsers.push(teamMember);
-    }
+  if (!contactOwnerEmail) {
+    return luckyUsers;
+  }
+
+  const isContactOwnerAFixedHostAlready = fixedUserPool.some((user) => user.email === contactOwnerEmail);
+  if (isContactOwnerAFixedHostAlready) {
+    return luckyUsers;
+  }
+
+  const teamMember = availableUsers.find((user) => user.email === contactOwnerEmail);
+  if (teamMember) {
+    luckyUsers.push(teamMember);
   }
   return luckyUsers;
 }
@@ -295,8 +301,9 @@ async function handler(
     logger: loggerWithEventDetails,
   });
 
-  const contactOwnerEmail = reqBody.teamMemberEmail ?? null;
+  const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
   const skipContactOwner = reqBody.skipContactOwner ?? false;
+  const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
   let users = await loadAndValidateUsers({
     req,
@@ -305,7 +312,7 @@ async function handler(
     dynamicUserList,
     logger: loggerWithEventDetails,
     routedTeamMemberIds: routedTeamMemberIds ?? null,
-    contactOwnerEmail: skipContactOwner ? null : contactOwnerEmail,
+    contactOwnerEmail,
   });
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
@@ -428,14 +435,11 @@ async function handler(
         })
       );
 
-      const luckyUsers: typeof users =
-        contactOwnerEmail && !skipContactOwner
-          ? buildLuckyUsersWithContactOwner({
-              contactOwnerEmail,
-              availableUsers,
-              fixedUserPool,
-            })
-          : [];
+      const luckyUsers: typeof users = buildLuckyUsersWithJustContactOwner({
+        contactOwnerEmail: contactOwnerEmail,
+        availableUsers,
+        fixedUserPool,
+      });
 
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1

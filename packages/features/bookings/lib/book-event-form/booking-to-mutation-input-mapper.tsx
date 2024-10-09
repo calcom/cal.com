@@ -69,7 +69,6 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
-  // FIXME: How to handle duplicate params that would become array
   const routingFormResponses = getRoutingFormResponsesFromSearchParams(searchParams);
 
   return {
@@ -96,7 +95,7 @@ export const mapBookingToMutationInput = ({
     routedTeamMemberIds,
     routingFormResponseId,
     skipContactOwner,
-    // FIXME: Retrieve it in handleNewBooking from routingFormResponseId
+    // TODO: We can retrieve it in handleNewBooking from routingFormResponseId. But it needs some transformation first, so let's do it later
     routingFormResponses,
   };
 };
