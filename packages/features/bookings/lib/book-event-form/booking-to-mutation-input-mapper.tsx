@@ -46,6 +46,8 @@ export const mapBookingToMutationInput = ({
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
+  const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
+
   return {
     ...values,
     user: username,
@@ -68,7 +70,8 @@ export const mapBookingToMutationInput = ({
     teamMemberEmail,
     orgSlug,
     routedTeamMemberIds,
-    routingFormResponseId
+    routingFormResponseId,
+    skipContactOwner,
   };
 };
 
