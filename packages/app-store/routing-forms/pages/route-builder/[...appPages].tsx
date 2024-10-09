@@ -444,6 +444,7 @@ const Route = ({
                   <div className="block w-full">
                     <Select
                       required
+                      className="data-testid-eventTypeRedirectUrl-select"
                       isDisabled={disabled}
                       options={eventTypeRedirectUrlOptions}
                       onChange={(option) => {
