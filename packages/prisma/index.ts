@@ -41,14 +41,24 @@ if (!isNaN(loggerLevel)) {
 const prismaWithoutClientExtensions =
   globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtension(prismaOptions);
 
-export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
+export const customPrisma = (options?: Prisma.PrismaClientOptions) => buildCustomPrisma(options);
+
+const buildCustomPrisma = (options) => {
+  let client = new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
     .$extends(usageTrackingExtention())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
-    .$extends(disallowUndefinedDeleteUpdateManyExtension())
-    .$extends(withAccelerate());
-    .$extends(withOptimize());
+    .$extends(disallowUndefinedDeleteUpdateManyExtension());
+
+  if (!!process.env.PRISMA_OPTIMIZE_API_KEY) {
+    client = client.$extends(withOptimize({ apiKey: process.env.PRISMA_OPTIMIZE_API_KEY }));
+  }
+
+  // INFO: withAccelerate has to come after withOptimize
+  client = client.$extends(withAccelerate());
+
+  return client;
+};
 
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
@@ -56,15 +66,20 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
-const prismaWithClientExtensions = prismaWithoutClientExtensions
+let prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(usageTrackingExtention())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
-  .$extends(disallowUndefinedDeleteUpdateManyExtension())
-  .$extends(withAccelerate());
-if (process.env.ENABLE_OPTIMIZE_EXTENSION === "true") {
-  prismaWithClientExtensions.$extends(withOptimize());
+  .$extends(disallowUndefinedDeleteUpdateManyExtension());
+
+if (!!process.env.PRISMA_OPTIMIZE_API_KEY) {
+  prismaWithClientExtensions = prismaWithClientExtensions.$extends(
+    withOptimize({ apiKey: process.env.PRISMA_OPTIMIZE_API_KEY })
+  );
 }
+
+// INFO: withAccelerate has to come after withOptimize
+prismaWithClientExtensions = prismaWithClientExtensions.$extends(withAccelerate());
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 

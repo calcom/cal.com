@@ -84,7 +84,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
     "@playwright/test": "^1.45.3",
-    "@prisma/extension-optimize": "0.0.0-dev.202407222340",
+    "@prisma/extension-optimize": "^1.0.1",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
