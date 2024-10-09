@@ -153,7 +153,7 @@ export default class SalesforceCRMService implements CRM {
     options: { [key: string]: unknown }
   ) => {
     const conn = await this.conn;
-    const ownerId = await this.getSalesforceUserFromEmail(event.organizer.email);
+    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
 
     return await conn.sobject("Event").create({
       StartDateTime: new Date(event.startTime).toISOString(),
@@ -328,7 +328,7 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
-    const organizerId = organizerEmail ? await this.getSalesforceUserFromEmail(organizerEmail) : undefined;
+    const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
 
     if (createEventOn === SalesforceRecordEnum.CONTACT || createEventOn === SalesforceRecordEnum.LEAD) {
       // See if the organizer exists in the CRM
