@@ -663,7 +663,6 @@ async function handler(
   const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
-  const routingFormResponses = reqBody.routingFormResponses || null;
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
@@ -677,7 +676,6 @@ async function handler(
     location: bookingLocation,
     eventDuration: eventType.length,
     bookingFields: { ...responses },
-    routingFormResponses: { ...routingFormResponses },
     t: tOrganizer,
   };
 

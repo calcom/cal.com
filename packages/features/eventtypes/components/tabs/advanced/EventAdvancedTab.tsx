@@ -139,8 +139,6 @@ export const EventAdvancedTab = ({
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
-    // No Routing Form is available at this point
-    routingFormResponses: null
   });
 
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
