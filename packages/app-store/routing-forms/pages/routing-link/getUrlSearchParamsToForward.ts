@@ -12,6 +12,7 @@ export function getUrlSearchParamsToForward({
   searchParams,
   teamMembersMatchingAttributeLogic,
   formResponseId,
+  attributeRoutingConfig,
 }: {
   formResponse: Record<
     string,
@@ -26,6 +27,7 @@ export function getUrlSearchParamsToForward({
   searchParams: URLSearchParams;
   formResponseId: number;
   teamMembersMatchingAttributeLogic: number[] | null;
+  attributeRoutingConfig: AttributeRoutingConfig | null;
 }) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};

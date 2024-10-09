@@ -32,7 +32,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-import { getRoutedHosts } from "@calcom/lib/bookings/getRoutedUsers";
+
 import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
@@ -351,7 +351,7 @@ function getUsersWithCredentials({
   skipContactOwner: boolean | null | undefined;
   contactOwnerEmail: string | null | undefined;
   hosts: {
-    isFixed: boolean;
+    isFixed?: boolean;
     user: GetAvailabilityUser;
   }[];
 }) {
@@ -377,7 +377,7 @@ function getUsersWithCredentials({
       usersArray.push({ ...host.user, isFixed: host.isFixed });
 
     return usersArray;
-  }, [] as (GetAvailabilityUser & { isFixed: boolean })[]);
+  }, [] as (GetAvailabilityUser & { isFixed?: boolean })[]);
 
   return hostsWithExplicitContactOwner;
 }
@@ -453,7 +453,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           };
         });
 
-  const contactOwnerEmail = input.teamMemberEmail;
+  const contactOwnerEmail = input.teamMemberEmail ?? null;
   const skipContactOwner = input.skipContactOwner;
 
   let hosts = getRoutedHosts({
