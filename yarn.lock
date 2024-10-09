@@ -4134,13 +4134,14 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.41"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.44"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
     "@golevelup/ts-jest": ^0.4.0
     "@microsoft/microsoft-graph-types-beta": ^0.42.0-preview
+    "@nest-lab/throttler-storage-redis": 1.0.0
     "@nestjs/bull": ^10.1.1
     "@nestjs/cli": ^10.0.0
     "@nestjs/common": ^10.0.0
@@ -4152,7 +4153,7 @@ __metadata:
     "@nestjs/schematics": ^10.0.0
     "@nestjs/swagger": ^7.3.0
     "@nestjs/testing": ^10.0.0
-    "@nestjs/throttler": ^5.1.2
+    "@nestjs/throttler": 6.2.1
     "@sentry/node": ^8.8.0
     "@types/cookie-parser": ^1.4.6
     "@types/express": ^4.17.21
@@ -4175,11 +4176,11 @@ __metadata:
     jest: ^29.7.0
     luxon: ^3.4.4
     nest-winston: ^1.9.4
-    nestjs-throttler-storage-redis: ^0.4.1
     next-auth: ^4.22.1
     passport: ^0.7.0
     passport-jwt: ^4.0.1
     prettier: ^2.8.6
+    qs-stringify: ^1.2.1
     querystring: ^0.2.1
     reflect-metadata: ^0.1.13
     rxjs: ^7.8.1
@@ -4370,6 +4371,15 @@ __metadata:
 "@calcom/basecamp3@workspace:packages/app-store/basecamp3":
   version: 0.0.0-use.local
   resolution: "@calcom/basecamp3@workspace:packages/app-store/basecamp3"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/bolna@workspace:packages/app-store/bolna":
+  version: 0.0.0-use.local
+  resolution: "@calcom/bolna@workspace:packages/app-store/bolna"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -4794,6 +4804,7 @@ __metadata:
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
     react-virtual: ^2.10.4
+    stripe-event-types: ^3.1.0
     web-push: ^3.6.7
     zustand: ^4.3.2
   languageName: unknown
@@ -5040,6 +5051,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/nextcloudtalk@workspace:packages/app-store/nextcloudtalk":
+  version: 0.0.0-use.local
+  resolution: "@calcom/nextcloudtalk@workspace:packages/app-store/nextcloudtalk"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/office365calendar@workspace:packages/app-store/office365calendar":
   version: 0.0.0-use.local
   resolution: "@calcom/office365calendar@workspace:packages/app-store/office365calendar"
@@ -5121,14 +5141,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.41":
-  version: 0.0.41
-  resolution: "@calcom/platform-libraries@npm:0.0.41"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.44":
+  version: 0.0.44
+  resolution: "@calcom/platform-libraries@npm:0.0.44"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: a4052828549f0705d585647a0962a82cd09643161c71c066e66f6ce71dd26f9a5912ce09270256e8c99d5b5fc49b8f812ac903c623ff9840c0ebf0295632b261
+  checksum: 0d46c2c695a8a776f7401e298d0f7d0b3227c9fe38e1746aaf747c22fe28d881939c31c54613e696a595b72af21fe14b342dabe99c59b44d6576f4e2f37bf76f
   languageName: node
   linkType: hard
 
@@ -5762,7 +5782,7 @@ __metadata:
     tailwindcss-animate: ^1.0.6
     tailwindcss-radix: ^2.6.0
     ts-node: ^10.9.1
-    turndown: ^7.1.1
+    turndown: ^7.1.3
     typescript: ^4.9.4
     uuid: ^8.3.2
     zod: ^3.22.4
@@ -9387,6 +9407,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mixmark-io/domino@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@mixmark-io/domino@npm:2.2.0"
+  checksum: 547af4a8f74cb8e1f2f86e84dc968e7a722522d4748d8a1c9d30c5d1ce6a190ec400866338cc1f717b31beabed6e61c44edf17db5cf380317b63a1e7f253080f
+  languageName: node
+  linkType: hard
+
 "@mongodb-js/saslprep@npm:^1.1.0":
   version: 1.1.4
   resolution: "@mongodb-js/saslprep@npm:1.1.4"
@@ -9480,6 +9507,32 @@ __metadata:
     pump: ^3.0.0
     tar-fs: ^2.1.1
   checksum: 7fa8ac40b4e85738a4ee6bf891bc27fce2445b65b4477e0ec86aed0fa62ab18bdf5d193ce04553ad9bfa639e1eef33b8b30da4ef3e7218f12bf95f24c8786e5b
+  languageName: node
+  linkType: hard
+
+"@nest-lab/throttler-storage-redis@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@nest-lab/throttler-storage-redis@npm:1.0.0"
+  dependencies:
+    tslib: ^2.3.0
+  peerDependencies:
+    "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
+    "@nestjs/core": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
+    "@nestjs/throttler": ">=6.0.0"
+    ioredis: ">=5.0.0"
+    reflect-metadata: ^0.2.1
+  peerDependenciesMeta:
+    "@nestjs/common":
+      optional: false
+    "@nestjs/core":
+      optional: false
+    "@nestjs/throttler":
+      optional: false
+    ioredis:
+      optional: false
+    reflect-metadata:
+      optional: false
+  checksum: ed6913f789e73a94370547c6fc1336d582e56b635dda951f18be297508cf732849cf45190e19df081c3849aede7cc5fe3940bd43373eb33201e91363651e19c8
   languageName: node
   linkType: hard
 
@@ -9730,14 +9783,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/throttler@npm:^5.1.2":
-  version: 5.1.2
-  resolution: "@nestjs/throttler@npm:5.1.2"
+"@nestjs/throttler@npm:6.2.1":
+  version: 6.2.1
+  resolution: "@nestjs/throttler@npm:6.2.1"
   peerDependencies:
     "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
     "@nestjs/core": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
     reflect-metadata: ^0.1.13 || ^0.2.0
-  checksum: 181c99fca712be09ce9264e0b3f505f450d07d19cdacd58ca2e66c9f29e143ac3a8051a3cdc0b928f162ae0c0b14d40fc68752434d46c9b25e555974a1c8c1a1
+  checksum: 6634812aaba2db9fd7edd1200d051447d2dc33dca8318a14d517f02b103fd2a3e4a41842c006f8f5218b757da20eff0d6f472b0455d3a25d3a8758eed96552ae
   languageName: node
   linkType: hard
 
@@ -25053,13 +25106,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"domino@npm:^2.1.6":
-  version: 2.1.6
-  resolution: "domino@npm:2.1.6"
-  checksum: 9b1b6d2661efd8bf942b70d5e11ac0de6a63f17e49b7eb227d9a612fa7b7c12b7775520d64f498988a8ee334ea9c59a463c84ea510b0af17dd3e13fdce120410
-  languageName: node
-  linkType: hard
-
 "dompurify@npm:=2.3.3":
   version: 2.3.3
   resolution: "dompurify@npm:2.3.3"
@@ -36532,19 +36578,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nestjs-throttler-storage-redis@npm:^0.4.1":
-  version: 0.4.3
-  resolution: "nestjs-throttler-storage-redis@npm:0.4.3"
-  peerDependencies:
-    "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/core": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/throttler": ">=5.0.0"
-    ioredis: ">=5.0.0"
-    reflect-metadata: ^0.2.1
-  checksum: 72178c70aff73a554701f3d92e5d80dc67f50eedb92200bacfad9542d067d3bbdb4583210f7010a4fd18c77864a5d58bea8103d45f0b0c0c53c93bf9630b49f8
-  languageName: node
-  linkType: hard
-
 "netmask@npm:^2.0.2":
   version: 2.0.2
   resolution: "netmask@npm:2.0.2"
@@ -45087,6 +45120,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stripe-event-types@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "stripe-event-types@npm:3.1.0"
+  peerDependencies:
+    stripe: ">=10.0.0"
+  checksum: fcabbfba20a953851ee61015897ec497d4c31d7fa480e8a6bb17f04e0ca167b90e30bd09bae5d807d0182fd1cdfd9fd05c299d643d80db9568506165523967e8
+  languageName: node
+  linkType: hard
+
 "stripe@npm:*":
   version: 8.215.0
   resolution: "stripe@npm:8.215.0"
@@ -46817,12 +46859,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turndown@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "turndown@npm:7.1.1"
+"turndown@npm:^7.1.3":
+  version: 7.2.0
+  resolution: "turndown@npm:7.2.0"
   dependencies:
-    domino: ^2.1.6
-  checksum: f2d77632bd69bc93298b619f051dc0c050fabee15188afe874eab713f8ffdcaea89106a536c19db0962a677b5f7177f5aa84b45ef38e06d6e489a49f11abd80d
+    "@mixmark-io/domino": ^2.2.0
+  checksum: a0bdf2fcc8cd531c94edbd7c384ae58a13251e7b472f7245fac74a316c08f8d04eb9dddfce6a5e6170ddb09c0494154a0d69312e5d9c2a7223a936a7e369ac7c
   languageName: node
   linkType: hard
 

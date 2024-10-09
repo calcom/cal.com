@@ -10,6 +10,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import turndown from "@calcom/lib/turndownService";
 import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -161,13 +162,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
     : { ref: null, name: "" };
 
-  const { ref: reminderBodyFormRef, ...restReminderBodyForm } = step
-    ? form.register(`steps.${step.stepNumber - 1}.reminderBody`)
-    : { ref: null, name: "" };
-
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
-
-  const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
   const getNumberVerificationStatus = () =>
     !!step &&
@@ -184,17 +179,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
-
-  const addVariableBody = (variable: string) => {
-    if (step) {
-      const currentMessageBody = refReminderBody?.current?.value || "";
-      const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
-      const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
-        .toUpperCase()
-        .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
-    }
-  };
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
@@ -920,57 +904,35 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 )}
 
-                {step.action !== WorkflowActions.SMS_ATTENDEE &&
-                step.action !== WorkflowActions.SMS_NUMBER ? (
-                  <>
-                    <div className="mb-2 flex items-center pb-[1.5px]">
-                      <Label className="mb-0 flex-none ">
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                    </div>
-                    <Editor
-                      getText={() => {
-                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                      }}
-                      setText={(text: string) => {
-                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                        props.form.clearErrors();
-                      }}
-                      variables={DYNAMIC_TEXT_VARIABLES}
-                      height="200px"
-                      updateTemplate={updateTemplate}
-                      firstRender={firstRender}
-                      setFirstRender={setFirstRender}
-                      editable={!props.readOnly && !isWhatsappAction(step.action)}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center">
-                      <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                      {!props.readOnly && (
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableBody}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <TextArea
-                      ref={(e) => {
-                        reminderBodyFormRef?.(e);
-                        refReminderBody.current = e;
-                      }}
-                      className="my-0 h-24"
-                      disabled={props.readOnly}
-                      required
-                      {...restReminderBodyForm}
-                    />
-                  </>
-                )}
+                <div className="mb-2 flex items-center pb-1">
+                  <Label className="mb-0 flex-none ">
+                    {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                  </Label>
+                </div>
+                <Editor
+                  getText={() => {
+                    return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                  }}
+                  setText={(text: string) => {
+                    if (isSMSOrWhatsappAction(step.action)) {
+                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, turndown(text));
+                    } else {
+                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                    }
+                    props.form.clearErrors();
+                  }}
+                  variables={DYNAMIC_TEXT_VARIABLES}
+                  addVariableButtonTop={isSMSAction(step.action)}
+                  height="200px"
+                  updateTemplate={updateTemplate}
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
+                  editable={!props.readOnly && !isWhatsappAction(step.action)}
+                  excludedToolbarItems={
+                    !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
+                  }
+                />
+
                 {form.formState.errors.steps &&
                   form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
                     <p className="mt-1 text-sm text-red-500">

@@ -1,17 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState, useEffect } from "react";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
-import type { EventTypeSetupProps, TabMap } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import { useAtomsEventTypeById } from "../hooks/useAtomEventTypeById";
+import { useAtomsEventTypeById, QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY } from "../hooks/useAtomEventTypeById";
 import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
@@ -24,10 +25,14 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 export type EventTypePlatformWrapperProps = {
   id: number;
   tabs?: PlatformTabs[];
+  onSuccess?: (eventType: FormValues) => void;
+  onError?: (eventType: FormValues, error: Error) => void;
 };
 
 const EventType = ({
   tabs = ["setup", "availability", "team", "limits", "advanced"],
+  onSuccess,
+  onError,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -53,13 +58,16 @@ const EventType = ({
       form.reset(currentValues);
 
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      onSuccess?.(currentValues);
     },
     async onSettled() {
       return;
     },
     onError: (err: Error) => {
+      const currentValues = form.getValues();
       const message = err?.message;
       toast({ description: message ? t(message) : t(err.message) });
+      onError?.(currentValues, err);
     },
   });
 
@@ -160,10 +168,25 @@ const EventType = ({
   );
 };
 
-export const EventTypePlatformWrapper = ({ id, tabs }: EventTypePlatformWrapperProps) => {
+export const EventTypePlatformWrapper = ({ id, tabs, onSuccess, onError }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return () => {
+      if (eventTypeQueryData) {
+        // on component unmount or eventTypeId change, reset and invalidate query to get fresh data on next mount
+        queryClient.invalidateQueries({
+          queryKey: [ATOM_EVENT_TYPE_QUERY_KEY, id],
+        });
+        queryClient.resetQueries({
+          queryKey: [ATOM_EVENT_TYPE_QUERY_KEY, id],
+        });
+      }
+    };
+  }, [queryClient, id]);
 
   if (!eventTypeQueryData) return null;
 
-  return <EventType {...eventTypeQueryData} id={id} tabs={tabs} />;
+  return <EventType {...eventTypeQueryData} id={id} tabs={tabs} onSuccess={onSuccess} onError={onError} />;
 };

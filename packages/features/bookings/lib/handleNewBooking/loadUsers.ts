@@ -2,8 +2,10 @@ import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getRoutedUsers } from "@calcom/lib/bookings/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -14,14 +16,25 @@ const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
 type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
 
-export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage) => {
+export const loadUsers = async ({
+  eventType,
+  dynamicUserList,
+  req,
+  routedTeamMemberIds,
+}: {
+  eventType: EventType;
+  dynamicUserList: string[];
+  req: IncomingMessage;
+  routedTeamMemberIds: number[] | null;
+}) => {
   try {
     const { currentOrgDomain } = orgDomainConfig(req);
-
-    return eventType.id
+    const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
+    return getRoutedUsers({ users, routedTeamMemberIds });
   } catch (error) {
+    log.error("Unable to load users", safeStringify(error));
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
       throw new HttpError({ statusCode: 400, message: error.message });
     }
@@ -88,4 +101,4 @@ export const findUsersByUsername = async ({
   });
 };
 
-export type AwaitedLoadUsers = Awaited<ReturnType<typeof loadUsers>>;
+export type LoadedUsers = Awaited<ReturnType<typeof loadUsers>>;

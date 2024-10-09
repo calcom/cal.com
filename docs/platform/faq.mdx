@@ -1,0 +1,34 @@
+---
+title: FAQ
+description: Answers to the most common questions about the Platform API and atoms.
+---
+### 1. What is an OAuth client?
+-  A platform OAuth client enables you communicate with our API and manage your users.
+-  It contains properties such as name, redirect uris and permissions required by your users.
+
+### 2. What is a managed user?
+- A managed user is just a representation of your user within our database containing basic information like e-mail.
+- It can be used to manage the setup of integrations such as Google Calendar, your users bookings. availability, etc.
+- You should store information about the managed users in your database and use the access token to make API calls on their behalf.
+
+### 3. Are a cal.com user and a managed user related?
+- No, a cal.com user and a managed user are not related in any way. We can consider them as two separate entities.
+- A "managed user" is completely independent of user accounts on cal.com and you don't need to register users on the cal.com web application.
+
+### 4. What is an access token?
+- At the time of creating a managed user you'll be provided with an access token and a refresh token.
+- Each managed user is linked with an access token which helps us in identifying which users scheduling we need to handle.
+- The access token only lasts for 60 minutes after which you can query the refresh point with your refresh token which will give you a new access token.
+- Inside of atoms we handle access token refreshing part ourselves, outside of that you may need to handle the refreshing part yourselves.
+- Refresh tokens should never be exposed to the frontend, keep them secure and only use them on the backend.
+
+### 5. What is an atom?
+- An atom is a customizable UI component that handles scheduling on behalf of your user.
+- Everything from the front-end to API calls is being handled by the atom, all you need to is import the atom and drop it in your code.
+
+### 6. What are the minimun setup requirments for using atoms?
+- You need to have a project that uses React version 18 and above.
+- At the moment atoms are only supported in React, so there's no way to use them in vanilla js or any other popular framework.
+
+### 7. Can recurring events be rescheduled?
+- No, at the moment you are only allowed to cancel a recurring event.

@@ -1,15 +1,12 @@
-import type { DateArray, ParticipationStatus, ParticipationRole, EventStatus } from "ics";
+import type { DateArray, ParticipationRole, EventStatus, ParticipationStatus } from "ics";
 import { createEvent } from "ics";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { getWhen } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
-import { GenerateIcsRole } from "./generateIcsFile";
 
 export enum BookingAction {
   Create = "create",
@@ -19,51 +16,43 @@ export enum BookingAction {
   LocationChange = "location_change",
 }
 
+export type ICSCalendarEvent = Pick<
+  CalendarEvent,
+  | "uid"
+  | "iCalUID"
+  | "iCalSequence"
+  | "startTime"
+  | "endTime"
+  | "title"
+  | "organizer"
+  | "attendees"
+  | "location"
+  | "recurringEvent"
+  | "team"
+  | "type"
+  | "hideCalendarEventDetails"
+>;
+
 const generateIcsString = ({
   event,
-  title,
-  subtitle,
   status,
-  role,
-  isRequestReschedule,
+  partstat = "ACCEPTED",
   t,
 }: {
-  event: CalendarEvent;
-  title: string;
-  subtitle: string;
+  event: ICSCalendarEvent;
   status: EventStatus;
-  role: GenerateIcsRole;
-  isRequestReschedule?: boolean;
+  partstat?: ParticipationStatus;
   t?: TFunction;
 }) => {
   const location = getVideoCallUrlFromCalEvent(event) || event.location;
 
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
-  const partstat: ParticipationStatus = "ACCEPTED";
   const icsRole: ParticipationRole = "REQ-PARTICIPANT";
   if (event.recurringEvent?.count) {
     // ics appends "RRULE:" already, so removing it from RRule generated string
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
   }
-
-  const getTextBody = (title: string, subtitle: string): string => {
-    let body: string;
-    if (isRequestReschedule && role === GenerateIcsRole.ATTENDEE && t) {
-      body = `
-      ${title}
-      ${getWhen(event, t)}
-      ${subtitle}`;
-    }
-    body = `
-    ${title}
-    ${subtitle}
-
-    ${getRichDescription(event, t)}
-    `.trim();
-
-    return body;
-  };
 
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
@@ -76,7 +65,7 @@ const generateIcsString = ({
     startInputType: "utc",
     productId: "calcom/ics",
     title: event.title,
-    description: getTextBody(title, subtitle),
+    description: getRichDescription(event, t),
     duration: { minutes: dayjs(event.endTime).diff(dayjs(event.startTime), "minute") },
     organizer: { name: event.organizer.name, email: event.organizer.email },
     ...{ recurrenceRule },

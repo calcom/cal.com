@@ -364,7 +364,12 @@ Cal.ns.popupHideEventTypeDetails("ui", {
   hideEventTypeDetails: true,
 });
 
-Cal("init", "popupReschedule", {
+Cal("init", "popupRescheduleWithReschedulePath", {
+  debug: true,
+  origin: origin,
+});
+
+Cal("init", "popupRescheduleWithRescheduleUidParam", {
   debug: true,
   origin: origin,
 });
@@ -410,6 +415,11 @@ Cal("init", "floatingButton", {
 });
 
 Cal("init", "routingFormAuto", {
+  debug: true,
+  origin: origin,
+});
+
+Cal("init", "routingFormHeadlessRouter", {
   debug: true,
   origin: origin,
 });
