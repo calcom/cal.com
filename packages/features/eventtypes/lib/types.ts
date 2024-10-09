@@ -27,12 +27,14 @@ export type Host = {
   priority: number;
   weight: number;
   weightAdjustment: number;
+  scheduleId?: number | null;
 };
 export type TeamMember = {
   value: string;
   label: string;
   avatar: string;
   email: string;
+  defaultScheduleId: number | null;
 };
 
 export type FormValues = {

@@ -242,7 +242,12 @@ const EventTypeWeb = ({
       />
     ),
     availability: (
-      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} loggedInUser={loggedInUser} />
+      <EventAvailabilityTab
+        eventType={eventType}
+        isTeamEvent={!!team}
+        loggedInUser={loggedInUser}
+        teamMembers={teamMembers}
+      />
     ),
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,

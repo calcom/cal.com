@@ -227,6 +227,20 @@ export async function getEventType(
               ...availabilityUserSelect,
             },
           },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
+            },
+          },
         },
       },
       users: {

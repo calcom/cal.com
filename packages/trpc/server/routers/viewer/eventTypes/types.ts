@@ -57,6 +57,7 @@ export const EventTypeUpdateInput = _EventTypeModel
           isFixed: z.boolean().optional(),
           priority: z.number().min(0).max(4).optional().nullable(),
           weight: z.number().min(0).optional().nullable(),
+          scheduleId: z.number().optional().nullable(),
         })
       )
       .optional(),

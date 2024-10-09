@@ -191,6 +191,7 @@ type Host = {
   isFixed?: boolean | undefined;
   priority?: number | null | undefined;
   weight?: number | null | undefined;
+  scheduleId?: number | null | undefined;
 };
 
 type User = {
@@ -230,6 +231,7 @@ export async function addWeightAdjustmentToNewHosts({
           weightAdjustment: true,
           priority: true,
           weight: true,
+          scheduleId: true,
         },
       },
     },
@@ -249,6 +251,7 @@ export async function addWeightAdjustmentToNewHosts({
         id: user.id,
         email: user.email,
       },
+      scheduleId: hostData?.scheduleId ?? null,
     };
   });
 
@@ -263,6 +266,7 @@ export async function addWeightAdjustmentToNewHosts({
       priority: host.priority,
       weight: host.weight,
       weightAdjustment: host.weightAdjustment,
+      scheduleId: host.scheduleId,
     }));
   }
 
@@ -303,6 +307,7 @@ export async function addWeightAdjustmentToNewHosts({
         priority: host.priority,
         weight: host.weight,
         weightAdjustment: weightAdjustment > 0 ? Math.floor(weightAdjustment) : 0,
+        scheduleId: host.scheduleId,
       };
     })
   );
