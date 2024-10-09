@@ -89,7 +89,7 @@ export class CredentialsRepository {
     });
   }
 
-  async deleteCredentialById(userId: number, credentialId: number) {
+  async deleteUserCredentialById(userId: number, credentialId: number) {
     return await this.dbWrite.prisma.credential.delete({
       where: { id: credentialId, userId },
     });

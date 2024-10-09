@@ -6,6 +6,7 @@ import {
   ConferencingAppOutputResponseDto,
   ConferencingAppsOutputDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
+import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import {
@@ -38,6 +39,28 @@ export class ConferencingController {
     private readonly googleMeetService: GoogleMeetService
   ) {}
 
+  @Post("/:app/connect")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "connect your conferencing application" })
+  async connect(
+    @GetUser("id") userId: number,
+    @Param("app") app: string
+  ): Promise<ConferencingAppOutputResponseDto> {
+    switch (app) {
+      case GOOGLE_MEET:
+        const credential = await this.googleMeetService.connectGoogleMeetApp(userId);
+
+        return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
+
+      default:
+        throw new BadRequestException(
+          "Invalid calendar type, available calendars are: ",
+          CONFERENCING_APPS.join(", ")
+        );
+    }
+  }
+
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
@@ -52,19 +75,19 @@ export class ConferencingController {
     return { status: SUCCESS_STATUS, data };
   }
 
-  @Post("/:app/connect")
+  @Post("/:app/default")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "connect your conferencing application" })
-  async connect(
+  @ApiOperation({ summary: "set your default conferencing application" })
+  async default(
     @GetUser("id") userId: number,
     @Param("app") app: string
-  ): Promise<ConferencingAppOutputResponseDto> {
+  ): Promise<SetDefaultConferencingAppOutputResponseDto> {
     switch (app) {
       case GOOGLE_MEET:
-        const credential = await this.googleMeetService.connectGoogleMeetApp(userId);
+        const user = await this.googleMeetService.setDefault(userId);
 
-        return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
+        return { status: SUCCESS_STATUS };
 
       default:
         throw new BadRequestException(

@@ -17,6 +17,7 @@ import {
   ERROR_STATUS,
   GOOGLE_CALENDAR_ID,
   GOOGLE_CALENDAR_TYPE,
+  GOOGLE_MEET,
   GOOGLE_MEET_TYPE,
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
@@ -81,6 +82,22 @@ describe("Conferencing Endpoints", () => {
         .then((response) => {
           const responseBody: ApiSuccessResponse<ConferencingAppsOutputDto[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        });
+    });
+
+    it("should set google meet as default conferencing app", async () => {
+      return request(app.getHttpServer())
+        .post(`/v2/conferencing/google-meet/default`)
+        .expect(200)
+        .then(async () => {
+          const updatedUser = await userRepositoryFixture.get(user.id);
+
+          expect(updatedUser).toBeDefined();
+
+          if (updatedUser) {
+            const metadata = updatedUser.metadata as { defaultConferencingApp?: { appSlug?: string } };
+            expect(metadata?.defaultConferencingApp?.appSlug).toEqual(GOOGLE_MEET);
+          }
         });
     });
 
