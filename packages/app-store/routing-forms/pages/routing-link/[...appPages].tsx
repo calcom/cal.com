@@ -19,7 +19,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
-import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
@@ -122,10 +122,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
         const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
         router.push(
-          getAbsoluteEventTypeRedirectUrl({
+          getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
             form,
             eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
             allURLSearchParams,
+            isEmbed: !!isEmbed
           })
         );
       } else if (decidedAction.type === "externalRedirectUrl") {

@@ -2633,5 +2633,6 @@
   "month_to_date": "kuu algusest tänaseni",
   "year_to_date": "aasta algusest tänaseni",
   "custom_range": "kohandatud vahemik",
+  "mass_assign_attributes": "Massiline atribuutide määramine",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

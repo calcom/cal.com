@@ -2633,5 +2633,6 @@
   "month_to_date": "이번 달 현재까지",
   "year_to_date": "올해 현재까지",
   "custom_range": "사용자 지정 범위",
+  "mass_assign_attributes": "속성 일괄 할당",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
