@@ -305,9 +305,7 @@ export function UserListTable() {
         tableContainerRef={tableContainerRef}
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar>
-          <DataTableToolbar.SearchBar table={table} searchKey="member" />
-        </DataTableToolbar>
+        <DataTableToolbar.Root style={{ gridArea: "header" }}>Hello</DataTableToolbar.Root>
         <div style={{ gridArea: "footer" }}>Hello</div>
       </DataTable>
 

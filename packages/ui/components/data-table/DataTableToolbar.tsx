@@ -23,7 +23,7 @@ interface DataTableToolbarProps {
   children: React.ReactNode;
 }
 
-const DataTableToolbar = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar(
+export const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar(
   { children },
   ref
 ) {
@@ -74,7 +74,7 @@ function SearchBarComponent<TData>(
   );
 }
 
-const SearchBar = forwardRef(SearchBarComponent) as <TData>(
+export const SearchBar = forwardRef(SearchBarComponent) as <TData>(
   props: SearchBarProps<TData> & { ref?: React.Ref<HTMLInputElement> }
 ) => ReturnType<typeof SearchBarComponent>;
 
@@ -101,14 +101,6 @@ function ClearFiltersButtonComponent<TData>(
   );
 }
 
-const ClearFiltersButton = forwardRef(ClearFiltersButtonComponent) as <TData>(
+export const ClearFiltersButton = forwardRef(ClearFiltersButtonComponent) as <TData>(
   props: ClearFiltersButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
 ) => ReturnType<typeof ClearFiltersButtonComponent>;
-
-const DataTableToolbarWithComponents = Object.assign(DataTableToolbar, {
-  SearchBar,
-  ClearFiltersButton,
-});
-
-export { DataTableToolbarWithComponents as DataTableToolbar };
-export default DataTableToolbarWithComponents;
