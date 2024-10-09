@@ -1,6 +1,5 @@
 import { _generateMetadata } from "app/_utils";
 import { getFixedT } from "app/_utils";
-import { revalidatePath } from "next/cache";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -17,14 +16,9 @@ const Page = async () => {
   const session = await getServerSessionForAppDir();
 
   const t = await getFixedT(session?.user.locale || "en");
-  const revalidatePage = async () => {
-    "use server";
-    revalidatePath("settings/my-account/general");
-  };
-
   return (
     <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
-      <GeneralQueryView revalidatePage={revalidatePage} />
+      <GeneralQueryView />
     </SettingsHeader>
   );
 };

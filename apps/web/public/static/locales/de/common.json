@@ -2633,5 +2633,6 @@
   "month_to_date": "aktueller Monat",
   "year_to_date": "aktuelles Jahr",
   "custom_range": "benutzerdefinierter Zeitraum",
+  "mass_assign_attributes": "Attribute massenweise zuweisen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

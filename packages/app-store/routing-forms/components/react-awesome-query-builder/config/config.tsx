@@ -1,11 +1,19 @@
 import type { ChangeEvent } from "react";
-import type { Settings, Widgets, SelectWidgetProps, SelectWidget } from "react-awesome-query-builder";
+import type {
+  Settings,
+  Widgets,
+  SelectWidgetProps,
+  SelectWidget as SelectWidgetType,
+} from "react-awesome-query-builder";
+
+import { EmailField as EmailWidget } from "@calcom/ui";
 
 import widgetsComponents from "../widgets";
 // Figure out why routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-import BasicConfig, { Operators, Types } from "./BasicConfig";
+import type { Operators, Types } from "./BasicConfig";
+import BasicConfig from "./BasicConfig";
 
 const enum ConfigFor {
   FormFields = "FormFields",
@@ -22,7 +30,6 @@ const {
   Button,
   ButtonGroup,
   Provider,
-  EmailWidget,
 } = widgetsComponents;
 
 const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
@@ -77,7 +84,7 @@ function getWidgets(_configFor: ConfigFor) {
           listValues: { title: string; value: string }[];
         }
       ) => renderComponent(props, MultiSelectWidget),
-    } as SelectWidget,
+    } as SelectWidgetType,
     select: {
       ...BasicConfig.widgets.select,
       factory: (
@@ -85,7 +92,7 @@ function getWidgets(_configFor: ConfigFor) {
           listValues: { title: string; value: string }[];
         }
       ) => renderComponent(props, SelectWidget),
-    } as SelectWidget,
+    } as SelectWidgetType,
     phone: {
       ...BasicConfig.widgets.text,
       factory: (props) => {

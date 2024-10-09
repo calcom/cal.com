@@ -419,6 +419,11 @@ Cal("init", "routingFormAuto", {
   origin: origin,
 });
 
+Cal("init", "routingFormHeadlessRouter", {
+  debug: true,
+  origin: origin,
+});
+
 Cal.ns.routingFormAuto("on", {
   action: "routed",
   callback: (e) => {
