@@ -96,6 +96,11 @@
           ]
         },
         {
+          "group": "Automation",
+          "icon": "webhook",
+          "pages": ["developing/guides/automation/webhooks"]
+        },
+        {
           "group": "Email",
           "icon": "inbox",
           "pages": ["developing/guides/email/setup-mailtrap-for-email-testing"]
