@@ -19,11 +19,11 @@ vi.mock("@calcom/app-store/stripepayment/lib/server", () => ({
   },
 }));
 
-const STRIPE_WEBHOOK_SECRET = "whsec_test_secret";
+const STRIPE_WEBHOOK_SECRET_BILLING = "whsec_test_secret";
 
 describe("stripeWebhookHandler", () => {
   beforeEach(() => {
-    vi.stubEnv("STRIPE_WEBHOOK_SECRET", STRIPE_WEBHOOK_SECRET);
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET_BILLING", STRIPE_WEBHOOK_SECRET_BILLING);
   });
 
   const mockRequest = (headers: Record<string, string>, body: string): NextApiRequest =>
@@ -41,8 +41,8 @@ describe("stripeWebhookHandler", () => {
     await expect(handler(req)).rejects.toThrow(new HttpCode(400, "Missing stripe-signature"));
   });
 
-  it("should throw an error if STRIPE_WEBHOOK_SECRET is missing", async () => {
-    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "");
+  it("should throw an error if STRIPE_WEBHOOK_SECRET_BILLING is missing", async () => {
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET_BILLING", "");
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       headers: {
