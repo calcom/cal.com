@@ -5,9 +5,9 @@ import checkAppSetupStatus from "@calcom/lib/apps/checkAppSetupStatus";
 import constructUserTeams from "@calcom/lib/apps/constructUserTeams";
 import getAppDependencyData from "@calcom/lib/apps/getAppDependencyData";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
-import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import getTeamAppCredentials from "@calcom/lib/apps/getTeamAppCredentials";
 import getUserAvailableTeams from "@calcom/lib/apps/getUserAvailableTeams";
+import transformAppsBasedOnInput from "@calcom/lib/apps/transformAppsBasedOnInput";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -100,43 +100,10 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     })
   );
 
-  if (variant) {
-    // `flatMap()` these work like `.filter()` but infers the types correctly
-    apps = apps
-      // variant check
-      .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
-  }
-
-  if (exclude) {
-    // exclusion filter
-    apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
-  }
-
-  if (onlyInstalled) {
-    apps = apps.flatMap((item) =>
-      item.userCredentialIds.length > 0 || item.teams.length || item.isGlobal ? [item] : []
-    );
-  }
-
-  if (extendsFeature) {
-    apps = apps
-      .filter((app) => app.extendsFeature?.includes(extendsFeature))
-      .map((app) => ({
-        ...app,
-        isInstalled: !!app.userCredentialIds?.length || !!app.teams?.length || app.isGlobal,
-      }));
-  }
-
-  if (sortByMostPopular) {
-    const installCountPerApp = await getInstallCountPerApp();
-
-    // sort the apps array by the most popular apps
-    apps.sort((a, b) => {
-      const aCount = installCountPerApp[a.slug] || 0;
-      const bCount = installCountPerApp[b.slug] || 0;
-      return bCount - aCount;
-    });
-  }
+  apps = await transformAppsBasedOnInput({
+    apps,
+    input: { exclude, extendsFeature, onlyInstalled, sortByMostPopular, variant },
+  });
 
   return {
     items: apps,
