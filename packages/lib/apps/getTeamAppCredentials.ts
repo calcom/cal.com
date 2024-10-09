@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
+import type { TeamQuery } from "@calcom/ee/teams/teams.repository";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 export type Credentials = {

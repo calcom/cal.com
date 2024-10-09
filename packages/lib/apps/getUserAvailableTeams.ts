@@ -1,5 +1,5 @@
+import type { TeamQuery } from "@calcom/ee/teams/teams.repository";
 import getUserTeamsQuery from "@calcom/lib/apps/getUserTeamsQuery";
-import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 
 const getUserAvailableTeams = async (userId: number, teamId?: number | null) => {
   const userTeamsQuery = await getUserTeamsQuery(userId);

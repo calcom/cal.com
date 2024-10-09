@@ -1,5 +1,5 @@
+import type { TeamQuery } from "@calcom/ee/teams/teams.repository";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 
 import type { Credentials } from "./getTeamAppCredentials";
 
