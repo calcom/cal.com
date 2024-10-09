@@ -366,10 +366,6 @@ export default class SalesforceCRMService implements CRM {
         // Base this off of the first contact
         const attendee = contactsToCreate[0];
 
-        // First see if the contact already exists and connect it to the account
-        const userQuery = await conn.query(`SELECT Email FROM Contact WHERE Email = '${attendee.email}'`);
-
-        console.log("🚀 ~ SalesforceCRMService ~ createContacts ~ userQuery:", userQuery);
         const emailDomain = attendee.email.split("@")[1];
 
         const response = await conn.query(
@@ -377,6 +373,19 @@ export default class SalesforceCRMService implements CRM {
         );
 
         const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
+
+        // First see if the contact already exists and connect it to the account
+        const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
+        if (userQuery.records.length) {
+          const contact = userQuery.records[0] as { Id: string; Email: string };
+          await conn.sobject("Contact").update({
+            // The first argument is the WHERE clause
+            Id: contact.Id,
+            AccountId: accountId,
+          });
+          return [{ id: contact.Id, email: contact.Email }];
+        }
+
         const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
         const contactCreation = await conn
           .sobject("Contact")
