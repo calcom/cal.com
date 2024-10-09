@@ -2637,5 +2637,8 @@
   "month_to_date": "month to date",
   "year_to_date": "year to date",
   "custom_range": "custom range",
+  "show_all_columns": "Show all columns",
+  "toggle_columns": "Toggle columns",
+  "no_columns_found": "No columns found",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -15,7 +15,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, DataTable, DataTableToolbar } from "@calcom/ui";
+import { Avatar, Badge, Checkbox, DataTable, DataTableToolbar, DataTableFilters } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
@@ -43,6 +43,14 @@ const initialState: UserTableState = {
   editSheet: {
     showModal: false,
   },
+};
+
+const initalColumnVisibility = {
+  select: true,
+  member: true,
+  role: true,
+  teams: true,
+  actions: true,
 };
 
 function reducer(state: UserTableState, action: UserTableAction): UserTableState {
@@ -73,13 +81,13 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 
 export function UserListTable() {
   const { data: session } = useSession();
+  const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { t } = useLocale();
   const orgBranding = useOrgBranding();
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [dynamicLinkVisible, setDynamicLinkVisible] = useState(false);
@@ -132,6 +140,8 @@ export function UserListTable() {
       // Disabling select for this PR: Will work on actions etc in a follow up
       {
         id: "select",
+        enableHiding: false,
+        enableSorting: false,
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -152,6 +162,7 @@ export function UserListTable() {
       {
         id: "member",
         accessorFn: (data) => data.email,
+        enableHiding: false,
         header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
@@ -254,6 +265,7 @@ export function UserListTable() {
       ...generateAttributeColumns(),
       {
         id: "actions",
+        enableHiding: false,
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
@@ -293,6 +305,9 @@ export function UserListTable() {
     enableRowSelection: true,
     debugTable: true,
     manualPagination: true,
+    initialState: {
+      columnVisibility: initalColumnVisibility,
+    },
     state: {
       columnFilters,
     },
@@ -319,7 +334,27 @@ export function UserListTable() {
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
-          <DataTableToolbar.SearchBar table={table} searchKey="email" />
+          <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+          <DataTableFilters.ColumnVisibilityButton table={table} />
+          {adminOrOwner && (
+            <DataTableToolbar.CTA
+              type="button"
+              color="primary"
+              StartIcon="plus"
+              size="sm"
+              className="rounded-md"
+              onClick={() =>
+                dispatch({
+                  type: "INVITE_MEMBER",
+                  payload: {
+                    showModal: true,
+                  },
+                })
+              }
+              data-testid="new-organization-member-button">
+              {t("add")}
+            </DataTableToolbar.CTA>
+          )}
         </DataTableToolbar.Root>
         <div style={{ gridArea: "footer" }}>Hello</div>
       </DataTable>

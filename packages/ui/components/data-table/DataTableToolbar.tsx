@@ -6,6 +6,7 @@ import { useEffect, useState, forwardRef } from "react";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import type { ButtonProps } from "../button";
 import { Button } from "../button";
 import { Input } from "../form";
 
@@ -23,7 +24,7 @@ const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTabl
 
 interface SearchBarProps<TData> {
   table: Table<TData>;
-  searchKey: string;
+  searchKey?: string;
   onSearch?: (value: string) => void;
 }
 
@@ -92,4 +93,19 @@ const ClearFiltersButton = forwardRef(ClearFiltersButtonComponent) as <TData>(
   props: ClearFiltersButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
 ) => ReturnType<typeof ClearFiltersButtonComponent>;
 
-export { Root, SearchBar, ClearFiltersButton };
+function CTAComponent(
+  { children, onClick, color = "primary", ...rest }: ButtonProps,
+  ref: React.Ref<HTMLButtonElement>
+) {
+  return (
+    <Button ref={ref} color={color} onClick={onClick} {...rest}>
+      {children}
+    </Button>
+  );
+}
+
+const CTA = forwardRef(CTAComponent) as (
+  props: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }
+) => ReturnType<typeof CTAComponent>;
+
+export { Root, SearchBar, ClearFiltersButton, CTA };
