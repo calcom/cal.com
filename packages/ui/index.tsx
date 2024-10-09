@@ -212,3 +212,4 @@ export { IconSprites } from "./components/icon/IconSprites";
 // This allows us to import them like this: DataTableFilters.ColumnVisibilityButton etc providing a cleaner DX
 export * as DataTableToolbar from "./components/data-table/DataTableToolbar";
 export * as DataTableFilters from "./components/data-table/filters";
+export { DataTableSelectionBar } from "./components/data-table/DataTableSelectionBar";

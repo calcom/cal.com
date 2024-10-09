@@ -16,7 +16,15 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, DataTable, DataTableToolbar, DataTableFilters } from "@calcom/ui";
+import {
+  Avatar,
+  Badge,
+  Checkbox,
+  DataTable,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSelectionBar,
+} from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
@@ -326,6 +334,8 @@ export function UserListTable() {
     totalDBRowCount
   );
 
+  const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
+
   return (
     <>
       <DataTable
@@ -362,7 +372,20 @@ export function UserListTable() {
             <DataTableFilters.ActiveFilters table={table} />
           </div>
         </DataTableToolbar.Root>
-        <div style={{ gridArea: "footer" }}>Hello</div>
+        {numberOfSelectedRows > 0 && (
+          <DataTableSelectionBar.Root>
+            <p className="text-brand-subtle w-full px-2 text-center leading-none">
+              {numberOfSelectedRows} selected
+            </p>
+            <div>Hello</div>
+            {/* <DataTableSelectionBar.Action
+                type="button"
+                color="primary"
+                StartIcon="plus"
+                className="rounded-md"
+              /> */}
+          </DataTableSelectionBar.Root>
+        )}
       </DataTable>
 
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
