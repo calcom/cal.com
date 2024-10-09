@@ -110,7 +110,7 @@ test.describe("Availablity", () => {
     await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
   });
 
-  test("@test Schedule listing", async ({ page }) => {
+  test("Schedule listing", async ({ page }) => {
     await test.step("Can add a new schedule", async () => {
       await page.getByTestId("new-schedule").click();
       await page.locator('[id="name"]').fill("More working hours");

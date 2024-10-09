@@ -127,7 +127,7 @@ export default class SalesforceCRMService implements CRM {
     });
   };
 
-  private getSalesforceUserFromEmail = async (email: string) => {
+  private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
     const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
     if (query.records.length > 0) {

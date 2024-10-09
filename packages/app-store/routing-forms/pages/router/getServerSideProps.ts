@@ -10,11 +10,12 @@ import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import { processRoute } from "../../lib/processRoute";
+import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { FormResponse } from "../../types/types";
 import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
+import { getUrlSearchParamsToForward } from "../routing-link/getUrlSearchParamsToForward";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 
@@ -109,11 +110,13 @@ export const getServerSideProps = async function getServerSideProps(
     };
   });
 
-  const decidedAction = processRoute({ form: serializableForm, response });
+  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
 
-  if (!decidedAction) {
+  if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
+
+  const decidedAction = matchingRoute.action;
 
   const { createContext } = await import("@calcom/trpc/server/createContext");
   const ctx = await createContext(context);
@@ -121,12 +124,17 @@ export const getServerSideProps = async function getServerSideProps(
   const { default: trpcRouter } = await import("@calcom/app-store/routing-forms/trpc/_router");
   const caller = trpcRouter.createCaller(ctx);
   const { v4: uuidv4 } = await import("uuid");
+  let teamMembersMatchingAttributeLogic = null;
+  let formResponseId = null;
   try {
-    await caller.public.response({
+    const result = await caller.public.response({
       formId: form.id,
       formFillerId: uuidv4(),
       response: response,
+      chosenRouteId: matchingRoute.id,
     });
+    teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
+    formResponseId = result.formResponse.id;
   } catch (e) {
     if (e instanceof TRPCError) {
       return {
@@ -152,12 +160,20 @@ export const getServerSideProps = async function getServerSideProps(
       response,
       serializableForm.fields
     );
+
     return {
       redirect: {
         destination: getAbsoluteEventTypeRedirectUrl({
           eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
           form: serializableForm,
-          allURLSearchParams: new URLSearchParams(stringify(context.query)),
+          allURLSearchParams: getUrlSearchParamsToForward({
+            formResponse: response,
+            fields: serializableForm.fields,
+            searchParams: new URLSearchParams(stringify(fieldsResponses)),
+            teamMembersMatchingAttributeLogic,
+            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
+            formResponseId: formResponseId!,
+          }),
         }),
         permanent: false,
       },
