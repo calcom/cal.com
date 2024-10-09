@@ -119,7 +119,8 @@
         "self-hosting/database-migrations",
         "self-hosting/upgrading",
         "self-hosting/sso-setup",
-        "self-hosting/docker"
+        "self-hosting/docker",
+        "self-hosting/license-key"
       ]
     },
     {
