@@ -85,7 +85,19 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         )}
         {eventTypeId && (
           <div>
-            <EventTypeSettings id={eventTypeId} tabs={["setup", "payments"]} />
+            <EventTypeSettings
+              id={eventTypeId}
+              tabs={["setup"]}
+              onSuccess={(eventType) => {
+                console.log(eventType);
+                setEventTypeId(null);
+                refetch();
+              }}
+              onError={(eventType, error) => {
+                console.log(eventType);
+                console.error(error);
+              }}
+            />
           </div>
         )}
       </div>

@@ -27,7 +27,7 @@ export type EventTypePlatformWrapperProps = {
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced", "payments"],
+  tabs = ["setup", "availability", "team", "limits", "advanced"],
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
