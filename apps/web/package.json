@@ -3,7 +3,7 @@
   "version": "4.5.10",
   "private": true,
   "scripts": {
-    "analyze": "NODE_OPTIONS='--max_old_space_size=8192' ANALYZE=true yarn build",
+    "analyze": "ANALYZE=true yarn build",
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
