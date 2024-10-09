@@ -32,7 +32,6 @@ function ColumnVisibilityButtonComponent<TData>(
     color = "secondary",
     EndIcon = "sliders-vertical",
     table,
-    size,
     ...rest
   }: ColumnVisiblityProps<TData> & ButtonProps,
   ref: React.Ref<HTMLButtonElement>
@@ -120,8 +119,9 @@ function FilterButtonComponent<TData>(
   }, [columns]);
 
   const handleAddFilter = (columnId: string) => {
-    if (!activeFilters.includes(columnId)) {
-      _setState({ activeFilters: [...activeFilters, columnId] });
+    if (!activeFilters?.some((filter) => filter.f === columnId)) {
+      console.log({ activeFilters: [...activeFilters, { f: columnId, v: [] }] });
+      _setState({ activeFilters: [...activeFilters, { f: columnId, v: [] }] });
     }
   };
 
@@ -140,7 +140,7 @@ function FilterButtonComponent<TData>(
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
               {filterableColumns.map((column) => {
-                if (activeFilters.includes(column.id)) return null;
+                if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem key={column.id} onSelect={() => handleAddFilter(column.id)}>
                     {column.title}
@@ -181,17 +181,17 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
   }, [columns]);
 
   const handleRemoveFilter = (columnId: string) => {
-    _setState({ activeFilters: _state.activeFilters.filter((id) => id !== columnId) });
+    _setState({ activeFilters: (_state.activeFilters || []).filter((filter) => filter.f !== columnId) });
     table.getColumn(columnId)?.setFilterValue(undefined);
   };
 
   return (
     <>
-      {_state.activeFilters.map((columnId) => {
-        const column = filterableColumns.find((col) => col.id === columnId);
+      {(_state.activeFilters || []).map((filter) => {
+        const column = filterableColumns.find((col) => col.id === filter.f);
         if (!column) return null;
         return (
-          <Popover key={columnId}>
+          <Popover key={column.id}>
             <PopoverTrigger asChild>
               <Button color="secondary">
                 {column.title}
@@ -208,26 +208,28 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
                       <CommandItem
                         key={option}
                         onSelect={() => {
-                          const filterValue = table.getColumn(columnId)?.getFilterValue() as
-                            | string[]
-                            | undefined;
-                          const newFilterValue = filterValue?.includes(option)
-                            ? filterValue.filter((value) => value !== option)
-                            : [...(filterValue || []), option];
+                          const newFilterValue = filter.v?.includes(option)
+                            ? filter.v?.filter((value) => value !== option)
+                            : [...(filter.v || []), option];
+                          _setState({
+                            activeFilters: _state.activeFilters.map((f) =>
+                              f.f === filter.f ? { ...f, v: newFilterValue } : f
+                            ),
+                          });
                           table
-                            .getColumn(columnId)
+                            .getColumn(filter.f)
                             ?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
                         }}>
                         <div
                           className={classNames(
                             "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                            Array.isArray(table.getColumn(columnId)?.getFilterValue()) &&
-                              (table.getColumn(columnId)?.getFilterValue() as string[])?.includes(option)
+                            Array.isArray(table.getColumn(column.id)?.getFilterValue()) &&
+                              (table.getColumn(column.id)?.getFilterValue() as string[])?.includes(option)
                               ? "bg-primary"
                               : "opacity-50"
                           )}>
-                          {Array.isArray(table.getColumn(columnId)?.getFilterValue()) &&
-                            (table.getColumn(columnId)?.getFilterValue() as string[])?.includes(option) && (
+                          {Array.isArray(table.getColumn(column.id)?.getFilterValue()) &&
+                            (table.getColumn(column.id)?.getFilterValue() as string[])?.includes(option) && (
                               <Icon name="check" className="text-primary-foreground h-4 w-4" />
                             )}
                         </div>
@@ -240,7 +242,7 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
                 <CommandGroup>
                   <CommandItem
                     onSelect={() => {
-                      handleRemoveFilter(columnId);
+                      handleRemoveFilter(column.id);
                     }}
                     className={classNames(
                       "w-full justify-center text-center",

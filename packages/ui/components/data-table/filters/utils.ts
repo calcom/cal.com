@@ -1,9 +1,15 @@
 "use client";
 
-import { parseAsArrayOf, parseAsString, useQueryStates } from "nuqs";
+import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
+import { z } from "zod";
+
+const filterSchema = z.object({
+  f: z.string(),
+  v: z.array(z.string()).optional(),
+});
 
 export const filtersSearchParams = {
-  activeFilters: parseAsArrayOf(parseAsString).withDefault([]),
+  activeFilters: parseAsArrayOf(parseAsJson(filterSchema.parse)).withDefault([]),
 };
 
 export function useFiltersSearchState() {
