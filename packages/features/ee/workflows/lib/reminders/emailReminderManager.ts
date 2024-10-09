@@ -1,14 +1,13 @@
 import type { MailData } from "@sendgrid/helpers/classes/mail";
-import { createEvent } from "ics";
-import type { ParticipationStatus } from "ics";
-import type { DateArray } from "ics";
-import { RRule } from "rrule";
+import type { EventStatus } from "ics";
 import { v4 as uuidv4 } from "uuid";
 
-import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
+import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
@@ -27,53 +26,6 @@ import emailRatingTemplate from "./templates/emailRatingTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
-
-function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
-  const uid = uuidv4();
-  let recurrenceRule: string | undefined = undefined;
-  if (evt.eventType.recurringEvent?.count) {
-    recurrenceRule = new RRule(evt.eventType.recurringEvent).toString().replace("RRULE:", "");
-  }
-
-  let location = bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
-
-  if (!location) {
-    location = guessEventLocationType(location)?.label || evt.location || "";
-  }
-
-  const icsEvent = createEvent({
-    uid,
-    startInputType: "utc",
-    start: dayjs(evt.startTime)
-      .utc()
-      .toArray()
-      .slice(0, 6)
-      .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
-    duration: { minutes: dayjs(evt.endTime).diff(dayjs(evt.startTime), "minute") },
-    title: evt.title,
-    description: evt.additionalNotes || "",
-    location,
-    organizer: { email: evt.organizer.email || "", name: evt.organizer.name },
-    attendees: [
-      {
-        name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
-        email: evt.attendees[0].email,
-        partstat: status,
-        role: "REQ-PARTICIPANT",
-        rsvp: true,
-      },
-    ],
-    method: "REQUEST",
-    ...{ recurrenceRule },
-    status: "CONFIRMED",
-  });
-
-  if (icsEvent.error) {
-    throw icsEvent.error;
-  }
-
-  return icsEvent.value;
-}
 
 type ScheduleEmailReminderAction = Extract<
   WorkflowActions,
@@ -94,6 +46,7 @@ export interface ScheduleReminderArgs {
 }
 
 interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
+  evt: BookingInfo;
   sendTo: MailData["to"];
   action: ScheduleEmailReminderAction;
   emailSubject?: string;
@@ -189,6 +142,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     emailSubject,
     emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
   };
+  const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
+
   if (emailBody) {
     const variables: VariablesType = {
       eventName: evt.title || "",
@@ -204,10 +159,10 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
-      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
-      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
+      cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}`,
+      ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
     };
 
     const locale =
@@ -247,8 +202,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       timeZone,
       organizer: evt.organizer.name,
       name,
-      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
-      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
+      ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
     });
   }
 
@@ -257,13 +212,26 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const batchId = await getBatchId();
 
-  function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
-    const status: ParticipationStatus =
-      triggerEvent === WorkflowTriggerEvents.AFTER_EVENT
-        ? "COMPLETED"
-        : triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
-        ? "DECLINED"
-        : "ACCEPTED";
+  async function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
+    const status: EventStatus =
+      triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ? "CANCELLED" : "CONFIRMED";
+
+    const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
+
+    const attendeeT = await getTranslation(evt.attendees[0].language.locale || "en", "common");
+
+    const attendee = {
+      ...evt.attendees[0],
+      name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
+      language: { ...evt.attendees[0].language, translate: attendeeT },
+    };
+
+    const emailEvent = {
+      ...evt,
+      type: evt.eventType?.slug || "",
+      organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
+      attendees: [attendee],
+    };
 
     return sendSendgridMail(
       {
@@ -275,7 +243,12 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         attachments: includeCalendarEvent
           ? [
               {
-                content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
+                content: Buffer.from(
+                  generateIcsString({
+                    event: emailEvent,
+                    status,
+                  }) || ""
+                ).toString("base64"),
                 filename: "event.ics",
                 type: "text/calendar; method=REQUEST",
                 disposition: "attachment",

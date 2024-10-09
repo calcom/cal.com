@@ -5,8 +5,8 @@ import PlatformView from "~/settings/platform/platform-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => "Platform",
-    () => "Manage everything related to platform."
+    (t) => t("platform"),
+    (t) => t("platform_description")
   );
 };
 

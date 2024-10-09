@@ -1,30 +1,40 @@
+export const enum RoutingFormFieldType {
+  TEXT = "text",
+  NUMBER = "number",
+  TEXTAREA = "textarea",
+  SINGLE_SELECT = "select",
+  MULTI_SELECT = "multiselect",
+  PHONE = "phone",
+  EMAIL = "email",
+}
+
 export const FieldTypes = [
   {
     label: "Short Text",
-    value: "text",
+    value: RoutingFormFieldType.TEXT,
   },
   {
     label: "Number",
-    value: "number",
+    value: RoutingFormFieldType.NUMBER,
   },
   {
     label: "Long Text",
-    value: "textarea",
+    value: RoutingFormFieldType.TEXTAREA,
   },
   {
     label: "Single Selection",
-    value: "select",
+    value: RoutingFormFieldType.SINGLE_SELECT,
   },
   {
     label: "Multiple Selection",
-    value: "multiselect",
+    value: RoutingFormFieldType.MULTI_SELECT,
   },
   {
     label: "Phone",
-    value: "phone",
+    value: RoutingFormFieldType.PHONE,
   },
   {
     label: "Email",
-    value: "email",
+    value: RoutingFormFieldType.EMAIL,
   },
 ] as const;

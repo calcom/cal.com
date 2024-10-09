@@ -17,7 +17,12 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
@@ -276,6 +281,31 @@ describe("Organizations Event Types Endpoints", () => {
           value: 30,
           rolling: true,
         },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
+        requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
+        hideCalendarEventDetails: true,
+        lockTimeZoneToggleOnBookingPage: true,
+        color: {
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
+        },
       };
 
       return request(app.getHttpServer())
@@ -297,6 +327,13 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(data.offsetStart).toEqual(body.offsetStart);
           expect(data.bookingWindow).toEqual(body.bookingWindow);
+          expect(data.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(data.confirmationPolicy).toEqual(body.confirmationPolicy);
+          expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
+          expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
+          expect(data.color).toEqual(body.color);
 
           collectiveEventType = responseBody.data;
         });
@@ -444,7 +481,7 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/999999`)
         .send(body)
-        .expect(404);
+        .expect(400);
     });
 
     it("should update collective event-type", async () => {

@@ -25,6 +25,7 @@ export type VerticalTabItemProps = {
   linkScroll?: boolean;
   avatar?: string;
   iconClassName?: string;
+  onClick?: (name: string) => void;
 };
 
 const VerticalTabItem = ({
@@ -45,6 +46,12 @@ const VerticalTabItem = ({
       {!props.hidden && (
         <>
           <Link
+            onClick={(e) => {
+              if (props.onClick) {
+                e.preventDefault();
+                props.onClick(name);
+              }
+            }}
             key={name}
             href={href}
             shallow={linkShallow}

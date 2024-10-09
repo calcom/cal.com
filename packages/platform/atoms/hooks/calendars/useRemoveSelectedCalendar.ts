@@ -38,7 +38,9 @@ export const useRemoveSelectedCalendar = (
 
       return http
         .delete(
-          `/selected-calendars?credentialId=${credentialId}&integration=${integration}&externalId=${externalId}`
+          `/selected-calendars?credentialId=${credentialId}&integration=${integration}&externalId=${encodeURIComponent(
+            externalId
+          )}`
         )
         .then((res) => {
           return res.data;

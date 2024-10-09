@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
-import { IS_TEAM_BILLING_ENABLED, MAX_NB_INVITES } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -206,7 +206,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         type="creation"
         title={t("invite_team_member")}
         description={
-          IS_TEAM_BILLING_ENABLED ? (
+          IS_TEAM_BILLING_ENABLED_CLIENT ? (
             <span className="text-subtle text-sm leading-tight">
               <Trans i18nKey="invite_new_member_description">
                 Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}

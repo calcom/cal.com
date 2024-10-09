@@ -15,7 +15,14 @@ import { getQueryParam } from "../../utils/query-param";
 
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 
-export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined | null) => {
+type Options = {
+  hideEventTypeDetails?: boolean;
+};
+
+export const useBookerLayout = (
+  event: Pick<BookerEvent, "profile"> | undefined | null,
+  options?: Options
+) => {
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -74,7 +81,7 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
-  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : !!options?.hideEventTypeDetails;
 
   return {
     shouldShowFormInDialog,

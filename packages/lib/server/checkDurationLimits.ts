@@ -10,14 +10,21 @@ import { getTotalBookingDuration } from "./queries";
 export async function checkDurationLimits(
   durationLimits: IntervalLimit,
   eventStartDate: Date,
-  eventId: number
+  eventId: number,
+  rescheduleUid?: string
 ) {
   const parsedDurationLimits = parseDurationLimit(durationLimits);
   if (!parsedDurationLimits) return false;
 
   // not iterating entries to preserve types
   const limitCalculations = ascendingLimitKeys.map((key) =>
-    checkDurationLimit({ key, limitingNumber: parsedDurationLimits[key], eventStartDate, eventId })
+    checkDurationLimit({
+      key,
+      limitingNumber: parsedDurationLimits[key],
+      eventStartDate,
+      eventId,
+      rescheduleUid,
+    })
   );
 
   try {
@@ -32,11 +39,13 @@ export async function checkDurationLimit({
   eventId,
   key,
   limitingNumber,
+  rescheduleUid,
 }: {
   eventStartDate: Date;
   eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
+  rescheduleUid?: string;
 }) {
   {
     if (!limitingNumber) return;
@@ -46,7 +55,12 @@ export async function checkDurationLimit({
     const startDate = dayjs(eventStartDate).startOf(unit).toDate();
     const endDate = dayjs(eventStartDate).endOf(unit).toDate();
 
-    const totalBookingDuration = await getTotalBookingDuration({ eventId, startDate, endDate });
+    const totalBookingDuration = await getTotalBookingDuration({
+      eventId,
+      startDate,
+      endDate,
+      rescheduleUid,
+    });
 
     if (totalBookingDuration < limitingNumber) return;
 

@@ -1,12 +1,19 @@
+import type { PageProps } from "app/_types";
 import { redirect } from "next/navigation";
+import z from "zod";
 
-const getPageProps = () => {
-  return redirect(`/apps/routing-forms/forms`);
-};
-const Page = () => {
-  getPageProps();
+const paramsSchema = z
+  .object({
+    pages: z.array(z.string()),
+  })
+  .catch({
+    pages: [],
+  });
 
-  return null;
+const Page = ({ params, searchParams }: PageProps) => {
+  const { pages } = paramsSchema.parse({ ...params, ...searchParams });
+
+  redirect(`/apps/routing-forms/${pages.length ? pages.join("/") : ""}`);
 };
 
 export default Page;

@@ -12,6 +12,7 @@ import {
   bookTimeSlot,
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
   testName,
 } from "../lib/testUtils";
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
@@ -163,6 +164,7 @@ test.describe("Bookings", () => {
 
       const { team } = await owner.getFirstTeamMembership();
       const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
 
@@ -172,7 +174,7 @@ test.describe("Bookings", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj });
+          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj: eventHostsObj });
 
           // Since all the users have the same leastRecentlyBooked value
           // Anyone of the teammates could be the Host of the booking.
@@ -217,6 +219,7 @@ test.describe("Bookings", () => {
 
       const { team } = await owner.getFirstTeamMembership();
       const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
       await owner.apiLogin();
 
       await markPhoneNumberAsRequiredField(page, teamEvent.id);
@@ -233,7 +236,7 @@ test.describe("Bookings", () => {
             page,
             team,
             event: teamEvent,
-            teamMatesObj,
+            teamMatesObj: eventHostsObj,
             opts: { attendeePhoneNumber: "+918888888888" },
           });
 
@@ -540,8 +543,9 @@ test.describe("Bookings", () => {
       const usernameOutsideOrg = userOutsideOrganization.username;
       // Before invite is accepted the booking page isn't available
       await expectPageToBeNotFound({ page, url: `/${usernameInOrg}` });
-      await userOutsideOrganization.apiLogin();
-      await acceptTeamOrOrgInvite(page);
+      const [newContext, newPage] = await userOutsideOrganization.apiLoginOnNewBrowser(browser);
+      await acceptTeamOrOrgInvite(newPage);
+      await newContext.close();
       await test.step("Book through new link", async () => {
         await doOnOrgDomain(
           {
@@ -658,11 +662,9 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
   const emailRequiredFiled = await page.locator('[data-testid="field-required"]');
   await emailRequiredFiled.locator("> :nth-child(2)").click();
   await page.getByTestId("field-add-save").click();
-
-  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-  await page.locator("[data-testid=update-eventtype]").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 };
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
@@ -673,9 +675,7 @@ const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');
   await phoneRequiredFiled.locator("> :nth-child(1)").click();
   await page.getByTestId("field-add-save").click();
-
-  const submitPromise = page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
-  await page.locator("[data-testid=update-eventtype]").click();
-  const response = await submitPromise;
-  expect(response.status()).toBe(200);
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 };

@@ -1,8 +1,7 @@
 import { type TFunction } from "i18next";
 
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -17,14 +16,14 @@ import type { TeamWithParent } from "./types";
 import type { Invitation } from "./utils";
 import {
   ensureAtleastAdminPermissions,
-  getTeamOrThrow,
-  getUniqueInvitationsOrThrowIfEmpty,
+  findUsersWithInviteStatus,
   getOrgConnectionInfo,
   getOrgState,
-  findUsersWithInviteStatus,
-  INVITE_STATUS,
+  getTeamOrThrow,
+  getUniqueInvitationsOrThrowIfEmpty,
   handleExistingUsersInvites,
   handleNewUsersInvites,
+  INVITE_STATUS,
 } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
@@ -220,9 +219,8 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     });
   }
 
-  if (IS_TEAM_BILLING_ENABLED) {
-    await updateQuantitySubscriptionFromStripe(team.parentId ?? team.id);
-  }
+  const teamBilling = TeamBilling.init(team);
+  await teamBilling.updateQuantity();
 
   return {
     // TODO: Better rename it to invitations only maybe?

@@ -41,7 +41,7 @@ const html = `<style>
 </style>
 <div class="my-backdrop">
 <div class="header">
-  <span class="close">&times;</span>
+  <button type="button" class="close" aria-label="Close">&times;</button>
 </div>
 <div class="modal-box">
   <div class="body">

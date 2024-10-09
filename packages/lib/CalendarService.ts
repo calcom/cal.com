@@ -162,6 +162,7 @@ export default abstract class BaseCalendarService implements Calendar {
          * [UPDATE]: Since we're not using the PUBLISH method to publish the iCalendar event and creating the event directly on iCal,
          * this shouldn't be an issue and we should be able to add attendees to the event right here.
          */
+        ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
       });
 
       if (error || !iCalString)

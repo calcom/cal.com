@@ -67,6 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={locale}
       dir={direction}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
+      suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
         {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (

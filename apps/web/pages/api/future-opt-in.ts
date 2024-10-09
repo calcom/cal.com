@@ -17,12 +17,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
   // We take you back where you came from if possible
   if (typeof req.headers["referer"] === "string") redirectUrl = req.headers["referer"];
 
-  /* Only admins can opt-in to future routes for now */
-  if (session.user.role !== "ADMIN") {
-    res.redirect(redirectUrl);
-    return;
-  }
-
   // If has the cookie, Opt-out of V2
   if (COOKIE_NAME in req.cookies && req.cookies[COOKIE_NAME] === "1") {
     res.setHeader("Set-Cookie", `${COOKIE_NAME}=0; Max-Age=0; Path=/`);

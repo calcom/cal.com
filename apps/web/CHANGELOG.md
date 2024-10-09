@@ -1,5 +1,14 @@
 # @calcom/web
 
+## 4.5.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @calcom/embed-core@1.5.1
+  - @calcom/embed-react@1.5.1
+  - @calcom/embed-snippet@1.3.1
+
 ## 4.0.8
 
 ### Patch Changes

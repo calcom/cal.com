@@ -73,6 +73,7 @@ export const buildBooking = (
     noShowHost: null,
     ratingFeedback: null,
     attendees: [],
+    oneTimePassword: null,
     ...booking,
   };
 };
@@ -108,6 +109,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,
+    hideCalendarEventDetails: false,
     minimumBookingNotice: 120,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,

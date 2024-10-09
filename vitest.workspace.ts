@@ -14,7 +14,8 @@ const workspaces = packagedEmbedTestsOnly
   ? [
       {
         test: {
-          include: ["packages/embeds/**/*.{test,spec}.{ts,js}"],
+          name: "PackagedEmbedTests",
+          include: ["packages/embeds/**/packaged/**/*.{test,spec}.{ts,js}"],
           environment: "jsdom",
         },
       },
@@ -201,6 +202,16 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/web/modules/views",
           include: ["apps/web/modules/**/*.{test,spec}.tsx"],
           setupFiles: ["apps/web/modules/test-setup.ts"],
+        },
+      },
+
+      {
+        test: {
+          globals: true,
+          environment: "jsdom",
+          name: "@calcom/embeds",
+          include: ["packages/embeds/**/*.{test,spec}.{ts,js}"],
+          exclude: ["packages/embeds/**/packaged/**/*.{test,spec}.{ts,js}"],
         },
       },
     ];

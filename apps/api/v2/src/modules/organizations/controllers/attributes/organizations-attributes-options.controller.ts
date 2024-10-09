@@ -20,6 +20,7 @@ import { GetAllAttributeOptionOutput } from "@/modules/organizations/outputs/att
 import { UpdateAttributeOptionOutput } from "@/modules/organizations/outputs/attributes/options/update-option.output";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attributes-option.service";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -28,13 +29,14 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@DocsTags("Orgs / Attributes / Options")
 export class OrganizationsOptionsAttributesController {
   constructor(private readonly organizationsAttributesOptionsService: OrganizationAttributeOptionService) {}
 
-  // Creates an attribute option for an attribute
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/attributes/:attributeId/options")
+  @ApiOperation({ summary: "Create an attribute option" })
   async createOrganizationAttributeOption(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string,
@@ -52,10 +54,10 @@ export class OrganizationsOptionsAttributesController {
     };
   }
 
-  // Deletes an attribute option for an attribute
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/attributes/:attributeId/options/:optionId")
+  @ApiOperation({ summary: "Delete an attribute option" })
   async deleteOrganizationAttributeOption(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string,
@@ -73,10 +75,10 @@ export class OrganizationsOptionsAttributesController {
     };
   }
 
-  // Updates an attribute option for an attribute
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/attributes/:attributeId/options/:optionId")
+  @ApiOperation({ summary: "Update an attribute option" })
   async updateOrganizationAttributeOption(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string,
@@ -96,10 +98,10 @@ export class OrganizationsOptionsAttributesController {
     };
   }
 
-  // Gets all attribute options for an attribute
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/:attributeId/options")
+  @ApiOperation({ summary: "Get all attribute options" })
   async getOrganizationAttributeOptions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("attributeId") attributeId: string
@@ -114,10 +116,10 @@ export class OrganizationsOptionsAttributesController {
     };
   }
 
-  // Assign attribute option to user
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/attributes/options/:userId")
+  @ApiOperation({ summary: "Assign an attribute to a user" })
   async assignOrganizationAttributeOptionToUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
@@ -135,10 +137,10 @@ export class OrganizationsOptionsAttributesController {
     };
   }
 
-  // Unassign attribute option from user
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Delete("/attributes/options/:userId/:attributeOptionId")
+  @ApiOperation({ summary: "Unassign an attribute from a user" })
   async unassignOrganizationAttributeOptionFromUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
@@ -159,6 +161,7 @@ export class OrganizationsOptionsAttributesController {
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/options/:userId")
+  @ApiOperation({ summary: "Get all attribute options for a user" })
   async getOrganizationAttributeOptionsForUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number

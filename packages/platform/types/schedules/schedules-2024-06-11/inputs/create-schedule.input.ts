@@ -18,17 +18,21 @@ import { TIME_FORMAT_HH_MM, WEEK_DAYS } from "../constants";
 export class ScheduleAvailabilityInput_2024_06_11 {
   @IsArray()
   @IsIn(WEEK_DAYS, { each: true })
-  @ApiProperty({ example: ["Monday", "Tuesday"] })
+  @ApiProperty({
+    example: ["Monday", "Tuesday"],
+    description: "Array of days when schedule is active.",
+    enum: WEEK_DAYS,
+  })
   days!: WeekDay[];
 
   @IsString()
   @Matches(TIME_FORMAT_HH_MM, { message: "startTime must be a valid time format HH:MM" })
-  @ApiProperty({ example: "09:00" })
+  @ApiProperty({ example: "08:00", description: "startTime must be a valid time in format HH:MM e.g. 08:00" })
   startTime!: string;
 
   @IsString()
   @Matches(TIME_FORMAT_HH_MM, { message: "endTime must be a valid time format HH:MM" })
-  @ApiProperty({ example: "10:00" })
+  @ApiProperty({ example: "15:00", description: "endTime must be a valid time in format HH:MM e.g. 15:00" })
   endTime!: string;
 }
 
@@ -39,22 +43,25 @@ export class ScheduleOverrideInput_2024_06_11 {
 
   @IsString()
   @Matches(TIME_FORMAT_HH_MM, { message: "startTime must be a valid time format HH:MM" })
-  @ApiProperty({ example: "12:00" })
+  @ApiProperty({ example: "12:00", description: "startTime must be a valid time in format HH:MM e.g. 12:00" })
   startTime!: string;
 
   @IsString()
   @Matches(TIME_FORMAT_HH_MM, { message: "endTime must be a valid time format HH:MM" })
-  @ApiProperty({ example: "13:00" })
+  @ApiProperty({ example: "13:00", description: "endTime must be a valid time in format HH:MM e.g. 13:00" })
   endTime!: string;
 }
 
 export class CreateScheduleInput_2024_06_11 {
   @IsString()
-  @ApiProperty({ example: "One-on-one coaching" })
+  @ApiProperty({ example: "Catch up hours" })
   name!: string;
 
   @IsTimeZone()
-  @ApiProperty({ example: "Europe/Rome" })
+  @ApiProperty({
+    example: "Europe/Rome",
+    description: "Timezone is used to calculate available times when an event using the schedule is booked.",
+  })
   timeZone!: string;
 
   @IsArray()
@@ -63,11 +70,18 @@ export class CreateScheduleInput_2024_06_11 {
   @Type(() => ScheduleAvailabilityInput_2024_06_11)
   @ApiProperty({
     type: [ScheduleAvailabilityInput_2024_06_11],
+    description:
+      "Each object contains days and times when the user is available. If not passed, the default availability is Monday to Friday from 09:00 to 17:00.",
     example: [
       {
         days: ["Monday", "Tuesday"],
-        startTime: "09:00",
-        endTime: "10:00",
+        startTime: "17:00",
+        endTime: "19:00",
+      },
+      {
+        days: ["Wednesday", "Thursday"],
+        startTime: "16:00",
+        endTime: "20:00",
       },
     ],
     required: false,
@@ -75,7 +89,11 @@ export class CreateScheduleInput_2024_06_11 {
   availability?: ScheduleAvailabilityInput_2024_06_11[];
 
   @IsBoolean()
-  @ApiProperty({ example: true })
+  @ApiProperty({
+    example: true,
+    description: `Each user should have 1 default schedule. If you specified \`timeZone\` when creating managed user, then the default schedule will be created with that timezone.
+    Default schedule means that if an event type is not tied to a specific schedule then the default schedule is used.`,
+  })
   isDefault!: boolean;
 
   @IsArray()
@@ -84,11 +102,12 @@ export class CreateScheduleInput_2024_06_11 {
   @Type(() => ScheduleOverrideInput_2024_06_11)
   @ApiProperty({
     type: [ScheduleOverrideInput_2024_06_11],
+    description: "Need to change availability for a specific date? Add an override.",
     example: [
       {
         date: "2024-05-20",
-        startTime: "12:00",
-        endTime: "14:00",
+        startTime: "18:00",
+        endTime: "21:00",
       },
     ],
     required: false,

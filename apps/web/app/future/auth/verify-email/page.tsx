@@ -1,11 +1,12 @@
-import VerifyEmailPage from "@pages/auth/verify-email";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
+import VerifyEmailPage from "~/auth/verify-email-view";
+
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => t("check_your_email"),
-    (t) => t("check_your_email")
+    () => "Verify email",
+    () => ""
   );
 };
 

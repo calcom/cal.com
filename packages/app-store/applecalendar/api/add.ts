@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -18,8 +18,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         email: true,
         id: true,
+        credentials: {
+          where: {
+            type: "apple_calendar",
+          },
+        },
       },
     });
+
+    let credentialExistsWithInputPassword = false;
+
+    const credentialExistsWithUsername = user.credentials.find((credential) => {
+      const decryptedCredential = JSON.parse(
+        symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
+      );
+
+      if (decryptedCredential.username === username) {
+        if (decryptedCredential.password === password) {
+          credentialExistsWithInputPassword = true;
+        }
+        return true;
+      }
+    });
+
+    if (credentialExistsWithInputPassword) return res.status(409).json({ message: "account_already_linked" });
 
     const data = {
       type: "apple_calendar",
@@ -40,8 +62,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user: { email: user.email },
       });
       await dav?.listCalendars();
-      await prisma.credential.create({
-        data,
+      await prisma.credential.upsert({
+        where: {
+          id: credentialExistsWithUsername?.id ?? -1,
+        },
+        create: data,
+        update: data,
       });
     } catch (reason) {
       logger.error("Could not add this apple calendar account", reason);

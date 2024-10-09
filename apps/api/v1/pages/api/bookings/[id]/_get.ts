@@ -4,6 +4,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -89,9 +90,21 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 export async function getHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
+
+  const queryFilterForExpand = schemaQuerySingleOrMultipleExpand.parse(req.query.expand);
+  const expand = Array.isArray(queryFilterForExpand)
+    ? queryFilterForExpand
+    : queryFilterForExpand
+    ? [queryFilterForExpand]
+    : [];
   const booking = await prisma.booking.findUnique({
     where: { id },
-    include: { attendees: true, user: true, payment: true },
+    include: {
+      attendees: true,
+      user: true,
+      payment: true,
+      eventType: expand.includes("team") ? { include: { team: true } } : false,
+    },
   });
   return { booking: schemaBookingReadPublic.parse(booking) };
 }

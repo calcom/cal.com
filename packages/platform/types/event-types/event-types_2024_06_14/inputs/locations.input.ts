@@ -9,6 +9,7 @@ const locations = ["address", "link", "integration", "phone"] as const;
 
 export class AddressLocation_2024_06_14 {
   @IsIn(locations)
+  @DocsProperty({ example: "address", description: "only allowed value for type is `address`" })
   type!: "address";
 
   @IsString()
@@ -16,11 +17,13 @@ export class AddressLocation_2024_06_14 {
   address!: string;
 
   @IsBoolean()
+  @DocsProperty()
   public!: boolean;
 }
 
 export class LinkLocation_2024_06_14 {
   @IsIn(locations)
+  @DocsProperty({ example: "link", description: "only allowed value for type is `link`" })
   type!: "link";
 
   @IsUrl()
@@ -28,6 +31,7 @@ export class LinkLocation_2024_06_14 {
   link!: string;
 
   @IsBoolean()
+  @DocsProperty()
   public!: boolean;
 }
 
@@ -36,15 +40,17 @@ export type Integration_2024_06_14 = (typeof integrations)[number];
 
 export class IntegrationLocation_2024_06_14 {
   @IsIn(locations)
+  @DocsProperty({ example: "integration", description: "only allowed value for type is `integration`" })
   type!: "integration";
 
   @IsIn(integrations)
-  @DocsProperty({ example: integrations[0] })
+  @DocsProperty({ example: integrations[0], enum: integrations })
   integration!: Integration_2024_06_14;
 }
 
 export class PhoneLocation_2024_06_14 {
   @IsIn(locations)
+  @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
   type!: "phone";
 
   @IsPhoneNumber()
@@ -52,6 +58,7 @@ export class PhoneLocation_2024_06_14 {
   phone!: string;
 
   @IsBoolean()
+  @DocsProperty()
   public!: boolean;
 }
 

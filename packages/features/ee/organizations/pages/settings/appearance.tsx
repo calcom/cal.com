@@ -78,9 +78,15 @@ const OrgAppearanceView = ({
     <div>
       <Form
         form={themeForm}
-        handleSubmit={(value) => {
+        handleSubmit={({ theme }) => {
+          if (theme === "light" || theme === "dark") {
+            mutation.mutate({
+              theme,
+            });
+            return;
+          }
           mutation.mutate({
-            theme: value.theme === "" ? null : value.theme,
+            theme: null,
           });
         }}>
         <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
@@ -92,7 +98,7 @@ const OrgAppearanceView = ({
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
             variant="system"
-            value={undefined}
+            value="system"
             label={t("theme_system")}
             defaultChecked={currentOrg.theme === null}
             register={themeForm.register}

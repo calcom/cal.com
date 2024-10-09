@@ -11,10 +11,6 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
     const ssrResponse = await getServerSideProps(context);
     const embed = context.query.embed;
     const layout = context.query.layout;
-    const isCOEPEnabled = context.query["flag.coep"] === "true";
-    if (isCOEPEnabled) {
-      context.res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-    }
 
     if ("redirect" in ssrResponse) {
       const destinationUrl = ssrResponse.redirect.destination;

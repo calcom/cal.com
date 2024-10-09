@@ -19,10 +19,6 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.t("request_reschedule_booking"),
-        subtitle: this.t("request_reschedule_subtitle", {
-          organizer: this.calEvent.organizer.name,
-        }),
         role: GenerateIcsRole.ATTENDEE,
         status: "CANCELLED",
       }),

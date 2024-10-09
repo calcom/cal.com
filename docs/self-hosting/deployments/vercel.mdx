@@ -1,0 +1,76 @@
+---
+title: "Vercel"
+icon: "triangle"
+iconType: "solid"
+---
+
+## Requirements
+
+You need a PostgresDB database hosted somewhere. [Supabase](https://supabase.com/) offer a great free option while [Heroku](https://www.heroku.com/) offers a low-cost option.
+
+## Getting Started
+
+### Local settings
+
+<Steps>
+    <Step title="Fork and clone the repository">
+        ```
+            git clone https://github.com/\<your-fork\>/cal.com.git
+        ```
+    </Step>
+    <Step title="Set environment variables">
+        Copy the `.env.example` file in `apps/web`, rename it to `.env` and fill it with your settings ([See manual setup](https://github.com/calcom/cal.com#manual-setup) and [Obtaining the Google API Credentials](https://github.com/calcom/cal.com#obtaining-the-google-api-credentials))
+    </Step>
+    <Step title="Install packages with yarn">        
+        ```
+        yarn install
+        ```
+    </Step>
+    <Step title="Set up the database using the Prisma schema">
+        Schema is located in at `packages/prisma/schema.prisma`.
+
+        ```
+        yarn workspace @calcom/prisma db-deploy
+        ```
+    </Step>
+    <Step title="Open [Prisma Studio](https://www.prisma.io/studio)">
+        To look at or modify the database content
+        ```
+        yarn db-studio
+        ```
+    </Step>
+    <Step title="Open User model">
+        Click on the `User` model to add a new user record.
+    </Step>
+    <Step title="Create new user">
+        Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+    </Step>
+    <Step title="Login">
+        Open a browser to [port 3000](http://localhost:3000/) on your localhost and login with your just created, first user.
+    </Step>
+</Steps>
+
+<Warning>
+Sometimes, yarn install might fail during deployment on Vercel, in which case, you can use ```YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install``` as the install command instead. 
+</Warning>
+
+#### Deployment
+
+<Steps>
+    <Step title="Create a new project on Vercel">
+    </Step>
+    <Step title="Import from your forked repository">
+    </Step>
+    <Step title="Set the Environment Variables">
+    </Step>
+    <Step title="Set the root directory to `apps/web`">
+    </Step>
+    <Step title="Override the build command">
+        Override to:
+        ```
+        cd ../.. && yarn build --include-dependencies --no-deps
+        ```
+    </Step>
+    <Step title="Hit Deploy">
+    </Step>
+</Steps>

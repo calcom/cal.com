@@ -13,8 +13,7 @@ import { trpc } from "@calcom/trpc/react";
 
 export const useCreateEventType = (
   onSuccessMutation: (eventType: EventType) => void,
-  onErrorMutation: (message: string) => void,
-  isInfiniteScrollEnabled: boolean
+  onErrorMutation: (message: string) => void
 ) => {
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -40,14 +39,10 @@ export const useCreateEventType = (
     onSuccess: async ({ eventType }) => {
       onSuccessMutation(eventType);
 
-      if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
-          group: { teamId: eventType.teamId, parentId: eventType.parentId },
-          limit: 10,
-        });
-      } else {
-        await utils.viewer.eventTypes.getByViewer.invalidate();
-      }
+      await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
+        group: { teamId: eventType.teamId, parentId: eventType.parentId },
+        limit: 10,
+      });
 
       form.reset();
     },

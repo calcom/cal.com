@@ -2664,6 +2664,7 @@ describe("handleSeats", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            id: firstBookingId,
             eventTypeId: 1,
             responses: {
               email: booker.email,

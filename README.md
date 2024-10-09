@@ -173,11 +173,29 @@ yarn dx
 
 #### Development tip
 
-> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **tRPC**.
+Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
+Where {level} can be one of the following:
+
+`0` for silly \
+`1` for trace \
+`2` for debug \
+`3` for info \
+`4` for warn \
+`5` for error \
+`6` for fatal
+
+When you set `NEXT_PUBLIC_LOGGER_LEVEL={level}` in your .env file, it enables logging at that level and higher. Here's how it works:
+
+The logger will include all logs that are at the specified level or higher. For example: \
+
+- If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
+- If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
 
 ```sh
-echo 'NEXT_PUBLIC_DEBUG=1' >> .env
+echo 'NEXT_PUBLIC_LOGGER_LEVEL=3' >> .env
 ```
+
+for Logger level to be set at info, for example.
 
 #### Gitpod Setup
 
@@ -399,25 +417,25 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 > [!NOTE]  
 > Our philosophy is simple, all "Singleplayer APIs" are open-source under AGPLv3. All commercial "Multiplayer APIs" are under a commercial license.
 
-|   | AGPLv3  | EE  | 
-|---|---|---|
-| Self-host for commercial purposes	  | ✅  |  ✅ |
-| Clone privately  | ✅  | ✅  |
-| Fork publicly  | ✅  | ✅ |
-| Requires CLA  |  ✅ | ✅  |
-| Official Support| ❌ | ✅ |
-| Derivative work privately | ❌  | ✅ |
-| SSO | ❌  | ✅ |
-| Admin Panel | ❌  | ✅ |
-| Impersonation | ❌  | ✅ |
-| Managed Event Types | ❌  | ✅ |
-| Organizations | ❌  | ✅ |
-| Payments | ❌  | ✅ |
-| Platform | ❌  | ✅ |
-| Teams | ❌  | ✅ |
-| Users | ❌  | ✅ |
-| Video | ❌  | ✅ |
-| Workflows | ❌  | ✅ |
+|                                   | AGPLv3 | EE  |
+| --------------------------------- | ------ | --- |
+| Self-host for commercial purposes | ✅     | ✅  |
+| Clone privately                   | ✅     | ✅  |
+| Fork publicly                     | ✅     | ✅  |
+| Requires CLA                      | ✅     | ✅  |
+|  Official Support                 | ❌     | ✅  |
+| Derivative work privately         | ❌     | ✅  |
+|  SSO                              | ❌     | ✅  |
+| Admin Panel                       | ❌     | ✅  |
+| Impersonation                     | ❌     | ✅  |
+| Managed Event Types               | ❌     | ✅  |
+| Organizations                     | ❌     | ✅  |
+| Payments                          | ❌     | ✅  |
+| Platform                          | ❌     | ✅  |
+| Teams                             | ❌     | ✅  |
+| Users                             | ❌     | ✅  |
+| Video                             | ❌     | ✅  |
+| Workflows                         | ❌     | ✅  |
 
 > [!TIP]
 > We work closely with the community and always invite feedback about what should be open and what is fine to be commercial. This list is not set and stone and we have moved things from commercial to open in the past. Please open a [discussion](https://github.com/calcom/cal.com/discussions) if you feel like something is wrong.
@@ -513,17 +531,18 @@ following
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
 2. On the upper right, click "Develop" => "Build App".
-3. On "OAuth", select "Create".
+3. Select "General App" , click "Create".
 4. Name your App.
-5. Choose "User-managed app" as the app type.
-6. De-select the option to publish the app on the Zoom App Marketplace.
-7. Click "Create".
-8. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
-9. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
-10. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
-11. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left, click the category "Meeting" and check the scope `meeting:write`.
-12. Click "Done".
-13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
+5. Choose "User-managed app" for "Select how the app is managed".
+6. De-select the option to publish the app on the Zoom App Marketplace, if asked.
+7. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
+8. Set the "OAuth Redirect URL" under "OAuth Information" as `<Cal.com URL>/api/integrations/zoomvideo/callback` replacing Cal.com URL with the URI at which your application runs.
+9. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
+10. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left,
+    1. click the category "Meeting" and check the scope `meeting:write:meeting`.
+    2. click the category "User" and check the scope `user:read:settings`.
+11. Click "Done".
+12. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
 ### Obtaining Daily API Credentials
 

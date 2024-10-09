@@ -1,9 +1,8 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { getServerSession } from "next-auth";
 
-import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -15,7 +14,8 @@ export const generateMetadata = async () =>
   );
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  const session = await getServerSession(AUTH_OPTIONS);
+  // FIXME: Refactor me once next-auth endpoint is migrated to App Router
+  const session = await getServerSessionForAppDir();
   const user = session?.user;
 
   const filters = getTeamsFiltersFromQuery({ ...searchParams, ...params });

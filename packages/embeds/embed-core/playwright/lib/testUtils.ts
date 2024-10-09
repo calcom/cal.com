@@ -29,6 +29,9 @@ export const getBooking = async (bookingId: string) => {
   return booking;
 };
 
+/**
+ * @deprecated use ensureEmbedIframe instead.
+ */
 export const getEmbedIframe = async ({
   calNamespace,
   page,
@@ -57,6 +60,22 @@ export const getEmbedIframe = async ({
   }
   console.log(`Embed iframe url pathname match. Expected: "${pathname}/embed"`, `Actual: ${u.pathname}`);
   return null;
+};
+
+export const ensureEmbedIframe = async ({
+  calNamespace,
+  page,
+  pathname,
+}: {
+  calNamespace: string;
+  page: Page;
+  pathname: string;
+}) => {
+  const embedIframe = await getEmbedIframe({ calNamespace, page, pathname });
+  if (!embedIframe) {
+    throw new Error("Embed iframe not found");
+  }
+  return embedIframe;
 };
 
 async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
@@ -102,8 +121,9 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
   await frame.fill('[name="email"]', "embed-user@example.com");
+  const responsePromise = page.waitForResponse("**/api/book/event");
   await frame.press('[name="email"]', "Enter");
-  const response = await page.waitForResponse("**/api/book/event");
+  const response = await responsePromise;
   const booking = (await response.json()) as { uid: string; eventSlug: string };
   expect(response.status()).toBe(200);
   booking.eventSlug = eventSlug;
@@ -114,8 +134,9 @@ export async function rescheduleEvent(username: string, frame: Frame, page: Page
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   // --- fill form
   await frame.press('[name="email"]', "Enter");
+  const responsePromise = page.waitForResponse("**/api/book/event");
   await frame.click("[data-testid=confirm-reschedule-button]");
-  const response = await page.waitForResponse("**/api/book/event");
+  const response = await responsePromise;
   expect(response.status()).toBe(200);
   const responseObj = await response.json();
   const booking = responseObj.uid;

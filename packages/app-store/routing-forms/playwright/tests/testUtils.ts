@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
-  await page.goto("/routing-forms/forms");
+  await page.goto(`/routing-forms/forms`);
   await page.click('[data-testid="new-routing-form"]');
   // Choose to create the Form for the user(which is the first option) and not the team
   await page.click('[data-testid="option-0"]');

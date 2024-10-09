@@ -12,12 +12,12 @@ import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolv
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { Button, Form, Icon } from "@calcom/ui";
+import { Button, Form, Icon, Avatar } from "@calcom/ui";
 
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
 
-import type { TEventType, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";
+import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
 
 export type TFormType = {
   id: number;
@@ -35,7 +35,7 @@ export type ConfigureStepCardProps = {
   loading?: boolean;
   isConferencing: boolean;
   formPortalRef: React.RefObject<HTMLDivElement>;
-  eventTypes: TEventType[] | undefined;
+  eventTypeGroups: TEventTypeGroup[];
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
   handleSetUpLater: () => void;
 };
@@ -56,6 +56,7 @@ type EventTypeAppSettingsFormProps = Pick<
     locations?: LocationObject[];
   }) => void;
 };
+type TUpdatedEventTypesStatus = { id: number; updated: boolean }[][];
 
 const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsFormProps>(
   function EventTypeAppSettingsForm(props, ref) {
@@ -116,82 +117,139 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
   }
 );
 
-export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
-  loading,
-  formPortalRef,
-  eventTypes,
-  setConfigureStep,
-  handleSetUpLater,
+const EventTypeGroup = ({
+  groupIndex,
+  eventTypeGroups,
+  setUpdatedEventTypesStatus,
+  submitRefs,
   ...props
+}: ConfigureStepCardProps & {
+  groupIndex: number;
+  setUpdatedEventTypesStatus: Dispatch<SetStateAction<TUpdatedEventTypesStatus>>;
+  submitRefs: Array<React.RefObject<HTMLButtonElement>>;
 }) => {
-  const { t } = useLocale();
-  const { control, getValues } = useFormContext<TEventTypesForm>();
+  const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
-    name: "eventTypes",
+    name: `eventTypeGroups.${groupIndex}.eventTypes`,
     keyName: "fieldId",
   });
+  return (
+    <div className="ml-2 flex flex-col space-y-6">
+      {fields.map(
+        (field, index) =>
+          field.selected && (
+            <EventTypeAppSettingsForm
+              key={field.fieldId}
+              eventType={field}
+              loading={props.loading}
+              handleDelete={() => {
+                const eventTypeDb = eventTypeGroups[groupIndex].eventTypes?.find(
+                  (eventType) => eventType.id == field.id
+                );
+                update(index, {
+                  ...field,
+                  selected: false,
+                  metadata: eventTypeDb?.metadata,
+                  bookingFields: eventTypeDb?.bookingFields,
+                  ...(eventTypeDb?.locations && { locations: eventTypeDb.locations }),
+                });
 
-  const submitRefs = useRef<Array<React.RefObject<HTMLButtonElement>>>([]);
-  submitRefs.current = fields.map(
-    (_ref, index) => (submitRefs.current[index] = React.createRef<HTMLButtonElement>())
+                setUpdatedEventTypesStatus((prev) => {
+                  const res = [...prev];
+                  res[groupIndex] = res[groupIndex].filter((item) => !(item.id === field.id));
+                  if (!res.some((item) => item.length > 0)) {
+                    props.setConfigureStep(false);
+                  }
+                  return res;
+                });
+              }}
+              onSubmit={(data) => {
+                update(index, { ...field, ...data });
+                setUpdatedEventTypesStatus((prev) => {
+                  const res = [...prev];
+                  res[groupIndex] = res[groupIndex].map((item) =>
+                    item.id === field.id ? { ...item, updated: true } : item
+                  );
+                  return res;
+                });
+              }}
+              ref={submitRefs[index]}
+              {...props}
+            />
+          )
+      )}
+    </div>
+  );
+};
+
+export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
+  const { loading, formPortalRef, handleSetUpLater } = props;
+  const { t } = useLocale();
+  const { control, watch } = useFormContext<TEventTypesForm>();
+  const { fields } = useFieldArray({
+    control,
+    name: "eventTypeGroups",
+    keyName: "fieldId",
+  });
+  const eventTypeGroups = watch("eventTypeGroups");
+  const submitRefs = useRef<Array<Array<React.RefObject<HTMLButtonElement>>>>([]);
+
+  submitRefs.current = eventTypeGroups.reduce(
+    (arr: Array<Array<React.RefObject<HTMLButtonElement>>>, field) => {
+      const res = field.eventTypes
+        .filter((eventType) => eventType.selected)
+        .map((_ref) => React.createRef<HTMLButtonElement>());
+      return [...arr, res];
+    },
+    []
   );
   const mainForSubmitRef = useRef<HTMLButtonElement>(null);
-  const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState(
-    fields.filter((field) => field.selected).map((field) => ({ id: field.id, updated: false }))
-  );
-  const [submit, setSubmit] = useState(false);
-  const allUpdated = updatedEventTypesStatus.every((item) => item.updated);
+  const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState<TUpdatedEventTypesStatus>(
+    eventTypeGroups.reduce((arr: Array<{ id: number; updated: boolean }[]>, field) => {
+      const selectedEventTypes = field.eventTypes
+        .filter((eventType) => eventType.selected)
+        .map((eventType) => ({ id: eventType.id as number, updated: false }));
 
-  useEffect(() => {
-    setUpdatedEventTypesStatus((prev) =>
-      prev.filter((state) => fields.some((field) => field.id === state.id && field.selected))
-    );
-    if (!fields.some((field) => field.selected)) {
-      setConfigureStep(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fields]);
+      return [...arr, selectedEventTypes];
+    }, [])
+  );
+
+  const [submit, setSubmit] = useState(false);
+  const allUpdated = updatedEventTypesStatus.every((item) => item.every((iitem) => iitem.updated));
 
   useEffect(() => {
     if (submit && allUpdated && mainForSubmitRef.current) {
       mainForSubmitRef.current?.click();
       setSubmit(false);
     }
-  }, [submit, allUpdated, getValues, mainForSubmitRef]);
+  }, [submit, allUpdated, mainForSubmitRef]);
 
   return (
     formPortalRef?.current &&
     createPortal(
       <div className="mt-8">
-        <div className="flex flex-col space-y-6">
-          {fields.map((field, index) => {
-            return (
-              field.selected && (
-                <EventTypeAppSettingsForm
-                  key={field.fieldId}
-                  eventType={field}
-                  loading={loading}
-                  handleDelete={() => {
-                    const eventMetadataDb = eventTypes?.find(
-                      (eventType) => eventType.id == field.id
-                    )?.metadata;
-                    update(index, { ...field, selected: false, metadata: eventMetadataDb });
-                  }}
-                  onSubmit={(data) => {
-                    update(index, { ...field, ...data });
-                    setUpdatedEventTypesStatus((prev) =>
-                      prev.map((item) => (item.id === field.id ? { ...item, updated: true } : item))
-                    );
-                  }}
-                  ref={submitRefs.current[index]}
-                  {...props}
+        {fields.map((group, groupIndex) => (
+          <div key={group.fieldId}>
+            {eventTypeGroups[groupIndex].eventTypes.some((eventType) => eventType.selected === true) && (
+              <div className="mb-2 mt-4 flex items-center">
+                <Avatar
+                  alt=""
+                  imageSrc={group.image} // if no image, use default avatar
+                  size="md"
+                  className="inline-flex justify-center"
                 />
-              )
-            );
-          })}
-        </div>
-
+                <p className="text-subtle block">{group.slug}</p>
+              </div>
+            )}
+            <EventTypeGroup
+              groupIndex={groupIndex}
+              setUpdatedEventTypesStatus={setUpdatedEventTypesStatus}
+              submitRefs={submitRefs.current[groupIndex]}
+              {...props}
+            />
+          </div>
+        ))}
         <button form="outer-event-type-form" type="submit" className="hidden" ref={mainForSubmitRef}>
           Save
         </button>
@@ -200,7 +258,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
           type="button"
           data-testid="configure-step-save"
           onClick={() => {
-            submitRefs.current.reverse().map((ref) => ref.current?.click());
+            submitRefs.current.map((group) => group?.map((ref) => ref.current?.click()));
             setSubmit(true);
           }}
           loading={loading}>

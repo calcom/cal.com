@@ -192,15 +192,21 @@ const AppearanceView = ({
       </div>
       <Form
         form={userAppThemeFormMethods}
-        handleSubmit={(values) => {
+        handleSubmit={({ appTheme }) => {
+          if (appTheme === "light" || appTheme === "dark") {
+            mutation.mutate({
+              appTheme,
+            });
+            return;
+          }
           mutation.mutate({
-            appTheme: values.appTheme === "" ? null : values.appTheme,
+            appTheme: null,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
             variant="system"
-            value={undefined}
+            value="system"
             label={t("theme_system")}
             defaultChecked={user.appTheme === null}
             register={userAppThemeFormMethods.register}
@@ -244,17 +250,21 @@ const AppearanceView = ({
           </div>
           <Form
             form={userThemeFormMethods}
-            handleSubmit={(values) => {
+            handleSubmit={({ theme }) => {
+              if (theme === "light" || theme === "dark") {
+                mutation.mutate({
+                  theme,
+                });
+                return;
+              }
               mutation.mutate({
-                // Radio values don't support null as values, therefore we convert an empty string
-                // back to null here.
-                theme: values.theme === "" ? null : values.theme,
+                theme: null,
               });
             }}>
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
               <ThemeLabel
                 variant="system"
-                value={undefined}
+                value="system"
                 label={t("theme_system")}
                 defaultChecked={user.theme === null}
                 register={userThemeFormMethods.register}
@@ -304,6 +314,7 @@ const AppearanceView = ({
               description={t("bookerlayout_user_settings_description")}
               isDisabled={isBookerLayoutFormSubmitting || !isBookerLayoutFormDirty}
               isLoading={mutation.isPending}
+              user={user}
             />
           </Form>
 

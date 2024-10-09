@@ -36,7 +36,7 @@ import {
   InternalServerErrorException,
   ParseIntPipe,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
@@ -47,7 +47,7 @@ import { PrismaClient } from "@calcom/prisma";
   version: [VERSION_2024_04_15, VERSION_2024_06_11],
 })
 @UseGuards(PermissionsGuard)
-@DocsTags("Event types")
+@DocsExcludeController(true)
 export class EventTypesController_2024_04_15 {
   constructor(
     private readonly eventTypesService: EventTypesService_2024_04_15,

@@ -14,10 +14,6 @@ export default function withEmbedSsrAppDir<T extends Record<string, any>>(
 ) {
   return async (context: GetServerSidePropsContext): Promise<T> => {
     const { embed, layout } = context.query;
-    const isCOEPEnabled = context.query["flag.coep"] === "true";
-    if (isCOEPEnabled) {
-      context.res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-    }
     try {
       const props = await getData(context);
 

@@ -1,5 +1,5 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { Params, SearchParams } from "app/_types";
+import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
@@ -11,13 +11,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import OldPage from "~/bookings/views/bookings-single-view";
 import { getServerSideProps, type PageProps } from "~/bookings/views/bookings-single-view.getServerSideProps";
 
-export const generateMetadata = async ({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) => {
+export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const { bookingInfo, eventType, recurringBookings } = await getData(
     buildLegacyCtx(headers(), cookies(), params, searchParams)
   );

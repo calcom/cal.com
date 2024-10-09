@@ -23,7 +23,7 @@ import {
   HttpStatus,
   Query,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -42,7 +42,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Organizations Schedules")
+@DocsTags("Orgs / Schedules")
 export class OrganizationsSchedulesController {
   constructor(
     private schedulesService: SchedulesService_2024_06_11,
@@ -52,6 +52,7 @@ export class OrganizationsSchedulesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
+  @ApiOperation({ summary: "Get all schedules" })
   async getOrganizationSchedules(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -70,6 +71,8 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Post("/users/:userId/schedules")
+  @DocsTags("Orgs / Users / Schedules")
+  @ApiOperation({ summary: "Create a schedule" })
   async createUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Body() bodySchedule: CreateScheduleInput_2024_06_11
@@ -86,6 +89,8 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules/:scheduleId")
+  @DocsTags("Orgs / Users / Schedules")
+  @ApiOperation({ summary: "Get a schedule" })
   async getUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("scheduleId") scheduleId: number
@@ -102,6 +107,8 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules")
+  @DocsTags("Orgs / Users / Schedules")
+  @ApiOperation({ summary: "Get all schedules" })
   async getUserSchedules(
     @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetSchedulesOutput_2024_06_11> {
@@ -117,6 +124,8 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Patch("/users/:userId/schedules/:scheduleId")
+  @DocsTags("Orgs / Users / Schedules")
+  @ApiOperation({ summary: "Update a schedule" })
   async updateUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("scheduleId", ParseIntPipe) scheduleId: number,
@@ -135,6 +144,8 @@ export class OrganizationsSchedulesController {
   @UseGuards(IsUserInOrg)
   @Delete("/users/:userId/schedules/:scheduleId")
   @HttpCode(HttpStatus.OK)
+  @DocsTags("Orgs / Users / Schedules")
+  @ApiOperation({ summary: "Delete a schedule" })
   async deleteUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("scheduleId", ParseIntPipe) scheduleId: number

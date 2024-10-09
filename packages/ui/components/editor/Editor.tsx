@@ -36,6 +36,7 @@ export type TextEditorProps = {
   setText: (text: string) => void;
   excludedToolbarItems?: string[];
   variables?: string[];
+  addVariableButtonTop?: boolean;
   height?: string;
   maxHeight?: string;
   placeholder?: string;
@@ -80,6 +81,7 @@ export const Editor = (props: TextEditorProps) => {
             editable={editable}
             excludedToolbarItems={props.excludedToolbarItems}
             variables={props.variables}
+            addVariableButtonTop={props.addVariableButtonTop}
             updateTemplate={props.updateTemplate}
             firstRender={props.firstRender}
             setFirstRender={props.setFirstRender}

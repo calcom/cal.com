@@ -75,16 +75,21 @@ export const generateTeamCheckoutSession = async ({
     automatic_tax: {
       enabled: IS_PRODUCTION,
     },
+    subscription_data: {
+      trial_period_days: 14, // Add a 14-day trial
+    },
     metadata: {
       teamName,
       teamSlug,
       userId,
+      dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
     },
   });
   return session;
 };
 
 /**
+ * @deprecated Move over to internal-team-billing
  * Used to generate a checkout session when creating a new org (parent team) or backwards compatibility for old teams
  */
 export const purchaseTeamOrOrgSubscription = async (input: {
@@ -173,6 +178,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     subscription_data: {
       metadata: {
         teamId,
+        dubCustomerId: userId,
       },
     },
   });
@@ -255,18 +261,6 @@ export const getTeamWithPaymentMetadata = async (teamId: number) => {
 
   const metadata = teamPaymentMetadataSchema.parse(team.metadata);
   return { ...team, metadata };
-};
-
-export const cancelTeamSubscriptionFromStripe = async (teamId: number) => {
-  try {
-    const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId } = team.metadata;
-    return await stripe.subscriptions.cancel(subscriptionId);
-  } catch (error) {
-    let message = "Unknown error on cancelTeamSubscriptionFromStripe";
-    if (error instanceof Error) message = error.message;
-    console.error(message);
-  }
 };
 
 export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {

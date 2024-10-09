@@ -64,7 +64,6 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
-  isInfiniteScrollEnabled,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -72,7 +71,6 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
-  isInfiniteScrollEnabled: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -115,11 +113,7 @@ export default function CreateEventTypeDialog({
     );
   };
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(
-    onSuccessMutation,
-    onErrorMutation,
-    isInfiniteScrollEnabled
-  );
+  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
 
   const { register } = form;
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
@@ -149,7 +143,6 @@ export default function CreateEventTypeDialog({
             SubmitButton={SubmitButton}
             onSuccessMutation={onSuccessMutation}
             onErrorMutation={onErrorMutation}
-            isInfiniteScrollEnabled={isInfiniteScrollEnabled}
           />
         ) : (
           <Form

@@ -1,12 +1,13 @@
-import Provider from "@pages/auth/sso/[provider]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { WithLayout } from "app/layoutHOC";
-import type { InferGetServerSidePropsType } from "next";
 
 import { getServerSideProps } from "@server/lib/auth/sso/[provider]/getServerSideProps";
 
+import type { SSOProviderPageProps } from "~/auth/sso/provider-view";
+import SSOProviderView from "~/auth/sso/provider-view";
+
 export default WithLayout({
   getLayout: null,
-  Page: Provider,
-  getData: withAppDirSsr<InferGetServerSidePropsType<typeof getServerSideProps>>(getServerSideProps),
+  Page: SSOProviderView,
+  getData: withAppDirSsr<SSOProviderPageProps>(getServerSideProps),
 })<"P">;

@@ -68,8 +68,8 @@ export const test = base.extend<Fixtures>({
     const usersFixture = createUsersFixture(page, emails, workerInfo);
     await use(usersFixture);
   },
-  bookings: async ({ page }, use) => {
-    const bookingsFixture = createBookingsFixture(page);
+  bookings: async ({ page }, use, workerInfo) => {
+    const bookingsFixture = createBookingsFixture(page, workerInfo);
     await use(bookingsFixture);
   },
   payments: async ({ page }, use) => {

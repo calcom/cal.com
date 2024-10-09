@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
@@ -8,7 +10,9 @@ import { TRPCError } from "@calcom/trpc/server";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { FormResponse } from "../types/types";
 import type { TResponseInputSchema } from "./response.schema";
-import { onFormSubmission } from "./utils";
+import { onFormSubmission, findTeamMembersMatchingAttributeLogicOfRoute } from "./utils";
+
+const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/response.handler"] });
 
 interface ResponseHandlerOptions {
   ctx: {
@@ -19,7 +23,7 @@ interface ResponseHandlerOptions {
 export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
   const { prisma } = ctx;
   try {
-    const { response, formId } = input;
+    const { response, formId, chosenRouteId } = input;
     const form = await prisma.app_RoutingForms_Form.findFirst({
       where: {
         id: formId,
@@ -91,7 +95,10 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     }
 
     const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-      data: input,
+      data: {
+        formId,
+        response: response,
+      },
     });
 
     const settings = RoutingFormSettings.parse(form.settings);
@@ -115,11 +122,42 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
+    const teamMembersMatchingAttributeLogicWithResult =
+      form.teamId && chosenRouteId
+        ? await findTeamMembersMatchingAttributeLogicOfRoute({
+            response,
+            routeId: chosenRouteId,
+            form: serializableForm,
+            teamId: form.teamId,
+          })
+        : null;
+
+    moduleLogger.debug(
+      "teamMembersMatchingAttributeLogic",
+      safeStringify({ teamMembersMatchingAttributeLogicWithResult })
+    );
+
+    const teamMemberIdsMatchingAttributeLogic = teamMembersMatchingAttributeLogicWithResult
+      ? teamMembersMatchingAttributeLogicWithResult?.map((member) => member.userId)
+      : null;
     await onFormSubmission(
       { ...serializableFormWithFields, userWithEmails },
       dbFormResponse.response as FormResponse
     );
-    return dbFormResponse;
+
+    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
+    if (!chosenRoute) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Chosen route not found",
+      });
+    }
+    return {
+      formResponse: dbFormResponse,
+      teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+      attributeRoutingConfig:
+        "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+    };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {

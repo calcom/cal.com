@@ -127,6 +127,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         queryDuration,
         eventData.length
       ),
+      durationConfig: eventData.metadata?.multipleDuration ?? [],
       booking,
       user: name,
       slug,

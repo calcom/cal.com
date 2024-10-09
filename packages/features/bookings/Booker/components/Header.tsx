@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -170,6 +171,7 @@ const LayoutToggle = ({
   enabledLayouts?: BookerLayouts[];
 }) => {
   const isEmbed = useIsEmbed();
+  const isPlatform = useIsPlatform();
 
   const { t } = useLocale();
 
@@ -198,6 +200,10 @@ const LayoutToggle = ({
   if (isEmbed) {
     return null;
   }
+
+  // just like embed the layout toggle doesn't look rightly placed in platform
+  // the layout can be toggled via props in the booker atom
+  if (isPlatform) return null;
 
   return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
 };

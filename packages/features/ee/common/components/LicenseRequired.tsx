@@ -43,7 +43,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
             title={
               <>
                 {t("enterprise_license_locally")} {t("enterprise_license_sales")}{" "}
-                <a className="underline" href="https://cal.com/sales">
+                <a className="underline" href="https://go.cal.com/get-license">
                   {t("contact_sales")}
                 </a>
               </>
@@ -56,7 +56,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
           Icon="triangle-alert"
           headline={t("enterprise_license")}
           buttonRaw={
-            <Button color="secondary" href="https://cal.com/sales">
+            <Button color="secondary" href="https://go.cal.com/get-license">
               {t(`contact_sales`)}
             </Button>
           }

@@ -2,9 +2,10 @@ import type { GroupBase, Props, SingleValue } from "react-select";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { Select } from "@calcom/ui";
+import { Select, Icon } from "@calcom/ui";
 
 export type LocationOption = {
   label: string;
@@ -20,7 +21,37 @@ export type SingleValueLocationOption = SingleValue<LocationOption>;
 
 export type GroupOptionType = GroupBase<LocationOption>;
 
-const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
+const OptionWithIcon = ({ icon, label, value }: { icon?: string; label: string; value: string }) => {
+  const isPlatform = useIsPlatform();
+
+  const getIconFromValue = (value: string) => {
+    switch (value) {
+      case "phone":
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
+      case "userPhone":
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
+      case "inPerson":
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
+      case "attendeeInPerson":
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
+      case "link":
+        return <Icon name="link" className="h-3.5 w-3.5" />;
+      case "somewhereElse":
+        return <Icon name="map" className="h-3.5 w-3.5" />;
+      default:
+        return <Icon name="video" className="h-3.5 w-3.5" />;
+    }
+  };
+
+  if (isPlatform) {
+    return (
+      <div className="flex items-center gap-3">
+        {getIconFromValue(value)}
+        <span className={classNames("text-sm font-medium")}>{label}</span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-3">
       {icon && <img src={icon} alt="cover" className={classNames("h-3.5 w-3.5", invertLogoOnDark(icon))} />}
@@ -30,6 +61,7 @@ const OptionWithIcon = ({ icon, label }: { icon?: string; label: string }) => {
 };
 
 export default function LocationSelect(props: Props<LocationOption, false, GroupOptionType>) {
+  const isPlatform = useIsPlatform();
   return (
     <Select<LocationOption>
       name="location"
@@ -40,22 +72,24 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
           return (
             <components.Option {...props}>
               <div data-testid={`location-select-item-${props.data.value}`}>
-                <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+                <OptionWithIcon icon={props.data.icon} label={props.data.label} value={props.data.value} />
               </div>
             </components.Option>
           );
         },
-        SingleValue: (props) => (
-          <components.SingleValue {...props}>
-            <div data-testid={`location-select-item-${props.data.value}`}>
-              <OptionWithIcon icon={props.data.icon} label={props.data.label} />
-            </div>
-          </components.SingleValue>
-        ),
+        SingleValue: (props) => {
+          return (
+            <components.SingleValue {...props}>
+              <div data-testid={`location-select-item-${props.data.value}`}>
+                <OptionWithIcon icon={props.data.icon} label={props.data.label} value={props.data.value} />
+              </div>
+            </components.SingleValue>
+          );
+        },
       }}
-      formatOptionLabel={(e) => (
+      formatOptionLabel={(e, d) => (
         <div className="flex items-center gap-3">
-          {e.icon && (
+          {e.icon && !isPlatform && (
             <img
               src={e.icon}
               alt="app-icon"

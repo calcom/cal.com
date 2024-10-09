@@ -66,12 +66,12 @@ export const useOverlayCalendar = ({
   }, [hasItem, set, initalised]);
 
   const handleToggleConnectedCalendar = (externalCalendarId: string, credentialId: number) => {
-    toggleValue({
+    const calendarsToLoad = toggleValue({
       credentialId: credentialId,
       externalId: externalCalendarId,
     });
     setOverlayBusyDates([]);
-    onToggleCalendar();
+    onToggleCalendar(calendarsToLoad);
   };
 
   return {

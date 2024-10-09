@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import type { RefCallback, ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -16,10 +17,28 @@ interface UsernameAvailabilityFieldProps {
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-export const getUsernameAvailabilityComponent = (isPremium: boolean) => {
-  if (isPremium)
-    return dynamic(() => import("./PremiumTextfield").then((m) => m.PremiumTextfield), { ssr: false });
-  return dynamic(() => import("./UsernameTextfield").then((m) => m.UsernameTextfield), { ssr: false });
+interface ICustomUsernameProps extends UsernameAvailabilityFieldProps {
+  currentUsername: string | undefined;
+  setCurrentUsername?: (newUsername: string) => void;
+  inputUsernameValue: string | undefined;
+  usernameRef: RefCallback<HTMLInputElement>;
+  setInputUsernameValue: (value: string) => void;
+  disabled?: boolean | undefined;
+  addOnLeading?: ReactNode;
+  isPremium: boolean;
+}
+
+const PremiumTextfield = dynamic(() => import("./PremiumTextfield").then((m) => m.PremiumTextfield), {
+  ssr: false,
+});
+const UsernameTextfield = dynamic(() => import("./UsernameTextfield").then((m) => m.UsernameTextfield), {
+  ssr: false,
+});
+
+export const UsernameAvailability = (props: ICustomUsernameProps) => {
+  const { isPremium, ...otherProps } = props;
+  const UsernameAvailabilityComponent = isPremium ? PremiumTextfield : UsernameTextfield;
+  return <UsernameAvailabilityComponent {...otherProps} />;
 };
 
 export const UsernameAvailabilityField = ({
@@ -40,32 +59,32 @@ export const UsernameAvailabilityField = ({
     },
   });
 
-  const UsernameAvailability = getUsernameAvailabilityComponent(!IS_SELF_HOSTED && !user.organization?.id);
   const orgBranding = useOrgBranding();
 
   const usernamePrefix = orgBranding
     ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
     : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`;
 
+  const isPremium = !IS_SELF_HOSTED && !user.organization?.id;
+
   return (
     <Controller
       control={formMethods.control}
       name="username"
-      render={({ field: { ref, onChange, value } }) => {
-        return (
-          <UsernameAvailability
-            currentUsername={currentUsername}
-            setCurrentUsername={setCurrentUsername}
-            inputUsernameValue={value}
-            usernameRef={ref}
-            setInputUsernameValue={onChange}
-            onSuccessMutation={onSuccessMutation}
-            onErrorMutation={onErrorMutation}
-            disabled={!!user.organization?.id}
-            addOnLeading={`${usernamePrefix}/`}
-          />
-        );
-      }}
+      render={({ field: { ref, onChange, value } }) => (
+        <UsernameAvailability
+          currentUsername={currentUsername}
+          setCurrentUsername={setCurrentUsername}
+          inputUsernameValue={value}
+          usernameRef={ref}
+          setInputUsernameValue={onChange}
+          onSuccessMutation={onSuccessMutation}
+          onErrorMutation={onErrorMutation}
+          disabled={!!user.organization?.id}
+          addOnLeading={`${usernamePrefix}/`}
+          isPremium={isPremium}
+        />
+      )}
     />
   );
 };

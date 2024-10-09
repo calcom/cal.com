@@ -19,7 +19,7 @@ export class BillingRepository {
     billingStart: number,
     billingEnd: number,
     plan: PlatformPlan,
-    subscription?: string
+    subscriptionId?: string
   ) {
     return this.dbWrite.prisma.platformBilling.update({
       where: {
@@ -28,7 +28,7 @@ export class BillingRepository {
       data: {
         billingCycleStart: billingStart,
         billingCycleEnd: billingEnd,
-        subscriptionId: subscription,
+        subscriptionId,
         plan: plan.toString(),
       },
     });

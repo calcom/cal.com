@@ -1,5 +1,10 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { ApiErrorResponse, ApiResponse, ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
+import type {
+  ApiErrorResponse,
+  ApiResponse,
+  ScheduleOutput_2024_06_11,
+  UpdateScheduleInput_2024_06_11,
+} from "@calcom/platform-types";
 
 import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
 import { useSchedule } from "../../hooks/schedules/useSchedule";
@@ -27,6 +32,7 @@ type AvailabilitySettingsPlatformWrapperProps = {
   onDeleteError?: (err: ApiErrorResponse) => void;
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
+  onBeforeUpdate?: (updateBody: UpdateScheduleInput_2024_06_11) => boolean | Promise<boolean>;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -38,6 +44,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   onUpdateSuccess,
   disableEditableHeading = false,
   enableOverrides = false,
+  onBeforeUpdate,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -82,7 +89,16 @@ export const AvailabilitySettingsPlatformWrapper = ({
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
     const updateBody = transformAtomScheduleForApi(body);
-    updateSchedule({ id, ...updateBody });
+
+    let canUpdate = true;
+
+    if (onBeforeUpdate) {
+      canUpdate = await onBeforeUpdate(updateBody);
+    }
+
+    if (canUpdate) {
+      updateSchedule({ id, ...updateBody });
+    }
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
@@ -32,6 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       select: {
         id: true,
+        metadata: true,
+        isOrganization: true,
+        parentId: true,
       },
       skip: pageNumber * pageSize,
       take: pageSize,
@@ -41,10 +44,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       break;
     }
 
-    for (const team of teams) {
-      await updateQuantitySubscriptionFromStripe(team.id);
-      await delay(100); // Adjust the delay as needed to avoid rate limiting
-    }
+    const teamsBilling = TeamBilling.initMany(teams);
+    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
+    await Promise.allSettled(teamBillingPromises);
 
     pageNumber++;
   }

@@ -1,10 +1,7 @@
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
-import removeMember from "@calcom/features/ee/teams/lib/removeMember";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -66,30 +63,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       message: "You can not remove yourself from a team you own.",
     });
 
-  const deleteMembershipPromises = [];
-
-  for (const memberId of memberIds) {
-    for (const teamId of teamIds) {
-      deleteMembershipPromises.push(
-        removeMember({
-          teamId,
-          memberId,
-          isOrg,
-        })
-      );
-    }
-  }
-
-  const memberships = await Promise.all(deleteMembershipPromises);
-
-  // Sync Services
-  memberships.flatMap((m) => closeComDeleteTeamMembership(m.membership.user));
-
-  if (IS_TEAM_BILLING_ENABLED) {
-    for (const teamId of teamIds) {
-      await updateQuantitySubscriptionFromStripe(teamId);
-    }
-  }
+  await TeamRepository.removeMembers(teamIds, memberIds, isOrg);
 };
 
 export default removeMemberHandler;

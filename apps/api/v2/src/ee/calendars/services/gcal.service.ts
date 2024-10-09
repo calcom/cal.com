@@ -42,7 +42,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
-    const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir);
+    const redirectUrl = await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir);
 
     return { status: SUCCESS_STATUS, data: { authUrl: redirectUrl } };
   }
@@ -131,11 +131,6 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const token = await oAuth2Client.getToken(parsedCode);
     // Google oAuth Credentials are stored in token.tokens
     const key = token.tokens;
-    const credential = await this.credentialRepository.createAppCredential(
-      GOOGLE_CALENDAR_TYPE,
-      key as Prisma.InputJsonValue,
-      ownerId
-    );
 
     oAuth2Client.setCredentials(key);
 
@@ -149,10 +144,39 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
     if (primaryCal?.id) {
-      await this.selectedCalendarsRepository.createSelectedCalendar(
-        primaryCal.id,
-        credential.id,
+      const alreadyExistingSelectedCalendar = await this.selectedCalendarsRepository.getUserSelectedCalendar(
         ownerId,
+        GOOGLE_CALENDAR_TYPE,
+        primaryCal.id
+      );
+
+      if (alreadyExistingSelectedCalendar) {
+        const isCredentialValid = await this.calendarsService.checkCalendarCredentialValidity(
+          ownerId,
+          alreadyExistingSelectedCalendar.credentialId ?? 0,
+          GOOGLE_CALENDAR_TYPE
+        );
+
+        // user credential probably got expired in this case
+        if (!isCredentialValid) {
+          await this.calendarsService.createAndLinkCalendarEntry(
+            ownerId,
+            alreadyExistingSelectedCalendar.externalId,
+            key as Prisma.InputJsonValue,
+            GOOGLE_CALENDAR_TYPE,
+            alreadyExistingSelectedCalendar.credentialId
+          );
+        }
+
+        return {
+          url: redir || origin,
+        };
+      }
+
+      await this.calendarsService.createAndLinkCalendarEntry(
+        ownerId,
+        primaryCal.id,
+        key as Prisma.InputJsonValue,
         GOOGLE_CALENDAR_TYPE
       );
     }

@@ -2,7 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 
-import { localize } from "../lib/testUtils";
+import { localize, submitAndWaitForResponse } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 export const scheduleSuccessfullyText = "This meeting is scheduled";
@@ -40,9 +40,9 @@ export function createBookingPageFixture(page: Page) {
       await page.goto("/event-types");
     },
     updateEventType: async () => {
-      await page.getByTestId("update-eventtype").click();
-      const toast = await page.waitForSelector('[data-testid="toast-success"]');
-      expect(toast).toBeTruthy();
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+        action: () => page.locator("[data-testid=update-eventtype]").click(),
+      });
     },
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");

@@ -1,10 +1,9 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
-import { AUTH_OPTIONS } from "@calcom/features/auth/lib/next-auth-options";
+import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -34,7 +33,7 @@ const Page = async ({ params }: PageProps) => {
   }
   const scheduleId = Number(params.schedule);
 
-  const session = await getServerSession(AUTH_OPTIONS);
+  const session = await getServerSessionForAppDir();
   const userId = session?.user?.id;
   if (!userId) {
     notFound();

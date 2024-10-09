@@ -28,7 +28,8 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
 
   const targetMembership = memberships.find((m) => m.userId === input.memberId);
   const myMembership = memberships.find((m) => m.userId === ctx.user.id);
-  const teamHasMoreThanOneOwner = memberships.some((m) => m.role === MembershipRole.OWNER);
+  const teamOwners = memberships.filter((m) => m.role === MembershipRole.OWNER);
+  const teamHasMoreThanOneOwner = teamOwners.length > 1;
 
   if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
     throw new TRPCError({
@@ -37,7 +38,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
-  if (!teamHasMoreThanOneOwner) {
+  if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can not change the role of the only owner of a team.",

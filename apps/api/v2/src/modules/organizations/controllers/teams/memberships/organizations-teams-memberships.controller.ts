@@ -42,7 +42,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Organizations Teams")
+@DocsTags("Orgs / Teams / Memberships")
 export class OrganizationsTeamsMembershipsController {
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
@@ -50,7 +50,7 @@ export class OrganizationsTeamsMembershipsController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get all the memberships of a team of an organization." })
+  @ApiOperation({ summary: "Get all memberships" })
   @UseGuards()
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -76,7 +76,7 @@ export class OrganizationsTeamsMembershipsController {
   }
 
   @Get("/:membershipId")
-  @ApiOperation({ summary: "Get the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Get a membership" })
   @UseGuards()
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -101,7 +101,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Delete a membership" })
   async deleteOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -122,7 +122,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Update a membership" })
   async updateOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -145,7 +145,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a membership of an organization's team" })
+  @ApiOperation({ summary: "Create a membership" })
   async createOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,

@@ -177,7 +177,7 @@ export const AppPage = ({
               typeof descriptionItem === "object" ? (
                 <div
                   key={`iframe-${index}`}
-                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
+                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center overflow-hidden rounded-md last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (

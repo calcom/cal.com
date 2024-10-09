@@ -15,6 +15,7 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -283,6 +284,21 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: eventType?.teamId ?? null },
+      parentId: eventType?.parentId ?? null,
+    },
+  });
+
+  const triggerForUser = !teamId || (teamId && eventType?.parentId);
+
+  const userId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  const bookerUrl = await getBookerBaseUrl(orgId ?? null);
+
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
@@ -295,6 +311,7 @@ export async function handleConfirmation(args: {
           schedulingType: updatedBookings[index].eventType?.schedulingType,
           hosts: updatedBookings[index].eventType?.hosts,
         },
+        bookerUrl,
       };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
@@ -325,19 +342,6 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const teamId = await getTeamIdFromEventType({
-      eventType: {
-        team: { id: eventType?.teamId ?? null },
-        parentId: eventType?.parentId ?? null,
-      },
-    });
-
-    const triggerForUser = !teamId || (teamId && eventType?.parentId);
-
-    const userId = triggerForUser ? booking.userId : null;
-
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
     const subscribersBookingCreated = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,

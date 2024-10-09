@@ -66,7 +66,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     assignAllTeamMembers,
     hosts,
     id,
-    hashedLink,
+    multiplePrivateLinks,
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
     userId,
@@ -343,41 +343,54 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-
-  const connectedLink = await ctx.prisma.hashedLink.findFirst({
+  const connectedLinks = await ctx.prisma.hashedLink.findMany({
     where: {
       eventTypeId: input.id,
     },
     select: {
       id: true,
+      link: true,
     },
   });
 
-  if (hashedLink) {
-    // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
-    if (!connectedLink) {
-      // create a hashed link
-      await ctx.prisma.hashedLink.upsert({
+  const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
+
+  if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
+    const multiplePrivateLinksToBeInserted = multiplePrivateLinks.filter(
+      (link) => !connectedMultiplePrivateLinks.includes(link)
+    );
+    const singleLinksToBeDeleted = connectedMultiplePrivateLinks.filter(
+      (link) => !multiplePrivateLinks.includes(link)
+    );
+    if (singleLinksToBeDeleted.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
-        },
-        update: {
-          link: hashedLink,
-        },
-        create: {
-          link: hashedLink,
-          eventType: {
-            connect: { id: input.id },
+          link: {
+            in: singleLinksToBeDeleted,
           },
         },
       });
     }
+    if (multiplePrivateLinksToBeInserted.length > 0) {
+      await ctx.prisma.hashedLink.createMany({
+        data: multiplePrivateLinksToBeInserted.map((link) => {
+          return {
+            link: link,
+            eventTypeId: input.id,
+          };
+        }),
+      });
+    }
   } else {
-    // check if hashed connection exists. If it does, disconnect
-    if (connectedLink) {
-      await ctx.prisma.hashedLink.delete({
+    // Delete all the single-use links for this event.
+    if (connectedMultiplePrivateLinks.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
+          link: {
+            in: connectedMultiplePrivateLinks,
+          },
         },
       });
     }
@@ -470,8 +483,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeId: id,
     currentUserId: ctx.user.id,
     oldEventType: eventType,
-    hashedLink,
-    connectedLink,
     updatedEventType,
     children,
     profileId: ctx.user.profile.id,

@@ -151,8 +151,8 @@ export default function Bookings() {
       hideHeadingOnMobile
       heading={t("bookings")}
       subtitle={t("bookings_description")}
-      title="Bookings"
-      description="Create events to share for people to book on your calendar.">
+      title={t("bookings")}
+      description={t("bookings_description")}>
       <div className="flex flex-col">
         <div className="flex flex-row flex-wrap justify-between">
           <HorizontalTabs tabs={tabs} />

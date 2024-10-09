@@ -15,4 +15,3 @@ One of the best ways for a service business to create and close more customers i
 1. Easily connect Cal.com with Synthflow using Cal.com API key.
 2. Set up actions and define specific booking parameters tailored to your needs.
 3. Attach the scheduling action to your assistant. Your AI Voice Assistants can now book appointments directly into live calendars and send instant notifications.
-

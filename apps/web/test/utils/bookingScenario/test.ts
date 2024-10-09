@@ -16,14 +16,13 @@ const _testWithAndWithoutOrg = (
   const t = mode === "only" ? test.only : mode === "skip" ? test.skip : test;
   t(
     `${description} - With org`,
-    async ({ emails, sms, meta, task, onTestFailed, expect, skip }) => {
+    async ({ emails, sms, task, onTestFailed, expect, skip, onTestFinished }) => {
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",
       });
 
       await fn({
-        meta,
         task,
         onTestFailed,
         expect,
@@ -34,6 +33,7 @@ const _testWithAndWithoutOrg = (
           organization: org,
           urlOrigin: `${WEBSITE_PROTOCOL}//${org.slug}.cal.local:3000`,
         },
+        onTestFinished,
       });
     },
     timeout
@@ -41,16 +41,16 @@ const _testWithAndWithoutOrg = (
 
   t(
     `${description}`,
-    async ({ emails, sms, meta, task, onTestFailed, expect, skip }) => {
+    async ({ emails, sms, task, onTestFailed, expect, skip, onTestFinished }) => {
       await fn({
         emails,
         sms,
-        meta,
         task,
         onTestFailed,
         expect,
         skip,
         org: null,
+        onTestFinished,
       });
     },
     timeout
