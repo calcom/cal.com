@@ -155,7 +155,8 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     return {
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
-      attributeRoutingConfig: "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+      attributeRoutingConfig:
+        "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
     };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

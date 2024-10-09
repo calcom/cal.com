@@ -10,7 +10,8 @@ import type { UseFormReturn } from "react-hook-form";
 import Shell from "@calcom/features/shell/Shell";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { App_RoutingForms_Form, SchedulingType } from "@calcom/prisma/client";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
@@ -302,15 +303,14 @@ const Route = ({
                   ? "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)"
                   : "Contact owner will be the Round Robin host if available"
               }
-              tooltip={
-                "Contact owner can only be used if the routed event has it enabled through Salesforce app"
-              }
+              tooltip="Contact owner can only be used if the routed event has it enabled through Salesforce app"
               checked={route.attributeRoutingConfig?.skipContactOwner ?? false}
               onCheckedChange={(skipContactOwner) => {
                 setAttributeRoutingConfig(route.id, {
                   skipContactOwner,
                 });
-              }}></Switch>
+              }}
+            />
           </div>
         ) : null}
 
@@ -835,7 +835,7 @@ export default function RouteBuilder({
       form={form}
       appUrl={appUrl}
       enrichedWithUserProfileForm={enrichedWithUserProfileForm}
-      Page={({ hookForm, form }) => {
+      Page={function Page({ hookForm, form }) {
         const { t } = useLocale();
         const values = hookForm.getValues();
         const { data: attributes, isPending: isAttributesLoading } =
