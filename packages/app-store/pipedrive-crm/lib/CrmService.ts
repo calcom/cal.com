@@ -230,4 +230,8 @@ export default class PipedriveCrmService implements CRM {
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
   }
+
+  getAppOptions() {
+    console.log("No options implemented");
+  }
 }
