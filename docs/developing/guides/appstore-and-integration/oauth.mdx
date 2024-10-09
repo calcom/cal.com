@@ -1,5 +1,5 @@
 ---
-title: "How to use OAuth to authorize apps with cal.com accounts"
+title: "How to use OAuth to authorize apps with Cal.com accounts"
 ---
 
 As an example, you can view our OAuth flow in action on Zapier. Try to connect your cal.com account [here](https://zapier.com/apps/calcom/integrations).
@@ -8,7 +8,7 @@ To enable OAuth in one of your apps, you will need a Client ID, Client Secret, A
 <img src="/images/oauth-zapier.png" />
 
 ### OAuth Client Credentials
-Only the cal.com team can create new OAuth clients. Please contact us at [support@cal.com](mailto:support@cal.com) with the following details: client name, redirect URI (provided by the app), app logo, and a link to the app.
+Only the Cal.com team can create new OAuth clients. Please contact us at [support@cal.com](mailto:support@cal.com) with the following details: client name, redirect URI (provided by the app), app logo, and a link to the app.
 
 The Cal.com team will register the app and provide you with the Client ID and Client Secret. Keep these credentials confidential and secure.
 
@@ -24,7 +24,7 @@ To initiate the OAuth flow, direct users to the following authorization URL:
 After users click *Allow*, they will be redirected to the redirect_uri with the code (authorization code) and state as URL parameters.
 
 ### Access Token Request
-Endpoint: `POST https://app.cal.com/api/auth/oauth/token`
+Endpoint: `POST https://app.Cal.com/api/auth/oauth/token`
 
 Request Body:
 - *code*: The authorization code received in the redirect URI
@@ -42,7 +42,7 @@ Response:
 ```
 
 ### Refresh Token Request
-Endpoint: `POST https://app.cal.com/api/auth/oauth/refreshToken`
+Endpoint: `POST https://app.Cal.com/api/auth/oauth/refreshToken`
 
 Request Body:
 - *grant_type*: "refresh_token"
@@ -58,7 +58,7 @@ Response:
 
 ### Testing OAuth Credentials
 To verify the correct setup and functionality of OAuth credentials you can use the following endpoint:
-`GET https://app.cal.com/api/auth/oauth/me`
+`GET https://app.Cal.com/api/auth/oauth/me`
 
 Headers:
 - Authorization: Bearer *exampleAccessToken*
