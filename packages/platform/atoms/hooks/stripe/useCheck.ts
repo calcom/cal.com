@@ -35,7 +35,7 @@ export const useCheck = ({ onCheckError, initialData, onCheckSuccess }: UseCheck
         ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(`/stripe/check`)
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
-            onCheckSuccess();
+            onCheckSuccess?.();
             return { status: SUCCESS_STATUS, data: { allowConnect: false, checked: true } };
           }
           onCheckError?.(responseBody);

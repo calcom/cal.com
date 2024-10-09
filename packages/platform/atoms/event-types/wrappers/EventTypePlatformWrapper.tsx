@@ -17,6 +17,7 @@ import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
+import EventPaymentsTabPlatformWrapper from "./EventPaymentsTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
@@ -29,7 +30,7 @@ export type EventTypePlatformWrapperProps = {
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced"],
+  tabs = ["setup", "availability", "team", "limits", "advanced", "payments"],
   onSuccess,
   onError,
   ...props
@@ -91,6 +92,7 @@ const EventType = ({
     advanced: <></>,
     instant: <></>,
     recurring: <></>,
+    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
     apps: <></>,
     workflows: <></>,
     webhooks: <></>,
