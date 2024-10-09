@@ -1,12 +1,16 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Table } from "@tanstack/react-table";
 import classNames from "classnames";
+import { m } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useMemo, useRef, useReducer, useState, useEffect, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -33,6 +37,7 @@ import {
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
+import { EventTypesList } from "./EventTypesList";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
@@ -111,8 +116,12 @@ export default function MemberListItem(props: Props) {
   const { data: session } = useSession();
   const utils = trpc.useUtils();
   const [state, dispatch] = useReducer(reducer, initialState);
+  const orgBranding = useOrgBranding();
+  const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useState(false);
+  const { copyToClipboard, isCopied } = useCopy();
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
@@ -565,6 +574,19 @@ export default function MemberListItem(props: Props) {
         onSearch={(value) => setSearchTerm(value)}
         selectionOptions={[
           {
+            type: "action",
+            icon: "handshake",
+            label: "Group Meeting",
+            needsXSelected: 2,
+            onClick: () => {
+              setDynamicLinkVisible((old) => !old);
+            },
+          },
+          {
+            type: "render",
+            render: (table) => <EventTypesList table={table} teamId={props.team.id} />,
+          },
+          {
             type: "render",
             render: (table) => (
               <DeleteBulkTeamMembers
@@ -576,6 +598,50 @@ export default function MemberListItem(props: Props) {
             ),
           },
         ]}
+        renderAboveSelection={(table: Table<User>) => {
+          const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
+          const isVisible = numberOfSelectedRows >= 2 && dynamicLinkVisible;
+
+          const users = table
+            .getSelectedRowModel()
+            .flatRows.map((row) => row.original.username)
+            .filter((u) => u !== null);
+
+          const usersNameAsString = users.join("+");
+
+          const dynamicLinkOfSelectedUsers = `${domain}/${usersNameAsString}`;
+          const domainWithoutHttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
+
+          return (
+            <>
+              {isVisible ? (
+                <m.div
+                  layout
+                  className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
+                  <div className="w-[300px] items-center truncate p-2">
+                    <p>{domainWithoutHttps}</p>
+                  </div>
+                  <div className="ml-auto flex items-center">
+                    <Button
+                      StartIcon="copy"
+                      size="sm"
+                      onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
+                      {!isCopied ? t("copy") : t("copied")}
+                    </Button>
+                    <Button
+                      EndIcon="external-link"
+                      size="sm"
+                      href={dynamicLinkOfSelectedUsers}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      Open
+                    </Button>
+                  </div>
+                </m.div>
+              ) : null}
+            </>
+          );
+        }}
         tableContainerRef={tableContainerRef}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         tableCTA={
