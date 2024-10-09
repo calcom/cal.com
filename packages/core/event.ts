@@ -3,7 +3,6 @@ import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Prisma } from "@calcom/prisma/client";
-import { entries } from "@calcom/prisma/zod-utils";
 
 export const nameObjectSchema = z.object({
   firstName: z.string(),
@@ -31,6 +30,7 @@ export type EventNameObjectType = {
 
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   const attendeeName = parseName(eventNameObj.attendeeName);
+
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
@@ -98,6 +98,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
       });
     }
   });
+
   return dynamicEventName;
 }
 
@@ -125,11 +126,11 @@ export const validateCustomEventName = (value: string, bookingFields?: Prisma.Js
     "{ATTENDEE}",
     "{USER}",
   ]);
-  const variablesUsed = value.match(/\{([^}]+)\}/g);
-  if (variablesUsed?.length) {
-    for (const variableUsed of variablesUsed) {
-      if (!validVariables.includes(variableUsed)) {
-        return variableUsed;
+  const matches = value.match(/\{([^}]+)\}/g);
+  if (matches?.length) {
+    for (const item of matches) {
+      if (!validVariables.includes(item)) {
+        return item;
       }
     }
   }

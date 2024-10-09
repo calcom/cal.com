@@ -32,10 +32,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
   };
 
   // const customEventName = watch("customEventName");
-  const previewText = getEventName({
-    ...event,
-    eventName: watch("customEventName"),
-  });
+  const previewText = getEventName({ ...event, eventName: watch("customEventName") });
   const placeHolder_ = watch("customEventName") === "" ? previewText : placeHolder;
 
   return (
