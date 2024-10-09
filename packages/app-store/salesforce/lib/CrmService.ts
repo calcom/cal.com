@@ -476,7 +476,6 @@ export default class SalesforceCRMService implements CRM {
     return {
       LastName: LastName || "-",
       FirstName,
-      Company: company,
       Email: attendee.email,
       ...(organizerId && { OwnerId: organizerId }),
       ...(recordType === SalesforceRecordEnum.LEAD && { Company: company }),
