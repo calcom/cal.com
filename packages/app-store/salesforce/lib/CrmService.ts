@@ -15,6 +15,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import { SalesforceRecordEnum } from "./recordEnum";
 
 type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
@@ -55,11 +56,18 @@ export default class SalesforceCRMService implements CRM {
   private conn: Promise<jsforce.Connection>;
   private log: typeof logger;
   private calWarnings: string[] = [];
+  private appOptions: any;
+  private doNotCreateEvent = false;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, appOptions: any) {
     this.integrationName = "salesforce_other_calendar";
     this.conn = this.getClient(credential).then((c) => c);
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.appOptions = appOptions;
+  }
+
+  public getAppOptions() {
+    return this.appOptions;
   }
 
   private getClient = async (credential: CredentialPayload) => {
@@ -224,7 +232,10 @@ export default class SalesforceCRMService implements CRM {
     });
   }
 
-  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<CrmEvent> {
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<CrmEvent | undefined> {
+    const skipEventCreation = this.getDoNotCreateEvent();
+    if (skipEventCreation) return undefined;
+
     const sfEvent = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
       return Promise.resolve({
@@ -268,7 +279,18 @@ export default class SalesforceCRMService implements CRM {
   async getContacts(email: string | string[], includeOwner?: boolean) {
     const conn = await this.conn;
     const emails = Array.isArray(email) ? email : [email];
-    const soql = `SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('${emails.join("','")}')`;
+    const appOptions = this.getAppOptions();
+    const createEventOn = appOptions?.createEventOn ?? SalesforceRecordEnum.CONTACT;
+    let soql: string;
+    if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
+      // For an account let's assume that the first email is the one we should be querying against
+      const attendeeEmail = emails[0];
+
+      soql = `SELECT Id, Email FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+      // If creating events on contacts or leads
+    } else {
+      soql = `SELECT Id, Email, OwnerId FROM ${createEventOn} WHERE Email IN ('${emails.join("','")}')`;
+    }
     const results = await conn.query(soql);
 
     if (!results || !results.records.length) return [];
@@ -304,18 +326,65 @@ export default class SalesforceCRMService implements CRM {
 
   async createContacts(contactsToCreate: { email: string; name: string }[], organizerEmail?: string) {
     const conn = await this.conn;
-
-    // See if the organizer exists in the CRM
+    const appOptions = this.getAppOptions();
+    const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
     const organizerId = organizerEmail ? await this.getSalesforceUserFromEmail(organizerEmail) : undefined;
-    const createdContacts = await Promise.all(
-      contactsToCreate.map(async (attendee) => {
+
+    if (createEventOn === SalesforceRecordEnum.CONTACT || createEventOn === SalesforceRecordEnum.LEAD) {
+      // See if the organizer exists in the CRM
+      const createdContacts = await Promise.all(
+        contactsToCreate.map(async (attendee) => {
+          const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+          // Assume that the first part of the email domain is the company title
+          const company = attendee.email.split("@")[1].split(".")[0];
+          return await conn
+            .sobject(createEventOn)
+            .create({
+              FirstName,
+              LastName: LastName || "-",
+              Email: attendee.email,
+              ...(organizerId && { OwnerId: organizerId }),
+              ...(createEventOn === SalesforceRecordEnum.LEAD && { company }),
+            })
+            .then((result) => {
+              if (result.success) {
+                return { id: result.id, email: attendee.email };
+              }
+            });
+        })
+      );
+      return createdContacts.filter((contact): contact is Contact => contact !== undefined);
+    }
+
+    if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
+      if (!appOptions.createNewContactUnderAccount && !appOptions.createLeadIfAccountNull) {
+        this.setDoNotCreateEvent(true);
+        return [{ id: "Do not create event", email: "placeholder" }];
+      }
+
+      if (appOptions.createNewContactUnderAccount) {
+        // Base this off of the first contact
+        const attendee = contactsToCreate[0];
+
+        // First see if the contact already exists and connect it to the account
+        const userQuery = await conn.query(`SELECT Email FROM Contact WHERE Email = '${attendee.email}'`);
+
+        console.log("🚀 ~ SalesforceCRMService ~ createContacts ~ userQuery:", userQuery);
+        const emailDomain = attendee.email.split("@")[1];
+
+        const response = await conn.query(
+          `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
+        );
+
+        const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
         const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-        return await conn
+        const contactCreation = await conn
           .sobject("Contact")
           .create({
             FirstName,
             LastName: LastName || "-",
             Email: attendee.email,
+            AccountId: accountId,
             ...(organizerId && { OwnerId: organizerId }),
           })
           .then((result) => {
@@ -323,8 +392,44 @@ export default class SalesforceCRMService implements CRM {
               return { id: result.id, email: attendee.email };
             }
           });
-      })
-    );
-    return createdContacts.filter((contact): contact is Contact => contact !== undefined);
+
+        return [contactCreation];
+      }
+    }
+  }
+
+  private setDoNotCreateEvent(boolean: boolean) {
+    this.doNotCreateEvent = boolean;
+  }
+
+  private getDoNotCreateEvent() {
+    return this.doNotCreateEvent;
+  }
+
+  private getDominantAccountId(contacts: { AccountId: string }[]) {
+    // To get the dominant AccountId we only need to iterate through half the array
+    const iterateLength = Math.ceil(contacts.length / 2);
+    // Store AccountId frequencies
+    const accountIdCounts: { [accountId: string]: number } = {};
+
+    for (const contact of contacts) {
+      const accountId = contact.AccountId;
+      accountIdCounts[accountId] = (accountIdCounts[accountId] || 0) + 1;
+      // If the number of AccountIds makes up 50% of the array length then return early
+      if (accountIdCounts[accountId] > iterateLength) return accountId;
+    }
+
+    // Else figure out which AccountId occurs the most
+    let dominantAccountId;
+    let highestCount = 0;
+
+    for (const accountId in accountIdCounts) {
+      if (accountIdCounts[accountId] > highestCount) {
+        highestCount = accountIdCounts[accountId];
+        dominantAccountId = accountId;
+      }
+    }
+
+    return dominantAccountId;
   }
 }
