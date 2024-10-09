@@ -1,5 +1,4 @@
-import { ImageResponse } from "@vercel/og";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
@@ -18,7 +17,7 @@ const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf
 );
 
 export const config = {
-  runtime: "edge",
+  runtime: "nodejs",
 };
 
 const meetingSchema = z.object({
@@ -43,7 +42,7 @@ const genericSchema = z.object({
   description: z.string(),
 });
 
-export default async function handler(req: NextApiRequest) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { searchParams } = new URL(`${req.url}`);
   const imageType = searchParams.get("type");
 
@@ -63,59 +62,63 @@ export default async function handler(req: NextApiRequest) {
     ] as SatoriOptions["fonts"],
   };
 
-  switch (imageType) {
-    case "meeting": {
-      const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
-        names: searchParams.getAll("names"),
-        usernames: searchParams.getAll("usernames"),
-        title: searchParams.get("title"),
-        meetingProfileName: searchParams.get("meetingProfileName"),
-        meetingImage: searchParams.get("meetingImage"),
-        imageType,
-      });
+  const { ImageResponse } = await import("@vercel/og");
 
-      const img = new ImageResponse(
-        (
-          <Meeting
-            title={title}
-            profile={{ name: meetingProfileName, image: meetingImage }}
-            users={names.map((name, index) => ({ name, username: usernames[index] }))}
-          />
-        ),
-        ogConfig
-      ) as { body: Buffer };
+  try {
+    let img;
+    switch (imageType) {
+      case "meeting": {
+        const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
+          names: searchParams.getAll("names"),
+          usernames: searchParams.getAll("usernames"),
+          title: searchParams.get("title"),
+          meetingProfileName: searchParams.get("meetingProfileName"),
+          meetingImage: searchParams.get("meetingImage"),
+          imageType,
+        });
 
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
+        img = new ImageResponse(
+          (
+            <Meeting
+              title={title}
+              profile={{ name: meetingProfileName, image: meetingImage }}
+              users={names.map((name, index) => ({ name, username: usernames[index] }))}
+            />
+          ),
+          ogConfig
+        );
+        break;
+      }
+      case "app": {
+        const { name, description, slug } = appSchema.parse({
+          name: searchParams.get("name"),
+          description: searchParams.get("description"),
+          slug: searchParams.get("slug"),
+          imageType,
+        });
+
+        img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
+        break;
+      }
+      case "generic": {
+        const { title, description } = genericSchema.parse({
+          title: searchParams.get("title"),
+          description: searchParams.get("description"),
+          imageType,
+        });
+
+        img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
+        break;
+      }
+      default:
+        res.status(404).send("What you're looking for is not here..");
+        return;
     }
-    case "app": {
-      const { name, description, slug } = appSchema.parse({
-        name: searchParams.get("name"),
-        description: searchParams.get("description"),
-        slug: searchParams.get("slug"),
-        imageType,
-      });
-      const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig) as {
-        body: Buffer;
-      };
 
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
-    }
-
-    case "generic": {
-      const { title, description } = genericSchema.parse({
-        title: searchParams.get("title"),
-        description: searchParams.get("description"),
-        imageType,
-      });
-
-      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig) as {
-        body: Buffer;
-      };
-
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
-    }
-
-    default:
-      return new Response("What you're looking for is not here..", { status: 404 });
+    res.setHeader("Content-Type", "image/png");
+    res.status(200).send(img.body);
+  } catch (error) {
+    console.error("Error generating image:", error);
+    res.status(500).send("Error generating image");
   }
 }
