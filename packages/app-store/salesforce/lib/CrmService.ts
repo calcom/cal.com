@@ -328,10 +328,11 @@ export default class SalesforceCRMService implements CRM {
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
     const organizerId = organizerEmail ? await this.getSalesforceUserIdFromEmail(organizerEmail) : undefined;
+    const createdContacts: { id: string; email: string }[] = [];
 
     if (createEventOn === SalesforceRecordEnum.CONTACT || createEventOn === SalesforceRecordEnum.LEAD) {
       // See if the organizer exists in the CRM
-      const createdContacts = await Promise.all(
+      await Promise.all(
         contactsToCreate.map(async (attendee) => {
           return await conn
             .sobject(createEventOn)
@@ -344,12 +345,11 @@ export default class SalesforceCRMService implements CRM {
             )
             .then((result) => {
               if (result.success) {
-                return { id: result.id, email: attendee.email };
+                createdContacts.push({ id: result.id, email: attendee.email });
               }
             });
         })
       );
-      return createdContacts.filter((contact): contact is Contact => contact !== undefined);
     }
 
     if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
@@ -382,8 +382,7 @@ export default class SalesforceCRMService implements CRM {
           return [{ id: contact.Id, email: contact.Email }];
         }
 
-        const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-        const contactCreation = await conn
+        await conn
           .sobject(SalesforceRecordEnum.CONTACT)
           .create({
             ...this.generateCreateRecordBody({
@@ -395,15 +394,13 @@ export default class SalesforceCRMService implements CRM {
           })
           .then((result) => {
             if (result.success) {
-              return { id: result.id, email: attendee.email };
+              createdContacts.push({ id: result.id, email: attendee.email });
             }
           });
-
-        return [contactCreation];
       }
 
       if (appOptions.createLeadIfAccountNull) {
-        const createdContacts = await Promise.all(
+        await Promise.all(
           contactsToCreate.map(async (attendee) => {
             return await conn
               .sobject(SalesforceRecordEnum.LEAD)
@@ -416,14 +413,15 @@ export default class SalesforceCRMService implements CRM {
               )
               .then((result) => {
                 if (result.success) {
-                  return { id: result.id, email: attendee.email };
+                  createdContacts.push({ id: result.id, email: attendee.email });
                 }
               });
           })
         );
-        return createdContacts.filter((contact): contact is Contact => contact !== undefined);
       }
     }
+
+    return createdContacts;
   }
 
   private setDoNotCreateEvent(boolean: boolean) {
