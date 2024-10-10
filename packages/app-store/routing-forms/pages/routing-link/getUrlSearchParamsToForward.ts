@@ -1,13 +1,18 @@
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
+import type { LocalRoute } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
+type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
 export function getUrlSearchParamsToForward({
   formResponse,
   fields,
   searchParams,
+  teamMembersMatchingAttributeLogic,
+  formResponseId,
+  attributeRoutingConfig,
 }: {
   formResponse: Record<
     string,
@@ -20,6 +25,9 @@ export function getUrlSearchParamsToForward({
     "id" | "type" | "options" | "identifier" | "label"
   >[];
   searchParams: URLSearchParams;
+  formResponseId: number;
+  teamMembersMatchingAttributeLogic: number[] | null;
+  attributeRoutingConfig: AttributeRoutingConfig | null;
 }) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
@@ -71,6 +79,11 @@ export function getUrlSearchParamsToForward({
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,
+    ...(teamMembersMatchingAttributeLogic
+      ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
+      : null),
+    ["cal.routingFormResponseId"]: String(formResponseId),
+    ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();

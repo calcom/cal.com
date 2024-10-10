@@ -4,11 +4,11 @@
   "slug": "campsite",
   "type": "campsite_conferencing",
   "logo": "icon.png",
-  "url": "https://campsite.co",
+  "url": "https://campsite.com",
   "variant": "conferencing",
   "categories": ["conferencing"],
   "publisher": "Campsite",
-  "email": "support@campsite.co",
+  "email": "support@campsite.com",
   "appData": {
     "location": {
       "type": "integrations:{SLUG}_conferencing",

@@ -256,6 +256,17 @@ export class UserRepository {
     };
   }
 
+  static async findByIds({ ids }: { ids: number[] }) {
+    return prisma.user.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      select: userSelect,
+    });
+  }
+
   static async findByIdOrThrow({ id }: { id: number }) {
     const user = await UserRepository.findById({ id });
     if (!user) {
