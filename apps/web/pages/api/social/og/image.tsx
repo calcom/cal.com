@@ -64,8 +64,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (imageType) {
       case "meeting": {
         const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
-          names: searchParams["names"],
-          usernames: searchParams["usernames"],
+          names: searchParams["names"] ?? [],
+          usernames: searchParams["usernames"] ?? [],
           title: searchParams["title"],
           meetingProfileName: searchParams["meetingProfileName"],
           meetingImage: searchParams["meetingImage"],
