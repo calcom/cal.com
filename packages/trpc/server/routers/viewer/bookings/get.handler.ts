@@ -277,6 +277,7 @@ export async function getBookings({
     bookingsQueryUserId,
     bookingsQueryAttendees,
     bookingsQueryTeamMember,
+    bookingsQueryOrganizationMembers,
     bookingsQuerySeatReference,
     //////////////////////////
 
@@ -325,6 +326,35 @@ export async function getBookings({
                     userId: user.id,
                     role: {
                       in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    isOrganization: true,
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
                     },
                   },
                 },
@@ -422,6 +452,7 @@ export async function getBookings({
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
       .concat(bookingsQueryTeamMember)
+      .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
   );
 
