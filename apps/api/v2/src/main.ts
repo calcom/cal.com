@@ -1,4 +1,5 @@
 import type { AppConfig } from "@/config/type";
+import { getEnv } from "@/env";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
@@ -107,13 +108,20 @@ async function generateSwagger(app: NestExpressApplication<Server>) {
   const document = SwaggerModule.createDocument(app, config);
   document.paths = groupAndSortPathsByFirstTag(document.paths);
 
-  const outputFile = "./swagger/documentation.json";
+  const swaggerOutputFile = "./swagger/documentation.json";
+  const docsOutputFile = "../../../docs/api-reference/v2/openapi.json";
+  const stringifiedContents = JSON.stringify(document, null, 2);
 
-  if (fs.existsSync(outputFile)) {
-    fs.unlinkSync(outputFile);
+  if (fs.existsSync(swaggerOutputFile)) {
+    fs.unlinkSync(swaggerOutputFile);
   }
 
-  fs.writeFileSync(outputFile, JSON.stringify(document, null, 2), { encoding: "utf8" });
+  fs.writeFileSync(swaggerOutputFile, stringifiedContents, { encoding: "utf8" });
+
+  if (fs.existsSync(docsOutputFile) && getEnv("NODE_ENV") === "development") {
+    fs.unlinkSync(docsOutputFile);
+    fs.writeFileSync(docsOutputFile, stringifiedContents, { encoding: "utf8" });
+  }
 
   if (!process.env.DOCS_URL) {
     SwaggerModule.setup("docs", app, document, {

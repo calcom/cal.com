@@ -59,6 +59,35 @@
         "tags": ["Platform / Cal Provider"]
       }
     },
+    "/v2/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "ConferencingController_connect",
+        "summary": "Connect your conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Platform / Conferencing"]
+      }
+    },
     "/v2/conferencing": {
       "get": {
         "operationId": "ConferencingController_listConferencingApps",
@@ -3955,8 +3984,6 @@
     "/v2/oauth/{clientId}/authorize": {
       "post": {
         "operationId": "OAuthFlowController_authorize",
-        "summary": "Authorize an OAuth client",
-        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
         "parameters": [
           {
             "name": "clientId",
@@ -3979,10 +4006,7 @@
         },
         "responses": {
           "200": {
-            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
-          },
-          "400": {
-            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
+            "description": ""
           }
         },
         "tags": ["OAuth"]
@@ -3991,8 +4015,6 @@
     "/v2/oauth/{clientId}/exchange": {
       "post": {
         "operationId": "OAuthFlowController_exchange",
-        "summary": "Exchange authorization code for access tokens",
-        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
         "parameters": [
           {
             "name": "Authorization",
@@ -4023,7 +4045,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully exchanged authorization code for access and refresh tokens.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -4031,9 +4053,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
           }
         },
         "tags": ["OAuth"]
@@ -4787,7 +4806,8 @@
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
-        "summary": "Get all webooks (paginated)",
+        "summary": "Get all webooks",
+        "description": "Gets a paginated list of webhooks for the authenticated user.",
         "parameters": [
           {
             "name": "take",
@@ -11685,6 +11705,72 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "ConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Id of the conferencing app credentials"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of conferencing app"
+          },
+          "userId": {
+            "type": "number",
+            "description": "Id of the user associated to the conferencing app"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true,
+            "description": "Whether if the connection is working or not."
+          }
+        },
+        "required": ["id", "type", "userId"]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "ConferencingAppsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
       }
     }
   }
