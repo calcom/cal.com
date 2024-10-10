@@ -10,6 +10,7 @@ import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/e
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
+import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { useAtomsEventTypeById, QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY } from "../hooks/useAtomEventTypeById";
@@ -17,6 +18,7 @@ import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
+import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
@@ -42,6 +44,7 @@ const EventType = ({
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = props;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const { data: user, isLoading: isUserLoading } = useMe();
 
   const updateMutation = useAtomUpdateEventType({
     onSuccess: async () => {
@@ -73,6 +76,10 @@ const EventType = ({
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
 
+  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+    toast({ description: message });
+  };
+
   const tabMap = {
     setup: tabs.includes("setup") ? (
       <SetupTab
@@ -87,8 +94,19 @@ const EventType = ({
     ),
     availability: <></>,
     team: <></>,
+    advanced: tabs.includes("advanced") ? (
+      <EventAdvancedPlatformWrapper
+        eventType={eventType}
+        team={team}
+        user={user?.data}
+        isUserLoading={isUserLoading}
+        showToast={showToast}
+      />
+    ) : (
+      <></>
+    ),
+
     limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
-    advanced: <></>,
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
       <EventRecurringTabPlatformWrapper eventType={eventType} />
