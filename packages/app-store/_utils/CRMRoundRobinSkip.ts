@@ -24,7 +24,7 @@ export async function getCRMContactOwnerForRRLeadSkip(
 
   if (!crm) return;
 
-  const contact = await crm.getContacts({ email: bookerEmail, forRoundRobinSkip: true });
+  const contact = await crm.getContacts({ emails: bookerEmail, forRoundRobinSkip: true });
   if (!contact?.length) return;
   return contact[0].ownerEmail;
 }
