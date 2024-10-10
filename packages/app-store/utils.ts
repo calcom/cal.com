@@ -12,7 +12,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
-type LocationOption = {
+export type LocationOption = {
   label: string;
   value: EventLocationType["type"];
   icon?: string;
@@ -102,6 +102,16 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
   }, [] as (App & { credential: CredentialDataWithTeamName; credentials: CredentialDataWithTeamName[]; locationOption: LocationOption | null })[]);
 
   return apps;
+}
+
+export function getAppsBySlug(
+  credentials: CredentialDataWithTeamName[],
+  slug: string,
+  filterOnCredentials?: boolean
+) {
+  const apps = getApps(credentials, filterOnCredentials);
+
+  return apps.filter((app) => app.slug === slug);
 }
 
 export function getLocalAppMetadata() {
