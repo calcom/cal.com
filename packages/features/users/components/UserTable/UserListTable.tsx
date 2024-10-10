@@ -144,14 +144,24 @@ export function UserListTable() {
           header: attribute.name,
           accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
-            const attributeValue = row.original.attributes.find((attr) => attr.attributeId === attribute.id);
-            if (!attributeValue) return null;
-            return <Badge variant="gray">{attributeValue?.value}</Badge>;
+            const attributeValues = row.original.attributes.filter(
+              (attr) => attr.attributeId === attribute.id
+            );
+            if (attributeValues.length === 0) return null;
+            return (
+              <>
+                {attributeValues.map((attributeValue, index) => (
+                  <Badge key={index} variant="gray" className="mr-1">
+                    {attributeValue.value}
+                  </Badge>
+                ))}
+              </>
+            );
           },
           filterFn: (rows, id, filterValue) => {
-            const attributeValue = rows.original.attributes.find((attr) => attr.attributeId === id);
-            if (!attributeValue) return false;
-            return filterValue.includes(attributeValue.value);
+            const attributeValues = rows.original.attributes.filter((attr) => attr.attributeId === id);
+            if (attributeValues.length === 0) return false;
+            return attributeValues.some((attr) => filterValue.includes(attr.value));
           },
         })) as ColumnDef<UserTableUser>[]) ?? []
       );
