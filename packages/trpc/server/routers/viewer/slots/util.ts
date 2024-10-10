@@ -346,7 +346,7 @@ export interface IGetAvailableSlots {
 /**
  * Returns (Contact Owner plus Fixed Hosts) OR All Hosts
  */
-function getUsersWithCredentialsConsideringContactOwner({
+export function getUsersWithCredentialsConsideringContactOwner({
   contactOwnerEmail,
   hosts,
 }: {
