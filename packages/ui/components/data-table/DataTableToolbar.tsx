@@ -39,11 +39,6 @@ function SearchBarComponent<TData>(
     onSearch?.(debouncedSearchTerm);
   }, [debouncedSearchTerm, onSearch]);
 
-  if ((onSearch && !searchKey) || (searchKey && !onSearch)) {
-    console.error("Either searchKey or onSearch must be provided");
-    return null;
-  }
-
   if (onSearch) {
     return (
       <Input
@@ -54,6 +49,11 @@ function SearchBarComponent<TData>(
         onChange={(event) => setSearchTerm(event.target.value.trim())}
       />
     );
+  }
+
+  if (!searchKey) {
+    console.error("searchKey is required if onSearch is not provided");
+    return null;
   }
 
   return (
