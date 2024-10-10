@@ -104,13 +104,13 @@ export class BookingsService_2024_08_13 {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
     const booking = await handleNewBooking(bookingRequest);
 
-    if (!booking.id) {
-      throw new Error("Booking was not created");
+    if (!booking.uid) {
+      throw new Error("Booking missing uid");
     }
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(booking.id);
+    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(booking.uid);
     if (!databaseBooking) {
-      throw new Error(`Booking with id=${booking.id} was not found in the database`);
+      throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
     }
 
     return this.outputService.getOutputBooking(databaseBooking);
@@ -190,13 +190,13 @@ export class BookingsService_2024_08_13 {
         body
       );
       const booking = await handleNewBooking(bookingRequest);
-      if (!booking.id) {
-        throw new Error("Booking was not created");
+      if (!booking.uid) {
+        throw new Error("Booking missing uid");
       }
 
-      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(booking.id);
+      const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(booking.uid);
       if (!databaseBooking) {
-        throw new Error(`Booking with id=${booking.id} was not found in the database`);
+        throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
       if (databaseBooking.recurringEventId) {
