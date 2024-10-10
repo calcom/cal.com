@@ -78,7 +78,7 @@ function SelectedAttributeToAssign() {
 
   return (
     <CommandList>
-      <div className="flex flex items-center items-center gap-2 border-b px-3 py-2">
+      <div className="flex items-center gap-2 border-b px-3 py-2">
         <span className="block">{foundAttribute.name}</span>
         {translateableType && <span className="text-muted block text-xs">({t(translateableType)})</span>}
       </div>
@@ -119,9 +119,11 @@ function SelectedAttributeToAssign() {
           <>
             <CommandItem>
               <Input
-                value={selectedAttributeOption[0] || ""}
+                defaultValue={selectedAttributeOption[0] || ""}
                 type={foundAttribute.type === "TEXT" ? "text" : "number"}
-                onChange={(e) => {
+                onBlur={(e) => {
+                  // trigger onBlur so it's set as Apply is pressed (but not onChange) which triggers
+                  // a re-render which also loses focus.
                   setSelectedAttributeOption([e.target.value]);
                 }}
               />
