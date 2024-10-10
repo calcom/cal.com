@@ -177,4 +177,8 @@ export default class CloseComCRMService implements CRM {
 
     return contacts;
   }
+
+  getAppOptions() {
+    console.log("No options implemented");
+  }
 }

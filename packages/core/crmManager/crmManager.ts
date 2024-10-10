@@ -8,13 +8,15 @@ const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export default class CrmManager {
   crmService: CRM | null | undefined = null;
   credential: CredentialPayload;
-  constructor(credential: CredentialPayload) {
+  appOptions: any;
+  constructor(credential: CredentialPayload, appOptions?: any) {
     this.credential = credential;
+    this.appOptions = appOptions;
   }
 
   private async getCrmService(credential: CredentialPayload) {
     if (this.crmService) return this.crmService;
-    const crmService = await getCrm(credential);
+    const crmService = await getCrm(credential, this.appOptions);
     this.crmService = crmService;
 
     if (this.crmService === null) {
@@ -25,8 +27,9 @@ export default class CrmManager {
     return crmService;
   }
 
-  public async createEvent(event: CalendarEvent, skipContactCreation?: boolean) {
+  public async createEvent(event: CalendarEvent, appOptions?: any) {
     const crmService = await this.getCrmService(this.credential);
+    const { skipContactCreation } = crmService?.getAppOptions();
     // First see if the attendees already exist in the crm
     let contacts = (await this.getContacts(event.attendees.map((a) => a.email))) || [];
     // Ensure that all attendees are in the crm

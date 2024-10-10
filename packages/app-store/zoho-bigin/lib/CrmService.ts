@@ -288,6 +288,10 @@ export default class BiginCrmService implements CRM {
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
   }
+
+  getAppOptions() {
+    console.log("No options implemented");
+  }
 }
 
 const toISO8601String = (date: Date) => {

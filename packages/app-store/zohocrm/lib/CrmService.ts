@@ -289,4 +289,8 @@ export default class ZohoCrmCrmService implements CRM {
     await auth.getToken();
     return await this.deleteMeeting(uid);
   }
+
+  getAppOptions() {
+    console.log("No options implemented");
+  }
 }
