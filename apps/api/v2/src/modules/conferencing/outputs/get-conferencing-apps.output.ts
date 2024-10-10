@@ -10,7 +10,7 @@ export class ConferencingAppsOutputDto {
   @ApiProperty({ description: "Id of the conferencing app credentials" })
   id!: number;
 
-  @ApiProperty({ example: GOOGLE_MEET_TYPE, description: "type of conferencing app" })
+  @ApiProperty({ example: GOOGLE_MEET_TYPE, description: "Type of conferencing app" })
   @Expose()
   @IsString()
   type!: string;
