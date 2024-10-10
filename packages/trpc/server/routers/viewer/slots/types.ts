@@ -26,6 +26,7 @@ export const getScheduleSchema = z
     orgSlug: z.string().nullish(),
     teamMemberEmail: z.string().nullish(),
     routedTeamMemberIds: z.array(z.number()).nullish(),
+    skipContactOwner: z.boolean().nullish(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API
