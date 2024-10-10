@@ -32,7 +32,6 @@ interface DataTableFilter<TData, TValue> {
 }
 
 export function DataTableFilter<TData, TValue>({ column, title, options }: DataTableFilter<TData, TValue>) {
-  console.log({ options });
   const facets = column?.getFacetedUniqueValues();
   const selectedValues = new Set(column?.getFilterValue() as string[]);
   const [currentOptions, setCurrentOptions] = useState<FilterOption[]>(options);
