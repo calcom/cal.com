@@ -19,6 +19,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
   const isRoundRobinLeadSkipEnabled = getAppData("roundRobinLeadSkip");
+  const roundRobinSkipCheckRecordOn =
+    getAppData("roundRobinSkipCheckRecordOn") ?? SalesforceRecordEnum.CONTACT;
   const isSkipContactCreationEnabled = getAppData("skipContactCreation");
   const createLeadIfAccountNull = getAppData("createLeadIfAccountNull");
   const createNewContactUnderAccount = getAppData("createNewContactUnderAccount");
@@ -32,6 +34,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   ];
   const [createEventOnSelectedOption, setCreateEventOnSelectedOption] = useState(
     recordOptions.find((option) => option.value === createEventOn) ?? recordOptions[0]
+  );
+
+  const checkOwnerOptions = [
+    { label: t("contact"), value: SalesforceRecordEnum.CONTACT },
+    { label: t("salesforce_lead"), value: SalesforceRecordEnum.LEAD },
+    { label: t("account"), value: SalesforceRecordEnum.ACCOUNT },
+  ];
+  const [checkOwnerSelectedOption, setCheckOwnerSelectedOption] = useState(
+    checkOwnerOptions.find((option) => option.value === roundRobinSkipCheckRecordOn) ?? checkOwnerOptions[0]
   );
 
   return (
@@ -101,7 +112,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
           <div className="mt-4">
             <Switch
-              label={t("skip_rr_assignment_label")}
+              label={t("salesforce_book_directly_with_attendee_owner")}
               labelOnLeading
               checked={isRoundRobinLeadSkipEnabled}
               onCheckedChange={(checked) => {
@@ -112,6 +123,24 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 }
               }}
             />
+            {isRoundRobinLeadSkipEnabled ? (
+              <div className="my-4 ml-2">
+                <label className="text-emphasis mb-2 align-text-top text-sm font-medium">
+                  {t("salesforce_check_owner_of")}
+                </label>
+                <Select
+                  className="mt-2 w-60"
+                  options={checkOwnerOptions}
+                  value={checkOwnerSelectedOption}
+                  onChange={(e) => {
+                    if (e) {
+                      setCheckOwnerSelectedOption(e);
+                      setAppData("roundRobinSkipCheckRecordOn", e.value);
+                    }
+                  }}
+                />
+              </div>
+            ) : null}
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>
         ) : null}
