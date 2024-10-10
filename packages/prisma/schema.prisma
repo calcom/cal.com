@@ -160,6 +160,7 @@ model EventType {
   @@index([teamId])
   @@index([scheduleId])
   @@index([secondaryEmailId])
+  @@index([parentId])
 }
 
 model Credential {
