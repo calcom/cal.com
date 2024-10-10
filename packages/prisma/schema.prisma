@@ -340,6 +340,9 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
