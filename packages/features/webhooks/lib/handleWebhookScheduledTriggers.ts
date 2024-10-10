@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { createWebhookSignature, jsonParse } from "./sendPayload";
 
@@ -37,15 +36,6 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
 
   // run jobs
   for (const job of jobsToRun) {
-    // Skip Jobs with triggerEvent AFTER_HOSTS_CAL_VIDEO_NO_SHOW and AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    const triggerEvent = JSON.parse(job.payload)?.triggerEvent;
-
-    if (
-      triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-      triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    )
-      continue;
-
     // Fetch the webhook configuration so that we can get the secret.
     let webhook = job.webhook;
 
