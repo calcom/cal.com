@@ -1,6 +1,7 @@
 import { type TFunction } from "i18next";
 import i18next from "i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { constructGenericImage } from "@calcom/lib/OgImages";
@@ -8,6 +9,8 @@ import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/cons
 import { truncateOnWord } from "@calcom/lib/text";
 //@ts-expect-error no type definitions
 import config from "@calcom/web/next-i18next.config";
+
+import { PATHS_MAP } from "./_constants";
 
 const create = async (locale: string, ns: string) => {
   const { _nextI18Next } = await serverSideTranslations(locale, [ns], config);
@@ -71,3 +74,11 @@ export const _generateMetadata = async (
     metadataBase,
   };
 };
+
+export async function revalidateCache(key: keyof typeof PATHS_MAP) {
+  revalidatePath(PATHS_MAP[key]);
+}
+
+export async function revalidateCacheForDynamicPath(path: string) {
+  revalidatePath(path);
+}
