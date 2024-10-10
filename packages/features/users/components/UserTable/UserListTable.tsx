@@ -177,7 +177,10 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        header: `Member (${totalDBRowCount})`,
+        header: ({ table }) => {
+          const count = table.getFilteredRowModel().rows.length;
+          return `Members (${count})`;
+        },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
