@@ -3,7 +3,7 @@
   "version": "4.5.10",
   "private": true,
   "scripts": {
-    "analyze": "ANALYZE=true yarn build",
+    "analyze": "ANALYZE=true next build",
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
