@@ -10,8 +10,10 @@ import {
 } from "@tanstack/react-table";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
@@ -136,7 +138,7 @@ export default function MemberListItem(props: Props) {
   const utils = trpc.useUtils();
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const { data: session } = useSession();
   const tableContainerRef = useRef<HTMLDivElement>(null);
