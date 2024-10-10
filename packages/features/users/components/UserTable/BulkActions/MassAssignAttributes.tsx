@@ -22,10 +22,10 @@ import {
   showToast,
 } from "@calcom/ui";
 
-import type { User } from "../UserListTable";
+import type { UserTableUser } from "../types";
 
 interface Props {
-  table: Table<User>;
+  table: Table<UserTableUser>;
 }
 
 function useSelectedAttributes() {
@@ -138,8 +138,57 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
   const [selectedAttributeOptions, setSelectedAttributeOptions] = useSelectedAttributeOption();
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
+  const utils = trpc.useContext();
   const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
     onSuccess: (success) => {
+      // Optimistically update the infinite query data
+      const selectedRows = table.getSelectedRowModel().flatRows;
+
+      utils.viewer.organizations.listMembers.setInfiniteData(
+        { limit: 10, searchTerm: "", expand: ["attributes"] },
+        // @ts-expect-error i really dont know how to type this
+        (oldData) => {
+          const newPages = oldData?.pages.map((page) => ({
+            ...page,
+            rows: page.rows.map((row) => {
+              if (selectedRows.some((selectedRow) => selectedRow.original.id === row.id)) {
+                // Update the attributes for the selected users
+
+                const attributeOptionValues = foundAttributeInCache?.options.filter((option) =>
+                  selectedAttributeOptions.includes(option.id)
+                );
+
+                const newAttributes =
+                  row.attributes?.filter((attr) => attr.attributeId !== selectedAttribute) || [];
+
+                if (attributeOptionValues) {
+                  const newAttributeValues = attributeOptionValues?.map((value) => ({
+                    id: value.id,
+                    attributeId: value.attributeId,
+                    value: value.value,
+                    slug: value.slug,
+                  }));
+                  newAttributes.push(...newAttributeValues);
+                }
+
+                return {
+                  ...row,
+                  attributes: newAttributes,
+                };
+              }
+              return row;
+            }),
+          }));
+
+          return {
+            ...oldData,
+            pages: newPages,
+          };
+        }
+      );
+
+      setSelectedAttribute(null);
+      setSelectedAttributeOptions([]);
       showToast(success.message, "success");
     },
     onError: (error) => {
@@ -262,9 +311,6 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
                         attributes: attributesToAssign,
                         userIds: table.getSelectedRowModel().rows.map((row) => row.original.id),
                       });
-
-                      setSelectedAttribute(null);
-                      setSelectedAttributeOptions([]);
                     }
                   }}>
                   {t("apply")}
