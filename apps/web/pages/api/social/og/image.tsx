@@ -1,14 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import fs from "node:fs/promises";
 import path from "node:path";
+import React from "react";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 
-const calFont = fs.readFile(path.join(process.cwd(), "public/fonts/cal.ttf"));
-const interFont = fs.readFile(path.join(process.cwd(), "public/fonts/Inter-Regular.ttf"));
-const interFontMedium = fs.readFile(path.join(process.cwd(), "public/fonts/Inter-Medium.ttf"));
+const calFont = fs.readFile(path.join(process.cwd(), "apps/web/public/fonts/cal.ttf"));
+const interFont = fs.readFile(path.join(process.cwd(), "apps/web/public/fonts/Inter-Regular.ttf"));
+const interFontMedium = fs.readFile(path.join(process.cwd(), "apps/web/public/fonts/Inter-Medium.ttf"));
 
 export const config = {
   runtime: "nodejs",
@@ -37,10 +38,8 @@ const genericSchema = z.object({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const host = req.headers.host;
-  const protocol = req.headers["x-forwarded-proto"] || "http";
-  const { searchParams } = new URL(`${protocol}://${host}${req.url}`);
-  const imageType = searchParams.get("type");
+  const searchParams = req.query;
+  const imageType = searchParams["type"];
 
   const [calFontData, interFontData, interFontMediumData] = await Promise.all([
     calFont,
@@ -65,11 +64,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (imageType) {
       case "meeting": {
         const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
-          names: searchParams.getAll("names"),
-          usernames: searchParams.getAll("usernames"),
-          title: searchParams.get("title"),
-          meetingProfileName: searchParams.get("meetingProfileName"),
-          meetingImage: searchParams.get("meetingImage"),
+          names: searchParams["names"],
+          usernames: searchParams["usernames"],
+          title: searchParams["title"],
+          meetingProfileName: searchParams["meetingProfileName"],
+          meetingImage: searchParams["meetingImage"],
           imageType,
         });
 
@@ -83,13 +82,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ),
           ogConfig
         );
+
         break;
       }
       case "app": {
         const { name, description, slug } = appSchema.parse({
-          name: searchParams.get("name"),
-          description: searchParams.get("description"),
-          slug: searchParams.get("slug"),
+          name: searchParams["name"],
+          description: searchParams["description"],
+          slug: searchParams["slug"],
           imageType,
         });
 
@@ -98,8 +98,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       case "generic": {
         const { title, description } = genericSchema.parse({
-          title: searchParams.get("title"),
-          description: searchParams.get("description"),
+          title: searchParams["title"],
+          description: searchParams["description"],
           imageType,
         });
 
