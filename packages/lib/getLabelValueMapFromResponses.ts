@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import { TITLE_FIELD, SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -16,6 +16,9 @@ export default function getLabelValueMapFromResponses(
   if (userFieldsResponses) {
     if (!!responses?.[TITLE_FIELD] && !isDynamicEvent) {
       userFieldsResponses[TITLE_FIELD] = responses[TITLE_FIELD];
+    }
+    if (!!responses?.[SMS_REMINDER_NUMBER_FIELD] && !isDynamicEvent) {
+      userFieldsResponses[SMS_REMINDER_NUMBER_FIELD] = responses[SMS_REMINDER_NUMBER_FIELD];
     }
 
     for (const [, value] of Object.entries(userFieldsResponses)) {
