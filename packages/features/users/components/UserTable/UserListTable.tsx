@@ -27,6 +27,10 @@ import {
 } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
+import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
+import { EventTypesList } from "./BulkActions/EventTypesList";
+import { MassAssignAttributesBulkAction } from "./BulkActions/MassAssignAttributes";
+import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import { EditUserSheet } from "./EditSheet/EditUserSheet";
@@ -377,13 +381,13 @@ export function UserListTable() {
             <p className="text-brand-subtle w-full px-2 text-center leading-none">
               {numberOfSelectedRows} selected
             </p>
-            <div>Hello</div>
-            {/* <DataTableSelectionBar.Action
-                type="button"
-                color="primary"
-                StartIcon="plus"
-                className="rounded-md"
-              /> */}
+            <TeamListBulkAction table={table} />
+            <MassAssignAttributesBulkAction table={table} />
+            <EventTypesList table={table} orgTeams={teams} />
+            <DeleteBulkUsers
+              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+              onRemove={() => table.toggleAllPageRowsSelected(false)}
+            />
           </DataTableSelectionBar.Root>
         )}
       </DataTable>
