@@ -1670,6 +1670,7 @@ checksums:
     billing_frequency: 99a9a500d46797c0b3e86bc53ef56321
     monthly: 818f1192e32bb855597f930d3e78806e
     yearly: 87f43e016c19cb25860f456549a2f431
+    weekly: 9e687411dbf1248496a4ae5dd5391679
     checkout: a03cbd25ad34ec762c35441d6c5a86b5
     your_team_disbanded_successfully: 876e04b0db54044fd2fb05e1fa3c52e7
     your_org_disbanded_successfully: cef1863bd26106d44fd1f338d3a5f479
@@ -2604,6 +2605,7 @@ checksums:
     disable_email: bd2f5d1abe9340d841ad01cf05646679
     grant_admin_api: 57e59ff0e0a24e8134a9447ba75ac199
     revoke_admin_api: 0d910a3c3874b9a199705e1e63281f19
+    add_calendar_label: 484fb6585e02c2105dfda5e6cb345198
     apple_connect_atom_label: ab6ea61350cc5eb812d450184115311d
     apple_connect_atom_already_connected_label: 4ba5d56114cca48a21e2b76adff460ab
     apple_connect_atom_loading_label: 50abf79580c18f4886be57161e383137
