@@ -12,8 +12,8 @@ import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: RouterOutputs["viewer"]["teams"]["getMinimal"];
-  member?: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
+  team?: RouterOutputs["viewer"]["teams"]["get"];
+  member?: RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
