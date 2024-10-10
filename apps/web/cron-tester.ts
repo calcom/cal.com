@@ -8,10 +8,9 @@ async function fetchCron(endpoint: string) {
       "Content-Type": "application/json",
       authorization: `Bearer ${process.env.CRON_SECRET}`,
     },
-    method: "POST",
   });
   const json = await res.json();
-  return console.log(endpoint, json);
+  console.log(endpoint, json);
 }
 
 try {
