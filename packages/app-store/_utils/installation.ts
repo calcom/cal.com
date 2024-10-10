@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { HttpError } from "@calcom/lib/http-error";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
@@ -40,16 +41,14 @@ export async function createDefaultInstallation({
   paymentStatus,
   subscriptionId,
 }: InstallationArgs) {
-  const installation = await prisma.credential.create({
-    data: {
-      type: appType,
-      key,
-      ...(teamId ? { teamId } : { userId: user.id }),
-      appId: slug,
-      subscriptionId,
-      paymentStatus,
-      billingCycleStart,
-    },
+  const installation = await CredentialRepository.create({
+    type: appType,
+    key,
+    ...(teamId ? { teamId } : { userId: user.id }),
+    appId: slug,
+    subscriptionId,
+    paymentStatus,
+    billingCycleStart,
   });
   if (!installation) {
     throw new Error(`Unable to create user credential for type ${appType}`);
