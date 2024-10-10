@@ -2633,6 +2633,5 @@
   "month_to_date": "月初から今日まで",
   "year_to_date": "年初から今日まで",
   "custom_range": "カスタム範囲",
-  "mass_assign_attributes": "属性の一括割り当て",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

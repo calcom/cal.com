@@ -251,7 +251,7 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon="users">{t("mass_assign_attributes")}</Button>
+          <Button StartIcon="users">{t("add_attributes")}</Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
         <PopoverContent className="p-0 shadow-md" align="start" sideOffset={12}>
