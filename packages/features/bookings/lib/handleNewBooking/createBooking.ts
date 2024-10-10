@@ -21,6 +21,7 @@ type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
 type CreateBookingParams = {
   uid: short.SUUID;
+  routedFromRoutingFormResponseId: number | undefined;
   reqBody: {
     user: ReqBodyWithEnd["user"];
     metadata: ReqBodyWithEnd["metadata"];
@@ -61,6 +62,15 @@ function updateEventDetails(
   }
 }
 
+async function getAssociatedBookingForFormResponse(formResponseId: number) {
+  const formResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+    where: {
+      id: formResponseId,
+    },
+  });
+  return formResponse?.routedToBookingUid ?? null;
+}
+
 export async function createBooking({
   uid,
   reqBody,
@@ -68,11 +78,21 @@ export async function createBooking({
   input,
   evt,
   originalRescheduledBooking,
+  routedFromRoutingFormResponseId,
 }: CreateBookingParams) {
   updateEventDetails(evt, originalRescheduledBooking, input.changedOrganizer);
+  const associatedBookingForFormResponse = routedFromRoutingFormResponseId
+    ? await getAssociatedBookingForFormResponse(routedFromRoutingFormResponseId)
+    : null;
 
   const newBookingData = buildNewBookingData({
     uid,
+    // We allow only the first booking to be connected to the form response
+    // Other bookings could happen due to user doing a booking by using browser back button to reach the same booking form with same query params and changing the time
+    // Such case isn't what the Routing Form redirected the user to, so we avoid this at the moment.
+    routedFromRoutingFormResponseId: associatedBookingForFormResponse
+      ? undefined
+      : routedFromRoutingFormResponseId,
     reqBody,
     eventType,
     input,
@@ -145,7 +165,8 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
 }
 
 function buildNewBookingData(params: CreateBookingParams): Prisma.BookingCreateInput {
-  const { uid, evt, reqBody, eventType, input, originalRescheduledBooking } = params;
+  const { uid, evt, reqBody, eventType, input, originalRescheduledBooking, routedFromRoutingFormResponseId } =
+    params;
 
   const attendeesData = getAttendeesData(evt);
   const eventTypeRel = getEventTypeRel(eventType.id);
@@ -184,6 +205,10 @@ function buildNewBookingData(params: CreateBookingParams): Prisma.BookingCreateI
             connect: { id: evt.destinationCalendar[0].id },
           }
         : undefined,
+
+    routedFromRoutingFormReponse: routedFromRoutingFormResponseId
+      ? { connect: { id: routedFromRoutingFormResponseId } }
+      : undefined,
   };
 
   if (reqBody.recurringEventId) {

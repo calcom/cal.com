@@ -25,21 +25,21 @@ import {
   transformApiEventTypeForAtom,
   transformApiTeamEventTypeForAtom,
 } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
+import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
+import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
+import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
+import {
+  useGetBookingForReschedule,
+  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+} from "../hooks/bookings/useGetBookingForReschedule";
+import { useHandleBookEvent } from "../hooks/bookings/useHandleBookEvent";
 import { useEventType } from "../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../hooks/event-types/public/useTeamEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
-import type { UseCreateBookingInput } from "../hooks/useCreateBooking";
-import { useCreateBooking } from "../hooks/useCreateBooking";
-import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
-import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
-import {
-  useGetBookingForReschedule,
-  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
-} from "../hooks/useGetBookingForReschedule";
-import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
@@ -62,6 +62,10 @@ export type BookerPlatformWrapperAtomProps = Omit<
     notes?: string;
     rescheduleReason?: string;
   } & Record<string, string | string[]>;
+  readOnlyFormValues?: {
+    name?: boolean;
+    email?: boolean;
+  };
   handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
@@ -76,6 +80,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
+  hideEventTypeDetails?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -149,7 +154,7 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity)
+            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.readOnlyFormValues)
             : undefined,
       };
     }
@@ -158,7 +163,10 @@ export const BookerPlatformWrapper = (
       isSuccess,
       isError,
       isPending,
-      data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
+      data:
+        data && data.length > 0
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.readOnlyFormValues)
+          : undefined,
     };
   }, [
     props.isTeamEvent,
@@ -180,7 +188,7 @@ export const BookerPlatformWrapper = (
     event.data.length = props.duration;
   }
 
-  const bookerLayout = useBookerLayout(event.data);
+  const bookerLayout = useBookerLayout(event.data, { hideEventTypeDetails: props.hideEventTypeDetails });
   useInitializeBookerStore({
     ...props,
     eventId: event.data?.id,

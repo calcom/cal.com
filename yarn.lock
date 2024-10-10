@@ -4134,7 +4134,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.43"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.44"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4180,6 +4180,7 @@ __metadata:
     passport: ^0.7.0
     passport-jwt: ^4.0.1
     prettier: ^2.8.6
+    qs-stringify: ^1.2.1
     querystring: ^0.2.1
     reflect-metadata: ^0.1.13
     rxjs: ^7.8.1
@@ -4803,6 +4804,7 @@ __metadata:
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
     react-virtual: ^2.10.4
+    stripe-event-types: ^3.1.0
     web-push: ^3.6.7
     zustand: ^4.3.2
   languageName: unknown
@@ -5049,6 +5051,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/nextcloudtalk@workspace:packages/app-store/nextcloudtalk":
+  version: 0.0.0-use.local
+  resolution: "@calcom/nextcloudtalk@workspace:packages/app-store/nextcloudtalk"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/office365calendar@workspace:packages/app-store/office365calendar":
   version: 0.0.0-use.local
   resolution: "@calcom/office365calendar@workspace:packages/app-store/office365calendar"
@@ -5130,14 +5141,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.43":
-  version: 0.0.43
-  resolution: "@calcom/platform-libraries@npm:0.0.43"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.44":
+  version: 0.0.44
+  resolution: "@calcom/platform-libraries@npm:0.0.44"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: c9a6ede11ddd5ec413aacc6e8f6624446d964a60a303469fce329c9a925d8a436931ce91b3d1dfa943c8e8740d7b041e5b0522dfc387c8309008cb255d391b5c
+  checksum: 0d46c2c695a8a776f7401e298d0f7d0b3227c9fe38e1746aaf747c22fe28d881939c31c54613e696a595b72af21fe14b342dabe99c59b44d6576f4e2f37bf76f
   languageName: node
   linkType: hard
 
@@ -5771,7 +5782,7 @@ __metadata:
     tailwindcss-animate: ^1.0.6
     tailwindcss-radix: ^2.6.0
     ts-node: ^10.9.1
-    turndown: ^7.1.1
+    turndown: ^7.1.3
     typescript: ^4.9.4
     uuid: ^8.3.2
     zod: ^3.22.4
@@ -9393,6 +9404,13 @@ __metadata:
   version: 0.14.2
   resolution: "@microsoft/tsdoc@npm:0.14.2"
   checksum: b167c89e916ba73ee20b9c9d5dba6aa3a0de25ed3d50050e8a344dca7cd43cb2e1059bd515c820369b6e708901dd3fda476a42bc643ca74a35671ce77f724a3a
+  languageName: node
+  linkType: hard
+
+"@mixmark-io/domino@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@mixmark-io/domino@npm:2.2.0"
+  checksum: 547af4a8f74cb8e1f2f86e84dc968e7a722522d4748d8a1c9d30c5d1ce6a190ec400866338cc1f717b31beabed6e61c44edf17db5cf380317b63a1e7f253080f
   languageName: node
   linkType: hard
 
@@ -25085,13 +25103,6 @@ __metadata:
   dependencies:
     domelementtype: ^2.3.0
   checksum: 0f58f4a6af63e6f3a4320aa446d28b5790a009018707bce2859dcb1d21144c7876482b5188395a188dfa974238c019e0a1e610d2fc269a12b2c192ea2b0b131c
-  languageName: node
-  linkType: hard
-
-"domino@npm:^2.1.6":
-  version: 2.1.6
-  resolution: "domino@npm:2.1.6"
-  checksum: 9b1b6d2661efd8bf942b70d5e11ac0de6a63f17e49b7eb227d9a612fa7b7c12b7775520d64f498988a8ee334ea9c59a463c84ea510b0af17dd3e13fdce120410
   languageName: node
   linkType: hard
 
@@ -45109,6 +45120,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stripe-event-types@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "stripe-event-types@npm:3.1.0"
+  peerDependencies:
+    stripe: ">=10.0.0"
+  checksum: fcabbfba20a953851ee61015897ec497d4c31d7fa480e8a6bb17f04e0ca167b90e30bd09bae5d807d0182fd1cdfd9fd05c299d643d80db9568506165523967e8
+  languageName: node
+  linkType: hard
+
 "stripe@npm:*":
   version: 8.215.0
   resolution: "stripe@npm:8.215.0"
@@ -46839,12 +46859,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turndown@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "turndown@npm:7.1.1"
+"turndown@npm:^7.1.3":
+  version: 7.2.0
+  resolution: "turndown@npm:7.2.0"
   dependencies:
-    domino: ^2.1.6
-  checksum: f2d77632bd69bc93298b619f051dc0c050fabee15188afe874eab713f8ffdcaea89106a536c19db0962a677b5f7177f5aa84b45ef38e06d6e489a49f11abd80d
+    "@mixmark-io/domino": ^2.2.0
+  checksum: a0bdf2fcc8cd531c94edbd7c384ae58a13251e7b472f7245fac74a316c08f8d04eb9dddfce6a5e6170ddb09c0494154a0d69312e5d9c2a7223a936a7e369ac7c
   languageName: node
   linkType: hard
 

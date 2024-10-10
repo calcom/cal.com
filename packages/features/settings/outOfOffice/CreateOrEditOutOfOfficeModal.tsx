@@ -86,7 +86,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           reasonId: 1,
         },
   });
-  console.log(isSubmitting);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
@@ -105,7 +104,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   });
 
   return (
-    <Dialog open={openModal}>
+    <Dialog
+      open={openModal}
+      onOpenChange={(open) => {
+        if (!open) {
+          closeModal();
+        }
+      }}>
       <DialogContent
         onOpenAutoFocus={(event) => {
           event.preventDefault();

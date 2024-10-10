@@ -178,7 +178,6 @@ const nextConfig = {
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
-    serverActions: true,
   },
   i18n: {
     ...i18n,
@@ -292,8 +291,8 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
+        source: "/router/:path*",
+        destination: "/apps/routing-forms/router/:path*",
       },
       {
         source: "/success/:path*",
