@@ -315,8 +315,15 @@ export default function Success(props: PageProps) {
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
     if (bookingInfo.user) {
+      const isAttendees = !!bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
+      const attendee = bookingInfo.attendees[0].name || bookingInfo.attendees[0].email;
+      const isHost = bookingInfo.user.email === session?.user?.email;
+
+      const roleBasedAttendees = (isAttendees || isHost) ? "You are" : attendee
+      
       return t(`${titlePrefix}emailed_you_and_attendees${titleSuffix}`, {
-        user: bookingInfo.user.name || bookingInfo.user.email,
+        attendees: isAttendees || isHost ? roleBasedAttendees : (bookingInfo.user.name || bookingInfo.user.email) + " is",
+        user: isAttendees ? bookingInfo.user.name || bookingInfo.user.email : isHost ? attendee : roleBasedAttendees,
       });
     }
     return t(`emailed_you_and_attendees${titleSuffix}`);
@@ -476,9 +483,11 @@ export default function Success(props: PageProps) {
                         id="modal-headline">
                         {successPageHeadline}
                       </h3>
-                      <div className="mt-3">
-                        <p className="text-default">{getTitle()}</p>
-                      </div>
+                      {session && (
+                        <div className="mt-3">
+                          <p className="text-default">{getTitle()}</p>
+                        </div>
+                      )}
                       {props.paymentStatus &&
                         (bookingInfo.status === BookingStatus.CANCELLED ||
                           bookingInfo.status === BookingStatus.REJECTED) && (
