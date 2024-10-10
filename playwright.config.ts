@@ -24,7 +24,6 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
-const IS_APP_STORE_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/app-store"));
 
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
@@ -35,14 +34,6 @@ const webServer: PlaywrightTestConfig["webServer"] = [
     reuseExistingServer: !process.env.CI,
   },
 ];
-if (IS_APP_STORE_TEST) {
-  webServer.push({
-    command: "yarn workspace @calcom/app-store",
-    port: 3000,
-    timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
-  });
-}
 
 if (IS_EMBED_TEST) {
   webServer.push({
