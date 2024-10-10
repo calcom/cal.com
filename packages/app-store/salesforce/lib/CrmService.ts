@@ -276,19 +276,34 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  async getContacts(email: string | string[], includeOwner?: boolean) {
+  async getContacts({ email, includeOwner, forRoundRobinSkip }): {
+    email: string | string[];
+    includeOwner?: boolean;
+    forRoundRobinSkip?: boolean;
+  } {
     const conn = await this.conn;
     const emails = Array.isArray(email) ? email : [email];
     const appOptions = this.getAppOptions();
-    const createEventOn = appOptions?.createEventOn ?? SalesforceRecordEnum.CONTACT;
+    const recordToSearch =
+      (forRoundRobinSkip ? appOptions?.roundRobinSkipCheckRecordOn : appOptions?.createEventOn) ??
+      SalesforceRecordEnum.CONTACT;
     let soql: string;
-    if (createEventOn === SalesforceRecordEnum.ACCOUNT) {
+    if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
       // For an account let's assume that the first email is the one we should be querying against
       const attendeeEmail = emails[0];
-      soql = `SELECT Id, Email FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+      soql = `SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+
+      // If this is for a round robin skip then we need to return the account record
+      if (forRoundRobinSkip) {
+        const results = await conn.query(soql);
+        if (results.records.length) {
+          const contact = results.records[0];
+          soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
+        }
+      }
       // If creating events on contacts or leads
     } else {
-      soql = `SELECT Id, Email, OwnerId FROM ${createEventOn} WHERE Email IN ('${emails.join("','")}')`;
+      soql = `SELECT Id, Email, OwnerId FROM ${recordToSearch} WHERE Email IN ('${emails.join("','")}')`;
     }
     const results = await conn.query(soql);
 
@@ -296,7 +311,7 @@ export default class SalesforceCRMService implements CRM {
 
     const records = results.records as ContactRecord[];
 
-    if (includeOwner) {
+    if (includeOwner || forRoundRobinSkip) {
       const ownerIds: Set<string> = new Set();
       records.forEach((record) => {
         ownerIds.add(record.OwnerId);

@@ -31,7 +31,7 @@ export default class CrmManager {
     const crmService = await this.getCrmService(this.credential);
     const { skipContactCreation } = crmService?.getAppOptions();
     // First see if the attendees already exist in the crm
-    let contacts = (await this.getContacts(event.attendees.map((a) => a.email))) || [];
+    let contacts = (await this.getContacts({ email: event.attendees.map((a) => a.email) })) || [];
     // Ensure that all attendees are in the crm
     if (contacts.length == event.attendees.length) {
       return await crmService?.createEvent(event, contacts);
@@ -57,9 +57,13 @@ export default class CrmManager {
     return await crmService?.deleteEvent(uid);
   }
 
-  public async getContacts(emailOrEmails: string | string[], includeOwner?: boolean) {
+  public async getContacts(params): {
+    email: string | string[];
+    includeOwner?: boolean;
+    forRoundRobinSkip?: boolean;
+  } {
     const crmService = await this.getCrmService(this.credential);
-    const contacts = await crmService?.getContacts(emailOrEmails, includeOwner);
+    const contacts = await crmService?.getContacts(params);
     return contacts;
   }
 
