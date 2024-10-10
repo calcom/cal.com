@@ -59,7 +59,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
       eventTriggers: true,
     },
   });
-  // because the query result array will for the most part be small at this point; we opt to filter in userland.
+
   return allWebhooks;
 };
 
