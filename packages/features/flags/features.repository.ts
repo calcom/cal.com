@@ -1,56 +1,41 @@
 import { captureException } from "@sentry/nextjs";
+import { injectable } from "inversify";
 
 import db from "@calcom/prisma";
 
 import type { IFeaturesRepository } from "./features.repository.interface";
 
+@injectable()
 export class FeaturesRepository implements IFeaturesRepository {
-  async checkIfTeamHasFeature(teamId: number, slug: string) {
-    try {
-      const teamFeature = await db.teamFeatures.findUnique({
-        where: {
-          teamId_featureId: { teamId, featureId: slug },
-        },
-      });
-      return !!teamFeature;
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
-  }
-
   async checkIfUserHasFeature(userId: number, slug: string) {
     try {
-      const userFeature = await db.userFeatures.findUnique({
+      const userHasFeature = await db.userFeatures.findUnique({
         where: {
           userId_featureId: { userId, featureId: slug },
         },
       });
-      return !!userFeature;
+      if (userHasFeature) return true;
+      // If the user doesn't have the feature, check if they belong to a team with the feature.
+      // This also covers organizations, which are teams.
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
+      if (userBelongsToTeamWithFeature) return true;
+      return false;
     } catch (err) {
       captureException(err);
       throw err;
     }
   }
-
-  async checkIfTeamOrUserHasFeature(
-    args: {
-      teamId?: number;
-      userId?: number;
-    },
-    slug: string
-  ) {
-    const { teamId, userId } = args;
+  private async checkIfUserBelongsToTeamWithFeature(userId: number, slug: string) {
     try {
-      if (teamId) {
-        const teamHasFeature = await this.checkIfTeamHasFeature(teamId, slug);
-        if (teamHasFeature) return true;
-      }
-      if (userId) {
-        const userHasFeature = await this.checkIfUserHasFeature(userId, slug);
-        if (userHasFeature) return true;
-      }
-      return false;
+      const memberships = await db.membership.findMany({ where: { userId }, select: { teamId: true } });
+      if (!memberships.length) return false;
+      const teamFeature = await db.teamFeatures.findMany({
+        where: {
+          teamId: { in: memberships.map((m) => m.teamId) },
+          featureId: slug,
+        },
+      });
+      return teamFeature.length > 0;
     } catch (err) {
       captureException(err);
       throw err;
