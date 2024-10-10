@@ -109,6 +109,7 @@ function FilterButtonComponent<TData>(
   const activeFilters = _state.activeFilters;
 
   const columns = table.getAllColumns().filter((column) => column.getCanFilter());
+  console.log({ columnsThatCanBeFiltered: columns, allColumns: table.getAllColumns() });
 
   const filterableColumns = useMemo(() => {
     return columns.map((column) => ({
@@ -120,7 +121,6 @@ function FilterButtonComponent<TData>(
 
   const handleAddFilter = (columnId: string) => {
     if (!activeFilters?.some((filter) => filter.f === columnId)) {
-      console.log({ activeFilters: [...activeFilters, { f: columnId, v: [] }] });
       _setState({ activeFilters: [...activeFilters, { f: columnId, v: [] }] });
     }
   };
@@ -204,6 +204,7 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
                 <CommandList>
                   <CommandEmpty>{t("no_options_found")}</CommandEmpty>
                   {Array.from(column.options).map(([option]) => {
+                    if (!option) return null;
                     return (
                       <CommandItem
                         key={option}

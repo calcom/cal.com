@@ -139,15 +139,21 @@ export function UserListTable() {
         return [];
       }
       return (
-        attributes?.map((attribute) => ({
+        (attributes?.map((attribute) => ({
           id: attribute.id,
           header: attribute.name,
+          accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
           cell: ({ row }) => {
             const attributeValue = row.original.attributes.find((attr) => attr.attributeId === attribute.id);
             if (!attributeValue) return null;
             return <Badge variant="gray">{attributeValue?.value}</Badge>;
           },
-        })) ?? []
+          filterFn: (rows, id, filterValue) => {
+            const attributeValue = rows.original.attributes.find((attr) => attr.attributeId === id);
+            if (!attributeValue) return false;
+            return filterValue.includes(attributeValue.value);
+          },
+        })) as ColumnDef<UserTableUser>[]) ?? []
       );
     };
     const cols: ColumnDef<UserTableUser>[] = [
@@ -329,6 +335,7 @@ export function UserListTable() {
     },
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
+    // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
