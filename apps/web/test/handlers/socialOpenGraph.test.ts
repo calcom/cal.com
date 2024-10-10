@@ -84,7 +84,7 @@ describe("GET /api/social/og/image", () => {
     expect(imageBuffer.length).toBeGreaterThan(0);
   });
 
-  it.only("should return a meeting image for a round robin event", async () => {
+  it("should return a meeting image for a round robin event", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       url: "/api/social/og/image",
