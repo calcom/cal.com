@@ -208,8 +208,4 @@ export { default as Icon } from "./components/icon/Icon";
 export type { IconName } from "./components/icon/icon-names";
 export { IconSprites } from "./components/icon/IconSprites";
 
-// We don't normally deal with barrel files, but this is a special case where we want to export these together
-// This allows us to import them like this: DataTableFilters.ColumnVisibilityButton etc providing a cleaner DX
-export * as DataTableToolbar from "./components/data-table/DataTableToolbar";
-export * as DataTableFilters from "./components/data-table/filters";
 export { DataTableSelectionBar } from "./components/data-table/DataTableSelectionBar";
