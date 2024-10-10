@@ -121,8 +121,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     userRole: user.role,
   });
 
-  return;
-
   // Do not move this before authorization check.
   // This is done to avoid exposing extra information to the requester.
   if (booking.status === BookingStatus.ACCEPTED) {
