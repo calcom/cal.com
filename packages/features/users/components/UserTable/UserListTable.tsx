@@ -9,16 +9,18 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
+import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import {
   Avatar,
   Badge,
+  Button,
   Checkbox,
   DataTable,
   DataTableToolbar,
@@ -26,8 +28,8 @@ import {
   DataTableSelectionBar,
 } from "@calcom/ui";
 
-import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
+import { DynamicLink } from "./BulkActions/DynamicLink";
 import { EventTypesList } from "./BulkActions/EventTypesList";
 import { MassAssignAttributesBulkAction } from "./BulkActions/MassAssignAttributes";
 import { TeamListBulkAction } from "./BulkActions/TeamList";
@@ -93,17 +95,20 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 }
 
 export function UserListTable() {
-  const { data: session } = useSession();
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
+  const orgBranding = useOrgBranding();
+  const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
   const { t } = useLocale();
-  const { copyToClipboard, isCopied } = useCopy();
+
+  const { data: session } = useSession();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
+
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
-  const orgBranding = useOrgBranding();
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [dynamicLinkVisible, setDynamicLinkVisible] = useState(false);
+
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
@@ -116,10 +121,11 @@ export function UserListTable() {
         placeholderData: keepPreviousData,
       }
     );
+
+  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
-  const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -138,11 +144,6 @@ export function UserListTable() {
           header: attribute.name,
           cell: ({ row }) => {
             const attributeValue = row.original.attributes.find((attr) => attr.attributeId === attribute.id);
-            console.log({
-              attributesOnRow: row.original.attributes,
-              attributeId: attribute.id,
-              attributeValue: attributeValue?.value,
-            });
             if (!attributeValue) return null;
             return <Badge variant="gray">{attributeValue?.value}</Badge>;
           },
@@ -376,12 +377,23 @@ export function UserListTable() {
             <DataTableFilters.ActiveFilters table={table} />
           </div>
         </DataTableToolbar.Root>
+
+        {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
+          <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>
+            <DynamicLink table={table} domain={domain} />
+          </DataTableSelectionBar.Root>
+        )}
         {numberOfSelectedRows > 0 && (
           <DataTableSelectionBar.Root>
             <p className="text-brand-subtle w-full px-2 text-center leading-none">
               {numberOfSelectedRows} selected
             </p>
             <TeamListBulkAction table={table} />
+            {numberOfSelectedRows >= 2 && (
+              <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
+                Group Meeting
+              </Button>
+            )}
             <MassAssignAttributesBulkAction table={table} />
             <EventTypesList table={table} orgTeams={teams} />
             <DeleteBulkUsers
