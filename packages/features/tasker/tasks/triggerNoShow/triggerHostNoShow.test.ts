@@ -139,6 +139,7 @@ describe("Trigger Host No Show:", () => {
           time: 5,
           timeUnit: TimeUnit.MINUTE,
           payloadTemplate: null,
+          secret: null,
         },
       } satisfies TSendNoShowWebhookPayloadSchema);
 
@@ -290,6 +291,7 @@ describe("Trigger Host No Show:", () => {
           time: 5,
           timeUnit: TimeUnit.MINUTE,
           payloadTemplate: null,
+          secret: null,
         },
       } satisfies TSendNoShowWebhookPayloadSchema);
 
