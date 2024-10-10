@@ -1668,6 +1668,7 @@
   "billing_frequency": "Billing Frequency",
   "monthly": "Monthly",
   "yearly": "Yearly",
+  "weekly": "Weekly",
   "checkout": "Checkout",
   "your_team_disbanded_successfully": "Your team has been disbanded successfully",
   "your_org_disbanded_successfully": "Your organization has been disbanded successfully",
@@ -2640,5 +2641,6 @@
   "show_all_columns": "Show all columns",
   "toggle_columns": "Toggle columns",
   "no_columns_found": "No columns found",
+  "mass_assign_attributes": "Mass assign attributes",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
