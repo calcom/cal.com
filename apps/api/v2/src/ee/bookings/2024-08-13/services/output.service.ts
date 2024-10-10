@@ -14,7 +14,8 @@ export const bookingResponsesSchema = z
     guests: z.array(z.string()).optional(),
     rescheduledReason: z.string().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .nullable();
 
 type DatabaseBooking = Booking & {
   eventType: {
@@ -64,7 +65,7 @@ export class OutputBookingsService_2024_08_13 {
         language: attendee.locale,
         absent: !!attendee.noShow,
       })),
-      guests: bookingResponses.guests,
+      guests: bookingResponses?.guests,
       location: databaseBooking.location,
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
@@ -72,7 +73,10 @@ export class OutputBookingsService_2024_08_13 {
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
-    bookingTransformed.bookingFieldsResponses = bookingResponses;
+    if (bookingResponses) {
+      bookingTransformed.bookingFieldsResponses = bookingResponses;
+    }
+
     return bookingTransformed;
   }
 
@@ -121,7 +125,7 @@ export class OutputBookingsService_2024_08_13 {
         language: attendee.locale,
         absent: !!attendee.noShow,
       })),
-      guests: bookingResponses.guests,
+      guests: bookingResponses?.guests,
       location: databaseBooking.location,
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: databaseBooking.location,
