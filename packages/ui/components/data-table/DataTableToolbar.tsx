@@ -39,6 +39,11 @@ function SearchBarComponent<TData>(
     onSearch?.(debouncedSearchTerm);
   }, [debouncedSearchTerm, onSearch]);
 
+  if ((onSearch && !searchKey) || (searchKey && !onSearch)) {
+    console.error("Either searchKey or onSearch must be provided");
+    return null;
+  }
+
   if (onSearch) {
     return (
       <Input
