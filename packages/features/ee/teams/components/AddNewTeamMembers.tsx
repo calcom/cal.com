@@ -211,6 +211,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.listMembers.invalidate();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("member_removed"), "success");
     },
