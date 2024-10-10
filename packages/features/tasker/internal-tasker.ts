@@ -1,5 +1,5 @@
 import { Task } from "./repository";
-import { type Tasker, type TaskTypes } from "./tasker";
+import { type TaskerCreate, type Tasker } from "./tasker";
 import tasksMap from "./tasks";
 
 /**
@@ -9,13 +9,10 @@ import tasksMap from "./tasks";
  * Then, you can use the TaskerFactory to select the new Tasker.
  */
 export class InternalTasker implements Tasker {
-  async create(
-    type: TaskTypes,
-    payload: string,
-    options: { scheduledAt?: Date; maxAttempts?: number } = {}
-  ): Promise<string> {
-    return Task.create(type, payload, options);
-  }
+  create: TaskerCreate = async (type, payload, options = {}): Promise<string> => {
+    const payloadString = typeof payload === "string" ? payload : JSON.stringify(payload);
+    return Task.create(type, payloadString, options);
+  };
   async processQueue(): Promise<void> {
     const tasks = await Task.getNextBatch();
     const tasksPromises = tasks.map(async (task) => {
