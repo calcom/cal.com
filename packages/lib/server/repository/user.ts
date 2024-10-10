@@ -644,6 +644,12 @@ export class UserRepository {
             },
           },
         },
+        credentials: {
+          select: {
+            appId: true,
+            id: true,
+          },
+        },
       },
     });
 
