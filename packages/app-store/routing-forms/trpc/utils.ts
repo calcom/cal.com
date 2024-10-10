@@ -4,15 +4,29 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
-import type { OrderedResponses } from "../types/types";
+import { evaluateRaqbLogic, RaqbLogicResult } from "../lib/evaluateRaqbLogic";
+import {
+  getTeamMembersWithAttributeOptionValuePerAttribute,
+  getAttributesForTeam,
+} from "../lib/getAttributes";
+import isRouter from "../lib/isRouter";
+import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
+import { acrossQueryValueCompatiblity } from "./raqbUtils";
 
-type Field = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
+const {
+  getAttributesData: getAttributes,
+  getAttributesQueryBuilderConfig,
+  getAttributesQueryValue,
+} = acrossQueryValueCompatiblity;
 
-function isOptionsField(field: Pick<Field, "type" | "options">) {
+const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
+
+function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
 }
 
@@ -21,7 +35,7 @@ function getFieldResponse({
   fieldResponseValue,
 }: {
   fieldResponseValue: FormResponse[keyof FormResponse]["value"];
-  field: Pick<Field, "type" | "options">;
+  field: Pick<SerializableField, "type" | "options">;
 }) {
   if (!isOptionsField(field)) {
     return {
@@ -38,6 +52,7 @@ function getFieldResponse({
   }
 
   const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
+
   const chosenOptions = valueArray.map((idOrLabel) => {
     const foundOptionById = field.options?.find((option) => {
       return option.id === idOrLabel;
@@ -76,6 +91,87 @@ type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
     value: FormResponse[keyof FormResponse]["value"];
   }
 >;
+
+export async function findTeamMembersMatchingAttributeLogicOfRoute({
+  form,
+  response,
+  routeId,
+  teamId,
+}: {
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
+  response: FormResponse;
+  routeId: string;
+  teamId: number;
+}) {
+  const route = form.routes?.find((route) => route.id === routeId);
+  if (!route) {
+    return null;
+  }
+  const teamMembersMatchingAttributeLogic: {
+    userId: number;
+    result: RaqbLogicResult;
+  }[] = [];
+  if (!isRouter(route)) {
+    const attributesForTeam = await getAttributesForTeam({ teamId: teamId });
+    const attributesQueryValue = getAttributesQueryValue({
+      attributesQueryValue: route.attributesQueryValue,
+      attributes: attributesForTeam,
+      response,
+      fields: form.fields,
+      getFieldResponse,
+    });
+
+    if (!attributesQueryValue) {
+      return null;
+    }
+
+    const attributesQueryBuilderConfig = getAttributesQueryBuilderConfig({
+      form,
+      attributes: attributesForTeam,
+      attributesQueryValue,
+    });
+
+    moduleLogger.debug(
+      "Finding team members matching attribute logic",
+      safeStringify({
+        form,
+        response,
+        routeId,
+        teamId,
+        attributesQueryBuilderConfigFields: attributesQueryBuilderConfig.fields,
+      })
+    );
+
+    const teamMembersWithAttributeOptionValuePerAttribute =
+      await getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId });
+
+    teamMembersWithAttributeOptionValuePerAttribute.forEach((member, index) => {
+      const attributesData = getAttributes({
+        attributesData: member.attributes,
+        attributesQueryValue,
+      });
+      moduleLogger.debug(
+        `Checking team member ${member.userId} with attributes logic`,
+        safeStringify({ attributes: attributesData, attributesQueryValue })
+      );
+      const result = evaluateRaqbLogic({
+        queryValue: attributesQueryValue,
+        queryBuilderConfig: attributesQueryBuilderConfig,
+        data: attributesData,
+        beStrictWithEmptyLogic: true,
+      });
+
+      if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
+        moduleLogger.debug(`Team member ${member.userId} matches attributes logic`);
+        teamMembersMatchingAttributeLogic.push({ userId: member.userId, result });
+      } else {
+        moduleLogger.debug(`Team member ${member.userId} does not match attributes logic`);
+      }
+    });
+  }
+
+  return teamMembersMatchingAttributeLogic;
+}
 
 export async function onFormSubmission(
   form: Ensure<
@@ -145,12 +241,12 @@ export async function onFormSubmission(
   }, [] as OrderedResponses);
 
   if (form.settings?.emailOwnerOnSubmission) {
-    logger.debug(
+    moduleLogger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
     await sendResponseEmail(form, orderedResponses, [form.user.email]);
   } else if (form.userWithEmails?.length) {
-    logger.debug(
+    moduleLogger.debug(
       `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
     );
     await sendResponseEmail(form, orderedResponses, form.userWithEmails);
@@ -169,7 +265,7 @@ export const sendResponseEmail = async (
       await email.sendEmail();
     }
   } catch (e) {
-    logger.error("Error sending response email", e);
+    moduleLogger.error("Error sending response email", e);
   }
 };
 

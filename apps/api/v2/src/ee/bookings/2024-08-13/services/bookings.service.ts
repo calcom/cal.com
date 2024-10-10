@@ -73,7 +73,9 @@ export class BookingsService_2024_08_13 {
     const bookingRequest = await this.inputService.createBookingRequest(request, body);
     const booking = await handleInstantMeeting(bookingRequest);
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUser(booking.bookingId);
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(
+      booking.bookingId
+    );
     if (!databaseBooking) {
       throw new Error(`Booking with id=${booking.bookingId} was not found in the database`);
     }
@@ -94,7 +96,7 @@ export class BookingsService_2024_08_13 {
       throw new Error("Recurring booking was not created");
     }
 
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUser(uid);
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
     return this.outputService.getOutputRecurringBookings(recurringBooking);
   }
 
@@ -106,7 +108,7 @@ export class BookingsService_2024_08_13 {
       throw new Error("Booking was not created");
     }
 
-    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUser(booking.uid);
+    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(booking.uid);
     if (!databaseBooking) {
       throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
     }
@@ -115,7 +117,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async getBooking(uid: string) {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUser(uid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(uid);
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
@@ -125,7 +127,7 @@ export class BookingsService_2024_08_13 {
       return this.outputService.getOutputBooking(booking);
     }
 
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUser(uid);
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
     if (!recurringBooking.length) {
       throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
@@ -149,7 +151,7 @@ export class BookingsService_2024_08_13 {
     // note(Lauris): fetchedBookings don't have attendees information and responses and i don't want to add them to the handler query,
     // because its used elsewhere in code that does not need that information, so i get ids, fetch bookings and then return them formatted in same order as ids.
     const ids = fetchedBookings.bookings.map((booking) => booking.id);
-    const bookings = await this.bookingsRepository.getByIdsWithAttendeesAndUser(ids);
+    const bookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(ids);
 
     const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
     const orderedBookings = ids.map((id) => bookingMap.get(id));
@@ -162,6 +164,7 @@ export class BookingsService_2024_08_13 {
 
       const formatted = {
         ...booking,
+        eventType: booking.eventType,
         eventTypeId: booking.eventTypeId,
         startTime: new Date(booking.startTime),
         endTime: new Date(booking.endTime),
@@ -191,7 +194,7 @@ export class BookingsService_2024_08_13 {
         throw new Error("Booking was not created");
       }
 
-      const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUser(booking.uid);
+      const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(booking.uid);
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
@@ -226,7 +229,7 @@ export class BookingsService_2024_08_13 {
       userId: bookingOwnerId,
     });
 
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUser(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
 
     if (!booking) {
       throw new Error(`Booking with uid=${bookingUid} was not found in the database`);

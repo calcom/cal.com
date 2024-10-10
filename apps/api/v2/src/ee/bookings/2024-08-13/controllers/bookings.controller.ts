@@ -1,8 +1,6 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
-import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
@@ -36,6 +34,7 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetBookingOutput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
   CreateBookingInput,

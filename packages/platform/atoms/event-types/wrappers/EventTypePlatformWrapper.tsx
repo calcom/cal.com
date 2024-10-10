@@ -17,6 +17,8 @@ import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
+import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
+import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
@@ -29,9 +31,7 @@ export type EventTypePlatformWrapperProps = {
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced"],
-  onSuccess,
-  onError,
+  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring"],
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -87,10 +87,14 @@ const EventType = ({
     ),
     availability: <></>,
     team: <></>,
-    limits: <></>,
+    limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
     advanced: <></>,
     instant: <></>,
-    recurring: <></>,
+    recurring: tabs.includes("recurring") ? (
+      <EventRecurringTabPlatformWrapper eventType={eventType} />
+    ) : (
+      <></>
+    ),
     apps: <></>,
     workflows: <></>,
     webhooks: <></>,
