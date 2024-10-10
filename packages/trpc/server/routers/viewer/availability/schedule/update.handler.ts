@@ -78,6 +78,8 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     };
   }
 
+  const timeBlocks = input.timeBlocks?.filter((timeBlock) => timeBlock !== "");
+
   const schedule = await prisma.schedule.update({
     where: {
       id: input.scheduleId,
@@ -85,6 +87,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     data: {
       timeZone: input.timeZone,
       name: input.name,
+      timeBlocks,
       availability: {
         deleteMany: {
           scheduleId: {

@@ -48,6 +48,7 @@ export class ScheduleRepository {
         userId: true,
         name: true,
         availability: true,
+        timeBlocks: true,
         timeZone: true,
       },
     });
@@ -80,6 +81,7 @@ export class ScheduleRepository {
       availability: transformAvailabilityForAtom(schedule),
       timeZone,
       dateOverrides: transformDateOverridesForAtom(schedule, timeZone),
+      timeBlocks: schedule.timeBlocks,
       isDefault: !scheduleId || defaultScheduleId === schedule.id,
       isLastSchedule: schedulesCount <= 1,
       readOnly: schedule.userId !== userId && !isManagedEventType,

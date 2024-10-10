@@ -645,6 +645,7 @@ model Schedule {
   name                 String
   timeZone             String?
   availability         Availability[]
+  timeBlocks           String[]
 
   @@index([userId])
 }
