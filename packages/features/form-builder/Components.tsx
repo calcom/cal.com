@@ -306,7 +306,7 @@ export const Components: Record<FieldType, Component> = {
                 value.push("");
                 setValue(value);
               }}
-              className="mr-auto">
+              className="mr-auto h-fit whitespace-normal text-left">
               {label}
             </Button>
           )}
