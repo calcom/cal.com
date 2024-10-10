@@ -1,6 +1,7 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
+import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 import { ZCreateInputSchema } from "./create.schema";
@@ -20,6 +21,7 @@ import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
+import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
@@ -194,4 +196,18 @@ export const viewerTeamsRouter = router({
       );
       return handler(opts);
     }),
+  addMembersToEventTypes: authedProcedure.input(ZAddMembersToEventTypes).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("addMembersToEventTypes"),
+      () => import("./addMembersToEventTypes.handler")
+    );
+    return handler(opts);
+  }),
+  removeHostsFromEventTypes: authedProcedure.input(ZRemoveHostsFromEventTypes).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("removeHostsFromEventTypes"),
+      () => import("./removeHostsFromEventTypes.handler")
+    );
+    return handler(opts);
+  }),
 });

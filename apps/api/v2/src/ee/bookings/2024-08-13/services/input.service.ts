@@ -89,7 +89,7 @@ export class InputBookingsService_2024_08_13 {
       ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
 
-    const location = request.body.meetingUrl;
+    const location = request.body.location || request.body.meetingUrl;
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
@@ -147,7 +147,7 @@ export class InputBookingsService_2024_08_13 {
       ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
 
-    const location = request.body.meetingUrl;
+    const location = request.body.location || request.body.meetingUrl;
     Object.assign(newRequest, {
       userId,
       ...oAuthParams,
@@ -259,7 +259,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   async transformInputRescheduleBooking(bookingUid: string, inputBooking: RescheduleBookingInput_2024_08_13) {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUser(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
@@ -392,7 +392,9 @@ export class InputBookingsService_2024_08_13 {
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
     let allRemainingBookings = false;
     let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUser(bookingUid);
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
+      bookingUid
+    );
 
     if (recurringBooking.length) {
       // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event

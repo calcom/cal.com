@@ -299,7 +299,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
       value = value == "any" ? "none" : "all";
     }
     const selectValue = options.find((option) => option.value === value);
-    const summary = !config.operators.__calReporting ? "Rule group when" : "Query where";
+    const summary = !config.operators.__calReporting ? "where" : "Query where";
     return (
       <div className="flex items-center text-sm">
         <span>{summary}</span>

@@ -2625,11 +2625,14 @@
   "limit_team_booking_frequency_description": "Piira, mitu korda saab meeskonnaliikmeid broneerida kõigi meeskonna sündmuste tüüpide lõikes",
   "booking_limits_updated_successfully": "Broneerimispiirangud on edukalt uuendatud",
   "you_are_unauthorized_to_make_this_change_to_the_booking": "Teil puuduvad õigused selle broneeringu muutmiseks",
+  "matching_members": "Sobivad liikmed",
+  "no_matching_members": "Sobivaid liikmeid ei leitud. Kasutatakse sündmuse tüübile määratud meeskonnaliikmeid.",
   "hide_calendar_event_details": "Peida kalendrisündmuste üksikasjad jagatud kalendrites",
   "description_hide_calendar_event_details": "Kui kalender on jagatud, on sündmused lugejatele nähtavad, kuid nende üksikasjad on peidetud nende eest, kellel puudub kirjutamisõigus.",
   "last_number_of_days": "viimased {{count}} päeva",
   "month_to_date": "kuu algusest tänaseni",
   "year_to_date": "aasta algusest tänaseni",
   "custom_range": "kohandatud vahemik",
+  "mass_assign_attributes": "Massiline atribuutide määramine",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

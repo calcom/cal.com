@@ -63,6 +63,121 @@
         ]
       }
     },
+    "/v2/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "ConferencingController_connect",
+        "summary": "connect your conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Platform / Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing": {
+      "get": {
+        "operationId": "ConferencingController_listConferencingApps",
+        "summary": "list your conferencing applications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Platform / Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing/{app}/default": {
+      "post": {
+        "operationId": "ConferencingController_default",
+        "summary": "set your default conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Platform / Conferencing"
+        ]
+      }
+    },
+    "/v2/conferencing/{app}/disconnect": {
+      "delete": {
+        "operationId": "ConferencingController_disconnect",
+        "summary": "disconnect your conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Platform / Conferencing"
+        ]
+      }
+    },
     "/v2/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
@@ -1193,7 +1308,7 @@
           },
           {
             "name": "eventSlug",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Slug of team event type to return.",
             "schema": {
@@ -3639,7 +3754,7 @@
           },
           {
             "name": "username",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "The username of the user to get event types for. If only username provided will get all event types.",
             "schema": {
@@ -3648,7 +3763,7 @@
           },
           {
             "name": "eventSlug",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Slug of event type to return. Notably, if eventSlug is provided then username must be provided too, because multiple users can have event with same slug.",
             "schema": {
@@ -3657,7 +3772,7 @@
           },
           {
             "name": "usernames",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Get dynamic event type for multiple usernames separated by comma. e.g `usernames=alice,bob`",
             "schema": {
@@ -4035,27 +4150,6 @@
         ]
       }
     },
-    "/health": {
-      "get": {
-        "operationId": "AppController_getHealth",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Health - development only"
-        ]
-      }
-    },
     "/v2/me": {
       "get": {
         "operationId": "MeController_getMe",
@@ -4142,7 +4236,7 @@
           }
         },
         "tags": [
-          "oauth"
+          "OAuth"
         ]
       }
     },
@@ -4195,7 +4289,7 @@
           }
         },
         "tags": [
-          "oauth"
+          "OAuth"
         ]
       }
     },
@@ -4244,206 +4338,8 @@
           }
         },
         "tags": [
-          "oauth",
+          "OAuth",
           "Managed users"
-        ]
-      }
-    },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      },
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/managed-users": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "OAuth - development only"
         ]
       }
     },
@@ -5036,6 +4932,7 @@
     "/v2/stripe/connect": {
       "get": {
         "operationId": "StripeController_redirect",
+        "summary": "Get stripe connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -5066,6 +4963,7 @@
     "/v2/stripe/save": {
       "get": {
         "operationId": "StripeController_save",
+        "summary": "Save stripe credentials",
         "parameters": [
           {
             "name": "state",
@@ -5104,6 +5002,7 @@
     "/v2/stripe/check": {
       "get": {
         "operationId": "StripeController_check",
+        "summary": "Check stripe connection",
         "parameters": [],
         "responses": {
           "200": {
@@ -6435,8 +6334,7 @@
         },
         "required": [
           "type",
-          "value",
-          "rolling"
+          "value"
         ]
       },
       "CalendarDaysWindow_2024_06_14": {
@@ -6464,8 +6362,7 @@
         },
         "required": [
           "type",
-          "value",
-          "rolling"
+          "value"
         ]
       },
       "RangeWindow_2024_06_14": {
@@ -6495,6 +6392,227 @@
         "required": [
           "type",
           "value"
+        ]
+      },
+      "BaseBookingLimitsCount_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "description": "The number of bookings per day",
+            "example": 1
+          },
+          "week": {
+            "type": "number",
+            "description": "The number of bookings per week",
+            "example": 2
+          },
+          "month": {
+            "type": "number",
+            "description": "The number of bookings per month",
+            "example": 3
+          },
+          "year": {
+            "type": "number",
+            "description": "The number of bookings per year",
+            "example": 4
+          }
+        }
+      },
+      "Disabled_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "Indicates if the option is disabled",
+            "example": true,
+            "default": false
+          }
+        },
+        "required": [
+          "disabled"
+        ]
+      },
+      "BaseBookingLimitsDuration_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "description": "The duration of bookings per day (must be a multiple of 15)",
+            "example": 60
+          },
+          "week": {
+            "type": "number",
+            "description": "The duration of bookings per week (must be a multiple of 15)",
+            "example": 120
+          },
+          "month": {
+            "type": "number",
+            "description": "The duration of bookings per month (must be a multiple of 15)",
+            "example": 180
+          },
+          "year": {
+            "type": "number",
+            "description": "The duration of bookings per year (must be a multiple of 15)",
+            "example": 240
+          }
+        }
+      },
+      "Recurrence_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats every {count} week | month | year"
+          },
+          "occurrences": {
+            "type": "number",
+            "example": 10,
+            "description": "Repeats for a maximum of {count} events"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "yearly",
+              "monthly",
+              "weekly"
+            ]
+          }
+        },
+        "required": [
+          "interval",
+          "occurrences",
+          "frequency"
+        ]
+      },
+      "NoticeThreshold_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "unit": {
+            "type": "string",
+            "description": "The unit of time for the notice threshold (e.g., minutes, hours)",
+            "example": "minutes"
+          },
+          "count": {
+            "type": "number",
+            "description": "The time value for the notice threshold",
+            "example": 30
+          }
+        },
+        "required": [
+          "unit",
+          "count"
+        ]
+      },
+      "BaseConfirmationPolicy_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The policy that determines when confirmation is required",
+            "example": "always"
+          },
+          "noticeThreshold": {
+            "description": "The notice threshold required before confirmation is needed. Required when type is 'time'.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NoticeThreshold_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "Seats_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "description": "Number of seats available per time slot",
+            "example": 4
+          },
+          "showAttendeeInfo": {
+            "type": "boolean",
+            "description": "Show attendee information to other guests",
+            "example": true
+          },
+          "showAvailabilityCount": {
+            "type": "boolean",
+            "description": "Display the count of available seats",
+            "example": true
+          }
+        },
+        "required": [
+          "seatsPerTimeSlot",
+          "showAttendeeInfo",
+          "showAvailabilityCount"
+        ]
+      },
+      "BookerLayouts_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "defaultLayout": {
+            "type": "string",
+            "enum": [
+              "month",
+              "week",
+              "column"
+            ]
+          },
+          "enabledLayouts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "month",
+                "week",
+                "column"
+              ]
+            }
+          }
+        },
+        "required": [
+          "defaultLayout",
+          "enabledLayouts"
+        ]
+      },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": [
+          "lightThemeHex",
+          "darkThemeHex"
+        ]
+      },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
         ]
       },
       "CreateEventTypeInput_2024_06_14": {
@@ -6602,63 +6720,124 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "type": "object",
-            "description": "Limit how many times this event can be booked"
+            "description": "Limit how many times this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "type": "object",
-            "description": "Limit total amount of time that this event can be booked"
+            "description": "Limit total amount of time that this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookingWindow": {
-            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
+          "bookerLayouts": {
+            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+              }
+            ]
+          },
+          "confirmationPolicy": {
+            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "recurrence": {
+            "description": "Create a recurring event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "description": "Create an event type with multiple seats.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Seats_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
           }
         },
         "required": [
           "lengthInMinutes",
           "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "customName"
+          "slug"
         ]
       },
       "EmailDefaultFieldOutput_2024_06_14": {
@@ -7455,104 +7634,6 @@
           "isDefault"
         ]
       },
-      "BaseBookingLimitsDuration_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "day": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per day (must be a multiple of 15)",
-            "example": 60
-          },
-          "week": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per week (must be a multiple of 15)",
-            "example": 120
-          },
-          "month": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per month (must be a multiple of 15)",
-            "example": 180
-          },
-          "year": {
-            "type": "number",
-            "minimum": 15,
-            "description": "The duration of bookings per year (must be a multiple of 15)",
-            "example": 240
-          },
-          "disabled": {
-            "type": "boolean",
-            "default": false
-          }
-        }
-      },
-      "BookerLayouts_2024_06_14": {
-        "type": "object",
-        "properties": {}
-      },
-      "EventTypeColor_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lightThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in light theme",
-            "example": "#292929"
-          },
-          "darkThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in dark theme",
-            "example": "#fafafa"
-          }
-        },
-        "required": [
-          "lightThemeHex",
-          "darkThemeHex"
-        ]
-      },
-      "Seats_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "seatsPerTimeSlot": {
-            "type": "number",
-            "description": "Number of seats available per time slot",
-            "example": 4
-          },
-          "showAttendeeInfo": {
-            "type": "boolean",
-            "description": "Show attendee information to other guests",
-            "example": true
-          },
-          "showAvailabilityCount": {
-            "type": "boolean",
-            "description": "Display the count of available seats",
-            "example": true
-          }
-        },
-        "required": [
-          "seatsPerTimeSlot",
-          "showAttendeeInfo",
-          "showAvailabilityCount"
-        ]
-      },
-      "DestinationCalendar_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "integration": {
-            "type": "string",
-            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
-          },
-          "externalId": {
-            "type": "string",
-            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
-          }
-        },
-        "required": [
-          "integration",
-          "externalId"
-        ]
-      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -7764,6 +7845,9 @@
           "useDestinationCalendarEmail": {
             "type": "boolean"
           },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -7813,6 +7897,7 @@
           "customName",
           "destinationCalendar",
           "useDestinationCalendarEmail",
+          "hideCalendarEventDetails",
           "ownerId",
           "users"
         ]
@@ -7990,64 +8075,120 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "type": "object",
-            "description": "Limit how many times this event can be booked"
+            "description": "Limit how many times this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "type": "object",
-            "description": "Limit total amount of time that this event can be booked"
+            "description": "Limit total amount of time that this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookingWindow": {
-            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
+          "bookerLayouts": {
+            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+              }
+            ]
+          },
+          "confirmationPolicy": {
+            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "recurrence": {
+            "description": "Create a recurring event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "description": "Create an event type with multiple seats.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Seats_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
           }
-        },
-        "required": [
-          "lengthInMinutes",
-          "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "customName"
-        ]
+        }
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -8383,6 +8524,9 @@
           },
           "bookingLimits": {
             "type": "string"
+          },
+          "includeManagedEventsInLimits": {
+            "type": "boolean"
           }
         }
       },
@@ -9270,6 +9414,32 @@
           "data"
         ]
       },
+      "Host": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "Which user is the host of this event"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Only relevant for round robin event types. If true then the user must attend round robin event always."
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "lowest",
+              "low",
+              "medium",
+              "high",
+              "highest"
+            ]
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
       "CreateTeamEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -9375,42 +9545,118 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "type": "object",
-            "description": "Limit how many times this event can be booked"
+            "description": "Limit how many times this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "type": "object",
-            "description": "Limit total amount of time that this event can be booked"
+            "description": "Limit total amount of time that this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookingWindow": {
-            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
+          "bookerLayouts": {
+            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+              }
+            ]
+          },
+          "confirmationPolicy": {
+            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "recurrence": {
+            "description": "Create a recurring event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "description": "Create an event type with multiple seats.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Seats_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
           },
           "schedulingType": {
             "type": "object"
@@ -9418,7 +9664,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Host"
             }
           },
           "assignAllTeamMembers": {
@@ -9430,24 +9676,8 @@
           "lengthInMinutes",
           "title",
           "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "customName",
           "schedulingType",
-          "hosts",
-          "assignAllTeamMembers"
+          "hosts"
         ]
       },
       "CreateTeamEventTypeOutput": {
@@ -9478,38 +9708,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "Recurrence_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "interval": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats every {count} week | month | year"
-          },
-          "occurrences": {
-            "type": "number",
-            "example": 10,
-            "description": "Repeats for a maximum of {count} events"
-          },
-          "frequency": {
-            "enum": [
-              "yearly",
-              "monthly",
-              "weekly"
-            ],
-            "type": "string"
-          },
-          "disabled": {
-            "type": "boolean",
-            "default": false
-          }
-        },
-        "required": [
-          "interval",
-          "occurrences",
-          "frequency"
         ]
       },
       "TeamEventTypeResponseHost": {
@@ -10074,76 +10272,130 @@
             "description": "If you want that this event has different schedule than user's default one you can specify it here."
           },
           "bookingLimitsCount": {
-            "type": "object",
-            "description": "Limit how many times this event can be booked"
+            "description": "Limit how many times this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
           },
           "bookingLimitsDuration": {
-            "type": "object",
-            "description": "Limit total amount of time that this event can be booked"
+            "description": "Limit total amount of time that this event can be booked",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookingWindow": {
-            "type": "array",
             "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
+          },
+          "bookerLayouts": {
+            "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+              }
+            ]
+          },
+          "confirmationPolicy": {
+            "description": "Specify how the booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "recurrence": {
+            "description": "Create a recurring event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "description": "Create an event type with multiple seats.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Seats_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "customName": {
             "type": "string",
             "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
+          },
           "hosts": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Host"
             }
           },
           "assignAllTeamMembers": {
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        },
-        "required": [
-          "lengthInMinutes",
-          "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
-          "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "offsetStart",
-          "customName",
-          "hosts",
-          "assignAllTeamMembers"
-        ]
+        }
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -11849,12 +12101,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -11900,12 +12158,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -11955,9 +12219,9 @@
               "type": "string"
             }
           },
-          "meetingUrl": {
+          "location": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
@@ -11974,26 +12238,21 @@
           "attendee"
         ]
       },
-      "Host": {
+      "EventType": {
         "type": "object",
         "properties": {
           "id": {
             "type": "number",
             "example": 1
           },
-          "name": {
+          "slug": {
             "type": "string",
-            "example": "Jane Doe"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "America/Los_Angeles"
+            "example": "some-event"
           }
         },
         "required": [
           "id",
-          "name",
-          "timeZone"
+          "slug"
         ]
       },
       "BookingOutput_2024_08_13": {
@@ -12006,6 +12265,14 @@
           "uid": {
             "type": "string",
             "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -12050,7 +12317,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 45
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "attendees": {
             "type": "array",
@@ -12070,22 +12342,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "attendees",
           "absentHost"
         ]
@@ -12100,6 +12388,14 @@
           "uid": {
             "type": "string",
             "example": "recurring_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Recurring meeting"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -12143,7 +12439,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 50
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "recurringBookingUid": {
             "type": "string",
@@ -12167,22 +12468,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/recurring-meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": false
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "recurringBookingUid",
           "attendees",
           "absentHost"
@@ -12246,6 +12563,9 @@
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [
@@ -12277,6 +12597,9 @@
               ]
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [
@@ -12791,6 +13114,94 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "ConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Id of the conferencing app credentials"
+          },
+          "type": {
+            "type": "string",
+            "example": "google_video",
+            "description": "type of conferencing app"
+          },
+          "userId": {
+            "type": "number",
+            "description": "Id of the user associated to the conferencing app"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true,
+            "description": "Whether if the connection is working or not."
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "userId"
+        ]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ConferencingAppsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       }
     }
