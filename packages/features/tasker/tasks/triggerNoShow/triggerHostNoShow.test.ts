@@ -18,6 +18,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { calculateMaxStartTime } from "./common";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
+import type { TSendNoShowWebhookPayloadSchema } from "./schema";
 import { triggerHostNoShow } from "./triggerHostNoShow";
 
 vi.mock(
@@ -139,9 +140,9 @@ describe("Trigger Host No Show:", () => {
           timeUnit: TimeUnit.MINUTE,
           payloadTemplate: null,
         },
-      });
+      } satisfies TSendNoShowWebhookPayloadSchema);
 
-      await triggerHostNoShow({ payload, id: 0 });
+      await triggerHostNoShow(payload);
       const maxStartTime = calculateMaxStartTime(bookingStartTime, 5, TimeUnit.MINUTE);
       const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
@@ -150,6 +151,7 @@ describe("Trigger Host No Show:", () => {
         payload: {
           bookingId: 222,
           bookingUid: uidOfBooking,
+          email: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
           eventType: {
@@ -159,7 +161,7 @@ describe("Trigger Host No Show:", () => {
             hosts: [],
             users: [{ id: organizer.id, email: organizer.email }],
           },
-          message: `Host with email ${organizer.email} did't join the call or didn't joined before ${maxStartTimeHumanReadable}`,
+          message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
     },
@@ -289,9 +291,9 @@ describe("Trigger Host No Show:", () => {
           timeUnit: TimeUnit.MINUTE,
           payloadTemplate: null,
         },
-      });
+      } satisfies TSendNoShowWebhookPayloadSchema);
 
-      await triggerHostNoShow({ payload, id: 0 });
+      await triggerHostNoShow(payload);
 
       const maxStartTime = calculateMaxStartTime(bookingStartTime as unknown as Date, 5, TimeUnit.MINUTE);
       const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
@@ -301,6 +303,7 @@ describe("Trigger Host No Show:", () => {
         payload: {
           bookingId: 222,
           bookingUid: uidOfBooking,
+          email: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
           eventType: {
@@ -310,7 +313,7 @@ describe("Trigger Host No Show:", () => {
             hosts: [],
             users: [{ id: organizer.id, email: organizer.email }],
           },
-          message: `Host with email ${organizer.email} did't join the call or didn't joined before ${maxStartTimeHumanReadable}`,
+          message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
     },
