@@ -83,7 +83,8 @@
           "pages": [
             "developing/guides/appstore-and-integration/build-a-greeter-app",
             "developing/guides/appstore-and-integration/build-an-app",
-            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm"
+            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
+            "developing/guides/appstore-and-integration/oauth"
           ]
         },
         {
@@ -94,6 +95,11 @@
             "developing/guides/auth-and-provision/how-to-setup-scim-with-okta",
             "developing/guides/auth-and-provision/sso-setup"
           ]
+        },
+        {
+          "group": "Automation",
+          "icon": "webhook",
+          "pages": ["developing/guides/automation/webhooks"]
         },
         {
           "group": "Email",
@@ -114,7 +120,8 @@
         "self-hosting/database-migrations",
         "self-hosting/upgrading",
         "self-hosting/sso-setup",
-        "self-hosting/docker"
+        "self-hosting/docker",
+        "self-hosting/license-key"
       ]
     },
     {
