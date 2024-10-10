@@ -116,37 +116,47 @@ export default function ExchangeSetup() {
                     <Controller
                       name="authenticationMethod"
                       control={form.control}
-                      render={({ field: { onChange } }) => (
-                        <SelectField
-                          label={t("exchange_authentication")}
-                          options={authenticationMethods}
-                          defaultValue={authenticationMethods[1]}
-                          onChange={async (authentication) => {
-                            if (authentication) {
-                              onChange(authentication.value);
-                              form.setValue("authenticationMethod", authentication.value);
-                            }
-                          }}
-                        />
-                      )}
+                      render={({ field: { onChange } }) => {
+                        const ntlmAuthenticationMethod = authenticationMethods.find(
+                          (method) => method.value === ExchangeAuthentication.NTLM
+                        );
+                        return (
+                          <SelectField
+                            label={t("exchange_authentication")}
+                            options={authenticationMethods}
+                            defaultValue={ntlmAuthenticationMethod}
+                            onChange={async (authentication) => {
+                              if (authentication) {
+                                onChange(authentication.value);
+                                form.setValue("authenticationMethod", authentication.value);
+                              }
+                            }}
+                          />
+                        );
+                      }}
                     />
                     {authenticationMethod === ExchangeAuthentication.STANDARD ? (
                       <Controller
                         name="exchangeVersion"
                         control={form.control}
-                        render={({ field: { onChange } }) => (
-                          <SelectField
-                            label={t("exchange_version")}
-                            options={exchangeVersions}
-                            defaultValue={exchangeVersions[7]}
-                            onChange={async (version) => {
-                              onChange(version?.value);
-                              if (version) {
-                                form.setValue("exchangeVersion", version.value);
-                              }
-                            }}
-                          />
-                        )}
+                        render={({ field: { onChange } }) => {
+                          const exchangeVersion2016 = exchangeVersions.find(
+                            (exchangeVersion) => exchangeVersion.value === ExchangeVersion.Exchange2016
+                          );
+                          return (
+                            <SelectField
+                              label={t("exchange_version")}
+                              options={exchangeVersions}
+                              defaultValue={exchangeVersion2016}
+                              onChange={async (version) => {
+                                onChange(version?.value);
+                                if (version) {
+                                  form.setValue("exchangeVersion", version.value);
+                                }
+                              }}
+                            />
+                          );
+                        }}
                       />
                     ) : null}
                   </fieldset>
