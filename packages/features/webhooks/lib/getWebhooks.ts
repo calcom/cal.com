@@ -22,7 +22,6 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
   // if we have userId and teamId it is a managed event type and should trigger for team and user
   const allWebhooks = await prisma.webhook.findMany({
     where: {
-      active: true,
       OR: [
         {
           platform: true,
@@ -40,6 +39,14 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
         },
         { platformOAuthClientId: oAuthClientId },
       ],
+      AND: {
+        eventTriggers: {
+          has: options.triggerEvent,
+        },
+        active: {
+          equals: true,
+        },
+      },
     },
     select: {
       id: true,
@@ -53,7 +60,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
     },
   });
   // because the query result array will for the most part be small at this point; we opt to filter in userland.
-  return allWebhooks.filter((webhook) => webhook.eventTriggers.includes(options.triggerEvent));
+  return allWebhooks;
 };
 
 export default getWebhooks;
