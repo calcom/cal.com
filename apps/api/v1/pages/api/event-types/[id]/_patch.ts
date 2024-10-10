@@ -222,7 +222,7 @@ export async function patchHandler(req: NextApiRequest) {
   };
 
   if (hosts) {
-    await ensureOnlyMembersAsHosts(req, parsedBody);
+    await ensureOnlyMembersAsHosts(req, { hosts, ...parsedBody });
     data.hosts = {
       deleteMany: {},
       create: hosts.map((host) => ({
