@@ -107,9 +107,7 @@ function FilterButtonComponent<TData>(
   const [_state, _setState] = useFiltersSearchState();
 
   const activeFilters = _state.activeFilters;
-
   const columns = table.getAllColumns().filter((column) => column.getCanFilter());
-  console.log({ columnsThatCanBeFiltered: columns, allColumns: table.getAllColumns() });
 
   const filterableColumns = useMemo(() => {
     return columns.map((column) => ({
