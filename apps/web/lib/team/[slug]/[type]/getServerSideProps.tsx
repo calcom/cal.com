@@ -14,6 +14,8 @@ import type { RouterOutputs } from "@calcom/trpc";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
+import { ssrInit } from "@server/lib/ssr";
+
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
   slug: z.string().transform((s) => slugify(s)),
@@ -23,17 +25,12 @@ const paramsSchema = z.object({
 // 1. Check if team exists, to show 404
 // 2. If rescheduling, get the booking details
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getServerSession(context);
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
-  const {
-    rescheduleUid,
-    duration: queryDuration,
-    isInstantMeeting: queryIsInstantMeeting,
-    email,
-  } = context.query;
-  const { ssrInit } = await import("@server/lib/ssr");
+  const { req, params, query } = context;
+  const session = await getServerSession({ req });
+  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
+  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   if (!isOrgContext) {
