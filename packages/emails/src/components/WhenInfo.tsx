@@ -9,6 +9,7 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
+import { getTextDirection } from "../../../lib/i18n";
 import { Info } from "./Info";
 
 export function getRecurringWhen({
@@ -31,13 +32,13 @@ export function getRecurringWhen({
   return "";
 }
 
-export function WhenInfo(props: {
+export const WhenInfo = (props: {
   calEvent: CalendarEvent;
   timeZone: string;
   t: TFunction;
   locale: string;
   timeFormat: TimeFormat;
-}) {
+}) => {
   const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat } = props;
 
   function getRecipientStart(format: string) {
@@ -53,8 +54,11 @@ export function WhenInfo(props: {
     attendee: props.calEvent.attendees[0],
   });
 
+  const textDirection = getTextDirection(props.locale);
+  const isRTL = textDirection === "rtl";
+
   return (
-    <div>
+    <div className={isRTL ? "rtl-text" : ""}>
       <Info
         label={`${t("when")} ${recurringInfo !== "" ? ` - ${recurringInfo}` : ""}`}
         lineThrough={
@@ -71,4 +75,4 @@ export function WhenInfo(props: {
       />
     </div>
   );
-}
+};
