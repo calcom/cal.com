@@ -118,7 +118,7 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
 };
 
 // Only for backward compatibility
-export const setEnableRecordingUIForOrganizer = async (
+export const setEnableRecordingUIAndUserIdForOrganizer = async (
   bookingReferenceId: number,
   meetingToken: string | null,
   userId?: number
@@ -126,7 +126,7 @@ export const setEnableRecordingUIForOrganizer = async (
   if (!meetingToken) return null;
 
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
-  if (token.enable_recording_ui === false) return null;
+  if (token.enable_recording_ui === false && !!token.user_id) return null;
 
   const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
     properties: {

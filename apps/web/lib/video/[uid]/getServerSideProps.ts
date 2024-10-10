@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
-  setEnableRecordingUIForOrganizer,
+  setEnableRecordingUIAndUserIdForOrganizer,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
@@ -89,9 +89,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
-  // Only for backward compatibility for organizer
+  // Only for backward compatibility and setting user id in particpants for organizer
   else {
-    const meetingPassword = await setEnableRecordingUIForOrganizer(
+    const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
       oldVideoReference.id,
       oldVideoReference.meetingPassword,
       session?.user.id
