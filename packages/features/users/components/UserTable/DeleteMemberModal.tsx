@@ -5,9 +5,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Dialog, ConfirmationDialogContent, showToast } from "@calcom/ui";
 
-import type { State, Action } from "./UserListTable";
+import type { UserTableAction, UserTableState } from "./types";
 
-export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
+export function DeleteMemberModal({
+  state,
+  dispatch,
+}: {
+  state: UserTableState;
+  dispatch: Dispatch<UserTableAction>;
+}) {
   const { t } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();

@@ -6,10 +6,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
-import type { Action } from "./UserListTable";
+import type { UserTableAction } from "./types";
 
 interface Props {
-  dispatch: Dispatch<Action>;
+  dispatch: Dispatch<UserTableAction>;
 }
 
 export function InviteMemberModal(props: Props) {
