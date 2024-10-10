@@ -238,7 +238,7 @@ export const sendGenericWebhookPayload = async ({
   data,
   rootData,
 }: {
-  secretKey?: string | null;
+  secretKey: string | null;
   triggerEvent: string;
   createdAt: string;
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">;
@@ -253,7 +253,7 @@ export const sendGenericWebhookPayload = async ({
     payload: data,
   });
 
-  return _sendPayload(secretKey ?? null, webhook, body, "application/json");
+  return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
 export const createWebhookSignature = (params: { secret?: string | null; body: string }) =>
