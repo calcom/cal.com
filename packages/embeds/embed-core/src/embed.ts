@@ -689,6 +689,8 @@ class CalApi {
 
     if (__prerender) {
       this.preloadedModalUid = uid;
+    } else {
+      this.modalUid = uid;
     }
 
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
