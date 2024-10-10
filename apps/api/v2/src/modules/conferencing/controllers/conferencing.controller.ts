@@ -42,7 +42,7 @@ export class ConferencingController {
   @Post("/:app/connect")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "connect your conferencing application" })
+  @ApiOperation({ summary: "Connect your conferencing application" })
   async connect(
     @GetUser("id") userId: number,
     @Param("app") app: string
@@ -64,7 +64,7 @@ export class ConferencingController {
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "list your conferencing applications" })
+  @ApiOperation({ summary: "List your conferencing applications" })
   async listConferencingApps(@GetUser("id") userId: number): Promise<ConferencingAppsOutputResponseDto> {
     const conferencingApps = await this.conferencingService.getConferencingApps(userId);
 
@@ -78,14 +78,14 @@ export class ConferencingController {
   @Post("/:app/default")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "set your default conferencing application" })
+  @ApiOperation({ summary: "Set your default conferencing application" })
   async default(
     @GetUser("id") userId: number,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
     switch (app) {
       case GOOGLE_MEET:
-        const user = await this.googleMeetService.setDefault(userId);
+        await this.googleMeetService.setDefault(userId);
 
         return { status: SUCCESS_STATUS };
 
@@ -100,7 +100,7 @@ export class ConferencingController {
   @Delete("/:app/disconnect")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "disconnect your conferencing application" })
+  @ApiOperation({ summary: "Disconnect your conferencing application" })
   async disconnect(
     @GetUser("id") userId: number,
     @Param("app") app: string
