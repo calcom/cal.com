@@ -38,26 +38,26 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
       data."lockTimeZoneToggleOnBookingPage", data."requiresConfirmation", data."requiresBookerEmailVerification",
       data."metadata"
       FROM (
-        SELECT "public"."EventType"."id", "public"."EventType"."title", "public"."EventType"."description",
-          "public"."EventType"."position", "public"."EventType"."length", "public"."EventType"."schedulingType"::text,
-          "public"."EventType"."recurringEvent", "public"."EventType"."slug", "public"."EventType"."hidden",
-          "public"."EventType"."price", "public"."EventType"."currency",
-          "public"."EventType"."lockTimeZoneToggleOnBookingPage", "public"."EventType"."requiresConfirmation",
-          "public"."EventType"."requiresBookerEmailVerification", "public"."EventType"."metadata"
-        FROM "public"."EventType"
-        WHERE "public"."EventType"."teamId" IS NULL AND "public"."EventType"."userId" = ${userId}
+        SELECT "EventType"."id", "EventType"."title", "EventType"."description",
+          "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
+          "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
+          "EventType"."price", "EventType"."currency",
+          "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
+          "EventType"."requiresBookerEmailVerification", "EventType"."metadata"
+        FROM "EventType"
+        WHERE "EventType"."teamId" IS NULL AND "EventType"."userId" = ${userId}
         UNION
-        SELECT "public"."EventType"."id", "public"."EventType"."title", "public"."EventType"."description",
-        "public"."EventType"."position", "public"."EventType"."length", "public"."EventType"."schedulingType"::text,
-        "public"."EventType"."recurringEvent", "public"."EventType"."slug", "public"."EventType"."hidden",
-        "public"."EventType"."price", "public"."EventType"."currency",
-        "public"."EventType"."lockTimeZoneToggleOnBookingPage", "public"."EventType"."requiresConfirmation",
-        "public"."EventType"."requiresBookerEmailVerification", "public"."EventType"."metadata"
-        FROM "public"."EventType"
-        WHERE "public"."EventType"."teamId" IS NULL
-        AND "public"."EventType"."id" IN (
-          SELECT "uet1"."A" FROM "public"."_user_eventtype" AS "uet1"
-          INNER JOIN "public"."users" AS "u1" ON "u1"."id" = "uet1"."B"
+        SELECT "EventType"."id", "EventType"."title", "EventType"."description",
+        "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
+        "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
+        "EventType"."price", "EventType"."currency",
+        "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
+        "EventType"."requiresBookerEmailVerification", "EventType"."metadata"
+        FROM "EventType"
+        WHERE "EventType"."teamId" IS NULL
+        AND "EventType"."id" IN (
+          SELECT "uet1"."A" FROM "_user_eventtype" AS "uet1"
+          INNER JOIN "users" AS "u1" ON "u1"."id" = "uet1"."B"
           WHERE "u1"."id" = ${userId} AND "uet1"."A" IS NOT NULL
       )
     ) data
