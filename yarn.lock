@@ -4134,7 +4134,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.44"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.45"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -5163,14 +5163,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.44":
-  version: 0.0.44
-  resolution: "@calcom/platform-libraries@npm:0.0.44"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.45":
+  version: 0.0.45
+  resolution: "@calcom/platform-libraries@npm:0.0.45"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 0d46c2c695a8a776f7401e298d0f7d0b3227c9fe38e1746aaf747c22fe28d881939c31c54613e696a595b72af21fe14b342dabe99c59b44d6576f4e2f37bf76f
+  checksum: 69f3513cd389d328153ba6704db3eb6251a005618f4d71de7b6102e553393004da9c420c3685370c8a4daa255a0964d2f2f6979079e66036e0be2e4c2277c8ce
   languageName: node
   linkType: hard
 
@@ -5707,6 +5707,7 @@ __metadata:
     "@types/async": ^3.2.15
     "@types/bcryptjs": ^2.4.2
     "@types/detect-port": ^1.3.2
+    "@types/dompurify": ^3.0.5
     "@types/glidejs__glide": ^3.4.2
     "@types/lodash": ^4.14.182
     "@types/markdown-it": ^12.2.3
@@ -5737,7 +5738,9 @@ __metadata:
     bcryptjs: ^2.4.3
     classnames: ^2.3.1
     copy-webpack-plugin: ^11.0.0
+    deasync: ^0.1.30
     detect-port: ^1.3.0
+    dompurify: ^3.1.7
     dotenv-cli: ^6.0.0
     entities: ^4.4.0
     env-cmd: ^10.1.0
@@ -17726,6 +17729,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/dompurify@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "@types/dompurify@npm:3.0.5"
+  dependencies:
+    "@types/trusted-types": "*"
+  checksum: ffc34eca6a4536e1c8c16a47cce2623c5a118a9785492e71230052d92933ff096d14326ff449031e8dfaac509413222372d8f2b28786a13159de6241df716185
+  languageName: node
+  linkType: hard
+
 "@types/ejs@npm:^3.1.1":
   version: 3.1.5
   resolution: "@types/ejs@npm:3.1.5"
@@ -18778,6 +18790,13 @@ __metadata:
   version: 1.3.5
   resolution: "@types/triple-beam@npm:1.3.5"
   checksum: 519b6a1b30d4571965c9706ad5400a200b94e4050feca3e7856e3ea7ac00ec9903e32e9a10e2762d0f7e472d5d03e5f4b29c16c0bd8c1f77c8876c683b2231f1
+  languageName: node
+  linkType: hard
+
+"@types/trusted-types@npm:*":
+  version: 2.0.7
+  resolution: "@types/trusted-types@npm:2.0.7"
+  checksum: 8e4202766a65877efcf5d5a41b7dd458480b36195e580a3b1085ad21e948bc417d55d6f8af1fd2a7ad008015d4117d5fdfe432731157da3c68678487174e4ba3
   languageName: node
   linkType: hard
 
@@ -21744,6 +21763,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bindings@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "bindings@npm:1.5.0"
+  dependencies:
+    file-uri-to-path: 1.0.0
+  checksum: 65b6b48095717c2e6105a021a7da4ea435aa8d3d3cd085cb9e85bcb6e5773cf318c4745c3f7c504412855940b585bdf9b918236612a1c7a7942491de176f1ae7
+  languageName: node
+  linkType: hard
+
 "biskviit@npm:1.0.1":
   version: 1.0.1
   resolution: "biskviit@npm:1.0.1"
@@ -22425,6 +22453,7 @@ __metadata:
     "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^16.0.1
+    "@types/dompurify": ^3.0.5
     "@types/jsdom": ^21.1.3
     "@types/jsonwebtoken": ^9.0.3
     "@vercel/functions": ^1.4.0
@@ -25005,6 +25034,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"deasync@npm:^0.1.30":
+  version: 0.1.30
+  resolution: "deasync@npm:0.1.30"
+  dependencies:
+    bindings: ^1.5.0
+    node-addon-api: ^1.7.1
+  checksum: 1faeb20e1ec1c6ebde35a44f309e1b544804c782b25b513536e5a7313f89a45eb1565f228d06a1a233b285673137731822f81c6629a52a729f4fffb94f433549
+  languageName: node
+  linkType: hard
+
 "debounce-fn@npm:^4.0.0":
   version: 4.0.0
   resolution: "debounce-fn@npm:4.0.0"
@@ -25720,6 +25759,13 @@ __metadata:
   version: 2.3.3
   resolution: "dompurify@npm:2.3.3"
   checksum: 947e3661681bd183aae1cd08f991b14c6aa41fd188f6c801c5e916c2dc4575bbefbaa121ed06dbe0cb0f595545527d588a44b53bfc35d1cbb898c214dc0d7930
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.1.7":
+  version: 3.1.7
+  resolution: "dompurify@npm:3.1.7"
+  checksum: 0a9b811bbc94f3dba60cf6486962362b0f1a5b4ab789f5e1cbd4749b6ba1a1fad190a677a962dc8850ce28764424765fe425e9d6508e4e93ba648ef15d54bc24
   languageName: node
   linkType: hard
 
@@ -28625,6 +28671,13 @@ __metadata:
   version: 9.0.0
   resolution: "file-type@npm:9.0.0"
   checksum: 9ea78b29c3762d967eb1e3e4f45e401388b6d252b12c217f78f5ea97556ff7e35e4c7255cab68810ac414d51b776bd4e83504c86f132c262a454251561189efa
+  languageName: node
+  linkType: hard
+
+"file-uri-to-path@npm:1.0.0":
+  version: 1.0.0
+  resolution: "file-uri-to-path@npm:1.0.0"
+  checksum: b648580bdd893a008c92c7ecc96c3ee57a5e7b6c4c18a9a09b44fb5d36d79146f8e442578bc0e173dc027adf3987e254ba1dfd6e3ec998b7c282873010502144
   languageName: node
   linkType: hard
 
@@ -37950,6 +38003,15 @@ __metadata:
   version: 3.1.1
   resolution: "node-abort-controller@npm:3.1.1"
   checksum: 2c340916af9710328b11c0828223fc65ba320e0d082214a211311bf64c2891028e42ef276b9799188c4ada9e6e1c54cf7a0b7c05dd9d59fcdc8cd633304c8047
+  languageName: node
+  linkType: hard
+
+"node-addon-api@npm:^1.7.1":
+  version: 1.7.2
+  resolution: "node-addon-api@npm:1.7.2"
+  dependencies:
+    node-gyp: latest
+  checksum: 938922b3d7cb34ee137c5ec39df6289a3965e8cab9061c6848863324c21a778a81ae3bc955554c56b6b86962f6ccab2043dd5fa3f33deab633636bd28039333f
   languageName: node
   linkType: hard
 
