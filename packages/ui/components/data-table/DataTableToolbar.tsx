@@ -113,4 +113,4 @@ const CTA = forwardRef(CTAComponent) as (
   props: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }
 ) => ReturnType<typeof CTAComponent>;
 
-export { Root, SearchBar, ClearFiltersButton, CTA };
+export const DataTableToolbar = { Root, SearchBar, ClearFiltersButton, CTA };

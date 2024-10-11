@@ -209,3 +209,5 @@ export type { IconName } from "./components/icon/icon-names";
 export { IconSprites } from "./components/icon/IconSprites";
 
 export { DataTableSelectionBar } from "./components/data-table/DataTableSelectionBar";
+export { DataTableToolbar } from "./components/data-table/DataTableToolbar";
+export { DataTableFilters } from "./components/data-table/filters";

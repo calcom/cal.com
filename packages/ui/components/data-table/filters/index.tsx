@@ -260,4 +260,4 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
 }
 
 // Update the export to include ActiveFilters
-export { ColumnVisibilityButton, FilterButton, ActiveFilters };
+export const DataTableFilters = { ColumnVisibilityButton, FilterButton, ActiveFilters };
