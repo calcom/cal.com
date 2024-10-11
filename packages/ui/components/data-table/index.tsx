@@ -11,8 +11,8 @@ import Icon from "../icon/Icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table/TableNew";
 
 // Export DataTable components under a common namespace for better clarity
-export { default as DataTableToolbar } from "./DataTableToolbar";
-export { default as DataTableFilters } from "./filters";
+export { DataTableToolbar } from "./DataTableToolbar";
+export { DataTableFilters } from "./filters";
 
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
