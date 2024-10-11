@@ -14,7 +14,7 @@ import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
 import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitationModal";
-import MemberListItem from "../components/MemberListItem";
+import MemberList from "../components/MemberList";
 import TeamInviteList from "../components/TeamInviteList";
 
 const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
@@ -32,7 +32,7 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
     data: team,
     isPending: isTeamsLoading,
     error: teamError,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,
@@ -88,7 +88,7 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && team && (
               <div className="mb-6">
-                <MemberListItem
+                <MemberList
                   team={team}
                   isOrgAdminOrOwner={isOrgAdminOrOwner}
                   setShowMemberInvitationModal={setShowMemberInvitationModal}

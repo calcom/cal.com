@@ -54,7 +54,13 @@ import { EditMemberSheet } from "./EditMemberSheet";
 import { EventTypesList } from "./EventTypesList";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
-export type User = RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
+interface Props {
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
+  isOrgAdminOrOwner: boolean | undefined;
+  setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
+}
+
+export type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
@@ -128,24 +134,25 @@ function reducer(state: State, action: Action): State {
 }
 
 interface Props {
-  team: NonNullable<RouterOutputs["viewer"]["teams"]["getMinimal"]>;
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
   isOrgAdminOrOwner: boolean | undefined;
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function MemberListItem(props: Props) {
+export default function MemberList(props: Props) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
+  const { t, i18n } = useLocale();
+  const { data: session } = useSession();
+
   const utils = trpc.useUtils();
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
-  const { t, i18n } = useLocale();
 
-  const { data: session } = useSession();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
     {
       limit: 10,
       searchTerm: debouncedSearchTerm,
@@ -175,7 +182,7 @@ export default function MemberListItem(props: Props) {
     teamId: number;
     searchTerm: string;
   }) => {
-    utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+    utils.viewer.teams.listMembers.setInfiniteData(
       {
         limit: 10,
         teamId,
@@ -202,8 +209,8 @@ export default function MemberListItem(props: Props) {
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onMutate: async ({ teamIds }) => {
-      await utils.viewer.teams.lazyLoadMembers.cancel();
-      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+      await utils.viewer.teams.listMembers.cancel();
+      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
         searchTerm: debouncedSearchTerm,
