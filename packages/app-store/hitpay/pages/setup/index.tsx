@@ -11,7 +11,7 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge, Button, showToast, Icon } from "@calcom/ui";
+import { Button, showToast, Icon } from "@calcom/ui";
 import { Input } from "@calcom/ui";
 
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
@@ -74,6 +74,7 @@ function HitPaySetupCallback() {
 
 function HitPaySetupPage(props: IHitPaySetupProps) {
   const [loading, setLoading] = useState<boolean>(false);
+  const [updatable, setUpdatable] = useState<boolean>(false);
   const session = useSession();
   const router = useRouter();
   const { t } = useLocale();
@@ -114,6 +115,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<z.infer<typeof settingsSchema>>({
     defaultValues: {
       apiKey: props?.apiKey || "",
@@ -122,6 +124,19 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     reValidateMode: "onChange",
     resolver: zodResolver(settingsSchema),
   });
+
+  useEffect(() => {
+    const subscription = watch((value) => {
+      const { apiKey, saltKey } = value;
+      if (props.apiKey !== apiKey || props.saltKey !== saltKey) {
+        setUpdatable(true);
+      } else {
+        setUpdatable(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, props]);
 
   const onSubmit = handleSubmit(async (data) => {
     if (loading) return;
@@ -167,55 +182,55 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
             HitPay account to receive payments for your paid bookings.
           </div>
 
-          {!props.apiKey || !props.saltKey ? (
-            <form className="w-full space-y-4" onSubmit={onSubmit}>
-              <div className="bg-default border-subtle overflow-auto rounded border">
-                <div className="border-subtle border-b-[1px] p-4 md:p-5">
-                  <h2 className="text-2xl font-semibold">Account Information</h2>
+          <form className="w-full space-y-4" onSubmit={onSubmit}>
+            <div className="bg-default border-subtle overflow-auto rounded border">
+              <div className="border-subtle border-b-[1px] p-4 md:p-5">
+                <h2 className="text-2xl font-semibold">Account Information</h2>
+              </div>
+              <div className="w-full space-y-4 p-4 md:p-5">
+                <div className="w-full">
+                  <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
+                    {t("api_key")}
+                  </label>
+                  <Input
+                    {...register("apiKey", {
+                      required: true,
+                    })}
+                    id="apiKey"
+                    name="apiKey"
+                    type="text"
+                    autoComplete="off"
+                    autoCorrect="off"
+                  />
+                  {errors.apiKey && (
+                    <p data-testid="required" className="py-2 text-xs text-red-500">
+                      {errors.apiKey?.message}
+                    </p>
+                  )}
                 </div>
-                <div className="w-full space-y-4 p-4 md:p-5">
-                  <div className="w-full">
-                    <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
-                      {t("api_key")}
-                    </label>
-                    <Input
-                      {...register("apiKey", {
-                        required: true,
-                      })}
-                      id="apiKey"
-                      name="apiKey"
-                      type="text"
-                      autoComplete="off"
-                      autoCorrect="off"
-                    />
-                    {errors.apiKey && (
-                      <p data-testid="required" className="py-2 text-xs text-red-500">
-                        {errors.apiKey?.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="w-full">
-                    <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
-                      Salt
-                    </label>
-                    <Input
-                      {...register("saltKey", {
-                        required: true,
-                      })}
-                      id="saltKey"
-                      name="saltKey"
-                      type="text"
-                      autoComplete="off"
-                      autoCorrect="off"
-                    />
-                    {errors.saltKey && (
-                      <p data-testid="required" className="py-2 text-xs text-red-500">
-                        {errors.saltKey?.message}
-                      </p>
-                    )}
-                  </div>
+                <div className="w-full">
+                  <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
+                    Salt
+                  </label>
+                  <Input
+                    {...register("saltKey", {
+                      required: true,
+                    })}
+                    id="saltKey"
+                    name="saltKey"
+                    type="text"
+                    autoComplete="off"
+                    autoCorrect="off"
+                  />
+                  {errors.saltKey && (
+                    <p data-testid="required" className="py-2 text-xs text-red-500">
+                      {errors.saltKey?.message}
+                    </p>
+                  )}
                 </div>
               </div>
+            </div>
+            {!props.apiKey || !props.saltKey ? (
               <div className="flex justify-end gap-4">
                 <Link href="/apps">
                   <Button color="secondary" className="h-10 text-base">
@@ -233,21 +248,17 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
                   <span className="mr-2">Connect with HitPay</span>
                 </button>
               </div>
-            </form>
-          ) : (
-            <div className="bg-default border-subtle space-y-4 overflow-auto rounded border p-4 md:p-5 lg:space-y-5">
-              <div className="space-y-4 lg:space-y-5">
-                {hitpayIcon}
-                <p>HitPay Connected!</p>
-                <Badge>Email: {props.email}</Badge>
-                <Badge>API Key: {props.apiKey}</Badge>
-                <Badge>API Key: {props.saltKey}</Badge>
+            ) : (
+              <div className="flex justify-end gap-4">
+                <Link href="/apps/hitpay" className="inline-block">
+                  <Button color="secondary">Go to App Store</Button>
+                </Link>
+                <Button color="primary" type="submit" disabled={!updatable}>
+                  Update
+                </Button>
               </div>
-              <Link href="/apps/hitpay" className="inline-block">
-                <Button color="secondary">Go to App Store</Button>
-              </Link>
-            </div>
-          )}
+            )}
+          </form>
         </div>
       ) : (
         <AppNotInstalledMessage appName="hitpay" />
