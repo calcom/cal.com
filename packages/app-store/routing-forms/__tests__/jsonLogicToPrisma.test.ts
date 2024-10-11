@@ -1,6 +1,6 @@
 import { describe, expect, it, afterEach, vi } from "vitest";
 
-import { jsonLogicToPrisma } from "../../jsonLogicToPrisma";
+import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
 
 afterEach(() => {
   vi.resetAllMocks();

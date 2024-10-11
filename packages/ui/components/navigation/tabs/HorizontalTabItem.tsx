@@ -18,6 +18,8 @@ export type HorizontalTabItemProps = {
   linkScroll?: boolean;
   icon?: IconName;
   avatar?: string;
+  onClick?: (name: string) => void;
+  isActive?: boolean;
 };
 
 const HorizontalTabItem = function ({
@@ -30,10 +32,16 @@ const HorizontalTabItem = function ({
 }: HorizontalTabItemProps) {
   const { t, isLocaleReady } = useLocale();
 
-  const isCurrent = useUrlMatchesCurrentUrl(href);
+  const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
 
   return (
     <Link
+      onClick={(e) => {
+        if (props.onClick) {
+          e.preventDefault();
+          props.onClick(name);
+        }
+      }}
       key={name}
       href={href}
       shallow={linkShallow}
