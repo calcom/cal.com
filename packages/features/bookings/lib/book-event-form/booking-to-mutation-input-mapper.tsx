@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
 import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
@@ -48,7 +47,7 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
-
+  const isRerouting = searchParams.get("cal.reRouting") === "true";
   return {
     ...values,
     user: username,
@@ -73,6 +72,7 @@ export const mapBookingToMutationInput = ({
     routedTeamMemberIds,
     routingFormResponseId,
     skipContactOwner,
+    isRerouting,
   };
 };
 

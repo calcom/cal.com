@@ -365,10 +365,14 @@ export default function Success(props: PageProps) {
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
-
+  const isRerouting = searchParams?.get("cal.reRouting") === "true";
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
+    }
+
+    if (isRerouting) {
+      return t("This meeting has been rerouted");
     }
 
     if (isNotAttendingSeatedEvent) {
@@ -385,6 +389,8 @@ export default function Success(props: PageProps) {
 
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
+
+  const hasAnOpener = typeof window !== "undefined" && window.opener;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -476,6 +482,7 @@ export default function Success(props: PageProps) {
                         id="modal-headline">
                         {successPageHeadline}
                       </h3>
+
                       <div className="mt-3">
                         <p className="text-default">{getTitle()}</p>
                       </div>
@@ -691,6 +698,7 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
+                      !isRerouting &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -750,6 +758,18 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
+                    {isRerouting && hasAnOpener && (
+                      <div className="flex justify-center">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            window.opener?.focus();
+                            window.close();
+                          }}>
+                          Go Back
+                        </Button>
+                      </div>
+                    )}
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&

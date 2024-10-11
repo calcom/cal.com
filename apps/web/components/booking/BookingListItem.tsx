@@ -20,6 +20,7 @@ import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import type { Ensure } from "@calcom/types/utils";
 import type { ActionType } from "@calcom/ui";
 import {
   Badge,
@@ -48,6 +49,7 @@ import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -67,6 +69,15 @@ type BookingItemProps = BookingItem & {
 
 function BookingListItem(booking: BookingItemProps) {
   const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
+
+  // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
+  const bookingEventType = booking.eventType.id
+    ? (booking.eventType as Ensure<
+        typeof booking.eventType,
+        "id" | "length" | "title" | "slug" | "schedulingType" | "users" | "team"
+      >)
+    : null;
 
   const {
     t,
@@ -108,7 +119,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
-
+  const isTeamBooking = !!booking.eventType?.team;
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const eventTypeColor =
@@ -191,6 +202,18 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenRescheduleDialog(true);
       },
     },
+    ...(booking.routedFromRoutingFormReponse && isTeamBooking
+      ? [
+          {
+            id: "reroute",
+            label: t("re-route"),
+            onClick: () => {
+              setRerouteDialogIsOpen(true);
+            },
+            icon: "pencil" as const,
+          },
+        ]
+      : []),
     {
       id: "change_location",
       label: t("edit_location"),
@@ -275,6 +298,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
+  const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -360,6 +384,12 @@ function BookingListItem(booking: BookingItemProps) {
       phoneNumber: attendee.phoneNumber,
     };
   });
+
+  const onReroute = () => {
+    // Implement the reroute logic here
+    console.log("Rerouting booking:", booking.uid);
+  };
+
   return (
     <>
       <RescheduleDialog
@@ -622,6 +652,16 @@ function BookingListItem(booking: BookingItemProps) {
           )}
         </td>
       </tr>
+      {/* Let's not support re-routing for a booking without an event-type for now. */}
+      {booking.routedFromRoutingFormReponse && bookingEventType && (
+        <RerouteDialog
+          routedFromRoutingFormReponseId={booking.routedFromRoutingFormReponse.id}
+          isOpenDialog={rerouteDialogIsOpen}
+          setIsOpenDialog={setRerouteDialogIsOpen}
+          booking={{ ...booking, eventType: bookingEventType, metadata: bookingMetadata }}
+          onReroute={onReroute}
+        />
+      )}
     </>
   );
 }
@@ -724,7 +764,7 @@ const FirstAttendee = ({
       className=" hover:text-blue-500"
       href={`mailto:${user.email}`}
       onClick={(e) => e.stopPropagation()}>
-      {user.name}
+      {user.name || user.email}
     </a>
   );
 };

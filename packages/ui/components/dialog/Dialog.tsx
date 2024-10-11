@@ -90,6 +90,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   Icon?: IconName;
   enableOverflow?: boolean;
   forceOverlayWhenNoModal?: boolean;
+  preventCloseOnOutsideClick?: boolean;
 };
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
@@ -119,6 +120,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         )}
         <Content
           {...props}
+          onPointerDownOutside={(e) => {
+            if (props.preventCloseOnOutsideClick) {
+              e.preventDefault();
+            }
+          }}
           className={classNames(
             "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
             props.size == "xl"

@@ -210,12 +210,19 @@ export async function getBookings({
   const bookingSelect = {
     ...bookingMinimalSelect,
     uid: true,
+    responses: true,
+    routedFromRoutingFormReponse: {
+      select: {
+        id: true,
+      },
+    },
     recurringEventId: true,
     location: true,
     eventType: {
       select: {
         slug: true,
         id: true,
+        title: true,
         eventName: true,
         price: true,
         recurringEvent: true,
@@ -225,11 +232,18 @@ export async function getBookings({
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
         schedulingType: true,
+        length: true,
+        users: {
+          select: {
+            username: true,
+          },
+        },
         team: {
           select: {
             id: true,
             name: true,
             members: true,
+            slug: true,
           },
         },
       },
@@ -254,6 +268,8 @@ export async function getBookings({
     rescheduled: true,
     references: true,
     isRecorded: true,
+    seatReferenceUid: true,
+    hashedLink: true,
     seatsReferences: {
       where: {
         attendee: {

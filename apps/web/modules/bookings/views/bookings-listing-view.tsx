@@ -91,6 +91,9 @@ export default function Bookings() {
       // first render has status `undefined`
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
+
+      // It ensures that on window focus a booking that was rescheduled(actually re-routed) through a new tab flow, doesn't get removed and thus the Dialog for that booking doesn't automatically get removed/closed.
+      refetchOnWindowFocus: false,
     }
   );
 

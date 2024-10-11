@@ -76,6 +76,15 @@ export function handleEvent(event: { detail: Record<string, unknown> & { type: s
     });
   });
 
+  if (window.opener) {
+    window.opener.postMessage(
+      {
+        type: `CAL:${name}`,
+        ...data,
+      },
+      "*"
+    );
+  }
   return true;
 }
 

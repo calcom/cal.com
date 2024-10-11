@@ -13,6 +13,7 @@ import type {
 } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { responseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
@@ -251,6 +252,8 @@ export const bookingCreateBodySchema = z.object({
   routedTeamMemberIds: z.array(z.number()).nullish(),
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
+  isRerouting: z.boolean().optional(),
+  reroutingFormResponses: responseInDbSchema.optional(),
 });
 
 export const requiredCustomInputSchema = z.union([

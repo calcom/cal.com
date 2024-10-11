@@ -112,3 +112,11 @@ export const zodRoutesView = z.union([z.array(zodRouteView), z.null()]).optional
 export const appDataSchema = z.any();
 
 export const appKeysSchema = z.object({});
+
+// TODO: Can we confirm that during the options id support, the response scheme remained same?
+export const responseInDbSchema = z.record(
+  z.object({
+    label: z.string(),
+    value: z.union([z.string(), z.number(), z.array(z.string())]),
+  })
+);

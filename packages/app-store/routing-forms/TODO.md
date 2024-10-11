@@ -15,6 +15,11 @@
       - So, if Form Field is 'What is Comapny Size' with options Enterprise, Large, Medium, Small and Attribute for which Value of 'What is compnay size' has options Enterprise, Large, Medium. It would show a warning that 'Small' option is not present in the attribute.
 - [ ] When logic can't be built(Short text maps to an attribute with given set of options but the short text value doesn't match any of the options), the team member matching route throws error but Test Preview still shows the previous value - It show should the error in there.
 
+## TODO - ReRouting
+- [ ] Need to get teamMemberEmail from Salesforce
+- [ ] When 'Verify Route' is clicked, it doesn't seem to run the form field logic as there is a warning in console. Fix it.
+
+
 ### Performance Tests and Improvements
 - [ ] Test with ~1000 team members and ~100 attributes.
 - [ ] getAttributes query optimization. It needs info from various tables(Attribute, AttributeOption, AttributeToUser, Membership)
@@ -40,6 +45,9 @@
 - [ ] Document well that the option label in Routing Form Field and Attribute Option label must be same to connect them.
     - Due to the connection requirement b/w Attribute Option and Field Option, we use label(lowercased) to match attributes instead of attribute slug
 - [ ] Fixed hosts of the event will be included through attribute routing as well. They aren't tested for attribute routing logic.
+
+### Rerouting - Documentation
+- [ ] When re-routed, the booking page doesn't allow rescheduling/cancellation to avoid any possible issues. We can open it up later.
 
 ### V2.0
 - [ ] Fallback for when no team member matches the criteria.

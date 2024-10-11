@@ -8,13 +8,13 @@ import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
 
-type Props = {
-  form: SerializableForm<App_RoutingForms_Form>;
+export type FormInputFieldsProps = {
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
   response: FormResponse;
   setResponse: Dispatch<SetStateAction<FormResponse>>;
 };
 
-export default function FormInputFields(props: Props) {
+export default function FormInputFields(props: FormInputFieldsProps) {
   const { form, response, setResponse } = props;
 
   const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(form);
@@ -50,8 +50,7 @@ export default function FormInputFields(props: Props) {
               listValues={options}
               data-testid={`form-field-${getFieldIdentifier(field)}`}
               setValue={(value: number | string | string[]) => {
-                setResponse((response) => {
-                  response = response || {};
+                setResponse(() => {
                   return {
                     ...response,
                     [field.id]: {

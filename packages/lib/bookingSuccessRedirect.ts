@@ -57,6 +57,11 @@ export const useBookingSuccessRedirect = () => {
     query: Record<string, string | null | undefined | boolean>;
     booking: SuccessRedirectBookingType;
   }) => {
+    const isRerouting = searchParams.get("cal.reRouting") === "true";
+    query = {
+      ...query,
+      ...(isRerouting ? { "cal.reRouting": true } : {}),
+    };
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);
       // Using parent ensures, Embed iframe would redirect outside of the iframe.
