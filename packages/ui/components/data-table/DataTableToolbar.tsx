@@ -62,7 +62,9 @@ function SearchBarComponent<TData>(
       className="max-w-64 mb-0 mr-auto rounded-md"
       placeholder="Search"
       value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-      onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value.trim())}
+      onChange={(event) => {
+        return table.getColumn(searchKey)?.setFilterValue(event.target.value.trim());
+      }}
     />
   );
 }
