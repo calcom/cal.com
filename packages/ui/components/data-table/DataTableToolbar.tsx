@@ -2,6 +2,7 @@
 
 import type { Table } from "@tanstack/react-table";
 import { useEffect, useState, forwardRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -11,7 +12,7 @@ import type { ButtonProps } from "../button";
 import { Button } from "../button";
 import { Input } from "../form";
 
-interface DataTableToolbarProps {
+interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
 }
 
