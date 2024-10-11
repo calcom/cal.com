@@ -3,6 +3,7 @@
 import type { Table } from "@tanstack/react-table";
 import { useEffect, useState, forwardRef } from "react";
 
+import { classNames } from "@calcom/lib";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -14,9 +15,15 @@ interface DataTableToolbarProps {
   children: React.ReactNode;
 }
 
-const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar({ children }, ref) {
+const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar(
+  { children, className },
+  ref
+) {
   return (
-    <div ref={ref} className="grid w-full items-center gap-2 py-4" style={{ gridArea: "header" }}>
+    <div
+      ref={ref}
+      className={classNames("grid w-full items-center gap-2 py-4", className)}
+      style={{ gridArea: "header" }}>
       {children}
     </div>
   );

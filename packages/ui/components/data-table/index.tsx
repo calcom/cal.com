@@ -25,7 +25,6 @@ export interface DataTableProps<TData, TValue> {
   "data-testid"?: string;
   children?: React.ReactNode;
 }
-
 export function DataTable<TData, TValue>({
   table,
   tableContainerRef,
@@ -35,7 +34,7 @@ export function DataTable<TData, TValue>({
   onScroll,
   children,
   ...rest
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
 
   const rowVirtualizer = useVirtual({
@@ -50,85 +49,93 @@ export function DataTable<TData, TValue>({
 
   return (
     <div
-      ref={tableContainerRef}
-      onScroll={onScroll}
-      data-testid={rest["data-testid"] ?? "data-table"}
+      className={classNames(
+        "grid h-[75dvh]", // Set a fixed height for the container
+        rest.className
+      )}
       style={{
-        display: "grid",
+        gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
-      }}>
-      <Table data-testid="" style={{ gridArea: "body" }}>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  {...{
-                    className: header.column.getCanSort() ? "cursor-pointer select-none " : "",
-                    onClick: header.column.getToggleSortingHandler(),
-                  }}>
-                  <div className="flex items-center">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getIsSorted() && (
-                      <Icon
-                        name="arrow-up"
-                        className="ml-2 h-4 w-4"
-                        style={{
-                          transform:
-                            header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
-                          transition: "transform 0.2s ease-in-out",
-                        }}
-                      />
-                    )}
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {paddingTop > 0 && (
-            <tr>
-              <td style={{ height: `${paddingTop}px` }} />
-            </tr>
-          )}
-          {virtualRows && !isPending ? (
-            virtualRows.map((virtualRow) => {
-              const row = rows[virtualRow.index] as Row<TData>;
-              return (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                  className={classNames(
-                    onRowMouseclick && "hover:cursor-pointer",
-                    variant === "compact" && "!border-0"
-                  )}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={classNames(variant === "compact" && "p-1.5")}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        ...rest.style,
+      }}
+      data-testid={rest["data-testid"] ?? "data-table"}>
+      <div className="overflow-hidden" style={{ gridArea: "body" }}>
+        <div ref={tableContainerRef} onScroll={onScroll} className="h-full overflow-y-auto">
+          <div className="inline-block min-w-full align-middle">
+            <Table>
+              <TableHeader className="sticky top-0 z-10">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={classNames(
+                          header.column.getCanSort() ? "cursor-pointer select-none" : ""
+                        )}>
+                        <div className="flex items-center" onClick={header.column.getToggleSortingHandler()}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getIsSorted() && (
+                            <Icon
+                              name="arrow-up"
+                              className="ml-2 h-4 w-4"
+                              style={{
+                                transform:
+                                  header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                                transition: "transform 0.2s ease-in-out",
+                              }}
+                            />
+                          )}
+                        </div>
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {paddingTop > 0 && (
+                  <tr>
+                    <td style={{ height: `${paddingTop}px` }} />
+                  </tr>
+                )}
+                {virtualRows && !isPending ? (
+                  virtualRows.map((virtualRow) => {
+                    const row = rows[virtualRow.index] as Row<TData>;
+                    return (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                        onClick={() => onRowMouseclick && onRowMouseclick(row)}
+                        className={classNames(
+                          onRowMouseclick && "hover:cursor-pointer",
+                          variant === "compact" && "!border-0"
+                        )}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className={classNames(variant === "compact" && "p-1.5")}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                      No results.
                     </TableCell>
-                  ))}
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-          {paddingBottom > 0 && (
-            <tr>
-              <td style={{ height: `${paddingBottom}px` }} />
-            </tr>
-          )}
-        </TableBody>
-      </Table>
+                  </TableRow>
+                )}
+                {paddingBottom > 0 && (
+                  <tr>
+                    <td style={{ height: `${paddingBottom}px` }} />
+                  </tr>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
       {children}
     </div>
   );

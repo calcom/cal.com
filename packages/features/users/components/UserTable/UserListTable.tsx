@@ -365,11 +365,12 @@ export function UserListTable() {
     <>
       <DataTable
         data-testid="user-list-data-table"
+        // className="lg:max-w-screen-lg"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root>
+        <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full gap-2">
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
             <DataTableFilters.FilterButton table={table} />

@@ -9,7 +9,7 @@ export {
 } from "@calcom/features/ee/organizations/pages/settings/getServerSidePropsMembers";
 
 export const getLayout = (page: React.ReactElement) => (
-  <SettingsLayout containerClassName="lg:max-w-fit">{page}</SettingsLayout>
+  <SettingsLayout containerClassName="lg:max-w-screen-2xl">{page}</SettingsLayout>
 );
 
 const Page = () => <MembersView />;
