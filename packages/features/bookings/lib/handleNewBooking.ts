@@ -12,6 +12,7 @@ import {
   OrganizerDefaultConferencingAppType,
   getLocationValueForDB,
 } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -88,6 +89,7 @@ import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type {
   Invitee,
   IEventTypePaymentCredentialType,
@@ -150,6 +152,36 @@ type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
+/**
+ * Adds the contact owner to be the only lucky user
+ * @returns
+ */
+function buildLuckyUsersWithJustContactOwner({
+  contactOwnerEmail,
+  availableUsers,
+  fixedUserPool,
+}: {
+  contactOwnerEmail: string | null;
+  availableUsers: IsFixedAwareUser[];
+  fixedUserPool: IsFixedAwareUser[];
+}) {
+  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>> = [];
+  if (!contactOwnerEmail) {
+    return luckyUsers;
+  }
+
+  const isContactOwnerAFixedHostAlready = fixedUserPool.some((user) => user.email === contactOwnerEmail);
+  if (isContactOwnerAFixedHostAlready) {
+    return luckyUsers;
+  }
+
+  const teamMember = availableUsers.find((user) => user.email === contactOwnerEmail);
+  if (teamMember) {
+    luckyUsers.push(teamMember);
+  }
+  return luckyUsers;
+}
+
 async function handler(
   req: NextApiRequest & {
     userId?: number | undefined;
@@ -202,6 +234,7 @@ async function handler(
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
+    routedTeamMemberIds,
     ...reqBody
   } = bookingData;
 
@@ -270,12 +303,18 @@ async function handler(
     logger: loggerWithEventDetails,
   });
 
+  const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
+  const skipContactOwner = reqBody.skipContactOwner ?? false;
+  const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
+
   let users = await loadAndValidateUsers({
     req,
     eventType,
     eventTypeId,
     dynamicUserList,
     logger: loggerWithEventDetails,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
+    contactOwnerEmail,
   });
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
@@ -382,7 +421,6 @@ async function handler(
         },
         loggerWithEventDetails
       );
-      const luckyUsers: typeof users = [];
       const luckyUserPool: IsFixedAwareUser[] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
       availableUsers.forEach((user) => {
@@ -399,17 +437,14 @@ async function handler(
         })
       );
 
-      if (reqBody.teamMemberEmail) {
-        // If requested user is not a fixed host, assign the lucky user as the team member
-        if (!fixedUserPool.some((user) => user.email === reqBody.teamMemberEmail)) {
-          const teamMember = availableUsers.find((user) => user.email === reqBody.teamMemberEmail);
-          if (teamMember) {
-            luckyUsers.push(teamMember);
-          }
-        }
-      }
+      const luckyUsers: typeof users = buildLuckyUsersWithJustContactOwner({
+        contactOwnerEmail: contactOwnerEmail,
+        availableUsers,
+        fixedUserPool,
+      });
 
       // loop through all non-fixed hosts and get the lucky users
+      // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
@@ -630,7 +665,6 @@ async function handler(
   const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
-
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
@@ -901,6 +935,7 @@ async function handler(
   try {
     booking = await createBooking({
       uid,
+      routedFromRoutingFormResponseId: reqBody.routingFormResponseId,
       reqBody: {
         user: reqBody.user,
         metadata: reqBody.metadata,
@@ -1619,6 +1654,21 @@ async function handler(
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+  }
+
+  try {
+    if (isConfirmedByDefault && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
+      await scheduleNoShowTriggers({
+        booking: { startTime: booking.startTime, id: booking.id },
+        triggerForUser,
+        organizerUser: { id: organizerUser.id },
+        eventTypeId,
+        teamId,
+        orgId,
+      });
+    }
+  } catch (error) {
+    loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
   // booking successful

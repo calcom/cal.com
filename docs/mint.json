@@ -2,8 +2,8 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Cal.com Docs",
   "logo": {
-    "dark": "https://cal.com/logo-white.svg",
-    "light": "https://cal.com/logo.svg"
+    "dark": "https://cal.com/calcom-docs-light.svg",
+    "light": "https://cal.com/calcom-docs.svg"
   },
   "api": {
     "baseUrl": "https://api.cal.com",
@@ -63,7 +63,7 @@
     {
       "group": "Open Source Contribution",
       "pages": [
-        "developing/open-source-contribution/index",
+        "developing/open-source-contribution/introduction",
         "developing/open-source-contribution/code-styling",
         "developing/open-source-contribution/pull-requests",
         "developing/open-source-contribution/contributors-guide"
@@ -81,11 +81,9 @@
           "group": "App Store and Integration",
           "icon": "grid",
           "pages": [
-            "developing/guides/appstore-and-integration/adding-your-first-app",
             "developing/guides/appstore-and-integration/build-a-greeter-app",
             "developing/guides/appstore-and-integration/build-an-app",
             "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
-            "developing/guides/appstore-and-integration/integration-with-hubspot",
             "developing/guides/appstore-and-integration/oauth"
           ]
         },
@@ -97,6 +95,11 @@
             "developing/guides/auth-and-provision/how-to-setup-scim-with-okta",
             "developing/guides/auth-and-provision/sso-setup"
           ]
+        },
+        {
+          "group": "Automation",
+          "icon": "webhook",
+          "pages": ["developing/guides/automation/webhooks"]
         },
         {
           "group": "Email",
@@ -117,7 +120,8 @@
         "self-hosting/database-migrations",
         "self-hosting/upgrading",
         "self-hosting/sso-setup",
-        "self-hosting/docker"
+        "self-hosting/docker",
+        "self-hosting/license-key"
       ]
     },
     {
@@ -163,7 +167,8 @@
           "icon": "tag",
           "pages": [
             "/self-hosting/guides/white-labeling/introduction",
-            "/self-hosting/guides/white-labeling/custom-css"
+            "/self-hosting/guides/white-labeling/custom-css",
+            "/self-hosting/guides/white-labeling/color-tokens"
           ]
         },
         {
