@@ -62,10 +62,11 @@ export const EventType = (
     isPlatform?: boolean;
     tabName: (typeof tabs)[number];
     tabsNavigation: VerticalTabItemProps[];
+    allowDelete?: boolean;
   }
 ) => {
   const { formMethods, isPlatform, tabName } = props;
-  const { eventType, team, currentUserMembership, tabMap, isUpdating } = props;
+  const { eventType, team, currentUserMembership, tabMap, isUpdating, allowDelete = true } = props;
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -84,6 +85,7 @@ export const EventType = (
         onDelete={props.onDelete}
         isDeleting={props.isDeleting}
         isPlatform={isPlatform}
+        allowDelete={allowDelete}
         tabsNavigation={props.tabsNavigation}>
         <Form form={formMethods} id="event-type-form" handleSubmit={props.handleSubmit}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
