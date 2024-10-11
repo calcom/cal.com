@@ -1,8 +1,8 @@
 import * as additionalTimezones from "./additionalTimezones.json";
 
 export interface Timezone {
-  name: string;
-  identifier: string;
+  timezone: string;
+  city: string;
 }
 
 export const timezones: Timezone[] = additionalTimezones.timezones;
