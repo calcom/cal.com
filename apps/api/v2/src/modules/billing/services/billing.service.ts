@@ -47,7 +47,7 @@ export class BillingService implements OnModuleDestroy {
     }
   }
 
-  async createSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
+  async createTeamBilling(teamId: number) {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     let customerId = teamWithBilling?.platformBilling?.customerId;
 
@@ -60,6 +60,10 @@ export class BillingService implements OnModuleDestroy {
       });
     }
 
+    return customerId;
+  }
+
+  async redirectToSubscribeCheckout(teamId: number, plan: PlatformPlan, customerId?: string) {
     const { url } = await this.stripeService.stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -90,7 +94,7 @@ export class BillingService implements OnModuleDestroy {
 
     if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
 
-    return { action: "redirect", url };
+    return url;
   }
 
   async updateSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
@@ -111,7 +115,7 @@ export class BillingService implements OnModuleDestroy {
 
     if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
 
-    return { action: "redirect", url };
+    return url;
   }
 
   async setSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {

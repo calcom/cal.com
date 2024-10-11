@@ -1,4 +1,3 @@
-import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
@@ -8,6 +7,9 @@ import {
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
+  transformRecurrenceApiToInternal,
+  systemBeforeFieldNameReadOnly,
+  systemBeforeFieldEmailReadOnly,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
@@ -23,11 +25,14 @@ import {
   eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
 
+import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
+
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  readOnlyFormValues: BookerPlatformWrapperAtomProps["readOnlyFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, bookingFields, users, ...rest } = eventType;
+  const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
   const user = users[0];
@@ -45,7 +50,7 @@ export function transformApiEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, readOnlyFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -95,14 +100,16 @@ export function transformApiEventTypeForAtom(
         upId: `usr-${user.id}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  readOnlyFormValues: BookerPlatformWrapperAtomProps["readOnlyFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, ...rest } = eventType;
+  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -119,7 +126,7 @@ export function transformApiTeamEventTypeForAtom(
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, readOnlyFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -180,6 +187,7 @@ export function transformApiTeamEventTypeForAtom(
         upId: `usr-${host.userId}`,
       },
     })),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
   };
 }
 
@@ -216,10 +224,13 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
   return withPrivateHidden;
 }
 
-function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
+function getBookingFields(
+  bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
+  readOnlyFormValues: BookerPlatformWrapperAtomProps["readOnlyFormValues"] | undefined
+) {
   const systemBeforeFields: SystemField[] = [
-    systemBeforeFieldName,
-    systemBeforeFieldEmail,
+    readOnlyFormValues?.name ? systemBeforeFieldNameReadOnly : systemBeforeFieldName,
+    readOnlyFormValues?.email ? systemBeforeFieldEmailReadOnly : systemBeforeFieldEmail,
     systemBeforeFieldLocation,
   ];
 

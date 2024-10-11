@@ -1,21 +1,26 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState, useEffect } from "react";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
-import type { EventTypeSetupProps, TabMap } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues, TabMap } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
+import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import { useAtomsEventTypeById } from "../hooks/useAtomEventTypeById";
+import { useAtomsEventTypeById, QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY } from "../hooks/useAtomEventTypeById";
 import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
+import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
+import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
+import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 
 export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instant" | "ai" | "apps">;
@@ -23,10 +28,12 @@ export type PlatformTabs = keyof Omit<TabMap, "workflows" | "webhooks" | "instan
 export type EventTypePlatformWrapperProps = {
   id: number;
   tabs?: PlatformTabs[];
+  onSuccess?: (eventType: FormValues) => void;
+  onError?: (eventType: FormValues, error: Error) => void;
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced"],
+  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring"],
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -37,6 +44,7 @@ const EventType = ({
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = props;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const { data: user, isLoading: isUserLoading } = useMe();
 
   const updateMutation = useAtomUpdateEventType({
     onSuccess: async () => {
@@ -52,18 +60,25 @@ const EventType = ({
       form.reset(currentValues);
 
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      onSuccess?.(currentValues);
     },
     async onSettled() {
       return;
     },
     onError: (err: Error) => {
+      const currentValues = form.getValues();
       const message = err?.message;
       toast({ description: message ? t(message) : t(err.message) });
+      onError?.(currentValues, err);
     },
   });
 
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
+
+  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+    toast({ description: message });
+  };
 
   const tabMap = {
     setup: tabs.includes("setup") ? (
@@ -79,10 +94,25 @@ const EventType = ({
     ),
     availability: <></>,
     team: <></>,
-    limits: <></>,
-    advanced: <></>,
+    advanced: tabs.includes("advanced") ? (
+      <EventAdvancedPlatformWrapper
+        eventType={eventType}
+        team={team}
+        user={user?.data}
+        isUserLoading={isUserLoading}
+        showToast={showToast}
+      />
+    ) : (
+      <></>
+    ),
+
+    limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
     instant: <></>,
-    recurring: <></>,
+    recurring: tabs.includes("recurring") ? (
+      <EventRecurringTabPlatformWrapper eventType={eventType} />
+    ) : (
+      <></>
+    ),
     apps: <></>,
     workflows: <></>,
     webhooks: <></>,
@@ -158,10 +188,25 @@ const EventType = ({
   );
 };
 
-export const EventTypePlatformWrapper = ({ id, tabs }: EventTypePlatformWrapperProps) => {
+export const EventTypePlatformWrapper = ({ id, tabs, onSuccess, onError }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return () => {
+      if (eventTypeQueryData) {
+        // on component unmount or eventTypeId change, reset and invalidate query to get fresh data on next mount
+        queryClient.invalidateQueries({
+          queryKey: [ATOM_EVENT_TYPE_QUERY_KEY, id],
+        });
+        queryClient.resetQueries({
+          queryKey: [ATOM_EVENT_TYPE_QUERY_KEY, id],
+        });
+      }
+    };
+  }, [queryClient, id]);
 
   if (!eventTypeQueryData) return null;
 
-  return <EventType {...eventTypeQueryData} id={id} tabs={tabs} />;
+  return <EventType {...eventTypeQueryData} id={id} tabs={tabs} onSuccess={onSuccess} onError={onError} />;
 };
