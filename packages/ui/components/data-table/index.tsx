@@ -60,7 +60,7 @@ export function DataTable<TData, TValue>({
       }}
       data-testid={rest["data-testid"] ?? "data-table"}>
       <div className="overflow-hidden" style={{ gridArea: "body" }}>
-        <div ref={tableContainerRef} onScroll={onScroll} className="h-full overflow-y-auto">
+        <div ref={tableContainerRef} onScroll={onScroll} className="scrollbar-thin h-full overflow-y-auto">
           <div className="inline-block min-w-full align-middle">
             <Table>
               <TableHeader className="sticky top-0 z-10">
