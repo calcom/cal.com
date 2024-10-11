@@ -94,6 +94,15 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     },
   });
 
+  const deleteMutation = trpc.viewer.deleteCredential.useMutation({
+    onSuccess: () => {
+      router.push("/apps/hitpay");
+    },
+    onError: () => {
+      showToast(t("error_removing_app"), "error");
+    },
+  });
+
   const settingsSchema = z.object({
     apiKey: z
       .string()
@@ -160,6 +169,10 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
       setLoading(false);
     }
   });
+
+  const onCancel = () => {
+    deleteMutation.mutate({ id: credentialId });
+  };
 
   const hitpayIcon = (
     <>
@@ -232,11 +245,9 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
             </div>
             {!props.apiKey || !props.saltKey ? (
               <div className="flex justify-end gap-4">
-                <Link href="/apps">
-                  <Button color="secondary" className="h-10 text-base">
-                    Cancel
-                  </Button>
-                </Link>
+                <Button color="secondary" className="h-10 text-base" onClick={onCancel}>
+                  Cancel
+                </Button>
                 <button
                   className="font-body flex h-10 w-56 items-center justify-center gap-2 rounded-md font-bold text-black shadow transition-all hover:brightness-90 active:scale-95"
                   style={{
