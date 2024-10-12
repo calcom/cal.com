@@ -43,6 +43,7 @@
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
+    "@crabnebula/taurify-api": "^0.1.0",
     "@daily-co/daily-js": "^0.59.0",
     "@daily-co/daily-react": "^0.17.2",
     "@dub/analytics": "^0.0.15",

@@ -1,0 +1,56 @@
+{
+  "$schema": null,
+  "productName": "Cal",
+  "version": "0.1.0",
+  "identifier": "com.cal.app",
+  "backend": null,
+  "description": null,
+  "longDescription": null,
+  "copyright": null,
+  "cloudOrgSlug": "crabnebula",
+  "cloudAppSlug": "cal-com",
+  "app": {
+    "icon": "public/cal-com-icon.svg",
+    "windows": [
+      {
+        "label": "main",
+        "width": 1200.0,
+        "height": 800.0,
+        "minWidth": 1000.0,
+        "minHeight": 800.0,
+        "title": "Cal"
+      }
+    ],
+    "singleInstance": true,
+    "trays": [
+      {
+        "id": "main",
+        "icon": "public/android-chrome-256x256.png"
+      }
+    ]
+  },
+  "iOS": null,
+  "android": null,
+  "windows": {
+    "targets": [
+      {
+        "bundle": "nsis"
+      }
+    ]
+  },
+  "linux": {
+    "targets": [
+      {
+        "bundle": "appimage"
+      }
+    ]
+  },
+  "macOS": {
+    "targets": [
+      {
+        "bundle": "dmg"
+      }
+    ],
+    "arch": "arm64"
+  }
+}
