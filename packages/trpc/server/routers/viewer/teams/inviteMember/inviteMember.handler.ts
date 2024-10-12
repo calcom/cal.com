@@ -249,6 +249,11 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     await throwIfInviterCantAddOwnerToOrg();
   }
 
+  if (input.isPlatform) {
+    // this is where we need to adjust the org and all other stuff for platform user
+    // now that we have to detect a platform user
+  }
+
   await ensureAtleastAdminPermissions({
     userId: inviter.id,
     teamId: inviterOrg.id && inviterOrg.isOrgAdmin ? inviterOrg.id : input.teamId,
@@ -257,6 +262,7 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
 
   const organization = inviter.profile.organization;
   const orgSlug = organization ? organization.slug || organization.requestedSlug : null;
+
   const result = await inviteMembersWithNoInviterPermissionCheck({
     inviterName: inviter.name,
     team,
