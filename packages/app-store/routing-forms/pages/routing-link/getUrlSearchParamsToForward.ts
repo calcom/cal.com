@@ -113,7 +113,7 @@ export function getUrlSearchParamsToForwardForReroute({
   rescheduleUid: string;
 }) {
   searchParams.set("rescheduleUid", rescheduleUid);
-  searchParams.set("cal.reRouting", "true");
+  searchParams.set("cal.rerouting", "true");
   return getUrlSearchParamsToForward({
     formResponse,
     formResponseId,

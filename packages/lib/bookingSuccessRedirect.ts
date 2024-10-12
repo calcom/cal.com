@@ -57,10 +57,10 @@ export const useBookingSuccessRedirect = () => {
     query: Record<string, string | null | undefined | boolean>;
     booking: SuccessRedirectBookingType;
   }) => {
-    const isRerouting = searchParams.get("cal.reRouting") === "true";
+    const isRerouting = searchParams.get("cal.rerouting") === "true";
     query = {
       ...query,
-      ...(isRerouting ? { "cal.reRouting": true } : {}),
+      ...(isRerouting ? { "cal.rerouting": true } : {}),
     };
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);

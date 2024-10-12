@@ -365,7 +365,7 @@ export default function Success(props: PageProps) {
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
-  const isRerouting = searchParams?.get("cal.reRouting") === "true";
+  const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");

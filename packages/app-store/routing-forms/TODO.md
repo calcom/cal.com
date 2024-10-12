@@ -18,6 +18,7 @@
 ## TODO - ReRouting
 - [ ] Need to get teamMemberEmail from Salesforce
 - [ ] When 'Verify Route' is clicked, it doesn't seem to run the form field logic as there is a warning in console. Fix it.
+- [ ] Make sure that without making the FORM dirty, user can't reroute
 
 
 ### Performance Tests and Improvements

@@ -47,7 +47,7 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
-  const isRerouting = searchParams.get("cal.reRouting") === "true";
+  const isRerouting = searchParams.get("cal.rerouting") === "true";
   return {
     ...values,
     user: username,

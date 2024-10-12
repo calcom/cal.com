@@ -79,6 +79,8 @@ function BookingListItem(booking: BookingItemProps) {
       >)
     : null;
 
+  const isTeamBooking = !!bookingEventType?.team;
+
   const {
     t,
     i18n: { language },
@@ -119,7 +121,6 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
-  const isTeamBooking = !!booking.eventType?.team;
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const eventTypeColor =
@@ -202,6 +203,8 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenRescheduleDialog(true);
       },
     },
+    // Only a Team Booking can be re-routed at the moment.
+    // Though `routedFromRoutingFormReponse` could be there for a non-team booking, we don't want to support it for now.
     ...(booking.routedFromRoutingFormReponse && isTeamBooking
       ? [
           {
@@ -384,11 +387,6 @@ function BookingListItem(booking: BookingItemProps) {
       phoneNumber: attendee.phoneNumber,
     };
   });
-
-  const onReroute = () => {
-    // Implement the reroute logic here
-    console.log("Rerouting booking:", booking.uid);
-  };
 
   return (
     <>
@@ -653,13 +651,12 @@ function BookingListItem(booking: BookingItemProps) {
         </td>
       </tr>
       {/* Let's not support re-routing for a booking without an event-type for now. */}
-      {booking.routedFromRoutingFormReponse && bookingEventType && (
+      {booking.routedFromRoutingFormReponse && bookingEventType && bookingEventType.team && (
         <RerouteDialog
           routedFromRoutingFormReponseId={booking.routedFromRoutingFormReponse.id}
           isOpenDialog={rerouteDialogIsOpen}
           setIsOpenDialog={setRerouteDialogIsOpen}
           booking={{ ...booking, eventType: bookingEventType, metadata: bookingMetadata }}
-          onReroute={onReroute}
         />
       )}
     </>
