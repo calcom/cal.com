@@ -2640,6 +2640,15 @@
   "month_to_date": "ayın başından bugüne",
   "year_to_date": "yılın başından bugüne",
   "custom_range": "özel aralık",
+  "salesforce_create_record_as": "Rezervasyon sırasında, etkinlikleri ekleyin ve yeni katılımcıları şu şekilde ekleyin:",
+  "salesforce_lead": "Potansiyel Müşteri",
+  "salesforce_contact_under_account": "Bir hesap altında İletişim",
+  "salesforce_skip_entry_creation": "{{entry}} kaydı Salesforce'ta yoksa oluşturmayı atla",
+  "salesforce_if_account_does_not_exist": "İletişim bir hesap altında yoksa, katılımcıdan yeni potansiyel müşteri oluştur",
+  "salesforce_create_new_contact_under_account": "Katılımcının e-posta alanı ve mevcut iletişimler temelinde bir hesap altında yeni bir iletişim oluştur",
   "mass_assign_attributes": "Özellikleri toplu olarak atama",
+  "salesforce_book_directly_with_attendee_owner": "Katılımcı Salesforce'ta mevcutsa, doğrudan sahibiyle rezervasyon yap",
+  "salesforce_check_owner_of": "Doğrudan rezervasyon yapmak için sahibini kontrol edilecek varlık",
+  "account": "Hesap",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

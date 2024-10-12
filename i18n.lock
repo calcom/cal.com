@@ -2642,5 +2642,14 @@ checksums:
     month_to_date: 7f7e4653c67cdaab178faa332007b1a0
     year_to_date: 1de1bfcb57fc841987305d851383042a
     custom_range: c489facbacd8b2b232c9ea6aae568ae3
+    salesforce_create_record_as: cbbfbdf5568f642bfc38dc83284c3c18
+    salesforce_lead: f1dee70c3b331625a29cc93338b3078c
+    salesforce_contact_under_account: 7311a2c181c34ad69ff9751472d4f7f3
+    salesforce_skip_entry_creation: 552cd5e07e6244febfdebe676c825a41
+    salesforce_if_account_does_not_exist: ff7ce8c176eaa2ed8a7e6fe09327e830
+    salesforce_create_new_contact_under_account: 929d1effb813cc09b87f79fee1cb699d
     mass_assign_attributes: 92df3a9cc0a1d55a616c014517c5bee5
+    salesforce_book_directly_with_attendee_owner: 32527f7bc50272de1cb81401e0bf17a9
+    salesforce_check_owner_of: f9e2369739fa3b659b86ed78c1937b11
+    account: 01215c12fb1cdb93bd0c84c1382bef56
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
