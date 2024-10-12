@@ -23,7 +23,7 @@ type BrandColorsFormValues = {
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] } & { isAppDir?: boolean };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] } & { isAppDir?: boolean };
 
 const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
   const { t } = useLocale();
@@ -193,7 +193,7 @@ const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(params.id) },
     {
       enabled: !!Number(params.id),

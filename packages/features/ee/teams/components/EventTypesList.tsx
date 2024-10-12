@@ -21,7 +21,7 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import type { User } from "./MemberListItem";
+import type { User } from "./MemberList";
 
 interface Props {
   table: Table<User>;
@@ -44,7 +44,7 @@ export function EventTypesList({ table, teamId }: Props) {
         "success"
       );
 
-      utils.viewer.teams.lazyLoadMembers.invalidate();
+      utils.viewer.teams.listMembers.invalidate();
       utils.viewer.eventTypes.invalidate();
 
       // Clear the selected values
@@ -62,7 +62,7 @@ export function EventTypesList({ table, teamId }: Props) {
         "success"
       );
 
-      utils.viewer.teams.lazyLoadMembers.invalidate();
+      utils.viewer.teams.listMembers.invalidate();
       utils.viewer.eventTypes.invalidate();
 
       // Clear the selected values
