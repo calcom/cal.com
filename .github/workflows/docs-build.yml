@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build Docs
+    permissions:
+      contents: read
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Cache Docs build
+        uses: buildjet/cache@v4
+        id: cache-docs-build
+        env:
+          cache-name: docs-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('docs/**.*', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            **/docs/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+      - run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          if [ ${{ steps.cache-docs-build.outputs.cache-hit }} == 'true' ]; then
+            echo "Cache hit for Docs build. Skipping build."
+          else
+            npm install -g mintlify
+            mintlify dev
+          fi
+        shell: bash
