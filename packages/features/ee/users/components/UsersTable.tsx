@@ -116,6 +116,7 @@ function UsersTableBare() {
           })),
         };
       });
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
 
