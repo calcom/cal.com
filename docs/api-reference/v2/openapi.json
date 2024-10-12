@@ -59,6 +59,84 @@
         "tags": ["Platform / Cal Provider"]
       }
     },
+    "/v2/conferencing": {
+      "get": {
+        "operationId": "ConferencingController_listConferencingApps",
+        "summary": "List your conferencing applications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Platform / Conferencing"]
+      }
+    },
+    "/v2/conferencing/{app}/default": {
+      "post": {
+        "operationId": "ConferencingController_default",
+        "summary": "Set your default conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Platform / Conferencing"]
+      }
+    },
+    "/v2/conferencing/{app}/disconnect": {
+      "delete": {
+        "operationId": "ConferencingController_disconnect",
+        "summary": "Disconnect your conferencing application",
+        "parameters": [
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Platform / Conferencing"]
+      }
+    },
     "/v2/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
@@ -3826,25 +3904,6 @@
         "tags": ["Event Types / Webhooks"]
       }
     },
-    "/health": {
-      "get": {
-        "operationId": "AppController_getHealth",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Health - development only"]
-      }
-    },
     "/v2/me": {
       "get": {
         "operationId": "MeController_getMe",
@@ -4025,192 +4084,6 @@
           }
         },
         "tags": ["OAuth", "Managed users"]
-      }
-    },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth - development only"]
-      },
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth - development only"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth - development only"]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth - development only"]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth - development only"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/managed-users": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth - development only"]
       }
     },
     "/v2/schedules": {
@@ -7912,6 +7785,9 @@
           },
           "bookingLimits": {
             "type": "string"
+          },
+          "includeManagedEventsInLimits": {
+            "type": "boolean"
           }
         }
       },
@@ -10961,12 +10837,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -11005,12 +10887,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -11052,9 +10940,9 @@
               "type": "string"
             }
           },
-          "meetingUrl": {
+          "location": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
@@ -11067,6 +10955,20 @@
         },
         "required": ["start", "eventTypeId", "attendee"]
       },
+      "EventType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "slug": {
+            "type": "string",
+            "example": "some-event"
+          }
+        },
+        "required": ["id", "slug"]
+      },
       "BookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -11077,6 +10979,14 @@
           "uid": {
             "type": "string",
             "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -11115,7 +11025,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 45
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "attendees": {
             "type": "array",
@@ -11132,22 +11047,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "attendees",
           "absentHost"
         ]
@@ -11162,6 +11093,14 @@
           "uid": {
             "type": "string",
             "example": "recurring_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Recurring meeting"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -11200,7 +11139,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 50
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "recurringBookingUid": {
             "type": "string",
@@ -11221,22 +11165,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/recurring-meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": false
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "recurringBookingUid",
           "attendees",
           "absentHost"
@@ -11291,6 +11251,9 @@
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -11316,6 +11279,9 @@
               ]
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]
