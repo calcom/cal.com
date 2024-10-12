@@ -110,12 +110,16 @@ function UsersTableBare() {
             ...page,
             rows: page.rows.map((row) => {
               const newUser = row;
-              if (row.id === userId) newUser.locked = locked;
-              return newUser;
+
+              return {
+                ...newUser,
+                locked: row.id === userId ? locked : newUser.locked,
+              };
             }),
           })),
         };
       });
+      utils.viewer.admin.listPaginated.invalidate();
     },
   });
 
