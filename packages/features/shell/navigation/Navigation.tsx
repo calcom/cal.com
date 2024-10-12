@@ -124,11 +124,6 @@ const platformNavigation: NavigationItemType[] = [
     href: "/settings/platform/billing",
     icon: "credit-card",
   },
-  {
-    name: "Members",
-    href: "/settings/platform/members",
-    icon: "users",
-  },
 ];
 
 export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
