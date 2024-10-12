@@ -2640,6 +2640,15 @@
   "month_to_date": "mes hasta la fecha",
   "year_to_date": "año hasta la fecha",
   "custom_range": "rango personalizado",
+  "salesforce_create_record_as": "Al reservar, agregar eventos y nuevos asistentes como:",
+  "salesforce_lead": "Cliente potencial",
+  "salesforce_contact_under_account": "Contacto bajo una cuenta",
+  "salesforce_skip_entry_creation": "Omitir la creación del registro de {{entry}} si no existe en Salesforce",
+  "salesforce_if_account_does_not_exist": "Si el contacto no existe bajo una cuenta, crear un nuevo cliente potencial a partir del asistente",
+  "salesforce_create_new_contact_under_account": "Crear un nuevo contacto bajo una cuenta basado en el dominio de correo electrónico del asistente y los contactos existentes",
   "mass_assign_attributes": "Asignar atributos en masa",
+  "salesforce_book_directly_with_attendee_owner": "Si el asistente existe en Salesforce, reservar directamente con el propietario",
+  "salesforce_check_owner_of": "Entidad de la que verificar el propietario para reservar directamente",
+  "account": "Cuenta",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

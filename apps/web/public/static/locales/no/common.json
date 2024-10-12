@@ -2640,6 +2640,15 @@
   "month_to_date": "måned til dags dato",
   "year_to_date": "år til dags dato",
   "custom_range": "tilpasset periode",
+  "salesforce_create_record_as": "Ved booking, legg til hendelser og nye deltakere som:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Kontakt under en konto",
+  "salesforce_skip_entry_creation": "Hopp over å opprette {{entry}}-post hvis de ikke finnes i Salesforce",
+  "salesforce_if_account_does_not_exist": "Hvis kontakten ikke finnes under en konto, opprett ny lead fra deltaker",
+  "salesforce_create_new_contact_under_account": "Opprett en ny kontakt under en konto basert på e-postdomenet til deltaker og eksisterende kontakter",
   "mass_assign_attributes": "Masseopptildel attributter",
+  "salesforce_book_directly_with_attendee_owner": "Hvis deltaker finnes i Salesforce, book direkte med eieren",
+  "salesforce_check_owner_of": "Enhet for å sjekke eier av for å booke direkte",
+  "account": "Konto",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

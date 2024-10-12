@@ -2640,6 +2640,15 @@
   "month_to_date": "з початку місяця",
   "year_to_date": "з початку року",
   "custom_range": "власний діапазон",
+  "salesforce_create_record_as": "Під час бронювання додати події та нових учасників як:",
+  "salesforce_lead": "Лід",
+  "salesforce_contact_under_account": "Контакт під обліковим записом",
+  "salesforce_skip_entry_creation": "Пропустити створення запису {{entry}}, якщо вони не існують у Salesforce",
+  "salesforce_if_account_does_not_exist": "Якщо контакт не існує під обліковим записом, створити новий лід з учасника",
+  "salesforce_create_new_contact_under_account": "Створити новий контакт під обліковим записом на основі домену електронної пошти учасника та існуючих контактів",
   "mass_assign_attributes": "Масове призначення атрибутів",
+  "salesforce_book_directly_with_attendee_owner": "Якщо учасник існує в Salesforce, бронювати безпосередньо з власником",
+  "salesforce_check_owner_of": "Сутність для перевірки власника для прямого бронювання",
+  "account": "Обліковий запис",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
