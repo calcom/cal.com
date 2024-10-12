@@ -187,14 +187,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <span className="text-default">{user.name}</span>
-                      <span className="ml-3">/{user.username}</span>
-                      {user.locked && (
-                        <span className="ml-3">
-                          <Icon name="lock" />
-                        </span>
-                      )}
-                      <br />
+                      <div className="flex flex-row">
+                        <span className="text-default">{user.name}</span>
+                        <span className="ml-3">/{user.username}</span>
+                        {user.locked && (
+                          <span className="ml-3">
+                            <Icon name="lock" />
+                          </span>
+                        )}
+                        <br />
+                      </div>
                       <span className="break-all">{user.email}</span>
                     </div>
                   </div>
