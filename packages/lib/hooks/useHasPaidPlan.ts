@@ -27,8 +27,6 @@ export function useTeamInvites() {
 }
 
 export function useHasTeamPlan() {
-  if (IS_SELF_HOSTED) return { isPending: false, hasTeamPlan: true };
-
   const { data: hasTeamPlan, isPending } = trpc.viewer.teams.hasTeamPlan.useQuery();
 
   return { isPending, hasTeamPlan: hasTeamPlan?.hasTeamPlan };
