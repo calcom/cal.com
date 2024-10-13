@@ -312,7 +312,7 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
-              {props.heading === "Bookings" && buttonToShow && (
+              {props.heading === "Bookings" && buttonToShow !== ButtonState.NONE && (
                 <Button
                   color="primary"
                   onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
