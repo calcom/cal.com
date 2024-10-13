@@ -27,6 +27,11 @@
         "id": "main",
         "icon": "public/android-chrome-256x256.png"
       }
+    ],
+    "desktopDeepLinks": [
+      {
+        "schemes": ["cal"]
+      }
     ]
   },
   "iOS": null,
