@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -17,7 +18,8 @@ import {
   showToast,
   Switch,
   TextArea,
-  UpgradeTeamsBadge,
+  Tooltip,
+  Badge,
 } from "@calcom/ui";
 
 export type BookingRedirectForm = {
@@ -203,7 +205,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 />
                 {!hasTeamPlan && (
                   <div className="mx-2" data-testid="upgrade-team-badge">
-                    <UpgradeTeamsBadge />
+                    <Tooltip content={t("upgrade_to_enable_feature")}>
+                      <Link href="/teams">
+                        <Badge variant="gray">{t("upgrade")}</Badge>
+                      </Link>
+                    </Tooltip>
                   </div>
                 )}
               </div>
