@@ -261,7 +261,7 @@ export async function getTeamWithMembers(args: {
   };
 }
 
-export async function getMinimalTeam(args: {
+export async function getTeamWithoutMembers(args: {
   id?: number;
   slug?: string;
   userId?: number;
