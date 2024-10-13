@@ -268,8 +268,6 @@ export async function getBookings({
     rescheduled: true,
     references: true,
     isRecorded: true,
-    seatReferenceUid: true,
-    hashedLink: true,
     seatsReferences: {
       where: {
         attendee: {

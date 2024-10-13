@@ -19,6 +19,9 @@
 - [ ] Need to get teamMemberEmail from Salesforce
 - [ ] When 'Verify Route' is clicked, it doesn't seem to run the form field logic as there is a warning in console. Fix it.
 - [ ] Make sure that without making the FORM dirty, user can't reroute
+- To Test
+    - [ ] Hashed link booking
+
 
 
 ### Performance Tests and Improvements
@@ -49,6 +52,8 @@
 
 ### Rerouting - Documentation
 - [ ] When re-routed, the booking page doesn't allow rescheduling/cancellation to avoid any possible issues. We can open it up later.
+- [ ] Booking with seats not supported yet. Need to figure out which seats should be re-routed or if re-routing makes sense for it even?
+- [ ] Hashed link re-routing doesn't make sense with. With Routing you route to an event from form and it doesn't involve hashed link even if it is enabled
 
 ### V2.0
 - [ ] Fallback for when no team member matches the criteria.

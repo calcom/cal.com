@@ -67,10 +67,14 @@ type BookingItemProps = BookingItem & {
   };
 };
 
-function BookingListItem(booking: BookingItemProps) {
-  const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
-  const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
+type ParsedBooking = ReturnType<typeof buildParsedBooking>;
+type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
+type TeamEventTypeBooking = Omit<ParsedBooking, "eventType"> & {
+  eventType: TeamEvent;
+};
+type ReroutableBooking = Ensure<TeamEventTypeBooking, "routedFromRoutingFormReponse">;
 
+function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
@@ -79,8 +83,22 @@ function BookingListItem(booking: BookingItemProps) {
       >)
     : null;
 
-  const isTeamBooking = !!bookingEventType?.team;
+  const bookingMetadata = bookingMetadataSchema.parse(booking.metadata ?? null);
+  return {
+    ...booking,
+    eventType: bookingEventType,
+    metadata: bookingMetadata,
+  };
+}
 
+const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooking => {
+  return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
+};
+
+function BookingListItem(booking: BookingItemProps) {
+  const parsedBooking = buildParsedBooking(booking);
+
+  const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
@@ -120,7 +138,8 @@ function BookingListItem(booking: BookingItemProps) {
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
-  const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
+  const locationVideoCallUrl = parsedBooking.metadata?.videoCallUrl;
+
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const eventTypeColor =
@@ -205,7 +224,7 @@ function BookingListItem(booking: BookingItemProps) {
     },
     // Only a Team Booking can be re-routed at the moment.
     // Though `routedFromRoutingFormReponse` could be there for a non-team booking, we don't want to support it for now.
-    ...(booking.routedFromRoutingFormReponse && isTeamBooking
+    ...(isBookingReroutable(parsedBooking)
       ? [
           {
             id: "reroute",
@@ -650,13 +669,15 @@ function BookingListItem(booking: BookingItemProps) {
           )}
         </td>
       </tr>
-      {/* Let's not support re-routing for a booking without an event-type for now. */}
-      {booking.routedFromRoutingFormReponse && bookingEventType && bookingEventType.team && (
+      {/* 
+        Let's not support re-routing for a booking without an event-type for now.
+        Such a booking has its event-type deleted and there might not be something to reroute to.
+      */}
+      {isBookingReroutable(parsedBooking) && (
         <RerouteDialog
-          routedFromRoutingFormReponseId={booking.routedFromRoutingFormReponse.id}
           isOpenDialog={rerouteDialogIsOpen}
           setIsOpenDialog={setRerouteDialogIsOpen}
-          booking={{ ...booking, eventType: bookingEventType, metadata: bookingMetadata }}
+          booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
         />
       )}
     </>

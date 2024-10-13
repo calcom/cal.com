@@ -55,6 +55,14 @@ const queryValueSchema = z.object({
   properties: z.any(),
 });
 
+export enum RouteActionType {
+  CustomPageMessage = "customPageMessage",
+  ExternalRedirectUrl = "externalRedirectUrl",
+  EventTypeRedirectUrl = "eventTypeRedirectUrl",
+}
+
+export const routeActionTypeSchema = z.nativeEnum(RouteActionType);
+
 export const zodNonRouterRoute = z.object({
   id: z.string(),
   attributeRoutingConfig: z
@@ -74,12 +82,7 @@ export const zodNonRouterRoute = z.object({
   attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
-    // TODO: Make it a union type of "customPageMessage" and ..
-    type: z.union([
-      z.literal("customPageMessage"),
-      z.literal("externalRedirectUrl"),
-      z.literal("eventTypeRedirectUrl"),
-    ]),
+    type: routeActionTypeSchema,
     value: z.string(),
   }),
 });

@@ -42,6 +42,7 @@ import {
 import isRouter from "../../lib/isRouter";
 import type { SerializableForm } from "../../types/types";
 import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
+import { RouteActionType } from "../../zod";
 
 type FormFieldsQueryBuilderState = {
   tree: ImmutableTree;
@@ -106,7 +107,7 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   return {
     id: uuid,
     action: {
-      type: "eventTypeRedirectUrl",
+      type: RouteActionType.EventTypeRedirectUrl,
       value: "",
     },
     // It is actually formFieldsQueryValue

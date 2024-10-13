@@ -2645,5 +2645,9 @@
   "year_to_date": "year to date",
   "custom_range": "custom range",
   "mass_assign_attributes": "Mass assign attributes",
+  "reroute_preview_custom_message": "It results in showing custom message. Try changing the response to route to an event",
+  "reroute_preview_external_redirect": "It results in redirecting to {{externalUrl}}. Try changing the response to route to an event",
+  "reroute_preview_possible_host": "Possible host",
+  "current_routing_status": "Current routing status",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
