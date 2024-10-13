@@ -5,8 +5,6 @@ import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
 import type { AppMeta } from "@calcom/types/App";
 
@@ -71,25 +69,24 @@ function generateFiles() {
     }
   });
 
-  function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
-    for (let i = 0; i < appDirs.length; i++) {
-      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
-      const metadataPath = path.join(APP_STORE_PATH, appDirs[i].path, "_metadata.ts");
-      let app;
+  async function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
+    for (const { name, path: appPath } of appDirs) {
+      const configPath = path.join(APP_STORE_PATH, appPath, "config.json");
+      const metadataPath = path.join(APP_STORE_PATH, appPath, "_metadata.ts");
+
+      let app: Partial<App> = {};
 
       if (fs.existsSync(configPath)) {
-        app = JSON.parse(fs.readFileSync(configPath).toString());
+        app = JSON.parse(fs.readFileSync(configPath, "utf-8"));
       } else if (fs.existsSync(metadataPath)) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        app = require(metadataPath).metadata;
-      } else {
-        app = {};
+        const importedModule = await import(metadataPath);
+        app = importedModule.metadata;
       }
 
       const finalApp = {
         ...app,
-        name: appDirs[i].name,
-        path: appDirs[i].path,
+        name,
+        path: appPath,
       };
 
       if (filter(finalApp)) {
