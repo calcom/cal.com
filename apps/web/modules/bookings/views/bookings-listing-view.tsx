@@ -5,6 +5,7 @@ import { Menu } from "@crabnebula/taurify-api/menu";
 import { TrayIcon } from "@crabnebula/taurify-api/tray";
 import { getCurrentWebviewWindow } from "@crabnebula/taurify-api/webviewWindow";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -82,6 +83,7 @@ export default function Bookings() {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+  const router = useRouter();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -176,10 +178,10 @@ export default function Bookings() {
                 const isRecurring = booking.recurringEventId !== null;
                 const isTabRecurring = booking.listingStatus === "recurring";
 
-                window.location.href = `/booking/${booking.uid}?cancel=true${
+                router.push(`/booking/${booking.uid}?cancel=true${
                   isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
                 }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
-              `;
+                `);
 
                 await focusAppWindow();
               },
@@ -187,9 +189,11 @@ export default function Bookings() {
             {
               text: t("reschedule_booking"),
               action: async () => {
-                window.location.href = `/reschedule/${booking.uid}${
-                  booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-                }`;
+                router.push(
+                  `/reschedule/${booking.uid}${
+                    booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+                  }`
+                );
 
                 await focusAppWindow();
               },
