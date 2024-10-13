@@ -5,16 +5,15 @@ import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
 import type { AppMeta } from "@calcom/types/App";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
-let isInWatchMode = false;
-if (process.argv[2] === "--watch") {
-  isInWatchMode = true;
-}
+const isInWatchMode = process.argv[2] === "--watch";
 
 const formatOutput = (source: string) =>
   prettier.format(source, {
@@ -22,14 +21,9 @@ const formatOutput = (source: string) =>
     ...prettierConfig,
   });
 
-const getVariableName = function (appName: string) {
-  return appName.replace(/[-.]/g, "_");
-};
+const getVariableName = (appName: string) => appName.replace(/[-.]/g, "_");
 
-const getAppId = function (app: { name: string }) {
-  // Handle stripe separately as it's an old app with different dirName than slug/appId
-  return app.name === "stripepayment" ? "stripe" : app.name;
-};
+const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
 
 type App = Partial<AppMeta> & {
   name: string;
@@ -69,24 +63,25 @@ function generateFiles() {
     }
   });
 
-  async function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
-    for (const { name, path: appPath } of appDirs) {
-      const configPath = path.join(APP_STORE_PATH, appPath, "config.json");
-      const metadataPath = path.join(APP_STORE_PATH, appPath, "_metadata.ts");
-
-      let app: Partial<App> = {};
+  function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
+    for (let i = 0; i < appDirs.length; i++) {
+      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
+      const metadataPath = path.join(APP_STORE_PATH, appDirs[i].path, "_metadata.ts");
+      let app;
 
       if (fs.existsSync(configPath)) {
-        app = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+        app = JSON.parse(fs.readFileSync(configPath).toString());
       } else if (fs.existsSync(metadataPath)) {
-        const importedModule = await import(metadataPath);
-        app = importedModule.metadata;
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        app = require(metadataPath).metadata;
+      } else {
+        app = {};
       }
 
       const finalApp = {
         ...app,
-        name,
-        path: appPath,
+        name: appDirs[i].name,
+        path: appDirs[i].path,
       };
 
       if (filter(finalApp)) {
