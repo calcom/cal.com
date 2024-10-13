@@ -6,7 +6,12 @@ import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
-import { type PageProps } from "./users-type-public-view.getServerSideProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
+
+import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
@@ -18,7 +23,7 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-export default function Type({
+function Type({
   slug,
   user,
   isEmbed,
@@ -62,3 +67,7 @@ export default function Type({
     </main>
   );
 }
+
+Type.isBookingPage = true;
+
+export default Type;

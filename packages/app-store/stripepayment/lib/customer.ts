@@ -83,7 +83,11 @@ export async function deleteStripeCustomer(user: UserType): Promise<string | nul
   return deletedCustomer.id;
 }
 
-export async function retrieveOrCreateStripeCustomerByEmail(email: string, stripeAccountId: string) {
+export async function retrieveOrCreateStripeCustomerByEmail(
+  stripeAccountId: string,
+  email: string,
+  phoneNumber?: string | null
+) {
   const customer = await stripe.customers.list(
     {
       email,
@@ -98,7 +102,7 @@ export async function retrieveOrCreateStripeCustomerByEmail(email: string, strip
     return customer.data[0];
   } else {
     const newCustomer = await stripe.customers.create(
-      { email },
+      { email, phone: phoneNumber ?? undefined },
       {
         stripeAccount: stripeAccountId,
       }

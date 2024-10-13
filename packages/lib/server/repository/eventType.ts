@@ -444,9 +444,11 @@ export class EventTypeRepository {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       recurringEvent: true,
       hideCalendarNotes: true,
+      hideCalendarEventDetails: true,
       disableGuests: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
@@ -516,6 +518,12 @@ export class EventTypeRepository {
       },
       schedulingType: true,
       schedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      instantMeetingSchedule: {
         select: {
           id: true,
           name: true,

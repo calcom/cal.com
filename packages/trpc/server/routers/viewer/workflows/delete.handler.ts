@@ -1,10 +1,11 @@
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import { deleteAllWorkflowReminders, isAuthorized, removeSmsReminderFieldForEventTypes } from "./util";
+import { isAuthorized, removeSmsReminderFieldForEventTypes } from "./util";
 
 type DeleteOptions = {
   ctx: {
@@ -50,7 +51,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   });
 
   //cancel workflow reminders of deleted workflow
-  await deleteAllWorkflowReminders(scheduledReminders);
+  await WorkflowRepository.deleteAllWorkflowReminders(scheduledReminders);
 
   const isOrg = workflowToDelete.team?.isOrganization ?? false;
 
@@ -58,7 +59,12 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     ? workflowToDelete.activeOnTeams.map((activeOn) => activeOn.teamId)
     : workflowToDelete.activeOn.map((activeOn) => activeOn.eventTypeId);
 
-  await removeSmsReminderFieldForEventTypes({ activeOnToRemove, workflowId: workflowToDelete.id, isOrg, actorUserId: ctx.user.id ?? null});
+  await removeSmsReminderFieldForEventTypes({
+    activeOnToRemove,
+    workflowId: workflowToDelete.id,
+    isOrg,
+    actorUserId: ctx.user.id ?? null,
+  });
 
   // automatically deletes all steps and reminders connected to this workflow
   await prisma.workflow.deleteMany({

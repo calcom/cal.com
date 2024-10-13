@@ -291,8 +291,8 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
+        source: "/router/:path*",
+        destination: "/apps/routing-forms/router/:path*",
       },
       {
         source: "/success/:path*",
@@ -437,6 +437,22 @@ const nextConfig = {
         source: "/:path*/embed",
         // COEP require-corp header is set conditionally when flag.coep is set to true
         headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "cal.com",
+          },
+        ],
+        headers: [
+          // make sure to pass full referer URL for booking pages
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer-when-downgrade",
+          },
+        ],
       },
       // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
       ...[

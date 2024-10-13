@@ -4,11 +4,11 @@ import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
-import { paymentOptions } from "../lib/constants";
 import {
   convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
-} from "../lib/currencyConversions";
+} from "../../_utils/payments/currencyConversions";
+import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
 
 type Option = { value: string; label: string };
@@ -93,6 +93,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               data-testid="stripe-currency-select"
               variant="default"
               options={currencyOptions}
+              innerClassNames={{
+                input: "stripe-currency-input",
+              }}
               value={selectedCurrency}
               className="text-black"
               defaultValue={selectedCurrency}
