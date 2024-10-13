@@ -100,6 +100,7 @@ export async function createBooking({
     input,
     evt,
     originalRescheduledBooking,
+    actorUserId,
   });
 
   return await saveBooking(
@@ -167,8 +168,16 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
 }
 
 function buildNewBookingData(params: CreateBookingParams): Prisma.BookingCreateInput {
-  const { uid, evt, reqBody, eventType, input, originalRescheduledBooking, routedFromRoutingFormResponseId } =
-    params;
+  const {
+    uid,
+    evt,
+    reqBody,
+    eventType,
+    input,
+    originalRescheduledBooking,
+    routedFromRoutingFormResponseId,
+    actorUserId,
+  } = params;
 
   const attendeesData = getAttendeesData(evt);
   const eventTypeRel = getEventTypeRel(eventType.id);
@@ -211,6 +220,7 @@ function buildNewBookingData(params: CreateBookingParams): Prisma.BookingCreateI
     routedFromRoutingFormReponse: routedFromRoutingFormResponseId
       ? { connect: { id: routedFromRoutingFormResponseId } }
       : undefined,
+    actorUserId,
   };
 
   if (reqBody.recurringEventId) {

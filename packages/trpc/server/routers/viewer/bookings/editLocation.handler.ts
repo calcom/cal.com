@@ -78,6 +78,7 @@ async function updateBookingLocationInDb({
   booking,
   evt,
   referencesToCreate,
+  actorUserId,
 }: {
   booking: {
     id: number;
@@ -85,6 +86,7 @@ async function updateBookingLocationInDb({
   };
   evt: Ensure<CalendarEvent, "location">;
   referencesToCreate: Prisma.BookingReferenceCreateInput[];
+  actorUserId: number | null;
 }) {
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
@@ -117,7 +119,7 @@ async function updateBookingLocationInDb({
       references: {
         create: referencesToCreate,
       },
-      actorUserId: ctx.user.id ?? null,
+      actorUserId,
     },
   });
 }
@@ -275,7 +277,12 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     evt,
   });
 
-  await updateBookingLocationInDb({ booking, evt, referencesToCreate: updatedResult.referencesToCreate });
+  await updateBookingLocationInDb({
+    booking,
+    evt,
+    referencesToCreate: updatedResult.referencesToCreate,
+    actorUserId: ctx.user.id ?? null,
+  });
 
   try {
     await sendLocationChangeEmailsAndSMS(
