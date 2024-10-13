@@ -75,6 +75,7 @@ import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import synthflow_config_json from "./synthflow/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
+import telli_config_json from "./telli/config.json";
 import basic_config_json from "./templates/basic/config.json";
 import booking_pages_tag_config_json from "./templates/booking-pages-tag/config.json";
 import event_type_app_card_config_json from "./templates/event-type-app-card/config.json";
@@ -172,6 +173,7 @@ export const appStoreMetadata = {
   synthflow: synthflow_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
+  telli: telli_config_json,
   basic: basic_config_json,
   "booking-pages-tag": booking_pages_tag_config_json,
   "event-type-app-card": event_type_app_card_config_json,
