@@ -90,7 +90,6 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       ...idToSearchObject,
       appId: booking.payment[0].appId,
     },
-
     include: {
       app: true,
     },
