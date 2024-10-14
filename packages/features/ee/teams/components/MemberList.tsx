@@ -41,12 +41,12 @@ import { EventTypesList } from "./EventTypesList";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
-  team: NonNullable<RouterOutputs["viewer"]["teams"]["getMinimal"]>;
+  team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
   isOrgAdminOrOwner: boolean | undefined;
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
 }
 
-export type User = RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
+export type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
 const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
@@ -111,7 +111,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export default function MemberListItem(props: Props) {
+export default function MemberList(props: Props) {
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
@@ -124,7 +124,7 @@ export default function MemberListItem(props: Props) {
   const { copyToClipboard, isCopied } = useCopy();
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
     {
       limit: 10,
       searchTerm: debouncedSearchTerm,
@@ -151,7 +151,7 @@ export default function MemberListItem(props: Props) {
     teamId: number;
     searchTerm: string;
   }) => {
-    utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+    utils.viewer.teams.listMembers.setInfiniteData(
       {
         limit: 10,
         teamId,
@@ -178,8 +178,8 @@ export default function MemberListItem(props: Props) {
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onMutate: async ({ teamIds }) => {
-      await utils.viewer.teams.lazyLoadMembers.cancel();
-      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+      await utils.viewer.teams.listMembers.cancel();
+      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
         searchTerm: searchTerm,
