@@ -434,13 +434,24 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
 
   // Check if user is associated with the event type
   if (eventTypeId) {
-    const eventType = await prisma.eventType.findUnique({
-      where: {
-        id: eventTypeId,
-        OR: [{ hosts: { some: { userId: loggedInUserId } } }, { users: { some: { id: loggedInUserId } } }],
-      },
-    });
-    if (eventType) return;
+    const [loggedInUserAsHostOfEventType, loggedInUserAsUserOfEventType] = await Promise.all([
+      prisma.eventType.findUnique({
+        where: {
+          id: eventTypeId,
+          hosts: { some: { userId: loggedInUserId } },
+        },
+        select: { id: true },
+      }),
+      prisma.eventType.findUnique({
+        where: {
+          id: eventTypeId,
+          users: { some: { id: loggedInUserId } },
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    if (loggedInUserAsHostOfEventType || loggedInUserAsUserOfEventType) return;
   }
 
   // Check if the user is an admin/owner of the team the booking belongs to
@@ -449,7 +460,9 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
       where: {
         userId: loggedInUserId,
         teamId: teamId,
-        OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
+        role: {
+          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        },
       },
     });
     if (membership) return;
