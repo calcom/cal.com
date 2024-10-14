@@ -28,7 +28,6 @@ import {
   sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import {
@@ -44,7 +43,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -80,7 +79,6 @@ import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
@@ -129,25 +127,6 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   return originalRescheduledBooking.iCalSequence + 1;
 }
 
-const getEventType = async ({
-  eventTypeId,
-  eventTypeSlug,
-}: {
-  eventTypeId: number;
-  eventTypeSlug?: string;
-}) => {
-  // handle dynamic user
-  const eventType =
-    !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
-
-  const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
-
-  return {
-    ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
-  };
-};
-
 type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
@@ -182,15 +161,17 @@ function buildLuckyUsersWithJustContactOwner({
   return luckyUsers;
 }
 
+type HandlerReqType = NextApiRequest & {
+  userId?: number | undefined;
+  platformClientId?: string;
+  platformRescheduleUrl?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  platformBookingLocation?: string;
+};
+
 async function handler(
-  req: NextApiRequest & {
-    userId?: number | undefined;
-    platformClientId?: string;
-    platformRescheduleUrl?: string;
-    platformCancelUrl?: string;
-    platformBookingUrl?: string;
-    platformBookingLocation?: string;
-  },
+  req: HandlerReqType,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
