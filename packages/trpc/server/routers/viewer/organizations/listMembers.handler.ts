@@ -69,7 +69,10 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         whereClause.AttributeToUser = {
           some: {
             attributeOption: {
-              id: {
+              attribute: {
+                id: filter.id,
+              },
+              value: {
                 in: filter.value,
               },
             },
