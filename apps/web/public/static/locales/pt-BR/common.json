@@ -2640,6 +2640,15 @@
   "month_to_date": "mês até a data",
   "year_to_date": "ano até a data",
   "custom_range": "intervalo personalizado",
+  "salesforce_create_record_as": "Ao agendar, adicione eventos e novos participantes como:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Contato em uma conta",
+  "salesforce_skip_entry_creation": "Pular a criação do registro de {{entry}} se não existir no Salesforce",
+  "salesforce_if_account_does_not_exist": "Se o contato não existir em uma conta, criar novo lead a partir do participante",
+  "salesforce_create_new_contact_under_account": "Criar um novo contato em uma conta com base no domínio de e-mail do participante e contatos existentes",
   "mass_assign_attributes": "Atribuir atributos em massa",
+  "salesforce_book_directly_with_attendee_owner": "Se o participante existir no Salesforce, agendar diretamente com o proprietário",
+  "salesforce_check_owner_of": "Entidade para verificar o proprietário para agendar diretamente",
+  "account": "Conta",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

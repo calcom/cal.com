@@ -2640,6 +2640,15 @@
   "month_to_date": "aktueller Monat",
   "year_to_date": "aktuelles Jahr",
   "custom_range": "benutzerdefinierter Zeitraum",
+  "salesforce_create_record_as": "Bei der Buchung Ereignisse und neue Teilnehmer hinzufügen als:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Kontakt unter einem Account",
+  "salesforce_skip_entry_creation": "Überspringen Sie die Erstellung eines {{entry}}-Datensatzes, wenn dieser nicht in Salesforce existiert",
+  "salesforce_if_account_does_not_exist": "Wenn der Kontakt nicht unter einem Account existiert, erstellen Sie einen neuen Lead aus dem Teilnehmer",
+  "salesforce_create_new_contact_under_account": "Erstellen Sie einen neuen Kontakt unter einem Account basierend auf der E-Mail-Domain des Teilnehmers und bestehenden Kontakten",
   "mass_assign_attributes": "Attribute massenweise zuweisen",
+  "salesforce_book_directly_with_attendee_owner": "Wenn der Teilnehmer in Salesforce existiert, buchen Sie direkt beim Besitzer",
+  "salesforce_check_owner_of": "Entität, deren Besitzer für die direkte Buchung überprüft werden soll",
+  "account": "Account",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

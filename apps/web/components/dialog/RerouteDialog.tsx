@@ -25,7 +25,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
-import { Button } from "@calcom/ui";
+import { Button, Tooltip } from "@calcom/ui";
 import { showToast } from "@calcom/ui/components/toast";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -34,6 +34,7 @@ const enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",
   REROUTING_IN_PROGRESS = "in_progress",
   REROUTING_COMPLETE = "complete",
+  REROUTING_FAILED = "failed",
 }
 
 type ResponseWithForm = RouterOutputs["viewer"]["appRoutingForms"]["getResponseWithFormFields"];
@@ -77,11 +78,13 @@ type ReroutingState =
        * window for the new tab that is opened for rerouting
        */
       reschedulerWindow: Window;
+      error?: Error;
     }
   | {
-      type: "same_timeslot_same_event";
+      type: "same_timeslot";
       newBooking: string | null;
       reschedulerWindow: null;
+      error?: Error;
     };
 
 type TeamMemberMatchingAttributeLogic = {
@@ -126,7 +129,6 @@ function getEventTypeUrlsForTheChosenRoute({
   });
 
   const eventFullSlug = substituteVariables(chosenRoute.action.value, currentResponse, formFields);
-
   const eventBookingAbsoluteUrl = getAbsoluteEventTypeRedirectUrl({
     form,
     eventTypeRedirectUrl: eventFullSlug,
@@ -195,6 +197,7 @@ const useReroutingState = ({ isOpenDialog }: Pick<RerouteDialogProps, "isOpenDia
 
   const status = (() => {
     if (!value) return ReroutingStatusEnum.REROUTING_NOT_INITIATED;
+    if (value.error) return ReroutingStatusEnum.REROUTING_FAILED;
     if (!!value.newBooking) return ReroutingStatusEnum.REROUTING_COMPLETE;
     return ReroutingStatusEnum.REROUTING_IN_PROGRESS;
   })();
@@ -255,8 +258,28 @@ const NewRoutingManager = ({
     }),
   });
 
+  const chosenEventTypeId = chosenRoute.action.eventTypeId;
+
+  // TODO: Get bare minimum eventType details
+  const { data: chosenEventTypeData, isPending: isChosenEventTypeLoading } =
+    trpc.viewer.eventTypes.get.useQuery(
+      // enabled prop ensures that the query is not run if the chosenEventTypeId is not there
+      { id: chosenEventTypeId! },
+      {
+        enabled: !!chosenEventTypeId,
+      }
+    );
+
+  const chosenEventType = chosenEventTypeData?.eventType;
+
   const currentBookingEventFullSlug = getFullSlugForEvent(booking.eventType);
   const isReroutingToDifferentEvent = currentBookingEventFullSlug !== chosenEventUrls?.eventFullSlug;
+  let isInvalidRoutingAction = false;
+
+  if (!chosenEventTypeId && isReroutingToDifferentEvent) {
+    console.error("Routing action doesn't have eventTypeId for rerouting to different event");
+    isInvalidRoutingAction = true;
+  }
 
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
@@ -277,8 +300,14 @@ const NewRoutingManager = ({
       router.push(`/booking/${booking.uid}?cal.rerouting=true`);
     },
     onError: (err, _, ctx) => {
+      reroutingState.setValue({
+        error: err,
+        newBooking: null,
+        type: "same_timeslot",
+        reschedulerWindow: null,
+      });
       showToast(
-        "Failed to book the same timeslot with new team members. You could reschedule with different timeslot",
+        "Looks like the timeslot is not available for the new team members. Try rescheduling with different timeslot",
         "error"
       );
     },
@@ -286,22 +315,42 @@ const NewRoutingManager = ({
 
   if (!chosenRoute) return null;
 
+  const isReroutingInNewTab =
+    reroutingState.value?.type === "reschedule_to_same_event_new_tab" ||
+    reroutingState.value?.type === "reschedule_to_different_event_new_tab";
+
   return (
     <div className="bg-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("new_routing_status")}</h2>
       <div className="flex flex-col space-y-2">
         {reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED && reroutingPreview()}
-        {reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED && reroutingCTAs()}
-        {reroutingStatus()}
+        {(reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED || !isReroutingInNewTab) &&
+          reroutingCTAs()}
+        {isReroutingInNewTab && newTabReroutingStatus()}
       </div>
     </div>
   );
 
-  function rescheduleToSameTimeslotOfSameEvent() {
+  function rescheduleToSameTimeslotOfEvent({
+    eventType: { id: eventTypeId, slug: eventTypeSlug, team: eventTypeTeam, length: eventTypeLength },
+  }: {
+    eventType: Pick<TeamEventTypeBookingToReroute["eventType"], "id" | "slug" | "length"> & {
+      team: {
+        slug: string | null;
+      } | null;
+    };
+  }) {
     if (!chosenRoute) {
       console.error("Chosen route must be there for rerouting");
       throw new Error(t("something_went_wrong"));
     }
+
+    if (!eventTypeTeam?.slug) {
+      console.error("Event type team slug must be there for rerouting");
+      throw new Error(t("something_went_wrong"));
+    }
+
+    const teamSlug = eventTypeTeam.slug;
 
     if (isBookingTimeslotInPast(booking)) {
       showToast("You cannot reschedule to a past timeslot", "error");
@@ -336,9 +385,9 @@ const NewRoutingManager = ({
 
     const getFieldFromEventTypeThatRemainSame = () => {
       return {
-        user: bookingEventType.team.slug,
-        eventTypeId: bookingEventType.id,
-        eventTypeSlug: bookingEventType.slug,
+        user: teamSlug,
+        eventTypeId: eventTypeId,
+        eventTypeSlug: eventTypeSlug,
       };
     };
 
@@ -348,7 +397,7 @@ const NewRoutingManager = ({
         start: dayjs(booking.startTime).format(),
         end: dayjs(booking.startTime)
           // Defaults to the default event length in case no custom duration is set.
-          .add(bookingEventType.length, "minute")
+          .add(eventTypeLength, "minute")
           .format(),
       };
     };
@@ -383,8 +432,25 @@ const NewRoutingManager = ({
 
     reroutingState.setValue({
       newBooking: null,
-      type: "same_timeslot_same_event",
+      type: "same_timeslot",
       reschedulerWindow: null,
+    });
+  }
+
+  function rescheduleToSameTimeslotOfSameEvent() {
+    return rescheduleToSameTimeslotOfEvent({
+      eventType: booking.eventType,
+    });
+  }
+
+  function rescheduleToSameTimeslotOfChosenEvent() {
+    if (!chosenEventType) {
+      // There are disabled/loading state on button to ensure that this function is not called if chosenEventType is not there
+      console.error("Chosen event type must be there for rerouting");
+      throw new Error(t("something_went_wrong"));
+    }
+    return rescheduleToSameTimeslotOfEvent({
+      eventType: chosenEventType,
     });
   }
 
@@ -444,9 +510,11 @@ const NewRoutingManager = ({
             </a>
           </span>
           <span className="text-default">
-            <span className="font-semibold">
-              {isRoundRobinScheduling ? t("reroute_preview_possible_host") : t("Hosts")}:
-            </span>{" "}
+            <Tooltip content="Includes fixed hosts always and assumes that all the team members mentioned here are assigned to the event">
+              <span className="font-semibold">
+                {isRoundRobinScheduling ? t("reroute_preview_possible_host") : t("Hosts")}:
+              </span>
+            </Tooltip>{" "}
             {bookingHosts()}
           </span>
         </div>
@@ -475,17 +543,26 @@ const NewRoutingManager = ({
             {t("Reschedule to the new event with different timeslot")}
           </Button>
         )}
-        <Button
-          disabled={shouldDisableCTAs}
-          loading={createBookingMutation.isPending}
-          onClick={rescheduleToSameTimeslotOfSameEvent}>
-          Reschedule with same timeslot
-        </Button>
+        {!isReroutingToDifferentEvent ? (
+          <Button
+            disabled={shouldDisableCTAs}
+            loading={createBookingMutation.isPending}
+            onClick={rescheduleToSameTimeslotOfSameEvent}>
+            Reschedule with same timeslot
+          </Button>
+        ) : (
+          <Button
+            disabled={shouldDisableCTAs || isInvalidRoutingAction}
+            loading={createBookingMutation.isPending || isChosenEventTypeLoading}
+            onClick={rescheduleToSameTimeslotOfChosenEvent}>
+            Reschedule with same timeslot of the new event
+          </Button>
+        )}
       </div>
     );
   }
 
-  function reroutingStatus() {
+  function newTabReroutingStatus() {
     if (reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS) {
       return (
         <div>
@@ -658,11 +735,6 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   }, [messageListener, beforeUnloadListener]);
 
   function verifyRoute() {
-    if (isResponseFromOrganizerUnpopulated) {
-      showToast("Please make some changes to allow rerouting.", "error");
-      return;
-    }
-
     // Reset all states
     reroutingState.setValue(null);
     setTeamMembersMatchingAttributeLogic(null);
@@ -724,7 +796,10 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
           </Button>
           <Button
             onClick={verifyRoute}
-            disabled={reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS}>
+            disabled={
+              reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS ||
+              isResponseFromOrganizerUnpopulated
+            }>
             {t("verify_new_route")}
           </Button>
         </DialogFooter>

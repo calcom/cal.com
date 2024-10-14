@@ -14,8 +14,10 @@
 - [ ] When choosing 'Value of Field' option in RAQB, show a warning somewhere if all options of the Form field aren't present in the attribute option.
       - So, if Form Field is 'What is Comapny Size' with options Enterprise, Large, Medium, Small and Attribute for which Value of 'What is compnay size' has options Enterprise, Large, Medium. It would show a warning that 'Small' option is not present in the attribute.
 - [ ] When logic can't be built(Short text maps to an attribute with given set of options but the short text value doesn't match any of the options), the team member matching route throws error but Test Preview still shows the previous value - It show should the error in there.
+- [ ] Bug: When routing to a team that doesn't have the team members assigned that are chosen, we are unable to select those users. FIX it by ignoring the assigned members(except the fixed hosts) and just using the attributes matched team members.
 
 ## TODO - ReRouting
+- [ ] Start storing eventTypeId in routing Action.
 - [ ] Need to get teamMemberEmail from Salesforce
 - [ ] When 'Verify Route' is clicked, it doesn't seem to run the form field logic as there is a warning in console. Fix it.
 - [x] Make sure that without making the FORM dirty, user can't reroute

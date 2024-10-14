@@ -30,7 +30,7 @@ import { CONFERENCING_APPS, GOOGLE_MEET, SUCCESS_STATUS } from "@calcom/platform
   path: "/v2/conferencing",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Platform / Conferencing")
+@DocsTags("Conferencing")
 export class ConferencingController {
   private readonly logger = new Logger("Platform Gcal Provider");
 

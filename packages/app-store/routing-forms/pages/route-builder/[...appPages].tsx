@@ -337,7 +337,7 @@ const Route = ({
   ) : null;
 
   const attributesQueryBuilder =
-    route.action?.type === "eventTypeRedirectUrl" && isTeamForm ? (
+    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
       <div className="mt-4">
         <span className="text-emphasis flex w-full items-center text-sm">
           and use only the Team Members that match the following criteria(matches all by default)
@@ -454,11 +454,13 @@ const Route = ({
                         }
                         if (option.value !== "custom") {
                           setRoute(route.id, {
-                            action: { ...route.action, value: option.value },
+                            action: { ...route.action, value: option.value, eventTypeId: option.eventTypeId },
                           });
                           setCustomEventTypeSlug("");
                         } else {
-                          setRoute(route.id, { action: { ...route.action, value: "custom" } });
+                          setRoute(route.id, {
+                            action: { ...route.action, value: "custom", eventTypeId: 0 },
+                          });
                           setCustomEventTypeSlug("");
                         }
                       }}

@@ -83,6 +83,7 @@ export const zodNonRouterRoute = z.object({
   isFallback: z.boolean().optional(),
   action: z.object({
     type: routeActionTypeSchema,
+    eventTypeId: z.number().optional(),
     value: z.string(),
   }),
 });

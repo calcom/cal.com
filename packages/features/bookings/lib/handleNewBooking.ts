@@ -319,6 +319,10 @@ async function handler(
     contactOwnerEmail,
   });
 
+  console.log(
+    "users",
+    users.map((user) => user.email)
+  );
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
     dynamicUserList,
     users,

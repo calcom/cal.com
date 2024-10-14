@@ -89,9 +89,10 @@ export default function Bookings() {
       },
     },
     {
-      // It ensures that a booking that is being rescheduled(and thus cancelled) through a new tab flow, doesn't get removed from the list(removing the Reroute Dialog abruptly which is inside BookingListItem component).
-      enabled: !isRerouting,
+      enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
+      // It ensures that a booking that is being rescheduled(and thus cancelled) through a new tab flow, doesn't get removed from the list(removing the Reroute Dialog abruptly which is inside BookingListItem component).
+      refetchOnWindowFocus: !isRerouting,
     }
   );
 
