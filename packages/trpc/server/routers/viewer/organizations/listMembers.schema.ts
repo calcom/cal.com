@@ -7,6 +7,14 @@ export const ZListMembersSchema = z.object({
   cursor: z.number().nullish(),
   searchTerm: z.string().optional(),
   expand: z.array(expandableColumns).optional(),
+  filters: z
+    .array(
+      z.object({
+        id: z.string(),
+        value: z.array(z.string()),
+      })
+    )
+    .optional(),
 });
 
 export type TListMembersSchema = z.infer<typeof ZListMembersSchema>;

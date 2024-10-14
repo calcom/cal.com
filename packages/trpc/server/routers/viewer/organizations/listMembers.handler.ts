@@ -1,5 +1,7 @@
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -17,6 +19,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId;
   const searchTerm = input.searchTerm;
   const expand = input.expand;
+  const filters = input.filters || [];
 
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
@@ -40,27 +43,45 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     },
   });
 
+  const whereClause = {
+    teamId: organizationId,
+    ...(searchTerm && {
+      user: {
+        OR: [{ email: { contains: searchTerm } }, { username: { contains: searchTerm } }],
+      },
+    }),
+  } as Prisma.MembershipWhereInput;
+
+  filters.forEach((filter) => {
+    switch (filter.id) {
+      case "role":
+        whereClause.role = { in: filter.value as MembershipRole[] };
+        break;
+      case "teams":
+        whereClause.team = {
+          name: {
+            in: filter.value,
+          },
+        };
+        break;
+      // We assume that if the filter is not one of the above, it must be an attribute filter
+      default:
+        whereClause.AttributeToUser = {
+          some: {
+            attributeOption: {
+              id: {
+                in: filter.value,
+              },
+            },
+          },
+        };
+        break;
+    }
+  });
+
   // I couldnt get this query to work direct on membership table
   const teamMembers = await prisma.membership.findMany({
-    where: {
-      teamId: organizationId,
-      ...(searchTerm && {
-        user: {
-          OR: [
-            {
-              email: {
-                contains: searchTerm,
-              },
-            },
-            {
-              username: {
-                contains: searchTerm,
-              },
-            },
-          ],
-        },
-      }),
-    },
+    where: whereClause,
     select: {
       id: true,
       role: true,

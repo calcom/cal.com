@@ -109,12 +109,18 @@ export function UserListTable() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
         searchTerm: debouncedSearchTerm,
         expand: ["attributes"],
+        filters: columnFilters.map((filter) => ({
+          id: filter.id,
+          value: filter.value as string[],
+        })),
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -123,7 +129,6 @@ export function UserListTable() {
     );
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
 
