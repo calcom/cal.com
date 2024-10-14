@@ -3,7 +3,6 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
-import type { EventAvailabilityTabWebWrapperProps } from "@calcom/atoms/event-types/wrappers/EventAvailabilityTabWebWrapper";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -19,17 +18,23 @@ import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calc
 type EventTypeScheduleDetailsProps = {
   scheduleQueryData?: RouterOutputs["viewer"]["availability"]["schedule"]["get"];
   isSchedulePending?: boolean;
-  loggedInUser?: RouterOutputs["viewer"]["me"];
+  user?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
   editAvailabilityRedirectUrl?: string;
 };
 
 type EventTypeScheduleProps = {
-  availabilityQueryData?: RouterOutputs["viewer"]["availability"]["list"];
-  isAvailabilityPending?: boolean;
+  schedulesQueryData?: Array<
+    Omit<RouterOutputs["viewer"]["availability"]["list"]["schedules"][number], "availability">
+  >;
+  isSchedulesPending?: boolean;
   eventType: EventTypeSetup;
 } & EventTypeScheduleDetailsProps;
 
-type EventAvailabilityTabProps = EventAvailabilityTabWebWrapperProps & EventTypeScheduleProps;
+export type EventAvailabilityTabBaserProps = {
+  isTeamEvent: boolean;
+};
+
+type EventAvailabilityTabProps = EventAvailabilityTabBaserProps & EventTypeScheduleProps;
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
   const { label, isDefault, isManaged = false } = props.data;
@@ -82,16 +87,16 @@ const EventTypeScheduleDetails = memo(
   ({
     scheduleQueryData,
     isSchedulePending,
-    loggedInUser,
+    user,
     editAvailabilityRedirectUrl,
   }: EventTypeScheduleDetailsProps) => {
-    const timeFormat = loggedInUser?.timeFormat;
+    const timeFormat = user?.timeFormat;
     const { t, i18n } = useLocale();
 
-    const weekStart = weekStartNum(loggedInUser?.weekStart);
+    const weekStart = weekStartNum(user?.weekStart);
 
     const filterDays = (dayNum: number) =>
-      scheduleQueryData?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+      scheduleQueryData?.schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
 
     return (
       <div>
@@ -160,8 +165,8 @@ EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 
 const EventTypeSchedule = ({
   eventType,
-  availabilityQueryData,
-  isAvailabilityPending,
+  schedulesQueryData,
+  isSchedulesPending,
   ...rest
 }: EventTypeScheduleProps) => {
   const { t } = useLocale();
@@ -174,25 +179,21 @@ const EventTypeSchedule = ({
 
   useEffect(() => {
     // after data is loaded.
-    if (availabilityQueryData && scheduleId !== 0 && !scheduleId) {
-      const newValue = isManagedEventType
-        ? 0
-        : availabilityQueryData.schedules.find((schedule) => schedule.isDefault)?.id;
+    if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
+      const newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       if (!newValue && newValue !== 0) return;
       setValue("schedule", newValue, {
         shouldDirty: true,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, availabilityQueryData]);
+  }, [scheduleId, schedulesQueryData]);
 
-  if (isAvailabilityPending || !availabilityQueryData) {
+  if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
   }
 
-  const schedules = availabilityQueryData.schedules;
-
-  const options = schedules.map((schedule) => ({
+  const options = schedulesQueryData.map((schedule) => ({
     value: schedule.id,
     label: schedule.name,
     isDefault: schedule.isDefault,
@@ -210,7 +211,11 @@ const EventTypeSchedule = ({
   }
   // We are showing a managed event for a member and team owner selected their own schedule, so adding
   // the managed schedule option
-  if (isChildrenManagedEventType && scheduleId && !schedules.find((schedule) => schedule.id === scheduleId)) {
+  if (
+    isChildrenManagedEventType &&
+    scheduleId &&
+    !schedulesQueryData.find((schedule) => schedule.id === scheduleId)
+  ) {
     options.push({
       value: scheduleId,
       label: eventType.scheduleName ?? t("default_schedule_name"),
@@ -219,7 +224,7 @@ const EventTypeSchedule = ({
     });
   }
   // We push the selected schedule from the event type if it's not part of the list response. This happens if the user is an admin but not the schedule owner.
-  else if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
+  else if (eventType.schedule && !schedulesQueryData.find((schedule) => schedule.id === eventType.schedule)) {
     options.push({
       value: eventType.schedule,
       label: eventType.scheduleName ?? t("default_schedule_name"),
@@ -270,10 +275,7 @@ const EventTypeSchedule = ({
   );
 };
 
-const UseCommonScheduleSettingsToggle = ({
-  eventType,
-  ...rest
-}: Omit<EventAvailabilityTabProps, "isTeamEvent">) => {
+const UseCommonScheduleSettingsToggle = ({ eventType, ...rest }: EventTypeScheduleProps) => {
   const { t } = useLocale();
   const { setValue, resetField, getFieldState, getValues } = useFormContext<FormValues>();
 

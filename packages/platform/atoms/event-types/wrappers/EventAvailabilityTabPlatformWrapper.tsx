@@ -1,52 +1,75 @@
 import { useFormContext } from "react-hook-form";
 
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventAvailabilityTab } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
+import type { User } from "@calcom/prisma/client";
 
-export type EventAvailabilityTabWebWrapperProps = {
+import type { Schedule } from "../../availability/AvailabilitySettings";
+import { transformApiScheduleForAtom } from "../../availability/atom-api-transformers/transformApiScheduleForAtom";
+import { useSchedule } from "../hooks/useSchedule";
+import { useSchedules } from "../hooks/useSchedules";
+
+type EventAvailabilityTabPlatformWrapperProps = {
+  user?: Pick<User, "id" | "defaultScheduleId" | "timeZone" | "timeFormat" | "weekStart">;
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
-  loggedInUser?: Pick<RouterOutputs["viewer"]["me"], "defaultScheduleId">;
 };
 
 const EventAvailabilityTabPlatformWrapper = ({
-  loggedInUser,
+  user,
   ...props
-}: EventAvailabilityTabWebWrapperProps) => {
-  const { t } = useLocale();
+}: EventAvailabilityTabPlatformWrapperProps) => {
   const formMethods = useFormContext<FormValues>();
   const scheduleId = formMethods.watch("schedule");
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType: props.eventType,
-    translate: t,
-    formMethods,
-  });
+  const { isLoading: isSchedulePending, data: scheduleQueryData } = useSchedule(
+    scheduleId || user?.defaultScheduleId || undefined
+  );
 
-  const { isPending: isSchedulePending, data: scheduleQueryData } =
-    trpc.viewer.availability.schedule.get.useQuery(
-      {
-        scheduleId: scheduleId || loggedInUser?.defaultScheduleId || undefined,
-        isManagedEventType: isManagedEventType || isChildrenManagedEventType,
-      },
-      { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId }
-    );
+  const { data: schedulesQueryData, isLoading: isSchedulesPending } = useSchedules();
 
-  const { data: availabilityQueryData, isPending: isAvailabilityPending } =
-    trpc.viewer.availability.list.useQuery(undefined);
+  const atomSchedule = transformApiScheduleForAtom(user, scheduleQueryData, schedulesQueryData?.length || 0);
+
+  if (!atomSchedule) {
+    return <></>;
+  }
 
   return (
     <EventAvailabilityTab
       {...props}
-      availabilityQueryData={availabilityQueryData}
-      isAvailabilityPending={isAvailabilityPending}
+      user={user}
+      schedulesQueryData={schedulesQueryData}
+      isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}
-      scheduleQueryData={scheduleQueryData}
-      editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+      scheduleQueryData={{
+        name: atomSchedule?.name,
+        isManaged: atomSchedule.isManaged,
+        readOnly: atomSchedule.readOnly,
+        isDefault: atomSchedule.isDefault,
+        id: atomSchedule.id,
+        isLastSchedule: atomSchedule.isLastSchedule,
+        workingHours: atomSchedule.workingHours,
+        dateOverrides: atomSchedule.dateOverrides,
+        timeZone: atomSchedule.timeZone,
+        availability: atomSchedule.availability,
+        schedule:
+          atomSchedule.schedule.reduce(
+            (acc: Schedule[], avail: Omit<Schedule, "eventTypeId">) => [
+              ...acc,
+              {
+                id: avail.id,
+                startTime: new Date(avail.startTime),
+                endTime: new Date(avail.endTime),
+                userId: avail.userId,
+                date: avail.date,
+                scheduleId: avail.scheduleId,
+                eventTypeId: null,
+                days: avail.days,
+              },
+            ],
+            []
+          ) || [],
+      }}
     />
   );
 };

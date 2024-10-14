@@ -160,7 +160,7 @@ const EventTypeWeb = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: loggedInUser, isPending: isLoggedInUserPending } = useMeQuery();
+  const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
   const telemetry = useTelemetry();
@@ -241,16 +241,14 @@ const EventTypeWeb = ({
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: (
-      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} loggedInUser={loggedInUser} />
-    ),
+    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} user={user} />,
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: (
       <EventAdvancedTab
         eventType={eventType}
         team={team}
-        user={loggedInUser}
+        user={user}
         isUserLoading={isLoggedInUserPending}
         showToast={showToast}
       />

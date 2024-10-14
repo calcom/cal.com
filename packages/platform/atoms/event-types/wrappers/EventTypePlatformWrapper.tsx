@@ -19,6 +19,7 @@ import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
 import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
+import EventAvailabilityTabPlatformWrapper from "./EventAvailabilityTabPlatformWrapper";
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
@@ -60,7 +61,7 @@ const EventType = ({
       form.reset(currentValues);
 
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
-      onSuccess?.(currentValues);
+      props.onSuccess?.(currentValues);
     },
     async onSettled() {
       return;
@@ -69,7 +70,7 @@ const EventType = ({
       const currentValues = form.getValues();
       const message = err?.message;
       toast({ description: message ? t(message) : t(err.message) });
-      onError?.(currentValues, err);
+      props.onError?.(currentValues, err);
     },
   });
 
@@ -92,7 +93,11 @@ const EventType = ({
     ) : (
       <></>
     ),
-    availability: <></>,
+    availability: tabs.includes("availability") ? (
+      <EventAvailabilityTabPlatformWrapper eventType={eventType} isTeamEvent={!!team} user={user?.data} />
+    ) : (
+      <></>
+    ),
     team: <></>,
     advanced: tabs.includes("advanced") ? (
       <EventAdvancedPlatformWrapper

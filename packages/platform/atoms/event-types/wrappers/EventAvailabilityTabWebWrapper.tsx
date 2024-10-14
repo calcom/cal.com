@@ -10,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
-  loggedInUser?: RouterOutputs["viewer"]["me"];
+  user?: RouterOutputs["viewer"]["me"];
 };
 
 const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperProps) => {
@@ -27,20 +27,20 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
   const { isPending: isSchedulePending, data: scheduleQueryData } =
     trpc.viewer.availability.schedule.get.useQuery(
       {
-        scheduleId: scheduleId || props.loggedInUser?.defaultScheduleId || undefined,
+        scheduleId: scheduleId || props.user?.defaultScheduleId || undefined,
         isManagedEventType: isManagedEventType || isChildrenManagedEventType,
       },
-      { enabled: !!scheduleId || !!props.loggedInUser?.defaultScheduleId }
+      { enabled: !!scheduleId || !!props.user?.defaultScheduleId }
     );
 
-  const { data: availabilityQueryData, isPending: isAvailabilityPending } =
+  const { data: schedulesQueryData, isPending: isSchedulesPending } =
     trpc.viewer.availability.list.useQuery(undefined);
 
   return (
     <EventAvailabilityTab
       {...props}
-      availabilityQueryData={availabilityQueryData}
-      isAvailabilityPending={isAvailabilityPending}
+      schedulesQueryData={schedulesQueryData?.schedules}
+      isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}
       scheduleQueryData={scheduleQueryData}
       editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
