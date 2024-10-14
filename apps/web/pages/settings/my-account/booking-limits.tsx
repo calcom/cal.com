@@ -7,7 +7,6 @@ import { validateIntervalLimitOrder, parseBookingLimit, classNames } from "@calc
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, Form, Meta, SkeletonContainer, SkeletonText, showToast, SettingsToggle } from "@calcom/ui";
 
@@ -25,15 +24,15 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 
-const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["me"] }) => {
+const BookingsView = ({ bookingLimits }: { bookingLimits: IntervalLimit }) => {
   const { t } = useLocale();
   const bookingsLimitFormMethods = useForm({
     defaultValues: {
-      bookingLimits: data?.bookingLimits as IntervalLimit,
+      bookingLimits,
     },
   });
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
@@ -125,7 +124,7 @@ const BookingsViewWrapper = () => {
       />
     );
 
-  return <BookingsView data={data} />;
+  return <BookingsView bookingLimits={data.bookingLimits} />;
 };
 
 BookingsViewWrapper.getLayout = getLayout;
