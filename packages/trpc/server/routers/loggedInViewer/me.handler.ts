@@ -159,7 +159,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     ...profileData,
-    bookingLimits: intervalLimitsType.parse(user.bookingLimits),
+    bookingLimits: intervalLimitsType.unwrap().parse(user.bookingLimits || {}),
     secondaryEmails,
     sumOfBookings: additionalUserInfo?.bookings.length,
     sumOfCalendars: additionalUserInfo?.selectedCalendars.length,
