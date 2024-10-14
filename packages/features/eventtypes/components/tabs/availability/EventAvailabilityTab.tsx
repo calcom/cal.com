@@ -15,8 +15,12 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 
+type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+
 type EventTypeScheduleDetailsProps = {
-  scheduleQueryData?: RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+  scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly"> & {
+    schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
+  };
   isSchedulePending?: boolean;
   user?: Pick<RouterOutputs["viewer"]["me"], "timeFormat" | "weekStart">;
   editAvailabilityRedirectUrl?: string;
@@ -145,7 +149,6 @@ const EventTypeScheduleDetails = memo(
             !scheduleQueryData.readOnly &&
             !!editAvailabilityRedirectUrl && (
               <Button
-                // href={`/availability/${scheduleQueryData.id}`}
                 href={editAvailabilityRedirectUrl}
                 disabled={isSchedulePending}
                 color="minimal"
