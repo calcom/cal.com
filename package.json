@@ -102,6 +102,7 @@
     "lint-staged": "^12.5.0",
     "mailhog": "^4.16.0",
     "next-router-mock": "^0.9.12",
+    "node-gyp": "^10.2.0",
     "node-ical": "^0.16.1",
     "prettier": "^2.8.6",
     "prismock": "^1.21.1",

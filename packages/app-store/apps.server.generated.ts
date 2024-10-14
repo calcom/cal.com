@@ -75,6 +75,7 @@ export const apiHandlers = {
   synthflow: import("./synthflow/api"),
   tandemvideo: import("./tandemvideo/api"),
   telegram: import("./telegram/api"),
+  telli: import("./telli/api"),
   basic: import("./templates/basic/api"),
   "booking-pages-tag": import("./templates/booking-pages-tag/api"),
   "event-type-app-card": import("./templates/event-type-app-card/api"),
