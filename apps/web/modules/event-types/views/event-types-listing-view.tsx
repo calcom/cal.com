@@ -20,21 +20,21 @@ import Shell from "@calcom/features/shell/Shell";
 import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import type { User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import type { UserProfile } from "@calcom/types/UserProfile";
 import {
   Alert,
   Badge,
   Button,
+  Input,
   ButtonGroup,
   ConfirmationDialogContent,
   CreateButton,
@@ -73,13 +73,6 @@ type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eve
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
 
-type DeNormalizedEventType = Omit<EventType, "userIds"> & {
-  users: (Pick<User, "id" | "name" | "username" | "avatarUrl"> & {
-    nonProfileUsername: string | null;
-    profile: UserProfile;
-  })[];
-};
-
 const LIMIT = 10;
 
 interface InfiniteEventTypeListProps {
@@ -103,9 +96,13 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const { activeEventTypeGroup } = props;
   const { t } = useLocale();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   const query = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
       limit: LIMIT,
+      searchQuery: debouncedSearchTerm,
       group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
     },
     {
@@ -124,6 +121,14 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
 
   return (
     <div>
+      <Input
+        className="max-w-64 mb-2 mr-auto rounded-md"
+        placeholder="Search"
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+        }}
+      />
       {!!activeEventTypeGroup && (
         <InfiniteEventTypeList
           pages={query?.data?.pages}
