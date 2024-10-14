@@ -119,6 +119,11 @@ const platformNavigation: NavigationItemType[] = [
     icon: "ellipsis",
     target: "_blank",
   },
+  {
+    name: "Billing",
+    href: "/settings/platform/billing",
+    icon: "credit-card",
+  },
 ];
 
 export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
