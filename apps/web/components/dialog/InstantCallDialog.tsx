@@ -11,19 +11,49 @@ interface IInstantCallDialog {
 export const InstantCallDialog = (props: IInstantCallDialog) => {
   const { t } = useLocale();
 
-  const multipleCallers = true; // just for testing purposes
-
   const { isOpenDialog, setIsOpenDialog } = props;
+
+  // replace with API call
+  const callers = [
+    {
+      id: 1,
+      name: "Leslie Alexander",
+      content: "Sales Exploration",
+      date: "1d ago",
+      dateTime: "2023-03-04T15:54Z",
+    },
+    {
+      id: 2,
+      name: "Michael Foster",
+      content: "Sales Exploration",
+      date: "2d ago",
+      dateTime: "2023-03-03T14:02Z",
+    },
+    {
+      id: 3,
+      name: "Dries Vincent",
+      content: "Sales Exploration",
+      date: "2d ago",
+      dateTime: "2023-03-03T13:23Z",
+    },
+    {
+      id: 4,
+      name: "Lindsay Walton",
+      content: "Sales Exploration",
+      date: "3d ago",
+      dateTime: "2023-03-02T21:13Z",
+    },
+  ];
 
   return (
     <>
       <Dialog open={true} onOpenChange={setIsOpenDialog}>
         <DialogContent enableOverflow>
-          {multipleCallers ? (
+          {callers.length > 1 ? (
             <>
               <DialogHeader title={t("Incoming Calls")} />
               <ul role="list" className="mb-6 divide-y">
-                {comments.map((comment) => (
+                {callers.map((comment) => (
                   <li key={comment.id} className="flex w-full items-center justify-between py-2">
                     <div>
                       <p className="text-sm font-semibold">{comment.name}</p>
@@ -70,34 +100,3 @@ export const InstantCallDialog = (props: IInstantCallDialog) => {
     </>
   );
 };
-
-const comments = [
-  {
-    id: 1,
-    name: "Leslie Alexander",
-    content: "Sales Exploration",
-    date: "1d ago",
-    dateTime: "2023-03-04T15:54Z",
-  },
-  {
-    id: 2,
-    name: "Michael Foster",
-    content: "Sales Exploration",
-    date: "2d ago",
-    dateTime: "2023-03-03T14:02Z",
-  },
-  {
-    id: 3,
-    name: "Dries Vincent",
-    content: "Sales Exploration",
-    date: "2d ago",
-    dateTime: "2023-03-03T13:23Z",
-  },
-  {
-    id: 4,
-    name: "Lindsay Walton",
-    content: "Sales Exploration",
-    date: "3d ago",
-    dateTime: "2023-03-02T21:13Z",
-  },
-];
