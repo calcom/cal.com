@@ -27,6 +27,8 @@ import {
   MarkAbsentBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -54,8 +56,18 @@ export class BookingsService_2024_08_13 {
         return await this.createInstantBooking(request, body);
       }
 
-      if (await this.isRecurring(body)) {
+      const eventType = await this.eventTypesRepository.getEventTypeById(body.eventTypeId);
+      const isRecurring = !!eventType?.recurringEvent;
+      const isSeated = !!eventType?.seatsPerTimeSlot;
+
+      if (isRecurring && isSeated) {
+        return await this.createRecurringSeatedBooking(request, body);
+      }
+      if (isRecurring && !isSeated) {
         return await this.createRecurringBooking(request, body);
+      }
+      if (isSeated) {
+        return await this.createSeatedBooking(request, body);
       }
 
       return await this.createRegularBooking(request, body);
@@ -83,11 +95,6 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
-  async isRecurring(body: CreateBookingInput) {
-    const eventType = await this.eventTypesRepository.getEventTypeById(body.eventTypeId);
-    return !!eventType?.recurringEvent;
-  }
-
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
     const bookings = await handleNewRecurringBooking(bookingRequest);
@@ -97,7 +104,24 @@ export class BookingsService_2024_08_13 {
     }
 
     const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
-    return this.outputService.getOutputRecurringBookings(recurringBooking);
+    const ids = recurringBooking.map((booking) => booking.id);
+    return this.outputService.getOutputRecurringBookings(ids);
+  }
+
+  async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
+    const bookings = await handleNewRecurringBooking(bookingRequest);
+    const uid = bookings[0].recurringEventId;
+    if (!uid) {
+      throw new Error("Recurring booking was not created");
+    }
+    const seatUid = bookings[0].seatReferenceUid;
+
+    const recurringBooking = await this.bookingsRepository.getRecurringByUid(uid);
+    return this.outputService.getOutputCreateRecurringSeatedBookings(
+      recurringBooking.map((booking) => booking.id),
+      seatUid || ""
+    );
   }
 
   async createRegularBooking(request: Request, body: CreateBookingInput_2024_08_13) {
@@ -116,13 +140,39 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputBooking(databaseBooking);
   }
 
+  async createSeatedBooking(request: Request, body: CreateBookingInput_2024_08_13) {
+    const bookingRequest = await this.inputService.createBookingRequest(request, body);
+    const booking = await handleNewBooking(bookingRequest);
+
+    if (!booking.uid) {
+      throw new Error("Booking missing uid");
+    }
+
+    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(
+      booking.uid
+    );
+    if (!databaseBooking) {
+      throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
+    }
+
+    return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
+  }
+
   async getBooking(uid: string) {
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(uid);
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
-      if (isRecurring) {
+      const isSeated = !!booking.eventType?.seatsPerTimeSlot;
+
+      if (isRecurring && !isSeated) {
         return this.outputService.getOutputRecurringBooking(booking);
+      }
+      if (isRecurring && isSeated) {
+        return this.outputService.getOutputRecurringSeatedBooking(booking);
+      }
+      if (isSeated) {
+        return this.outputService.getOutputSeatedBooking(booking);
       }
       return this.outputService.getOutputBooking(booking);
     }
@@ -131,8 +181,8 @@ export class BookingsService_2024_08_13 {
     if (!recurringBooking.length) {
       throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
-
-    return this.outputService.getOutputRecurringBookings(recurringBooking);
+    const ids = recurringBooking.map((booking) => booking.id);
+    return this.outputService.getOutputRecurringBookings(ids);
   }
 
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
@@ -156,7 +206,12 @@ export class BookingsService_2024_08_13 {
     const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
     const orderedBookings = ids.map((id) => bookingMap.get(id));
 
-    const formattedBookings: (BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13)[] = [];
+    const formattedBookings: (
+      | BookingOutput_2024_08_13
+      | RecurringBookingOutput_2024_08_13
+      | GetSeatedBookingOutput_2024_08_13
+      | GetRecurringSeatedBookingOutput_2024_08_13
+    )[] = [];
     for (const booking of orderedBookings) {
       if (!booking) {
         continue;
@@ -172,8 +227,13 @@ export class BookingsService_2024_08_13 {
       };
 
       const isRecurring = !!formatted.recurringEventId;
-      if (isRecurring) {
+      const isSeated = !!formatted.eventType?.seatsPerTimeSlot;
+      if (isRecurring && !isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
+      } else if (isRecurring && isSeated) {
+        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
+      } else if (isSeated) {
+        formattedBookings.push(this.outputService.getOutputSeatedBooking(formatted));
       } else {
         formattedBookings.push(this.outputService.getOutputBooking(formatted));
       }
