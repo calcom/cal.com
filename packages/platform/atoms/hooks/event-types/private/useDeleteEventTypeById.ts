@@ -12,17 +12,7 @@ export type UseDeleteEventTypeProps = {
   onError?: (err: Error) => void;
   onSettled?: () => void;
 };
-export const useDeleteEventTypeById = ({
-  onSuccess = () => {
-    return;
-  },
-  onError = () => {
-    return;
-  },
-  onSettled = () => {
-    return;
-  },
-}: UseDeleteEventTypeProps) => {
+export const useDeleteEventTypeById = ({ onSuccess, onError, onSettled }: UseDeleteEventTypeProps) => {
   return useMutation({
     onSuccess,
     onError,
