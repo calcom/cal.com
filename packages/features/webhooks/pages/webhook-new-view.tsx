@@ -82,6 +82,8 @@ export const NewWebhookView = () => {
       active: values.active,
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
+      time: values.time,
+      timeUnit: values.timeUnit,
       teamId,
       platform,
     });

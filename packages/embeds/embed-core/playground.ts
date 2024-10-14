@@ -364,7 +364,12 @@ Cal.ns.popupHideEventTypeDetails("ui", {
   hideEventTypeDetails: true,
 });
 
-Cal("init", "popupReschedule", {
+Cal("init", "popupRescheduleWithReschedulePath", {
+  debug: true,
+  origin: origin,
+});
+
+Cal("init", "popupRescheduleWithRescheduleUidParam", {
   debug: true,
   origin: origin,
 });
@@ -410,6 +415,11 @@ Cal("init", "floatingButton", {
 });
 
 Cal("init", "routingFormAuto", {
+  debug: true,
+  origin: origin,
+});
+
+Cal("init", "routingFormHeadlessRouter", {
   debug: true,
   origin: origin,
 });
@@ -464,7 +474,7 @@ if (only === "all" || only == "ns:monthView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-monthView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-monthView-iframe",
@@ -489,7 +499,7 @@ if (only === "all" || only == "ns:weekView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-weekView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-weekView-iframe",
@@ -518,7 +528,7 @@ if (only === "all" || only == "ns:columnView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-columnView .place",
-      calLink: "pro/paid",
+      calLink: "free/30min",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-columnView-iframe",

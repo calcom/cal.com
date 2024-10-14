@@ -12,8 +12,8 @@ const getData = withAppDirSsg<Y>(getStaticProps);
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Bookings",
-    () => "Create events to share for people to book on your calendar."
+    (t) => t("bookings"),
+    (t) => t("bookings_description")
   );
 
 export const generateStaticParams = async () => {

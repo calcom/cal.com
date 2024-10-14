@@ -27,6 +27,7 @@ const _getBusyTimesFromLimits = async (
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   bookings: EventBusyDetails[],
+  timeZone: string,
   rescheduleUid?: string
 ) => {
   performance.mark("limitsStart");
@@ -45,6 +46,7 @@ const _getBusyTimesFromLimits = async (
       eventTypeId: eventType.id,
       limitManager,
       rescheduleUid,
+      timeZone,
     });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
@@ -89,6 +91,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
   eventTypeId?: number;
   teamId?: number;
   user?: { id: number; email: string };
+  includeManagedEvents?: boolean;
+  timeZone?: string | null;
 }) => {
   const {
     bookings,
@@ -100,6 +104,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
     teamId,
     user,
     rescheduleUid,
+    includeManagedEvents = false,
+    timeZone,
   } = params;
 
   for (const key of descendingLimitKeys) {
@@ -123,6 +129,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
             teamId,
             user,
             rescheduleUid,
+            includeManagedEvents,
+            timeZone,
           });
         } catch (_) {
           limitManager.addBusyTime(periodStart, unit);
@@ -231,6 +239,8 @@ const _getBusyTimesFromTeamLimits = async (
   dateFrom: Dayjs,
   dateTo: Dayjs,
   teamId: number,
+  includeManagedEvents: boolean,
+  timeZone: string,
   rescheduleUid?: string
 ) => {
   const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
@@ -245,6 +255,7 @@ const _getBusyTimesFromTeamLimits = async (
     startDate: limitDateFrom.toDate(),
     endDate: limitDateTo.toDate(),
     excludedUid: rescheduleUid,
+    includeManagedEvents,
   });
 
   const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
@@ -266,6 +277,8 @@ const _getBusyTimesFromTeamLimits = async (
     rescheduleUid,
     teamId,
     user,
+    includeManagedEvents,
+    timeZone,
   });
 
   return limitManager.getBusyTimes();

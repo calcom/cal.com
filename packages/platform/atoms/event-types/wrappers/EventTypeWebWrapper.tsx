@@ -255,8 +255,9 @@ const EventTypeWeb = ({
       <EventAdvancedTab
         eventType={eventType}
         team={team}
-        loggedInUser={loggedInUser}
-        isLoggedInUserPending={isLoggedInUserPending}
+        user={loggedInUser}
+        isUserLoading={isLoggedInUserPending}
+        showToast={showToast}
       />
     ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,

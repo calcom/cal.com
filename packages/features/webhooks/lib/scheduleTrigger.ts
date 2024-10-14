@@ -440,6 +440,12 @@ export async function updateTriggerForExistingBookings(
   if (addedEventTriggers.length > 0) {
     const promise = bookings.map((booking) => {
       return addedEventTriggers.map((triggerEvent) => {
+        if (
+          triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW ||
+          triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+        )
+          return Promise.resolve();
+
         scheduleTrigger({ booking, subscriberUrl: webhook.subscriberUrl, subscriber: webhook, triggerEvent });
       });
     });
