@@ -19,21 +19,11 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Organization not found" });
   }
-  const [users, teams, attributes] = await Promise.all([
-    prisma.membership.findMany({
-      where: { teamId: organizationId },
-      select: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
-      take: 1000, // Limit the number of users returned
-    }),
+  const [teams, attributes] = await Promise.all([
     prisma.team.findMany({
-      where: { id: organizationId },
+      where: {
+        parentId: organizationId,
+      },
       select: {
         id: true,
         name: true,
@@ -55,7 +45,6 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
   ]);
 
   return {
-    users: users.map((u) => u.user),
     teams: teams,
     attributes: attributes,
     roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],

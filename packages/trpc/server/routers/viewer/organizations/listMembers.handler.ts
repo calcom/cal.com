@@ -58,9 +58,15 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         whereClause.role = { in: filter.value as MembershipRole[] };
         break;
       case "teams":
-        whereClause.team = {
-          name: {
-            in: filter.value,
+        whereClause.user = {
+          teams: {
+            some: {
+              team: {
+                name: {
+                  in: filter.value,
+                },
+              },
+            },
           },
         };
         break;
@@ -82,7 +88,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     }
   });
 
-  // I couldnt get this query to work direct on membership table
   const teamMembers = await prisma.membership.findMany({
     where: whereClause,
     select: {
