@@ -195,7 +195,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
     const body = await translateEvent(event);
-    console.log("body", body);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: {
@@ -205,8 +204,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_recording_ui: false,
       },
     }).then(meetingTokenSchema.parse);
-
-    console.log("meetingToken", meetingToken);
 
     return Promise.resolve({
       type: "daily_video",
