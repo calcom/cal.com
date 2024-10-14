@@ -20,6 +20,7 @@ import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
 import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
+import EventPaymentsTabPlatformWrapper from "./EventPaymentsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 
@@ -33,7 +34,7 @@ export type EventTypePlatformWrapperProps = {
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring"],
+  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring", "payments"],
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -60,7 +61,7 @@ const EventType = ({
       form.reset(currentValues);
 
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
-      onSuccess?.(currentValues);
+      props.onSuccess?.(currentValues);
     },
     async onSettled() {
       return;
@@ -69,7 +70,7 @@ const EventType = ({
       const currentValues = form.getValues();
       const message = err?.message;
       toast({ description: message ? t(message) : t(err.message) });
-      onError?.(currentValues, err);
+      props.onError?.(currentValues, err);
     },
   });
 
@@ -105,7 +106,7 @@ const EventType = ({
     ) : (
       <></>
     ),
-
+    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
     limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
