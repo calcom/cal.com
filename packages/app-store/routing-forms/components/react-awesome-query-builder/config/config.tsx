@@ -1,14 +1,24 @@
 import type { ChangeEvent } from "react";
-import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
+import type {
+  Settings,
+  Widgets,
+  SelectWidgetProps,
+  SelectWidget as SelectWidgetType,
+} from "react-awesome-query-builder";
+
+import { EmailField as EmailWidget } from "@calcom/ui";
+
+import widgetsComponents from "../widgets";
 // Figure out why routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-import BasicConfig from "react-awesome-query-builder/lib/config/basic";
+import type { Operators, Types } from "./BasicConfig";
+import BasicConfig from "./BasicConfig";
 
-import { EmailField } from "@calcom/ui";
-
-import widgetsComponents from "../widgets";
-
+const enum ConfigFor {
+  FormFields = "FormFields",
+  Attributes = "Attributes",
+}
 const {
   TextWidget,
   TextAreaWidget,
@@ -29,128 +39,206 @@ const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC
   return <Component {...props} />;
 };
 
-const settings: Settings = {
-  ...BasicConfig.settings,
+function getSettings(_configFor: ConfigFor) {
+  const settings: Settings = {
+    ...BasicConfig.settings,
 
-  renderField: (props) => renderComponent(props, FieldSelect),
-  renderOperator: (props) => renderComponent(props, FieldSelect),
-  renderFunc: (props) => renderComponent(props, FieldSelect),
-  renderConjs: (props) => renderComponent(props, Conjs),
-  renderButton: (props) => renderComponent(props, Button),
-  renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
-  renderProvider: (props) => renderComponent(props, Provider),
+    renderField: (props) => renderComponent(props, FieldSelect),
+    renderOperator: (props) => renderComponent(props, FieldSelect),
+    renderFunc: (props) => renderComponent(props, FieldSelect),
+    renderConjs: (props) => renderComponent(props, Conjs),
+    renderButton: (props) => renderComponent(props, Button),
+    renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
+    renderProvider: (props) => renderComponent(props, Provider),
 
-  groupActionsPosition: "bottomCenter",
+    groupActionsPosition: "bottomCenter",
 
-  // Disable groups
-  maxNesting: 1,
-};
+    // Disable groups
+    maxNesting: 1,
+  };
+  return settings;
+}
 
 // react-query-builder types have missing type property on Widget
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
 // So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
-const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
-  ...BasicConfig.widgets,
-  text: {
-    ...BasicConfig.widgets.text,
-    factory: (props) => renderComponent(props, TextWidget),
-  },
-  textarea: {
-    ...BasicConfig.widgets.textarea,
-    factory: (props) => renderComponent(props, TextAreaWidget),
-  },
-  number: {
-    ...BasicConfig.widgets.number,
-    factory: (props) => renderComponent(props, NumberWidget),
-  },
-  multiselect: {
-    ...BasicConfig.widgets.multiselect,
-    factory: (
-      props: SelectWidgetProps & {
-        listValues: { title: string; value: string }[];
-      }
-    ) => renderComponent(props, MultiSelectWidget),
-  },
-  select: {
-    ...BasicConfig.widgets.select,
-    factory: (
-      props: SelectWidgetProps & {
-        listValues: { title: string; value: string }[];
-      }
-    ) => renderComponent(props, SelectWidget),
-  },
-  phone: {
-    ...BasicConfig.widgets.text,
-    factory: (props) => {
-      if (!props) {
-        return <div />;
-      }
-      return <TextWidget type="tel" {...props} />;
+function getWidgets(_configFor: ConfigFor) {
+  const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
+    ...BasicConfig.widgets,
+    text: {
+      ...BasicConfig.widgets.text,
+      factory: (props) => renderComponent(props, TextWidget),
     },
-    valuePlaceholder: "Enter Phone Number",
-  },
-  email: {
-    ...BasicConfig.widgets.text,
-    factory: (props) => {
-      if (!props) {
-        return <div />;
-      }
+    textarea: {
+      ...BasicConfig.widgets.textarea,
+      factory: (props) => renderComponent(props, TextAreaWidget),
+    },
+    number: {
+      ...BasicConfig.widgets.number,
+      factory: (props) => renderComponent(props, NumberWidget),
+    },
+    multiselect: {
+      ...BasicConfig.widgets.multiselect,
+      factory: (
+        props?: SelectWidgetProps & {
+          listValues: { title: string; value: string }[];
+        }
+      ) => renderComponent(props, MultiSelectWidget),
+    } as SelectWidgetType,
+    select: {
+      ...BasicConfig.widgets.select,
+      factory: (
+        props: SelectWidgetProps & {
+          listValues: { title: string; value: string }[];
+        }
+      ) => renderComponent(props, SelectWidget),
+    } as SelectWidgetType,
+    phone: {
+      ...BasicConfig.widgets.text,
+      factory: (props) => {
+        if (!props) {
+          return <div />;
+        }
+        return <TextWidget type="tel" {...props} />;
+      },
+      valuePlaceholder: "Enter Phone Number",
+    },
+    email: {
+      ...BasicConfig.widgets.text,
+      factory: (props) => {
+        if (!props) {
+          return <div />;
+        }
 
-      return (
-        <EmailField
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-            const val = e.target.value;
-            props.setValue(val);
-          }}
-          containerClassName="w-full"
-          className="dark:placeholder:text-darkgray-600 focus:border-brand border-subtle dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
-          {...props}
-        />
-      );
+        return (
+          <EmailWidget
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const val = e.target.value;
+              props.setValue(val);
+            }}
+            containerClassName="w-full"
+            className="dark:placeholder:text-darkgray-600 focus:border-brand border-subtle dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+            {...props}
+          />
+        );
+      },
     },
-  },
+  };
+  return widgets;
+}
+
+function getTypes(_configFor: ConfigFor) {
+  const types: Types = {
+    ...BasicConfig.types,
+    phone: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    email: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    multiselect: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        multiselect: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [
+            ...(BasicConfig.types.multiselect.widgets.multiselect.operators || []),
+            // TODO: First verify the definition of multiselect_contains and multiselect_not_contains and then uncomment these operators
+            // "multiselect_contains",
+            // "multiselect_not_contains",
+          ],
+        },
+      },
+    },
+  };
+  return types;
+}
+
+function getOperators(configFor: ConfigFor) {
+  // Clone to avoid mutating the original object
+  const operators: Operators = {
+    ...BasicConfig.operators,
+    // Attributes don't need reporting at the moment. So, we can support contains and not contains operators for attributes.
+    ...(configFor === ConfigFor.Attributes
+      ? {
+          multiselect_contains: {
+            label: "Contains",
+            labelForFormat: "CONTAINS",
+            reversedOp: "multiselect_not_contains",
+            // jsonLogic2: "some-in",
+            jsonLogic: function (e, t, r) {
+              return {
+                some: [
+                  e,
+                  {
+                    in: [
+                      {
+                        var: "",
+                      },
+                      r,
+                    ],
+                  },
+                ],
+              };
+            },
+          },
+          multiselect_not_contains: {
+            isNotOp: !0,
+            label: "Not contains",
+            labelForFormat: "NOT CONTAINS",
+            reversedOp: "multiselect_contains",
+            // jsonLogic2: "!some-in",
+            jsonLogic: function (e, t, r) {
+              return {
+                "!": {
+                  some: [
+                    e,
+                    {
+                      in: [
+                        {
+                          var: "",
+                        },
+                        r,
+                      ],
+                    },
+                  ],
+                },
+              };
+            },
+            _jsonLogicIsExclamationOp: !0,
+          },
+        }
+      : {}),
+  };
+
+  return operators;
+}
+
+function getConjunctions(_configFor: ConfigFor) {
+  return {
+    ...BasicConfig.conjunctions,
+  };
+}
+
+export const FormFieldsBaseConfig = {
+  conjunctions: getConjunctions(ConfigFor.FormFields),
+  operators: getOperators(ConfigFor.FormFields),
+  types: getTypes(ConfigFor.FormFields),
+  widgets: getWidgets(ConfigFor.FormFields),
+  settings: getSettings(ConfigFor.FormFields),
 };
 
-const types = {
-  ...BasicConfig.types,
-  phone: {
-    ...BasicConfig.types.text,
-    widgets: {
-      ...BasicConfig.types.text.widgets,
-    },
-  },
-  email: {
-    ...BasicConfig.types.text,
-    widgets: {
-      ...BasicConfig.types.text.widgets,
-    },
-  },
+export const AttributesBaseConfig = {
+  conjunctions: getConjunctions(ConfigFor.Attributes),
+  operators: getOperators(ConfigFor.Attributes),
+  types: getTypes(ConfigFor.Attributes),
+  widgets: getWidgets(ConfigFor.Attributes),
+  settings: getSettings(ConfigFor.Attributes),
 };
-
-const operators = BasicConfig.operators;
-operators.equal.label = operators.select_equals.label = "Equals";
-operators.greater_or_equal.label = "Greater than or equal to";
-operators.greater.label = "Greater than";
-operators.less_or_equal.label = "Less than or equal to";
-operators.less.label = "Less than";
-operators.not_equal.label = operators.select_not_equals.label = "Does not equal";
-operators.between.label = "Between";
-
-delete operators.proximity;
-delete operators.is_null;
-delete operators.is_not_null;
-
-/**
- * Not supported with JSONLogic. Implement them and add these back -> https://github.com/jwadhams/json-logic-js/issues/81
- */
-delete operators.starts_with;
-delete operators.ends_with;
-
-const config = {
-  conjunctions: BasicConfig.conjunctions,
-  operators,
-  types,
-  widgets,
-  settings,
-};
-export default config;

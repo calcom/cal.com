@@ -29,6 +29,8 @@ export type BookingRedirectForm = {
   uuid?: string | null;
 };
 
+type Option = { value: number; label: string };
+
 export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
@@ -41,8 +43,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
+  const { data: listMembers } = trpc.viewer.teams.legacyListMembers.useQuery({});
+
   const me = useMeQuery();
+
   const memberListOptions: {
     value: number;
     label: string;
@@ -53,8 +57,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         value: member.id,
         label: member.name || "",
       })) || [];
-
-  type Option = { value: number; label: string };
 
   const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
 
@@ -86,7 +88,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           reasonId: 1,
         },
   });
-  console.log(isSubmitting);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
@@ -105,7 +106,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   });
 
   return (
-    <Dialog open={openModal}>
+    <Dialog
+      open={openModal}
+      onOpenChange={(open) => {
+        if (!open) {
+          closeModal();
+        }
+      }}>
       <DialogContent
         onOpenAutoFocus={(event) => {
           event.preventDefault();
