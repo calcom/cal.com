@@ -96,7 +96,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   (
-    { children, title, Icon: icon, enableOverflow, forceOverlayWhenNoModal, type = "creation", ...props },
+    { children, title, Icon: icon, enableOverflow, forceOverlayWhenNoModal, type = "creation", preventCloseOnOutsideClick, ...props },
     forwardedRef
   ) => {
     const isPlatform = useIsPlatform();
@@ -121,7 +121,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <Content
           {...props}
           onPointerDownOutside={(e) => {
-            if (props.preventCloseOnOutsideClick) {
+            if (preventCloseOnOutsideClick) {
               e.preventDefault();
             }
           }}

@@ -1,6 +1,8 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 
+import { SkeletonText } from "@calcom/ui";
+
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
@@ -67,3 +69,17 @@ export default function FormInputFields(props: FormInputFieldsProps) {
     </>
   );
 }
+
+export const FormInputFieldsSkeleton = () => {
+  const numberOfFields = 5;
+  return (
+    <>
+      {Array.from({ length: numberOfFields }).map((_, index) => (
+        <div key={index} className="mb-4 block flex-col sm:flex ">
+          <SkeletonText className="mb-2 h-3.5 w-64" />
+          <SkeletonText className="mb-2 h-9 w-32 w-full" />
+        </div>
+      ))}
+    </>
+  );
+};

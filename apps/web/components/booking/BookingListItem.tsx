@@ -228,7 +228,7 @@ function BookingListItem(booking: BookingItemProps) {
       ? [
           {
             id: "reroute",
-            label: t("re-route"),
+            label: t("reroute"),
             onClick: () => {
               setRerouteDialogIsOpen(true);
             },
