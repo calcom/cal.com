@@ -364,6 +364,22 @@ export async function handleConfirmation(args: {
       orgId,
     });
 
+    const subscribersHostsNoShowStarted = await getWebhooks({
+      userId,
+      eventTypeId: booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+      teamId,
+      orgId,
+    });
+
+    const subscribersGuestsNoShowStarted = await getWebhooks({
+      userId: triggerForUser ? organizerUser.id : null,
+      eventTypeId,
+      triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+      teamId,
+      orgId,
+    });
+
     const scheduleTriggerPromises: Promise<unknown>[] = [];
 
     subscribersMeetingStarted.forEach((subscriber) => {
@@ -390,6 +406,50 @@ export async function handleConfirmation(args: {
         );
       });
     });
+
+    scheduleTriggerPromises.push(
+      ...subscribersHostsNoShowStarted.map((webhook) => {
+        if (booking?.startTime && webhook.time && webhook.timeUnit) {
+          const scheduledAt = dayjs(booking.startTime)
+            .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
+            .toDate();
+          return tasker.create(
+            "triggerHostNoShowWebhook",
+            {
+              triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+              bookingId: booking.id,
+              // Prevents null values from being serialized
+              webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+            },
+            { scheduledAt }
+          );
+        }
+        return Promise.resolve();
+      })
+    );
+
+    scheduleTriggerPromises.push(
+      ...subscribersGuestsNoShowStarted.map((webhook) => {
+        if (booking?.startTime && webhook.time && webhook.timeUnit) {
+          const scheduledAt = dayjs(booking.startTime)
+            .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
+            .toDate();
+
+          return tasker.create(
+            "triggerGuestNoShowWebhook",
+            {
+              triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+              bookingId: booking.id,
+              // Prevents null values from being serialized
+              webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+            },
+            { scheduledAt }
+          );
+        }
+
+        return Promise.resolve();
+      })
+    );
 
     await Promise.all(scheduleTriggerPromises);
 
