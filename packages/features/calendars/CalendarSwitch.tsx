@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, Switch } from "@calcom/ui";
@@ -16,9 +17,21 @@ interface ICalendarSwitchProps {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
+  useEsaEndpoint?: boolean;
+  esaToken?: string;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId } = props;
+  const {
+    title,
+    externalId,
+    type,
+    isChecked,
+    name,
+    isLastItemInList = false,
+    credentialId,
+    useEsaEndpoint = false,
+    esaToken = "",
+  } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -29,11 +42,27 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         externalId: externalId,
       };
 
+      let baseUrl = WEBAPP_URL;
+
+      if (baseUrl.includes("localhost")) {
+        baseUrl = "https://buffer-cal-us-east-1-staging.dcsdevelopment.me";
+      }
+
+      let url = useEsaEndpoint ? "/api/esa/calendar-availability" : "/api/availability/calendar";
+      url = `${baseUrl}${url}`;
+
+      const authentication = esaToken
+        ? {
+            Authentication: `Bearer ${esaToken}`,
+          }
+        : {};
+
       if (isOn) {
-        const res = await fetch("/api/availability/calendar", {
+        const res = await fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...authentication,
           },
           body: JSON.stringify({ ...body, credentialId }),
         });
@@ -42,10 +71,11 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           throw new Error("Something went wrong");
         }
       } else {
-        const res = await fetch(`/api/availability/calendar?${new URLSearchParams(body)}`, {
+        const res = await fetch(`${url}?${new URLSearchParams(body)}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            ...authentication,
           },
         });
 

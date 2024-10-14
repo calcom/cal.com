@@ -6,6 +6,7 @@ import { event } from "./procedures/event";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
+import { ZZohoConnectionInputSchema } from "./zohoConnection.schema";
 
 const NAMESPACE = "publicViewer";
 
@@ -49,5 +50,12 @@ export const publicViewerRouter = router({
       () => import("./ssoConnections.handler")
     );
     return handler();
+  }),
+  zohoConnection: publicProcedure.input(ZZohoConnectionInputSchema).query(async ({ input }) => {
+    const handler = await importHandler(
+      namespaced("zohoConnection"),
+      () => import("./zohoConnection.handler")
+    );
+    return handler({ input });
   }),
 });
