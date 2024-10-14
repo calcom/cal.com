@@ -34,14 +34,20 @@ async function enableContactOwnerOverride(page: Page) {
 async function selectFirstAttributeOption({ fromLocator }: { fromLocator: Locator }) {
   await selectOptionUsingLocator({
     locator: fromLocator,
-    option: 1
+    option: 1,
   });
 }
 
-async function selectFirstValueForAttributeValue({ fromLocator, option }: { fromLocator: Locator, option: number }) {
+async function selectFirstValueForAttributeValue({
+  fromLocator,
+  option,
+}: {
+  fromLocator: Locator;
+  option: number;
+}) {
   await selectOptionUsingLocator({
     locator: fromLocator,
-    option
+    option,
   });
 }
 
@@ -59,7 +65,7 @@ async function addAttributeRoutingRule(page: Page) {
   await selectFirstValueForAttributeValue({
     fromLocator: attributeValueSelector,
     // Select 'Value of Field Short Text' option
-    option: numOfOptionsInAttribute + 1
+    option: numOfOptionsInAttribute + 1,
   });
 }
 
@@ -571,7 +577,7 @@ test.describe("Routing Forms", () => {
         await page.click('[data-testid="test-preview"]');
         await page.fill('[data-testid="form-field-short-text"]', "large");
         await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector('text=@example.com');
+        await page.waitForSelector("text=@example.com");
         await page.click('[data-testid="dialog-rejection"]');
       })();
 
@@ -579,9 +585,8 @@ test.describe("Routing Forms", () => {
         await page.click('[data-testid="test-preview"]');
         await page.fill('[data-testid="form-field-short-text"]', "medium");
         await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector('text=No matching members.');
+        await page.waitForSelector("text=No matching members.");
         await page.click('[data-testid="dialog-rejection"]');
-
       })();
     });
   });
@@ -751,15 +756,12 @@ async function selectOption({
     .click();
 }
 
-export async function selectOptionUsingLocator({
-  locator,
-  option,
-}: {
-  locator: Locator;
-  option: number;
-}) {
+export async function selectOptionUsingLocator({ locator, option }: { locator: Locator; option: number }) {
   await locator.click();
-  await locator.locator('[id*="react-select-"][aria-disabled]').nth(option - 1).click();
+  await locator
+    .locator('[id*="react-select-"][aria-disabled]')
+    .nth(option - 1)
+    .click();
 }
 
 async function verifyFieldOptionsInRule(options: string[], page: Page) {
