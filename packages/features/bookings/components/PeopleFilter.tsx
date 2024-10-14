@@ -21,7 +21,7 @@ export const PeopleFilter = () => {
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
 
-  const members = trpc.viewer.teams.listMembers.useQuery({});
+  const members = trpc.viewer.teams.legacyListMembers.useQuery({});
 
   const filteredMembers = members?.data
     ?.filter((member) => member.accepted)

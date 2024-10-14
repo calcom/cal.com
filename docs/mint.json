@@ -2,8 +2,8 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Cal.com Docs",
   "logo": {
-    "dark": "https://cal.com/logo-white.svg",
-    "light": "https://cal.com/logo.svg"
+    "dark": "https://cal.com/calcom-docs-light.svg",
+    "light": "https://cal.com/calcom-docs.svg"
   },
   "api": {
     "baseUrl": "https://api.cal.com",
@@ -24,7 +24,7 @@
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "mailto:support@cal.com"
+      "url": "https://go.cal.com/support"
     }
   ],
   "topbarCtaButton": {
