@@ -4027,29 +4027,48 @@
         "tags": ["OAuth", "Managed users"]
       }
     },
-    "/v2/oauth-clients": {
+    "/v2/schedules": {
       "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
+        "operationId": "SchedulesController_2024_06_11_createSchedule",
+        "summary": "Create a schedule",
+        "description": "\n      Create a schedule for the authenticated user.\n\n      The point of creating schedules is for event types to be available at specific times.\n\n      The first goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.\n\n      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.\n      After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.\n      ",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-06-11`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
+                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Create an OAuth client",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
+                  "$ref": "#/components/schemas/CreateScheduleOutput_2024_06_11"
                 }
               }
             }
@@ -4058,17 +4077,36 @@
         "tags": ["OAuth - development only"]
       },
       "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "",
-        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
-        "parameters": [],
+        "operationId": "SchedulesController_2024_06_11_getSchedules",
+        "summary": "Get all schedules",
+        "description": "Get all schedules of the authenticated user.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-06-11`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
                 }
               }
             }
@@ -7912,6 +7950,9 @@
           },
           "bookingLimits": {
             "type": "string"
+          },
+          "includeManagedEventsInLimits": {
+            "type": "boolean"
           }
         }
       },
@@ -10154,7 +10195,9 @@
               "RECORDING_READY",
               "INSTANT_MEETING",
               "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED"
+              "OOO_CREATED",
+              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
             ]
           },
           "active": {
@@ -10218,7 +10261,9 @@
               "RECORDING_READY",
               "INSTANT_MEETING",
               "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED"
+              "OOO_CREATED",
+              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
             ]
           },
           "active": {
@@ -10961,12 +11006,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -11005,12 +11056,18 @@
           },
           "meetingUrl": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
             "type": "object",
-            "description": "Booking field responses.",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
             "example": {
               "customField": "customValue"
             }
@@ -11052,9 +11109,9 @@
               "type": "string"
             }
           },
-          "meetingUrl": {
+          "location": {
             "type": "string",
-            "description": "Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "description": "Location for this booking. Displayed in email and calendar event.",
             "example": "https://example.com/meeting"
           },
           "bookingFieldsResponses": {
@@ -11077,6 +11134,14 @@
           "uid": {
             "type": "string",
             "example": "booking_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -11115,7 +11180,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 45
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "attendees": {
             "type": "array",
@@ -11132,22 +11202,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": true
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "attendees",
           "absentHost"
         ]
@@ -11162,6 +11248,14 @@
           "uid": {
             "type": "string",
             "example": "recurring_uid_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Recurring meeting"
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn how to integrate scheduling into marketplace."
           },
           "hosts": {
             "type": "array",
@@ -11200,7 +11294,12 @@
           },
           "eventTypeId": {
             "type": "number",
-            "example": 50
+            "example": 50,
+            "deprecated": true,
+            "description": "Deprecated - rely on 'eventType' object containing the id instead."
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
           },
           "recurringBookingUid": {
             "type": "string",
@@ -11221,22 +11320,38 @@
           },
           "meetingUrl": {
             "type": "string",
+            "description": "Deprecated - rely on 'location' field instead.",
+            "example": "https://example.com/recurring-meeting",
+            "deprecated": true
+          },
+          "location": {
+            "type": "string",
             "example": "https://example.com/recurring-meeting"
           },
           "absentHost": {
             "type": "boolean",
             "example": false
+          },
+          "bookingFieldsResponses": {
+            "type": "object",
+            "description": "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
+            "example": {
+              "customField": "customValue"
+            }
           }
         },
         "required": [
           "id",
           "uid",
+          "title",
+          "description",
           "hosts",
           "status",
           "start",
           "end",
           "duration",
           "eventTypeId",
+          "eventType",
           "recurringBookingUid",
           "attendees",
           "absentHost"
@@ -11291,6 +11406,9 @@
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -11316,6 +11434,9 @@
               ]
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]

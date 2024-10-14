@@ -160,6 +160,7 @@ model EventType {
   @@index([teamId])
   @@index([scheduleId])
   @@index([secondaryEmailId])
+  @@index([parentId])
 }
 
 model Credential {
@@ -570,60 +571,61 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                    Int                        @id @default(autoincrement())
-  uid                   String                     @unique
+  id                           Int                            @id @default(autoincrement())
+  uid                          String                         @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey        String?                    @unique
-  user                  User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                Int?
+  idempotencyKey               String?                        @unique
+  user                         User?                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                       Int?
   // User's email at the time of booking
   /// @zod.email()
-  userPrimaryEmail      String?
-  references            BookingReference[]
-  eventType             EventType?                 @relation(fields: [eventTypeId], references: [id])
-  eventTypeId           Int?
-  title                 String
-  description           String?
-  customInputs          Json?
+  userPrimaryEmail             String?
+  references                   BookingReference[]
+  eventType                    EventType?                     @relation(fields: [eventTypeId], references: [id])
+  eventTypeId                  Int?
+  title                        String
+  description                  String?
+  customInputs                 Json?
   /// @zod.custom(imports.bookingResponses)
-  responses             Json?
-  startTime             DateTime
-  endTime               DateTime
-  attendees             Attendee[]
-  location              String?
-  createdAt             DateTime                   @default(now())
-  updatedAt             DateTime?
-  status                BookingStatus              @default(ACCEPTED)
-  paid                  Boolean                    @default(false)
-  payment               Payment[]
-  destinationCalendar   DestinationCalendar?       @relation(fields: [destinationCalendarId], references: [id])
-  destinationCalendarId Int?
-  cancellationReason    String?
-  rejectionReason       String?
-  dynamicEventSlugRef   String?
-  dynamicGroupSlugRef   String?
-  rescheduled           Boolean?
-  fromReschedule        String?
-  recurringEventId      String?
-  smsReminderNumber     String?
-  workflowReminders     WorkflowReminder[]
-  scheduledJobs         String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
-  seatsReferences       BookingSeat[]
+  responses                    Json?
+  startTime                    DateTime
+  endTime                      DateTime
+  attendees                    Attendee[]
+  location                     String?
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime?
+  status                       BookingStatus                  @default(ACCEPTED)
+  paid                         Boolean                        @default(false)
+  payment                      Payment[]
+  destinationCalendar          DestinationCalendar?           @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendarId        Int?
+  cancellationReason           String?
+  rejectionReason              String?
+  dynamicEventSlugRef          String?
+  dynamicGroupSlugRef          String?
+  rescheduled                  Boolean?
+  fromReschedule               String?
+  recurringEventId             String?
+  smsReminderNumber            String?
+  workflowReminders            WorkflowReminder[]
+  scheduledJobs                String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
+  seatsReferences              BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
-  metadata              Json?
-  isRecorded            Boolean                    @default(false)
-  iCalUID               String?                    @default("")
-  iCalSequence          Int                        @default(0)
-  instantMeetingToken   InstantMeetingToken?
-  rating                Int?
-  ratingFeedback        String?
-  noShowHost            Boolean?                   @default(false)
-  scheduledTriggers     WebhookScheduledTriggers[]
-  oneTimePassword       String?                    @unique @default(uuid())
+  metadata                     Json?
+  isRecorded                   Boolean                        @default(false)
+  iCalUID                      String?                        @default("")
+  iCalSequence                 Int                            @default(0)
+  instantMeetingToken          InstantMeetingToken?
+  rating                       Int?
+  ratingFeedback               String?
+  noShowHost                   Boolean?                       @default(false)
+  scheduledTriggers            WebhookScheduledTriggers[]
+  oneTimePassword              String?                        @unique @default(uuid())
   /// @zod.email()
-  cancelledBy           String?
+  cancelledBy                  String?
   /// @zod.email()
-  rescheduledBy         String?
+  rescheduledBy                String?
+  routedFromRoutingFormReponse App_RoutingForms_FormResponse?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -766,6 +768,8 @@ enum WebhookTriggerEvents {
   INSTANT_MEETING
   RECORDING_TRANSCRIPTION_GENERATED
   OOO_CREATED
+  AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+  AFTER_GUESTS_CAL_VIDEO_NO_SHOW
 }
 
 model Webhook {
@@ -789,9 +793,12 @@ model Webhook {
   secret                String?
   platform              Boolean                    @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
+  time                  Int?
+  timeUnit              TimeUnit?
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
+  @@index([active])
 }
 
 model Impersonations {
@@ -934,12 +941,15 @@ model App_RoutingForms_Form {
 }
 
 model App_RoutingForms_FormResponse {
-  id           Int                   @id @default(autoincrement())
-  formFillerId String                @default(cuid())
-  form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId       String
-  response     Json
-  createdAt    DateTime              @default(now())
+  id                 Int                   @id @default(autoincrement())
+  formFillerId       String                @default(cuid())
+  form               App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId             String
+  response           Json
+  createdAt          DateTime              @default(now())
+  routedToBookingUid String?               @unique
+  // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
+  routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -964,6 +974,8 @@ enum WorkflowTriggerEvents {
   NEW_EVENT
   AFTER_EVENT
   RESCHEDULE_EVENT
+  AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+  AFTER_GUESTS_CAL_VIDEO_NO_SHOW
 }
 
 enum WorkflowActions {
@@ -1526,8 +1538,6 @@ model AttributeOption {
   value         String
   slug          String
   assignedUsers AttributeToUser[]
-
-  @@unique([attributeId, value])
 }
 
 model Attribute {

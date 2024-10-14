@@ -42,7 +42,7 @@ export class HttpCode extends HttpError {
  * ```
  */
 export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextApiRequest) => {
-  const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+  const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET_BILLING;
   const sig = req.headers["stripe-signature"];
   if (!sig) throw new HttpCode(400, "Missing stripe-signature");
   if (!STRIPE_WEBHOOK_SECRET) throw new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET");
