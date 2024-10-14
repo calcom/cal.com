@@ -183,6 +183,18 @@ export class CreateRecurringBookingInput_2024_08_13 {
 
   @ApiProperty({
     type: String,
+    description:
+      "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+    example: "https://example.com/meeting",
+    required: false,
+    deprecated: true,
+  })
+  @IsUrl()
+  @IsOptional()
+  meetingUrl?: string;
+
+  @ApiProperty({
+    type: String,
     description: "Location for this booking. Displayed in email and calendar event.",
     example: "https://example.com/meeting",
     required: false,

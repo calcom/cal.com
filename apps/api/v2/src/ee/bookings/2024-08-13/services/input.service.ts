@@ -175,15 +175,15 @@ export class InputBookingsService_2024_08_13 {
 
     const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
     const repeatsEvery = occurrence.interval;
-    const repeatsTimes = occurrence.count;
-    // note(Lauris): timeBetween 0=yearly, 1=monthly and 2=weekly
-    const timeBetween = occurrence.freq;
 
     if (inputBooking.recurrenceCount && inputBooking.recurrenceCount > occurrence.count) {
       throw new BadRequestException(
         "Provided recurrence count is higher than the event type's recurring event count."
       );
     }
+    const repeatsTimes = inputBooking.recurrenceCount || occurrence.count;
+    // note(Lauris): timeBetween 0=yearly, 1=monthly and 2=weekly
+    const timeBetween = occurrence.freq;
 
     const events = [];
     const recurringEventId = uuidv4();

@@ -1140,7 +1140,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        meetingUrl: "https://meet.google.com/abc-def-ghi",
+        location: "https://meet.google.com/abc-def-ghi",
         recurrenceCount,
       };
 
@@ -1162,7 +1162,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        meetingUrl: "https://meet.google.com/abc-def-ghi",
+        location: "https://meet.google.com/abc-def-ghi",
         recurrenceCount,
       };
 
@@ -1196,7 +1196,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               language: body.attendee.language,
               absent: false,
             });
-            expect(firstBooking.meetingUrl).toEqual(body.meetingUrl);
+            expect(firstBooking.location).toEqual(body.location);
             expect(firstBooking.recurringBookingUid).toBeDefined();
             expect(firstBooking.absentHost).toEqual(false);
 
@@ -1216,7 +1216,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               language: body.attendee.language,
               absent: false,
             });
-            expect(secondBooking.meetingUrl).toEqual(body.meetingUrl);
+            expect(secondBooking.location).toEqual(body.location);
             expect(secondBooking.absentHost).toEqual(false);
           } else {
             throw new Error(
@@ -1237,7 +1237,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        meetingUrl: "https://meet.google.com/abc-def-ghi",
+        location: "https://meet.google.com/abc-def-ghi",
         recurrenceCount,
       };
 
@@ -1271,7 +1271,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
               language: body.attendee.language,
               absent: false,
             });
-            expect(firstBooking.meetingUrl).toEqual(body.meetingUrl);
+            expect(firstBooking.location).toEqual(body.location);
+            expect(firstBooking.meetingUrl).toEqual(body.location);
             expect(firstBooking.recurringBookingUid).toBeDefined();
             expect(firstBooking.absentHost).toEqual(false);
 
@@ -1291,7 +1292,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               language: body.attendee.language,
               absent: false,
             });
-            expect(secondBooking.meetingUrl).toEqual(body.meetingUrl);
+            expect(secondBooking.location).toEqual(body.location);
             expect(secondBooking.absentHost).toEqual(false);
 
             const thirdBooking = data[2];
@@ -1310,7 +1311,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               language: body.attendee.language,
               absent: false,
             });
-            expect(thirdBooking.meetingUrl).toEqual(body.meetingUrl);
+            expect(thirdBooking.location).toEqual(body.location);
             expect(thirdBooking.absentHost).toEqual(false);
           } else {
             throw new Error(
