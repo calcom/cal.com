@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
 import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
