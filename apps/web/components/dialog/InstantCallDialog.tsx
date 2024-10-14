@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, Tooltip } from "@calcom/ui";
 
 interface IInstantCallDialog {
   isOpenDialog: boolean;
@@ -19,6 +19,7 @@ export const InstantCallDialog = (props: IInstantCallDialog) => {
       id: 1,
       name: "Leslie Alexander",
       content: "Sales Exploration",
+      email: "example@example.com",
       date: "1d ago",
       dateTime: "2023-03-04T15:54Z",
     },
@@ -26,6 +27,7 @@ export const InstantCallDialog = (props: IInstantCallDialog) => {
       id: 2,
       name: "Michael Foster",
       content: "Sales Exploration",
+      email: "example@example.com",
       date: "2d ago",
       dateTime: "2023-03-03T14:02Z",
     },
@@ -33,6 +35,7 @@ export const InstantCallDialog = (props: IInstantCallDialog) => {
       id: 3,
       name: "Dries Vincent",
       content: "Sales Exploration",
+      email: "example@example.com",
       date: "2d ago",
       dateTime: "2023-03-03T13:23Z",
     },
@@ -40,6 +43,7 @@ export const InstantCallDialog = (props: IInstantCallDialog) => {
       id: 4,
       name: "Lindsay Walton",
       content: "Sales Exploration",
+      email: "example@example.com",
       date: "3d ago",
       dateTime: "2023-03-02T21:13Z",
     },
@@ -56,7 +60,9 @@ export const InstantCallDialog = (props: IInstantCallDialog) => {
                 {callers.map((caller) => (
                   <li key={caller.id} className="flex w-full items-center justify-between py-2 text-sm">
                     <div>
-                      <p className="font-semibold">{caller.name}</p>
+                      <Tooltip content={caller.email}>
+                        <p className="font-semibold">{caller.name}</p>
+                      </Tooltip>
                       <p className="text-subtle line-clamp-2 w-full">{caller.content}</p>
                     </div>
                     <div className="flex gap-2">
