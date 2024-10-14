@@ -2640,5 +2640,15 @@
   "month_to_date": "منذ بداية الشهر",
   "year_to_date": "منذ بداية السنة",
   "custom_range": "نطاق مخصص",
+  "salesforce_create_record_as": "عند الحجز، أضف الأحداث والمشاركين الجدد كالتالي:",
+  "salesforce_lead": "عميل محتمل",
+  "salesforce_contact_under_account": "جهة اتصال تحت حساب",
+  "salesforce_skip_entry_creation": "تخطي إنشاء سجل {{entry}} إذا لم يكن موجودًا في Salesforce",
+  "salesforce_if_account_does_not_exist": "إذا لم تكن جهة الاتصال موجودة تحت حساب، قم بإنشاء عميل محتمل جديد من المشارك",
+  "salesforce_create_new_contact_under_account": "إنشاء جهة اتصال جديدة تحت حساب بناءً على نطاق البريد الإلكتروني للمشارك وجهات الاتصال الموجودة",
+  "mass_assign_attributes": "تعيين السمات بشكل جماعي",
+  "salesforce_book_directly_with_attendee_owner": "إذا كان المشارك موجودًا في Salesforce، احجز مباشرة مع المالك",
+  "salesforce_check_owner_of": "الكيان الذي يجب التحقق من مالكه للحجز مباشرة",
+  "account": "حساب",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

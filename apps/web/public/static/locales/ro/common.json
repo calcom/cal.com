@@ -2640,5 +2640,15 @@
   "month_to_date": "luna până în prezent",
   "year_to_date": "anul până în prezent",
   "custom_range": "interval personalizat",
+  "salesforce_create_record_as": "La rezervare, adaugă evenimentele și noii participanți ca:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Contact sub un cont",
+  "salesforce_skip_entry_creation": "Sari peste crearea înregistrării {{entry}} dacă nu există în Salesforce",
+  "salesforce_if_account_does_not_exist": "Dacă contactul nu există sub un cont, creează un lead nou din participant",
+  "salesforce_create_new_contact_under_account": "Creează un contact nou sub un cont pe baza domeniului de email al participantului și a contactelor existente",
+  "mass_assign_attributes": "Atribuire în masă a atributelor",
+  "salesforce_book_directly_with_attendee_owner": "Dacă participantul există în Salesforce, rezervă direct cu proprietarul",
+  "salesforce_check_owner_of": "Entitatea pentru a verifica proprietarul pentru a rezerva direct",
+  "account": "Cont",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

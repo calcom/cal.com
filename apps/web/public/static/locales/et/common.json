@@ -2640,5 +2640,15 @@
   "month_to_date": "kuu algusest tänaseni",
   "year_to_date": "aasta algusest tänaseni",
   "custom_range": "kohandatud vahemik",
+  "salesforce_create_record_as": "Broneeringu korral lisa sündmused ja uued osalejad kui:",
+  "salesforce_lead": "Müügivihje",
+  "salesforce_contact_under_account": "Kontakt konto all",
+  "salesforce_skip_entry_creation": "Jäta {{entry}} kirje loomata, kui seda Salesforce'is ei eksisteeri",
+  "salesforce_if_account_does_not_exist": "Kui kontakti ei eksisteeri konto all, loo osaleja andmetest uus müügivihje",
+  "salesforce_create_new_contact_under_account": "Loo uus kontakt konto alla, põhinedes osaleja e-posti domeenile ja olemasolevatele kontaktidele",
+  "mass_assign_attributes": "Massiline atribuutide määramine",
+  "salesforce_book_directly_with_attendee_owner": "Kui osaleja eksisteerib Salesforce'is, broneeri otse omanikuga",
+  "salesforce_check_owner_of": "Üksus, mille omanikku kontrollida otsebroneerimiseks",
+  "account": "Konto",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

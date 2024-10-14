@@ -2640,5 +2640,15 @@
   "month_to_date": "od początku miesiąca",
   "year_to_date": "od początku roku",
   "custom_range": "zakres niestandardowy",
+  "salesforce_create_record_as": "Podczas rezerwacji dodaj wydarzenia i nowych uczestników jako:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Kontakt w ramach konta",
+  "salesforce_skip_entry_creation": "Pomiń tworzenie rekordu {{entry}}, jeśli nie istnieje w Salesforce",
+  "salesforce_if_account_does_not_exist": "Jeśli kontakt nie istnieje w ramach konta, utwórz nowy lead z uczestnika",
+  "salesforce_create_new_contact_under_account": "Utwórz nowy kontakt w ramach konta na podstawie domeny e-mail uczestnika i istniejących kontaktów",
+  "mass_assign_attributes": "Masowe przypisywanie atrybutów",
+  "salesforce_book_directly_with_attendee_owner": "Jeśli uczestnik istnieje w Salesforce, zarezerwuj bezpośrednio z właścicielem",
+  "salesforce_check_owner_of": "Podmiot do sprawdzenia właściciela w celu bezpośredniej rezerwacji",
+  "account": "Konto",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

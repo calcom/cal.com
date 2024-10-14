@@ -2640,5 +2640,15 @@
   "month_to_date": "月初から今日まで",
   "year_to_date": "年初から今日まで",
   "custom_range": "カスタム範囲",
+  "salesforce_create_record_as": "予約時にイベントを追加し、新しい参加者を次のように追加します：",
+  "salesforce_lead": "リード",
+  "salesforce_contact_under_account": "アカウント下の連絡先",
+  "salesforce_skip_entry_creation": "{{entry}} レコードがSalesforceに存在しない場合、作成をスキップする",
+  "salesforce_if_account_does_not_exist": "連絡先がアカウントに存在しない場合、参加者から新しいリードを作成する",
+  "salesforce_create_new_contact_under_account": "参加者のメールドメインと既存の連絡先に基づいて、新しい連絡先をアカウント下に作成する",
+  "mass_assign_attributes": "属性の一括割り当て",
+  "salesforce_book_directly_with_attendee_owner": "参加者がSalesforceに存在する場合、所有者と直接予約する",
+  "salesforce_check_owner_of": "直接予約するために所有者を確認するエンティティ",
+  "account": "アカウント",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

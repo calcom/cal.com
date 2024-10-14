@@ -2640,5 +2640,15 @@
   "month_to_date": "mois en cours",
   "year_to_date": "année en cours",
   "custom_range": "période personnalisée",
+  "salesforce_create_record_as": "Lors de la réservation, ajouter les événements et les nouveaux participants en tant que :",
+  "salesforce_lead": "Prospect",
+  "salesforce_contact_under_account": "Contact sous un compte",
+  "salesforce_skip_entry_creation": "Ne pas créer d'enregistrement {{entry}} s'il n'existe pas dans Salesforce",
+  "salesforce_if_account_does_not_exist": "Si le contact n'existe pas sous un compte, créer un nouveau prospect à partir du participant",
+  "salesforce_create_new_contact_under_account": "Créer un nouveau contact sous un compte basé sur le domaine e-mail du participant et les contacts existants",
+  "mass_assign_attributes": "Attribuer des attributs en masse",
+  "salesforce_book_directly_with_attendee_owner": "Si le participant existe dans Salesforce, réserver directement avec le propriétaire",
+  "salesforce_check_owner_of": "Entité dont il faut vérifier le propriétaire pour réserver directement",
+  "account": "Compte",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

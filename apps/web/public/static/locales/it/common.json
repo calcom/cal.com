@@ -2640,5 +2640,15 @@
   "month_to_date": "mese corrente",
   "year_to_date": "anno corrente",
   "custom_range": "intervallo personalizzato",
+  "salesforce_create_record_as": "Al momento della prenotazione, aggiungi eventi e nuovi partecipanti come:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Contatto sotto un account",
+  "salesforce_skip_entry_creation": "Salta la creazione del record {{entry}} se non esistono in Salesforce",
+  "salesforce_if_account_does_not_exist": "Se il contatto non esiste sotto un account, crea un nuovo lead dal partecipante",
+  "salesforce_create_new_contact_under_account": "Crea un nuovo contatto sotto un account basato sul dominio email del partecipante e contatti esistenti",
+  "mass_assign_attributes": "Assegna attributi in massa",
+  "salesforce_book_directly_with_attendee_owner": "Se il partecipante esiste in Salesforce, prenota direttamente con il proprietario",
+  "salesforce_check_owner_of": "Entità per verificare il proprietario per prenotare direttamente",
+  "account": "Account",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

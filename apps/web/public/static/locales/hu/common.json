@@ -2640,5 +2640,15 @@
   "month_to_date": "hónap elejétől",
   "year_to_date": "év elejétől",
   "custom_range": "egyéni tartomány",
+  "salesforce_create_record_as": "Foglaláskor adja hozzá az eseményeket és az új résztvevőket mint:",
+  "salesforce_lead": "Érdeklődő",
+  "salesforce_contact_under_account": "Kapcsolat egy fiók alatt",
+  "salesforce_skip_entry_creation": "Hagyja ki a(z) {{entry}} rekord létrehozását, ha nem létezik a Salesforce-ban",
+  "salesforce_if_account_does_not_exist": "Ha a kapcsolat nem létezik egy fiók alatt, hozzon létre új érdeklődőt a résztvevőből",
+  "salesforce_create_new_contact_under_account": "Hozzon létre új kapcsolatot egy fiók alatt a résztvevő e-mail domainje és meglévő kapcsolatok alapján",
+  "mass_assign_attributes": "Attribútumok tömeges hozzárendelése",
+  "salesforce_book_directly_with_attendee_owner": "Ha a résztvevő létezik a Salesforce-ban, foglaljon közvetlenül a tulajdonossal",
+  "salesforce_check_owner_of": "Entitás, amelynek tulajdonosát ellenőrizni kell a közvetlen foglaláshoz",
+  "account": "Fiók",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

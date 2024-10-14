@@ -2640,5 +2640,15 @@
   "month_to_date": "本月至今",
   "year_to_date": "今年至今",
   "custom_range": "自定义范围",
+  "salesforce_create_record_as": "预订时，将事件添加到，并将新参与者添加为：",
+  "salesforce_lead": "潜在客户",
+  "salesforce_contact_under_account": "账户下的联系人",
+  "salesforce_skip_entry_creation": "如果{{entry}}记录在Salesforce中不存在，则跳过创建",
+  "salesforce_if_account_does_not_exist": "如果联系人不在某个账户下，则从参与者创建新的潜在客户",
+  "salesforce_create_new_contact_under_account": "根据参与者的电子邮件域和现有联系人，在账户下创建新联系人",
+  "mass_assign_attributes": "批量分配属性",
+  "salesforce_book_directly_with_attendee_owner": "如果参与者在Salesforce中存在，则直接与所有者预订",
+  "salesforce_check_owner_of": "检查实体的所有者以直接预订",
+  "account": "账户",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2640,5 +2640,15 @@
   "month_to_date": "maand tot nu toe",
   "year_to_date": "jaar tot nu toe",
   "custom_range": "aangepast bereik",
+  "salesforce_create_record_as": "Bij boeking, voeg evenementen toe en nieuwe deelnemers als:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Contact onder een account",
+  "salesforce_skip_entry_creation": "Sla het aanmaken van {{entry}} record over als deze niet in Salesforce bestaat",
+  "salesforce_if_account_does_not_exist": "Als de contactpersoon niet onder een account bestaat, maak een nieuwe lead van de deelnemer",
+  "salesforce_create_new_contact_under_account": "Maak een nieuw contact onder een account op basis van het e-maildomein van de deelnemer en bestaande contacten",
+  "mass_assign_attributes": "Attribuuttoewijzing in bulk",
+  "salesforce_book_directly_with_attendee_owner": "Als de deelnemer in Salesforce bestaat, boek direct met de eigenaar",
+  "salesforce_check_owner_of": "Entiteit om eigenaar van te controleren voor directe boeking",
+  "account": "Account",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

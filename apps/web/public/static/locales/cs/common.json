@@ -2640,5 +2640,15 @@
   "month_to_date": "od začátku měsíce",
   "year_to_date": "od začátku roku",
   "custom_range": "vlastní rozsah",
+  "salesforce_create_record_as": "Při rezervaci přidejte události a nové účastníky jako:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Kontakt pod účtem",
+  "salesforce_skip_entry_creation": "Přeskočit vytvoření záznamu {{entry}}, pokud neexistuje v Salesforce",
+  "salesforce_if_account_does_not_exist": "Pokud kontakt neexistuje pod účtem, vytvořte nový lead z účastníka",
+  "salesforce_create_new_contact_under_account": "Vytvořte nový kontakt pod účtem na základě e-mailové domény účastníka a existujících kontaktů",
+  "mass_assign_attributes": "Hromadné přiřazení atributů",
+  "salesforce_book_directly_with_attendee_owner": "Pokud účastník existuje v Salesforce, rezervujte přímo s vlastníkem",
+  "salesforce_check_owner_of": "Entita ke kontrole vlastníka pro přímou rezervaci",
+  "account": "Účet",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
