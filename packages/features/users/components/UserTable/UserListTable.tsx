@@ -4,7 +4,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  getFacetedUniqueValues,
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
@@ -104,6 +103,7 @@ export function UserListTable() {
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
+  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery();
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -195,7 +195,8 @@ export function UserListTable() {
         enableHiding: false,
         header: ({ table }) => {
           const count = table.getFilteredRowModel().rows.length;
-          return `Members (${count})`;
+
+          return `Members (${count} of ${totalDBRowCount})`;
         },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
@@ -348,7 +349,23 @@ export function UserListTable() {
     // TODO(SEAN): We need to move filter state to the server so we can fetch more data when the filters change if theyre not in client cache
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedUniqueValues: (_, columnId) => () => {
+      if (facetedTeamValues) {
+        switch (columnId) {
+          case "role":
+            return new Map(facetedTeamValues.roles.map((role) => [role, 1]));
+          case "teams":
+            return new Map(facetedTeamValues.teams.map((team) => [team.name, 1]));
+          default:
+            const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
+            if (attribute) {
+              return new Map(attribute?.options.map(({ value }) => [value, 1]) ?? []);
+            }
+            return new Map();
+        }
+      }
+      return new Map();
+    },
   });
 
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
@@ -373,7 +390,8 @@ export function UserListTable() {
         <DataTableToolbar.Root className="lg:max-w-screen-2xl">
           <div className="flex w-full gap-2">
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            <DataTableFilters.FilterButton table={table} />
+            {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
+            <DataTableFilters.FilterButton table={table} omit={["member"]} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             {adminOrOwner && (
               <DataTableToolbar.CTA

@@ -97,17 +97,21 @@ const ColumnVisibilityButton = forwardRef(ColumnVisibilityButtonComponent) as <T
 // Filters
 interface FilterButtonProps<TData> {
   table: Table<TData>;
+  omit?: string[];
 }
 
 function FilterButtonComponent<TData>(
-  { table }: FilterButtonProps<TData>,
+  { table, omit }: FilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
   const [_state, _setState] = useFiltersSearchState();
 
   const activeFilters = _state.activeFilters;
-  const columns = table.getAllColumns().filter((column) => column.getCanFilter());
+  const columns = table
+    .getAllColumns()
+    .filter((column) => column.getCanFilter())
+    .filter((column) => !omit?.includes(column.id));
 
   const filterableColumns = useMemo(() => {
     return columns.map((column) => ({
@@ -154,7 +158,7 @@ function FilterButtonComponent<TData>(
 }
 
 const FilterButton = forwardRef(FilterButtonComponent) as <TData>(
-  props: FilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
+  props: FilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement>; omit?: string[] }
 ) => ReturnType<typeof FilterButtonComponent>;
 
 // Add the new ActiveFilters component
