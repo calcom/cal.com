@@ -26,7 +26,7 @@ import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { User } from "@calcom/prisma/client";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -260,6 +260,13 @@ export const InfiniteEventTypeList = ({
     },
   });
 
+  const { data: team } = trpc.viewer.teams.get.useQuery({ teamId: group.teamId ?? -1 });
+
+  const isTeamAdminOrOwner =
+    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+
+  const isTeamPrivate = !!(team?.isPrivate && !isTeamAdminOrOwner);
+
   const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
     onMutate: async (data) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
@@ -472,7 +479,7 @@ export const InfiniteEventTypeList = ({
                     <MemoizedItem type={type} group={group} readOnly={readOnly} />
                     <div className="mt-4 hidden sm:mt-0 sm:flex">
                       <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                        {!!type.teamId && !isManagedEventType && (
+                        {!!type.teamId && !isManagedEventType && !isTeamPrivate && (
                           <UserAvatarGroup
                             className="relative right-3"
                             size="sm"
