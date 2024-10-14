@@ -98,6 +98,44 @@ async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   return allTranscriptsAccessLinks;
 }
 
+export const updateMeetingTokenIfExpired = async ({
+  bookingReferenceId,
+  meetingToken,
+  roomName,
+  exp,
+}: {
+  bookingReferenceId: number;
+  meetingToken: string;
+  roomName: string;
+  exp: number;
+}) => {
+  try {
+    await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
+  } catch (err) {
+    const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
+      properties: {
+        room_name: roomName,
+        exp: exp,
+        enable_recording_ui: false,
+        is_owner: true,
+      },
+    }).then(meetingTokenSchema.parse);
+
+    await prisma.bookingReference.update({
+      where: {
+        id: bookingReferenceId,
+      },
+      data: {
+        meetingPassword: organizerMeetingToken.token,
+      },
+    });
+
+    return organizerMeetingToken.token;
+  }
+
+  return meetingToken;
+};
+
 export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
   meetingToken: string | null,
   userId?: number
@@ -157,6 +195,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
     const body = await translateEvent(event);
+    console.log("body", body);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: {
@@ -166,6 +205,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_recording_ui: false,
       },
     }).then(meetingTokenSchema.parse);
+
+    console.log("meetingToken", meetingToken);
 
     return Promise.resolve({
       type: "daily_video",
