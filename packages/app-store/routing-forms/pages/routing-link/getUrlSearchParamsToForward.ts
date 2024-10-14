@@ -1,9 +1,10 @@
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import type { LocalRoute } from "../../types/types";
+import type { FormResponse, LocalRoute } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
 
+type FormResponseValueOnly = { [key: string]: { value: FormResponse[keyof FormResponse]["value"] } };
 type Props = inferSSRProps<typeof getServerSideProps>;
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
 type GetUrlSearchParamsToForwardOptions = {
@@ -21,6 +22,7 @@ type GetUrlSearchParamsToForwardOptions = {
   formResponseId: number;
   teamMembersMatchingAttributeLogic: number[] | null;
   attributeRoutingConfig: AttributeRoutingConfig | null;
+  reroutingFormResponses?: FormResponseValueOnly;
 };
 
 export function getUrlSearchParamsToForward({
@@ -30,6 +32,7 @@ export function getUrlSearchParamsToForward({
   teamMembersMatchingAttributeLogic,
   formResponseId,
   attributeRoutingConfig,
+  reroutingFormResponses,
 }: GetUrlSearchParamsToForwardOptions) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
@@ -86,6 +89,9 @@ export function getUrlSearchParamsToForward({
       : null),
     ["cal.routingFormResponseId"]: String(formResponseId),
     ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
+    ...(reroutingFormResponses
+      ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
+      : null),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();
@@ -109,8 +115,10 @@ export function getUrlSearchParamsToForwardForReroute({
   teamMembersMatchingAttributeLogic,
   attributeRoutingConfig,
   rescheduleUid,
+  reroutingFormResponses,
 }: GetUrlSearchParamsToForwardOptions & {
   rescheduleUid: string;
+  reroutingFormResponses: FormResponseValueOnly;
 }) {
   searchParams.set("rescheduleUid", rescheduleUid);
   searchParams.set("cal.rerouting", "true");
@@ -121,5 +129,6 @@ export function getUrlSearchParamsToForwardForReroute({
     searchParams,
     teamMembersMatchingAttributeLogic,
     attributeRoutingConfig,
+    reroutingFormResponses,
   });
 }

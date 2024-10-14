@@ -2653,6 +2653,6 @@
   "reroute_booking_description": "Reroute the booking to different team members",
   "verify_new_route": "Verify new route",
   "reroute": "Reroute",
-  "new_route_status": "New route status",
+  "new_routing_status": "New routing status",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

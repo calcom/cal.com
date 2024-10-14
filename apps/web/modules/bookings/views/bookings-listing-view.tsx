@@ -20,6 +20,7 @@ import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
@@ -78,7 +79,7 @@ export default function Bookings() {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
-
+  const { isRerouting } = useRouterQuery("isRerouting");
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
@@ -88,12 +89,9 @@ export default function Bookings() {
       },
     },
     {
-      // first render has status `undefined`
-      enabled: true,
+      // It ensures that a booking that is being rescheduled(and thus cancelled) through a new tab flow, doesn't get removed from the list(removing the Reroute Dialog abruptly which is inside BookingListItem component).
+      enabled: !isRerouting,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-
-      // It ensures that on window focus a booking that was rescheduled(actually re-routed) through a new tab flow, doesn't get removed and thus the Dialog for that booking doesn't automatically get removed/closed.
-      refetchOnWindowFocus: false,
     }
   );
 

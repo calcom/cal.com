@@ -232,7 +232,7 @@ function BookingListItem(booking: BookingItemProps) {
             onClick: () => {
               setRerouteDialogIsOpen(true);
             },
-            icon: "pencil" as const,
+            icon: "waypoints" as const,
           },
         ]
       : []),

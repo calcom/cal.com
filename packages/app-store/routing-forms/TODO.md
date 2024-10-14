@@ -18,7 +18,17 @@
 ## TODO - ReRouting
 - [ ] Need to get teamMemberEmail from Salesforce
 - [ ] When 'Verify Route' is clicked, it doesn't seem to run the form field logic as there is a warning in console. Fix it.
-- [ ] Make sure that without making the FORM dirty, user can't reroute
+- [x] Make sure that without making the FORM dirty, user can't reroute
+- [ ] Give a proper icon to Reroute button
+- [ ] When rescheduling to a new event
+    - The booking title remains same which will most probably not match the event-type title. This is the behaviour of reschedule. Should we use the new event-type title? 
+- [ ] What params should we forward to the booking page that we show after rerouting
+- [ ] On completing the rerouting just show the new Routing status
+- [ ] Fetch bookings on window focus but not when rerouting dialog is open. As soon as it is closed, we could refetch again.
+- [ ] We disallow changing the email identifier field as during a reschedule user isn't allowed to change their email currently. Allowing to change that email response would mean that we support changing email during reschedule which might be disabled for some reasons unknown yet.
+- [ ] What if there are changes to Form before rerouting but after initial routing.
+- [ ] Not able to prefill rescheduleReason due to a bug in useInitialFormValues hook
+- [ ] It is becoming a requirement to have BookingAttempt record to allow to store reroutingFormResponses as well as teamMemberIds in it. Other query params could also be stored later on when needed.
 - To Test
     - [ ] Hashed link booking
 
