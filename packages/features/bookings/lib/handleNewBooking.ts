@@ -89,7 +89,7 @@ import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
-import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleTriggers";
 import type {
   Invitee,
   IEventTypePaymentCredentialType,

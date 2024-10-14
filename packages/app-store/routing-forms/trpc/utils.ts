@@ -1,5 +1,6 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
+import { scheduleFormSubmittedNoEventTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleTriggers";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -78,7 +79,7 @@ function getFieldResponse({
 }
 
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
-type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
+export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   string,
   {
     /**
@@ -178,7 +179,8 @@ export async function onFormSubmission(
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
-  response: FormResponse
+  response: FormResponse,
+  responseId: number
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
@@ -201,16 +203,24 @@ export async function onFormSubmission(
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  const subscriberOptions = {
+  const subscriberOptionsFormSubmitted = {
     userId,
     teamId,
     orgId,
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
   };
 
-  const webhooks = await getWebhooks(subscriberOptions);
+  const subscriberOptionsFormSubmittedNoEvent = {
+    userId,
+    teamId,
+    orgId,
+    triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  };
 
-  const promises = webhooks.map((webhook) => {
+  const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
+  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
+
+  const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
     sendGenericWebhookPayload({
       secretKey: webhook.secret,
       triggerEvent: "FORM_SUBMITTED",
@@ -233,6 +243,20 @@ export async function onFormSubmission(
       console.error(`Error executing routing form webhook`, webhook, e);
     });
   });
+
+  const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
+    scheduleFormSubmittedNoEventTriggers({
+      response: {
+        id: responseId,
+        form,
+        submittedAt: new Date().toISOString(),
+        responses: fieldResponsesByIdentifier,
+      },
+      webhooks: webhooksFormSubmittedNoEvent,
+    });
+  });
+
+  const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
   await Promise.all(promises);
   const orderedResponses = form.fields.reduce((acc, field) => {

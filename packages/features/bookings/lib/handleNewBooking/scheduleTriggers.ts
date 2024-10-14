@@ -1,10 +1,12 @@
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
+import type { ResponseWithForm } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEventWebhook";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 type ScheduleNoShowTriggersArgs = {
-  booking: {
+  booking?: {
     startTime: Date;
     id: number;
   };
@@ -13,6 +15,33 @@ type ScheduleNoShowTriggersArgs = {
   eventTypeId: number;
   teamId?: number | null;
   orgId?: number | null;
+};
+
+export const scheduleFormSubmittedNoEventTriggers = async ({
+  webhooks,
+  response,
+}: {
+  webhooks: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate" | "secret">[];
+  response: ResponseWithForm;
+}) => {
+  const formSubmittedNoEventPromises: Promise<any>[] = [];
+
+  formSubmittedNoEventPromises.push(
+    ...webhooks.map((webhook) => {
+      // check 10 minutes after submission if booking was created
+      const scheduledAt = dayjs(response.submittedAt).add(10, "minute").toDate();
+      return tasker.create(
+        "triggerFormSubmittedNoEventWebhook",
+        {
+          response,
+          webhook,
+        },
+        { scheduledAt }
+      );
+    })
+  );
+
+  await Promise.all(formSubmittedNoEventPromises);
 };
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
