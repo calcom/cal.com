@@ -27,6 +27,7 @@ type InputProps = {
   dynamicUserList: string[];
   logger: Logger<unknown>;
   routedTeamMemberIds: number[] | null;
+  contactOwnerEmail: string | null;
 };
 
 export async function loadAndValidateUsers({
@@ -36,8 +37,15 @@ export async function loadAndValidateUsers({
   dynamicUserList,
   logger,
   routedTeamMemberIds,
+  contactOwnerEmail,
 }: InputProps): Promise<Users> {
-  let users: Users = await loadUsers({ eventType, dynamicUserList, req, routedTeamMemberIds });
+  let users: Users = await loadUsers({
+    eventType,
+    dynamicUserList,
+    req,
+    routedTeamMemberIds,
+    contactOwnerEmail,
+  });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     logger.warn({

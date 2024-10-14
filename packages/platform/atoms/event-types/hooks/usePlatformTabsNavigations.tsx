@@ -60,12 +60,14 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
       onClick: (tab) => {
         setCurrentTab(tab);
       },
+      currentTab,
     });
 
     if (!requirePayment) {
       navigation.splice(3, 0, {
         name: "recurring",
         onClick: () => setCurrentTab("recurring"),
+        isActive: currentTab === "recurring",
         href: `${url}?tabName=recurring`,
         icon: "repeat",
         info: `recurring_event_tab_description`,
@@ -75,6 +77,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
     navigation.splice(1, 0, {
       name: "availability",
       onClick: () => setCurrentTab("availability"),
+      isActive: currentTab === "availability",
       href: `${url}?tabName=availability`,
       icon: "calendar",
       info:
@@ -96,6 +99,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
       navigation.splice(2, 0, {
         name: "assignment",
         onClick: () => setCurrentTab("team"),
+        isActive: currentTab === "team",
         href: `${url}?tabName=team`,
         icon: "users",
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
@@ -133,15 +137,17 @@ type getNavigationProps = {
   tabs: PlatformTabs[];
   url: string;
   onClick: (tab: PlatformTabs) => void;
+  currentTab: PlatformTabs;
 };
 
-function getNavigation({ length, multipleDuration, t, tabs, url, onClick }: getNavigationProps) {
+function getNavigation({ length, multipleDuration, t, tabs, url, onClick, currentTab }: getNavigationProps) {
   const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
   const tabsNavigation: VerticalTabItemProps[] = [];
   tabs.includes("setup") &&
     tabsNavigation.push({
       name: "event_setup_tab_title",
       onClick: () => onClick("setup"),
+      isActive: currentTab === "setup",
       href: `${url}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
@@ -150,6 +156,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick }: getN
     tabsNavigation.push({
       name: "event_limit_tab_title",
       onClick: () => onClick("limits"),
+      isActive: currentTab === "limits",
       href: `${url}?tabName=limits`,
       icon: "clock",
       info: `event_limit_tab_description`,
@@ -159,6 +166,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick }: getN
     tabsNavigation.push({
       name: "event_advanced_tab_title",
       onClick: () => onClick("advanced"),
+      isActive: currentTab === "advanced",
       href: `${url}?tabName=advanced`,
       icon: "sliders-vertical",
       info: `event_advanced_tab_description`,
