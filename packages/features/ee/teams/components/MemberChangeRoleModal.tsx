@@ -11,6 +11,47 @@ type MembershipRoleOption = {
   value: MembershipRole;
 };
 
+export const updateRoleInCache = ({
+  utils,
+  teamId,
+  searchTerm,
+  role,
+  memberId,
+}: {
+  utils: ReturnType<typeof trpc.useUtils>;
+  teamId: number;
+  searchTerm: string | undefined;
+  role: MembershipRole;
+  memberId: number;
+}) => {
+  utils.viewer.teams.listMembers.setInfiniteData(
+    {
+      limit: 10,
+      teamId,
+      searchTerm,
+    },
+    (data) => {
+      if (!data) {
+        return {
+          pages: [],
+          pageParams: [],
+        };
+      }
+
+      return {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          members: page.members.map((member) => ({
+            ...member,
+            role: member.id === memberId ? role : member.role,
+          })),
+        })),
+      };
+    }
+  );
+};
+
 export default function MemberChangeRoleModal(props: {
   isOpen: boolean;
   currentMember: MembershipRole;
@@ -18,6 +59,7 @@ export default function MemberChangeRoleModal(props: {
   teamId: number;
   initialRole: MembershipRole;
   onExit: () => void;
+  searchTerm?: string;
 }) {
   const { t } = useLocale();
 
@@ -48,6 +90,20 @@ export default function MemberChangeRoleModal(props: {
   const utils = trpc.useUtils();
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
+    onMutate: async ({ teamId, memberId, role }) => {
+      await utils.viewer.teams.listMembers.cancel();
+      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
+        limit: 10,
+        teamId,
+        searchTerm: props.searchTerm,
+      });
+
+      if (previousValue) {
+        updateRoleInCache({ utils, teamId, memberId, role, searchTerm: props.searchTerm });
+      }
+
+      return { previousValue };
+    },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();

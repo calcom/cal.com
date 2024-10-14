@@ -15,6 +15,7 @@ import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { EventTypesList } from "./BulkActions/EventTypesList";
+import { MassAssignAttributesBulkAction } from "./BulkActions/MassAssignAttributes";
 import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -50,7 +51,7 @@ export type State = {
   deleteMember: Payload;
   impersonateMember: Payload;
   inviteMember: Payload;
-  editSheet: Payload;
+  editSheet: Payload & { user?: User };
 };
 
 export type Action =
@@ -327,21 +328,25 @@ export function UserListTable() {
           const user = row.original;
           const canEdit = adminOrOwner;
           if (canEdit) {
-            dispatch({
-              type: "EDIT_USER_SHEET",
-              payload: {
-                showModal: true,
-                user,
-              },
-            });
+            // dispatch({
+            //   type: "EDIT_USER_SHEET",
+            //   payload: {
+            //     showModal: true,
+            //     user,
+            //   },
+            // });
           }
         }}
-        data-testId="user-list-data-table"
+        data-testid="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
             type: "render",
             render: (table) => <TeamListBulkAction table={table} />,
+          },
+          {
+            type: "render",
+            render: (table) => <MassAssignAttributesBulkAction table={table} />,
           },
           {
             type: "action",

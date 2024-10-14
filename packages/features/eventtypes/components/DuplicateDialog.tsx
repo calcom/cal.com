@@ -32,9 +32,13 @@ const querySchema = z.object({
   id: z.coerce.number(),
   length: z.coerce.number(),
   pageSlug: z.string(),
+  teamId: z.coerce.number().optional().nullable(),
+  parentId: z.coerce.number().optional().nullable(),
 });
 
 const DuplicateDialog = () => {
+  const utils = trpc.useUtils();
+
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -69,6 +73,13 @@ const DuplicateDialog = () => {
   const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}`);
+
+      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+        limit: 10,
+        group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
+      });
+
       showToast(
         t("event_type_created_successfully", {
           eventTypeTitle: eventType.title,

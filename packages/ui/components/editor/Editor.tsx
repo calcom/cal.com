@@ -20,6 +20,7 @@ import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";
 import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
+import EditablePlugin from "./plugins/EditablePlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
@@ -35,7 +36,9 @@ export type TextEditorProps = {
   setText: (text: string) => void;
   excludedToolbarItems?: string[];
   variables?: string[];
+  addVariableButtonTop?: boolean;
   height?: string;
+  maxHeight?: string;
   placeholder?: string;
   disableLists?: boolean;
   updateTemplate?: boolean;
@@ -70,7 +73,7 @@ export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   return (
     <div className="editor rounded-md">
-      <LexicalComposer initialConfig={{ ...editorConfig, editable }}>
+      <LexicalComposer initialConfig={{ ...editorConfig }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 transition focus-within:ring-2">
           <ToolbarPlugin
             getText={props.getText}
@@ -78,20 +81,21 @@ export const Editor = (props: TextEditorProps) => {
             editable={editable}
             excludedToolbarItems={props.excludedToolbarItems}
             variables={props.variables}
+            addVariableButtonTop={props.addVariableButtonTop}
             updateTemplate={props.updateTemplate}
             firstRender={props.firstRender}
             setFirstRender={props.setFirstRender}
           />
           <div
-            className={classNames("editor-inner scroll-bar", !editable && "!bg-subtle")}
-            style={{ height: props.height }}>
+            className={classNames("editor-inner scroll-bar overflow-x-hidden", !editable && "!bg-subtle")}
+            style={{ height: props.height, maxHeight: props.maxHeight }}>
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  data-testid="editor-input"
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input"
+                  data-testid="editor-input"
                 />
               }
               placeholder={
@@ -117,6 +121,7 @@ export const Editor = (props: TextEditorProps) => {
             />
           </div>
         </div>
+        <EditablePlugin editable={editable} />
       </LexicalComposer>
     </div>
   );

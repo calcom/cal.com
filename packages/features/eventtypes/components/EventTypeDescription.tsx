@@ -78,11 +78,6 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {eventType.metadata?.managedEventConfig && !isPublic && (
-            <Badge variant="gray" startIcon="lock">
-              {t("managed")}
-            </Badge>
-          )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block" data-testid="repeat-eventtype">
               <Badge variant="gray" startIcon="refresh-cw">

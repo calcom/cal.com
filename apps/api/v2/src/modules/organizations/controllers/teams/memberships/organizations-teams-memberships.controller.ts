@@ -3,6 +3,7 @@ import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.de
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
@@ -40,8 +41,8 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId/teams/:teamId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard)
-@DocsTags("Organizations Teams")
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@DocsTags("Orgs / Teams / Memberships")
 export class OrganizationsTeamsMembershipsController {
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
@@ -49,7 +50,7 @@ export class OrganizationsTeamsMembershipsController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get all the memberships of a team of an organization." })
+  @ApiOperation({ summary: "Get all memberships" })
   @UseGuards()
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -75,7 +76,7 @@ export class OrganizationsTeamsMembershipsController {
   }
 
   @Get("/:membershipId")
-  @ApiOperation({ summary: "Get the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Get a membership" })
   @UseGuards()
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -100,7 +101,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Delete a membership" })
   async deleteOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -121,7 +122,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update the membership of an organization's team by ID" })
+  @ApiOperation({ summary: "Update a membership" })
   async updateOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -144,7 +145,7 @@ export class OrganizationsTeamsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a membership of an organization's team" })
+  @ApiOperation({ summary: "Create a membership" })
   async createOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,

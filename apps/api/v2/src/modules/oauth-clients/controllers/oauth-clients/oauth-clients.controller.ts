@@ -9,9 +9,11 @@ import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-cli
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
@@ -36,8 +38,7 @@ import {
   ApiOperation as DocsOperation,
   ApiCreatedResponse as DocsCreatedResponse,
 } from "@nestjs/swagger";
-import { MembershipRole } from "@prisma/client";
-import { User } from "@prisma/client";
+import { User, MembershipRole } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput } from "@calcom/platform-types";
@@ -51,15 +52,14 @@ Second, make sure that the logged in user has organizationId set to pass the Org
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("OAuth - development only")
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
     private readonly userRepository: UsersRepository,
-    private readonly teamsRepository: OrganizationsRepository
+    private readonly teamsRepository: OrganizationsRepository,
+    private usersService: UsersService
   ) {}
 
   @Post("/")
@@ -74,7 +74,7 @@ export class OAuthClientsController {
     @GetUser() user: UserWithProfile,
     @Body() body: CreateOAuthClientInput
   ): Promise<CreateOAuthClientResponseDto> {
-    const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
+    const organizationId = this.usersService.getUserMainOrgId(user) as number;
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );
@@ -85,6 +85,7 @@ export class OAuthClientsController {
     }
 
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(organizationId, body);
+
     return {
       status: SUCCESS_STATUS,
       data: {
@@ -99,7 +100,7 @@ export class OAuthClientsController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async getOAuthClients(@GetUser() user: UserWithProfile): Promise<GetOAuthClientsResponseDto> {
-    const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
+    const organizationId = this.usersService.getUserMainOrgId(user) as number;
 
     const clients = await this.oauthClientRepository.getOrganizationOAuthClients(organizationId);
     return { status: SUCCESS_STATUS, data: clients };
@@ -109,11 +110,13 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
     if (!client) {
       throw new NotFoundException(`OAuth client with ID ${clientId} not found`);
     }
+
     return { status: SUCCESS_STATUS, data: client };
   }
 
@@ -121,6 +124,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async getOAuthClientManagedUsersById(
     @Param("clientId") clientId: string,
     @Query() queryParams: Pagination
@@ -139,12 +143,14 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async updateOAuthClient(
     @Param("clientId") clientId: string,
     @Body() body: UpdateOAuthClientInput
   ): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
     const client = await this.oauthClientRepository.updateOAuthClient(clientId, body);
+
     return { status: SUCCESS_STATUS, data: client };
   }
 
@@ -152,6 +158,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
@@ -163,6 +170,7 @@ export class OAuthClientsController {
       id: user.id,
       email: user.email,
       username: user.username,
+      name: user.name,
       timeZone: user.timeZone,
       weekStart: user.weekStart,
       createdDate: user.createdDate,

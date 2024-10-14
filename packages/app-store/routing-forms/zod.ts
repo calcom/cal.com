@@ -6,9 +6,23 @@ export const zodNonRouterField = z.object({
   identifier: z.string().optional(),
   placeholder: z.string().optional(),
   type: z.string(),
+  /**
+   * @deprecated in favour of `options`
+   */
   selectText: z.string().optional(),
   required: z.boolean().optional(),
   deleted: z.boolean().optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        // To keep backwards compatibility with the options generated from legacy selectText, we allow saving null as id
+        // It helps in differentiating whether the routing logic should consider the option.label as value or option.id as value.
+        // This is important for legacy routes which has option.label saved in conditions and it must keep matching with the value of the option
+        id: z.string().or(z.null()),
+      })
+    )
+    .optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({
@@ -34,15 +48,30 @@ export const zodRouterFieldView = zodRouterField.extend({
 export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView]);
 
 export const zodFieldsView = z.array(zodFieldView).optional();
+const queryValueSchema = z.object({
+  id: z.string().optional(),
+  type: z.union([z.literal("group"), z.literal("switch_group")]),
+  children1: z.any(),
+  properties: z.any(),
+});
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),
-  queryValue: z.object({
-    id: z.string().optional(),
-    type: z.union([z.literal("group"), z.literal("switch_group")]),
-    children1: z.any(),
-    properties: z.any(),
-  }),
+  attributeRoutingConfig: z
+    .object({
+      skipContactOwner: z.boolean().optional(),
+    })
+    .nullish(),
+
+  // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
+  /**
+   * RAQB query value for form fields
+   */
+  queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
+  /**
+   * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
+   */
+  attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
     // TODO: Make it a union type of "customPageMessage" and ..

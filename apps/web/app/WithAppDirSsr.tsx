@@ -18,6 +18,8 @@ export const withAppDirSsr =
     return {
       ...props,
       // includes dehydratedState required for future page trpcPropvider
-      ...("trpcState" in props && { dehydratedState: props.trpcState }),
+      ...("trpcState" in props && {
+        dehydratedState: props.trpcState,
+      }),
     };
   };

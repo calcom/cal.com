@@ -47,7 +47,7 @@ export function createAppsFixture(page: Page) {
     },
 
     installConferencingAppSkipConfigure: async (app: string) => {
-      await page.getByTestId(`app-store-app-card-${app}`).click();
+      await page.goto(`apps/${app}`);
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       await page.click('[data-testid="set-up-later"]');
@@ -62,19 +62,16 @@ export function createAppsFixture(page: Page) {
       }
       await page.locator("[data-testid=display-location]").last().check();
       await saveEventType(page);
-      await page.waitForLoadState("networkidle");
       await gotoBookingPage(page);
       await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);
-      await page.waitForLoadState("networkidle");
 
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
       await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
     },
 
     installConferencingAppNewFlow: async (app: TApp, eventTypeIds: number[]) => {
-      await page.goto("apps/categories/conferencing");
-      await page.getByTestId(`app-store-app-card-${app.slug}`).click();
+      await page.goto(`apps/${app.slug}`);
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
@@ -94,11 +91,9 @@ export function createAppsFixture(page: Page) {
     verifyConferencingAppNew: async (app: TApp, eventTypeIds: number[]) => {
       for (const id of eventTypeIds) {
         await page.goto(`/event-types/${id}`);
-        await page.waitForLoadState("networkidle");
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
         await bookTimeSlot(page, { name: `Test Testson`, email: `test@example.com` });
-        await page.waitForLoadState("networkidle");
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
       }

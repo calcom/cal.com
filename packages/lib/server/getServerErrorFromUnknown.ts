@@ -28,7 +28,6 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (isZodError(cause)) {
-    console.log("cause", cause);
     return new HttpError({
       statusCode: 400,
       message: parseZodErrorIssues(cause.issues),

@@ -3,39 +3,18 @@
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
-import NoSSR from "@calcom/core/components/NoSSR";
-import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  ConfirmationDialogContent,
-  Dialog,
-  DropdownActions,
-  Meta,
-  showToast,
-  Table,
-} from "@calcom/ui";
+import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
 
-import { getLayout } from "../../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
-function AdminOrgTable() {
+export function AdminOrgTable() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
-  const verifyMutation = trpc.viewer.organizations.adminVerify.useMutation({
-    onSuccess: async (_data, variables) => {
-      showToast(t("org_has_been_processed"), "success");
-      await invalidateQueries(utils, variables);
-    },
-    onError: (err) => {
-      console.error(err.message);
-      showToast(t("org_error_processing"), "error");
-    },
-  });
   const updateMutation = trpc.viewer.organizations.adminUpdate.useMutation({
     onSuccess: async (_data, variables) => {
       showToast(t("org_has_been_processed"), "success");
@@ -81,6 +60,7 @@ function AdminOrgTable() {
           <ColumnTitle widthClassNames="w-auto">{t("reviewed")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">{t("admin_api")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">
             <span className="sr-only">{t("edit")}</span>
           </ColumnTitle>
@@ -126,6 +106,15 @@ function AdminOrgTable() {
                     <Badge variant="red">{t("unpublished")}</Badge>
                   ) : (
                     <Badge variant="green">{t("published")}</Badge>
+                  )}
+                </div>
+              </Cell>
+              <Cell>
+                <div className="space-x-2">
+                  {!org.organizationSettings?.isAdminAPIEnabled ? (
+                    <Badge variant="red">{t("disabled")}</Badge>
+                  ) : (
+                    <Badge variant="green">{t("enabled")}</Badge>
                   )}
                 </div>
               </Cell>
@@ -186,6 +175,21 @@ function AdminOrgTable() {
                           ]
                         : []),
                       {
+                        id: "api",
+                        label: org.organizationSettings?.isAdminAPIEnabled
+                          ? t("revoke_admin_api")
+                          : t("grant_admin_api"),
+                        onClick: () => {
+                          updateMutation.mutate({
+                            id: org.id,
+                            organizationSettings: {
+                              isAdminAPIEnabled: !org.organizationSettings?.isAdminAPIEnabled,
+                            },
+                          });
+                        },
+                        icon: "terminal" as const,
+                      },
+                      {
                         id: "delete",
                         label: t("delete"),
                         onClick: () => {
@@ -215,21 +219,7 @@ function AdminOrgTable() {
   );
 }
 
-const AdminOrgList = () => {
-  const { t } = useLocale();
-  return (
-    <LicenseRequired>
-      <Meta title={t("organizations")} description={t("orgs_page_description")} />
-      <NoSSR>
-        <AdminOrgTable />
-      </NoSSR>
-    </LicenseRequired>
-  );
-};
-
-AdminOrgList.getLayout = getLayout;
-
-export default AdminOrgList;
+export default AdminOrgTable;
 
 const DeleteOrgDialog = ({
   org,

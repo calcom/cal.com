@@ -17,6 +17,9 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.INSTANT_MEETING,
     WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
     WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+    WebhookTriggerEvents.OOO_CREATED,
+    WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+    WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   ] as const,
   "routing-forms": [WebhookTriggerEvents.FORM_SUBMITTED] as const,
 };

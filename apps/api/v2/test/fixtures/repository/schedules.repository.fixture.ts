@@ -6,11 +6,11 @@ import { Schedule } from "@prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 
 export class SchedulesRepositoryFixture {
-  private primaReadClient: PrismaReadService["prisma"];
+  private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
   constructor(private readonly module: TestingModule) {
-    this.primaReadClient = module.get(PrismaReadService).prisma;
+    this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
@@ -19,7 +19,7 @@ export class SchedulesRepositoryFixture {
   }
 
   async getById(scheduleId: Schedule["id"]) {
-    return this.primaReadClient.schedule.findFirst({ where: { id: scheduleId } });
+    return this.prismaReadClient.schedule.findFirst({ where: { id: scheduleId } });
   }
 
   async deleteById(scheduleId: Schedule["id"]) {

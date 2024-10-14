@@ -5,6 +5,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
@@ -43,13 +44,14 @@ import { Team } from "@calcom/prisma/client";
   path: "/v2/organizations/:orgId/teams",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard)
-@DocsTags("Organizations Teams")
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@DocsTags("Orgs / Teams")
 export class OrganizationsTeamsController {
   constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
 
   @Get()
-  @ApiOperation({ summary: "Get all the teams of an organization." })
+  @DocsTags("Teams")
+  @ApiOperation({ summary: "Get all teams" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async getAllTeams(
@@ -65,7 +67,7 @@ export class OrganizationsTeamsController {
   }
 
   @Get("/me")
-  @ApiOperation({ summary: "Get the organization's teams user is a member of" })
+  @ApiOperation({ summary: "Get team membership for user" })
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   async getMyTeams(
@@ -96,7 +98,7 @@ export class OrganizationsTeamsController {
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/:teamId")
-  @ApiOperation({ summary: "Get a team of the organization by ID." })
+  @ApiOperation({ summary: "Get a team" })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
@@ -108,7 +110,7 @@ export class OrganizationsTeamsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/:teamId")
-  @ApiOperation({ summary: "Delete a team of the organization by ID." })
+  @ApiOperation({ summary: "Delete a team" })
   async deleteTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number
@@ -124,7 +126,7 @@ export class OrganizationsTeamsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/:teamId")
-  @ApiOperation({ summary: "Update a team of the organization by ID." })
+  @ApiOperation({ summary: "Update a team" })
   async updateTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -140,7 +142,7 @@ export class OrganizationsTeamsController {
   @Post()
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @ApiOperation({ summary: "Create a team for an organization." })
+  @ApiOperation({ summary: "Create a team" })
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgTeamDto,
