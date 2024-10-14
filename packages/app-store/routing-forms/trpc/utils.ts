@@ -1,11 +1,14 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
-import { scheduleFormSubmittedNoEventTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleTriggers";
+import dayjs from "@calcom/dayjs";
+import type { Tasker } from "@calcom/features/tasker/tasker";
+import type { ResponseData } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEventWebhook";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -18,6 +21,18 @@ import isRouter from "../lib/isRouter";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity } from "./raqbUtils";
+
+let tasker: Tasker;
+
+if (typeof window === "undefined") {
+  import("@calcom/features/tasker")
+    .then((module) => {
+      tasker = module.default;
+    })
+    .catch((error) => {
+      console.error("Failed to load tasker:", error);
+    });
+}
 
 const {
   getAttributesData: getAttributes,
@@ -174,13 +189,44 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute({
   return teamMembersMatchingAttributeLogic;
 }
 
+export const scheduleFormSubmittedNoEventTriggers = async ({
+  webhooks,
+  response,
+}: {
+  webhooks: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate" | "secret">[];
+  response: ResponseData;
+}) => {
+  const formSubmittedNoEventPromises: Promise<any>[] = [];
+
+  formSubmittedNoEventPromises.push(
+    ...webhooks.map((webhook) => {
+      // check 10 minutes after submission if booking was created
+      const scheduledAt = dayjs().add(10, "minute").toDate();
+      return tasker.create(
+        "triggerFormSubmittedNoEventWebhook",
+        {
+          ...response,
+          webhook,
+        },
+        { scheduledAt }
+      );
+    })
+  );
+
+  await Promise.all(formSubmittedNoEventPromises);
+};
+
 export async function onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
   response: FormResponse,
-  responseId: number
+  responseId: number,
+  chosenAction?: {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+  }
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
@@ -245,15 +291,18 @@ export async function onFormSubmission(
   });
 
   const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
-    scheduleFormSubmittedNoEventTriggers({
-      response: {
-        id: responseId,
+    const scheduledAt = dayjs().add(10, "minute").toDate();
+    return tasker.create(
+      "triggerFormSubmittedNoEventWebhook",
+      {
+        responseId,
         form,
-        submittedAt: new Date().toISOString(),
         responses: fieldResponsesByIdentifier,
+        redirect: chosenAction,
+        webhook,
       },
-      webhooks: webhooksFormSubmittedNoEvent,
-    });
+      { scheduledAt }
+    );
   });
 
   const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
