@@ -309,7 +309,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async billBooking(booking: CreatedBooking) {
-    const hostId = booking.hosts[0].id;
+    const hostId = booking.hosts?.[0]?.id;
     if (!hostId) {
       this.logger.error(`Booking with uid=${booking.uid} has no host`);
       return;
