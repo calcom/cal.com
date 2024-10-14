@@ -53,10 +53,22 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
       team: {
         select: {
           id: true,
           bookingLimits: true,
+          includeManagedEventsInLimits: true,
         },
       },
       hosts: {
@@ -286,20 +298,27 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           duration,
           eventType,
           initialData?.busyTimesFromLimitsBookings ?? [],
+          timeZone,
           initialData?.rescheduleUid ?? undefined
         )
       : [];
 
-  const teamBookingLimits = parseBookingLimit(eventType?.team?.bookingLimits);
+  const teamForBookingLimits =
+    eventType?.team ??
+    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+  const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
   const busyTimesFromTeamLimits =
-    eventType?.team && teamBookingLimits
+    teamForBookingLimits && teamBookingLimits
       ? await getBusyTimesFromTeamLimits(
           user,
           teamBookingLimits,
           dateFrom.tz(timeZone),
           dateTo.tz(timeZone),
-          eventType?.team.id,
+          teamForBookingLimits.id,
+          teamForBookingLimits.includeManagedEventsInLimits,
+          timeZone,
           initialData?.rescheduleUid ?? undefined
         )
       : [];
@@ -458,6 +477,7 @@ const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: Int
   const dates = [];
   let startDate = dayjs(dateFrom).startOf(period);
   const endDate = dayjs(dateTo).endOf(period);
+
   while (startDate.isBefore(endDate)) {
     dates.push(startDate);
     startDate = startDate.add(1, period);

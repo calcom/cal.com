@@ -17,7 +17,7 @@ import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: {
-    slug?: string;
+    slug: string;
     schedulingType?: SchedulingType | null;
     hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
   };

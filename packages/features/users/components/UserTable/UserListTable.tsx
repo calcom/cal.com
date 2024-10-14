@@ -15,6 +15,7 @@ import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { EventTypesList } from "./BulkActions/EventTypesList";
+import { MassAssignAttributesBulkAction } from "./BulkActions/MassAssignAttributes";
 import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -342,6 +343,10 @@ export function UserListTable() {
           {
             type: "render",
             render: (table) => <TeamListBulkAction table={table} />,
+          },
+          {
+            type: "render",
+            render: (table) => <MassAssignAttributesBulkAction table={table} />,
           },
           {
             type: "action",

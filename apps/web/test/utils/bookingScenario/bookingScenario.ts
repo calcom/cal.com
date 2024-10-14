@@ -153,6 +153,7 @@ export type InputEventType = {
   users?: { id: number }[];
   hosts?: InputHost[];
   schedulingType?: SchedulingType;
+  parent?: { id: number };
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   teamId?: number | null;
@@ -160,6 +161,7 @@ export type InputEventType = {
     id?: number | null;
     parentId?: number | null;
     bookingLimits?: IntervalLimit;
+    includeManagedEventsInLimits?: boolean;
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
@@ -191,6 +193,7 @@ type WhiteListedBookingProps = {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  user?: { id: number };
   bookingSeat?: Prisma.BookingSeatCreateInput[];
   createdAt?: string;
 };
@@ -246,7 +249,7 @@ export async function addEventTypesToDb(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
-    team?: { id?: number | null; bookingLimits?: IntervalLimit };
+    team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -292,6 +295,7 @@ export async function addEventTypesToDb(
         data: {
           id: eventType.team?.id,
           bookingLimits: eventType.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType.team?.includeManagedEventsInLimits,
           name: "",
         },
       });
@@ -323,6 +327,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     bookingLimits: {},
+    includeManagedEventsInLimits: false,
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
@@ -378,6 +383,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
         : eventType.schedule,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
       schedulingType: eventType.schedulingType,
+      parent: eventType.parent ? { connect: { id: eventType.parent.id } } : undefined,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
     };
   });
@@ -395,6 +401,7 @@ async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     references: any[];
+    user?: { id: number };
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
@@ -481,6 +488,16 @@ export async function addBookings(bookings: InputBooking[]) {
                 return attendee;
               }
             }),
+          },
+        };
+      }
+
+      if (booking?.user?.id) {
+        bookingCreate.user = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          connect: {
+            id: booking.user.id,
           },
         };
       }
@@ -1285,6 +1302,7 @@ export function getScenarioData(
           id: eventType.teamId ?? eventType.team?.id,
           parentId: org ? org.id : null,
           bookingLimits: eventType?.team?.bookingLimits,
+          includeManagedEventsInLimits: eventType?.team?.includeManagedEventsInLimits,
         },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
