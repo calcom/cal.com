@@ -53,11 +53,11 @@ export const InstantCallDialog = (props: IInstantCallDialog) => {
             <>
               <DialogHeader title={t("Incoming Calls")} />
               <ul role="list" className="divide-muted mb-6 divide-y">
-                {callers.map((comment) => (
-                  <li key={comment.id} className="flex w-full items-center justify-between py-2">
+                {callers.map((caller) => (
+                  <li key={caller.id} className="flex w-full items-center justify-between py-2 text-sm">
                     <div>
-                      <p className="text-sm font-semibold">{comment.name}</p>
-                      <p className="line-clamp-2 w-full text-sm">{comment.content}</p>
+                      <p className="font-semibold">{caller.name}</p>
+                      <p className="text-subtle line-clamp-2 w-full">{caller.content}</p>
                     </div>
                     <div className="flex gap-2">
                       <Button type="button" className="border-[#DE4B2B] !bg-[#DE4B2B] text-white">
