@@ -13,6 +13,7 @@ module.exports = defineConfig((configEnv) => {
     plugins: [
       EnvironmentPlugin({
         EMBED_PUBLIC_EMBED_FINGER_PRINT: embedCoreEnvVars.EMBED_PUBLIC_EMBED_FINGER_PRINT,
+        EMBED_PUBLIC_EMBED_VERSION: embedCoreEnvVars.EMBED_PUBLIC_EMBED_VERSION,
         EMBED_PUBLIC_VERCEL_URL: embedCoreEnvVars.EMBED_PUBLIC_VERCEL_URL,
         EMBED_PUBLIC_WEBAPP_URL: embedCoreEnvVars.EMBED_PUBLIC_WEBAPP_URL,
       }),
@@ -21,7 +22,8 @@ module.exports = defineConfig((configEnv) => {
     server: {
       // Helps us to test that embed works with these headers
       headers: {
-        "Cross-Origin-Embedder-Policy": "require-corp",
+        // TODO: https://github.com/calcom/cal.com/issues/16571
+        // "Cross-Origin-Embedder-Policy": "require-corp",
       },
     },
     build: {

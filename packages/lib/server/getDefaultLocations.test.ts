@@ -64,9 +64,11 @@ describe("getDefaultLocation ", async () => {
       },
     });
     const res = await getDefaultLocations(user);
-    expect(res[0]).toContain({
-      type: DailyLocationType,
-    });
+    expect(res[0]).toEqual(
+      expect.objectContaining({
+        type: DailyLocationType,
+      })
+    );
   });
 });
 

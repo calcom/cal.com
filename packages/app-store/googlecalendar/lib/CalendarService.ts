@@ -256,6 +256,9 @@ export default class GoogleCalendarService implements Calendar {
         : true,
       iCalUID: formattedCalEvent.iCalUID,
     };
+    if (calEventRaw.hideCalendarEventDetails) {
+      payload.visibility = "private";
+    }
 
     if (formattedCalEvent.location) {
       payload["location"] = getLocation(formattedCalEvent);
@@ -520,7 +523,6 @@ export default class GoogleCalendarService implements Calendar {
     const calendarCacheEnabled = await getFeatureFlag(prisma, "calendar-cache");
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
     if (!calendarCacheEnabled) {
-      this.log.warn("Calendar Cache is disabled - Skipping");
       const { timeMin, timeMax, items } = args;
       ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
         async () =>

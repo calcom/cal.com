@@ -1,4 +1,7 @@
+import { useSearchParams } from "next/navigation";
+
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
@@ -16,7 +19,7 @@ export type UseScheduleWithCacheArgs = {
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
   orgSlug?: string;
-  bookerEmail?: string;
+  teamMemberEmail?: string | null;
 };
 
 export const useSchedule = ({
@@ -33,7 +36,7 @@ export const useSchedule = ({
   rescheduleUid,
   isTeamEvent,
   orgSlug,
-  bookerEmail,
+  teamMemberEmail,
 }: UseScheduleWithCacheArgs) => {
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -42,7 +45,9 @@ export const useSchedule = ({
     prefetchNextMonth,
     selectedDate,
   });
-
+  const searchParams = useSearchParams();
+  const routedTeamMemberIds = searchParams ? getRoutedTeamMemberIdsFromSearchParams(searchParams) : null;
+  const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
@@ -60,7 +65,9 @@ export const useSchedule = ({
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
       orgSlug,
-      bookerEmail,
+      teamMemberEmail,
+      routedTeamMemberIds,
+      skipContactOwner,
     },
     {
       trpc: {

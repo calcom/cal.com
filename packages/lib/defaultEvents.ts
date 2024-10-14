@@ -85,6 +85,7 @@ const commons = {
   onlyShowFirstAvailableSlot: false,
   id: 0,
   hideCalendarNotes: false,
+  hideCalendarEventDetails: false,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,
@@ -171,4 +172,4 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
 
 export default defaultEvents;
 
-export type AwaitedGetDefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;
+export type DefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;

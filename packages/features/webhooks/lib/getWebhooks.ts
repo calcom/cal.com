@@ -6,15 +6,16 @@ export type GetSubscriberOptions = {
   userId?: number | null;
   eventTypeId?: number | null;
   triggerEvent: WebhookTriggerEvents;
-  teamId?: number | null;
+  teamId?: number | number[] | null;
   orgId?: number | null;
   oAuthClientId?: string | null;
 };
 
 const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient = defaultPrisma) => {
+  const teamId = options.teamId;
   const userId = options.userId ?? 0;
   const eventTypeId = options.eventTypeId ?? 0;
-  const teamId = options.teamId ?? 0;
+  const teamIds = Array.isArray(teamId) ? teamId : [teamId ?? 0];
   const orgId = options.orgId ?? 0;
   const oAuthClientId = options.oAuthClientId ?? "";
 
@@ -33,7 +34,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
         },
         {
           teamId: {
-            in: [teamId, orgId],
+            in: [...teamIds, orgId],
           },
         },
         { platformOAuthClientId: oAuthClientId },
@@ -53,6 +54,9 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
       payloadTemplate: true,
       appId: true,
       secret: true,
+      time: true,
+      timeUnit: true,
+      eventTriggers: true,
     },
   });
 

@@ -25,6 +25,8 @@ export type VerticalTabItemProps = {
   linkScroll?: boolean;
   avatar?: string;
   iconClassName?: string;
+  onClick?: (name: string) => void;
+  isActive?: boolean;
 };
 
 const VerticalTabItem = ({
@@ -38,13 +40,19 @@ const VerticalTabItem = ({
   ...props
 }: VerticalTabItemProps) => {
   const { t } = useLocale();
-  const isCurrent = useUrlMatchesCurrentUrl(href);
+  const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
 
   return (
     <Fragment key={name}>
       {!props.hidden && (
         <>
           <Link
+            onClick={(e) => {
+              if (props.onClick) {
+                e.preventDefault();
+                props.onClick(name);
+              }
+            }}
             key={name}
             href={href}
             shallow={linkShallow}

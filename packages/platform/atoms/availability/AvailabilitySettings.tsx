@@ -1,7 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -263,20 +263,6 @@ export function AvailabilitySettings({
     },
   });
 
-  useEffect(() => {
-    const subscription = form.watch(
-      (value, { name }) => {
-        if (!!name && name.split(".")[0] !== "schedule" && name !== "name")
-          handleSubmit(value as AvailabilityFormValues);
-      },
-      {
-        ...schedule,
-        schedule: schedule.availability || [],
-      }
-    );
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
-
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
       ? [PlatformShell, PlatformSchedule, PlatformTimzoneSelect]
@@ -363,6 +349,7 @@ export function AvailabilitySettings({
               open={bulkUpdateModalProps?.isOpen}
               setOpen={bulkUpdateModalProps.setIsOpen}
               bulkUpdateFunction={bulkUpdateModalProps?.save}
+              description={t("default_schedules_bulk_description")}
             />
           )}
 
@@ -532,7 +519,6 @@ export function AvailabilitySettings({
                     control={form.control}
                     name="schedule"
                     userTimeFormat={timeFormat}
-                    handleSubmit={handleSubmit}
                     weekStart={
                       ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
                         weekStart

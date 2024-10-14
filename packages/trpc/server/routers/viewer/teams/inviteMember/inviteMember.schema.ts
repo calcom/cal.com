@@ -56,6 +56,7 @@ export const ZInviteMemberInputSchema = z.object({
     ),
   role: z.nativeEnum(MembershipRole).optional(),
   language: z.string(),
+  isPlatform: z.boolean().optional(),
 });
 
 export type TInviteMemberInputSchema = z.infer<typeof ZInviteMemberInputSchema>;

@@ -3,7 +3,7 @@ import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, type BookingStatus } from "@calcom/prisma/enums";
+import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -23,7 +23,8 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const take = input.limit ?? 10;
   const skip = input.cursor ?? 0;
   const { prisma, user } = ctx;
-  const bookingListingByStatus = input.filters.status;
+  const defaultStatus = "upcoming";
+  const bookingListingByStatus = [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
     ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
@@ -68,9 +69,10 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  // TODO: Fix record typing
-  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
-    teamIds: {
+  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
+
+  if (filters?.teamIds && filters.teamIds.length > 0) {
+    bookingWhereInputFilters.teamIds = {
       AND: [
         {
           OR: [
@@ -78,7 +80,7 @@ export async function getBookings({
               eventType: {
                 team: {
                   id: {
-                    in: filters?.teamIds,
+                    in: filters.teamIds,
                   },
                 },
               },
@@ -88,7 +90,7 @@ export async function getBookings({
                 parent: {
                   team: {
                     id: {
-                      in: filters?.teamIds,
+                      in: filters.teamIds,
                     },
                   },
                 },
@@ -97,8 +99,11 @@ export async function getBookings({
           ],
         },
       ],
-    },
-    userIds: {
+    };
+  }
+
+  if (filters?.userIds && filters.userIds.length > 0) {
+    bookingWhereInputFilters.userIds = {
       AND: [
         {
           OR: [
@@ -107,7 +112,7 @@ export async function getBookings({
                 hosts: {
                   some: {
                     userId: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
                   },
                 },
@@ -115,7 +120,7 @@ export async function getBookings({
             },
             {
               userId: {
-                in: filters?.userIds,
+                in: filters.userIds,
               },
             },
             {
@@ -123,7 +128,7 @@ export async function getBookings({
                 users: {
                   some: {
                     id: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
                   },
                 },
@@ -132,21 +137,24 @@ export async function getBookings({
           ],
         },
       ],
-    },
-    eventTypeIds: {
+    };
+  }
+
+  if (filters?.eventTypeIds && filters.eventTypeIds.length > 0) {
+    bookingWhereInputFilters.eventTypeIds = {
       AND: [
         {
           OR: [
             {
               eventTypeId: {
-                in: filters?.eventTypeIds,
+                in: filters.eventTypeIds,
               },
             },
             {
               eventType: {
                 parent: {
                   id: {
-                    in: filters?.eventTypeIds,
+                    in: filters.eventTypeIds,
                   },
                 },
               },
@@ -154,8 +162,44 @@ export async function getBookings({
           ],
         },
       ],
-    },
-  };
+    };
+  }
+
+  if (filters?.attendeeEmail) {
+    bookingWhereInputFilters.attendeeEmail = {
+      attendees: {
+        some: {
+          email: filters.attendeeEmail.trim(),
+        },
+      },
+    };
+  }
+
+  if (filters?.attendeeName) {
+    bookingWhereInputFilters.attendeeName = {
+      attendees: {
+        some: {
+          name: filters.attendeeName.trim(),
+        },
+      },
+    };
+  }
+
+  if (filters?.afterStartDate) {
+    bookingWhereInputFilters.afterStartDate = {
+      startTime: {
+        gte: new Date(filters.afterStartDate),
+      },
+    };
+  }
+
+  if (filters?.beforeEndDate) {
+    bookingWhereInputFilters.beforeEndDate = {
+      endTime: {
+        lte: new Date(filters.beforeEndDate),
+      },
+    };
+  }
 
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
@@ -185,14 +229,12 @@ export async function getBookings({
           select: {
             id: true,
             name: true,
-            members: true,
           },
         },
       },
     },
     status: true,
     paid: true,
-
     payment: {
       select: {
         paymentOption: true,
@@ -384,41 +426,39 @@ export async function getBookings({
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
-  const bookings = (
-    await prisma.booking.findMany({
-      where: {
-        id: {
-          in: plainBookings.map((booking) => booking.id),
+
+  const bookings = await Promise.all(
+    (
+      await prisma.booking.findMany({
+        where: {
+          id: {
+            in: plainBookings.map((booking) => booking.id),
+          },
         },
-      },
-      select: bookingSelect,
-      // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
-      orderBy,
+        select: bookingSelect,
+        // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
+        orderBy,
+      })
+    ).map(async (booking) => {
+      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
+      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+      }
+
+      return {
+        ...booking,
+        eventType: {
+          ...booking.eventType,
+          recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+          eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
+          price: booking.eventType?.price || 0,
+          currency: booking.eventType?.currency || "usd",
+          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
+        },
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+      };
     })
-  ).map((booking) => {
-    // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-    if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
-      booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
-    }
-
-    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
-    const isUserTeamAdminOrOwner =
-      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-
-    return {
-      ...booking,
-      eventType: {
-        ...booking.eventType,
-        recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-        eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
-        price: booking.eventType?.price || 0,
-        currency: booking.eventType?.currency || "usd",
-        metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
-      },
-      startTime: booking.startTime.toISOString(),
-      endTime: booking.endTime.toISOString(),
-      isUserTeamAdminOrOwner,
-    };
-  });
+  );
   return { bookings, recurringInfo };
 }

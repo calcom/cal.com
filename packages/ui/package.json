@@ -11,7 +11,8 @@
     "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
     "./components/icon/Spinner": "./components/icon/Spinner.tsx",
     "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
-    "./components/form/timezone-select/TimezoneSelect": "./components/form/timezone-select/index.ts"
+    "./components/form/timezone-select/TimezoneSelect": "./components/form/timezone-select/index.ts",
+    "./__mocks__/ui": "./__mocks__/ui.tsx"
   },
   "types": "./index.tsx",
   "license": "MIT",
@@ -42,7 +43,7 @@
     "cmk": "^0.1.1",
     "date-fns": "^3.6.0",
     "downshift": "^6.1.9",
-    "next": "^13.5.4",
+    "next": "^13.5.6",
     "next-seo": "^6.0.0",
     "react": "^18.2.0",
     "react-colorful": "^5.6.0",

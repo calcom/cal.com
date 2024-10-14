@@ -12,35 +12,41 @@ import type {
   EventTypeId,
   AwaitedBookingData,
   NewBookingEventType,
-  IsConfirmedByDefault,
   PaymentAppData,
   OriginalRescheduledBooking,
-  AwaitedLoadUsers,
+  LoadedUsers,
 } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
 type CreateBookingParams = {
-  originalRescheduledBooking: OriginalRescheduledBooking;
-  evt: CalendarEvent;
-  eventType: NewBookingEventType;
-  eventTypeId: EventTypeId;
-  eventTypeSlug: AwaitedBookingData["eventTypeSlug"];
-  reqBodyUser: ReqBodyWithEnd["user"];
-  reqBodyMetadata: ReqBodyWithEnd["metadata"];
-  reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
   uid: short.SUUID;
-  responses: ReqBodyWithEnd["responses"] | null;
-  isConfirmedByDefault: IsConfirmedByDefault;
-  smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
-  organizerUser: AwaitedLoadUsers[number] & {
-    isFixed?: boolean;
-    metadata?: Prisma.JsonValue;
+  routedFromRoutingFormResponseId: number | undefined;
+  reqBody: {
+    user: ReqBodyWithEnd["user"];
+    metadata: ReqBodyWithEnd["metadata"];
+    recurringEventId: ReqBodyWithEnd["recurringEventId"];
   };
-  rescheduleReason: AwaitedBookingData["rescheduleReason"];
-  bookerEmail: AwaitedBookingData["email"];
-  paymentAppData: PaymentAppData;
-  changedOrganizer: boolean;
+  eventType: {
+    eventTypeData: NewBookingEventType;
+    id: EventTypeId;
+    slug: AwaitedBookingData["eventTypeSlug"];
+    organizerUser: LoadedUsers[number] & {
+      isFixed?: boolean;
+      metadata?: Prisma.JsonValue;
+    };
+    isConfirmedByDefault: boolean;
+    paymentAppData: PaymentAppData;
+  };
+  input: {
+    bookerEmail: AwaitedBookingData["email"];
+    rescheduleReason: AwaitedBookingData["rescheduleReason"];
+    changedOrganizer: boolean;
+    smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
+    responses: ReqBodyWithEnd["responses"] | null;
+  };
+  evt: CalendarEvent;
+  originalRescheduledBooking: OriginalRescheduledBooking;
 };
 
 function updateEventDetails(
@@ -56,53 +62,57 @@ function updateEventDetails(
   }
 }
 
+async function getAssociatedBookingForFormResponse(formResponseId: number) {
+  const formResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+    where: {
+      id: formResponseId,
+    },
+  });
+  return formResponse?.routedToBookingUid ?? null;
+}
+
 export async function createBooking({
-  originalRescheduledBooking,
-  evt,
-  eventTypeId,
-  eventTypeSlug,
-  reqBodyUser,
-  reqBodyMetadata,
-  reqBodyRecurringEventId,
   uid,
-  responses,
-  isConfirmedByDefault,
-  smsReminderNumber,
-  organizerUser,
-  rescheduleReason,
+  reqBody,
   eventType,
-  bookerEmail,
-  paymentAppData,
-  changedOrganizer,
+  input,
+  evt,
+  originalRescheduledBooking,
+  routedFromRoutingFormResponseId,
 }: CreateBookingParams) {
-  updateEventDetails(evt, originalRescheduledBooking, changedOrganizer);
+  updateEventDetails(evt, originalRescheduledBooking, input.changedOrganizer);
+  const associatedBookingForFormResponse = routedFromRoutingFormResponseId
+    ? await getAssociatedBookingForFormResponse(routedFromRoutingFormResponseId)
+    : null;
 
   const newBookingData = buildNewBookingData({
     uid,
-    evt,
-    responses,
-    isConfirmedByDefault,
-    reqBodyMetadata,
-    smsReminderNumber,
-    eventTypeSlug,
-    organizerUser,
-    reqBodyRecurringEventId,
-    originalRescheduledBooking,
-    bookerEmail,
-    rescheduleReason,
+    // We allow only the first booking to be connected to the form response
+    // Other bookings could happen due to user doing a booking by using browser back button to reach the same booking form with same query params and changing the time
+    // Such case isn't what the Routing Form redirected the user to, so we avoid this at the moment.
+    routedFromRoutingFormResponseId: associatedBookingForFormResponse
+      ? undefined
+      : routedFromRoutingFormResponseId,
+    reqBody,
     eventType,
-    eventTypeId,
-    reqBodyUser,
+    input,
+    evt,
+    originalRescheduledBooking,
   });
 
-  return await saveBooking(newBookingData, originalRescheduledBooking, paymentAppData, organizerUser);
+  return await saveBooking(
+    newBookingData,
+    originalRescheduledBooking,
+    eventType.paymentAppData,
+    eventType.organizerUser
+  );
 }
 
 async function saveBooking(
   newBookingData: Prisma.BookingCreateInput,
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
-  organizerUser: CreateBookingParams["organizerUser"]
+  organizerUser: CreateBookingParams["eventType"]["organizerUser"]
 ) {
   const createBookingObj = {
     include: {
@@ -143,90 +153,50 @@ function getEventTypeRel(eventTypeId: EventTypeId) {
 function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
   //if attendee is team member, it should fetch their locale not booker's locale
   //perhaps make email fetch request to see if his locale is stored, else
-  const attendees = evt.attendees.map((attendee) => ({
+  const teamMembers = evt?.team?.members ?? [];
+
+  return evt.attendees.concat(teamMembers).map((attendee) => ({
     name: attendee.name,
     email: attendee.email,
     timeZone: attendee.timeZone,
     locale: attendee.language.locale,
+    phoneNumber: attendee.phoneNumber,
   }));
-
-  if (evt.team?.members) {
-    attendees.push(
-      ...evt.team.members.map((member) => ({
-        email: member.email,
-        name: member.name,
-        timeZone: member.timeZone,
-        locale: member.language.locale,
-      }))
-    );
-  }
-
-  return attendees;
 }
 
-function buildNewBookingData(params: {
-  uid: short.SUUID;
-  evt: CalendarEvent;
-  responses: ReqBodyWithEnd["responses"] | null;
-  isConfirmedByDefault: IsConfirmedByDefault;
-  reqBodyMetadata: ReqBodyWithEnd["metadata"];
-  smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
-  eventTypeSlug: AwaitedBookingData["eventTypeSlug"];
-  organizerUser: CreateBookingParams["organizerUser"];
-  reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
-  originalRescheduledBooking: OriginalRescheduledBooking | null;
-  bookerEmail: AwaitedBookingData["email"];
-  rescheduleReason: AwaitedBookingData["rescheduleReason"];
-  eventType: NewBookingEventType;
-  eventTypeId: EventTypeId;
-  reqBodyUser: ReqBodyWithEnd["user"];
-}): Prisma.BookingCreateInput {
-  const {
-    uid,
-    evt,
-    responses,
-    isConfirmedByDefault,
-    reqBodyMetadata,
-    smsReminderNumber,
-    eventTypeSlug,
-    organizerUser,
-    reqBodyRecurringEventId,
-    originalRescheduledBooking,
-    bookerEmail,
-    rescheduleReason,
-    eventType,
-    eventTypeId,
-    reqBodyUser,
-  } = params;
+function buildNewBookingData(params: CreateBookingParams): Prisma.BookingCreateInput {
+  const { uid, evt, reqBody, eventType, input, originalRescheduledBooking, routedFromRoutingFormResponseId } =
+    params;
 
   const attendeesData = getAttendeesData(evt);
-  const eventTypeRel = getEventTypeRel(eventTypeId);
+  const eventTypeRel = getEventTypeRel(eventType.id);
 
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
     userPrimaryEmail: evt.organizer.email,
-    responses: responses === null || evt.seatsPerTimeSlot ? Prisma.JsonNull : responses,
+    responses: input.responses === null || evt.seatsPerTimeSlot ? Prisma.JsonNull : input.responses,
     title: evt.title,
     startTime: dayjs.utc(evt.startTime).toDate(),
     endTime: dayjs.utc(evt.endTime).toDate(),
     description: evt.seatsPerTimeSlot ? null : evt.additionalNotes,
     customInputs: isPrismaObjOrUndefined(evt.customInputs),
-    status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
+    status: eventType.isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
+    oneTimePassword: evt.oneTimePassword,
     location: evt.location,
     eventType: eventTypeRel,
-    smsReminderNumber,
-    metadata: reqBodyMetadata,
+    smsReminderNumber: input.smsReminderNumber,
+    metadata: reqBody.metadata,
     attendees: {
       createMany: {
         data: attendeesData,
       },
     },
-    dynamicEventSlugRef: !eventTypeId ? eventTypeSlug : null,
-    dynamicGroupSlugRef: !eventTypeId ? (reqBodyUser as string).toLowerCase() : null,
+    dynamicEventSlugRef: !eventType.id ? eventType.slug : null,
+    dynamicGroupSlugRef: !eventType.id ? (reqBody.user as string).toLowerCase() : null,
     iCalUID: evt.iCalUID ?? "",
     user: {
       connect: {
-        id: organizerUser.id,
+        id: eventType.organizerUser.id,
       },
     },
     destinationCalendar:
@@ -235,26 +205,34 @@ function buildNewBookingData(params: {
             connect: { id: evt.destinationCalendar[0].id },
           }
         : undefined,
+
+    routedFromRoutingFormReponse: routedFromRoutingFormResponseId
+      ? { connect: { id: routedFromRoutingFormResponseId } }
+      : undefined,
   };
 
-  if (reqBodyRecurringEventId) {
-    newBookingData.recurringEventId = reqBodyRecurringEventId;
+  if (reqBody.recurringEventId) {
+    newBookingData.recurringEventId = reqBody.recurringEventId;
   }
 
   if (originalRescheduledBooking) {
     newBookingData.metadata = {
       ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
-      ...reqBodyMetadata,
+      ...reqBody.metadata,
     };
     newBookingData.paid = originalRescheduledBooking.paid;
     newBookingData.fromReschedule = originalRescheduledBooking.uid;
     if (originalRescheduledBooking.uid) {
-      newBookingData.cancellationReason = rescheduleReason;
+      newBookingData.cancellationReason = input.rescheduleReason;
     }
     // Reschedule logic with booking with seats
-    if (newBookingData.attendees?.createMany?.data && eventType?.seatsPerTimeSlot && bookerEmail) {
+    if (
+      newBookingData.attendees?.createMany?.data &&
+      eventType?.eventTypeData?.seatsPerTimeSlot &&
+      input.bookerEmail
+    ) {
       newBookingData.attendees.createMany.data = attendeesData.filter(
-        (attendee) => attendee.email === bookerEmail
+        (attendee) => attendee.email === input.bookerEmail
       );
     }
     if (originalRescheduledBooking.recurringEventId) {

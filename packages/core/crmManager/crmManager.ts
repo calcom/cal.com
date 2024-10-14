@@ -8,13 +8,15 @@ const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export default class CrmManager {
   crmService: CRM | null | undefined = null;
   credential: CredentialPayload;
-  constructor(credential: CredentialPayload) {
+  appOptions: any;
+  constructor(credential: CredentialPayload, appOptions?: any) {
     this.credential = credential;
+    this.appOptions = appOptions;
   }
 
   private async getCrmService(credential: CredentialPayload) {
     if (this.crmService) return this.crmService;
-    const crmService = await getCrm(credential);
+    const crmService = await getCrm(credential, this.appOptions);
     this.crmService = crmService;
 
     if (this.crmService === null) {
@@ -25,10 +27,11 @@ export default class CrmManager {
     return crmService;
   }
 
-  public async createEvent(event: CalendarEvent, skipContactCreation?: boolean) {
+  public async createEvent(event: CalendarEvent, appOptions?: any) {
     const crmService = await this.getCrmService(this.credential);
+    const { skipContactCreation } = crmService?.getAppOptions();
     // First see if the attendees already exist in the crm
-    let contacts = (await this.getContacts(event.attendees.map((a) => a.email))) || [];
+    let contacts = (await this.getContacts({ emails: event.attendees.map((a) => a.email) })) || [];
     // Ensure that all attendees are in the crm
     if (contacts.length == event.attendees.length) {
       return await crmService?.createEvent(event, contacts);
@@ -39,7 +42,7 @@ export default class CrmManager {
     const contactsToCreate = event.attendees.filter(
       (attendee) => !contacts.some((contact) => contact.email === attendee.email)
     );
-    const createdContacts = await this.createContacts(contactsToCreate);
+    const createdContacts = await this.createContacts(contactsToCreate, event.organizer?.email);
     contacts = contacts.concat(createdContacts);
     return await crmService?.createEvent(event, contacts);
   }
@@ -54,15 +57,19 @@ export default class CrmManager {
     return await crmService?.deleteEvent(uid);
   }
 
-  public async getContacts(emailOrEmails: string | string[], includeOwner?: boolean) {
+  public async getContacts(params: {
+    emails: string | string[];
+    includeOwner?: boolean;
+    forRoundRobinSkip?: boolean;
+  }) {
     const crmService = await this.getCrmService(this.credential);
-    const contacts = await crmService?.getContacts(emailOrEmails, includeOwner);
+    const contacts = await crmService?.getContacts(params);
     return contacts;
   }
 
-  public async createContacts(contactsToCreate: ContactCreateInput[]) {
+  public async createContacts(contactsToCreate: ContactCreateInput[], organizerEmail?: string) {
     const crmService = await this.getCrmService(this.credential);
-    const createdContacts = (await crmService?.createContacts(contactsToCreate)) || [];
+    const createdContacts = (await crmService?.createContacts(contactsToCreate, organizerEmail)) || [];
     return createdContacts;
   }
 }

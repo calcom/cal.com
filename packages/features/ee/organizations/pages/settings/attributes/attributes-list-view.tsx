@@ -8,7 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Meta,
   Switch,
   Dropdown,
   Button,
@@ -132,7 +131,6 @@ function OrganizationAttributesPage() {
   if (isLoading) {
     return (
       <>
-        <Meta title={t("attributes")} description={t("attribute_meta_description")} />
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
           <ListSkeleton />
         </div>
@@ -142,7 +140,6 @@ function OrganizationAttributesPage() {
 
   return (
     <>
-      <Meta title={t("attributes")} description={t("attribute_meta_description")} />
       <ListAttributeHeader />
       <LicenseRequired>
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
@@ -191,14 +188,17 @@ function OrganizationAttributesPage() {
 
 function ListAttributeHeader() {
   const { meta } = useMeta();
+  const { t } = useLocale();
 
   return (
     <>
       <div className="min-h-6 mb-6 mt-6 flex flex-grow items-center justify-between lg:mt-12">
         <div className="flex items-center gap-4 ">
           <div className="flex flex-col space-y-1 ">
-            <h1 className="text-emphasis font-cal text-xl font-semibold leading-none">{meta.title}</h1>
-            <p className="text-subtle text-sm">{meta.description}</p>
+            <h1 className="text-emphasis font-cal text-xl font-semibold leading-none">
+              {meta.title || t("attributes")}
+            </h1>
+            <p className="text-subtle text-sm">{meta.description || t("attribute_meta_description")}</p>
           </div>
         </div>
       </div>
@@ -206,10 +206,8 @@ function ListAttributeHeader() {
   );
 }
 
-function getLayout(page: React.ReactElement) {
+export function getLayout(page: React.ReactElement) {
   return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
-
-OrganizationAttributesPage.getLayout = getLayout;
 
 export default OrganizationAttributesPage;
