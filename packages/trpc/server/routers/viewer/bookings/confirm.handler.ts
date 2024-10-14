@@ -45,6 +45,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       id: bookingId,
     },
     select: {
+      id: true,
       title: true,
       description: true,
       customInputs: true,

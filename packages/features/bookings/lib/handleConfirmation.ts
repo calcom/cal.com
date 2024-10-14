@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
+import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -36,6 +38,8 @@ export async function handleConfirmation(args: {
   prisma: PrismaClient;
   bookingId: number;
   booking: {
+    startTime: Date;
+    id: number;
     eventType: {
       currency: string;
       description: string | null;
@@ -373,8 +377,8 @@ export async function handleConfirmation(args: {
     });
 
     const subscribersGuestsNoShowStarted = await getWebhooks({
-      userId: triggerForUser ? organizerUser.id : null,
-      eventTypeId,
+      userId,
+      eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
       teamId,
       orgId,
