@@ -86,7 +86,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
           <div>
             <EventTypeSettings
               id={eventTypeId}
-              tabs={["setup", "limits", "recurring", "advanced"]}
+              tabs={["setup", "limits", "recurring", "advanced", "availability"]}
               onSuccess={(eventType) => {
                 console.log(eventType);
                 setEventTypeId(null);
