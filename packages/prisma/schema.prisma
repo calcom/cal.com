@@ -770,6 +770,7 @@ enum WebhookTriggerEvents {
   OOO_CREATED
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  FORM_SUBMITTED_NO_EVENT
 }
 
 model Webhook {
@@ -941,15 +942,16 @@ model App_RoutingForms_Form {
 }
 
 model App_RoutingForms_FormResponse {
-  id                 Int                   @id @default(autoincrement())
-  formFillerId       String                @default(cuid())
-  form               App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  id                 Int                        @id @default(autoincrement())
+  formFillerId       String                     @default(cuid())
+  form               App_RoutingForms_Form      @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId             String
   response           Json
-  createdAt          DateTime              @default(now())
-  routedToBookingUid String?               @unique
+  createdAt          DateTime                   @default(now())
+  routedToBookingUid String?                    @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
+  routedToBooking    Booking?                   @relation(fields: [routedToBookingUid], references: [uid])
+  scheduledTriggers  WebhookScheduledTriggers[]
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1110,18 +1112,20 @@ model WorkflowReminder {
 }
 
 model WebhookScheduledTriggers {
-  id            Int       @id @default(autoincrement())
-  jobName       String? // jobName is deprecated, not needed when webhook and booking is set
-  subscriberUrl String
-  payload       String
-  startAfter    DateTime
-  retryCount    Int       @default(0)
-  createdAt     DateTime? @default(now())
-  appId         String?
-  webhookId     String?
-  webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
-  bookingId     Int?
-  booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  id             Int                            @id @default(autoincrement())
+  jobName        String? // jobName is deprecated, not needed when webhook and booking is set
+  subscriberUrl  String
+  payload        String
+  startAfter     DateTime
+  retryCount     Int                            @default(0)
+  createdAt      DateTime?                      @default(now())
+  appId          String?
+  webhookId      String?
+  webhook        Webhook?                       @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  bookingId      Int?
+  booking        Booking?                       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  formResponseId Int?
+  formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {
