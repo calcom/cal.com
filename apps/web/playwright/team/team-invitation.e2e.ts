@@ -25,7 +25,7 @@ test.describe("Team", () => {
         username: "rick",
         domain: `domain-${Date.now()}.com`,
       });
-      await page.locator(`button:text("${t("add")}")`).click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
       const inviteLink = await expectInvitationEmailToBeReceived(

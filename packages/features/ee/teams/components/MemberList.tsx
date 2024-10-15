@@ -623,7 +623,7 @@ export default function MemberList(props: Props) {
   return (
     <>
       <DataTable
-        data-testid="user-list-data-table"
+        data-testid="team-member-list-container"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
