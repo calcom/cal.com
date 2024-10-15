@@ -202,6 +202,11 @@ const AppearanceView = ({
           mutation.mutate({
             appTheme: null,
           });
+          if (values.appTheme === "light") {
+            document.body.classList.remove("dark");
+          } else if (values.appTheme === "dark") {
+            document.body.classList.remove("light");
+          }
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
