@@ -191,7 +191,7 @@ jobs:
 
   e2e-embed-react:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2, playwright]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2, install-playwright]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
