@@ -11,6 +11,7 @@ import {
   expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect, beforeAll, vi } from "vitest";
 
@@ -87,7 +88,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-05-22T04:00:00.000Z`,
     endTime: `2024-05-22T04:30:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
     uid: "mL4Dx9jTkQbnWEu3pR7yNcF",
@@ -96,7 +97,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-05-23T04:00:00.000Z`,
     endTime: `2024-05-23T04:30:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
     uid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
@@ -105,7 +106,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-06-01T04:30:00.000Z`,
     endTime: `2024-06-01T05:00:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
     uid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
@@ -114,7 +115,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-06-02T04:30:00.000Z`,
     endTime: `2024-06-02T05:00:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
 ];
 
@@ -366,6 +367,8 @@ describe("deleteRemindersOfActiveOnIds", () => {
 });
 
 describe("scheduleBookingReminders", () => {
+  setupAndTeardown();
+
   test("schedules workflow notifications with before event trigger and email to host action", async ({}) => {
     // organizer is part of org and two teams
     const organizer = getOrganizer({

@@ -17,7 +17,6 @@ type props = {
   SubmitButton: (isPending: boolean) => ReactNode;
   onSuccessMutation: (eventType: EventType) => void;
   onErrorMutation: (message: string) => void;
-  isInfiniteScrollEnabled: boolean;
 };
 export const TeamEventTypeForm = ({
   isTeamAdminOrOwner,
@@ -25,21 +24,13 @@ export const TeamEventTypeForm = ({
   SubmitButton,
   onSuccessMutation,
   onErrorMutation,
-  isInfiniteScrollEnabled,
 }: props) => {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
-  const { data: team } = trpc.viewer.teams.getMinimal.useQuery(
-    { teamId, isOrg: false },
-    { enabled: !!teamId }
-  );
+  const { data: team } = trpc.viewer.teams.get.useQuery({ teamId, isOrg: false }, { enabled: !!teamId });
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(
-    onSuccessMutation,
-    onErrorMutation,
-    isInfiniteScrollEnabled
-  );
+  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
   const { register, setValue, formState } = form;
 
   return (

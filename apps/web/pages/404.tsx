@@ -33,7 +33,7 @@ export default function Custom404() {
 
   const links = [
     {
-      title: "Enterprise",
+      title: t("enterprise"),
       description: "Learn more about organizations and subdomains in our enterprise plan.",
       icon: "shield" as const,
       href: `${WEBSITE_URL}/enterprise`,

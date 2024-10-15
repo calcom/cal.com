@@ -256,6 +256,17 @@ export class UserRepository {
     };
   }
 
+  static async findByIds({ ids }: { ids: number[] }) {
+    return prisma.user.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      select: userSelect,
+    });
+  }
+
   static async findByIdOrThrow({ id }: { id: number }) {
     const user = await UserRepository.findById({ id });
     if (!user) {
@@ -516,7 +527,58 @@ export class UserRepository {
       },
     });
   }
-
+  static async getUserAdminTeams(userId: number) {
+    return prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        avatarUrl: true,
+        name: true,
+        username: true,
+        teams: {
+          where: {
+            accepted: true,
+            OR: [
+              {
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+              {
+                team: {
+                  parent: {
+                    members: {
+                      some: {
+                        id: userId,
+                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+                isOrganization: true,
+                parent: {
+                  select: {
+                    logoUrl: true,
+                    name: true,
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
     const membershipQuery = {
       members: {
@@ -542,30 +604,27 @@ export class UserRepository {
     });
     return !!teams.length;
   }
-
-  static async getUserAdminTeams(userId: number): Promise<number[]> {
-    const user = await prisma.user.findFirst({
+  static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
+    const team = await prisma.team.findUnique({
       where: {
-        id: userId,
+        id: teamId,
+        AND: [
+          {
+            members: {
+              some: {
+                userId,
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+            },
+          },
+        ],
       },
       select: {
-        teams: {
-          where: {
-            accepted: true,
-            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-          },
-          select: { teamId: true },
-        },
+        id: true,
       },
     });
-
-    const teamIds = [];
-    for (const team of user?.teams || []) {
-      teamIds.push(team.teamId);
-    }
-    return teamIds;
+    return !!team;
   }
-
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await prisma.user.findUnique({
       where: {
@@ -584,5 +643,33 @@ export class UserRepository {
         id: userId,
       },
     });
+  }
+
+  static async findUserTeams({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        completedOnboarding: true,
+        teams: {
+          select: {
+            accepted: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return user;
   }
 }

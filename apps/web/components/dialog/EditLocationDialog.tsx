@@ -232,7 +232,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             <div className="mt-3 text-center sm:mt-0 sm:text-left" />
 
             <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
-            <p className="text-emphasis mb-2 ml-1 text-sm">
+            <p className="text-emphasis mb-2 ml-1 break-all text-sm">
               {getHumanReadableLocationValue(booking.location, t)}
             </p>
             <Form
