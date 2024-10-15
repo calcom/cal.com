@@ -13,12 +13,10 @@ import {
   TUpdateEventTypeInputSchema,
   systemBeforeFieldEmail,
   getEventTypeById,
-} from "@calcom/platform-libraries";
-import {
   getEnabledAppsFromCredentials,
   getAppFromSlug,
   MembershipRole,
-} from "@calcom/platform-libraries-1.2.3";
+} from "@calcom/platform-libraries";
 import type {
   App,
   CredentialDataWithTeamName,
@@ -27,7 +25,7 @@ import type {
   CredentialOwner,
   TDependencyData,
   CredentialPayload,
-} from "@calcom/platform-libraries-1.2.3";
+} from "@calcom/platform-libraries";
 import { PrismaClient } from "@calcom/prisma/client";
 
 type EnabledAppType = App & {
