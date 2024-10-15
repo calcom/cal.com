@@ -34,6 +34,8 @@ jobs:
             echo "Cache hit for Docs build. Skipping build."
           else
             npm install -g mintlify
-            mintlify dev
+            mintlify dev &
+            sleep 5 # Let it run for 5 seconds
+            kill $!
           fi
         shell: bash
