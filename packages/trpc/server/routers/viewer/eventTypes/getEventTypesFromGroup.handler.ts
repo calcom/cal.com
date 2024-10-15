@@ -68,7 +68,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
 
   return {
     eventTypes,
-    nextCursor,
+    nextCursor: nextCursor ?? null,
   };
 };
 
@@ -76,7 +76,7 @@ const fetchEventTypesBatch = async (
   ctx: GetByViewerOptions["ctx"],
   input: GetByViewerOptions["input"],
   shouldListUserEvents: boolean | undefined,
-  cursor: typeof input.cursor
+  cursor: TGetEventTypesFromGroupSchema["cursor"]
 ) => {
   const userProfile = ctx.user.profile;
   const { group, limit, filters } = input;
@@ -151,7 +151,7 @@ const fetchEventTypesBatch = async (
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
 
-  return { eventTypes: mappedEventTypes, nextCursor };
+  return { eventTypes: mappedEventTypes, nextCursor: nextCursor ?? null };
 };
 
 const filterEventTypes = (
