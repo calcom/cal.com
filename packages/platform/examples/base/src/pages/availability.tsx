@@ -29,8 +29,6 @@ export default function Availability(props: { calUsername: string; calEmail: str
           onDeleteSuccess={() => {
             console.log("Deleted successfully");
           }}
-          allowDelete={false}
-          allowSetToDefault={false}
         />
       </div>
     </main>
