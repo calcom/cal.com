@@ -145,7 +145,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async getBooking(uid: string) {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(uid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
@@ -168,6 +168,11 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
     const ids = recurringBooking.map((booking) => booking.id);
+    const isRecurringSeated = !!recurringBooking[0].eventType?.seatsPerTimeSlot;
+    if (isRecurringSeated) {
+      return this.outputService.getOutputRecurringSeatedBookings(ids);
+    }
+
     return this.outputService.getOutputRecurringBookings(ids);
   }
 

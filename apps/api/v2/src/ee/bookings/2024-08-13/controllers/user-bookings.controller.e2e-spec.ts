@@ -34,6 +34,7 @@ import {
   CreateSeatedBookingOutput_2024_08_13,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import {
@@ -1128,16 +1129,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
     return Array.isArray(data);
   }
 
-  function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
-    return data.hasOwnProperty("seatUid");
-  }
-
-  function responseDataIsCreateRecurringSeatedBooking(
-    data: any
-  ): data is CreateRecurringSeatedBookingOutput_2024_08_13[] {
-    return Array.isArray(data);
-  }
-
   describe("Recurring bookings", () => {
     let app: INestApplication;
     let organization: Team;
@@ -1787,6 +1778,109 @@ describe("Bookings Endpoints 2024-08-13", () => {
           }
         });
     });
+
+    it("should get a booking for an event type with seats", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/bookings/${createdSeatedBooking.uid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            const expected = createdSeatedBooking;
+            // note(Lauris): seatUid in get response resides only in each attendee object
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            delete expected.seatUid;
+            expect(data).toEqual(expected);
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
+    it("should get a booking for a recurring event type with seats", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/bookings/${createdRecurringSeatedBooking[1].recurringBookingUid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetRecurringSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetRecurringSeatedBooking(responseBody.data)) {
+            const data: GetRecurringSeatedBookingOutput_2024_08_13[] = responseBody.data;
+            const expected = createdRecurringSeatedBooking;
+            for (const booking of expected) {
+              // note(Lauris): seatUid in get response resides only in each attendee object
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              delete booking.seatUid;
+            }
+            expect(data).toEqual(expected);
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
+    it("should get a specific recurrence of a booking for a recurring event type with seats", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/bookings/${createdRecurringSeatedBooking[0].uid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            const expected = createdRecurringSeatedBooking[0];
+            // note(Lauris): seatUid in get response resides only in each attendee object
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            delete expected.seatUid;
+            expect(data).toEqual(expected);
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
+    function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
+      return data.hasOwnProperty("seatUid");
+    }
+
+    function responseDataIsCreateRecurringSeatedBooking(
+      data: any
+    ): data is CreateRecurringSeatedBookingOutput_2024_08_13[] {
+      return Array.isArray(data);
+    }
+
+    function responseDataIsGetSeatedBooking(data: any): data is GetSeatedBookingOutput_2024_08_13 {
+      return data?.attendees?.every((attendee: any) => attendee?.hasOwnProperty("seatUid"));
+    }
+
+    function responseDataIsGetRecurringSeatedBooking(
+      data: any
+    ): data is GetRecurringSeatedBookingOutput_2024_08_13[] {
+      return Array.isArray(data);
+    }
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);

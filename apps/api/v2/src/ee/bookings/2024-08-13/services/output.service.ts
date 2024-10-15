@@ -112,6 +112,22 @@ export class OutputBookingsService_2024_08_13 {
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
+  async getOutputRecurringSeatedBookings(bookingsIds: number[]) {
+    const transformed = [];
+
+    for (const bookingId of bookingsIds) {
+      const databaseBooking =
+        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(bookingId);
+      if (!databaseBooking) {
+        throw new Error(`Booking with id=${bookingId} was not found in the database`);
+      }
+
+      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking));
+    }
+
+    return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }
+
   async getOutputCreateRecurringSeatedBookings(bookings: { id: number; seatUid: string }[]) {
     const transformed = [];
 
