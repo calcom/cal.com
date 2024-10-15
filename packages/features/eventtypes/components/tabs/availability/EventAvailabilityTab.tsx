@@ -14,7 +14,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText, TextField } from "@calcom/ui";
 
 type EventTypeScheduleDetailsProps = {
   scheduleQueryData?: RouterOutputs["viewer"]["availability"]["schedule"]["get"];
@@ -85,50 +85,20 @@ const EventTypeScheduleDetails = memo(
     loggedInUser,
     editAvailabilityRedirectUrl,
   }: EventTypeScheduleDetailsProps) => {
-    const timeFormat = loggedInUser?.timeFormat;
-    const { t, i18n } = useLocale();
-
-    const weekStart = weekStartNum(loggedInUser?.weekStart);
-
-    const filterDays = (dayNum: number) =>
-      scheduleQueryData?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+    const { t } = useLocale();
 
     return (
       <div>
         <div className="border-subtle space-y-4 border-x p-6">
-          <ol className="table border-collapse text-sm">
-            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
-              const isAvailable = !!filterDays(index).length;
-              return (
-                <li key={day} className="my-6 flex border-transparent last:mb-2">
-                  <span
-                    className={classNames(
-                      "w-20 font-medium sm:w-32 ",
-                      !isAvailable ? "text-subtle line-through" : "text-default"
-                    )}>
-                    {day}
-                  </span>
-                  {isSchedulePending ? (
-                    <SkeletonText className="block h-5 w-60" />
-                  ) : isAvailable ? (
-                    <div className="space-y-3 text-right">
-                      {filterDays(index).map((dayRange, i) => (
-                        <div key={i} className="text-default flex items-center leading-4">
-                          <span className="w-16 sm:w-28 sm:text-left">
-                            {format(dayRange.startTime, timeFormat === 12)}
-                          </span>
-                          <span className="ms-4">-</span>
-                          <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
+          {scheduleQueryData && scheduleQueryData.timeBlocks?.length ? (
+            <EventTypeTimeBlocks timeBlocks={scheduleQueryData.timeBlocks} />
+          ) : (
+            <EventTypeScheduleDayRange
+              schedule={scheduleQueryData?.schedule}
+              isPending={isSchedulePending}
+              loggedInUser={loggedInUser}
+            />
+          )}
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <span className="text-default flex items-center justify-center text-sm sm:justify-start">
@@ -157,6 +127,69 @@ const EventTypeScheduleDetails = memo(
 );
 
 EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
+
+type ScheduleType = RouterOutputs["viewer"]["availability"]["schedule"]["get"]["schedule"];
+
+const EventTypeScheduleDayRange = ({
+  schedule,
+  isPending,
+  loggedInUser,
+}: {
+  schedule: ScheduleType | undefined;
+  isPending?: boolean;
+  loggedInUser?: RouterOutputs["viewer"]["me"];
+}) => {
+  const { t, i18n } = useLocale();
+  const timeFormat = loggedInUser?.timeFormat;
+  const weekStart = weekStartNum(loggedInUser?.weekStart);
+  const weekdays = weekdayNames(i18n.language, weekStart, "long");
+
+  const filterDays = (dayNum: number) =>
+    schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+
+  const displayTimeRanges = (dayRanges: ScheduleType) => {
+    return dayRanges.map((dayRange, i) => (
+      <div key={i} className="text-default flex items-center leading-4">
+        <span className="w-16 sm:w-28 sm:text-left">{format(dayRange.startTime, timeFormat === 12)}</span>
+        <span className="ms-4">-</span>
+        <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
+      </div>
+    ));
+  };
+
+  const displayDayAvailability = (dayIndex: number) => {
+    const dayRanges = filterDays(dayIndex);
+    if (isPending) {
+      return <SkeletonText className="block h-5 w-60" />;
+    }
+    return dayRanges.length > 0 ? (
+      <div className="space-y-3 text-right">{displayTimeRanges(dayRanges)}</div>
+    ) : (
+      <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
+    );
+  };
+
+  return (
+    <ol className="table border-collapse text-sm">
+      {weekdays.map((day, index) => {
+        const isAvailable = filterDays(index).length > 0;
+
+        return (
+          <li key={day} className="my-6 flex border-transparent last:mb-2">
+            <span
+              className={classNames(
+                "w-20 font-medium sm:w-32",
+                !isAvailable ? "text-subtle line-through" : "text-default"
+              )}>
+              {day}
+            </span>
+            {displayDayAvailability(index)}
+          </li>
+        );
+      })}
+    </ol>
+  );
+};
 
 const EventTypeSchedule = ({
   eventType,
@@ -266,6 +299,30 @@ const EventTypeSchedule = ({
           <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
         )
       )}
+    </div>
+  );
+};
+
+const EventTypeTimeBlocks = ({ timeBlocks }: { timeBlocks: string[] }) => {
+  const { t } = useLocale();
+
+  return (
+    <div>
+      <p className="text-subtle mb-4 text-sm">{t("time_blocks_subtitle")}</p>
+      <div className="space-y-2">
+        {timeBlocks.map((timeBlock, index) => (
+          <div key={index} className="mb-2 flex-col items-center space-y-2">
+            {index !== 0 && (
+              <div>
+                <p>{t("or")}</p>
+              </div>
+            )}
+            <div className="w-full">
+              <TextField label={false} type="standard" value={timeBlock} readOnly={true} />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -209,6 +209,7 @@ export async function getEventType(
             },
           },
           timeZone: true,
+          timeBlocks: true,
         },
       },
       availability: {

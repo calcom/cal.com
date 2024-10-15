@@ -48,6 +48,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
       dateOverrides: [],
       timeZone: ctx.user.timeZone || "Europe/London",
       workingHours: [],
+      timeBlocks: [],
       isDefault: true,
       hasDefaultSchedule: false, // This is the path that we take if the user has not completed onboarding
     };

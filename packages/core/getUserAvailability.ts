@@ -97,6 +97,7 @@ const _getEventType = async (id: number) => {
               endTime: true,
             },
           },
+          timeBlocks: true,
           timeZone: true,
         },
       },
@@ -327,7 +328,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
-  const busyTimes = await getBusyTimes({
+  const { busyTimes, timeBlocks } = await getBusyTimes({
     credentials: user.credentials,
     startTime: getBusyTimesStart,
     endTime: getBusyTimesEnd,
@@ -342,6 +343,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
     currentBookings: initialData?.currentBookings,
+    timeBlocksList: schedule?.timeBlocks,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
@@ -375,9 +377,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
 
-  const availability = (
-    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
-  ).map((a) => ({
+  let availabilitySource;
+  if (schedule?.timeBlocks.length) {
+    availabilitySource = timeBlocks;
+  } else {
+    availabilitySource =
+      schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability);
+  }
+
+  const availability = availabilitySource.map((a) => ({
     ...a,
     userId: user.id,
   }));
