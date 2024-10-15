@@ -33,7 +33,7 @@ export type UserTableState = {
   deleteMember: UserTablePayload;
   impersonateMember: UserTablePayload;
   inviteMember: UserTablePayload;
-  editSheet: UserTablePayload & { user?: UserTableUser };
+  editSheet: UserTablePayload & { user: UserTableUser };
 };
 
 export type UserTableAction =

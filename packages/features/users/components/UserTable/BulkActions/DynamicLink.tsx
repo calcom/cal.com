@@ -5,9 +5,13 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
-import type { UserTableUser } from "../types";
-
-export function DynamicLink({ table, domain }: { table: Table<UserTableUser>; domain: string }) {
+export function DynamicLink<T extends { username: string | null }>({
+  table,
+  domain,
+}: {
+  table: Table<T>;
+  domain: string;
+}) {
   const { t } = useLocale();
   const [dynamicLinkVisible, _] = useQueryState("dynamicLink", parseAsBoolean);
   const { copyToClipboard, isCopied } = useCopy();
@@ -17,7 +21,7 @@ export function DynamicLink({ table, domain }: { table: Table<UserTableUser>; do
   const users = table
     .getSelectedRowModel()
     .flatRows.map((row) => row.original.username)
-    .filter((u) => u !== null);
+    .filter((u): u is string => u !== null);
 
   const usersNameAsString = users.join("+");
 
