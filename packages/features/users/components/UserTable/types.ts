@@ -33,7 +33,10 @@ export type UserTableState = {
   deleteMember: UserTablePayload;
   impersonateMember: UserTablePayload;
   inviteMember: UserTablePayload;
-  editSheet: UserTablePayload & { user: UserTableUser };
+  editSheet: {
+    showModal: boolean;
+    user: UserTablePayload["showModal"] extends true ? UserTableUser : UserTableUser | undefined;
+  };
 };
 
 export type UserTableAction =
