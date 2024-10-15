@@ -2599,6 +2599,7 @@
   "new_option": "New option",
   "update_profile":"Update member",
   "attribute_updated_successfully": "Attribute updated successfully",
+  "attribute_deleted_successfully": "Attribute deleted successfully",
   "attributes_edited_successfully": "Attributes edited successfully",
   "attribute_meta_description": "Manage attributes for your team members",
   "attributes_edit_description": "Edit attributes for your team members",
