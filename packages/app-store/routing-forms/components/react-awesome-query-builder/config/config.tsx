@@ -52,7 +52,9 @@ function getSettings(_configFor: ConfigFor) {
     renderProvider: (props) => renderComponent(props, Provider),
 
     groupActionsPosition: "bottomCenter",
-
+    // TODO: Test it and then enable it. It might allow us to show better error messages.
+    // But it doesn't detect every kind of error like an operator gone missing e.g. what happened in https://github.com/calcom/cal.com/pull/17102
+    // showErrorMessage: true,
     // Disable groups
     maxNesting: 1,
   };
@@ -166,6 +168,7 @@ function getOperators(configFor: ConfigFor) {
   const operators: Operators = {
     ...BasicConfig.operators,
     // Attributes don't need reporting at the moment. So, we can support contains and not contains operators for attributes.
+    // We could probably use them in FormFields if they are supported through Prisma query as well.
     ...(configFor === ConfigFor.Attributes
       ? {
           multiselect_contains: {

@@ -13,6 +13,7 @@ import {
   IsUrl,
   IsObject,
   IsBoolean,
+  Min,
 } from "class-validator";
 
 import type { BookingLanguageType } from "./language";
@@ -182,6 +183,18 @@ export class CreateRecurringBookingInput_2024_08_13 {
 
   @ApiProperty({
     type: String,
+    description:
+      "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+    example: "https://example.com/meeting",
+    required: false,
+    deprecated: true,
+  })
+  @IsUrl()
+  @IsOptional()
+  meetingUrl?: string;
+
+  @ApiProperty({
+    type: String,
     description: "Location for this booking. Displayed in email and calendar event.",
     example: "https://example.com/meeting",
     required: false,
@@ -210,4 +223,16 @@ export class CreateRecurringBookingInput_2024_08_13 {
   @IsObject()
   @IsOptional()
   bookingFieldsResponses?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    type: Number,
+    description: `The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than
+    event type recurrence count`,
+    example: 5,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  recurrenceCount?: number;
 }
