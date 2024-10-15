@@ -11,6 +11,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
+import type { ActionItem } from "@calcom/ui/components/data-table/DataTableSelectionBar";
+import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -114,6 +116,7 @@ function reducer(state: State, action: Action): State {
 
 export function UserListTable() {
   const { data: session } = useSession();
+  const { isPlatformUser } = useGetUserAttributes();
   const { copyToClipboard, isCopied } = useCopy();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
@@ -137,6 +140,10 @@ export function UserListTable() {
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
+
+  //we must flatten the array of arrays from the useInfiniteQuery hook
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
+  const totalFetched = flatData.length;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -169,7 +176,7 @@ export function UserListTable() {
       {
         id: "member",
         accessorFn: (data) => data.email,
-        header: `Member (${totalDBRowCount})`,
+        header: `Member (${isPlatformUser ? totalFetched : totalDBRowCount})`,
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -299,9 +306,56 @@ export function UserListTable() {
     return cols;
   }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount]);
 
-  //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
-  const totalFetched = flatData.length;
+  const memoisedSelectionOptions = useMemo(() => {
+    const selectionOptionsForOrg: ActionItem<User>[] = [
+      {
+        type: "render",
+        render: (table) => <TeamListBulkAction table={table} />,
+      },
+      {
+        type: "render",
+        render: (table) => <MassAssignAttributesBulkAction table={table} />,
+      },
+      {
+        type: "action",
+        icon: "handshake",
+        label: "Group Meeting",
+        needsXSelected: 2,
+        onClick: () => {
+          setDynamicLinkVisible((old) => !old);
+        },
+      },
+      {
+        type: "render",
+        render: (table) => <EventTypesList table={table} orgTeams={teams} />,
+      },
+      {
+        type: "render",
+        render: (table) => (
+          <DeleteBulkUsers
+            users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+            onRemove={() => table.toggleAllPageRowsSelected(false)}
+          />
+        ),
+      },
+    ];
+
+    const selectionOptionsForPlatform: ActionItem<User>[] = [
+      {
+        type: "render",
+        render: (table: Table<User>) => (
+          <DeleteBulkUsers
+            users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+            onRemove={() => table.toggleAllPageRowsSelected(false)}
+          />
+        ),
+      },
+    ];
+
+    const selectionOptions = isPlatformUser ? selectionOptionsForPlatform : selectionOptionsForOrg;
+
+    return selectionOptions;
+  }, [isPlatformUser, teams]);
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
   const fetchMoreOnBottomReached = useCallback(
@@ -339,38 +393,7 @@ export function UserListTable() {
         }}
         data-testid="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
-        selectionOptions={[
-          {
-            type: "render",
-            render: (table) => <TeamListBulkAction table={table} />,
-          },
-          {
-            type: "render",
-            render: (table) => <MassAssignAttributesBulkAction table={table} />,
-          },
-          {
-            type: "action",
-            icon: "handshake",
-            label: "Group Meeting",
-            needsXSelected: 2,
-            onClick: () => {
-              setDynamicLinkVisible((old) => !old);
-            },
-          },
-          {
-            type: "render",
-            render: (table) => <EventTypesList table={table} orgTeams={teams} />,
-          },
-          {
-            type: "render",
-            render: (table) => (
-              <DeleteBulkUsers
-                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-                onRemove={() => table.toggleAllPageRowsSelected(false)}
-              />
-            ),
-          },
-        ]}
+        selectionOptions={memoisedSelectionOptions}
         renderAboveSelection={(table: Table<User>) => {
           const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
           const isVisible = numberOfSelectedRows >= 2 && dynamicLinkVisible;
