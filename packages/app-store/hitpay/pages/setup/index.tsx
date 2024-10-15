@@ -58,7 +58,7 @@ function HitPaySetupCallback() {
     }
 
     window.opener.postMessage({
-      type: "alby:oauth:success",
+      type: "hitpay:oauth:success",
       payload: { code },
     });
     window.close();

@@ -8,7 +8,7 @@
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "HitPay",
-  "email": "help@hitpay.com",
+  "email": "support@hit-pay.com",
   "description": "HitPay helps over 15,000 businesses across Southeast Asia and around the globe process payments efficiently and securely. We unify online, point of sale, and B2B payments into a single, integrated payment processing system.",
   "extendsFeature": "EventType",
   "isTemplate": false,

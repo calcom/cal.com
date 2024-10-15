@@ -67,6 +67,7 @@ export class PaymentService implements IAbstractPaymentService {
         reference_number: "CAL123",
         redirect_url: redirectUri,
         webhook: webhookUri,
+        channel: "api_cal",
       };
 
       const response = await axios.post(requestUrl, qs.stringify(formData), {
