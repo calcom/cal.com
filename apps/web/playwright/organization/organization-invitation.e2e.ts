@@ -106,7 +106,7 @@ test.describe("Organization", () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
-        await inviteAnEmail(page, invitedUserEmail);
+        await inviteAnEmail(page, invitedUserEmail, true);
         await expectUserToBeAMemberOfTeam({
           page,
           teamId: team.id,
@@ -333,7 +333,7 @@ test.describe("Organization", () => {
         await page.goto(`/settings/teams/${team.id}/members`);
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
-        await inviteAnEmail(page, invitedUserEmail);
+        await inviteAnEmail(page, invitedUserEmail, true);
         await expectUserToBeAMemberOfTeam({
           page,
           teamId: team.id,
@@ -481,8 +481,12 @@ export async function signupFromEmailInviteLink({
   await signupPage.close();
 }
 
-async function inviteAnEmail(page: Page, invitedUserEmail: string) {
-  await page.locator('button:text("Add")').click();
+async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: boolean) {
+  if (teamPage) {
+    await page.getByTestId("new-member-button").click();
+  } else {
+    await page.getByTestId("new-organization-member-button").click();
+  }
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
   await page.locator('button:text("Send invite")').click();
