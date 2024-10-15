@@ -347,7 +347,10 @@ export const InfiniteEventTypeList = ({
           group: { teamId: group?.teamId, parentId: group?.parentId },
         },
         (data) => {
+          if (!data) return { pages: [], pageParams: [] };
+
           return {
+            ...data,
             pageParams: data?.pageParams ?? [],
             pages: newOrder,
           };
