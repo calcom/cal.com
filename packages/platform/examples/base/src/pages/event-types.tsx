@@ -91,7 +91,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <EventTypeSettings
               allowDelete={true}
               id={eventTypeId}
-              tabs={["setup", "limits", "recurring", "advanced"]}
+              tabs={["setup", "limits", "recurring", "advanced", "payments"]}
               onSuccess={(eventType) => {
                 console.log(eventType);
                 setEventTypeId(null);
