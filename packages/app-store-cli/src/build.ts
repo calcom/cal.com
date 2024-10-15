@@ -23,6 +23,7 @@ const formatOutput = (source: string) =>
 
 const getVariableName = (appName: string) => appName.replace(/[-.]/g, "_");
 
+// INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
 const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
 
 type App = Partial<AppMeta> & {
