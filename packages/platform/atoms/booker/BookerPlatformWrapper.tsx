@@ -402,7 +402,7 @@ export const BookerPlatformWrapper = (
   }, [view, isOverlayCalendarEnabled]);
 
   return (
-    <AtomsWrapper>
+    <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
