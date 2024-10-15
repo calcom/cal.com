@@ -21,8 +21,8 @@ export const ZohoConnectionSetupPage = ({
   const { t } = useLocale();
   const query = trpc.viewer.public.zohoConnection.useQuery({ token: completeSetupToken });
   const mutation = trpc.viewer.public.completeZohoCalendarSetup.useMutation({
-    onSettled: (data: { status: string }) => {
-      if (data.status === "success") {
+    onSettled: (data?: { status: string }) => {
+      if (data?.status === "success") {
         setSuccess(true);
       } else {
         showToast(`Something went wrong when completing your setup.`, "error");

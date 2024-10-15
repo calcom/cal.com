@@ -43,8 +43,8 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       setCheckedInternal(false);
       showToast(`Something went wrong when toggling "${title}"`, "error");
     },
-    onSettled: (data: { status: string }) => {
-      if (data.status === "error") {
+    onSettled: (data?: { status: string }) => {
+      if (data?.status === "error") {
         setCheckedInternal(false);
         showToast(`Something went wrong when toggling "${title}"`, "error");
       }
