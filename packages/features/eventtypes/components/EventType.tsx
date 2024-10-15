@@ -47,26 +47,40 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
 
-export const EventType = (
-  props: EventTypeSetupProps & {
-    allActiveWorkflows?: Workflow[];
-    tabMap: TabMap;
-    onDelete: (id: number) => void;
-    isDeleting?: boolean;
-    onConflict: (eventTypes: ChildrenEventType[]) => void;
-    children?: React.ReactNode;
-    handleSubmit: (values: FormValues) => void;
-    formMethods: UseFormReturn<FormValues>;
-    eventTypeApps?: EventTypeApps;
-    isUpdating: boolean;
-    isPlatform?: boolean;
-    tabName: (typeof tabs)[number];
-    tabsNavigation: VerticalTabItemProps[];
-  }
-) => {
-  const { formMethods, isPlatform, tabName } = props;
-  const { eventType, team, currentUserMembership, tabMap, isUpdating } = props;
+export type EventTypeComponentProps = EventTypeSetupProps & {
+  allActiveWorkflows?: Workflow[];
+  tabMap: TabMap;
+  onDelete: (id: number) => void;
+  isDeleting?: boolean;
+  onConflict: (eventTypes: ChildrenEventType[]) => void;
+  children?: React.ReactNode;
+  handleSubmit: (values: FormValues) => void;
+  formMethods: UseFormReturn<FormValues>;
+  eventTypeApps?: EventTypeApps;
+  isUpdating: boolean;
+  isPlatform?: boolean;
+  tabName: (typeof tabs)[number];
+  tabsNavigation: VerticalTabItemProps[];
+  allowDelete?: boolean;
+};
 
+export const EventType = ({
+  formMethods,
+  isPlatform,
+  tabName,
+  eventType,
+  team,
+  currentUserMembership,
+  tabMap,
+  isUpdating,
+  isUserOrganizationAdmin,
+  onDelete,
+  isDeleting,
+  tabsNavigation,
+  handleSubmit,
+  children,
+  allowDelete = true,
+}: EventTypeComponentProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
@@ -80,16 +94,17 @@ export const EventType = (
         disableBorder={true}
         currentUserMembership={currentUserMembership}
         bookerUrl={eventType.bookerUrl}
-        isUserOrganizationAdmin={props.isUserOrganizationAdmin}
-        onDelete={props.onDelete}
-        isDeleting={props.isDeleting}
+        isUserOrganizationAdmin={isUserOrganizationAdmin}
+        onDelete={onDelete}
+        isDeleting={isDeleting}
         isPlatform={isPlatform}
-        tabsNavigation={props.tabsNavigation}>
-        <Form form={formMethods} id="event-type-form" handleSubmit={props.handleSubmit}>
+        allowDelete={allowDelete}
+        tabsNavigation={tabsNavigation}>
+        <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
       </EventTypeSingleLayout>
-      {props.children}
+      {children}
     </>
   );
 };
