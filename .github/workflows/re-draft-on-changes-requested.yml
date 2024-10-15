@@ -20,8 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "This PR was rejected"
-      - uses: actions/github-script@v7
+      - name: Convert PR to draft when changes are requested
+        uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             async function getPullRequestId() {
               const pull_number = context.payload.pull_request.number;
