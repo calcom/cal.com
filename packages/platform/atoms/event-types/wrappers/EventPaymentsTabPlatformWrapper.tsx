@@ -17,8 +17,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
   const isStripeConnected = !checked || !allowConnect;
 
   return (
-    // need to add a default height and width to this div
-    <div className="border-2 border-red-500">
+    <div>
       {!isStripeConnected ? (
         <EmptyScreen
           Icon="grid-3x3"
