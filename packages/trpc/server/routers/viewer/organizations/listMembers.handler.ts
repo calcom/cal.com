@@ -16,7 +16,7 @@ type GetOptions = {
 };
 
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
-  const organizationId = ctx.user.organizationId;
+  const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0].organizationId;
   const searchTerm = input.searchTerm;
   const expand = input.expand;
   const filters = input.filters || [];
@@ -44,6 +44,9 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   });
 
   const whereClause = {
+    user: {
+      isPlatformManaged: false,
+    },
     teamId: organizationId,
     ...(searchTerm && {
       user: {

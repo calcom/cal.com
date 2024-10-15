@@ -41,6 +41,7 @@ import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
 import { useFetchMoreOnBottomReached } from "./useFetchMoreOnBottomReached";
+import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -101,6 +102,8 @@ export function UserListTable() {
   const { t } = useLocale();
 
   const { data: session } = useSession();
+  const { isPlatformUser } = useGetUserAttributes();
+  const { copyToClipboard, isCopied } = useCopy();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
@@ -132,6 +135,10 @@ export function UserListTable() {
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
+
+  //we must flatten the array of arrays from the useInfiniteQuery hook
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
+  const totalFetched = flatData.length;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -216,12 +223,12 @@ export function UserListTable() {
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
-                  className="text-emphasis text-sm font-medium leading-none">
+                  className="text-sm font-medium leading-none text-emphasis">
                   {username || "No username"}
                 </div>
                 <div
                   data-testid={`member-${username}-email`}
-                  className="text-subtle mt-1 text-sm leading-none">
+                  className="mt-1 text-sm leading-none text-subtle">
                   {email}
                 </div>
               </div>
@@ -268,7 +275,7 @@ export function UserListTable() {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
           return (
-            <div className="flex h-full flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center h-full gap-2">
               {accepted ? null : (
                 <Badge
                   data-testid2={`member-${username}-pending`}
@@ -431,9 +438,10 @@ export function UserListTable() {
         )}
         {numberOfSelectedRows > 0 && (
           <DataTableSelectionBar.Root>
-            <p className="text-brand-subtle w-full px-2 text-center leading-none">
+            <p className="w-full px-2 leading-none text-center text-brand-subtle">
               {numberOfSelectedRows} selected
             </p>
+            {!isPlatfor}
             <TeamListBulkAction table={table} />
             {numberOfSelectedRows >= 2 && (
               <Button onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)} StartIcon="handshake">
