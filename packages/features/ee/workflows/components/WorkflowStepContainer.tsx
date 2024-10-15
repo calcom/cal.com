@@ -10,6 +10,7 @@ import { classNames } from "@calcom/lib";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { md } from "@calcom/lib/markdownIt";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import turndown from "@calcom/lib/turndownService";
 import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -916,7 +917,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
                 <Editor
                   getText={() => {
-                    return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                    return md.render(props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "");
                   }}
                   setText={(text: string) => {
                     if (isSMSOrWhatsappAction(step.action)) {

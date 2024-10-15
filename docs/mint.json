@@ -182,9 +182,20 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        {
+          "group": "Atoms",
+          "icon": "atom",
+          "pages": [
+            "platform/atoms/google-calendar-connect",
+            "platform/atoms/outlook-calendar-connect",
+            "platform/atoms/apple-calendar-connect",
+            "platform/atoms/availability-settings",
+            "platform/atoms/booker",
+            "platform/atoms/calendar-settings"
+          ]
+        },
         "platform/quickstart",
         "platform/booking-redirects",
-        "platform/atoms-reference",
         "platform/faq"
       ]
     },

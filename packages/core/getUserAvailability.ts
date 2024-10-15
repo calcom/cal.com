@@ -76,6 +76,21 @@ const _getEventType = async (id: number) => {
           user: {
             select: {
               email: true,
+              id: true,
+            },
+          },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
             },
           },
         },
@@ -281,7 +296,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
-  const schedule = eventType?.schedule ? eventType.schedule : userSchedule;
+  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+
+  const schedule = eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule;
 
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
@@ -356,7 +373,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ...busyTimesFromTeamLimits,
   ];
 
-  const isDefaultSchedule = userSchedule && userSchedule.id === schedule.id;
+  const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
     "Using schedule:",
@@ -364,6 +381,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       chosenSchedule: schedule,
       eventTypeSchedule: eventType?.schedule,
       userSchedule: userSchedule,
+      hostSchedule: hostSchedule,
     })
   );
 
