@@ -356,8 +356,8 @@ const types: Types = {
       },
       multiselect: {
         operators: [
-          //   "select_any_in",
-          //   "select_not_any_in",
+          "select_any_in",
+          "select_not_any_in",
           // "is_empty",
           // "is_not_empty",
           "is_null",

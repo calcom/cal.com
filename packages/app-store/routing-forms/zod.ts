@@ -55,6 +55,47 @@ const queryValueSchema = z.object({
   properties: z.any(),
 });
 
+export const queryValueValidationSchema = queryValueSchema.omit({ children1: true }).merge(
+  z.object({
+    children1: z
+      .record(
+        z.object({
+          type: z.string().optional(),
+          properties: z
+            .object({
+              field: z.any().optional(),
+              operator: z.any().optional(),
+              value: z.any().optional(),
+            })
+            .optional(),
+        })
+      )
+      .optional()
+      // Be very careful and lenient here. Just ensure that the rule isn't invalid without breaking anything
+      .superRefine((children1, ctx) => {
+        if (!children1) return;
+        Object.entries(children1).forEach(([, rule]) => {
+          const unknownRule = rule as unknown;
+          if (!unknownRule) return;
+          if (unknownRule.type === "rule") {
+            const propertiesValue = (unknownRule.properties?.value || []).filter((value) => {
+              // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
+              // Also, it is possible that RAQB has some requirements to support null or empty string values.
+              if (value === undefined) return false;
+              return true;
+            });
+            if (propertiesValue instanceof Array && propertiesValue.length === 0) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Looks like you are trying to create a rule with no value",
+              });
+            }
+          }
+        });
+      }),
+  })
+);
+
 export const zodNonRouterRoute = z.object({
   id: z.string(),
   attributeRoutingConfig: z
