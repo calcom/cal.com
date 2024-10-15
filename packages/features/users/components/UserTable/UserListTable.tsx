@@ -136,7 +136,7 @@ export function UserListTable() {
   const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
   const totalFetched = flatData.length;
 
   const memorisedColumns = useMemo(() => {

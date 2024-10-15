@@ -33,10 +33,7 @@ export type UserTableState = {
   deleteMember: UserTablePayload;
   impersonateMember: UserTablePayload;
   inviteMember: UserTablePayload;
-  editSheet: {
-    showModal: boolean;
-    user: UserTablePayload["showModal"] extends true ? UserTableUser : UserTableUser | undefined;
-  };
+  editSheet: UserTablePayload & { user?: UserTableUser };
 };
 
 export type UserTableAction =
@@ -46,7 +43,8 @@ export type UserTableAction =
         | "SET_DELETE_ID"
         | "SET_IMPERSONATE_ID"
         | "INVITE_MEMBER"
-        | "EDIT_USER_SHEET";
+        | "EDIT_USER_SHEET"
+        | "INVITE_MEMBER";
       payload: UserTablePayload;
     }
   | {
