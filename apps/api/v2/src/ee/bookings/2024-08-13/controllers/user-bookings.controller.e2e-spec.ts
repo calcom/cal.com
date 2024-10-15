@@ -31,6 +31,7 @@ import {
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
 import {
+  CancelSeatedBookingInput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,
   GetBookingOutput_2024_08_13,
@@ -1948,6 +1949,59 @@ describe("Bookings Endpoints 2024-08-13", () => {
               language: attendee?.language,
               absent: false,
               seatUid,
+              bookingFieldsResponses: {
+                name: attendee?.name,
+                email: "mr_proper_friend@gmail.com",
+                ...attendee?.bookingFieldsResponses,
+              },
+            });
+            expect(data.location).toBeDefined();
+            expect(data.absentHost).toEqual(false);
+            createdSeatedBooking = data;
+          } else {
+            throw new Error("Invalid response data - expected booking but received array response");
+          }
+        });
+    });
+
+    it("should cancel seated booking", async () => {
+      const body: CancelSeatedBookingInput_2024_08_13 = {
+        seatUid: createdSeatedBooking.seatUid,
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${createdSeatedBooking.uid}/cancel`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.status).toEqual("accepted");
+            expect(data.start).toEqual(createdSeatedBooking.start);
+            expect(data.end).toEqual(createdSeatedBooking.end);
+            expect(data.duration).toEqual(60);
+            expect(data.eventTypeId).toEqual(seatedEventTypeId);
+            expect(data.eventType).toEqual({
+              id: seatedEventTypeId,
+              slug: seatedTventTypeSlug,
+            });
+            expect(data.attendees.length).toEqual(1);
+            const attendee = createdSeatedBooking.attendees.find((a) => a.seatUid === body.seatUid);
+            expect(data.attendees[0]).toEqual({
+              name: attendee?.name,
+              timeZone: attendee?.timeZone,
+              language: attendee?.language,
+              absent: false,
+              seatUid: createdSeatedBooking.seatUid,
               bookingFieldsResponses: {
                 name: attendee?.name,
                 email: "mr_proper_friend@gmail.com",

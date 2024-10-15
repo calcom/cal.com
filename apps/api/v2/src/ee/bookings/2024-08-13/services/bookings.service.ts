@@ -29,6 +29,7 @@ import {
   GetSeatedBookingOutput_2024_08_13,
   GetRecurringSeatedBookingOutput_2024_08_13,
   RescheduleBookingInput,
+  CancelBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -280,7 +281,7 @@ export class BookingsService_2024_08_13 {
     }
   }
 
-  async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput_2024_08_13) {
+  async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
     await handleCancelBooking(bookingRequest);
     return this.getBooking(bookingUid);

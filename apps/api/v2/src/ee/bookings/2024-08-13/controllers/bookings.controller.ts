@@ -35,6 +35,8 @@ import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
+  CancelBookingInput,
+  CancelBookingInputPipe,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   RescheduleBookingInput,
@@ -191,7 +193,8 @@ export class BookingsController_2024_08_13 {
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
-    @Body() body: CancelBookingInput_2024_08_13
+    @Body(new CancelBookingInputPipe())
+    body: CancelBookingInput
   ): Promise<CancelBookingOutput_2024_08_13> {
     const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
 

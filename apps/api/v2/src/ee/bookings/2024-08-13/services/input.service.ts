@@ -20,7 +20,9 @@ import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
+  CancelBookingInput,
   CancelBookingInput_2024_08_13,
+  CancelSeatedBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
@@ -434,9 +436,11 @@ export class InputBookingsService_2024_08_13 {
   async createCancelBookingRequest(
     request: Request,
     bookingUid: string,
-    body: CancelBookingInput_2024_08_13
+    body: CancelBookingInput
   ): Promise<BookingRequest> {
-    const bodyTransformed = await this.transformInputCancelBooking(bookingUid, body);
+    const bodyTransformed = this.isCancelSeatedBody(body)
+      ? await this.transformInputCancelSeatedBooking(bookingUid, body)
+      : await this.transformInputCancelBooking(bookingUid, body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
     const newRequest = { ...request };
@@ -450,6 +454,10 @@ export class InputBookingsService_2024_08_13 {
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
 
     return newRequest as unknown as BookingRequest;
+  }
+
+  isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
+    return body.hasOwnProperty("seatUid");
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
@@ -469,6 +477,30 @@ export class InputBookingsService_2024_08_13 {
     return {
       uid,
       cancellationReason: inputBooking.cancellationReason,
+      allRemainingBookings,
+    };
+  }
+
+  async transformInputCancelSeatedBooking(
+    bookingUid: string,
+    inputBooking: CancelSeatedBookingInput_2024_08_13
+  ) {
+    let allRemainingBookings = false;
+    let uid = inputBooking.seatUid;
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
+      bookingUid
+    );
+
+    if (recurringBooking.length) {
+      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
+      allRemainingBookings = true;
+      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
+      uid = recurringBooking[0].uid;
+    }
+
+    return {
+      uid,
+      cancellationReason: "",
       allRemainingBookings,
     };
   }
