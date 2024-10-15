@@ -125,7 +125,7 @@ export const ZohoConnectionSetupPage = ({
               <div className="mt-8 flex w-full justify-end">
                 <Button
                   onClick={() => {
-                    mutation.mutate();
+                    mutation.mutate({ token: completeSetupToken });
                   }}
                   loading={mutation.isPending}>
                   {t("done")}

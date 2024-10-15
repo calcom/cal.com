@@ -8,7 +8,7 @@ type CompleteZohoCalendarSetupOptions = {
 
 export const completeZohoCalendarSetupHandler = async ({ input }: CompleteZohoCalendarSetupOptions) => {
   try {
-    const token = input?.token;
+    const token = input?.token || "";
     const body = {};
     let baseUrl = WEBAPP_URL;
     if (baseUrl.includes("localhost")) {
@@ -23,7 +23,7 @@ export const completeZohoCalendarSetupHandler = async ({ input }: CompleteZohoCa
       },
       body: JSON.stringify(body),
     });
-    console.log("res", res);
+
     if (!res.ok) {
       throw new Error("Something went wrong");
     }
