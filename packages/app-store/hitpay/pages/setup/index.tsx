@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, showToast, Icon } from "@calcom/ui";
 import { Input } from "@calcom/ui";
+import { HeadSeo } from "@calcom/ui";
 
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
 
@@ -187,94 +188,97 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
   }
 
   return (
-    <div className="bg-default flex h-screen items-center justify-center">
-      {showContent ? (
-        <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center space-y-4 p-4 lg:space-y-5">
-          <div className="rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            <Icon name="info" className="mb-0.5 inline-flex h-4 w-4" /> Create or connect to an existing
-            HitPay account to receive payments for your paid bookings.
-          </div>
-
-          <form className="w-full space-y-4" onSubmit={onSubmit}>
-            <div className="bg-default border-subtle overflow-auto rounded border">
-              <div className="border-subtle border-b-[1px] p-4 md:p-5">
-                <h2 className="text-2xl font-semibold">Account Information</h2>
-              </div>
-              <div className="w-full space-y-4 p-4 md:p-5">
-                <div className="w-full">
-                  <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
-                    {t("api_key")}
-                  </label>
-                  <Input
-                    {...register("apiKey", {
-                      required: true,
-                    })}
-                    id="apiKey"
-                    name="apiKey"
-                    type="text"
-                    autoComplete="off"
-                    autoCorrect="off"
-                  />
-                  {errors.apiKey && (
-                    <p data-testid="required" className="py-2 text-xs text-red-500">
-                      {errors.apiKey?.message}
-                    </p>
-                  )}
-                </div>
-                <div className="w-full">
-                  <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
-                    Salt
-                  </label>
-                  <Input
-                    {...register("saltKey", {
-                      required: true,
-                    })}
-                    id="saltKey"
-                    name="saltKey"
-                    type="text"
-                    autoComplete="off"
-                    autoCorrect="off"
-                  />
-                  {errors.saltKey && (
-                    <p data-testid="required" className="py-2 text-xs text-red-500">
-                      {errors.saltKey?.message}
-                    </p>
-                  )}
-                </div>
-              </div>
+    <>
+      <HeadSeo nextSeoProps={{ noindex: true, nofollow: true }} title="HitPay" description="" />
+      <div className="bg-default flex h-screen items-center justify-center">
+        {showContent ? (
+          <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center space-y-4 p-4 lg:space-y-5">
+            <div className="rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+              <Icon name="info" className="mb-0.5 inline-flex h-4 w-4" /> Create or connect to an existing
+              HitPay account to receive payments for your paid bookings.
             </div>
-            {!props.apiKey || !props.saltKey ? (
-              <div className="flex justify-end gap-4">
-                <Button color="secondary" className="h-10 text-base" onClick={onCancel}>
-                  Cancel
-                </Button>
-                <button
-                  className="font-body flex h-10 w-56 items-center justify-center gap-2 rounded-md font-bold text-black shadow transition-all hover:brightness-90 active:scale-95"
-                  style={{
-                    background: "linear-gradient(180deg, #FFDE6E 63.72%, #F8C455 95.24%)",
-                  }}
-                  type="submit"
-                  disabled={loading}>
-                  {hitpayIcon}
-                  <span className="mr-2">Connect with HitPay</span>
-                </button>
+
+            <form className="w-full space-y-4" onSubmit={onSubmit}>
+              <div className="bg-default border-subtle overflow-auto rounded border">
+                <div className="border-subtle border-b-[1px] p-4 md:p-5">
+                  <h2 className="text-2xl font-semibold">Account Information</h2>
+                </div>
+                <div className="w-full space-y-4 p-4 md:p-5">
+                  <div className="w-full">
+                    <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
+                      {t("api_key")}
+                    </label>
+                    <Input
+                      {...register("apiKey", {
+                        required: true,
+                      })}
+                      id="apiKey"
+                      name="apiKey"
+                      type="text"
+                      autoComplete="off"
+                      autoCorrect="off"
+                    />
+                    {errors.apiKey && (
+                      <p data-testid="required" className="py-2 text-xs text-red-500">
+                        {errors.apiKey?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="w-full">
+                    <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
+                      Salt
+                    </label>
+                    <Input
+                      {...register("saltKey", {
+                        required: true,
+                      })}
+                      id="saltKey"
+                      name="saltKey"
+                      type="text"
+                      autoComplete="off"
+                      autoCorrect="off"
+                    />
+                    {errors.saltKey && (
+                      <p data-testid="required" className="py-2 text-xs text-red-500">
+                        {errors.saltKey?.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="flex justify-end gap-4">
-                <Link href="/apps/hitpay" className="inline-block">
-                  <Button color="secondary">Go to App Store</Button>
-                </Link>
-                <Button color="primary" type="submit" disabled={!updatable}>
-                  Update
-                </Button>
-              </div>
-            )}
-          </form>
-        </div>
-      ) : (
-        <AppNotInstalledMessage appName="hitpay" />
-      )}
-      <Toaster position="bottom-right" />
-    </div>
+              {!props.apiKey || !props.saltKey ? (
+                <div className="flex justify-end gap-4">
+                  <Button color="secondary" className="h-10 text-base" onClick={onCancel}>
+                    Cancel
+                  </Button>
+                  <button
+                    className="font-body flex h-10 w-56 items-center justify-center gap-2 rounded-md font-bold text-black shadow transition-all hover:brightness-90 active:scale-95"
+                    style={{
+                      background: "linear-gradient(180deg, #FFDE6E 63.72%, #F8C455 95.24%)",
+                    }}
+                    type="submit"
+                    disabled={loading}>
+                    {hitpayIcon}
+                    <span className="mr-2">Connect with HitPay</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex justify-end gap-4">
+                  <Link href="/apps/hitpay" className="inline-block">
+                    <Button color="secondary">Go to App Store</Button>
+                  </Link>
+                  <Button color="primary" type="submit" disabled={!updatable}>
+                    Update
+                  </Button>
+                </div>
+              )}
+            </form>
+          </div>
+        ) : (
+          <AppNotInstalledMessage appName="hitpay" />
+        )}
+        <Toaster position="bottom-right" />
+      </div>
+    </>
   );
 }
