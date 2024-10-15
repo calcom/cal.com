@@ -27,11 +27,11 @@ jobs:
                 repo: context.repo.repo,
                 pull_number,
               });
-              if (!pullRequest.data.id) throw new Error(`pullRequestId no found for '${pull_number}'`);
-              return pullRequest.data.id;
+              if (!pullRequest.data.node_id) throw new Error(`pullRequestId no found for '${pull_number}'`);
+              return pullRequest.data.node_id;
             }
             const query = `
-              mutation($id: ID!) {
+              mutation {
                 convertPullRequestToDraft(input: { pullRequestId: $id }) {
                   pullRequest {
                     id
