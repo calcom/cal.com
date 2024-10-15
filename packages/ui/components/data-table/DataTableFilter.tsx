@@ -1,3 +1,5 @@
+"use client";
+
 import type { Column } from "@tanstack/react-table";
 import { useState } from "react";
 
