@@ -31,7 +31,7 @@ jobs:
               return pullRequest.data.node_id;
             }
             const query = `
-              mutation {
+              mutation($id: ID!) {
                 convertPullRequestToDraft(input: { pullRequestId: $id }) {
                   pullRequest {
                     id
@@ -43,7 +43,7 @@ jobs:
             `;
             const pullRequestId = await getPullRequestId();
             const variables = {
-              $id: pullRequestId,
+              id: pullRequestId,
             }
             const response = await github.graphql(query, variables)
             if (!response.convertPullRequestToDraft) {
