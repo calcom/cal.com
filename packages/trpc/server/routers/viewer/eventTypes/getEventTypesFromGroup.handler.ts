@@ -50,6 +50,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
         {
           where: {
             teamId: null,
+            OR: [{ schedulingType: { not: SchedulingType.MANAGED } }, { schedulingType: null }],
           },
           orderBy: [
             {
@@ -103,7 +104,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
 
-  log.debug(
+  log.info(
     "mappedEventTypes before filtering",
     safeStringify({
       input,
@@ -111,7 +112,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
     })
   );
 
-  let filteredEventTypes = mappedEventTypes.filter((eventType) => {
+  const filteredEventTypes = mappedEventTypes.filter((eventType) => {
     const isAChildEvent = eventType.parentId;
     if (!isAChildEvent) {
       return true;
@@ -124,13 +125,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
     return true;
   });
 
-  if (shouldListUserEvents || !teamId) {
-    filteredEventTypes = filteredEventTypes.filter(
-      (evType) => evType.schedulingType !== SchedulingType.MANAGED
-    );
-  }
-
-  log.debug(
+  log.info(
     "mappedEventTypes after filtering",
     safeStringify({
       input,
