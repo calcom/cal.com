@@ -1,6 +1,7 @@
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -117,6 +118,27 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
       (evType) => evType.schedulingType !== SchedulingType.MANAGED
     );
   }
+
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: teamId ?? 0,
+      accepted: true,
+      role: "MEMBER",
+    },
+    include: {
+      team: {
+        select: {
+          isPrivate: true,
+        },
+      },
+    },
+  });
+
+  if (membership && membership.team.isPrivate)
+    filteredEventTypes.forEach((evType) => {
+      evType.users = [];
+    });
 
   return {
     eventTypes: filteredEventTypes || [],
