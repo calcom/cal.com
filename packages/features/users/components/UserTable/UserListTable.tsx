@@ -1,3 +1,5 @@
+"use client";
+
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
