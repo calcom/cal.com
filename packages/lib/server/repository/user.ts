@@ -604,7 +604,27 @@ export class UserRepository {
     });
     return !!teams.length;
   }
-
+  static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id: teamId,
+        AND: [
+          {
+            members: {
+              some: {
+                userId,
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!team;
+  }
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await prisma.user.findUnique({
       where: {

@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmailField, Form, PasswordField, SelectField, TextField } from "@calcom/ui";
 
@@ -22,7 +23,7 @@ interface IFormData {
 const schema = z
   .object({
     url: z.string().url(),
-    username: z.string().email(),
+    username: emailSchema,
     password: z.string(),
     authenticationMethod: z.number().default(ExchangeAuthentication.STANDARD),
     exchangeVersion: z.number().default(ExchangeVersion.Exchange2016),
