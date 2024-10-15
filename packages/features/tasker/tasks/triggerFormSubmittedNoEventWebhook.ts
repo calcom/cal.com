@@ -62,7 +62,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       formName: form.name,
       teamId: form.teamId,
       redirect,
-      responses: response.responses,
+      responses,
     },
   }).catch((e) => {
     console.error(`Error executing FORM_SUBMITTED_NO_EVENT webhook`, webhook, e);

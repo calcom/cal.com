@@ -41,7 +41,6 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
             bookingId: booking.id,
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
-            test: "asf",
           },
           { scheduledAt }
         );
