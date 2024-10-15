@@ -440,7 +440,7 @@ export function UserListTable() {
                 Group Meeting
               </Button>
             )}
-            <MassAssignAttributesBulkAction table={table} />
+            <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
             <EventTypesList table={table} orgTeams={teams} />
             <DeleteBulkUsers
               users={table.getSelectedRowModel().flatRows.map((row) => row.original)}

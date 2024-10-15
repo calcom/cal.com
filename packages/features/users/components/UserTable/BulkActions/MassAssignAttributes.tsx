@@ -1,9 +1,11 @@
 import type { Table } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "@tanstack/react-table";
 import { parseAsString, useQueryState, parseAsArrayOf } from "nuqs";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc";
 import {
   Alert,
@@ -26,6 +28,7 @@ import type { UserTableUser } from "../types";
 
 interface Props {
   table: Table<UserTableUser>;
+  filters: ColumnFiltersState;
 }
 
 function useSelectedAttributes() {
@@ -135,7 +138,7 @@ function SelectedAttributeToAssign() {
   );
 }
 
-export function MassAssignAttributesBulkAction({ table }: Props) {
+export function MassAssignAttributesBulkAction({ table, filters }: Props) {
   const { selectedAttribute, setSelectedAttribute, foundAttributeInCache } = useSelectedAttributes();
   const [selectedAttributeOptions, setSelectedAttributeOptions] = useSelectedAttributeOption();
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
@@ -147,7 +150,15 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
       const selectedRows = table.getSelectedRowModel().flatRows;
 
       utils.viewer.organizations.listMembers.setInfiniteData(
-        { limit: 10, searchTerm: "", expand: ["attributes"] },
+        {
+          limit: 10,
+          searchTerm: "",
+          expand: ["attributes"],
+          filters: filters.map((filter) => ({
+            id: filter.id,
+            value: filter.value as string[],
+          })),
+        },
         // @ts-expect-error i really dont know how to type this
         (oldData) => {
           const newPages = oldData?.pages.map((page) => ({
@@ -163,7 +174,7 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
                 const newAttributes =
                   row.attributes?.filter((attr) => attr.attributeId !== selectedAttribute) || [];
 
-                if (attributeOptionValues) {
+                if (attributeOptionValues && attributeOptionValues.length > 0) {
                   const newAttributeValues = attributeOptionValues?.map((value) => ({
                     id: value.id,
                     attributeId: value.attributeId,
@@ -171,6 +182,14 @@ export function MassAssignAttributesBulkAction({ table }: Props) {
                     slug: value.slug,
                   }));
                   newAttributes.push(...newAttributeValues);
+                } else {
+                  // Text or number input we don't have an option to fall back on
+                  newAttributes.push({
+                    id: "-1",
+                    attributeId: foundAttributeInCache?.id ?? "-1",
+                    value: selectedAttributeOptions[0],
+                    slug: slugify(selectedAttributeOptions[0]),
+                  });
                 }
 
                 return {
