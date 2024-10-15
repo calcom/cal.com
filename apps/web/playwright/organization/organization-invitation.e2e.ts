@@ -563,7 +563,7 @@ function assertInviteLink(inviteLink: string | null | undefined): asserts invite
 }
 
 async function copyInviteLink(page: Page) {
-  await page.getByTestId("new-member-button").click();
+  await page.getByTestId("new-organization-member-button").click();
   const inviteLink = await getInviteLink(page);
   return inviteLink;
 }

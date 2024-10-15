@@ -75,7 +75,7 @@ test.describe("Team", () => {
         password: "P4ssw0rd!",
       });
 
-      await page.getByTestId("new-organization-member-button").click();
+      await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
@@ -106,7 +106,7 @@ test.describe("Team", () => {
         username: "rick",
         domain: `example.com`,
       });
-      await page.getByTestId("new-organization-member-button").click();
+      await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
       await expectInvitationEmailToBeReceived(
