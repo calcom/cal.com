@@ -97,6 +97,16 @@ jobs:
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
+  install-playwright:
+    name: Install playwright
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-playwright-install
+
   type-check:
     name: Type check
     needs: [changes, check-label, deps]
@@ -139,6 +149,13 @@ jobs:
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
+  build-docs:
+    name: Production builds
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/docs-build.yml
+    secrets: inherit
+
   build:
     name: Production builds
     needs: [changes, check-label, deps]
@@ -155,35 +172,35 @@ jobs:
 
   e2e:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2, install-playwright]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-api-v2:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2, install-playwright]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2, install-playwright]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2, install-playwright]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2, install-playwright]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -225,6 +242,7 @@ jobs:
         build-api-v1,
         build-api-v2,
         build-atoms,
+        build-docs,
         e2e,
         e2e-api-v2,
         e2e-embed,
