@@ -16,8 +16,9 @@ jobs:
   changes_requested:
     if: github.event.review.state == 'changes_requested'
     permissions:
-      pull-requests: write
       contents: write
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - run: echo "This PR was rejected"
