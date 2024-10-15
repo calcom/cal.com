@@ -21,6 +21,7 @@ import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
 import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
+import EventPaymentsTabPlatformWrapper from "./EventPaymentsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
 
@@ -37,7 +38,7 @@ export type EventTypePlatformWrapperProps = {
 };
 
 const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring"],
+  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring", "payments"],
   onSuccess,
   onError,
   onDeleteSuccess,
@@ -128,7 +129,7 @@ const EventType = ({
     ) : (
       <></>
     ),
-
+    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
     limits: tabs.includes("limits") ? <EventLimitsTabPlatformWrapper eventType={eventType} /> : <></>,
     instant: <></>,
     recurring: tabs.includes("recurring") ? (
