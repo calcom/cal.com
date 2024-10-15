@@ -43,6 +43,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   const eventTypes: MappedEventType[] = [];
   let currentCursor = cursor;
   let nextCursor: typeof cursor | undefined = undefined;
+  let isFetchingForFirstTime = true;
 
   const fetchAndFilterEventTypes = async () => {
     const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor);
@@ -60,8 +61,9 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
     currentCursor = batch.nextCursor;
   };
 
-  while (eventTypes.length < limit && currentCursor) {
+  while (eventTypes.length < limit && (currentCursor || isFetchingForFirstTime)) {
     await fetchAndFilterEventTypes();
+    isFetchingForFirstTime = false;
   }
 
   return {
