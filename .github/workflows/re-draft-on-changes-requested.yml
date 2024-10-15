@@ -1,0 +1,53 @@
+on:
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: ${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  approved:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This PR was approved"
+  changes_requested:
+    if: github.event.review.state == 'changes_requested'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This PR was rejected"
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            async function getPullRequestId() {
+              const pull_number = context.payload.pull_request.number;
+              const pullRequest = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number,
+              });
+              if (!pullRequest.data.node_id) throw new Error(`pullRequestId no found for '${pull_number}'`);
+              return pullRequest.data.node_id;
+            }
+            const query = `
+              mutation($id: ID!) {
+                convertPullRequestToDraft(input: { pullRequestId: $id }) {
+                  pullRequest {
+                    id
+                    number
+                    isDraft
+                  }
+                }
+              }
+            `;
+            const pullRequestId = await getPullRequestId();
+            const variables = {
+              $id: pullRequestId,
+            }
+            const response = await github.graphql(query, variables)
+            if (!response.convertPullRequestToDraft) {
+              throw new Error("Failed to convert pull request to draft");
+            }
+            console.info("Pull request successfully converted to draft.");
+            console.info(`Draft conversion response: ${JSON.stringify(response, null, 2)}`);
