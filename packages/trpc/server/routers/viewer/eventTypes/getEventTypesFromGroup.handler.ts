@@ -22,6 +22,7 @@ type GetByViewerOptions = {
 };
 
 type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
+type MappedEventType = Awaited<ReturnType<typeof mapEventType>>;
 
 export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions) => {
   await checkRateLimitAndThrowError({
@@ -39,13 +40,14 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   const shouldListUserEvents =
     !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
 
-  const eventTypes: EventType[] = [];
+  const eventTypes: MappedEventType[] = [];
   let currentCursor = cursor;
   let nextCursor: typeof cursor | undefined = undefined;
 
   const fetchAndFilterEventTypes = async () => {
     const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor);
     const filteredBatch = filterEventTypes(batch.eventTypes, ctx.user.id, shouldListUserEvents, teamId);
+
     for (const eventType of filteredBatch) {
       if (eventTypes.length < limit) {
         eventTypes.push(eventType);
@@ -62,10 +64,8 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
     await fetchAndFilterEventTypes();
   }
 
-  const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
-
   return {
-    eventTypes: mappedEventTypes,
+    eventTypes,
     nextCursor,
   };
 };
@@ -73,12 +73,13 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
 const fetchEventTypesBatch = async (
   ctx: GetByViewerOptions["ctx"],
   input: GetByViewerOptions["input"],
-  shouldListUserEvents: boolean,
+  shouldListUserEvents: boolean | undefined,
   cursor: typeof input.cursor
 ) => {
   const userProfile = ctx.user.profile;
   const { group, limit, filters } = input;
   const { teamId, parentId } = group;
+  const isFilterSet = (filters && hasFilter(filters)) || !!teamId;
 
   const eventTypes: EventType[] = [];
 
@@ -120,7 +121,7 @@ const fetchEventTypesBatch = async (
         limit: limit + 1,
         cursor,
         where: {
-          ...(input.isFilterSet && !!filters?.schedulingTypes
+          ...(isFilterSet && !!filters?.schedulingTypes
             ? {
                 schedulingType: { in: filters.schedulingTypes },
               }
@@ -146,13 +147,15 @@ const fetchEventTypesBatch = async (
     nextCursor = nextItem?.id;
   }
 
-  return { eventTypes, nextCursor };
+  const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
+
+  return { eventTypes: mappedEventTypes, nextCursor };
 };
 
 const filterEventTypes = (
-  eventTypes: EventType[],
-  userId: string,
-  shouldListUserEvents: boolean,
+  eventTypes: MappedEventType[],
+  userId: number,
+  shouldListUserEvents: boolean | undefined,
   teamId: string | null
 ) => {
   const filteredEventTypes = eventTypes.filter((eventType) => {
