@@ -101,7 +101,7 @@ jobs:
     name: Install playwright
     runs-on: buildjet-2vcpu-ubuntu-2204
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     steps:
       - uses: ./.github/actions/yarn-playwright-install
 
