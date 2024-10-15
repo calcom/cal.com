@@ -639,14 +639,7 @@ export default function MemberList(props: Props) {
                 color="primary"
                 StartIcon="plus"
                 className="rounded-md"
-                onClick={() =>
-                  dispatch({
-                    type: "INVITE_MEMBER",
-                    payload: {
-                      showModal: true,
-                    },
-                  })
-                }
+                onClick={() => props.setShowMemberInvitationModal(true)}
                 data-testid="new-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>
