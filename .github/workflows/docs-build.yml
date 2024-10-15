@@ -25,7 +25,9 @@ jobs:
           path: |
             **/docs/**
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
-      - run: |
+      - name: Run build
+        working-directory: docs
+        run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
           if [ ${{ steps.cache-docs-build.outputs.cache-hit }} == 'true' ]; then
             echo "Cache hit for Docs build. Skipping build."
