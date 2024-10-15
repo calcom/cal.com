@@ -98,29 +98,15 @@ export class BookingsService_2024_08_13 {
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
     const bookings = await handleNewRecurringBooking(bookingRequest);
-    const uid = bookings[0].recurringEventId;
-    if (!uid) {
-      throw new Error("Recurring booking was not created");
-    }
-
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
-    const ids = recurringBooking.map((booking) => booking.id);
+    const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
   async createRecurringSeatedBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
     const bookings = await handleNewRecurringBooking(bookingRequest);
-    const uid = bookings[0].recurringEventId;
-    if (!uid) {
-      throw new Error("Recurring booking was not created");
-    }
-    const seatUid = bookings[0].seatReferenceUid;
-
-    const recurringBooking = await this.bookingsRepository.getRecurringByUid(uid);
     return this.outputService.getOutputCreateRecurringSeatedBookings(
-      recurringBooking.map((booking) => booking.id),
-      seatUid || ""
+      bookings.map((booking) => ({ id: booking.id || 0, seatUid: booking.seatReferenceUid || "" }))
     );
   }
 

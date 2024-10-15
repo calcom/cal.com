@@ -112,16 +112,16 @@ export class OutputBookingsService_2024_08_13 {
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
-  async getOutputCreateRecurringSeatedBookings(bookingsIds: number[], seatUid: string) {
+  async getOutputCreateRecurringSeatedBookings(bookings: { id: number; seatUid: string }[]) {
     const transformed = [];
 
-    for (const bookingId of bookingsIds) {
+    for (const booking of bookings) {
       const databaseBooking =
-        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(bookingId);
+        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(booking.id);
       if (!databaseBooking) {
-        throw new Error(`Booking with id=${bookingId} was not found in the database`);
+        throw new Error(`Booking with id=${booking.id} was not found in the database`);
       }
-      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, seatUid));
+      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid));
     }
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
