@@ -1,9 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
@@ -22,6 +20,15 @@ export const ZohoConnectionSetupPage = ({
   const [success, setSuccess] = useState(false);
   const { t } = useLocale();
   const query = trpc.viewer.public.zohoConnection.useQuery({ token: completeSetupToken });
+  const mutation = trpc.viewer.public.completeZohoCalendarSetup.useMutation({
+    onSettled: (data: { status: string }) => {
+      if (data.status === "success") {
+        setSuccess(true);
+      } else {
+        showToast(`Something went wrong when completing your setup.`, "error");
+      }
+    },
+  });
 
   const calendars = useMemo(() => {
     if (query.isPending || query.error) {
@@ -46,37 +53,6 @@ export const ZohoConnectionSetupPage = ({
     return query.data?.destinationCalendar;
   }, [query.data?.destinationCalendar, query.isPending, query.error]);
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const body = {};
-      let baseUrl = WEBAPP_URL;
-      if (baseUrl.includes("localhost")) {
-        baseUrl = "https://buffer-cal-us-east-1-staging.dcsdevelopment.me";
-      }
-      const url = `${baseUrl}/api/esa/complete-zoho-calendar-setup`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authentication: `Bearer ${completeSetupToken}`,
-        },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        throw new Error("Something went wrong");
-      }
-      if (res.status !== 200) {
-        throw new Error("Something went wrong when completing your setup.");
-      }
-      return;
-    },
-    onError() {
-      showToast(`Something went wrong when completing your setup.`, "error");
-    },
-    onSuccess() {
-      setSuccess(true);
-    },
-  });
   if (success) {
     return (
       <div className="mx-auto py-6 sm:px-4 md:py-24">
@@ -145,15 +121,17 @@ export const ZohoConnectionSetupPage = ({
                 ))}
               </ul>
             </div>
-            <div className="mt-8 flex w-full justify-end">
-              <Button
-                onClick={() => {
-                  mutation.mutate();
-                }}
-                loading={query.isPending || mutation.isPending}>
-                {t("done")}
-              </Button>
-            </div>
+            {query.isPending ? null : (
+              <div className="mt-8 flex w-full justify-end">
+                <Button
+                  onClick={() => {
+                    mutation.mutate();
+                  }}
+                  loading={mutation.isPending}>
+                  {t("done")}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

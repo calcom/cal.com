@@ -1,6 +1,8 @@
 import publicProcedure from "../../procedures/publicProcedure";
 import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
+import { ZCalendarAvailabilityInputSchema } from "./calendarAvailability.schema";
+import { ZCompleteZohoCalendarSetupInputSchema } from "./completeZohoCalendarSetup.schema";
 import { i18nInputSchema } from "./i18n.schema";
 import { event } from "./procedures/event";
 import { session } from "./procedures/session";
@@ -58,4 +60,22 @@ export const publicViewerRouter = router({
     );
     return handler({ input });
   }),
+  calendarAvailability: publicProcedure
+    .input(ZCalendarAvailabilityInputSchema)
+    .mutation(async ({ input }) => {
+      const handler = await importHandler(
+        namespaced("calendarAvailability"),
+        () => import("./calendarAvailability.handler")
+      );
+      return handler({ input });
+    }),
+  completeZohoCalendarSetup: publicProcedure
+    .input(ZCompleteZohoCalendarSetupInputSchema)
+    .mutation(async ({ input }) => {
+      const handler = await importHandler(
+        namespaced("completeZohoCalendarSetup"),
+        () => import("./completeZohoCalendarSetup.handler")
+      );
+      return handler({ input });
+    }),
 });
