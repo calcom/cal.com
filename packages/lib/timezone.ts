@@ -22,17 +22,16 @@ export const filterByCities = (tz: string, data: ICity[]): ICity[] => {
   const cityLookup = findFromCity(tz, data);
   return cityLookup.map(({ city, timezone }) => ({ city, timezone }));
 };
-// NOTE: There can be multiple names for the same timezone.
+
 export const addCitiesToDropdown = (cities: ICity[]) => {
-  const cityTimezones: { [key: string]: string } = {};
-
-  cities?.forEach((city: ICity) => {
+  const cityTimezones = cities?.reduce((acc: { [key: string]: string }, city: ICity) => {
     if (city.timezone !== null && !isProblematicTimezone(city.timezone)) {
-      cityTimezones[city.timezone] = city.city;
+      acc[city.timezone] = city.city;
     }
-  });
+    return acc;
+  }, {});
 
-  return cityTimezones;
+  return cityTimezones || {};
 };
 
 const formatOffset = (offset: string) =>
@@ -40,17 +39,10 @@ const formatOffset = (offset: string) =>
 
 export const handleOptionLabel = (option: ITimezoneOption, cities: ICity[]) => {
   const offsetUnit = option.label.split("-")[0].substring(1);
+  const cityName = option.label.split(") ")[1];
+
   const timezoneValue = ` ${offsetUnit} ${formatOffset(dayjs.tz(undefined, option.value).format("Z"))}`;
-
-  const additionalTimezone = additionalTimezones.find((tz) => tz.timezone === option.value);
-  if (additionalTimezone) {
-    return `${additionalTimezone.city}${timezoneValue}`;
-  }
-
-  const city = cities.find((c) => c.timezone === option.value);
-  if (city) {
-    return `${city.city}${timezoneValue}`;
-  }
-
-  return `${option.value.replace(/_/g, " ")}${timezoneValue}`;
+  return cities.length > 0
+    ? `${cityName}${timezoneValue}`
+    : `${option.value.replace(/_/g, " ")}${timezoneValue}`;
 };
