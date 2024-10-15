@@ -1,5 +1,5 @@
 declare module "@wojtekmaj/react-daterange-picker/dist/entry.nostyle" {
-  import type { CalendarProps } from "react-calendar";
+  import { CalendarProps } from "react-calendar";
   export type DateRangePickerCalendarProps = Omit<
     CalendarProps,
     "calendarClassName" | "onChange" | "value"
