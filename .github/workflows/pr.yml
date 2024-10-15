@@ -97,7 +97,7 @@ jobs:
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
-  playwright:
+  install-playwright:
     name: Install playwright
     runs-on: buildjet-2vcpu-ubuntu-2204
     needs: [changes, check-label, deps]
