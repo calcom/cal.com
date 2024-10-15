@@ -25,6 +25,7 @@ import {
   DataTableToolbar,
   DataTableFilters,
   DataTableSelectionBar,
+  DataTablePagination,
 } from "@calcom/ui";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -198,10 +199,8 @@ export function UserListTable() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        header: ({ table }) => {
-          const count = table.getFilteredRowModel().rows.length;
-
-          return `Members (${count} of ${totalDBRowCount})`;
+        header: () => {
+          return `Members`;
         },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
@@ -421,6 +420,9 @@ export function UserListTable() {
             <DataTableFilters.ActiveFilters table={table} />
           </div>
         </DataTableToolbar.Root>
+        <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
+        </div>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root style={{ bottom: "5rem" }}>

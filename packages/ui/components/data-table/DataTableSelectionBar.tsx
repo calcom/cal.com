@@ -30,7 +30,7 @@ const Root = forwardRef<
         "bg-brand-default text-brand fixed bottom-4 left-1/2 flex w-fit -translate-x-1/2 transform items-center space-x-3 rounded-lg px-4 py-2",
         props.className
       )}
-      style={{ ...props.style, gridArea: "footer" }}
+      style={{ ...props.style }}
       {...props}>
       {children}
     </div>
