@@ -31,7 +31,6 @@ export function EditUserSheet({
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
   const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery(
     {
-      // @ts-expect-error We know it exists as it is only called when selectedUser is defined
       userId: selectedUser?.id,
     },
     {

@@ -82,7 +82,12 @@ export type State = {
 
 export type Action =
   | {
-      type: "SET_DELETE_ID" | "SET_IMPERSONATE_ID" | "EDIT_USER_SHEET" | "TEAM_AVAILABILITY";
+      type:
+        | "SET_DELETE_ID"
+        | "SET_IMPERSONATE_ID"
+        | "EDIT_USER_SHEET"
+        | "TEAM_AVAILABILITY"
+        | "INVITE_MEMBER";
       payload: Payload;
     }
   | {
