@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.5.10",
+  "version": "4.5.11",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -99,7 +99,7 @@
     "memory-cache": "^0.2.0",
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
-    "next": "^13.5.4",
+    "next": "^13.5.6",
     "next-auth": "^4.22.1",
     "next-axiom": "^0.17.0",
     "next-collect": "^0.2.1",
@@ -124,7 +124,6 @@
     "react-multi-email": "^0.5.3",
     "react-phone-input-2": "^2.15.1",
     "react-phone-number-input": "^3.2.7",
-    "react-query": "^3.39.3",
     "react-schemaorg": "^2.0.0",
     "react-select": "^5.7.0",
     "react-timezone-select": "^1.4.0",

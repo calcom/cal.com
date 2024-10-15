@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
@@ -46,7 +47,7 @@ const attributeSchema = z.object({
 const editSchema = z.object({
   name: z.string(),
   username: z.string(),
-  email: z.string().email(),
+  email: emailSchema,
   avatar: z.string(),
   bio: z.string(),
   role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),

@@ -2645,6 +2645,15 @@
   "month_to_date": "month to date",
   "year_to_date": "year to date",
   "custom_range": "custom range",
+  "salesforce_create_record_as": "On booking, add events on and new attendees as:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Contact under an account", 
+  "salesforce_skip_entry_creation": "Skip creating {{entry}} record if they do not exist in Salesforce",
+  "salesforce_if_account_does_not_exist": "If the contact does not exist under an account, create new lead from attendee",
+  "salesforce_create_new_contact_under_account": "Create a new contact under an account based on email domain of attendee and existing contacts", 
   "mass_assign_attributes": "Mass assign attributes",
+  "salesforce_book_directly_with_attendee_owner": "If attendee exists in Salesforce, book directly with the owner",
+  "salesforce_check_owner_of": "Entity to check owner of to book directly",
+  "account": "Account",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
