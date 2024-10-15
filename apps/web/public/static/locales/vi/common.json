@@ -2640,6 +2640,15 @@
   "month_to_date": "từ đầu tháng đến nay",
   "year_to_date": "từ đầu năm đến nay",
   "custom_range": "phạm vi tùy chỉnh",
+  "salesforce_create_record_as": "Khi đặt lịch, thêm sự kiện và người tham dự mới dưới dạng:",
+  "salesforce_lead": "Khách hàng tiềm năng",
+  "salesforce_contact_under_account": "Liên hệ dưới một tài khoản",
+  "salesforce_skip_entry_creation": "Bỏ qua việc tạo bản ghi {{entry}} nếu chúng không tồn tại trong Salesforce",
+  "salesforce_if_account_does_not_exist": "Nếu liên hệ không tồn tại dưới một tài khoản, tạo khách hàng tiềm năng mới từ người tham dự",
+  "salesforce_create_new_contact_under_account": "Tạo liên hệ mới dưới một tài khoản dựa trên tên miền email của người tham dự và các liên hệ hiện có",
   "mass_assign_attributes": "Gán thuộc tính hàng loạt",
+  "salesforce_book_directly_with_attendee_owner": "Nếu người tham dự tồn tại trong Salesforce, đặt lịch trực tiếp với chủ sở hữu",
+  "salesforce_check_owner_of": "Thực thể để kiểm tra chủ sở hữu để đặt lịch trực tiếp",
+  "account": "Tài khoản",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

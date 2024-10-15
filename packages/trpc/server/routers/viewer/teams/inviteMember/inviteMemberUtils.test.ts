@@ -179,7 +179,9 @@ describe("Invite Member Utils", () => {
 
     it("should not throw an error if the email is valid", () => {
       const validEmail = "valid-email@example.com";
+      const validEmailWithApostrophe = "valid'email@example.com";
       expect(() => checkInputEmailIsValid(validEmail)).not.toThrow();
+      expect(() => checkInputEmailIsValid(validEmailWithApostrophe)).not.toThrow();
     });
   });
   describe("getOrgConnectionInfo", () => {

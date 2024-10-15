@@ -2640,6 +2640,15 @@
   "month_to_date": "bu ayın tarixinə qədər",
   "year_to_date": "bu ilin tarixinə qədər",
   "custom_range": "xüsusi aralıq",
+  "salesforce_create_record_as": "Rezervasiya zamanı tədbirləri əlavə edin və yeni iştirakçıları belə qeyd edin:",
+  "salesforce_lead": "Potensial müştəri",
+  "salesforce_contact_under_account": "Hesab altında əlaqə",
+  "salesforce_skip_entry_creation": "Əgər {{entry}} Salesforce-da mövcud deyilsə, qeyd yaratmağı keçin",
+  "salesforce_if_account_does_not_exist": "Əgər əlaqə hesab altında mövcud deyilsə, iştirakçıdan yeni potensial müştəri yaradın",
+  "salesforce_create_new_contact_under_account": "İştirakçının email domeni və mövcud əlaqələr əsasında hesab altında yeni əlaqə yaradın",
   "mass_assign_attributes": "Atributları kütləvi təyin et",
+  "salesforce_book_directly_with_attendee_owner": "Əgər iştirakçı Salesforce-da mövcuddursa, birbaşa sahib ilə rezervasiya edin",
+  "salesforce_check_owner_of": "Birbaşa rezervasiya etmək üçün sahibini yoxlayacaq obyekt",
+  "account": "Hesab",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
