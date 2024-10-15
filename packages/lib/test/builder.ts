@@ -136,6 +136,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     secondaryEmailId: null,
     isRRWeightsEnabled: false,
     actorUserId: null,
+    eventTypeColor: null,
     ...eventType,
   };
 };
