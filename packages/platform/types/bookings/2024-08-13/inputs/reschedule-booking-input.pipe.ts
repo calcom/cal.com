@@ -16,7 +16,7 @@ export type RescheduleBookingInput =
 @Injectable()
 export class RescheduleBookingInputPipe implements PipeTransform {
   // note(Lauris): we need empty constructor otherwise v2 can't be started due to error:
-  // CreateBookingInputPipe is not a constructor
+  // RescheduleBookingInputPipe is not a constructor
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() {}
@@ -82,6 +82,6 @@ export class RescheduleBookingInputPipe implements PipeTransform {
   private isSeatedRescheduleInput(
     value: RescheduleBookingInput
   ): value is RescheduleSeatedBookingInput_2024_08_13 {
-    return value.hasOwnProperty("email");
+    return "seatUid" in value;
   }
 }

@@ -2988,7 +2988,7 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
               "enum": [
                 "asc",
@@ -3109,16 +3109,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RescheduleBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -12570,12 +12560,21 @@
                 "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
               },
               {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
                 "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
               },
               {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               }
             ],
@@ -12630,24 +12629,6 @@
           "data"
         ]
       },
-      "RescheduleBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "start": {
-            "type": "string",
-            "description": "Start time in ISO 8601 format for the new booking",
-            "example": "2024-08-13T10:00:00Z"
-          },
-          "reschedulingReason": {
-            "type": "string",
-            "example": "User requested reschedule",
-            "description": "Reason for rescheduling the booking"
-          }
-        },
-        "required": [
-          "start"
-        ]
-      },
       "RescheduleBookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -12666,6 +12647,12 @@
               },
               {
                 "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object or a RecurringBookingOutput object"
@@ -12711,6 +12698,18 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
                 }
               }
             ],

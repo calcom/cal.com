@@ -18,7 +18,6 @@ import {
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
   CreateBookingInput,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
@@ -29,6 +28,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
   GetRecurringSeatedBookingOutput_2024_08_13,
+  RescheduleBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -233,7 +233,7 @@ export class BookingsService_2024_08_13 {
     return formattedBookings;
   }
 
-  async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput_2024_08_13) {
+  async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
     try {
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
@@ -245,13 +245,29 @@ export class BookingsService_2024_08_13 {
         throw new Error("Booking missing uid");
       }
 
-      const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(booking.uid);
+      const databaseBooking =
+        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
-      if (databaseBooking.recurringEventId) {
+      const isRecurring = !!databaseBooking.recurringEventId;
+      const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
+
+      if (isRecurring && !isSeated) {
         return this.outputService.getOutputRecurringBooking(databaseBooking);
+      }
+      if (isRecurring && isSeated) {
+        return this.outputService.getOutputCreateRecurringSeatedBooking(
+          databaseBooking,
+          booking?.seatReferenceUid || ""
+        );
+      }
+      if (isSeated) {
+        return this.outputService.getOutputCreateSeatedBooking(
+          databaseBooking,
+          booking.seatReferenceUid || ""
+        );
       }
       return this.outputService.getOutputBooking(databaseBooking);
     } catch (error) {

@@ -11,7 +11,7 @@ export type CancelBookingInput = CancelBookingInput_2024_08_13 | CancelSeatedBoo
 @Injectable()
 export class CancelBookingInputPipe implements PipeTransform {
   // note(Lauris): we need empty constructor otherwise v2 can't be started due to error:
-  // CreateBookingInputPipe is not a constructor
+  // CancelBookingInputPipe is not a constructor
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() {}

@@ -19,7 +19,14 @@ export class RescheduleBookingInput_2024_08_13 {
   reschedulingReason?: string;
 }
 
-export class RescheduleSeatedBookingInput_2024_08_13 extends RescheduleBookingInput_2024_08_13 {
+export class RescheduleSeatedBookingInput_2024_08_13 {
+  @IsDateString()
+  @ApiProperty({
+    description: "Start time in ISO 8601 format for the new booking",
+    example: "2024-08-13T10:00:00Z",
+  })
+  start!: string;
+
   @ApiProperty({
     type: String,
     example: "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",

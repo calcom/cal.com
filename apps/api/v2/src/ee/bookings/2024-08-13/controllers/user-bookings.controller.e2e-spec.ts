@@ -14,6 +14,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
+import { gmail } from "googleapis/build/src/apis/gmail";
 import { DateTime } from "luxon";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -36,6 +37,7 @@ import {
   GetBookingsOutput_2024_08_13,
   GetRecurringSeatedBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import {
   CreateBookingInput_2024_08_13,
@@ -726,7 +728,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(2);
-            console.log("asap data", JSON.stringify(data, null, 2));
             expect(data[0].start).toEqual(createdBooking.start);
             expect(data[1].start).toEqual(bookingInThePast.startTime.toISOString());
           });
@@ -849,6 +850,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.reschedulingReason).toEqual(body.reschedulingReason);
             expect(data.start).toEqual(body.start);
@@ -877,6 +880,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.status).toEqual("cancelled");
 
@@ -1442,6 +1447,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
+    const emailAttendeeOne = "mr_proper@gmail.com";
+    const nameAttendeeOne = "Mr Proper";
+    const emailAttendeeTwo = "mr_proper_friend@gmail.com";
+    const nameAttendeeTwo = "Mr Proper Friend";
+
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         userEmail,
@@ -1527,8 +1537,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
         eventTypeId: seatedEventTypeId,
         attendee: {
-          name: "Mr Proper",
-          email: "mr_proper@gmail.com",
+          name: nameAttendeeOne,
+          email: emailAttendeeOne,
           timeZone: "Europe/Rome",
           language: "it",
         },
@@ -1595,8 +1605,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
         eventTypeId: seatedEventTypeId,
         attendee: {
-          name: "Mr Proper's friend",
-          email: "mr_proper_friend@gmail.com",
+          name: nameAttendeeTwo,
+          email: emailAttendeeTwo,
           timeZone: "Europe/Rome",
           language: "it",
         },
@@ -1636,7 +1646,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             });
             expect(data.attendees.length).toEqual(2);
             // note(Lauris): first attendee is from previous test request
-            expect(data.attendees[0]).toEqual({
+            const firstAttendee = data.attendees.find((attendee) => attendee.name === nameAttendeeOne);
+            expect(firstAttendee).toEqual({
               name: createdSeatedBooking.attendees[0].name,
               timeZone: createdSeatedBooking.attendees[0].timeZone,
               language: createdSeatedBooking.attendees[0].language,
@@ -1648,7 +1659,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 ...createdSeatedBooking.attendees[0].bookingFieldsResponses,
               },
             });
-            expect(data.attendees[1]).toEqual({
+            const secondAttendee = data.attendees.find((attendee) => attendee.name === nameAttendeeTwo);
+            expect(secondAttendee).toEqual({
               name: body.attendee.name,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
@@ -1792,7 +1804,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
           if (responseDataIsGetSeatedBooking(responseBody.data)) {
             const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
-            const expected = createdSeatedBooking;
+            const expected = structuredClone(createdSeatedBooking);
             // note(Lauris): seatUid in get response resides only in each attendee object
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
@@ -1819,7 +1831,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
           if (responseDataIsGetRecurringSeatedBooking(responseBody.data)) {
             const data: GetRecurringSeatedBookingOutput_2024_08_13[] = responseBody.data;
-            const expected = createdRecurringSeatedBooking;
+            const expected = structuredClone(createdRecurringSeatedBooking);
             for (const booking of expected) {
               // note(Lauris): seatUid in get response resides only in each attendee object
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1848,7 +1860,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
           if (responseDataIsGetSeatedBooking(responseBody.data)) {
             const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
-            const expected = createdRecurringSeatedBooking[0];
+            const expected = structuredClone(createdRecurringSeatedBooking[0]);
             // note(Lauris): seatUid in get response resides only in each attendee object
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
@@ -1874,7 +1886,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           expect(responseBody.data.length).toEqual(3);
 
           const seatedBooking = responseBody.data[0];
-          const seatedBookingExpected = createdSeatedBooking;
+          const seatedBookingExpected = structuredClone(createdSeatedBooking);
           // note(Lauris): seatUid in get response resides only in each attendee object
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
@@ -1882,7 +1894,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           expect(seatedBooking).toEqual(seatedBookingExpected);
 
           const recurringSeatedBookings = [responseBody.data[1], responseBody.data[2]];
-          const recurringSeatedBookingsExpected = createdRecurringSeatedBooking;
+          const recurringSeatedBookingsExpected = structuredClone(createdRecurringSeatedBooking);
           for (const booking of recurringSeatedBookingsExpected) {
             // note(Lauris): seatUid in get response resides only in each attendee object
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1890,6 +1902,63 @@ describe("Bookings Endpoints 2024-08-13", () => {
             delete booking.seatUid;
           }
           expect(recurringSeatedBookings).toEqual(recurringSeatedBookingsExpected);
+        });
+    });
+
+    it("should reschedule seated booking", async () => {
+      const body: RescheduleSeatedBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+        seatUid: createdSeatedBooking.seatUid,
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${createdSeatedBooking.uid}/reschedule`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.seatUid).toBeDefined();
+            const seatUid = data.seatUid;
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.status).toEqual("accepted");
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(
+              DateTime.fromISO(body.start, { zone: "utc" }).plus({ hours: 1 }).toISO()
+            );
+            expect(data.duration).toEqual(60);
+            expect(data.eventTypeId).toEqual(seatedEventTypeId);
+            expect(data.eventType).toEqual({
+              id: seatedEventTypeId,
+              slug: seatedTventTypeSlug,
+            });
+            expect(data.attendees.length).toEqual(1);
+            const attendee = createdSeatedBooking.attendees.find((a) => a.seatUid === body.seatUid);
+            expect(data.attendees[0]).toEqual({
+              name: attendee?.name,
+              timeZone: attendee?.timeZone,
+              language: attendee?.language,
+              absent: false,
+              seatUid,
+              bookingFieldsResponses: {
+                name: attendee?.name,
+                email: "mr_proper_friend@gmail.com",
+                ...attendee?.bookingFieldsResponses,
+              },
+            });
+            expect(data.location).toBeDefined();
+            expect(data.absentHost).toEqual(false);
+          } else {
+            throw new Error("Invalid response data - expected booking but received array response");
+          }
         });
     });
 
