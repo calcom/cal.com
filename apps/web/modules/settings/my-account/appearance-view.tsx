@@ -193,20 +193,10 @@ const AppearanceView = ({
       <Form
         form={userAppThemeFormMethods}
         handleSubmit={({ appTheme }) => {
-          if (appTheme === "light" || appTheme === "dark") {
-            mutation.mutate({
-              appTheme,
-            });
-            return;
-          }
+          if (appTheme === "system") appTheme = null;
           mutation.mutate({
-            appTheme: null,
+            appTheme,
           });
-          if (values.appTheme === "light") {
-            document.body.classList.remove("dark");
-          } else if (values.appTheme === "dark") {
-            document.body.classList.remove("light");
-          }
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
@@ -236,6 +226,7 @@ const AppearanceView = ({
         </div>
         <SectionBottomActions className="mb-6" align="end">
           <Button
+            loading={mutation.isPending}
             disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
             type="submit"
             data-testid="update-app-theme-btn"
