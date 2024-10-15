@@ -1,0 +1,17 @@
+name: Changes Requested
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  changes_requested:
+    if: github.event.review.state == 'changes_requested'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      statuses: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explanation
+        run: echo "this is a dummy workflow that triggers a workflow_run; it's necessary because otherwise the repo secrets will not be in scope for externally forked pull requests"
