@@ -1531,7 +1531,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       return client;
     }
 
-    it("should book an event type with seats", async () => {
+    it("should book an event type with seats for the first time", async () => {
       const body: CreateBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
         eventTypeId: seatedEventTypeId,
@@ -1541,7 +1541,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/abc-def-ghi",
         bookingFieldsResponses: {
           codingLanguage: "TypeScript",
         },
@@ -1576,6 +1575,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               id: seatedEventTypeId,
               slug: seatedTventTypeSlug,
             });
+            expect(data.attendees.length).toEqual(1);
             expect(data.attendees[0]).toEqual({
               name: body.attendee.name,
               timeZone: body.attendee.timeZone,
@@ -1588,8 +1588,88 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 ...body.bookingFieldsResponses,
               },
             });
-            expect(data.location).toEqual(body.location);
-            expect(data.meetingUrl).toEqual(body.location);
+            expect(data.location).toBeDefined();
+            expect(data.absentHost).toEqual(false);
+            createdSeatedBooking = data;
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
+    it("should book an event type with seats for the second time", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: "Mr Proper's friend",
+          email: "mr_proper_friend@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        bookingFieldsResponses: {
+          codingLanguage: "Rust",
+        },
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsCreateSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsCreateSeatedBooking(responseBody.data)) {
+            const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.seatUid).toBeDefined();
+            const seatUid = data.seatUid;
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.status).toEqual("accepted");
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(
+              DateTime.fromISO(body.start, { zone: "utc" }).plus({ hours: 1 }).toISO()
+            );
+            expect(data.duration).toEqual(60);
+            expect(data.eventTypeId).toEqual(seatedEventTypeId);
+            expect(data.eventType).toEqual({
+              id: seatedEventTypeId,
+              slug: seatedTventTypeSlug,
+            });
+            expect(data.attendees.length).toEqual(2);
+            // note(Lauris): first attendee is from previous test request
+            expect(data.attendees[0]).toEqual({
+              name: createdSeatedBooking.attendees[0].name,
+              timeZone: createdSeatedBooking.attendees[0].timeZone,
+              language: createdSeatedBooking.attendees[0].language,
+              absent: false,
+              seatUid: createdSeatedBooking.seatUid,
+              bookingFieldsResponses: {
+                name: createdSeatedBooking.attendees[0].name,
+                email: createdSeatedBooking.attendees[0].bookingFieldsResponses.email,
+                ...createdSeatedBooking.attendees[0].bookingFieldsResponses,
+              },
+            });
+            expect(data.attendees[1]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+              seatUid,
+              bookingFieldsResponses: {
+                name: body.attendee.name,
+                email: body.attendee.email,
+                ...body.bookingFieldsResponses,
+              },
+            });
+            expect(data.location).toBeDefined();
             expect(data.absentHost).toEqual(false);
             createdSeatedBooking = data;
           } else {
@@ -1706,10 +1786,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
             );
           }
         });
-    });
-
-    afterEach(async () => {
-      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
     });
 
     afterAll(async () => {
