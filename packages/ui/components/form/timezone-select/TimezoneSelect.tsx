@@ -50,10 +50,18 @@ export function TimezoneSelectComponent({
   value,
   ...props
 }: TimezoneSelectComponentProps) {
+  /*
+   * we support multiple timezones for the different labels
+   * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
+   * but react-timezone-select does not.
+   *
+   * We make sure to be able to search through both options, and flip the key/value on final display.
+   */
   const [cities, setCities] = useState<ICity[]>([]);
   const handleInputChange = (tz: string) => {
     if (data) setCities(filterByCities(tz, data));
   };
+  console.log(data, cities);
 
   const reactSelectProps = useMemo(() => {
     return getReactSelectProps({
