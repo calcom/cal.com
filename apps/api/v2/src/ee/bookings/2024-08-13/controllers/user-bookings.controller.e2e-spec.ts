@@ -1862,6 +1862,37 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should get all seated bookings", async () => {
+      return request(app.getHttpServer())
+        .get("/v2/bookings?sortCreated=asc")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.length).toEqual(3);
+
+          const seatedBooking = responseBody.data[0];
+          const seatedBookingExpected = createdSeatedBooking;
+          // note(Lauris): seatUid in get response resides only in each attendee object
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          delete seatedBookingExpected.seatUid;
+          expect(seatedBooking).toEqual(seatedBookingExpected);
+
+          const recurringSeatedBookings = [responseBody.data[1], responseBody.data[2]];
+          const recurringSeatedBookingsExpected = createdRecurringSeatedBooking;
+          for (const booking of recurringSeatedBookingsExpected) {
+            // note(Lauris): seatUid in get response resides only in each attendee object
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            delete booking.seatUid;
+          }
+          expect(recurringSeatedBookings).toEqual(recurringSeatedBookingsExpected);
+        });
+    });
+
     function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
       return data.hasOwnProperty("seatUid");
     }

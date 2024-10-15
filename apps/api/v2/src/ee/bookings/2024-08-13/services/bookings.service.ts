@@ -192,7 +192,7 @@ export class BookingsService_2024_08_13 {
     // note(Lauris): fetchedBookings don't have attendees information and responses and i don't want to add them to the handler query,
     // because its used elsewhere in code that does not need that information, so i get ids, fetch bookings and then return them formatted in same order as ids.
     const ids = fetchedBookings.bookings.map((booking) => booking.id);
-    const bookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(ids);
+    const bookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(ids);
 
     const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
     const orderedBookings = ids.map((id) => bookingMap.get(id));
