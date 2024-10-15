@@ -63,7 +63,7 @@ export const TRIAL_LIMIT_DAYS = 14;
 
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
-export const IS_EUROPE = dayjs.tz.guess().indexOf("Europe") !== -1;
+export const IS_EUROPE = dayjs.tz.guess()?.indexOf("Europe") !== -1;
 
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;

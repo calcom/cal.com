@@ -2640,6 +2640,15 @@
   "month_to_date": "månad till datum",
   "year_to_date": "år till datum",
   "custom_range": "anpassat intervall",
+  "salesforce_create_record_as": "Vid bokning, lägg till händelser och nya deltagare som:",
+  "salesforce_lead": "Lead",
+  "salesforce_contact_under_account": "Kontakt under ett konto",
+  "salesforce_skip_entry_creation": "Hoppa över att skapa {{entry}}-post om den inte finns i Salesforce",
+  "salesforce_if_account_does_not_exist": "Om kontakten inte finns under ett konto, skapa en ny lead från deltagaren",
+  "salesforce_create_new_contact_under_account": "Skapa en ny kontakt under ett konto baserat på deltagarens e-postdomän och befintliga kontakter",
   "mass_assign_attributes": "Massuppdatera attribut",
+  "salesforce_book_directly_with_attendee_owner": "Om deltagaren finns i Salesforce, boka direkt med ägaren",
+  "salesforce_check_owner_of": "Entitet att kontrollera ägare av för att boka direkt",
+  "account": "Konto",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
