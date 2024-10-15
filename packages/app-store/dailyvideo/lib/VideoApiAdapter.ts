@@ -105,10 +105,12 @@ export const updateMeetingTokenIfExpired = async ({
   exp,
 }: {
   bookingReferenceId: number;
-  meetingToken: string;
+  meetingToken: string | null;
   roomName: string;
   exp: number;
 }) => {
+  if (!meetingToken) return null;
+
   try {
     await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
   } catch (err) {
