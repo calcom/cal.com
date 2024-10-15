@@ -31,13 +31,54 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
 
   const userProfile = ctx.user.profile;
   const { group, limit, cursor, filters, searchQuery } = input;
-  const { teamId, parentId } = group;
+  const { teamId } = group;
 
   const isFilterSet = (filters && hasFilter(filters)) || !!teamId;
   const isUpIdInFilter = filters?.upIds?.includes(userProfile.upId);
 
   const shouldListUserEvents =
     !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
+
+  const eventTypes: EventType[] = [];
+  let currentCursor = cursor;
+  let nextCursor: typeof cursor | undefined = undefined;
+
+  const fetchAndFilterEventTypes = async () => {
+    const batch = await fetchEventTypesBatch(ctx, input, shouldListUserEvents, currentCursor);
+    const filteredBatch = filterEventTypes(batch.eventTypes, ctx.user.id, shouldListUserEvents, teamId);
+    for (const eventType of filteredBatch) {
+      if (eventTypes.length < limit) {
+        eventTypes.push(eventType);
+      } else {
+        nextCursor = eventType.id;
+        break;
+      }
+    }
+
+    currentCursor = batch.nextCursor;
+  };
+
+  while (eventTypes.length < limit && currentCursor) {
+    await fetchAndFilterEventTypes();
+  }
+
+  const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
+
+  return {
+    eventTypes: mappedEventTypes,
+    nextCursor,
+  };
+};
+
+const fetchEventTypesBatch = async (
+  ctx: GetByViewerOptions["ctx"],
+  input: GetByViewerOptions["input"],
+  shouldListUserEvents: boolean,
+  cursor: typeof input.cursor
+) => {
+  const userProfile = ctx.user.profile;
+  const { group, limit, filters } = input;
+  const { teamId, parentId } = group;
 
   const eventTypes: EventType[] = [];
 
@@ -62,7 +103,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
               id: "asc",
             },
           ],
-          limit,
+          limit: limit + 1,
           cursor,
         }
       )) ?? [];
@@ -76,10 +117,10 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
         teamId,
         parentId,
         userId: ctx.user.id,
-        limit,
+        limit: limit + 1,
         cursor,
         where: {
-          ...(isFilterSet && !!filters?.schedulingTypes
+          ...(input.isFilterSet && !!filters?.schedulingTypes
             ? {
                 schedulingType: { in: filters.schedulingTypes },
               }
@@ -100,29 +141,28 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   }
 
   let nextCursor: typeof cursor | undefined = undefined;
-  if (eventTypes && eventTypes.length > limit) {
+  if (eventTypes.length > limit) {
     const nextItem = eventTypes.pop();
     nextCursor = nextItem?.id;
   }
 
-  const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
+  return { eventTypes, nextCursor };
+};
 
-  log.info(
-    "mappedEventTypes before filtering",
-    safeStringify({
-      input,
-      mappedEventTypes,
-    })
-  );
-
-  const filteredEventTypes = mappedEventTypes.filter((eventType) => {
+const filterEventTypes = (
+  eventTypes: EventType[],
+  userId: string,
+  shouldListUserEvents: boolean,
+  teamId: string | null
+) => {
+  const filteredEventTypes = eventTypes.filter((eventType) => {
     const isAChildEvent = eventType.parentId;
     if (!isAChildEvent) {
       return true;
     }
     // A child event only has one user
     const childEventAssignee = eventType.users[0];
-    if (!childEventAssignee || childEventAssignee.id != ctx.user.id) {
+    if (!childEventAssignee || childEventAssignee.id !== userId) {
       return false;
     }
     return true;
@@ -158,8 +198,5 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
       evType.hosts = [];
     });
 
-  return {
-    eventTypes: filteredEventTypes || [],
-    nextCursor,
-  };
+  return filteredEventTypes;
 };
