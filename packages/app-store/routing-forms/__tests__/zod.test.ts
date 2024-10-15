@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { queryValueValidationSchema } from "../zod";
+import { queryValueSaveValidationSchema } from "../zod";
 
 describe("queryValueValidationSchema", () => {
   it("should allow a rule with value", () => {
@@ -20,7 +20,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueValidationSchema.safeParse(validQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(validQueryValue);
     expect(result.success).toBe(true);
   });
 
@@ -32,7 +32,7 @@ describe("queryValueValidationSchema", () => {
       children1: {},
     };
 
-    const result = queryValueValidationSchema.safeParse(switchGroupQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(switchGroupQueryValue);
     expect(result.success).toBe(true);
   });
 
@@ -53,7 +53,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueValidationSchema.safeParse(switchGroupQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(switchGroupQueryValue);
     expect(result.success).toBe(true);
   });
 
@@ -65,7 +65,7 @@ describe("queryValueValidationSchema", () => {
       children1: {},
     };
 
-    const result = queryValueValidationSchema.safeParse(invalidTypeQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(invalidTypeQueryValue);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].path).toEqual(["type"]);
@@ -89,7 +89,33 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueValidationSchema.safeParse(emptyValueQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(emptyValueQueryValue);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toEqual(
+        "Looks like you are trying to create a rule with no value"
+      );
+    }
+  });
+
+  it("should reject a rule with 2D empty value array", () => {
+    const emptyValueQueryValue = {
+      id: "4",
+      type: "group",
+      properties: {},
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            field: "name",
+            operator: "equal",
+            value: [[]],
+          },
+        },
+      },
+    };
+
+    const result = queryValueSaveValidationSchema.safeParse(emptyValueQueryValue);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toEqual(
@@ -115,7 +141,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueValidationSchema.safeParse(emptyValueQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(emptyValueQueryValue);
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toEqual(
@@ -141,7 +167,7 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueValidationSchema.safeParse(nullValueQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(nullValueQueryValue);
     expect(result.success).toBe(true);
   });
 
@@ -162,11 +188,9 @@ describe("queryValueValidationSchema", () => {
       },
     };
 
-    const result = queryValueValidationSchema.safeParse(nullValueQueryValue);
+    const result = queryValueSaveValidationSchema.safeParse(nullValueQueryValue);
     expect(result.success).toBe(true);
   });
-
-
 
   it("should allow omitting the children1 and properties field - e.g. fallback route doesn't have it", () => {
     const queryValueWithoutChildren = {
@@ -174,7 +198,15 @@ describe("queryValueValidationSchema", () => {
       type: "group",
     };
 
-    const result = queryValueValidationSchema.safeParse(queryValueWithoutChildren);
+    const result = queryValueSaveValidationSchema.safeParse(queryValueWithoutChildren);
     expect(result.success).toBe(true);
+  });
+
+  it("we are fine with no queryValue even", () => {
+    const result = queryValueSaveValidationSchema.safeParse(null);
+    expect(result.success).toBe(true);
+
+    const result2 = queryValueSaveValidationSchema.safeParse(undefined);
+    expect(result2.success).toBe(true);
   });
 });

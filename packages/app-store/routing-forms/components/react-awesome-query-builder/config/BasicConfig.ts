@@ -343,10 +343,6 @@ const types: Types = {
         operators: [
           "select_equals",
           "select_not_equals",
-          // "is_empty",
-          // "is_not_empty",
-          "is_null",
-          "is_not_null",
         ],
         widgetProps: {
           customProps: {
@@ -358,10 +354,6 @@ const types: Types = {
         operators: [
           "select_any_in",
           "select_not_any_in",
-          // "is_empty",
-          // "is_not_empty",
-          "is_null",
-          "is_not_null",
         ],
       },
     },

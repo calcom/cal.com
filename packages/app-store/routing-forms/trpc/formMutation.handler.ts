@@ -1,6 +1,5 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
 
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import type { PrismaClient } from "@calcom/prisma";
@@ -14,7 +13,7 @@ import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import isRouter from "../lib/isRouter";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
-import { zodFields, zodRouterRoute, zodRoutes, queryValueValidationSchema } from "../zod";
+import { zodFields, zodRouterRoute, zodRoutes, queryValueSaveValidationSchema } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
 
 interface FormMutationHandlerOptions {
@@ -25,21 +24,38 @@ interface FormMutationHandlerOptions {
   input: TFormMutationInputSchema;
 }
 
-function throwIfInvalidQueryValueToBeSaved({ routes }: { routes: FormMutationHandlerOptions["input"]["routes"] }) {
+function throwIfInvalidQueryValueToBeSaved({
+  routes,
+}: {
+  routes: FormMutationHandlerOptions["input"]["routes"];
+}) {
   if (!routes) {
     return;
   }
   routes.forEach((route, routeIndex) => {
-    if (!isRouter(route)) {
-      // We use separate schema for queryValye here which is much more strict
-      // It allows that we are still lenient with schema while reading the queryValue but while saving it we are strict
-      const parsed = queryValueValidationSchema.safeParse(route.queryValue);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Route ${routeIndex + 1}: ${parsed.error.errors.map((err) => err.message).join(", ")}`,
-        });
-      }
+    if (isRouter(route)) {
+      return;
+    }
+    // We use separate schema for queryValye here which is much more strict
+    // It allows that we are still lenient with schema while reading the queryValue but while saving it we are strict
+    const parsedFormFieldsQueryValue = queryValueSaveValidationSchema.safeParse(route.queryValue);
+    if (!parsedFormFieldsQueryValue.success) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Route ${routeIndex + 1} form fields: ${parsedFormFieldsQueryValue.error.errors
+          .map((err) => err.message)
+          .join(", ")}`,
+      });
+    }
+
+    const parsedAttributesQueryValue = queryValueSaveValidationSchema.safeParse(route.attributesQueryValue);
+    if (!parsedAttributesQueryValue.success) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Route ${routeIndex + 1} attributes: ${parsedAttributesQueryValue.error.errors
+          .map((err) => err.message)
+          .join(", ")}`,
+      });
     }
   });
 }
