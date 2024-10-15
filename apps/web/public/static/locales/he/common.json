@@ -2640,6 +2640,15 @@
   "month_to_date": "מתחילת החודש",
   "year_to_date": "מתחילת השנה",
   "custom_range": "טווח מותאם אישית",
+  "salesforce_create_record_as": "בעת הזמנה, הוסף אירועים וחדשים משתתפים כ:",
+  "salesforce_lead": "ליד",
+  "salesforce_contact_under_account": "איש קשר תחת חשבון",
+  "salesforce_skip_entry_creation": "דלג על יצירת רשומת {{entry}} אם הם לא קיימים ב-Salesforce",
+  "salesforce_if_account_does_not_exist": "אם איש הקשר לא קיים תחת חשבון, צור ליד חדש מהמשתתף",
+  "salesforce_create_new_contact_under_account": "צור איש קשר חדש תחת חשבון בהתבסס על דומיין האימייל של המשתתף ואנשי קשר קיימים",
   "mass_assign_attributes": "הקצאת מאפיינים באופן גורף",
+  "salesforce_book_directly_with_attendee_owner": "אם המשתתף קיים ב-Salesforce, הזמן ישירות עם הבעלים",
+  "salesforce_check_owner_of": "ישות לבדוק את הבעלים שלה כדי להזמין ישירות",
+  "account": "חשבון",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -14,7 +14,7 @@ type GetOptions = {
 };
 
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
-  const organizationId = ctx.user.organizationId;
+  const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0].organizationId;
   const searchTerm = input.searchTerm;
 
   if (!organizationId) {
@@ -43,6 +43,9 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const teamMembers = await prisma.membership.findMany({
     where: {
       teamId: organizationId,
+      user: {
+        isPlatformManaged: false,
+      },
       ...(searchTerm && {
         user: {
           OR: [
