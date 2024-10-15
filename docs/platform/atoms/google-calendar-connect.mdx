@@ -25,7 +25,7 @@ For a demonstration of the Google calendar connect integration, please refer to 
     <iframe
       width="560"
       height="315"
-      src="https://www.loom.com/embed/0db65d94754443ae91fed28f9bc10509?sid=d7b823cc-cda1-4d18-881a-aa49242b873d"
+      src="https://www.loom.com/embed/dcfcaf8c25754b8daec8fe309fbf7c7c?sid=3181cba5-2e16-4f6e-99de-4408a5109c37"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen="true"
@@ -56,7 +56,7 @@ For a demonstration of the Google calendar connect integration for multiple user
     <iframe
       width="560"
       height="315"
-      src="https://www.loom.com/embed/0db65d94754443ae91fed28f9bc10509?sid=d7b823cc-cda1-4d18-881a-aa49242b873d"
+      src="https://www.loom.com/embed/7a34123b3bd94fbc80809392aab5f712?sid=12bacd7e-62b2-40aa-9fd6-30d69ab22e0a"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen="true"
@@ -65,23 +65,28 @@ For a demonstration of the Google calendar connect integration for multiple user
 <p></p>
 
 We offer all kinds of customizations to the Google calendar connect via props. Below is a list of props that can be passed to the Google calendar connect.
+
 <p></p>
 
-| Name               | Required | Description                                                                                               |
-|:--------------------|:----------|:-----------------------------------------------------------------------------------------------------------|
-| className          | No       | To pass in custom classnames from outside for styling the atom                                            |
-| label              | No       | The label for the connect button                                                                          |
-| alreadyConnectedLabel | No    | Label to display when atom is in already connected state                                                  |
-| loadingLabel       | No       | Label to display when atom is in loading state                                                            |
-| onCheckError       | No       | A callback function to handle errors when checking the connection status                                  |
-| redir              | No       | A custom redirect URL link where the user gets redirected after successful authentication                 |
-| initialData        | No       | Initial data to be passed                                                                                 |
-| isMultiCalendar    | No       | Specfies if the button supports integration for multiple users                                            |
-| tooltip            | No       | In case user wants to pass external tooltip component                                                     |
-| tooltipSide        | No       | Specifies what direction the tooltip appears                                                              |
-| isClickable        | No       | Boolean to disable button or not                                                                          |
-| onSuccess          | No       | A callback function to handle success when checking the connection status                                 |
+| Name                  | Required | Description                                                                               |
+| :-------------------- | :------- | :---------------------------------------------------------------------------------------- |
+| className             | No       | To pass in custom classnames from outside for styling the atom                            |
+| label                 | No       | The label for the connect button                                                          |
+| alreadyConnectedLabel | No       | Label to display when atom is in already connected state                                  |
+| loadingLabel          | No       | Label to display when atom is in loading state                                            |
+| onCheckError          | No       | A callback function to handle errors when checking the connection status                  |
+| redir                 | No       | A custom redirect URL link where the user gets redirected after successful authentication |
+| initialData           | No       | Initial data to be passed                                                                 |
+| isMultiCalendar       | No       | Specfies if the button supports integration for multiple users                            |
+| tooltip               | No       | In case user wants to pass external tooltip component                                     |
+| tooltipSide           | No       | Specifies what direction the tooltip appears                                              |
+| isClickable           | No       | Boolean to disable button or not                                                          |
+| onSuccess             | No       | A callback function to handle success when checking the connection status                 |
 
 <Note>
-Please ensure all custom classnames are valid Tailwind CSS classnames. Note that sometimes the custom classnames may fail to override the styling with the classnames that you might have passed via props. That is because the clsx utility function that we use to override classnames inside our components has some limitations. A simple get around to solve this issue is to just prefix your classnames with ! property just before passing in any classname.
+  Please ensure all custom classnames are valid Tailwind CSS classnames. Note that sometimes the custom
+  classnames may fail to override the styling with the classnames that you might have passed via props. That
+  is because the clsx utility function that we use to override classnames inside our components has some
+  limitations. A simple get around to solve this issue is to just prefix your classnames with ! property just
+  before passing in any classname.
 </Note>
