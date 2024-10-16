@@ -27,7 +27,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
-import { scheduleCalVideoNoShowWebhookTasks } from "./scheduleCalVideoNoShowWebhookTasks";
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -395,18 +395,19 @@ export async function handleConfirmation(args: {
       });
     });
 
-    const calVideoNoShowPromises = scheduleCalVideoNoShowWebhookTasks({
-      bookingStartTime: booking?.startTime,
-      bookingId: bookingId,
+    await Promise.all(scheduleTriggerPromises);
+
+    await scheduleNoShowTriggers({
+      booking: {
+        startTime: booking.startTime,
+        id: booking.id,
+      },
+      triggerForUser,
+      organizerUser: { id: booking.userId },
       eventTypeId: booking.eventTypeId,
-      userId,
       teamId,
       orgId,
     });
-
-    scheduleTriggerPromises.push(...calVideoNoShowPromises);
-
-    await Promise.all(scheduleTriggerPromises);
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: eventType?.title,
