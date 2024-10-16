@@ -112,37 +112,6 @@ export class OutputBookingsService_2024_08_13 {
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
-  async getOutputRecurringSeatedBookings(bookingsIds: number[]) {
-    const transformed = [];
-
-    for (const bookingId of bookingsIds) {
-      const databaseBooking =
-        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(bookingId);
-      if (!databaseBooking) {
-        throw new Error(`Booking with id=${bookingId} was not found in the database`);
-      }
-
-      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking));
-    }
-
-    return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-  }
-
-  async getOutputCreateRecurringSeatedBookings(bookings: { id: number; seatUid: string }[]) {
-    const transformed = [];
-
-    for (const booking of bookings) {
-      const databaseBooking =
-        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(booking.id);
-      if (!databaseBooking) {
-        throw new Error(`Booking with id=${booking.id} was not found in the database`);
-      }
-      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid));
-    }
-
-    return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-  }
-
   getOutputRecurringBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
@@ -183,6 +152,14 @@ export class OutputBookingsService_2024_08_13 {
     };
 
     return plainToClass(RecurringBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+  }
+
+  getOutputCreateSeatedBooking(
+    databaseBooking: DatabaseBooking,
+    seatUid: string
+  ): CreateSeatedBookingOutput_2024_08_13 {
+    const getSeatedBookingOutput = this.getOutputSeatedBooking(databaseBooking);
+    return { ...getSeatedBookingOutput, seatUid };
   }
 
   getOutputSeatedBooking(databaseBooking: DatabaseBooking) {
@@ -237,57 +214,43 @@ export class OutputBookingsService_2024_08_13 {
     return parsed;
   }
 
-  getOutputCreateSeatedBooking(databaseBooking: DatabaseBooking, seatUid: string) {
-    const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
-    const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
-    const duration = dateEnd.diff(dateStart, "minutes").minutes;
+  async getOutputRecurringSeatedBookings(bookingsIds: number[]) {
+    const transformed = [];
 
-    const booking = {
-      id: databaseBooking.id,
-      uid: databaseBooking.uid,
-      title: databaseBooking.title,
-      description: databaseBooking.description,
-      hosts: [databaseBooking.user],
-      status: databaseBooking.status.toLowerCase(),
-      rescheduledFromUid: databaseBooking.fromReschedule || undefined,
-      start: databaseBooking.startTime,
-      end: databaseBooking.endTime,
-      duration,
-      eventType: databaseBooking.eventType,
-      // note(Lauris): eventTypeId is deprecated
-      eventTypeId: databaseBooking.eventTypeId,
-      attendees: [],
-      location: databaseBooking.location,
-      // note(Lauris): meetingUrl is deprecated
-      meetingUrl: databaseBooking.location,
-      absentHost: !!databaseBooking.noShowHost,
-      seatUid,
-    };
+    for (const bookingId of bookingsIds) {
+      const databaseBooking =
+        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(bookingId);
+      if (!databaseBooking) {
+        throw new Error(`Booking with id=${bookingId} was not found in the database`);
+      }
 
-    const parsed = plainToClass(CreateSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking));
+    }
 
-    // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
-    parsed.attendees = databaseBooking.attendees.map((attendee) => {
-      const { responses } = seatedBookingResponsesSchema.parse(attendee.bookingSeat?.data);
+    return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }
 
-      const attendeeData = {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: attendee.locale,
-        absent: !!attendee.noShow,
-        seatUid: attendee.bookingSeat?.referenceUid,
-        bookingFieldsResponses: {},
-      };
-      const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-      attendeeParsed.bookingFieldsResponses = responses || {};
-      // note(Lauris): as of now email is not returned for privacy
-      delete attendeeParsed.bookingFieldsResponses.email;
+  async getOutputCreateRecurringSeatedBookings(bookings: { id: number; seatUid: string }[]) {
+    const transformed = [];
 
-      return attendeeParsed;
-    });
+    for (const booking of bookings) {
+      const databaseBooking =
+        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(booking.id);
+      if (!databaseBooking) {
+        throw new Error(`Booking with id=${booking.id} was not found in the database`);
+      }
+      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid));
+    }
 
-    return parsed;
+    return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  }
+
+  getOutputCreateRecurringSeatedBooking(
+    databaseBooking: DatabaseBooking,
+    seatUid: string
+  ): CreateRecurringSeatedBookingOutput_2024_08_13 {
+    const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(databaseBooking);
+    return { ...getRecurringSeatedBookingOutput, seatUid };
   }
 
   getOutputRecurringSeatedBooking(databaseBooking: DatabaseBooking) {
@@ -319,63 +282,6 @@ export class OutputBookingsService_2024_08_13 {
     };
 
     const parsed = plainToClass(GetRecurringSeatedBookingOutput_2024_08_13, booking, {
-      strategy: "excludeAll",
-    });
-
-    // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
-    parsed.attendees = databaseBooking.attendees.map((attendee) => {
-      const { responses } = seatedBookingResponsesSchema.parse(attendee.bookingSeat?.data);
-
-      const attendeeData = {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: attendee.locale,
-        absent: !!attendee.noShow,
-        seatUid: attendee.bookingSeat?.referenceUid,
-        bookingFieldsResponses: {},
-      };
-      const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-      attendeeParsed.bookingFieldsResponses = responses || {};
-      // note(Lauris): as of now email is not returned for privacy
-      delete attendeeParsed.bookingFieldsResponses.email;
-
-      return attendeeParsed;
-    });
-
-    return parsed;
-  }
-
-  getOutputCreateRecurringSeatedBooking(databaseBooking: DatabaseBooking, seatUid: string) {
-    const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
-    const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
-    const duration = dateEnd.diff(dateStart, "minutes").minutes;
-
-    const booking = {
-      id: databaseBooking.id,
-      uid: databaseBooking.uid,
-      title: databaseBooking.title,
-      description: databaseBooking.description,
-      hosts: [databaseBooking.user],
-      status: databaseBooking.status.toLowerCase(),
-      cancellationReason: databaseBooking.cancellationReason || undefined,
-      rescheduledFromUid: databaseBooking.fromReschedule || undefined,
-      start: databaseBooking.startTime,
-      end: databaseBooking.endTime,
-      duration,
-      eventType: databaseBooking.eventType,
-      // note(Lauris): eventTypeId is deprecated
-      eventTypeId: databaseBooking.eventTypeId,
-      attendees: [],
-      location: databaseBooking.location,
-      // note(Lauris): meetingUrl is deprecated
-      meetingUrl: databaseBooking.location,
-      recurringBookingUid: databaseBooking.recurringEventId,
-      absentHost: !!databaseBooking.noShowHost,
-      seatUid,
-    };
-
-    const parsed = plainToClass(CreateRecurringSeatedBookingOutput_2024_08_13, booking, {
       strategy: "excludeAll",
     });
 
