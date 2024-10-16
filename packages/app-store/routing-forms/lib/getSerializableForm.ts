@@ -2,6 +2,8 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import type { z } from "zod";
 
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
@@ -11,8 +13,7 @@ import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";
 import { getFieldWithOptions } from "./selectOptions";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
+
 const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
 /**
  * Doesn't have deleted fields by default
@@ -80,6 +81,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
         name: true,
         email: true,
         avatarUrl: true,
+        defaultScheduleId: true,
       },
     });
   }

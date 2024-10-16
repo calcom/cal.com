@@ -1,6 +1,5 @@
 // This is taken from "react-awesome-query-builder/lib/config/basic";
 import type {
-  Operators as RAQBOperators,
   Conjunction as RAQBConjunction,
   Widget as RAQBWidget,
   Type as RAQBType,
@@ -8,11 +7,14 @@ import type {
   Operator as RAQBOperator,
 } from "react-awesome-query-builder";
 
-export type Conjunction = Omit<RAQBConjunction, "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj">;
+export type Conjunction = Omit<
+  RAQBConjunction,
+  "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj"
+>;
 export type Conjunctions = Record<string, Conjunction>;
 export type Operator = RAQBOperator & {
   _jsonLogicIsExclamationOp?: boolean;
-}
+};
 export type Operators = Record<string, Operator>;
 export type WidgetWithoutFactory = Omit<RAQBWidget, "factory"> & {
   type: string;
@@ -341,10 +343,6 @@ const types: Types = {
         operators: [
           "select_equals",
           "select_not_equals",
-          // "is_empty",
-          // "is_not_empty",
-          "is_null",
-          "is_not_null",
         ],
         widgetProps: {
           customProps: {
@@ -354,12 +352,8 @@ const types: Types = {
       },
       multiselect: {
         operators: [
-          //   "select_any_in",
-          //   "select_not_any_in",
-          // "is_empty",
-          // "is_not_empty",
-          "is_null",
-          "is_not_null",
+          "select_any_in",
+          "select_not_any_in",
         ],
       },
     },

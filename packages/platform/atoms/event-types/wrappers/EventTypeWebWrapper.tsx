@@ -242,7 +242,12 @@ const EventTypeWeb = ({
       />
     ),
     availability: (
-      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} loggedInUser={loggedInUser} />
+      <EventAvailabilityTab
+        eventType={eventType}
+        isTeamEvent={!!team}
+        loggedInUser={loggedInUser}
+        teamMembers={teamMembers}
+      />
     ),
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
@@ -250,8 +255,9 @@ const EventTypeWeb = ({
       <EventAdvancedTab
         eventType={eventType}
         team={team}
-        loggedInUser={loggedInUser}
-        isLoggedInUserPending={isLoggedInUserPending}
+        user={loggedInUser}
+        isUserLoading={isLoggedInUserPending}
+        showToast={showToast}
       />
     ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,

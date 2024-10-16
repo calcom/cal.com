@@ -1,6 +1,7 @@
 import { PlatformEndpointsModule } from "@/ee/platform-endpoints-module";
 import { AtomsModule } from "@/modules/atoms/atoms.module";
 import { BillingModule } from "@/modules/billing/billing.module";
+import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { DestinationCalendarsModule } from "@/modules/destination-calendars/destination-calendars.module";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -22,6 +23,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     DestinationCalendarsModule,
     AtomsModule,
     StripeModule,
+    ConferencingModule,
   ],
 })
 export class EndpointsModule implements NestModule {

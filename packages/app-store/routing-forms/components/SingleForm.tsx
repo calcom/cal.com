@@ -259,7 +259,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
-    
+
     if (route?.action?.type === "eventTypeRedirectUrl") {
       setEventTypeUrl(
         enrichedWithUserProfileForm
@@ -271,9 +271,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           : ""
       );
     }
-    
+
     setChosenRoute(route || null);
-    
+
     if (!route) return;
 
     findTeamMembersMatchingAttributeLogicMutation.mutate({
@@ -482,6 +482,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
+                            defaultScheduleId: member.defaultScheduleId,
                           }))}
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
@@ -489,6 +490,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             priority: 2,
                             weight: 100,
                             weightAdjustment: 0,
+                            scheduleId: 1,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(

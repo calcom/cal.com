@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
@@ -75,7 +76,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         }
         let schema;
         if (field.type === "email") {
-          schema = z.string().email();
+          schema = emailSchema;
         } else if (field.type === "phone") {
           schema = z.any();
         } else {
@@ -145,7 +146,19 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       dbFormResponse.response as FormResponse
     );
 
-    return { formResponse: dbFormResponse, teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic };
+    const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
+    if (!chosenRoute) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Chosen route not found",
+      });
+    }
+    return {
+      formResponse: dbFormResponse,
+      teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+      attributeRoutingConfig:
+        "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null,
+    };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {

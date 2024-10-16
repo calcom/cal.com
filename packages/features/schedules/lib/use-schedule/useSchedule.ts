@@ -46,8 +46,8 @@ export const useSchedule = ({
     selectedDate,
   });
   const searchParams = useSearchParams();
-
   const routedTeamMemberIds = searchParams ? getRoutedTeamMemberIdsFromSearchParams(searchParams) : null;
+  const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
@@ -67,6 +67,7 @@ export const useSchedule = ({
       orgSlug,
       teamMemberEmail,
       routedTeamMemberIds,
+      skipContactOwner,
     },
     {
       trpc: {
