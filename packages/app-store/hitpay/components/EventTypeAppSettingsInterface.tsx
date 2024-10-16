@@ -53,6 +53,14 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     }
   }, [requirePayment, getAppData, setAppData]);
 
+  const disableDecimalPlace = (value) => {
+    const nValue = Math.floor(value);
+    const sValue = nValue.toString();
+    const ret = parseInt(sValue);
+    console.log("disableDecimalPlace ret =>", ret);
+    return ret;
+  };
+
   return (
     <>
       {recurringEventDefined && (
@@ -70,8 +78,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               }
               addOnSuffix={currency.toUpperCase()}
               addOnClassname="h-[38px]"
-              step="0.01"
-              min="0.5"
+              step="1"
+              min="1"
               type="number"
               required
               placeholder="Price"
@@ -79,7 +87,11 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               onChange={(e) => {
                 setAppData("price", convertToSmallestCurrencyUnit(Number(e.target.value), currency));
               }}
-              value={price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : undefined}
+              value={
+                price > 0
+                  ? disableDecimalPlace(convertFromSmallestToPresentableCurrencyUnit(price, currency))
+                  : undefined
+              }
             />
           </div>
           <div className="mt-5 w-60">
