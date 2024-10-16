@@ -1,0 +1,103 @@
+import { describe, it, vi, expect } from "vitest";
+
+import {
+  FormFieldsBaseConfig,
+  AttributesBaseConfig,
+} from "../components/react-awesome-query-builder/config/config";
+
+vi.mock("../components/react-awesome-query-builder/widgets", () => ({
+  default: {},
+}));
+vi.mock("@calcom/ui", () => ({}));
+
+const assertCommonStructure = (config: any) => {
+  expect(config).toHaveProperty("conjunctions");
+  expect(config).toHaveProperty("operators");
+  expect(config).toHaveProperty("types");
+  expect(config).toHaveProperty("widgets");
+  expect(config).toHaveProperty("settings");
+};
+
+const assertCommonWidgetTypes = (config: any) => {
+  expect(config.widgets).toHaveProperty("text");
+  expect(config.widgets).toHaveProperty("textarea");
+  expect(config.widgets).toHaveProperty("number");
+  expect(config.widgets).toHaveProperty("multiselect");
+  expect(config.widgets).toHaveProperty("select");
+  expect(config.widgets).toHaveProperty("phone");
+  expect(config.widgets).toHaveProperty("email");
+};
+
+const assertSelectOperators = (config: any) => {
+  expect(config.operators).toHaveProperty("select_any_in");
+  expect(config.operators).toHaveProperty("select_not_any_in");
+  expect(config.operators).toHaveProperty("select_equals");
+  expect(config.operators).toHaveProperty("select_not_equals");
+
+  // Verify corresponding widgets for select operators
+  expect(config.types.select.widgets.multiselect.operators).toContain("select_any_in");
+  expect(config.types.select.widgets.multiselect.operators).toContain("select_not_any_in");
+
+  // Important to verify that select_equals and select_not_equals are not present in multiselect as that might cause multiselect widget operand to show up for these operators
+  expect(config.types.select.widgets.multiselect.operators).not.toContain("select_equals");
+  expect(config.types.select.widgets.multiselect.operators).not.toContain("select_not_equals");
+
+  expect(config.types.select.widgets.select.operators).toContain("select_equals");
+  expect(config.types.select.widgets.select.operators).toContain("select_not_equals");
+
+  // Important to verify that select_any_in and select_not_any_in are not present in select as that might cause select widget operand to show up for these operators
+  expect(config.types.select.widgets.select.operators).not.toContain("select_any_in");
+  expect(config.types.select.widgets.select.operators).not.toContain("select_not_any_in");
+};
+
+const assertMaxNesting = (config: any, value: number) => {
+  expect(config.settings.maxNesting).toBe(value);
+};
+
+describe("Query Builder Config", () => {
+  describe("FormFieldsBaseConfig", () => {
+    it("should have the correct structure", () => {
+      assertCommonStructure(FormFieldsBaseConfig);
+    });
+
+    it("should not support multiselect_contains and multiselect_not_contains - because they are not supported in Prisma for reporting(probably)", () => {
+      expect(FormFieldsBaseConfig.operators).not.toHaveProperty("multiselect_contains");
+      expect(FormFieldsBaseConfig.operators).not.toHaveProperty("multiselect_not_contains");
+    });
+
+    it("should support select_any_in, select_not_any_in, select_equals, select_not_equals - Verify both types.widgets and operators", () => {
+      assertSelectOperators(FormFieldsBaseConfig);
+    });
+
+    it("should have specific widget types", () => {
+      assertCommonWidgetTypes(FormFieldsBaseConfig);
+    });
+
+    it("should have maxNesting set to 1 in settings", () => {
+      assertMaxNesting(FormFieldsBaseConfig, 1);
+    });
+  });
+
+  describe("AttributesBaseConfig", () => {
+    it("should have the correct structure", () => {
+      assertCommonStructure(AttributesBaseConfig);
+    });
+
+    it("should support multiselect_contains and multiselect_not_contains operators", () => {
+      expect(AttributesBaseConfig.operators).toHaveProperty("multiselect_contains");
+      expect(AttributesBaseConfig.operators).toHaveProperty("multiselect_not_contains");
+    });
+
+    it("should support select_any_in, select_not_any_in, select_equals, select_not_equals - Verify both types.widgets and operators", () => {
+      assertSelectOperators(AttributesBaseConfig);
+    });
+
+    it("should have specific widget types", () => {
+      assertCommonWidgetTypes(AttributesBaseConfig);
+    });
+
+    it("should have maxNesting set to 1 in settings", () => {
+      assertMaxNesting(AttributesBaseConfig, 1);
+    });
+  });
+});
