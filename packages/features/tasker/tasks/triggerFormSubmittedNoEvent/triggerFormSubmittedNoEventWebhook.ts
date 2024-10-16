@@ -36,9 +36,16 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
   }),
 });
 
+export async function mocktest(payload: string): Promise<void> {
+  const booking = await prisma.booking.findFirst({ where: {} });
+  console.log(`booking here${JSON.stringify(booking)}`);
+}
+
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
+
+  const booking = await prisma.booking.findFirst({ where: {} });
 
   const bookingFromResponse = await prisma.booking.findFirst({
     where: {

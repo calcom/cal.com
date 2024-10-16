@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { ZTriggerFormSubmittedNoEventWebhookPayloadSchema } from "./tasks/triggerFormSubmittedNoEventWebhook";
+import type { ZTriggerFormSubmittedNoEventWebhookPayloadSchema } from "./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook";
 
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {

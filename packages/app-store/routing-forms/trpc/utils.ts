@@ -2,7 +2,7 @@ import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
-import type { ResponseData } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEventWebhook";
+import type { ResponseData } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
