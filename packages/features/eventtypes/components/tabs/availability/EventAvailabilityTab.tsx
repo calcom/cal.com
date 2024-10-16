@@ -46,6 +46,7 @@ type EventTypeScheduleProps = {
   >;
   isSchedulesPending?: boolean;
   eventType: EventTypeSetup;
+  teamMembers: TeamMembers;
 } & EventTypeScheduleDetailsProps &
   EventTypeTeamScheduleProps;
 
