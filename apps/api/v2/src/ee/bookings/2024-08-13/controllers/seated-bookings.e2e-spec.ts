@@ -51,11 +51,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = "seated-bookings-controller-e2e@api.com";
     let user: User;
 
-    const seatedTventTypeSlug = "peer-coding";
-    const recurringSeatedTventTypeSlug = "peer-coding-recurring";
+    const seatedTventTypeSlug = "peer-coding-seated";
+    const recurringSeatedTventTypeSlug = "peer-coding-recurring-seated";
     let seatedEventTypeId: number;
     let recurringSeatedEventTypeId: number;
     const maxRecurrenceCount = 3;
@@ -63,10 +63,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
-    const emailAttendeeOne = "mr_proper@gmail.com";
-    const nameAttendeeOne = "Mr Proper";
-    const emailAttendeeTwo = "mr_proper_friend@gmail.com";
-    const nameAttendeeTwo = "Mr Proper Friend";
+    const emailAttendeeOne = "mr_proper_seated@gmail.com";
+    const nameAttendeeOne = "Mr Proper Seated";
+    const emailAttendeeTwo = "mr_proper_friend_seated@gmail.com";
+    const nameAttendeeTwo = "Mr Proper Friend Seated";
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
