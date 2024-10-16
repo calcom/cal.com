@@ -14,7 +14,11 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const router = useRouter();
   const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
   const { data: teams } = useTeams();
-  const { isLoading: isLoadingTeamEvents, data: teamEventTypes } = useTeamEventTypes(teams?.[0]?.id || 0);
+  const {
+    isLoading: isLoadingTeamEvents,
+    data: teamEventTypes,
+    refetch: refetchTeamEvents,
+  } = useTeamEventTypes(teams?.[0]?.id || 0);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
 
   return (
@@ -30,7 +34,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!isLoadingEvents && !eventTypeId && Boolean(eventTypes?.length) && !rescheduleUid && (
           <div className="flex flex-col gap-4">
-            <h1>User event types</h1>
             {eventTypes?.map(
               (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
                 const formatEventSlug = event.slug
@@ -86,8 +89,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {eventTypeId && (
           <div>
             <EventTypeSettings
+              customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
+              allowDelete={true}
               id={eventTypeId}
-              tabs={["setup"]}
+              tabs={["setup", "limits", "recurring", "advanced", "availability"]}
               onSuccess={(eventType) => {
                 console.log(eventType);
                 setEventTypeId(null);
@@ -97,6 +102,12 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 console.log(eventType);
                 console.error(error);
               }}
+              onDeleteSuccess={() => {
+                refetch();
+                refetchTeamEvents();
+                setEventTypeId(null);
+              }}
+              onDeleteError={console.error}
             />
           </div>
         )}

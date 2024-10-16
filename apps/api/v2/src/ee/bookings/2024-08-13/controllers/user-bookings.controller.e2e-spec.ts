@@ -2,8 +2,6 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
-import { GetBookingsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-bookings.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
@@ -30,6 +28,7 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
+import { GetBookingOutput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
@@ -58,6 +57,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let user: User;
 
     let eventTypeId: number;
+    const eventTypeSlug = "peer-coding";
     let recurringEventTypeId: number;
 
     let createdBooking: BookingOutput_2024_08_13;
@@ -100,7 +100,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: "peer-coding", length: 60 },
+        { title: "peer coding", slug: eventTypeSlug, length: 60 },
         user.id
       );
       eventTypeId = event.id;
@@ -184,7 +184,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone: "Europe/Rome",
             language: "it",
           },
-          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          location: "https://meet.google.com/abc-def-ghi",
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
         };
 
         return request(app.getHttpServer())
@@ -208,14 +211,24 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
               expect(data.duration).toEqual(60);
               expect(data.eventTypeId).toEqual(eventTypeId);
+              expect(data.eventType).toEqual({
+                id: eventTypeId,
+                slug: eventTypeSlug,
+              });
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
               });
-              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.location).toEqual(body.location);
+              expect(data.meetingUrl).toEqual(body.location);
               expect(data.absentHost).toEqual(false);
+              expect(data.bookingFieldsResponses).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                ...body.bookingFieldsResponses,
+              });
               createdBooking = data;
             } else {
               throw new Error(
@@ -235,7 +248,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone: "Europe/Rome",
             language: "it",
           },
-          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          location: "https://meet.google.com/abc-def-ghi",
         };
 
         return request(app.getHttpServer())
@@ -268,7 +281,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 language: body.attendee.language,
                 absent: false,
               });
-              expect(firstBooking.meetingUrl).toEqual(body.meetingUrl);
+              expect(firstBooking.location).toEqual(body.location);
               expect(firstBooking.recurringBookingUid).toBeDefined();
               expect(firstBooking.absentHost).toEqual(false);
 
@@ -288,7 +301,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 language: body.attendee.language,
                 absent: false,
               });
-              expect(secondBooking.meetingUrl).toEqual(body.meetingUrl);
+              expect(secondBooking.location).toEqual(body.location);
               expect(secondBooking.absentHost).toEqual(false);
 
               const thirdBooking = data[2];
@@ -307,7 +320,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 language: body.attendee.language,
                 absent: false,
               });
-              expect(thirdBooking.meetingUrl).toEqual(body.meetingUrl);
+              expect(thirdBooking.location).toEqual(body.location);
               expect(thirdBooking.absentHost).toEqual(false);
 
               createdRecurringBooking = data;
@@ -343,7 +356,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.duration).toEqual(createdBooking.duration);
               expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
               expect(data.attendees[0]).toEqual(createdBooking.attendees[0]);
-              expect(data.meetingUrl).toEqual(createdBooking.meetingUrl);
+              expect(data.location).toEqual(createdBooking.location);
               expect(data.absentHost).toEqual(createdBooking.absentHost);
             } else {
               throw new Error(
@@ -377,7 +390,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
               expect(data.recurringBookingUid).toEqual(createdRecurringBooking[0].recurringBookingUid);
               expect(data.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
-              expect(data.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
+              expect(data.location).toEqual(createdRecurringBooking[0].location);
               expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
             } else {
               throw new Error(
@@ -414,7 +427,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(firstBooking.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
               expect(firstBooking.recurringBookingUid).toEqual(recurringBookingUid);
               expect(firstBooking.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
-              expect(firstBooking.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
+              expect(firstBooking.location).toEqual(createdRecurringBooking[0].location);
               expect(firstBooking.absentHost).toEqual(createdRecurringBooking[0].absentHost);
 
               const secondBooking = data[1];
@@ -428,7 +441,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(secondBooking.eventTypeId).toEqual(createdRecurringBooking[1].eventTypeId);
               expect(secondBooking.recurringBookingUid).toEqual(recurringBookingUid);
               expect(secondBooking.attendees[0]).toEqual(createdRecurringBooking[1].attendees[0]);
-              expect(secondBooking.meetingUrl).toEqual(createdRecurringBooking[1].meetingUrl);
+              expect(secondBooking.location).toEqual(createdRecurringBooking[1].location);
               expect(secondBooking.absentHost).toEqual(createdRecurringBooking[1].absentHost);
 
               const thirdBooking = data[2];
@@ -442,7 +455,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(thirdBooking.eventTypeId).toEqual(createdRecurringBooking[2].eventTypeId);
               expect(thirdBooking.recurringBookingUid).toEqual(recurringBookingUid);
               expect(thirdBooking.attendees[0]).toEqual(createdRecurringBooking[2].attendees[0]);
-              expect(thirdBooking.meetingUrl).toEqual(createdRecurringBooking[2].meetingUrl);
+              expect(thirdBooking.location).toEqual(createdRecurringBooking[2].location);
               expect(thirdBooking.absentHost).toEqual(createdRecurringBooking[2].absentHost);
 
               createdRecurringBooking = data;
@@ -764,7 +777,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.duration).toEqual(createdBooking.duration);
             expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
             expect(data.attendees[0]).toEqual(createdBooking.attendees[0]);
-            expect(data.meetingUrl).toEqual(createdBooking.meetingUrl);
+            expect(data.location).toEqual(createdBooking.location);
             expect(data.absentHost).toEqual(createdBooking.absentHost);
 
             rescheduledBooking = data;
@@ -815,7 +828,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.recurringBookingUid).toEqual(createdRecurringBooking[0].recurringBookingUid);
             expect(data.eventTypeId).toEqual(createdRecurringBooking[0].eventTypeId);
             expect(data.attendees[0]).toEqual(createdRecurringBooking[0].attendees[0]);
-            expect(data.meetingUrl).toEqual(createdRecurringBooking[0].meetingUrl);
+            expect(data.location).toEqual(createdRecurringBooking[0].location);
             expect(data.absentHost).toEqual(createdRecurringBooking[0].absentHost);
 
             const oldBooking = await bookingsRepositoryFixture.getByUid(createdRecurringBooking[0].uid);
@@ -885,7 +898,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.duration).toEqual(booking.duration);
             expect(data.eventTypeId).toEqual(booking.eventTypeId);
             expect(data.attendees[0]).toEqual(booking.attendees[0]);
-            expect(data.meetingUrl).toEqual(booking.meetingUrl);
+            expect(data.location).toEqual(booking.location);
           });
       });
 
@@ -918,7 +931,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(booking.eventTypeId);
             expect(data.attendees[0].absent).toEqual(true);
             expect(data.absentHost).toEqual(booking.absentHost);
-            expect(data.meetingUrl).toEqual(booking.meetingUrl);
+            expect(data.location).toEqual(booking.location);
           });
       });
     });
@@ -955,7 +968,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.duration).toEqual(rescheduledBooking.duration);
             expect(data.eventTypeId).toEqual(rescheduledBooking.eventTypeId);
             expect(data.attendees[0]).toEqual(rescheduledBooking.attendees[0]);
-            expect(data.meetingUrl).toEqual(rescheduledBooking.meetingUrl);
+            expect(data.location).toEqual(rescheduledBooking.location);
             expect(data.absentHost).toEqual(rescheduledBooking.absentHost);
 
             const cancelledBooking = await bookingsRepositoryFixture.getByUid(rescheduledBooking.uid);
@@ -1005,10 +1018,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
-    function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-      return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
-    }
-
     function responseDataIsRecurranceBooking(data: any): data is RecurringBookingOutput_2024_08_13 {
       return (
         !Array.isArray(data) &&
@@ -1019,9 +1028,302 @@ describe("Bookings Endpoints 2024-08-13", () => {
       );
     }
 
-    function responseDataIsRecurringBooking(data: any): data is RecurringBookingOutput_2024_08_13[] {
-      return Array.isArray(data);
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      await app.close();
+    });
+  });
+
+  function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
+    return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+  }
+
+  function responseDataIsRecurringBooking(data: any): data is RecurringBookingOutput_2024_08_13[] {
+    return Array.isArray(data);
+  }
+
+  describe("Recurring bookings", () => {
+    let app: INestApplication;
+    let organization: Team;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let schedulesService: SchedulesService_2024_04_15;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let oAuthClient: PlatformOAuthClient;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+
+    const userEmail = "bookings-controller-e2e@api.com";
+    let user: User;
+
+    const maxRecurrenceCount = 3;
+    let recurringEventTypeId: number;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+
+      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      oAuthClient = await createOAuthClient(organization.id);
+
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+      });
+
+      const userSchedule: CreateScheduleInput_2024_04_15 = {
+        name: "working time",
+        timeZone: "Europe/Rome",
+        isDefault: true,
+      };
+      await schedulesService.createUserSchedule(user.id, userSchedule);
+
+      const recurringEvent = await eventTypesRepositoryFixture.create(
+        // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
+        {
+          title: "peer coding recurring",
+          slug: "peer-coding-recurring",
+          length: 60,
+          recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
+        },
+        user.id
+      );
+      recurringEventTypeId = recurringEvent.id;
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["http://localhost:5555"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
     }
+
+    it("should not create recurring booking with recurrenceCount larger than event type recurrence count", async () => {
+      const recurrenceCount = 1000;
+
+      const body: CreateRecurringBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),
+        eventTypeId: recurringEventTypeId,
+        attendee: {
+          name: "Mr Proper Recurring",
+          email: "mr_proper_recurring@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        recurrenceCount,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(400);
+    });
+
+    it("should create a recurring booking with recurrenceCount smaller than event type recurrence count", async () => {
+      const recurrenceCount = maxRecurrenceCount - 1;
+      const body: CreateRecurringBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),
+        eventTypeId: recurringEventTypeId,
+        attendee: {
+          name: "Mr Proper Recurring",
+          email: "mr_proper_recurring@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        recurrenceCount,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsRecurringBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsRecurringBooking(responseBody.data)) {
+            const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
+            expect(data.length).toEqual(maxRecurrenceCount - 1);
+
+            const firstBooking = data[0];
+            expect(firstBooking.id).toBeDefined();
+            expect(firstBooking.uid).toBeDefined();
+            expect(firstBooking.hosts[0].id).toEqual(user.id);
+            expect(firstBooking.status).toEqual("accepted");
+            expect(firstBooking.start).toEqual(new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString());
+            expect(firstBooking.end).toEqual(new Date(Date.UTC(2030, 1, 4, 14, 0, 0)).toISOString());
+            expect(firstBooking.duration).toEqual(60);
+            expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
+            expect(firstBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(firstBooking.location).toEqual(body.location);
+            expect(firstBooking.recurringBookingUid).toBeDefined();
+            expect(firstBooking.absentHost).toEqual(false);
+
+            const secondBooking = data[1];
+            expect(secondBooking.id).toBeDefined();
+            expect(secondBooking.uid).toBeDefined();
+            expect(secondBooking.hosts[0].id).toEqual(user.id);
+            expect(secondBooking.status).toEqual("accepted");
+            expect(secondBooking.start).toEqual(new Date(Date.UTC(2030, 1, 11, 13, 0, 0)).toISOString());
+            expect(secondBooking.end).toEqual(new Date(Date.UTC(2030, 1, 11, 14, 0, 0)).toISOString());
+            expect(secondBooking.duration).toEqual(60);
+            expect(secondBooking.eventTypeId).toEqual(recurringEventTypeId);
+            expect(secondBooking.recurringBookingUid).toBeDefined();
+            expect(secondBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(secondBooking.location).toEqual(body.location);
+            expect(secondBooking.absentHost).toEqual(false);
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
+    it("should create a recurring booking with recurrenceCount equal to event type recurrence count", async () => {
+      const recurrenceCount = maxRecurrenceCount;
+      const body: CreateRecurringBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),
+        eventTypeId: recurringEventTypeId,
+        attendee: {
+          name: "Mr Proper Recurring",
+          email: "mr_proper_recurring@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        recurrenceCount,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsRecurringBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsRecurringBooking(responseBody.data)) {
+            const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
+            expect(data.length).toEqual(maxRecurrenceCount);
+
+            const firstBooking = data[0];
+            expect(firstBooking.id).toBeDefined();
+            expect(firstBooking.uid).toBeDefined();
+            expect(firstBooking.hosts[0].id).toEqual(user.id);
+            expect(firstBooking.status).toEqual("accepted");
+            expect(firstBooking.start).toEqual(new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString());
+            expect(firstBooking.end).toEqual(new Date(Date.UTC(2030, 1, 4, 14, 0, 0)).toISOString());
+            expect(firstBooking.duration).toEqual(60);
+            expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
+            expect(firstBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(firstBooking.location).toEqual(body.location);
+            expect(firstBooking.meetingUrl).toEqual(body.location);
+            expect(firstBooking.recurringBookingUid).toBeDefined();
+            expect(firstBooking.absentHost).toEqual(false);
+
+            const secondBooking = data[1];
+            expect(secondBooking.id).toBeDefined();
+            expect(secondBooking.uid).toBeDefined();
+            expect(secondBooking.hosts[0].id).toEqual(user.id);
+            expect(secondBooking.status).toEqual("accepted");
+            expect(secondBooking.start).toEqual(new Date(Date.UTC(2030, 1, 11, 13, 0, 0)).toISOString());
+            expect(secondBooking.end).toEqual(new Date(Date.UTC(2030, 1, 11, 14, 0, 0)).toISOString());
+            expect(secondBooking.duration).toEqual(60);
+            expect(secondBooking.eventTypeId).toEqual(recurringEventTypeId);
+            expect(secondBooking.recurringBookingUid).toBeDefined();
+            expect(secondBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(secondBooking.location).toEqual(body.location);
+            expect(secondBooking.absentHost).toEqual(false);
+
+            const thirdBooking = data[2];
+            expect(thirdBooking.id).toBeDefined();
+            expect(thirdBooking.uid).toBeDefined();
+            expect(thirdBooking.hosts[0].id).toEqual(user.id);
+            expect(thirdBooking.status).toEqual("accepted");
+            expect(thirdBooking.start).toEqual(new Date(Date.UTC(2030, 1, 18, 13, 0, 0)).toISOString());
+            expect(thirdBooking.end).toEqual(new Date(Date.UTC(2030, 1, 18, 14, 0, 0)).toISOString());
+            expect(thirdBooking.duration).toEqual(60);
+            expect(thirdBooking.eventTypeId).toEqual(recurringEventTypeId);
+            expect(thirdBooking.recurringBookingUid).toBeDefined();
+            expect(thirdBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(thirdBooking.location).toEqual(body.location);
+            expect(thirdBooking.absentHost).toEqual(false);
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
+    afterEach(async () => {
+      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+    });
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);

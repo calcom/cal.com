@@ -25,6 +25,7 @@ export interface BookerProps {
    * Whether is a team or org, we gather basic info from both
    */
   entity: {
+    fromRedirectOfNonOrgLink?: boolean;
     considerUnpublished: boolean;
     isUnpublished?: boolean;
     orgSlug?: string | null;
@@ -151,4 +152,5 @@ export type CustomClassNames = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
+  atomsWrapper: string;
 };

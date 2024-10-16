@@ -53,10 +53,22 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      parent: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
       team: {
         select: {
           id: true,
           bookingLimits: true,
+          includeManagedEventsInLimits: true,
         },
       },
       hosts: {
@@ -64,6 +76,21 @@ const _getEventType = async (id: number) => {
           user: {
             select: {
               email: true,
+              id: true,
+            },
+          },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
             },
           },
         },
@@ -270,7 +297,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
-  const schedule = eventType?.schedule ? eventType.schedule : userSchedule;
+  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+
+  const schedule = eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule;
 
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
@@ -287,20 +316,27 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           duration,
           eventType,
           initialData?.busyTimesFromLimitsBookings ?? [],
+          timeZone,
           initialData?.rescheduleUid ?? undefined
         )
       : [];
 
-  const teamBookingLimits = parseBookingLimit(eventType?.team?.bookingLimits);
+  const teamForBookingLimits =
+    eventType?.team ??
+    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+  const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
   const busyTimesFromTeamLimits =
-    eventType?.team && teamBookingLimits
+    teamForBookingLimits && teamBookingLimits
       ? await getBusyTimesFromTeamLimits(
           user,
           teamBookingLimits,
           dateFrom.tz(timeZone),
           dateTo.tz(timeZone),
-          eventType?.team.id,
+          teamForBookingLimits.id,
+          teamForBookingLimits.includeManagedEventsInLimits,
+          timeZone,
           initialData?.rescheduleUid ?? undefined
         )
       : [];
@@ -339,7 +375,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ...busyTimesFromTeamLimits,
   ];
 
-  const isDefaultSchedule = userSchedule && userSchedule.id === schedule.id;
+  const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
     "Using schedule:",
@@ -347,6 +383,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       chosenSchedule: schedule,
       eventTypeSchedule: eventType?.schedule,
       userSchedule: userSchedule,
+      hostSchedule: hostSchedule,
     })
   );
 
@@ -460,6 +497,7 @@ const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: Int
   const dates = [];
   let startDate = dayjs(dateFrom).startOf(period);
   const endDate = dayjs(dateTo).endOf(period);
+
   while (startDate.isBefore(endDate)) {
     dates.push(startDate);
     startDate = startDate.add(1, period);
