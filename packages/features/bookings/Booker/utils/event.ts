@@ -19,12 +19,11 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = ({
-  fromRedirectOfNonOrgLink,
-}: { fromRedirectOfNonOrgLink?: boolean } | undefined) => {
-  const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
-  const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
-  const org = useBookerStore((state) => state.org);
+export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean }) => {
+  const [username, eventSlug, isTeamEvent, org] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
+    shallow
+  );
 
   const event = trpc.viewer.public.event.useQuery(
     {
@@ -32,7 +31,7 @@ export const useEvent = ({
       eventSlug: eventSlug ?? "",
       isTeamEvent,
       org: org ?? null,
-      fromRedirectOfNonOrgLink,
+      fromRedirectOfNonOrgLink: props?.fromRedirectOfNonOrgLink,
     },
     {
       refetchOnWindowFocus: false,
