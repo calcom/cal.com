@@ -241,7 +241,14 @@ const EventTypeWeb = ({
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} user={user} />,
+    availability: (
+      <EventAvailabilityTab
+        eventType={eventType}
+        isTeamEvent={!!team}
+        user={user}
+        teamMembers={teamMembers}
+      />
+    ),
     team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: (

@@ -52,10 +52,13 @@ model Host {
   weight           Int?
   // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
   weightAdjustment Int?
+  schedule         Schedule? @relation(fields: [scheduleId], references: [id])
+  scheduleId       Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model EventType {
@@ -645,6 +648,7 @@ model Schedule {
   name                 String
   timeZone             String?
   availability         Availability[]
+  Host                 Host[]
 
   @@index([userId])
 }
