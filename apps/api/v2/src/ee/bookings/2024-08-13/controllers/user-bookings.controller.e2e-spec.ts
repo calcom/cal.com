@@ -1985,7 +1985,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
-            expect(data.status).toEqual("accepted");
+            expect(data.status).toEqual("cancelled");
             expect(data.start).toEqual(createdSeatedBooking.start);
             expect(data.end).toEqual(createdSeatedBooking.end);
             expect(data.duration).toEqual(60);
@@ -1994,20 +1994,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               id: seatedEventTypeId,
               slug: seatedTventTypeSlug,
             });
-            expect(data.attendees.length).toEqual(1);
-            const attendee = createdSeatedBooking.attendees.find((a) => a.seatUid === body.seatUid);
-            expect(data.attendees[0]).toEqual({
-              name: attendee?.name,
-              timeZone: attendee?.timeZone,
-              language: attendee?.language,
-              absent: false,
-              seatUid: createdSeatedBooking.seatUid,
-              bookingFieldsResponses: {
-                name: attendee?.name,
-                email: "mr_proper_friend@gmail.com",
-                ...attendee?.bookingFieldsResponses,
-              },
-            });
+            expect(data.attendees.length).toEqual(0);
             expect(data.location).toBeDefined();
             expect(data.absentHost).toEqual(false);
           } else {

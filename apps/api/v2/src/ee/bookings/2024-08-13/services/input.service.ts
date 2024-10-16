@@ -486,7 +486,7 @@ export class InputBookingsService_2024_08_13 {
     inputBooking: CancelSeatedBookingInput_2024_08_13
   ) {
     let allRemainingBookings = false;
-    let uid = inputBooking.seatUid;
+    let uid = bookingUid;
     const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
       bookingUid
     );
@@ -502,6 +502,7 @@ export class InputBookingsService_2024_08_13 {
       uid,
       cancellationReason: "",
       allRemainingBookings,
+      seatReferenceUid: inputBooking.seatUid,
     };
   }
 
