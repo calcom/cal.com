@@ -19,7 +19,7 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = () => {
+export const useEvent = ({ fromRedirectOfNonOrgLink }: { fromRedirectOfNonOrgLink?: boolean }) => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
   const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   const org = useBookerStore((state) => state.org);
@@ -30,8 +30,12 @@ export const useEvent = () => {
       eventSlug: eventSlug ?? "",
       isTeamEvent,
       org: org ?? null,
+      fromRedirectOfNonOrgLink,
     },
-    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
+    {
+      refetchOnWindowFocus: false,
+      enabled: Boolean(username) && Boolean(eventSlug),
+    }
   );
 
   return {
@@ -66,6 +70,7 @@ export const useScheduleForEvent = ({
   selectedDate,
   orgSlug,
   teamMemberEmail,
+  fromRedirectOfNonOrgLink,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -78,9 +83,10 @@ export const useScheduleForEvent = ({
   selectedDate?: string | null;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  fromRedirectOfNonOrgLink?: boolean;
 } = {}) => {
   const { timezone } = useTimePreferences();
-  const event = useEvent();
+  const event = useEvent({ fromRedirectOfNonOrgLink });
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
