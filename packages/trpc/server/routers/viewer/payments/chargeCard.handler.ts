@@ -81,9 +81,13 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     },
   };
 
+  const idToSearchObject = booking.eventType?.teamId
+    ? { teamId: booking.eventType.teamId }
+    : { userId: ctx.user.id };
+
   const paymentCredential = await prisma.credential.findFirst({
     where: {
-      userId: ctx.user.id,
+      ...idToSearchObject,
       appId: booking.payment[0].appId,
     },
     include: {

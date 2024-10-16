@@ -87,13 +87,13 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
             )}
 
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && team && (
-              <>
+              <div className="mb-6">
                 <MemberList
                   team={team}
                   isOrgAdminOrOwner={isOrgAdminOrOwner}
                   setShowMemberInvitationModal={setShowMemberInvitationModal}
                 />
-              </>
+              </div>
             )}
             {showMemberInvitationModal && team && team.id && (
               <MemberInvitationModalWithoutMembers
