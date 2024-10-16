@@ -299,6 +299,7 @@ export const getBusyTimesFromGlobalBookingLimits = async (
 
 const _getBusyTimesFromGlobalBookingLimits = async (
   userId: number,
+  userEmail: string,
   bookingLimits: IntervalLimit,
   dateFrom: Dayjs,
   dateTo: Dayjs,
@@ -318,6 +319,9 @@ const _getBusyTimesFromGlobalBookingLimits = async (
     },
     endTime: {
       lte: limitDateTo.toDate(),
+    },
+    eventType: {
+      schedulingType: null,
     },
   };
 
@@ -361,6 +365,7 @@ const _getBusyTimesFromGlobalBookingLimits = async (
     eventTypeId: undefined,
     limitManager,
     rescheduleUid,
+    user: { id: userId, email: userEmail },
     isGlobalBookingLimits: true,
   });
 

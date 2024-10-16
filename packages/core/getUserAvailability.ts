@@ -337,6 +337,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     if (globalBookingLimits) {
       busyTimesFromGlobalBookingLimits = await getBusyTimesFromGlobalBookingLimits(
         user.id,
+        user.email,
         globalBookingLimits,
         dateFrom.tz(timeZone),
         dateTo.tz(timeZone),
