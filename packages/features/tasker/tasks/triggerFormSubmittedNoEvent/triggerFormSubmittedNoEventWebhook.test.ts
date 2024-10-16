@@ -48,10 +48,9 @@ function expectFormSubmittedNoEventWebhookToBeCalled(
   expect(parsedBody.payload).toEqual(webhookPayload);
 }
 
-describe("Form submitted but no event booking trigger", () => {
+describe("Form submitted, no event booked trigger", () => {
   beforeEach(() => {
-    vi.clearAllMocks(); // Ensures clean state for each test
-    prismaMock.booking.findFirst.mockReset();
+    vi.clearAllMocks();
   });
   it(`should trigger when form was submitted but no booking was made`, async () => {
     const payload = {
@@ -63,7 +62,7 @@ describe("Form submitted but no event booking trigger", () => {
         },
       },
       form: {
-        id: "6789",
+        id: "1234",
         name: "Test Form 1",
         teamId: null,
       },
@@ -78,11 +77,44 @@ describe("Form submitted but no event booking trigger", () => {
     };
     const payloadString = JSON.stringify(payload);
 
+    prismaMock.booking.findFirst.mockResolvedValue(null);
+
+    const booking = await prismaMock.booking.findFirst();
+
+    await triggerFormSubmittedNoEventWebhook(payloadString);
+
+    expectFormSubmittedNoEventWebhookToBeCalled(payload);
+  });
+
+  it(`should not trigger when form was submitted and also booking was made after`, async () => {
+    const payload = {
+      responseId: 1,
+      responses: {
+        "Test field 2": {
+          value: "Test input 2",
+          response: "Test input 2",
+        },
+      },
+      form: {
+        id: "6789",
+        name: "Test Form 2",
+        teamId: null,
+      },
+      webhook: {
+        subscriberUrl: "https://example2.com",
+        appId: null,
+        payloadTemplate: null,
+        secret: null,
+      },
+    } satisfies ResponseData & {
+      webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate" | "secret">;
+    };
+    const payloadString = JSON.stringify(payload);
+
     prismaMock.booking.findFirst.mockResolvedValue({ id: 5 });
 
     const booking = await prismaMock.booking.findFirst();
 
-    console.log(`booking ${JSON.stringify(booking)}`);
     await triggerFormSubmittedNoEventWebhook(payloadString);
 
     const webhooksToSubscriberUrl = fetchMock.mock.calls.filter((call) => {

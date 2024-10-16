@@ -4,7 +4,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 type ScheduleNoShowTriggersArgs = {
-  booking?: {
+  booking: {
     startTime: Date;
     id: number;
   };
