@@ -4,8 +4,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
 
+// import { SchedulingType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { mapEventType } from "./util";
@@ -50,7 +50,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
         {
           where: {
             teamId: null,
-            OR: [{ schedulingType: { not: SchedulingType.MANAGED } }, { schedulingType: null }],
+            schedulingType: null,
           },
           orderBy: [
             {
