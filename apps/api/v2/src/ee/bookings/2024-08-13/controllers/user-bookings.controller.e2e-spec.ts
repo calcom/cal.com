@@ -1586,7 +1586,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               seatUid,
               bookingFieldsResponses: {
                 name: body.attendee.name,
-                email: body.attendee.email,
                 ...body.bookingFieldsResponses,
               },
             });
@@ -1656,7 +1655,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               seatUid: createdSeatedBooking.seatUid,
               bookingFieldsResponses: {
                 name: createdSeatedBooking.attendees[0].name,
-                email: createdSeatedBooking.attendees[0].bookingFieldsResponses.email,
                 ...createdSeatedBooking.attendees[0].bookingFieldsResponses,
               },
             });
@@ -1669,7 +1667,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               seatUid,
               bookingFieldsResponses: {
                 name: body.attendee.name,
-                email: body.attendee.email,
                 ...body.bookingFieldsResponses,
               },
             });
@@ -1743,7 +1740,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               seatUid,
               bookingFieldsResponses: {
                 name: body.attendee.name,
-                email: body.attendee.email,
                 ...body.bookingFieldsResponses,
               },
             });
@@ -1777,7 +1773,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               seatUid: secondSeatUid,
               bookingFieldsResponses: {
                 name: body.attendee.name,
-                email: body.attendee.email,
                 ...body.bookingFieldsResponses,
               },
             });
@@ -1951,7 +1946,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               seatUid,
               bookingFieldsResponses: {
                 name: attendee?.name,
-                email: "mr_proper_friend@gmail.com",
                 ...attendee?.bookingFieldsResponses,
               },
             });

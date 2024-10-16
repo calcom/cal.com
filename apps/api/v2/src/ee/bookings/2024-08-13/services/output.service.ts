@@ -228,6 +228,8 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      // note(Lauris): as of now email is not returned for privacy
+      delete attendeeParsed.bookingFieldsResponses.email;
 
       return attendeeParsed;
     });
@@ -279,6 +281,8 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      // note(Lauris): as of now email is not returned for privacy
+      delete attendeeParsed.bookingFieldsResponses.email;
 
       return attendeeParsed;
     });
@@ -333,6 +337,8 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      // note(Lauris): as of now email is not returned for privacy
+      delete attendeeParsed.bookingFieldsResponses.email;
 
       return attendeeParsed;
     });
@@ -388,6 +394,8 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
+      // note(Lauris): as of now email is not returned for privacy
+      delete attendeeParsed.bookingFieldsResponses.email;
 
       return attendeeParsed;
     });
