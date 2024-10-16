@@ -73,6 +73,7 @@ import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCred
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import { buildLuckyUsersWithJustContactOwner } from "./handleNewBooking/buildLuckyUsersWithJustContactOwner";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -131,36 +132,6 @@ type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
-/**
- * Adds the contact owner to be the only lucky user
- * @returns
- */
-function buildLuckyUsersWithJustContactOwner({
-  contactOwnerEmail,
-  availableUsers,
-  fixedUserPool,
-}: {
-  contactOwnerEmail: string | null;
-  availableUsers: IsFixedAwareUser[];
-  fixedUserPool: IsFixedAwareUser[];
-}) {
-  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>> = [];
-  if (!contactOwnerEmail) {
-    return luckyUsers;
-  }
-
-  const isContactOwnerAFixedHostAlready = fixedUserPool.some((user) => user.email === contactOwnerEmail);
-  if (isContactOwnerAFixedHostAlready) {
-    return luckyUsers;
-  }
-
-  const teamMember = availableUsers.find((user) => user.email === contactOwnerEmail);
-  if (teamMember) {
-    luckyUsers.push(teamMember);
-  }
-  return luckyUsers;
-}
-
 type HandlerReqType = NextApiRequest & {
   userId?: number | undefined;
   platformClientId?: string;
@@ -168,6 +139,32 @@ type HandlerReqType = NextApiRequest & {
   platformCancelUrl?: string;
   platformBookingUrl?: string;
   platformBookingLocation?: string;
+};
+
+const checkIsFirstSeat = async ({
+  seatsPerTimeSlot,
+  reqBodyStart,
+  eventTypeId,
+}: {
+  eventTypeId: number;
+  seatsPerTimeSlot?: number;
+  reqBodyStart: string;
+}) => {
+  if (!seatsPerTimeSlot) return true;
+
+  const booking = await prisma.booking.findFirst({
+    where: {
+      eventTypeId,
+      startTime: new Date(dayjs(reqBodyStart).utc().format()),
+      status: BookingStatus.ACCEPTED,
+    },
+  });
+
+  if (booking) {
+    return false;
+  }
+
+  return true;
 };
 
 async function handler(
@@ -318,19 +315,12 @@ async function handler(
     : null;
 
   let luckyUserResponse;
-  let isFirstSeat = true;
 
-  if (eventType.seatsPerTimeSlot) {
-    const booking = await prisma.booking.findFirst({
-      where: {
-        eventTypeId: eventType.id,
-        startTime: new Date(dayjs(reqBody.start).utc().format()),
-        status: BookingStatus.ACCEPTED,
-      },
-    });
-
-    if (booking) isFirstSeat = false;
-  }
+  const isFirstSeat = await checkIsFirstSeat({
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+    reqBodyStart: reqBody.start,
+    eventTypeId,
+  });
 
   //checks what users are available
   if (isFirstSeat) {
@@ -347,29 +337,32 @@ async function handler(
       }),
     };
     if (req.body.allRecurringDates && req.body.isFirstRecurringSlot) {
-      const isTeamEvent =
-        eventType.schedulingType === SchedulingType.COLLECTIVE ||
-        eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+      const isTeamEvent = [SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN].includes(
+        eventType.schedulingType
+      );
 
       const fixedUsers = isTeamEvent
         ? eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed)
         : [];
 
-      for (
-        let i = 0;
-        i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
-        i++
-      ) {
-        const start = req.body.allRecurringDates[i].start;
-        const end = req.body.allRecurringDates[i].end;
+      const numSlotsToCheck = Math.min(
+        req.body.allRecurringDates.length,
+        req.body.numSlotsToCheckForAvailability
+      );
+
+      for (let i = 0; i < numSlotsToCheck; i++) {
+        const { start, end } = req.body.allRecurringDates[i];
+        const dateFrom = dayjs(start).tz(reqBody.timeZone).format();
+        const dateTo = dayjs(end).tz(reqBody.timeZone).format();
+
         if (isTeamEvent) {
           // each fixed user must be available
           for (const key in fixedUsers) {
             await ensureAvailableUsers(
               { ...eventTypeWithUsers, users: [fixedUsers[key]] },
               {
-                dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-                dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                dateFrom,
+                dateTo,
                 timeZone: reqBody.timeZone,
                 originalRescheduledBooking,
               },
@@ -380,8 +373,8 @@ async function handler(
           await ensureAvailableUsers(
             eventTypeWithUsers,
             {
-              dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-              dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+              dateFrom,
+              dateTo,
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
