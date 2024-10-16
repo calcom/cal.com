@@ -20,6 +20,7 @@ import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { usePlatformTabsNavigations } from "../hooks/usePlatformTabsNavigations";
 import EventAdvancedPlatformWrapper from "./EventAdvancedPlatformWrapper";
+import EventAvailabilityTabPlatformWrapper from "./EventAvailabilityTabPlatformWrapper";
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
 import SetupTab from "./EventSetupTabPlatformWrapper";
@@ -34,6 +35,9 @@ export type EventTypePlatformWrapperProps = {
   onDeleteSuccess?: () => void;
   onDeleteError?: (msg: string) => void;
   allowDelete: boolean;
+  customClassNames?: {
+    atomsWrapper?: string;
+  };
 };
 
 const EventType = ({
@@ -44,6 +48,7 @@ const EventType = ({
   onDeleteError,
   id,
   allowDelete = true,
+  customClassNames,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -115,7 +120,11 @@ const EventType = ({
     ) : (
       <></>
     ),
-    availability: <></>,
+    availability: tabs.includes("availability") ? (
+      <EventAvailabilityTabPlatformWrapper eventType={eventType} isTeamEvent={!!team} user={user?.data} />
+    ) : (
+      <></>
+    ),
     team: <></>,
     advanced: tabs.includes("advanced") ? (
       <EventAdvancedPlatformWrapper
@@ -180,7 +189,7 @@ const EventType = ({
     tabs,
   });
   return (
-    <AtomsWrapper>
+    <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <EventTypeComponent
         {...props}
         tabMap={tabMap}
@@ -223,6 +232,7 @@ export const EventTypePlatformWrapper = ({
   onDeleteSuccess,
   onDeleteError,
   allowDelete = true,
+  customClassNames,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -253,6 +263,7 @@ export const EventTypePlatformWrapper = ({
       onDeleteSuccess={onDeleteSuccess}
       onDeleteError={onDeleteError}
       allowDelete={allowDelete}
+      customClassNames={customClassNames}
     />
   );
 };
