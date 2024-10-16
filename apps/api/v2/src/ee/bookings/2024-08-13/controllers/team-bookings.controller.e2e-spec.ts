@@ -441,6 +441,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
       await userRepositoryFixture.deleteByEmail(teamUser.email);
+      await userRepositoryFixture.deleteByEmail(teamUserEmail2);
       await bookingsRepositoryFixture.deleteAllBookings(teamUser.id, teamUser.email);
       await app.close();
     });
