@@ -21,6 +21,7 @@ import { VariableNode } from "./nodes/VariableNode";
 import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import EditablePlugin from "./plugins/EditablePlugin";
+import PlainTextPlugin from "./plugins/PlainTextPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
@@ -45,6 +46,7 @@ export type TextEditorProps = {
   firstRender?: boolean;
   setFirstRender?: Dispatch<SetStateAction<boolean>>;
   editable?: boolean;
+  plainText?: boolean;
 };
 
 const editorConfig = {
@@ -71,6 +73,7 @@ const editorConfig = {
 
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
+  const plainText = props.plainText ?? false;
   return (
     <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig }}>
@@ -122,6 +125,7 @@ export const Editor = (props: TextEditorProps) => {
           </div>
         </div>
         <EditablePlugin editable={editable} />
+        <PlainTextPlugin setText={props.setText} plainText={plainText} />
       </LexicalComposer>
     </div>
   );
