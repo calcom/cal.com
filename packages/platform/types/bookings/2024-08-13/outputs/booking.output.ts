@@ -255,16 +255,39 @@ export class GetRecurringSeatedBookingOutput_2024_08_13 extends BaseBookingOutpu
   recurringBookingUid!: string;
 }
 
-export class CreateSeatedBookingOutput_2024_08_13 extends GetSeatedBookingOutput_2024_08_13 {
+// note(Lauris): CreateSeatedBookingOutput_2024_08_13 is the same as GetSeatedBookingOutput_2024_08_13 except it has seatUid, so instead of extending BaseBookingOutput_2024_08_13
+// we could extend GetSeatedBookingOutput_2024_08_13 but the problem then is that attendees end up at the top of the response even above id
+// or uid keys making it harder to read and understand the response, so i decided to duplicate the fields here and the response is as expected - with seatUid and attendees at the bottom.
+export class CreateSeatedBookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
   @ApiProperty({ type: String, example: "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1" })
   @IsString()
   @Expose()
   seatUid!: string;
+
+  @ApiProperty({ type: [SeatedAttendee] })
+  @ValidateNested({ each: true })
+  @Type(() => SeatedAttendee)
+  @Expose()
+  attendees!: SeatedAttendee[];
 }
 
-export class CreateRecurringSeatedBookingOutput_2024_08_13 extends GetRecurringSeatedBookingOutput_2024_08_13 {
+// note(Lauris): CreateRecurringSeatedBookingOutput_2024_08_13 is the same as GetRecurringSeatedBookingOutput_2024_08_13 except it has seatUid, so instead of extending BaseBookingOutput_2024_08_13
+// we could extend GetRecurringSeatedBookingOutput_2024_08_13 but the problem then is that attendees and recurringBookingUid end up at the top of the response even above id
+// or uid keys making it harder to read and understand the response, so i decided to duplicate the fields here and the response is as expected - with seatUid, attendees and recurringBookingUid at the bottom.
+export class CreateRecurringSeatedBookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
   @ApiProperty({ type: String, example: "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1" })
   @IsString()
   @Expose()
   seatUid!: string;
+
+  @ApiProperty({ type: [SeatedAttendee] })
+  @ValidateNested({ each: true })
+  @Type(() => SeatedAttendee)
+  @Expose()
+  attendees!: SeatedAttendee[];
+
+  @ApiProperty({ type: String, example: "recurring_uid_987" })
+  @IsString()
+  @Expose()
+  recurringBookingUid!: string;
 }

@@ -3149,16 +3149,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelBookingInput_2024_08_13"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -12649,10 +12639,10 @@
                 "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
               },
               {
-                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+                "$ref": "#/components/schemas/CreateSeatedBookingOutput_2024_08_13"
               },
               {
-                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                "$ref": "#/components/schemas/CreateRecurringSeatedBookingOutput_2024_08_13"
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object or a RecurringBookingOutput object"
@@ -12661,18 +12651,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "CancelBookingInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "cancellationReason": {
-            "type": "string",
-            "example": "User requested cancellation"
-          }
-        },
-        "required": [
-          "cancellationReason"
         ]
       },
       "CancelBookingOutput_2024_08_13": {
