@@ -2,13 +2,11 @@ import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
-import type { ResponseData } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -188,33 +186,6 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute({
 
   return teamMembersMatchingAttributeLogic;
 }
-
-export const scheduleFormSubmittedNoEventTriggers = async ({
-  webhooks,
-  response,
-}: {
-  webhooks: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate" | "secret">[];
-  response: ResponseData;
-}) => {
-  const formSubmittedNoEventPromises: Promise<any>[] = [];
-
-  formSubmittedNoEventPromises.push(
-    ...webhooks.map((webhook) => {
-      // check 10 minutes after submission if booking was created
-      const scheduledAt = dayjs().add(10, "minute").toDate();
-      return tasker.create(
-        "triggerFormSubmittedNoEventWebhook",
-        {
-          ...response,
-          webhook,
-        },
-        { scheduledAt }
-      );
-    })
-  );
-
-  await Promise.all(formSubmittedNoEventPromises);
-};
 
 export async function onFormSubmission(
   form: Ensure<
