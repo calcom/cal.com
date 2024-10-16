@@ -42,7 +42,6 @@ const assertSelectOperators = (config: any) => {
   expect(config.types.select.widgets.multiselect.operators).not.toContain("select_equals");
   expect(config.types.select.widgets.multiselect.operators).not.toContain("select_not_equals");
 
-
   expect(config.types.select.widgets.select.operators).toContain("select_equals");
   expect(config.types.select.widgets.select.operators).toContain("select_not_equals");
 
