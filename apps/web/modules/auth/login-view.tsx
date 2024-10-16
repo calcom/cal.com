@@ -12,6 +12,7 @@ import { z } from "zod";
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
@@ -59,7 +60,7 @@ PageProps & WithNonceProps<{}>) {
       email: z
         .string()
         .min(1, `${t("error_required_field")}`)
-        .email(`${t("enter_valid_email")}`),
+        .regex(emailRegex, `${t("enter_valid_email")}`),
       ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode

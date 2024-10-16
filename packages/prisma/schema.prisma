@@ -52,10 +52,13 @@ model Host {
   weight           Int?
   // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
   weightAdjustment Int?
+  schedule         Schedule? @relation(fields: [scheduleId], references: [id])
+  scheduleId       Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model EventType {
@@ -202,7 +205,7 @@ model DestinationCalendar {
   id           Int         @id @default(autoincrement())
   integration  String
   externalId   String
-  /// @zod.email()
+  /// @zod.custom(imports.emailSchema)
   primaryEmail String?
   user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
@@ -247,7 +250,7 @@ model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
   name                String?
-  /// @zod.email()
+  /// @zod.custom(imports.emailSchema)
   email               String
   emailVerified       DateTime?
   password            UserPassword?
@@ -581,7 +584,7 @@ model Booking {
   user                         User?                          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                       Int?
   // User's email at the time of booking
-  /// @zod.email()
+  /// @zod.custom(imports.emailSchema)
   userPrimaryEmail             String?
   references                   BookingReference[]
   eventType                    EventType?                     @relation(fields: [eventTypeId], references: [id])
@@ -648,6 +651,7 @@ model Schedule {
   name                 String
   timeZone             String?
   availability         Availability[]
+  Host                 Host[]
 
   @@index([userId])
 }
