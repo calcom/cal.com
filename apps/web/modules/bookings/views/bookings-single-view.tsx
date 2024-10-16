@@ -234,7 +234,10 @@ export default function Success(props: PageProps) {
   const giphyImage = giphyAppData?.thankYouPage;
   const isRoundRobin = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  const eventName = getEventName(eventNameObject, true);
+  const startTime = String(bookingInfo.startTime);
+  const endTime = String(bookingInfo.endTime);
+
+  const eventName = getEventName(eventNameObject, true, startTime, endTime);
   // Confirmation can be needed in two cases as of now
   // - Event Type has require confirmation option enabled always
   // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
