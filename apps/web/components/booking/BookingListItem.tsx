@@ -69,16 +69,17 @@ type BookingItemProps = BookingItem & {
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
-type TeamEventTypeBooking = Omit<ParsedBooking, "eventType"> & {
+type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
   eventType: TeamEvent;
 };
-type ReroutableBooking = Ensure<TeamEventTypeBooking, "routedFromRoutingFormReponse">;
+type ReroutableBooking = Ensure<TeamEventBooking, "routedFromRoutingFormReponse">;
 
 function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
         typeof booking.eventType,
+        // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
         "id" | "length" | "title" | "slug" | "schedulingType" | "users" | "team"
       >)
     : null;
@@ -92,6 +93,10 @@ function buildParsedBooking(booking: BookingItemProps) {
 }
 
 const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooking => {
+  // We support only team bookings for now for rerouting
+  // Though `routedFromRoutingFormReponse` could be there for a non-team booking, we don't want to support it for now.
+  // Let's not support re-routing for a booking without an event-type for now.
+  // Such a booking has its event-type deleted and there might not be something to reroute to.
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
@@ -222,8 +227,6 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenRescheduleDialog(true);
       },
     },
-    // Only a Team Booking can be re-routed at the moment.
-    // Though `routedFromRoutingFormReponse` could be there for a non-team booking, we don't want to support it for now.
     ...(isBookingReroutable(parsedBooking)
       ? [
           {
@@ -667,10 +670,6 @@ function BookingListItem(booking: BookingItemProps) {
           )}
         </td>
       </tr>
-      {/* 
-        Let's not support re-routing for a booking without an event-type for now.
-        Such a booking has its event-type deleted and there might not be something to reroute to.
-      */}
       {isBookingReroutable(parsedBooking) && (
         <RerouteDialog
           isOpenDialog={rerouteDialogIsOpen}

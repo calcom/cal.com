@@ -7,6 +7,7 @@
 - [x] Fix bug with Multiselect attribute
 - [x] Connect Form Response to Booking
 - [x] Test with non option based attributes and form field input
+- [x] We might want to disable attributes query builder for non-orgs. Same for Re-routing.
 - [ ] Switching from Select to MultiSelect in attribute 
     - [x] It immediately makes the Routing logic to not work. Fix it.
     - [ ] It removes the selected option from Routing. Fix it.

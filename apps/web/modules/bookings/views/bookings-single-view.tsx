@@ -390,8 +390,6 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
-  const hasAnOpener = typeof window !== "undefined" && window.opener;
-
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
@@ -758,12 +756,12 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
-                    {isRerouting && hasAnOpener && (
+                    {isRerouting && typeof window !== "undefined" && window.opener && (
                       <div className="flex justify-center">
                         <Button
                           type="button"
                           onClick={() => {
-                            window.opener?.focus();
+                            window.opener.focus();
                             window.close();
                           }}>
                           Go Back

@@ -52,7 +52,8 @@ export default function FormInputFields(props: FormInputFieldsProps) {
               listValues={options}
               data-testid={`form-field-${getFieldIdentifier(field)}`}
               setValue={(value: number | string | string[]) => {
-                setResponse(() => {
+                setResponse((response) => {
+                  response = response || {};
                   return {
                     ...response,
                     [field.id]: {
