@@ -42,6 +42,7 @@ const tabs = [
   "workflows",
   "webhooks",
   "ai",
+  "payments",
 ] as const;
 
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];

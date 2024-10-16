@@ -10,9 +10,15 @@ import { ErrorBoundary } from "@calcom/ui";
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
 import { DynamicComponent } from "./DynamicComponent";
 
+export type EventTypeApp = RouterOutputs["viewer"]["integrations"]["items"][number] & {
+  credentialOwner?: CredentialOwner;
+};
+
+export type EventTypeForAppCard = EventTypeAppCardComponentProps["eventType"];
+
 export const EventTypeAppCard = (props: {
-  app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
-  eventType: EventTypeAppCardComponentProps["eventType"];
+  app: EventTypeApp;
+  eventType: EventTypeForAppCard;
   getAppData: GetAppData;
   setAppData: SetAppData;
   // For event type apps, get these props from shouldLockDisableProps
