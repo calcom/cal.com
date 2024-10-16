@@ -340,10 +340,7 @@ const types: Types = {
     defaultOperator: "select_equals",
     widgets: {
       select: {
-        operators: [
-          "select_equals",
-          "select_not_equals",
-        ],
+        operators: ["select_equals", "select_not_equals"],
         widgetProps: {
           customProps: {
             showSearch: true,
@@ -351,10 +348,7 @@ const types: Types = {
         },
       },
       multiselect: {
-        operators: [
-          "select_any_in",
-          "select_not_any_in",
-        ],
+        operators: ["select_any_in", "select_not_any_in"],
       },
     },
   },
