@@ -89,6 +89,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {eventTypeId && (
           <div>
             <EventTypeSettings
+              customClassNames={{ atomsWrapper: "!w-[50vw] !m-auto" }}
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability"]}

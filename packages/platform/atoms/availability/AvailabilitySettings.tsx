@@ -339,7 +339,10 @@ export function AvailabilitySettings({
                   render={({ field: { value, onChange } }) => (
                     <Switch
                       id="hiddenSwitch"
-                      classNames={cn(customClassNames?.hiddenSwitchClassname)}
+                      classNames={{
+                        container: cn(customClassNames?.hiddenSwitchClassname?.container),
+                        thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
+                      }}
                       disabled={isSaving || schedule.isDefault}
                       checked={value}
                       onCheckedChange={(checked) => {
@@ -433,7 +436,10 @@ export function AvailabilitySettings({
                           name="isDefault"
                           render={({ field: { value, onChange } }) => (
                             <Switch
-                              className={cn(customClassNames?.hiddenSwitchClassname)}
+                              classNames={{
+                                container: cn(customClassNames?.hiddenSwitchClassname?.container),
+                                thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
+                              }}
                               id="hiddenSwitch"
                               disabled={isSaving || value}
                               checked={value}
