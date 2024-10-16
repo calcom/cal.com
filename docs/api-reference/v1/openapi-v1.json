@@ -1406,7 +1406,10 @@
                       "name": "Hello Hello",
                       "email": "hello@gmail.com",
                       "smsReminderNumber": null,
-                      "location": "Calcom HQ"
+                      "location": {
+                        "value": "userPhone",
+                        "optionValue": ""
+                      }
                     },
                     "timeZone": "Europe/London",
                     "language": "en",
