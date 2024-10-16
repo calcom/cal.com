@@ -2,7 +2,6 @@ import type { Prisma } from "@prisma/client";
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
-import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import {
@@ -11,7 +10,6 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -28,6 +26,8 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+
+import { scheduleCalVideoNoShowWebhookTasks } from "./scheduleCalVideoNoShowWebhookTasks";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -368,22 +368,6 @@ export async function handleConfirmation(args: {
       orgId,
     });
 
-    const subscribersHostsNoShowStarted = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-      teamId,
-      orgId,
-    });
-
-    const subscribersGuestsNoShowStarted = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-      teamId,
-      orgId,
-    });
-
     const scheduleTriggerPromises: Promise<unknown>[] = [];
 
     subscribersMeetingStarted.forEach((subscriber) => {
@@ -411,49 +395,16 @@ export async function handleConfirmation(args: {
       });
     });
 
-    scheduleTriggerPromises.push(
-      ...subscribersHostsNoShowStarted.map((webhook) => {
-        if (booking?.startTime && webhook.time && webhook.timeUnit) {
-          const scheduledAt = dayjs(booking.startTime)
-            .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-            .toDate();
-          return tasker.create(
-            "triggerHostNoShowWebhook",
-            {
-              triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-              bookingId: booking.id,
-              // Prevents null values from being serialized
-              webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
-            },
-            { scheduledAt }
-          );
-        }
-        return Promise.resolve();
-      })
-    );
+    const calVideoNoShowPromises = scheduleCalVideoNoShowWebhookTasks({
+      bookingStartTime: booking?.startTime,
+      bookingId: bookingId,
+      eventTypeId: booking.eventTypeId,
+      userId,
+      teamId,
+      orgId,
+    });
 
-    scheduleTriggerPromises.push(
-      ...subscribersGuestsNoShowStarted.map((webhook) => {
-        if (booking?.startTime && webhook.time && webhook.timeUnit) {
-          const scheduledAt = dayjs(booking.startTime)
-            .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-            .toDate();
-
-          return tasker.create(
-            "triggerGuestNoShowWebhook",
-            {
-              triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-              bookingId: booking.id,
-              // Prevents null values from being serialized
-              webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
-            },
-            { scheduledAt }
-          );
-        }
-
-        return Promise.resolve();
-      })
-    );
+    scheduleTriggerPromises.push(...calVideoNoShowPromises);
 
     await Promise.all(scheduleTriggerPromises);
 
