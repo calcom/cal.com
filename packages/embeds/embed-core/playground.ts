@@ -474,7 +474,7 @@ if (only === "all" || only == "ns:monthView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-monthView .place",
-      calLink: "free/30min",
+      calLink: "pro/paid",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-monthView-iframe",
@@ -499,7 +499,7 @@ if (only === "all" || only == "ns:weekView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-weekView .place",
-      calLink: "free/30min",
+      calLink: "pro/paid",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-weekView-iframe",
@@ -528,7 +528,7 @@ if (only === "all" || only == "ns:columnView") {
     //@ts-ignore
     {
       elementOrSelector: "#cal-booking-place-columnView .place",
-      calLink: "free/30min",
+      calLink: "pro/paid",
       config: {
         iframeAttrs: {
           id: "cal-booking-place-columnView-iframe",

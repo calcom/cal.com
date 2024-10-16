@@ -259,8 +259,6 @@ const BookerComponent = ({
     return null;
   }
 
-  const shouldShowMeta = !hideEventTypeDetails;
-
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
@@ -329,7 +327,7 @@ const BookerComponent = ({
                 )}
               </BookerSection>
             )}
-            {shouldShowMeta && (
+            {!hideEventTypeDetails && (
               <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
                 <BookerSection
                   area="meta"
@@ -377,13 +375,7 @@ const BookerComponent = ({
             <BookerSection
               key="datepicker"
               area="main"
-              visible={
-                bookerState !== "booking" &&
-                (layout === BookerLayouts.MONTH_VIEW ||
-                  // Meta possibly can show DatePicker but if meta is not shown, then DatePicker must be shown here
-                  // FIXME: We need proper state management for this(depending on layout and bookerState)
-                  !shouldShowMeta)
-              }
+              visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
               className={`ml-[-1px] h-full flex-shrink px-5 py-3 lg:w-[var(--booker-main-width)] ${
