@@ -488,6 +488,7 @@
   "booking_payment_initiated": "Booking Payment Initiated",
   "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
+  "form_submitted_no_event": "Form submitted, no event booked",
   "booking_paid": "Booking Paid",
   "ooo_created": "Out of Office Created",
   "booking_no_show_updated": "Booking No-Show Updated",

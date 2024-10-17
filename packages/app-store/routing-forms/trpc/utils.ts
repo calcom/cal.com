@@ -1,5 +1,7 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
+import dayjs from "@calcom/dayjs";
+import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -17,6 +19,18 @@ import isRouter from "../lib/isRouter";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { acrossQueryValueCompatiblity } from "./raqbUtils";
+
+let tasker: Tasker;
+
+if (typeof window === "undefined") {
+  import("@calcom/features/tasker")
+    .then((module) => {
+      tasker = module.default;
+    })
+    .catch((error) => {
+      console.error("Failed to load tasker:", error);
+    });
+}
 
 const {
   getAttributesData: getAttributes,
@@ -78,7 +92,7 @@ function getFieldResponse({
 }
 
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
-type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
+export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   string,
   {
     /**
@@ -178,7 +192,12 @@ export async function onFormSubmission(
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
-  response: FormResponse
+  response: FormResponse,
+  responseId: number,
+  chosenAction?: {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+  }
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
@@ -201,16 +220,24 @@ export async function onFormSubmission(
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  const subscriberOptions = {
+  const subscriberOptionsFormSubmitted = {
     userId,
     teamId,
     orgId,
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
   };
 
-  const webhooks = await getWebhooks(subscriberOptions);
+  const subscriberOptionsFormSubmittedNoEvent = {
+    userId,
+    teamId,
+    orgId,
+    triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  };
 
-  const promises = webhooks.map((webhook) => {
+  const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
+  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
+
+  const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
     sendGenericWebhookPayload({
       secretKey: webhook.secret,
       triggerEvent: "FORM_SUBMITTED",
@@ -233,6 +260,23 @@ export async function onFormSubmission(
       console.error(`Error executing routing form webhook`, webhook, e);
     });
   });
+
+  const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
+    const scheduledAt = dayjs().add(10, "minute").toDate();
+    return tasker.create(
+      "triggerFormSubmittedNoEventWebhook",
+      {
+        responseId,
+        form,
+        responses: fieldResponsesByIdentifier,
+        redirect: chosenAction,
+        webhook,
+      },
+      { scheduledAt }
+    );
+  });
+
+  const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
   await Promise.all(promises);
   const orderedResponses = form.fields.reduce((acc, field) => {
