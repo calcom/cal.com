@@ -36,7 +36,7 @@ function buildQueryValue({
 }: {
   rules: {
     raqbFieldId: string;
-    value: string | number | string[];
+    value: string | number | string[] | [string[]];
     operator: string;
     valueSrc: NonNullable<BaseWidget["valueSrc"]>[];
     valueType: string[];
@@ -68,7 +68,7 @@ function buildSelectTypeFieldQueryValue({
 }: {
   rules: {
     raqbFieldId: string;
-    value: string | number | string[];
+    value: string | number | string[] | [string[]];
     operator: string;
     valueType?: string[];
   }[];
