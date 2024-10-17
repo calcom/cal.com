@@ -26,6 +26,7 @@ type CreateEventTypeProps = {
     atomsWrapper?: string;
     buttons?: ActionButtonsClassNames;
   };
+  onCancel?: () => void;
 };
 
 const ActionButtons = ({
@@ -33,20 +34,29 @@ const ActionButtons = ({
   cancelLabel,
   isPending,
   customClassNames,
+  onCancel,
 }: {
   submitLabel: string;
   cancelLabel: string;
   isPending: boolean;
-  customClassNames: ActionButtonsClassNames;
+  customClassNames?: ActionButtonsClassNames;
+  onCancel?: () => void;
 }) => {
   return (
-    <div className={cn("flex flex-row gap-4", customClassNames.container)}>
-      <Button type="submit" loading={isPending} className={customClassNames.submit}>
+    <div className={cn("flex flex-row gap-4", customClassNames?.container)}>
+      <Button type="submit" loading={isPending} className={customClassNames?.submit}>
         {submitLabel}
       </Button>
-      <Button color="secondary" type="button" loading={isPending} className={customClassNames.cancel}>
-        {cancelLabel}
-      </Button>
+      {onCancel && (
+        <Button
+          color="secondary"
+          type="button"
+          loading={isPending}
+          className={customClassNames?.cancel}
+          onClick={() => onCancel()}>
+          {cancelLabel}
+        </Button>
+      )}
     </div>
   );
 };
@@ -56,6 +66,7 @@ export const CreateEventTypePlatformWrapper = ({
   onSuccess,
   onError,
   customClassNames,
+  onCancel,
 }: CreateEventTypeProps) => {
   const { form, isManagedEventType } = useCreateEventTypeForm();
   const createEventTypeQuery = useCreateEventType({ onSuccess, onError });
@@ -65,7 +76,7 @@ export const CreateEventTypePlatformWrapper = ({
   const { t } = useLocale();
 
   return teamId && team ? (
-    <AtomsWrapper customClassName={customClassNames.atomsWrapper}>
+    <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <TeamEventTypeForm
         teamSlug={team?.slug}
         teamId={teamId}
@@ -88,15 +99,16 @@ export const CreateEventTypePlatformWrapper = ({
         SubmitButton={(isPending) =>
           ActionButtons({
             isPending,
+            onCancel,
             submitLabel: t("continue"),
             cancelLabel: t("cancel"),
-            customClassNames: customClassNames.buttons,
+            customClassNames: customClassNames?.buttons,
           })
         }
       />
     </AtomsWrapper>
   ) : (
-    <AtomsWrapper customClassName={customClassNames.atomsWrapper}>
+    <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <CreateEventTypeForm
         urlPrefix=""
         isPending={createEventTypeQuery.isPending}
@@ -113,9 +125,10 @@ export const CreateEventTypePlatformWrapper = ({
         SubmitButton={(isPending) =>
           ActionButtons({
             isPending,
+            onCancel,
             submitLabel: t("continue"),
             cancelLabel: t("cancel"),
-            customClassNames: customClassNames.buttons,
+            customClassNames: customClassNames?.buttons,
           })
         }
       />

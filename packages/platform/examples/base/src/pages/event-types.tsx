@@ -146,6 +146,9 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   }}
                   teamId={teams?.[0]?.id}
+                  onCancel={() => {
+                    console.log("cancel team event type creation");
+                  }}
                   onSuccess={() => {
                     refetchTeamEvents();
                   }}
