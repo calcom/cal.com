@@ -416,7 +416,6 @@ export const insightsRouter = router({
         timeView: inputTimeView,
         userId: selfUserId,
       } = input;
-      console.log("Query start at eventsTimeLine in insights/server/trpc-router.ts");
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
       const user = ctx.user;
@@ -462,7 +461,6 @@ export const insightsRouter = router({
 
       const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
 
-      // Step 1: Prepare the date ranges
       const dateRanges = timeline.map((date) => {
         let startDate = dayjs(date).startOf(timeView);
         let endDate = dayjs(date).endOf(timeView);
@@ -478,10 +476,12 @@ export const insightsRouter = router({
           formattedDate: dayjs(date).format(dateFormat), // keep formatted date for later
         };
       });
-
       // Step 2: Run a single query for all date ranges
-      const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(dateRanges, whereConditional);
-
+      const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
+        whereConditional,
+        startDate,
+        endDate
+      );
       // Step 3: Process results for each date range and status
       const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
@@ -503,7 +503,6 @@ export const insightsRouter = router({
           EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
           EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
         }
-
         return EventData;
       });
       return result;

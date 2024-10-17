@@ -1,7 +1,7 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 import type { RawDataInput } from "./raw-data.schema";
 
@@ -19,72 +19,138 @@ type StatusAggregate = {
   cancelled: number;
   noShowHost: number;
   _all: number;
+  uncompleted: number;
 };
 
 type AggregateResult = {
   [date: string]: StatusAggregate;
 };
 
+// Recursive function to convert a JSON condition object into SQL
+// Helper type guard function to check if value has 'in' property
+function isInCondition(value: any): value is { in: any[] } {
+  return typeof value === "object" && value !== null && "in" in value && Array.isArray(value.in);
+}
+
+// Helper type guard function to check if value has 'gte' property
+function isGteCondition(value: any): value is { gte: any } {
+  return typeof value === "object" && value !== null && "gte" in value;
+}
+
+// Helper type guard function to check if value has 'lte' property
+function isLteCondition(value: any): value is { lte: any } {
+  return typeof value === "object" && value !== null && "lte" in value;
+}
+
+function buildSqlCondition(condition: any): string {
+  if (Array.isArray(condition.OR)) {
+    return `(${condition.OR.map(buildSqlCondition).join(" OR ")})`;
+  } else if (Array.isArray(condition.AND)) {
+    return `(${condition.AND.map(buildSqlCondition).join(" AND ")})`;
+  } else {
+    const clauses: string[] = [];
+    for (const [key, value] of Object.entries(condition)) {
+      if (isInCondition(value)) {
+        const valuesList = value.in.map((v) => `'${v}'`).join(", ");
+        clauses.push(`"${key}" IN (${valuesList})`);
+      } else if (isGteCondition(value)) {
+        clauses.push(`"${key}" >= '${value.gte}'`);
+      } else if (isLteCondition(value)) {
+        clauses.push(`"${key}" <= '${value.lte}'`);
+      } else {
+        const formattedValue = typeof value === "string" ? `'${value}'` : value;
+        clauses.push(`"${key}" = ${formattedValue}`);
+      }
+    }
+    return clauses.join(" AND ");
+  }
+}
+
 class EventsInsights {
   static countGroupedByStatusForRanges = async (
-    dateRanges: DateRange[],
-    whereConditional: Prisma.BookingTimeStatusWhereInput
+    whereConditional: Prisma.BookingTimeStatusWhereInput,
+    startDate,
+    endDate
   ): Promise<AggregateResult> => {
-    const data = await prisma.bookingTimeStatus.groupBy({
-      by: ["timeStatus", "noShowHost", "createdAt"],
-      where: {
-        AND: [
-          whereConditional,
-          {
-            OR: dateRanges.map(({ startDate, endDate }) => ({
-              createdAt: {
-                gte: startDate,
-                lte: endDate,
-              },
-            })),
-          },
-        ],
-      },
-      _count: {
-        _all: true,
-      },
-    });
+    // Determine the date truncation and date range based on timeView
 
-    // Initialize aggregate result
-    const aggregate: AggregateResult = dateRanges.reduce((acc, { formattedDate }) => {
-      acc[formattedDate] = {
-        completed: 0,
-        rescheduled: 0,
-        cancelled: 0,
-        noShowHost: 0,
-        _all: 0,
-      };
-      return acc;
-    }, {} as AggregateResult);
+    const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
+    const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
+    const whereClause = buildSqlCondition(whereConditional);
+    const data = await prisma.$queryRaw<
+      { periodStart: Date; bookingsCount: number; timeStatus: string; noShowHost: boolean }[]
+    >`
+      SELECT
+    periodStart,
+    CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
+    "timeStatus",
+    "noShowHost"
+  FROM (
+    SELECT
+      DATE_TRUNC('week', "createdAt") AS periodStart,
+      "timeStatus",
+      "noShowHost"
+    FROM
+      "BookingTimeStatus"
+    WHERE
+      "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
+      AND ${Prisma.raw(whereClause)}
+  ) AS truncated_dates
+  GROUP BY
+    periodStart,
+    "timeStatus",
+    "noShowHost"
+  ORDER BY
+    periodStart;
+    `;
+    // Initialize an empty aggregate result based on the selected timeView and date ranges
+    const aggregate: AggregateResult = {};
 
-    // Process the query results and map to date ranges
-    data.forEach((item) => {
-      // Determine the formatted date key for this item
-      const range = dateRanges.find(({ startDate, endDate }) =>
-        dayjs(item.createdAt).isBetween(startDate, endDate, null, "[]")
-      );
+    // Process the query results and store them in the aggregate object
+    const dateRangeLabels: string[] = [];
+    // Process each row in the returned data
+    data.forEach(({ periodstart: periodStart, bookingsCount, timeStatus, noShowHost }) => {
+      // Format the date as needed for your keys
+      const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
+      dateRangeLabels.push(formattedDate);
+      // Ensure the date entry exists in the aggregate object
+      if (!aggregate[formattedDate]) {
+        aggregate[formattedDate] = {
+          completed: 0,
+          rescheduled: 0,
+          cancelled: 0,
+          noShowHost: 0,
+          _all: 0,
+          uncompleted: 0,
+        };
+      }
 
-      if (range) {
-        const rangeKey = range.formattedDate;
-        const status = item.timeStatus as keyof StatusAggregate;
+      // Add to the specific status count
+      const statusKey = timeStatus as keyof StatusAggregate;
+      aggregate[formattedDate][statusKey] += Number(bookingsCount);
 
-        if (typeof status === "string") {
-          // Update the aggregate counts for the date range
-          aggregate[rangeKey][status] += item._count?._all ?? 0;
-          aggregate[rangeKey]["_all"] += item._count?._all ?? 0;
+      // Always add to the total count (_all)
+      aggregate[formattedDate]["_all"] += Number(bookingsCount);
 
-          if (item.noShowHost) {
-            aggregate[rangeKey]["noShowHost"] += item._count?._all ?? 0;
-          }
-        }
+      // Track no-show host counts separately
+      if (noShowHost) {
+        aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
       }
     });
 
+    // Fill in any missing dates with zero counts, if necessary
+    dateRangeLabels.forEach((label) => {
+      if (!aggregate[label]) {
+        aggregate[label] = {
+          completed: 0,
+          rescheduled: 0,
+          cancelled: 0,
+          noShowHost: 0,
+          _all: 0,
+          uncompleted: 0,
+        };
+      }
+    });
     return aggregate;
   };
 
