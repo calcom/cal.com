@@ -493,6 +493,46 @@ describe("transformBookingFieldsApiToInternal", () => {
 
     expect(result).toEqual(expectedOutput);
   });
+
+  it("should keep disableOnPrefill property", () => {
+    const disableOnPrefill = true;
+
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "radio",
+      slug: "radio",
+      label: "Your radio buttons",
+      required: true,
+      options: ["Radio 1", "Radio 2"],
+      disableOnPrefill,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: CustomField[] = [
+      {
+        name: bookingField.slug,
+        type: bookingField.type,
+        label: bookingField.label,
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: bookingField.required,
+        placeholder: "",
+        options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
 });
 
 describe("transformIntervalLimitsApiToInternal", () => {

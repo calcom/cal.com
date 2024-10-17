@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { ApiProperty as DocsProperty } from "@nestjs/swagger";
+import { ApiProperty as DocsProperty, ApiPropertyOptional as DocsPropertyOptional } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
@@ -44,6 +44,17 @@ export class PhoneFieldInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,\
+      the phone field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class AddressFieldInput_2024_06_14 {
@@ -72,6 +83,17 @@ export class AddressFieldInput_2024_06_14 {
   @DocsProperty()
   @DocsProperty({ example: "e.g., 1234 Main St" })
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,\
+      the address field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class TextFieldInput_2024_06_14 {
@@ -100,6 +122,17 @@ export class TextFieldInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,\
+      the text field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class NumberFieldInput_2024_06_14 {
@@ -128,6 +161,17 @@ export class NumberFieldInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,\
+      the number field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class TextAreaFieldInput_2024_06_14 {
@@ -156,6 +200,17 @@ export class TextAreaFieldInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,\
+      the text area will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class SelectFieldInput_2024_06_14 {
@@ -188,6 +243,17 @@ export class SelectFieldInput_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Option 1", "Option 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
+      the 'italian' will be selected and the select field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class MultiSelectFieldInput_2024_06_14 {
@@ -214,6 +280,17 @@ export class MultiSelectFieldInput_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Option 1", "Option 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,\
+      the 'en' and 'it' will be selected and the select field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class MultiEmailFieldInput_2024_06_14 {
@@ -242,6 +319,17 @@ export class MultiEmailFieldInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,\
+      the these emails will be added and none more can be added.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class CheckboxGroupFieldInput_2024_06_14 {
@@ -268,6 +356,17 @@ export class CheckboxGroupFieldInput_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Checkbox 1", "Checkbox 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,\
+      the checkbox will be selected and the checkbox field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class RadioGroupFieldInput_2024_06_14 {
@@ -294,6 +393,17 @@ export class RadioGroupFieldInput_2024_06_14 {
   @IsArray()
   @DocsProperty({ type: [String], example: ["Radio 1", "Radio 2"] })
   options!: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
+      the 'italian' radio buttom will be selected and the select field will be disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class BooleanFieldInput_2024_06_14 {
@@ -316,6 +426,11 @@ export class BooleanFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   required!: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({ type: Boolean })
+  disableOnPrefill?: boolean;
 }
 
 export type InputBookingField_2024_06_14 =

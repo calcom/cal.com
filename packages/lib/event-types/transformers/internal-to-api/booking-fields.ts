@@ -222,6 +222,7 @@ const CustomFieldsSchema = z.object({
       })
     )
     .optional(),
+  disableOnPrefill: z.boolean().optional(),
 });
 
 const SystemFieldSchema = z.object({

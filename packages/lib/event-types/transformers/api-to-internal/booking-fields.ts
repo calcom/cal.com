@@ -25,6 +25,7 @@ export function transformBookingFieldsApiToInternal(
       editable: "user",
       required: field.required,
       placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
+      disableOnPrefill: field.disableOnPrefill,
     };
 
     const options =
