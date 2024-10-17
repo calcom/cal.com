@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -15,6 +17,8 @@ export async function checkBookingLimits(
   eventId: number,
   rescheduleUid?: string | undefined,
   timeZone?: string | null,
+  user?: { id: number; email: string },
+  isGlobalBookingLimits?: boolean,
   includeManagedEvents?: boolean
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
@@ -29,6 +33,8 @@ export async function checkBookingLimits(
       eventId,
       timeZone,
       rescheduleUid,
+      user,
+      isGlobalBookingLimits,
       includeManagedEvents,
     })
   );
@@ -49,6 +55,7 @@ export async function checkBookingLimit({
   timeZone,
   teamId,
   user,
+  isGlobalBookingLimits,
   includeManagedEvents = false,
 }: {
   eventStartDate: Date;
@@ -59,6 +66,7 @@ export async function checkBookingLimit({
   timeZone?: string | null;
   teamId?: number;
   user?: { id: number; email: string };
+  isGlobalBookingLimits?: boolean;
   includeManagedEvents?: boolean;
 }) {
   {
@@ -72,6 +80,18 @@ export async function checkBookingLimit({
     const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
 
     let bookingsInPeriod;
+
+    let whereInput: Prisma.BookingWhereInput = {
+      eventTypeId: eventId,
+    };
+    if (user?.id && isGlobalBookingLimits) {
+      whereInput = {
+        userId: user.id,
+        eventType: {
+          schedulingType: null,
+        },
+      };
+    }
 
     if (teamId && user) {
       bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
@@ -87,7 +107,7 @@ export async function checkBookingLimit({
       bookingsInPeriod = await prisma.booking.count({
         where: {
           status: BookingStatus.ACCEPTED,
-          eventTypeId: eventId,
+          ...whereInput,
           // FIXME: bookings that overlap on one side will never be counted
           startTime: {
             gte: startDate,
