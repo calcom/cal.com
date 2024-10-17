@@ -228,6 +228,20 @@ export async function getEventType(
               ...availabilityUserSelect,
             },
           },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
+            },
+          },
         },
       },
       users: {
@@ -444,9 +458,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  const eventHosts =
+  const eventHosts: {
+    isFixed: boolean;
+    email: string;
+    user: (typeof eventType.hosts)[number]["user"];
+  }[] =
     eventType.hosts?.length && eventType.schedulingType
-      ? eventType.hosts
+      ? eventType.hosts.map((host) => ({
+          isFixed: host.isFixed,
+          email: host.user.email,
+          user: host.user,
+        }))
       : eventType.users.map((user) => {
           return {
             isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,

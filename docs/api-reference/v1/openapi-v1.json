@@ -1346,6 +1346,10 @@
                           }
                         },
                         "description": "Meeting location"
+                      },
+                      "smsReminderNumber": {
+                        "type": "number",
+                        "description": "SMS reminder number"
                       }
                     }
                   },
@@ -1389,10 +1393,6 @@
                   "seatsShowAvailabilityCount": {
                     "type": "boolean",
                     "description": "Show the number of available seats"
-                  },
-                  "smsReminderNumber": {
-                    "type": "number",
-                    "description": "SMS reminder number"
                   }
                 }
               },
@@ -1405,15 +1405,18 @@
                     "responses": {
                       "name": "Hello Hello",
                       "email": "hello@gmail.com",
-                      "metadata": {},
-                      "location": "Calcom HQ"
+                      "smsReminderNumber": null,
+                      "location": {
+                        "value": "userPhone",
+                        "optionValue": ""
+                      }
                     },
                     "timeZone": "Europe/London",
                     "language": "en",
                     "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
                     "description": null,
                     "status": "PENDING",
-                    "smsReminderNumber": null
+                    "metadata": {}
                   }
                 }
               }
