@@ -16,7 +16,6 @@ import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { nameObjectSchema } from "@calcom/core/event";
-import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
@@ -236,8 +235,7 @@ export default function Success(props: PageProps) {
 
   const startTime = String(bookingInfo.startTime);
   const endTime = String(bookingInfo.endTime);
-
-  const eventName = getEventName(eventNameObject, true, startTime, endTime);
+  const eventName = bookingInfo.title;
   // Confirmation can be needed in two cases as of now
   // - Event Type has require confirmation option enabled always
   // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
