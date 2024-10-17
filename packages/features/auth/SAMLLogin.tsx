@@ -43,10 +43,9 @@ export function SAMLLogin({
 
   return (
     <Button
-      StartIcon="lock"
-      color="secondary"
+      color="minimal"
       data-testid="samlAndOidc"
-      className="flex w-full justify-center"
+      className="text-brand-500 h-auto p-0 font-medium transition-none"
       onClick={async (event) => {
         event.preventDefault();
 
@@ -73,7 +72,7 @@ export function SAMLLogin({
         });
       }}
       {...buttonProps}>
-      <span>{t("signin_with_saml_oidc")}</span>
+      <span>{t("signin_with_saml")}</span>
       {lastUsed === "saml" && <LastUsed />}
     </Button>
   );
