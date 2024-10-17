@@ -4,14 +4,13 @@ import {
   AverageEventDurationChart,
   BookingKPICards,
   BookingStatusLineChart,
-  LeastBookedTeamMembersTable,
-  MostBookedTeamMembersTable,
   PopularEventsTable,
   HighestNoShowHostTable,
   RecentFeedbackTable,
   HighestRatedMembersTable,
   LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
+import { TeamMembersTable } from "@calcom/features/insights/components/TeamMembersTable";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
@@ -86,14 +85,12 @@ export default function InsightsPage() {
 
                 <BookingStatusLineChart />
 
+                <TeamMembersTable />
+
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <PopularEventsTable />
 
                   <AverageEventDurationChart />
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <MostBookedTeamMembersTable />
-                  <LeastBookedTeamMembersTable />
                 </div>
                 <RecentFeedbackTable />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
