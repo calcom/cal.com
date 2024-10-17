@@ -2005,7 +2005,7 @@
     "/v2/organizations/{orgId}/teams/me": {
       "get": {
         "operationId": "OrganizationsTeamsController_getMyTeams",
-        "summary": "Get team membership for user",
+        "summary": "Get teams membership for user",
         "parameters": [
           {
             "name": "orgId",
@@ -12223,6 +12223,12 @@
               "type": "string"
             }
           },
+          "meetingUrl": {
+            "type": "string",
+            "description": "Deprecated - use 'location' instead. Meeting URL just for this booking. Displayed in email and calendar event. If not provided then cal video link will be generated.",
+            "example": "https://example.com/meeting",
+            "deprecated": true
+          },
           "location": {
             "type": "string",
             "description": "Location for this booking. Displayed in email and calendar event.",
@@ -12234,6 +12240,11 @@
             "example": {
               "customField": "customValue"
             }
+          },
+          "recurrenceCount": {
+            "type": "number",
+            "description": "The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than\n    event type recurrence count",
+            "example": 5
           }
         },
         "required": [
