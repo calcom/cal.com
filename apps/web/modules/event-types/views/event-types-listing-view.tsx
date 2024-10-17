@@ -323,7 +323,10 @@ export const InfiniteEventTypeList = ({
       utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
         { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
         (data) => {
+          if (!data) return { pages: [], pageParams: [] };
+
           return {
+            ...data,
             pageParams: data?.pageParams ?? [],
             pages: newOrder,
           };
