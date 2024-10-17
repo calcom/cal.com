@@ -127,12 +127,7 @@ export const sendScheduledEmailsAndSMS = async (
                 ...formattedCalEvent,
                 ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
                 ...(eventNameObject && {
-                  title: getEventName(
-                    { ...eventNameObject, t: attendee.language.translate },
-                    false,
-                    calEvent.startTime,
-                    calEvent.endTime
-                  ),
+                  title: calEvent.title,
                 }),
               },
               attendee
