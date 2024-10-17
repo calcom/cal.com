@@ -78,12 +78,28 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
     },
   });
 
+  const roundRobinManualReassignMutation = trpc.viewer.teams.roundRobinManualReassign.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.bookings.get.invalidate();
+      setIsOpenDialog(false);
+      showToast(t("booking_reassigned"), "success");
+    },
+    onError: async (error) => {
+      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
+        showToast(t("no_available_hosts"), "error");
+      } else {
+        showToast(t("unexpected_error_try_again"), "error");
+      }
+    },
+  });
+
   const handleSubmit = (values: FormValues) => {
     console.log(values);
     if (values.reassignType === "round_robin") {
       roundRobinReassignMutation.mutate({ teamId, bookingId });
     } else {
       if (values.teamMemberId) {
+        roundRobinManualReassignMutation.mutate({ bookingId, teamMemberId: values.teamMemberId });
       }
     }
   };
@@ -124,7 +140,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
             <div className="mb-2">
               <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
               <Select
-                value={teamMemberOptions.find((option) => option.value === form.getValues("teamMemberId"))}
+                value={teamMemberOptions?.find((option) => option.value === form.getValues("teamMemberId"))}
                 options={teamMemberOptions}
                 onChange={(event) => {
                   form.setValue("teamMemberId", event?.value);
