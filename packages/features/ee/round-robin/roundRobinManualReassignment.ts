@@ -8,7 +8,6 @@ import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -27,26 +26,10 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const bookingSelect = {
-  uid: true,
-  title: true,
-  startTime: true,
-  endTime: true,
-  userId: true,
-  customInputs: true,
-  responses: true,
-  description: true,
-  location: true,
-  eventTypeId: true,
-  destinationCalendar: true,
-  user: {
-    include: {
-      destinationCalendar: true,
-    },
-  },
-  attendees: true,
-  references: true,
-};
+import { bookingSelect } from "./utils/bookingSelect";
+import { getDestinationCalendar } from "./utils/getDestinationCalendar";
+import { getTeamMembers } from "./utils/getTeamMembers";
+import { validateAndFetchBookingAndEventType } from "./utils/validate";
 
 export const roundRobinManualReassignment = async ({
   bookingId,
@@ -61,40 +44,26 @@ export const roundRobinManualReassignment = async ({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
   });
 
-  let booking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    select: bookingSelect,
+  const validatedBookingAndEventType = await validateAndFetchBookingAndEventType({
+    bookingId,
+    logger: roundRobinReassignLogger,
   });
+  const { eventType } = validatedBookingAndEventType;
+  let booking = validatedBookingAndEventType.booking;
 
-  if (!booking) {
-    roundRobinReassignLogger.error(`Booking ${bookingId} not found`);
-    throw new Error("Booking not found");
-  }
-
-  if (!booking?.user) {
-    roundRobinReassignLogger.error(`No user associated with booking ${bookingId}`);
-    throw new Error("Booking not found");
-  }
-
-  const eventTypeId = booking.eventTypeId;
-
-  if (!eventTypeId) {
-    roundRobinReassignLogger.error(`Booking ${bookingId} does not have an event type id`);
-    throw new Error("Event type not found");
-  }
-
-  const eventType = await getEventTypesFromDB(eventTypeId);
-
-  if (!eventType) {
-    roundRobinReassignLogger.error(`Event type ${eventTypeId} not found`);
-    throw new Error("Event type not found");
-  }
+  const eventTypeId = eventType.id;
 
   const newUser = await prisma.user.findUnique({
     where: {
       id: newUserId,
+    },
+    select: {
+      locale: true,
+      name: true,
+      email: true,
+      timeZone: true,
+      username: true,
+      timeFormat: true,
     },
   });
 
@@ -164,24 +133,20 @@ export const roundRobinManualReassignment = async ({
     });
   }
 
-  const destinationCalendar = await (async () => {
-    if (eventType?.destinationCalendar) {
-      return [eventType.destinationCalendar];
-    }
+  const destinationCalendar = await getDestinationCalendar({
+    eventType,
+    booking,
+    newUserId,
+    hasOrganizerChanged,
+  });
 
-    if (hasOrganizerChanged) {
-      const newUserDestinationCalendar = await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: newUserId,
-        },
-      });
-      if (newUserDestinationCalendar) {
-        return [newUserDestinationCalendar];
-      }
-    } else {
-      if (booking.user?.destinationCalendar) return [booking.user?.destinationCalendar];
-    }
-  })();
+  const teamMembers = await getTeamMembers({
+    eventTypeHosts: eventType.hosts,
+    attendees: booking.attendees,
+    organizer: newUser,
+    previousHost: originalOrganizer,
+    reassignedHost: newUser,
+  });
 
   // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = hasOrganizerChanged
@@ -222,6 +187,11 @@ export const roundRobinManualReassignment = async ({
     attendees: attendeeList,
     uid: booking.uid,
     destinationCalendar,
+    team: {
+      members: teamMembers,
+      name: eventType.team?.name || "",
+      id: eventType.team?.id || 0,
+    },
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
       bookingFields: eventType.bookingFields ?? null,

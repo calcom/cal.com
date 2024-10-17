@@ -1,0 +1,20 @@
+export const bookingSelect = {
+  uid: true,
+  title: true,
+  startTime: true,
+  endTime: true,
+  userId: true,
+  customInputs: true,
+  responses: true,
+  description: true,
+  location: true,
+  eventTypeId: true,
+  destinationCalendar: true,
+  user: {
+    include: {
+      destinationCalendar: true,
+    },
+  },
+  attendees: true,
+  references: true,
+};
