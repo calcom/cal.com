@@ -43,7 +43,7 @@ export class Pagination {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(1)
-  @Max(100)
+  @Max(250)
   @IsOptional()
   limit?: number;
 
@@ -51,7 +51,7 @@ export class Pagination {
   @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
   @IsNumber()
   @Min(0)
-  @Max(100)
+  @Max(250)
   @IsOptional()
   offset?: number | null;
 }
