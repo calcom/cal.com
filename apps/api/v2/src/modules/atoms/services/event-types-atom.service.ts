@@ -130,6 +130,7 @@ export class EventTypesAtomService {
         userId,
         teamId,
         accepted: true,
+        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
       },
       select: {
         team: {
