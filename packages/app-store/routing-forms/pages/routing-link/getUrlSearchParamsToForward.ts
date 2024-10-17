@@ -1,19 +1,13 @@
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import type { LocalRoute } from "../../types/types";
+import type { FormResponse, LocalRoute } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
 
+type FormResponseValueOnly = { [key: string]: { value: FormResponse[keyof FormResponse]["value"] } };
 type Props = inferSSRProps<typeof getServerSideProps>;
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
-export function getUrlSearchParamsToForward({
-  formResponse,
-  fields,
-  searchParams,
-  teamMembersMatchingAttributeLogic,
-  formResponseId,
-  attributeRoutingConfig,
-}: {
+type GetUrlSearchParamsToForwardOptions = {
   formResponse: Record<
     string,
     {
@@ -28,7 +22,18 @@ export function getUrlSearchParamsToForward({
   formResponseId: number;
   teamMembersMatchingAttributeLogic: number[] | null;
   attributeRoutingConfig: AttributeRoutingConfig | null;
-}) {
+  reroutingFormResponses?: FormResponseValueOnly;
+};
+
+export function getUrlSearchParamsToForward({
+  formResponse,
+  fields,
+  searchParams,
+  teamMembersMatchingAttributeLogic,
+  formResponseId,
+  attributeRoutingConfig,
+  reroutingFormResponses,
+}: GetUrlSearchParamsToForwardOptions) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
   const paramsFromCurrentUrl: Params = {};
@@ -84,6 +89,9 @@ export function getUrlSearchParamsToForward({
       : null),
     ["cal.routingFormResponseId"]: String(formResponseId),
     ...(attributeRoutingConfig?.skipContactOwner ? { ["cal.skipContactOwner"]: "true" } : {}),
+    ...(reroutingFormResponses
+      ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
+      : null),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();
@@ -97,4 +105,30 @@ export function getUrlSearchParamsToForward({
   });
 
   return allQueryURLSearchParams;
+}
+
+export function getUrlSearchParamsToForwardForReroute({
+  formResponse,
+  formResponseId,
+  fields,
+  searchParams,
+  teamMembersMatchingAttributeLogic,
+  attributeRoutingConfig,
+  rescheduleUid,
+  reroutingFormResponses,
+}: GetUrlSearchParamsToForwardOptions & {
+  rescheduleUid: string;
+  reroutingFormResponses: FormResponseValueOnly;
+}) {
+  searchParams.set("rescheduleUid", rescheduleUid);
+  searchParams.set("cal.rerouting", "true");
+  return getUrlSearchParamsToForward({
+    formResponse,
+    formResponseId,
+    fields,
+    searchParams,
+    teamMembersMatchingAttributeLogic,
+    attributeRoutingConfig,
+    reroutingFormResponses,
+  });
 }

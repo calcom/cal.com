@@ -235,6 +235,8 @@ async function handler(
     rescheduleReason,
     luckyUsers,
     routedTeamMemberIds,
+    reroutingFormResponses,
+    routingFormResponseId,
     ...reqBody
   } = bookingData;
 
@@ -918,24 +920,12 @@ async function handler(
     })
   );
 
-  // update original rescheduled booking (no seats event)
-  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
-    await prisma.booking.update({
-      where: {
-        id: originalRescheduledBooking.id,
-      },
-      data: {
-        rescheduled: true,
-        status: BookingStatus.CANCELLED,
-        rescheduledBy: reqBody.rescheduledBy,
-      },
-    });
-  }
-
   try {
     booking = await createBooking({
       uid,
-      routedFromRoutingFormResponseId: reqBody.routingFormResponseId,
+      rescheduledBy: reqBody.rescheduledBy,
+      routingFormResponseId: routingFormResponseId,
+      reroutingFormResponses: reroutingFormResponses ?? null,
       reqBody: {
         user: reqBody.user,
         metadata: reqBody.metadata,
