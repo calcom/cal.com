@@ -718,10 +718,16 @@ async function handler(
       value: platformBookingLocation ?? bookingLocation,
       optionValue: "",
     };
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
-    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
+    title: getEventName(
+      eventNameObject,
+      false,
+      dayjs(reqBody.start).utc().format(),
+      dayjs(reqBody.end).utc().format()
+    ), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
     customInputs,

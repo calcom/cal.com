@@ -127,7 +127,7 @@ export const sendScheduledEmailsAndSMS = async (
                 ...formattedCalEvent,
                 ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
                 ...(eventNameObject && {
-                  title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
+                  title: calEvent.title,
                 }),
               },
               attendee
@@ -419,16 +419,21 @@ export const sendCancelledEmailsAndSMS = async (
             new AttendeeCancelledEmail(
               {
                 ...calendarEvent,
-                title: getEventName({
-                  ...eventNameObject,
-                  t: attendee.language.translate,
-                  attendeeName: attendee.name,
-                  host: calendarEvent.organizer.name,
-                  eventType: calendarEvent.title,
-                  eventDuration,
-                  ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
-                  ...(calendarEvent.location && { location: calendarEvent.location }),
-                }),
+                title: getEventName(
+                  {
+                    ...eventNameObject,
+                    t: attendee.language.translate,
+                    attendeeName: attendee.name,
+                    host: calendarEvent.organizer.name,
+                    eventType: calendarEvent.title,
+                    eventDuration,
+                    ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
+                    ...(calendarEvent.location && { location: calendarEvent.location }),
+                  },
+                  true,
+                  calEvent.startTime,
+                  calEvent.endTime
+                ),
               },
               attendee
             )
