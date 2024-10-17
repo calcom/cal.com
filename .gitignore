@@ -96,3 +96,6 @@ apps/auth
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Created when using Cursor IDE
+myenv
