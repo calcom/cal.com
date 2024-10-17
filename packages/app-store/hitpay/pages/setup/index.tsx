@@ -11,17 +11,13 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast, Icon } from "@calcom/ui";
-import { Input } from "@calcom/ui";
+import { Button, showToast, Icon, Switch } from "@calcom/ui";
 import { HeadSeo } from "@calcom/ui";
 
+import KeyField from "../../components/KeyInput";
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
 
-export interface IHitPaySetupProps {
-  email: string | null;
-  apiKey: string | null;
-  saltKey: string | null;
-}
+export type IHitPaySetupProps = z.infer<typeof hitpayCredentialKeysSchema>;
 
 export default function HitPaySetup(props: IHitPaySetupProps) {
   const params = useCompatSearchParams();
@@ -76,11 +72,36 @@ function HitPaySetupCallback() {
 function HitPaySetupPage(props: IHitPaySetupProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [updatable, setUpdatable] = useState<boolean>(false);
+  const [isSandbox, SetIsSandbox] = useState<boolean>(props.isSandbox || false);
+  const [keyData, setKeyData] = useState<
+    | {
+        apiKey: string;
+        saltKey: string;
+      }
+    | undefined
+  >();
   const session = useSession();
   const router = useRouter();
   const { t } = useLocale();
+
+  const settingsSchema = z.object({
+    apiKey: z
+      .string()
+      .trim()
+      .min(64)
+      .max(64, {
+        message: t("max_limit_allowed_hint", { limit: 64 }),
+      }),
+    saltKey: z
+      .string()
+      .trim()
+      .min(64)
+      .max(64, {
+        message: t("max_limit_allowed_hint", { limit: 64 }),
+      }),
+  });
+
   const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "hitpay" });
-  console.log("hitpay setup integrations =>", integrations);
   const [HitPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = HitPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
@@ -104,41 +125,30 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     },
   });
 
-  const settingsSchema = z.object({
-    apiKey: z
-      .string()
-      .trim()
-      .min(64)
-      .max(64, {
-        message: t("max_limit_allowed_hint", { limit: 64 }),
-      }),
-    saltKey: z
-      .string()
-      .trim()
-      .min(64)
-      .max(64, {
-        message: t("max_limit_allowed_hint", { limit: 64 }),
-      }),
-  });
-
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm<z.infer<typeof settingsSchema>>({
-    defaultValues: {
-      apiKey: props?.apiKey || "",
-      saltKey: props?.saltKey || "",
-    },
     reValidateMode: "onChange",
     resolver: zodResolver(settingsSchema),
   });
 
   useEffect(() => {
+    const keyObj = isSandbox ? props.sandbox : props.prod;
+    reset({
+      apiKey: keyObj?.apiKey || "",
+      saltKey: keyObj?.saltKey || "",
+    });
+    setKeyData(keyObj);
+  }, [isSandbox]);
+
+  useEffect(() => {
     const subscription = watch((value) => {
       const { apiKey, saltKey } = value;
-      if (props.apiKey !== apiKey || props.saltKey !== saltKey) {
+      if (apiKey && saltKey && (keyData?.apiKey !== apiKey || keyData?.saltKey !== saltKey)) {
         setUpdatable(true);
       } else {
         setUpdatable(false);
@@ -146,19 +156,20 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, [watch, props]);
+  }, [watch, keyData]);
 
   const onSubmit = handleSubmit(async (data) => {
     if (loading) return;
     setLoading(true);
-    const { apiKey, saltKey } = data;
     try {
+      const keyParams = {
+        isSandbox,
+        prod: isSandbox ? props.prod : data,
+        sandbox: isSandbox ? data : props.sandbox,
+      };
       saveKeysMutation.mutate({
         credentialId,
-        key: hitpayCredentialKeysSchema.parse({
-          api_key: apiKey,
-          salt_key: saltKey,
-        }),
+        key: hitpayCredentialKeysSchema.parse(keyParams),
       });
     } catch (error: unknown) {
       let message = "";
@@ -200,24 +211,31 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
 
             <form className="w-full space-y-4" onSubmit={onSubmit}>
               <div className="bg-default border-subtle overflow-auto rounded border">
-                <div className="border-subtle border-b-[1px] p-4 md:p-5">
+                <div className="border-subtle flex items-center justify-between border-b-[1px] p-4 md:p-5">
                   <h2 className="text-2xl font-semibold">Account Information</h2>
+                  <div className="ml-auto flex items-center">
+                    <Switch
+                      onCheckedChange={(value) => SetIsSandbox(value as boolean)}
+                      checked={isSandbox}
+                      label="Sandbox"
+                    />
+                  </div>
                 </div>
                 <div className="w-full space-y-4 p-4 md:p-5">
                   <div className="w-full">
-                    <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
-                      {t("api_key")}
-                    </label>
-                    <Input
+                    <KeyField
                       {...register("apiKey", {
                         required: true,
                       })}
                       id="apiKey"
                       name="apiKey"
-                      type="text"
+                      containerClassName="w-full"
+                      label={t("api_key")}
                       autoComplete="off"
                       autoCorrect="off"
+                      defaultValue={keyData?.apiKey || ""}
                     />
+
                     {errors.apiKey && (
                       <p data-testid="required" className="py-2 text-xs text-red-500">
                         {errors.apiKey?.message}
@@ -225,19 +243,19 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
                     )}
                   </div>
                   <div className="w-full">
-                    <label htmlFor="apiKey" className="text-default mb-2 block text-sm font-medium">
-                      Salt
-                    </label>
-                    <Input
+                    <KeyField
                       {...register("saltKey", {
                         required: true,
                       })}
                       id="saltKey"
                       name="saltKey"
-                      type="text"
+                      containerClassName="w-full"
+                      label="Salt"
                       autoComplete="off"
                       autoCorrect="off"
+                      defaultValue={keyData?.saltKey || ""}
                     />
+
                     {errors.saltKey && (
                       <p data-testid="required" className="py-2 text-xs text-red-500">
                         {errors.saltKey?.message}
@@ -246,7 +264,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
                   </div>
                 </div>
               </div>
-              {!props.apiKey || !props.saltKey ? (
+              {!props.prod && !props.sandbox ? (
                 <div className="flex justify-end gap-4">
                   <Button color="secondary" className="h-10 text-base" onClick={onCancel}>
                     Cancel

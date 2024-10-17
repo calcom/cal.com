@@ -13,7 +13,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import appConfig from "../config.json";
-import { NEXT_PUBLIC_API_HITPAY } from "./constants";
+import { API_HITPAY, SANDBOX_API_HITPAY } from "./constants";
 import { hitpayCredentialKeysSchema } from "./hitpayCredentialKeysSchema";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:hitpay"] });
@@ -49,13 +49,20 @@ export class PaymentService implements IAbstractPaymentService {
           id: bookingId,
         },
       });
-      if (!booking || !this.credentials?.api_key) {
+
+      if (!booking || !this.credentials) {
         throw new Error("Booking or API key not found");
       }
 
-      const uid = uuidv4();
+      const { isSandbox } = this.credentials;
+      const keyObj = isSandbox ? this.credentials.sandbox : this.credentials.prod;
+      if (!keyObj || !keyObj?.apiKey) {
+        throw new Error("API key not found");
+      }
 
-      const requestUrl = `${NEXT_PUBLIC_API_HITPAY}/v1/payment-requests`;
+      const hitpayAPIurl = isSandbox ? SANDBOX_API_HITPAY : API_HITPAY;
+
+      const requestUrl = `${hitpayAPIurl}/v1/payment-requests`;
       const redirectUri = `${WEBAPP_URL}/api/integrations/${appConfig.slug}/callback`;
       const webhookUri = `${WEBAPP_URL}/api/integrations/${appConfig.slug}/webhook`;
 
@@ -73,12 +80,13 @@ export class PaymentService implements IAbstractPaymentService {
       const response = await axios.post(requestUrl, qs.stringify(formData), {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-          "X-BUSINESS-API-KEY": this.credentials.api_key,
+          "X-BUSINESS-API-KEY": keyObj.apiKey,
           "X-Requested-With": "XMLHttpRequest",
         },
       });
 
       const data = response.data;
+      const uid = uuidv4();
 
       const paymentData = await prisma.payment.create({
         data: {

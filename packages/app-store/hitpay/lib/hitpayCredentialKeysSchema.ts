@@ -1,6 +1,17 @@
 import z from "zod";
 
 export const hitpayCredentialKeysSchema = z.object({
-  api_key: z.string(),
-  salt_key: z.string(),
+  prod: z
+    .object({
+      apiKey: z.string(),
+      saltKey: z.string(),
+    })
+    .optional(),
+  sandbox: z
+    .object({
+      apiKey: z.string(),
+      saltKey: z.string(),
+    })
+    .optional(),
+  isSandbox: z.boolean(),
 });

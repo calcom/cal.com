@@ -3,10 +3,10 @@ import type { GetServerSidePropsContext } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
+import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
 import type { IHitPaySetupProps } from "./index";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  console.log("hitpay setup");
   const notFound = { notFound: true } as const;
 
   if (typeof ctx.params?.slug !== "string") return notFound;
@@ -27,22 +27,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
 
-  const props: IHitPaySetupProps = {
-    email: session?.user?.email ? session.user.email : null,
-    apiKey: null,
-    saltKey: null,
+  let props: IHitPaySetupProps = {
+    isSandbox: false,
   };
 
   if (credentials?.key) {
-    const { api_key, salt_key } = credentials.key as {
-      api_key?: string;
-      salt_key?: string;
-    };
-    if (api_key) {
-      props.apiKey = api_key;
-    }
-    if (salt_key) {
-      props.saltKey = salt_key;
+    const keyParsing = hitpayCredentialKeysSchema.safeParse(credentials.key);
+    if (keyParsing.success) {
+      props = {
+        ...props,
+        ...keyParsing.data,
+      };
     }
   }
 

@@ -53,11 +53,10 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     }
   }, [requirePayment, getAppData, setAppData]);
 
-  const disableDecimalPlace = (value) => {
+  const disableDecimalPlace = (value: number) => {
     const nValue = Math.floor(value);
     const sValue = nValue.toString();
     const ret = parseInt(sValue);
-    console.log("disableDecimalPlace ret =>", ret);
     return ret;
   };
 
