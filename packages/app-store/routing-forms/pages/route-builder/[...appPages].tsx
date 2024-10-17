@@ -95,6 +95,10 @@ type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
 
+/**
+ * We need eventTypeId in every redirect url action now for Rerouting to work smoothly.
+ * This hook ensures that it is there as soon as someone lands on a Routing Form and next save would automatically update it for them.
+ */
 function useEnsureEventTypeIdInRedirectUrlAction({
   route,
   eventOptions,

@@ -1,10 +1,25 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useRouter } from "next/navigation";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import { RerouteDialog } from "../RerouteDialog";
+
+const mockRouter = {
+  push: vi.fn((path: string) => {
+    return;
+  }),
+};
+
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => mockRouter),
+  };
+});
 
 vi.mock("@calcom/app-store/routing-forms/lib/processRoute", () => ({
   findMatchingRoute: vi.fn(({ form, response }) => {
@@ -16,7 +31,7 @@ const fakeNewTabWindow = {
   close: vi.fn(),
 };
 
-const mockOpen = vi.fn(() => {
+const mockOpen = vi.fn((_url: string) => {
   return fakeNewTabWindow;
 });
 
@@ -393,20 +408,32 @@ describe("RerouteDialog", () => {
         await mockMessageFromOpenedTab({
           type: "CAL:rescheduleBookingSuccessfulV2",
           data: {
-            uid: "RESCHEDULED_BOOKING_UID",
+            uid: "RESCHEDULED_BOOKING_UID_NEW_TAB",
           },
         });
 
-        const rescheduleTabUrl = mockOpen.mock.calls[0][0] as string;
-        console.log("rescheduleTabUrl", rescheduleTabUrl);
+        const rescheduleTabUrl = mockOpen.mock.calls[0][0] as unknown as string;
         const rescheduleTabUrlObject = new URL(rescheduleTabUrl, "http://mockcal.com");
-        console.log("rescheduleTabUrlObject", rescheduleTabUrlObject.toString());
-        expect(rescheduleTabUrlObject.searchParams).toEqual(
+        expect(Object.fromEntries(rescheduleTabUrlObject.searchParams.entries())).toEqual(
           expect.objectContaining({
             rescheduleUid: mockBooking.uid,
+            "cal.rerouting": "true",
+            "cal.reroutingFormResponses": JSON.stringify({
+              "company-size": {
+                value: "small",
+              },
+              country: {
+                value: "usa",
+              },
+            }),
           })
         );
         expect(fakeNewTabWindow.close).toHaveBeenCalled();
+        expectToBeNavigatedToBookingPage({
+          booking: {
+            uid: "RESCHEDULED_BOOKING_UID_NEW_TAB",
+          },
+        });
       });
 
       test("Rescheduling with same timeslot works", async () => {
@@ -430,6 +457,12 @@ describe("RerouteDialog", () => {
             },
           })
         );
+
+        expectToBeNavigatedToBookingPage({
+          booking: {
+            uid: "RESCHEDULED_BOOKING_UID_SAME_TIMESLOT",
+          },
+        });
       });
     });
   });
@@ -451,4 +484,14 @@ function clickRescheduleWithSameTimeslotOfChosenEventButton() {
   act(() => {
     fireEvent.click(screen.getByText("reschedule_with_same_timeslot_of_new_event"));
   });
+}
+
+function expectToBeNavigatedToBookingPage({
+  booking,
+}: {
+  booking: {
+    uid: string;
+  };
+}) {
+  expect(mockRouter.push).toHaveBeenCalledWith(`/booking/${booking.uid}?cal.rerouting=true`);
 }

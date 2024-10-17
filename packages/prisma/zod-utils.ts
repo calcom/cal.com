@@ -254,7 +254,6 @@ export const bookingCreateBodySchema = z.object({
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
 
-  // isRerouting: z.boolean().optional(),
   /**
    * Holds the corrected responses of the Form for a booking, provided during rerouting
    */

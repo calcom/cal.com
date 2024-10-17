@@ -1,12 +1,7 @@
 import { defineConfig } from "vitest/config";
-// import tsconfigPaths from 'vite-tsconfig-paths';
-// import path from 'path';
 process.env.INTEGRATION_TEST_MODE = "true";
 
 export default defineConfig({
-  // plugins: [tsconfigPaths({
-  //   projects: [path.resolve(__dirname, "apps/web/tsconfig.json")]
-  // }) as any],
   test: {
     coverage: {
       provider: "v8",

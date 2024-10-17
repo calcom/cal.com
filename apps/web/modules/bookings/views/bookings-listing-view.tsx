@@ -20,7 +20,6 @@ import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
