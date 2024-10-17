@@ -141,7 +141,9 @@ export class EventTypesAtomService {
       },
     });
     if (!membership?.team?.eventTypes?.some((item) => item.id === eventTypeId)) {
-      throw new ForbiddenException(`Team with ID=${teamId} does not own event type with ID=${eventTypeId}`);
+      throw new ForbiddenException(
+        `Access denied. Either the team with ID=${teamId} does not own the event type with ID=${eventTypeId}, or your MEMBER role does not have permission to access this resource.`
+      );
     }
   }
 }
