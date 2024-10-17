@@ -13,6 +13,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import type {
   CalendarEvent,
   EventBusyDate,
+  EventBusyData,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -203,16 +204,17 @@ export const getBusyCalendarTimes = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  isOverlayUser?: boolean
 ) => {
-  let results: EventBusyDate[][] = [];
+  let results: EventBusyData[][] = [];
   // const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
+    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars, isOverlayUser);
   } catch (e) {
     log.warn(safeStringify(e));
   }

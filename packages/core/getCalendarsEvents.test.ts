@@ -124,7 +124,8 @@ describe("getCalendarsEvents", () => {
       ],
       "2010-12-01",
       "2010-12-04",
-      [selectedCalendar]
+      [selectedCalendar],
+      false
     );
 
     expect(getAvailabilitySpy).toHaveBeenCalledWith("2010-12-01", "2010-12-04", [selectedCalendar]);
@@ -187,7 +188,8 @@ describe("getCalendarsEvents", () => {
       ],
       "2010-12-01",
       "2010-12-04",
-      [selectedGoogleCalendar, selectedOfficeCalendar]
+      [selectedGoogleCalendar, selectedOfficeCalendar],
+      false
     );
 
     expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith("2010-12-01", "2010-12-04", [
