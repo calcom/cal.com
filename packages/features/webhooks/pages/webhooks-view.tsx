@@ -3,11 +3,11 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WebhookRepository } from "@calcom/lib/server/repository/webhook";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
@@ -35,14 +35,22 @@ const SkeletonLoader = ({
   );
 };
 
-const WebhooksView = () => {
+type WebhooksViewProps = {
+  ssrProps?: {
+    webhooks?: Awaited<ReturnType<typeof WebhookRepository.getAllWebhooksByUserId>>;
+  };
+};
+
+const WebhooksView = ({ ssrProps }: WebhooksViewProps) => {
   const { t } = useLocale();
   const session = useSession();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const { data, isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
-    enabled: session.status === "authenticated",
+  const { data: webhooks, isPending: _isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
+    enabled: ssrProps?.webhooks ? false : session.status === "authenticated",
   });
+  const data = ssrProps?.webhooks ?? webhooks;
+  const isPending = ssrProps?.webhooks ? false : _isPending;
 
   if (isPending || !data) {
     return (
@@ -59,40 +67,6 @@ const WebhooksView = () => {
       <div>
         <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
       </div>
-    </>
-  );
-};
-
-export const WebhooksViewAppDir = () => {
-  const { t } = useLocale();
-  const session = useSession();
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-
-  const { data, isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
-    enabled: session.status === "authenticated",
-  });
-
-  if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-      />
-    );
-  }
-
-  return (
-    <>
-      <SettingsHeader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : <></>}
-        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
-        <div>
-          <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
-        </div>
-      </SettingsHeader>
     </>
   );
 };
