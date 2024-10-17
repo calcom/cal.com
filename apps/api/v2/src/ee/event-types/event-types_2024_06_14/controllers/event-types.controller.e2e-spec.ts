@@ -31,6 +31,7 @@ import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  NameFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -199,6 +200,13 @@ describe("Event types Endpoints", () => {
     });
 
     it("should create an event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: false,
+      };
+
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class",
         slug: "coding-class",
@@ -211,12 +219,7 @@ describe("Event types Endpoints", () => {
           },
         ],
         bookingFields: [
-          {
-            type: "name",
-            label: "Your name sir / madam",
-            placeholder: "john doe",
-            disableOnPrefill: false,
-          },
+          nameBookingField,
           {
             type: "select",
             label: "select which language you want to learn",
@@ -313,10 +316,12 @@ describe("Event types Endpoints", () => {
 
           const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
-            { isDefault: true, required: true, slug: "name", type: "name" },
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
             { isDefault: true, required: true, slug: "email", type: "email" },
             { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
-            ...requestBookingFields.map((field) => ({ isDefault: false, ...field })),
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
@@ -637,18 +642,20 @@ describe("Event types Endpoints", () => {
     });
 
     it("should update event type", async () => {
+      const nameBookingField: NameFieldInput_2024_06_14 = {
+        type: "name",
+        label: "Your name sir / madam",
+        placeholder: "john doe",
+        disableOnPrefill: true,
+      };
+
       const newTitle = "Coding class in Italian!";
 
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
         bookingFields: [
-          {
-            type: "name",
-            label: "Your name sir / madam",
-            placeholder: "john doe",
-            disableOnPrefill: true,
-          },
+          nameBookingField,
           {
             type: "select",
             label: "select which language you want to learn",
@@ -718,7 +725,19 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.description).toEqual(eventType.description);
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
-          expect(updatedEventType.bookingFields).toEqual(body.bookingFields);
+
+          const requestBookingFields = body.bookingFields || [];
+          const expectedBookingFields = [
+            { isDefault: true, required: true, slug: "name", ...nameBookingField },
+            { isDefault: true, required: true, slug: "email", type: "email" },
+            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            ...requestBookingFields
+              .filter((field) => field.type !== "name" && field.type !== "email")
+              .map((field) => ({ isDefault: false, ...field })),
+          ];
+
+          expect(updatedEventType.bookingFields).toEqual(expectedBookingFields);
+
           expect(updatedEventType.ownerId).toEqual(user.id);
           expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
           expect(updatedEventType.bookingLimitsCount).toEqual(body.bookingLimitsCount);
