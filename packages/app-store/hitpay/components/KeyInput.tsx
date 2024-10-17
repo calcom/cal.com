@@ -72,7 +72,6 @@ export const KeyField = forwardRef<HTMLInputElement, InputFieldProps & { default
       readOnly,
       showAsteriskIndicator,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      t: __t,
       defaultValue,
       ...passThrough
     } = props;
