@@ -62,10 +62,10 @@ export function DataTable<TData, TValue>({
       <div
         ref={tableContainerRef}
         onScroll={onScroll}
-        className="scrollbar-thin border-subtle h-full overflow-y-auto rounded-md border"
+        className="scrollbar-thin border-subtle relative h-full overflow-y-auto rounded-md border"
         style={{ gridArea: "body" }}>
-        <Table className="overflow-y-scroll border-0">
-          <TableHeader className="sticky top-0 z-10">
+        <Table className="border-0">
+          <TableHeader className="bg-subtle sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
