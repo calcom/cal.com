@@ -87,6 +87,7 @@ export async function ensureAvailableUsers(
       returnDateOverrides: false,
       dateFrom: startDateTimeUtc.format(),
       dateTo: endDateTimeUtc.format(),
+      considerOnlyFirstSlot: eventType.onlyShowFirstAvailableSlot,
     },
     initialData: {
       eventType,
