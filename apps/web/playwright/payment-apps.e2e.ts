@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
@@ -14,18 +15,16 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
-    await prisma.credential.create({
-      data: {
-        type: "alby_payment",
-        appId: "alby",
-        userId: user.id,
-        key: {
-          account_id: "random",
-          account_email: "random@example.com",
-          webhook_endpoint_id: "ep_randomString",
-          webhook_endpoint_secret: "whsec_randomString",
-          account_lightning_address: "random@getalby.com",
-        },
+    await CredentialRepository.create({
+      type: "alby_payment",
+      appId: "alby",
+      userId: user.id,
+      key: {
+        account_id: "random",
+        account_email: "random@example.com",
+        webhook_endpoint_id: "ep_randomString",
+        webhook_endpoint_secret: "whsec_randomString",
+        account_lightning_address: "random@getalby.com",
       },
     });
 
@@ -55,21 +54,19 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
-    await prisma.credential.create({
-      data: {
-        type: "stripe_payment",
-        appId: "stripe",
-        userId: user.id,
-        key: {
-          scope: "read_write",
-          livemode: false,
-          token_type: "bearer",
-          access_token: "sk_test_randomString",
-          refresh_token: "rt_randomString",
-          stripe_user_id: "acct_randomString",
-          default_currency: "usd",
-          stripe_publishable_key: "pk_test_randomString",
-        },
+    await CredentialRepository.create({
+      type: "stripe_payment",
+      appId: "stripe",
+      userId: user.id,
+      key: {
+        scope: "read_write",
+        livemode: false,
+        token_type: "bearer",
+        access_token: "sk_test_randomString",
+        refresh_token: "rt_randomString",
+        stripe_user_id: "acct_randomString",
+        default_currency: "usd",
+        stripe_publishable_key: "pk_test_randomString",
       },
     });
 
@@ -100,16 +97,14 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
-    await prisma.credential.create({
-      data: {
-        type: "paypal_payment",
-        appId: "paypal",
-        userId: user.id,
-        key: {
-          client_id: "randomString",
-          secret_key: "randomString",
-          webhook_id: "randomString",
-        },
+    await CredentialRepository.create({
+      type: "paypal_payment",
+      appId: "paypal",
+      userId: user.id,
+      key: {
+        client_id: "randomString",
+        secret_key: "randomString",
+        webhook_id: "randomString",
       },
     });
 
@@ -147,13 +142,11 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
-    await prisma.credential.create({
-      data: {
-        type: "alby_payment",
-        appId: "alby",
-        userId: user.id,
-        key: {},
-      },
+    await CredentialRepository.create({
+      type: "alby_payment",
+      appId: "alby",
+      userId: user.id,
+      key: {},
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
@@ -174,13 +167,11 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
-    await prisma.credential.create({
-      data: {
-        type: "paypal_payment",
-        appId: "paypal",
-        userId: user.id,
-        key: {},
-      },
+    await CredentialRepository.create({
+      type: "paypal_payment",
+      appId: "paypal",
+      userId: user.id,
+      key: {},
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
@@ -208,14 +199,12 @@ test.describe("Payment app", () => {
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
     expect(paymentEvent).not.toBeNull();
 
-    await prisma.credential.create({
-      data: {
-        type: "ga4_analytics",
-        userId: user.id,
-        appId: "ga4",
-        invalid: false,
-        key: {},
-      },
+    await CredentialRepository.create({
+      type: "ga4_analytics",
+      userId: user.id,
+      appId: "ga4",
+      invalid: false,
+      key: {},
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
