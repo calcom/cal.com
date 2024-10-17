@@ -24,64 +24,64 @@ const cityData = [
     timezone: "America/Los_Angeles",
   },
   {
-    city: "Eastern Time - US & Canada",
     timezone: "America/New_York",
+    city: "Eastern Time - US & Canada",
   },
   {
-    city: "Pacific Time - US & Canada",
     timezone: "America/Los_Angeles",
+    city: "Pacific Time - US & Canada",
   },
   {
-    city: "Central Time - US & Canada",
     timezone: "America/Chicago",
+    city: "Central Time - US & Canada",
   },
   {
-    city: "Mountain Time - US & Canada",
     timezone: "America/Denver",
+    city: "Mountain Time - US & Canada",
   },
   {
-    city: "Atlantic Time - Canada",
     timezone: "America/Halifax",
+    city: "Atlantic Time - Canada",
   },
   {
-    city: "Eastern European Time",
     timezone: "Europe/Bucharest",
+    city: "Eastern European Time",
   },
   {
-    city: "Central European Time",
     timezone: "Europe/Berlin",
+    city: "Central European Time",
   },
   {
-    city: "Western European Time",
     timezone: "Europe/London",
+    city: "Western European Time",
   },
   {
-    city: "Australian Eastern Time",
     timezone: "Australia/Sydney",
+    city: "Australian Eastern Time",
   },
   {
-    city: "Japan Standard Time",
     timezone: "Asia/Tokyo",
+    city: "Japan Standard Time",
   },
   {
-    city: "India Standard Time",
     timezone: "Asia/Kolkata",
+    city: "India Standard Time",
   },
   {
-    city: "Gulf Standard Time",
     timezone: "Asia/Dubai",
+    city: "Gulf Standard Time",
   },
   {
-    city: "South Africa Standard Time",
     timezone: "Africa/Johannesburg",
+    city: "South Africa Standard Time",
   },
   {
-    city: "Brazil Time",
     timezone: "America/Sao_Paulo",
+    city: "Brazil Time",
   },
   {
-    city: "Hawaii-Aleutian Standard Time",
     timezone: "Pacific/Honolulu",
+    city: "Hawaii-Aleutian Standard Time",
   },
 ];
 
@@ -150,6 +150,8 @@ describe("getTimezone", () => {
         "Europe/Berlin": "Central European Time",
         "Europe/Bucharest": "Eastern European Time",
         "Europe/London": "Western European Time",
+        "Mountain Time - US & Canada": "America/Denver",
+        "Pacific Time - US & Canada": "America/Los_Angeles",
         "Pacific/Honolulu": "Hawaii-Aleutian Standard Time",
       }
     `);
