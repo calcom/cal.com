@@ -54,6 +54,7 @@ export const bulkUpdateToDefaultLocationHandler = async ({
         in: eventTypeIds,
       },
       userId: ctx.user.id,
+      actorUserId: ctx.user.id ?? null,
     },
     data: {
       locations: [

@@ -74,6 +74,7 @@ export const buildBooking = (
     ratingFeedback: null,
     attendees: [],
     oneTimePassword: null,
+    actorUserId: null,
     ...booking,
   };
 };
@@ -134,6 +135,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     profileId: null,
     secondaryEmailId: null,
     isRRWeightsEnabled: false,
+    actorUserId: null,
     eventTypeColor: null,
     ...eventType,
   };

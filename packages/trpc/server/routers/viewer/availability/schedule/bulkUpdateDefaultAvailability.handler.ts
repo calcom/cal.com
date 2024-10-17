@@ -32,6 +32,7 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
         in: eventTypeIds,
       },
       userId: ctx.user.id,
+      actorUserId: ctx.user.id ?? null,
     },
     data: {
       scheduleId: defaultScheduleId,

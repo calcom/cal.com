@@ -16,13 +16,13 @@ const attendeeRescheduleSeatedBooking = async (
   seatAttendee: SeatAttendee,
   newTimeSlotBooking: NewTimeSlotBooking | null,
   originalBookingEvt: CalendarEvent,
-  eventManager: EventManager
+  eventManager: EventManager,
+  actorUserId?: number
 ) => {
   const { tAttendees, bookingSeat, bookerEmail, evt, eventType } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-
   // Update the original calendar event by removing the attendee that is rescheduling
   if (originalBookingEvt && originalRescheduledBooking) {
     // Event would probably be deleted so we first check than instead of updating references
@@ -32,7 +32,8 @@ const attendeeRescheduleSeatedBooking = async (
     const deletedReference = await lastAttendeeDeleteBooking(
       originalRescheduledBooking,
       filteredAttendees,
-      originalBookingEvt
+      originalBookingEvt,
+      actorUserId
     );
 
     if (!deletedReference) {
@@ -95,7 +96,12 @@ const attendeeRescheduleSeatedBooking = async (
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });
-  await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
+  await lastAttendeeDeleteBooking(
+    originalRescheduledBooking,
+    filteredAttendees,
+    originalBookingEvt,
+    actorUserId
+  );
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 

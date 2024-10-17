@@ -52,6 +52,7 @@ const getDownloadLinkOfCalVideo = async (recordingId: string) => {
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { userId } = req;
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
@@ -104,13 +105,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const booking = await getBooking(bookingReference.bookingId as number);
 
       const evt = await getCalendarEvent(booking);
-
       await prisma.booking.update({
         where: {
           uid: booking.uid,
         },
         data: {
           isRecorded: true,
+          actorUserId: userId ?? null,
         },
       });
 
