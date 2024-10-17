@@ -64,4 +64,20 @@ export class AtomsController {
       data: eventType,
     };
   }
+
+  @Patch("/organizations/:organizationId/teams/:teamId/event-types/:eventTypeId")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  async updateAtomTeamEventType(
+    @GetUser() user: UserWithProfile,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Body() body: UpdateEventTypeReturn
+  ): Promise<ApiResponse<UpdateEventTypeReturn>> {
+    const eventType = await this.eventTypesService.updateTeamEventType(eventTypeId, body, user, teamId);
+    return {
+      status: SUCCESS_STATUS,
+      data: eventType,
+    };
+  }
 }
