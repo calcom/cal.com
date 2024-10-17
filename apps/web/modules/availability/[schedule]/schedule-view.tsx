@@ -15,14 +15,14 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 type PageProps = {
-  scheduleFetched?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
-  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
+  ssrProps?: {
+    schedule?: Awaited<ReturnType<typeof ScheduleRepository.findDetailedScheduleById>>;
+    travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
+  };
+  revalidateCache?: () => Promise<void>;
 };
 
-export const AvailabilitySettingsWebWrapper = ({
-  scheduleFetched: scheduleProp,
-  travelSchedules: travelSchedulesProp,
-}: PageProps) => {
+export const AvailabilitySettingsWebWrapper = ({ ssrProps, revalidateCache }: PageProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -34,22 +34,23 @@ export const AvailabilitySettingsWebWrapper = ({
   const { data: scheduleData, isPending: isFetchingPending } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
-      enabled: !!scheduleId && !scheduleProp,
+      enabled: !!scheduleId && !ssrProps?.schedule,
     }
   );
-  const isPending = isFetchingPending && !scheduleProp;
-  const schedule = scheduleProp ?? scheduleData;
+  const isPending = isFetchingPending && !ssrProps?.schedule;
+  const schedule = ssrProps?.schedule ?? scheduleData;
 
   const { data: travelSchedulesData } = trpc.viewer.getTravelSchedules.useQuery(undefined, {
-    enabled: !travelSchedulesProp,
+    enabled: !ssrProps?.travelSchedules,
   });
-  const travelSchedules = travelSchedulesProp ?? travelSchedulesData;
+  const travelSchedules = ssrProps?.travelSchedules ?? travelSchedulesData;
 
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
       onSuccess: () => {
         utils.viewer.availability.list.invalidate();
+        revalidateCache?.();
         setIsBulkUpdateModalOpen(false);
         showToast(t("success"), "success");
       },
@@ -64,11 +65,14 @@ export const AvailabilitySettingsWebWrapper = ({
         if (prevDefaultId !== currentDefaultId) {
           // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
           utils.viewer.availability.schedule.get.invalidate({ scheduleId: prevDefaultId });
+          revalidateCache?.();
           utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
         }
       }
       utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
       utils.viewer.availability.list.invalidate();
+      revalidateCache?.();
+
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
@@ -90,6 +94,7 @@ export const AvailabilitySettingsWebWrapper = ({
     }),
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
+      revalidateCache?.();
     },
     onSuccess: () => {
       showToast(t("schedule_deleted_successfully"), "success");
