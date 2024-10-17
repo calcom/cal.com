@@ -186,6 +186,10 @@ export function UserListTable() {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        meta: {
+          sticky: true,
+          stickLeft: 0,
+        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -209,6 +213,10 @@ export function UserListTable() {
         enableHiding: false,
         header: () => {
           return `Members`;
+        },
+        meta: {
+          sticky: true,
+          stickyLeft: 24,
         },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
