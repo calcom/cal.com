@@ -21,7 +21,12 @@ import type {
   SeatOptionsDisabledSchema,
 } from "@calcom/platform-types";
 
-import type { CustomField } from "../internal-to-api/booking-fields";
+import {
+  systemBeforeFieldEmail,
+  systemBeforeFieldName,
+  type CustomField,
+  type SystemField,
+} from "../internal-to-api/booking-fields";
 import {
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
@@ -105,6 +110,54 @@ describe("transformLocationsApiToInternal", () => {
 });
 
 describe("transformBookingFieldsApiToInternal", () => {
+  it("should transform name field", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "name",
+      label: "Your name number",
+      placeholder: "123456789",
+      disableOnPrefill: true,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: SystemField[] = [
+      {
+        ...systemBeforeFieldName,
+        label: "Your name number",
+        placeholder: "123456789",
+        disableOnPrefill: true,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should transform email field", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "email",
+      label: "Your email",
+      placeholder: "bob@gmail.com",
+      disableOnPrefill: true,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: SystemField[] = [
+      {
+        ...systemBeforeFieldEmail,
+        label: "Your email",
+        placeholder: "bob@gmail.com",
+        disableOnPrefill: true,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should transform phone field", () => {
     const bookingField: InputBookingField_2024_06_14 = {
       type: "phone",

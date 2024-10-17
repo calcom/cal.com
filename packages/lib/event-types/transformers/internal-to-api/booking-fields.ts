@@ -25,6 +25,9 @@ export function transformBookingFieldsInternalToApi(
           type: field.type,
           slug: field.name,
           required: field.required,
+          label: field.label,
+          placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "email":
         return {
@@ -32,6 +35,9 @@ export function transformBookingFieldsInternalToApi(
           type: field.type,
           slug: field.name,
           required: field.required,
+          label: field.label,
+          placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "location":
         return {
@@ -85,6 +91,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "address":
         return {
@@ -94,6 +101,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "text":
         return {
@@ -103,6 +111,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "number":
         return {
@@ -112,6 +121,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "textarea":
         return {
@@ -121,6 +131,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "multiemail":
         return {
@@ -130,6 +141,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "boolean":
         return {
@@ -138,6 +150,7 @@ export function transformBookingFieldsInternalToApi(
           slug: field.name,
           label: field.label,
           required: field.required,
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "select":
         return {
@@ -148,6 +161,7 @@ export function transformBookingFieldsInternalToApi(
           required: field.required,
           placeholder: field.placeholder,
           options: field.options ? field.options.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "multiselect":
         return {
@@ -157,6 +171,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           options: field.options ? field.options?.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "checkbox":
         return {
@@ -166,6 +181,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           options: field.options ? field.options?.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       case "radio":
         return {
@@ -175,6 +191,7 @@ export function transformBookingFieldsInternalToApi(
           label: field.label,
           required: field.required,
           options: field.options ? field.options?.map((option) => option.value) : [],
+          disableOnPrefill: field.disableOnPrefill,
         };
       default:
         throw new Error(`Unsupported booking field type '${field.type}'.`);

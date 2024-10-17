@@ -212,6 +212,12 @@ describe("Event types Endpoints", () => {
         ],
         bookingFields: [
           {
+            type: "name",
+            label: "Your name sir / madam",
+            placeholder: "john doe",
+            disableOnPrefill: false,
+          },
+          {
             type: "select",
             label: "select which language you want to learn",
             slug: "select-language",
@@ -637,6 +643,12 @@ describe("Event types Endpoints", () => {
         title: newTitle,
         scheduleId: secondSchedule.id,
         bookingFields: [
+          {
+            type: "name",
+            label: "Your name sir / madam",
+            placeholder: "john doe",
+            disableOnPrefill: true,
+          },
           {
             type: "select",
             label: "select which language you want to learn",
