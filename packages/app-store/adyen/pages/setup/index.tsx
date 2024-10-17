@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Badge, Button, showToast } from "@calcom/ui";
@@ -51,10 +52,7 @@ export default function AdyenSetup(props: IAdyenSetupProps) {
     setNewKeyGenerated(false);
     window.location.href = await createOAuthUrl({
       clientId: props.clientId,
-      redirectUri: encodeURIComponent(
-        // `${process.env.NEXT_PUBLIC_WEBAPP_URL}/apps/adyen/setup#callback`
-        `https://e28f-2405-201-d010-977-c55f-3f6a-9800-f653.ngrok-free.app/apps/adyen/setup#callback`
-      ),
+      redirectUri: encodeURIComponent(`${WEBAPP_URL}/apps/adyen/setup#callback`),
       credentialId,
     });
   }, [credentialId, props.clientId, props.clientSecret]);
@@ -70,10 +68,7 @@ export default function AdyenSetup(props: IAdyenSetupProps) {
           stateCallback,
           clientId: props.clientId,
           clientSecret: props.clientSecret,
-          // redirectUri: encodeURIComponent(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/apps/adyen/setup#callback`),
-          redirectUri: encodeURIComponent(
-            `https://e28f-2405-201-d010-977-c55f-3f6a-9800-f653.ngrok-free.app/apps/adyen/setup#callback`
-          ),
+          redirectUri: encodeURIComponent(`${WEBAPP_URL}/apps/adyen/setup#callback`),
           codeVerifier,
           initialState,
         };

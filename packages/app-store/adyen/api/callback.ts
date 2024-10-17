@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
@@ -83,8 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //Add calcom url as allowed origin in adyen
     //see https://docs.adyen.com/development-resources/oauth/scopes/#step-1-add-allowed-origins
     const allowedOriginReqBody = {
-      // domain: `${WEBAPP_URL}`,
-      domain: `https://e28f-2405-201-d010-977-c55f-3f6a-9800-f653.ngrok-free.app`,
+      domain: `${WEBAPP_URL}`,
     };
     const addAllowedOriginResp = await fetcher(ADYEN_MANAGEMENT_API_BASE_URL, `/me/allowedOrigins`, {
       method: "POST",
@@ -135,8 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       active: true,
       communicationFormat: "json",
       type: "standard",
-      // url: `${WEBAPP_URL}/api/integrations/adyen/webhook`,
-      url: "https://e28f-2405-201-d010-977-c55f-3f6a-9800-f653.ngrok-free.app/api/integrations/adyen/webhook",
+      url: `${WEBAPP_URL}/api/integrations/adyen/webhook`,
     };
     const webhookSetupResponse = await fetcher(
       ADYEN_MANAGEMENT_API_BASE_URL,
