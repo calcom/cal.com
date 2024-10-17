@@ -488,7 +488,9 @@ export class BooleanFieldInput_2024_06_14 {
   disableOnPrefill?: boolean;
 }
 
-export type CustomBookingField_2024_06_14 =
+export type InputBookingField_2024_06_14 =
+  | NameFieldInput_2024_06_14
+  | EmailFieldInput_2024_06_14
   | PhoneFieldInput_2024_06_14
   | AddressFieldInput_2024_06_14
   | TextFieldInput_2024_06_14
@@ -500,11 +502,6 @@ export type CustomBookingField_2024_06_14 =
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
   | BooleanFieldInput_2024_06_14;
-
-export type InputBookingField_2024_06_14 =
-  | CustomBookingField_2024_06_14
-  | NameFieldInput_2024_06_14
-  | EmailFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {

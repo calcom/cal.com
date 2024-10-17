@@ -245,6 +245,7 @@ const SystemFieldSchema = z.object({
     )
     .optional(),
   defaultPlaceholder: z.enum(["", "share_additional_notes", "email", "reschedule_placeholder"]).optional(),
+  placeholder: z.string().optional(),
   hidden: z.boolean().optional(),
   required: z.boolean(),
   hideWhenJustOneOption: z.boolean().optional(),

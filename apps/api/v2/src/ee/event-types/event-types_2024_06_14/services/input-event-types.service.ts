@@ -20,8 +20,8 @@ import {
   transformEventColorsApiToInternal,
   validateCustomEventName,
   transformSeatsApiToInternal,
-  NameSystemField,
-  EmailSystemField,
+  SystemField,
+  CustomField,
 } from "@calcom/platform-libraries";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -29,7 +29,6 @@ import {
   InputEventTransformed_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { EmailFieldInput_2024_06_14, NameFieldInput_2024_06_14 } from "@calcom/platform-types";
 
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
@@ -214,45 +213,27 @@ export class InputEventTypesService_2024_06_14 {
     inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
     hasMultipleLocations: boolean
   ) {
-    const customNameField = inputBookingFields?.find(
-      (field) => field.type === "name",
-      NameFieldInput_2024_06_14
-    ) as NameFieldInput_2024_06_14 | undefined;
-    const customEmailField = inputBookingFields?.find(
-      (field) => field.type === "email",
-      EmailFieldInput_2024_06_14
-    ) as EmailFieldInput_2024_06_14 | undefined;
+    const customFields: (SystemField | CustomField)[] = inputBookingFields
+      ? transformBookingFieldsApiToInternal(inputBookingFields)
+      : [];
+    const customFieldsWithoutNameEmail = customFields.filter(
+      (field) => field.type !== "name" && field.type !== "email"
+    );
+    const customNameField = customFields?.find((field) => field.type === "name");
+    const customEmailField = customFields?.find((field) => field.type === "email");
 
-    const nameField: NameSystemField = customNameField
-      ? {
-          ...systemBeforeFieldName,
-          label: customNameField.label,
-          placeholder: customNameField.placeholder,
-          disableOnPrefill: customNameField.disableOnPrefill,
-        }
-      : systemBeforeFieldName;
-    const emailField: EmailSystemField = customEmailField
-      ? {
-          ...systemBeforeFieldEmail,
-          label: customEmailField.label,
-          placeholder: customEmailField.placeholder,
-          disableOnPrefill: customEmailField.disableOnPrefill,
-        }
-      : systemBeforeFieldEmail;
-
-    const defaultFieldsBefore = [nameField, emailField];
+    const defaultFieldsBefore: (SystemField | CustomField)[] = [
+      customNameField || systemBeforeFieldName,
+      customEmailField || systemBeforeFieldEmail,
+    ];
     // note(Lauris): if event type has multiple locations then a radio button booking field has to be displayed to allow booker to pick location
     if (hasMultipleLocations) {
       defaultFieldsBefore.push(systemBeforeFieldLocation);
     }
 
-    // note(Lauris): filter out name and email fields as they are handled separately above. They are default fields but we allow specifying some properties for them.
-    const customFields = transformBookingFieldsApiToInternal(
-      inputBookingFields?.filter((field) => field.type !== "name" && field.type !== "email")
-    );
     const defaultFieldsAfter = [systemAfterFieldRescheduleReason];
 
-    return [...defaultFieldsBefore, ...customFields, ...defaultFieldsAfter];
+    return [...defaultFieldsBefore, ...customFieldsWithoutNameEmail, ...defaultFieldsAfter];
   }
 
   transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]) {
