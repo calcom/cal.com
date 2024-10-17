@@ -6,6 +6,8 @@ import type { ValidationOptions, ValidatorConstraintInterface } from "class-vali
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
 const inputBookingFieldTypes = [
+  "name",
+  "email",
   "phone",
   "address",
   "text",
@@ -19,6 +21,59 @@ const inputBookingFieldTypes = [
   "boolean",
 ] as const;
 
+export class NameFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "name", description: "only allowed value for type is `name`" })
+  type!: "name";
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&name=bob`,\
+      the name field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class EmailFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "email", description: "only allowed value for type is `email`" })
+  type!: "email";
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&email=bob@gmail.com`,\
+      the email field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
 export class PhoneFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
@@ -433,7 +488,7 @@ export class BooleanFieldInput_2024_06_14 {
   disableOnPrefill?: boolean;
 }
 
-export type InputBookingField_2024_06_14 =
+export type CustomBookingField_2024_06_14 =
   | PhoneFieldInput_2024_06_14
   | AddressFieldInput_2024_06_14
   | TextFieldInput_2024_06_14
@@ -446,9 +501,16 @@ export type InputBookingField_2024_06_14 =
   | RadioGroupFieldInput_2024_06_14
   | BooleanFieldInput_2024_06_14;
 
+export type InputBookingField_2024_06_14 =
+  | CustomBookingField_2024_06_14
+  | NameFieldInput_2024_06_14
+  | EmailFieldInput_2024_06_14;
+
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
   private classTypeMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {
+    name: NameFieldInput_2024_06_14,
+    email: EmailFieldInput_2024_06_14,
     phone: PhoneFieldInput_2024_06_14,
     address: AddressFieldInput_2024_06_14,
     text: TextFieldInput_2024_06_14,
@@ -462,7 +524,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     boolean: BooleanFieldInput_2024_06_14,
   };
 
-  private reservedSystemSlugs = ["name", "email", "location", "rescheduleReason"];
+  private reservedSystemSlugs = ["location", "rescheduleReason"];
 
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {
@@ -480,7 +542,8 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
         throw new BadRequestException(`Each booking field must have a 'type' property.`);
       }
 
-      if (!slug) {
+      const notSystemEditableField = type !== "name" && type !== "email";
+      if (notSystemEditableField && !slug) {
         throw new BadRequestException(`Each booking field must have a 'slug' property.`);
       }
 

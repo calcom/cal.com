@@ -263,6 +263,7 @@ const SystemFieldSchema = z.object({
       }),
     })
     .optional(),
+  disableOnPrefill: z.boolean().optional(),
 });
 
 const NameSystemFieldSchema = SystemFieldSchema.extend({
@@ -307,8 +308,8 @@ const GuestsSystemFieldSchema = SystemFieldSchema.extend({
   required: z.literal(false),
 });
 
-type NameSystemField = z.infer<typeof NameSystemFieldSchema>;
-type EmailSystemField = z.infer<typeof EmailSystemFieldSchema>;
+export type NameSystemField = z.infer<typeof NameSystemFieldSchema>;
+export type EmailSystemField = z.infer<typeof EmailSystemFieldSchema>;
 type RescheduleReasonSystemField = z.infer<typeof RescheduleReasonSystemFieldSchema>;
 type LocationReasonSystemField = z.infer<typeof LocationReasonSystemFieldSchema>;
 type TitleSystemField = z.infer<typeof TitleSystemFieldSchema>;

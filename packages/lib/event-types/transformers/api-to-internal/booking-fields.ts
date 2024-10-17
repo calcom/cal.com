@@ -1,10 +1,8 @@
-import { type CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import type { CustomBookingField_2024_06_14 } from "@calcom/platform-types";
 
 import type { CustomField } from "../internal-to-api";
 
-export function transformBookingFieldsApiToInternal(
-  inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]
-) {
+export function transformBookingFieldsApiToInternal(inputBookingFields: CustomBookingField_2024_06_14[]) {
   if (!inputBookingFields) {
     return [];
   }
