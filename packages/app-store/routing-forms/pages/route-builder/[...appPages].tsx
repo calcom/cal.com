@@ -62,6 +62,7 @@ type LocalRouteWithRaqbStates = LocalRoute & {
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
 type Route = LocalRouteWithRaqbStates | GlobalRoute;
+type SetRoute = (id: string, route: Partial<Route>) => void;
 
 const RoundRobinContactOwnerOverrideSwitch = ({
   route,
@@ -93,6 +94,38 @@ const RoundRobinContactOwnerOverrideSwitch = ({
 type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
+
+function useEnsureEventTypeIdInRedirectUrlAction({
+  route,
+  eventOptions,
+  setRoute,
+}: {
+  route: Route;
+  eventOptions: { label: string; value: string; eventTypeId: number }[];
+  setRoute: SetRoute;
+}) {
+  useEffect(() => {
+    if (isRouter(route)) {
+      return;
+    }
+
+    if (
+      route.action.type !== RouteActionType.EventTypeRedirectUrl ||
+      // Must not be set already. Could be zero as well for custom
+      route.action.eventTypeId !== undefined
+    ) {
+      return;
+    }
+
+    const matchingOption = eventOptions.find((eventOption) => eventOption.value === route.action.value);
+    if (!matchingOption) {
+      return;
+    }
+    setRoute(route.id, {
+      action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
+    });
+  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+}
 
 const hasRules = (route: Route) => {
   if (isRouter(route)) return false;
@@ -185,7 +218,7 @@ const Route = ({
   form: Form;
   route: Route;
   routes: Route[];
-  setRoute: (id: string, route: Partial<Route>) => void;
+  setRoute: SetRoute;
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
@@ -221,6 +254,12 @@ const Route = ({
       setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
     }
   }, [isLoading]);
+
+  useEnsureEventTypeIdInRedirectUrlAction({
+    route,
+    eventOptions,
+    setRoute,
+  });
 
   const onChangeFormFieldsQuery = (
     route: Route,

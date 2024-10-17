@@ -80,7 +80,7 @@ function buildParsedBooking(booking: BookingItemProps) {
     ? (booking.eventType as Ensure<
         typeof booking.eventType,
         // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
-        "id" | "length" | "title" | "slug" | "schedulingType" | "users" | "team"
+        "id" | "length" | "title" | "slug" | "schedulingType" | "team"
       >)
     : null;
 

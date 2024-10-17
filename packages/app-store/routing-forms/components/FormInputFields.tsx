@@ -12,12 +12,19 @@ import type { SerializableForm, FormResponse } from "../types/types";
 
 export type FormInputFieldsProps = {
   form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
+  /**
+   * Make sure that response is updated by setResponse
+   */
   response: FormResponse;
   setResponse: Dispatch<SetStateAction<FormResponse>>;
+  /**
+   * Identifier of the fields that should be disabled
+   */
+  disabledFields?: string[];
 };
 
 export default function FormInputFields(props: FormInputFieldsProps) {
-  const { form, response, setResponse } = props;
+  const { form, response, setResponse, disabledFields = [] } = props;
 
   const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
@@ -35,6 +42,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const Component = widget.factory;
 
         const options = getUIOptionsForSelect(field);
+        const fieldIdentifier = getFieldIdentifier(field);
         return (
           <div key={field.id} className="mb-4 block flex-col sm:flex ">
             <div className="min-w-48 mb-2 flex-grow">
@@ -50,10 +58,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
               /* @ts-ignore */
               required={!!field.required}
               listValues={options}
-              data-testid={`form-field-${getFieldIdentifier(field)}`}
+              disabled={disabledFields?.includes(fieldIdentifier)}
+              data-testid={`form-field-${fieldIdentifier}`}
               setValue={(value: number | string | string[]) => {
-                setResponse((response) => {
-                  response = response || {};
+                setResponse(() => {
                   return {
                     ...response,
                     [field.id]: {

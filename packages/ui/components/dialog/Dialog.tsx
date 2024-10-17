@@ -90,6 +90,9 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   Icon?: IconName;
   enableOverflow?: boolean;
   forceOverlayWhenNoModal?: boolean;
+  /**
+   * Disables the ability to close the dialog by clicking outside of it. Could be useful when the dialog is doing something critical which might be in progress.
+   */
   preventCloseOnOutsideClick?: boolean;
 };
 

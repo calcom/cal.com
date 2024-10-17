@@ -211,6 +211,10 @@ export async function getBookings({
     ...bookingMinimalSelect,
     uid: true,
     responses: true,
+    /**
+     * Who uses it -
+     * 1. We need to be able to decide which booking can have a 'Reroute' action
+     */
     routedFromRoutingFormReponse: {
       select: {
         id: true,
@@ -233,11 +237,6 @@ export async function getBookings({
         eventTypeColor: true,
         schedulingType: true,
         length: true,
-        users: {
-          select: {
-            username: true,
-          },
-        },
         team: {
           select: {
             id: true,

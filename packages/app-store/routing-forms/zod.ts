@@ -174,8 +174,8 @@ export const appDataSchema = z.any();
 
 export const appKeysSchema = z.object({});
 
-// TODO: Can we confirm that during the options id support, the response scheme remained same?
-export const responseInDbSchema = z.record(
+// This is different from FormResponse in types.d.ts in that it has label optional. We don't seem to be using label at this point, so we might want to use this only while saving the response when Routing Form is submitted
+export const routingFormResponseInDbSchema = z.record(
   z.object({
     label: z.string().optional(),
     value: z.union([z.string(), z.number(), z.array(z.string())]),

@@ -930,7 +930,6 @@ async function handler(
       rescheduledBy: reqBody.rescheduledBy,
       routingFormResponseId: routingFormResponseId,
       reroutingFormResponses: reroutingFormResponses ?? null,
-      isRerouting: reqBody.isRerouting ?? false,
       reqBody: {
         user: reqBody.user,
         metadata: reqBody.metadata,
