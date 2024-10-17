@@ -27,6 +27,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
@@ -36,6 +38,8 @@ export async function handleConfirmation(args: {
   prisma: PrismaClient;
   bookingId: number;
   booking: {
+    startTime: Date;
+    id: number;
     eventType: {
       currency: string;
       description: string | null;
@@ -392,6 +396,18 @@ export async function handleConfirmation(args: {
     });
 
     await Promise.all(scheduleTriggerPromises);
+
+    await scheduleNoShowTriggers({
+      booking: {
+        startTime: booking.startTime,
+        id: booking.id,
+      },
+      triggerForUser,
+      organizerUser: { id: booking.userId },
+      eventTypeId: booking.eventTypeId,
+      teamId,
+      orgId,
+    });
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: eventType?.title,
