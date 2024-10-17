@@ -118,7 +118,8 @@ export function DataTable<TData, TValue>({
                     onClick={() => onRowMouseclick && onRowMouseclick(row)}
                     className={classNames(
                       onRowMouseclick && "hover:cursor-pointer",
-                      variant === "compact" && "!border-0"
+                      variant === "compact" && "!border-0",
+                      "group"
                     )}>
                     {row.getVisibleCells().map((cell) => {
                       const column = table.getColumn(cell.column.id);
@@ -131,7 +132,7 @@ export function DataTable<TData, TValue>({
                           }}
                           className={classNames(
                             variant === "compact" && "p-1.5",
-                            meta?.sticky && "bg-default sticky left-0"
+                            meta?.sticky && "group-hover:bg-muted bg-default sticky left-0"
                           )}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
