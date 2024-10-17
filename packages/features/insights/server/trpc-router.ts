@@ -416,7 +416,7 @@ export const insightsRouter = router({
         timeView: inputTimeView,
         userId: selfUserId,
       } = input;
-
+      console.log("Query start at eventsTimeLine in insights/server/trpc-router.ts");
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
       const user = ctx.user;
@@ -450,7 +450,7 @@ export const insightsRouter = router({
         },
       });
 
-      let { whereCondition: whereConditional } = r;
+      const { whereCondition: whereConditional } = r;
 
       // Get timeline data
       const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
@@ -461,43 +461,51 @@ export const insightsRouter = router({
       }
 
       const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-      const result = [];
 
-      for (const date of timeline) {
+      // Step 1: Prepare the date ranges
+      const dateRanges = timeline.map((date) => {
+        let startDate = dayjs(date).startOf(timeView);
+        let endDate = dayjs(date).endOf(timeView);
+
+        if (timeView === "week") {
+          startDate = dayjs(date).startOf("day");
+          endDate = dayjs(date).add(6, "day").endOf("day");
+        }
+
+        return {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          formattedDate: dayjs(date).format(dateFormat), // keep formatted date for later
+        };
+      });
+
+      // Step 2: Run a single query for all date ranges
+      const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(dateRanges, whereConditional);
+
+      // Step 3: Process results for each date range and status
+      const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
-          Month: dayjs(date).format(dateFormat),
+          Month: formattedDate,
           Created: 0,
           Completed: 0,
           Rescheduled: 0,
           Cancelled: 0,
           "No-Show (Host)": 0,
         };
-        const startOfEndOf = timeView;
-        let startDate = dayjs(date).startOf(startOfEndOf);
-        let endDate = dayjs(date).endOf(startOfEndOf);
-        if (timeView === "week") {
-          startDate = dayjs(date).startOf("day");
-          endDate = dayjs(date).add(6, "day").endOf("day");
+
+        // Access counts directly using the formattedDate as a key in countsByStatus
+        const countsForDateRange = countsByStatus[formattedDate];
+
+        if (countsForDateRange) {
+          EventData["Created"] = countsForDateRange["_all"] || 0;
+          EventData["Completed"] = countsForDateRange["completed"] || 0;
+          EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
+          EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
+          EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
         }
 
-        whereConditional = {
-          ...whereConditional,
-          createdAt: {
-            gte: startDate.toISOString(),
-            lte: endDate.toISOString(),
-          },
-        };
-
-        const countsByStatus = await EventsInsights.countGroupedByStatus(whereConditional);
-
-        EventData["Created"] = countsByStatus["_all"];
-        EventData["Completed"] = countsByStatus["completed"];
-        EventData["Rescheduled"] = countsByStatus["rescheduled"];
-        EventData["Cancelled"] = countsByStatus["cancelled"];
-        EventData["No-Show (Host)"] = countsByStatus["noShowHost"];
-        result.push(EventData);
-      }
-
+        return EventData;
+      });
       return result;
     }),
   popularEventTypes: userBelongsToTeamProcedure

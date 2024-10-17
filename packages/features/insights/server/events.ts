@@ -7,7 +7,87 @@ import type { RawDataInput } from "./raw-data.schema";
 
 type TimeViewType = "week" | "month" | "year" | "day";
 
+type DateRange = {
+  startDate: string; // ISO string format
+  endDate: string; // ISO string format
+  formattedDate: string;
+};
+
+type StatusAggregate = {
+  completed: number;
+  rescheduled: number;
+  cancelled: number;
+  noShowHost: number;
+  _all: number;
+};
+
+type AggregateResult = {
+  [date: string]: StatusAggregate;
+};
+
 class EventsInsights {
+  static countGroupedByStatusForRanges = async (
+    dateRanges: DateRange[],
+    whereConditional: Prisma.BookingTimeStatusWhereInput
+  ): Promise<AggregateResult> => {
+    const data = await prisma.bookingTimeStatus.groupBy({
+      by: ["timeStatus", "noShowHost", "createdAt"],
+      where: {
+        AND: [
+          whereConditional,
+          {
+            OR: dateRanges.map(({ startDate, endDate }) => ({
+              createdAt: {
+                gte: startDate,
+                lte: endDate,
+              },
+            })),
+          },
+        ],
+      },
+      _count: {
+        _all: true,
+      },
+    });
+
+    // Initialize aggregate result
+    const aggregate: AggregateResult = dateRanges.reduce((acc, { formattedDate }) => {
+      acc[formattedDate] = {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        _all: 0,
+      };
+      return acc;
+    }, {} as AggregateResult);
+
+    // Process the query results and map to date ranges
+    data.forEach((item) => {
+      // Determine the formatted date key for this item
+      const range = dateRanges.find(({ startDate, endDate }) =>
+        dayjs(item.createdAt).isBetween(startDate, endDate, null, "[]")
+      );
+
+      if (range) {
+        const rangeKey = range.formattedDate;
+        const status = item.timeStatus as keyof StatusAggregate;
+
+        if (typeof status === "string") {
+          // Update the aggregate counts for the date range
+          aggregate[rangeKey][status] += item._count?._all ?? 0;
+          aggregate[rangeKey]["_all"] += item._count?._all ?? 0;
+
+          if (item.noShowHost) {
+            aggregate[rangeKey]["noShowHost"] += item._count?._all ?? 0;
+          }
+        }
+      }
+    });
+
+    return aggregate;
+  };
+
   static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
     const data = await prisma.bookingTimeStatus.groupBy({
       where,
