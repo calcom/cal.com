@@ -18,12 +18,8 @@ import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/paymen
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { parseAmount } from "../lib/amount-utils";
-import { DEFAULT_AMOUNT, DEFAULT_COUNTRY, DEFAULT_LOCALE } from "../lib/constants";
-
 interface IAdyenPaymentComponentProps {
   payment: {
-    // Will be parsed on render
     data: unknown;
   };
   paymentPageProps: PaymentPageProps;
@@ -42,10 +38,6 @@ export const AdyenPaymentComponent = (props: IAdyenPaymentComponentProps) => {
   const searchParams = useSearchParams();
 
   const loadAdyen = useCallback(async () => {
-    const countryCode = searchParams.get("countryCode") || DEFAULT_COUNTRY;
-    const locale = searchParams.get("shopperLocale") || DEFAULT_LOCALE;
-    const amount = parseAmount(searchParams.get("amount") || DEFAULT_AMOUNT, countryCode);
-
     const { payment } = props;
     const { data } = payment;
     const session = adyenPaymentSessionDataSchema.parse(data);
@@ -56,7 +48,6 @@ export const AdyenPaymentComponent = (props: IAdyenPaymentComponentProps) => {
         id: session.sessionId,
         sessionData: session.sessionData,
       },
-      countryCode,
       environment: IS_PRODUCTION ? "live" : "test",
       analytics: {
         enabled: false,
