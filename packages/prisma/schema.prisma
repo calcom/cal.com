@@ -343,6 +343,8 @@ model User {
   referralLinkId             String?
   features                   UserFeatures[]
 
+  lastLogin DateTime?
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
