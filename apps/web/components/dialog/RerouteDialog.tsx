@@ -599,6 +599,10 @@ const NewRoutingManager = ({
   }
 
   function reroutingCTAs() {
+    if(chosenRoute.action.type !== RouteActionType.EventTypeRedirectUrl) {
+      // There are no actions to perform if the new chosen route isn't an event type redirect
+      return null
+    }
     const shouldDisableCTAs = teamMembersMatchingAttributeLogic.isPending || createBookingMutation.isPending;
     return (
       <div className="flex flex-col gap-2">
