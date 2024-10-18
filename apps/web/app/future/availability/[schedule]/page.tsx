@@ -1,9 +1,10 @@
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, revalidateCacheForDynamicPath } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
+import { AvailabilityRepository } from "@calcom/lib/server/repository/availability";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -39,6 +40,11 @@ const Page = async ({ params }: PageProps) => {
     notFound();
   }
 
+  const revalidate = async () => {
+    "use server";
+    revalidateCacheForDynamicPath(`/future/availability/${scheduleId}`);
+  };
+
   let userData, schedule, travelSchedules;
 
   try {
@@ -66,7 +72,11 @@ const Page = async ({ params }: PageProps) => {
     travelSchedules = await TravelScheduleRepository.findTravelSchedulesByUserId(userId);
   } catch (e) {}
 
-  return <AvailabilitySettingsWebWrapper scheduleFetched={schedule} travelSchedules={travelSchedules} />;
+  await AvailabilityRepository.getList({ userId, defaultScheduleId: null }); // needed to trigger invalidation
+
+  return (
+    <AvailabilitySettingsWebWrapper ssrProps={{ schedule, travelSchedules }} revalidateCache={revalidate} />
+  );
 };
 
 export default WithLayout({ ServerPage: Page });
