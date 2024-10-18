@@ -31,7 +31,7 @@ export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredent
     INNER JOIN "Team" AS "t" ON "t"."id" = "Credential"."teamId"
     INNER JOIN "Membership" AS "m" ON "m"."teamId" = "t"."id"
     WHERE "m"."userId" = ${userId} AND "m"."accepted" = true AND "m"."role" IN
-          (CAST('MEMBER'::text AS "MembershipRole"),CAST('ADMIN'::text AS "MembershipRole"))
+          (CAST('ADMIN'::text AS "MembershipRole"),CAST('OWNER'::text AS "MembershipRole"))
           AND "m"."teamId" IS NOT NULL AND "t"."id" IS NOT NULL
       AND "Credential"."invalid" = true`;
 
