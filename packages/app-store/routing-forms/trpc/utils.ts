@@ -1,6 +1,6 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 import async from "async";
-import os from "os";
+import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -206,6 +206,11 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
     getTeamMembersWithAttributeOptionValuePerAttributeTimeTaken,
   ] = await aPf(() => getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId }));
 
+  const state = {
+    tree: QbUtils.checkTree(QbUtils.loadTree(attributesQueryValue), attributesQueryBuilderConfig as any),
+    config: attributesQueryBuilderConfig as any,
+  };
+
   const [_, teamMembersMatchingAttributeLogicTimeTaken] = await aPf(async () => {
     return await async.mapLimit<TeamMemberWithAttributeOptionValuePerAttribute, Promise<void>>(
       teamMembersWithAttributeOptionValuePerAttribute,
@@ -221,8 +226,7 @@ export async function findTeamMembersMatchingAttributeLogicOfRoute(
         );
         const result = evaluateRaqbLogic(
           {
-            queryValue: attributesQueryValue,
-            queryBuilderConfig: attributesQueryBuilderConfig,
+            state,
             data: attributesData,
             beStrictWithEmptyLogic: true,
           },
