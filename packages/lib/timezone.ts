@@ -3,7 +3,6 @@ import type { ITimezoneOption } from "react-timezone-select";
 import dayjs from "@calcom/dayjs";
 import type { ICity } from "@calcom/ui/components/form/timezone-select";
 
-import { timezones as additionalTimezones } from "../features/additionalTimezones/additionalTimezones";
 import isProblematicTimezone from "./isProblematicTimezone";
 
 function findPartialMatch(itemsToSearch: string, searchString: string) {
@@ -31,10 +30,6 @@ export const addCitiesToDropdown = (cities: ICity[]) => {
     }
     return acc;
   }, {});
-
-  additionalTimezones.forEach((tz) => {
-    cityTimezones[tz.identifier] = tz.name;
-  });
 
   return cityTimezones || {};
 };
