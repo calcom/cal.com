@@ -57,6 +57,7 @@ const SecondaryEmailModal = ({
         type="creation"
         data-testid="secondary-email-add-dialog">
         <Form form={formMethods} handleSubmit={handleAddEmail}>
+          <div className="text-subtle mb-4 text-sm">{t("change_email_hint")}</div>
           <TextField
             label={t("email_address")}
             data-testid="secondary-email-input"
