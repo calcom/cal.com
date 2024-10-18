@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
@@ -5,6 +7,8 @@ import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getStartEndDateforLimitCheck } from "../getBusyTimes";
@@ -91,6 +95,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
   eventTypeId?: number;
   teamId?: number;
   user?: { id: number; email: string };
+  isGlobalBookingLimits?: boolean;
   includeManagedEvents?: boolean;
   timeZone?: string | null;
 }) => {
@@ -104,6 +109,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     teamId,
     user,
     rescheduleUid,
+    isGlobalBookingLimits,
     includeManagedEvents = false,
     timeZone,
   } = params;
@@ -129,6 +135,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
             teamId,
             user,
             rescheduleUid,
+            isGlobalBookingLimits,
             includeManagedEvents,
             timeZone,
           });
@@ -279,6 +286,87 @@ const _getBusyTimesFromTeamLimits = async (
     user,
     includeManagedEvents,
     timeZone,
+  });
+
+  return limitManager.getBusyTimes();
+};
+
+export const getBusyTimesFromGlobalBookingLimits = async (
+  ...args: Parameters<typeof _getBusyTimesFromGlobalBookingLimits>
+): Promise<ReturnType<typeof _getBusyTimesFromGlobalBookingLimits>> => {
+  return monitorCallbackAsync(_getBusyTimesFromGlobalBookingLimits, ...args);
+};
+
+const _getBusyTimesFromGlobalBookingLimits = async (
+  userId: number,
+  userEmail: string,
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  rescheduleUid?: string
+) => {
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    dateFrom.toISOString(),
+    dateTo.toISOString(),
+    bookingLimits
+  );
+
+  const where: Prisma.BookingWhereInput = {
+    userId,
+    status: BookingStatus.ACCEPTED,
+    startTime: {
+      gte: limitDateFrom.toDate(),
+    },
+    endTime: {
+      lte: limitDateTo.toDate(),
+    },
+    eventType: {
+      schedulingType: null,
+    },
+  };
+
+  if (rescheduleUid) {
+    where.NOT = {
+      uid: rescheduleUid,
+    };
+  }
+
+  const bookings = await prisma.booking.findMany({
+    where,
+    select: {
+      id: true,
+      startTime: true,
+      endTime: true,
+      eventType: {
+        select: {
+          id: true,
+        },
+      },
+      title: true,
+      userId: true,
+    },
+  });
+
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventType?.id}-booking-${id}`,
+    userId,
+  }));
+
+  const limitManager = new LimitManager();
+
+  await getBusyTimesFromBookingLimits({
+    bookings: busyTimes,
+    bookingLimits,
+    dateFrom,
+    dateTo,
+    eventTypeId: undefined,
+    limitManager,
+    rescheduleUid,
+    user: { id: userId, email: userEmail },
+    isGlobalBookingLimits: true,
   });
 
   return limitManager.getBusyTimes();
