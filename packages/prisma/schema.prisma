@@ -343,6 +343,8 @@ model User {
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits Json?
 
+  lastLogin DateTime?
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])

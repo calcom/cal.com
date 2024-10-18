@@ -9,6 +9,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -334,6 +335,24 @@ export default function MemberList(props: Props) {
 
           // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
+        },
+      },
+      {
+        id: "lastLogin",
+        accessorFn: (data) => data.lastLogin,
+        header: "Last Login",
+        cell: ({ row }) => {
+          const { lastLogin } = row.original;
+          return (
+            <div>
+              {lastLogin
+                ? formatLocalizedDateTime(lastLogin, {
+                    dateStyle: "full",
+                    timeStyle: "long",
+                  })
+                : "N/A"}
+            </div>
+          );
         },
       },
       {
