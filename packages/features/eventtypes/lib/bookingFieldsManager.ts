@@ -114,7 +114,7 @@ export async function removeBookingField(
   fieldToRemove: Pick<Field, "name">,
   source: Pick<NonNullable<Field["sources"]>[number], "id" | "type">,
   eventTypeId: EventType["id"],
-  actorUserId?: number | null
+  actorUserId?: number
 ) {
   const eventType = await getEventType(eventTypeId);
 

@@ -99,7 +99,7 @@ export const Handler = async ({ ctx, input }: Options) => {
               },
             },
           }),
-      actorUserId,
+      actorUserId: ctx.user.id,
     },
     select: {
       title: true,
