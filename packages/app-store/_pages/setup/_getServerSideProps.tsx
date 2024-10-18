@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
 export const AppSetupPageMap = {
+  adyen: import("../../adyen/pages/setup/_getServerSideProps"),
   alby: import("../../alby/pages/setup/_getServerSideProps"),
   make: import("../../make/pages/setup/_getServerSideProps"),
   zapier: import("../../zapier/pages/setup/_getServerSideProps"),
