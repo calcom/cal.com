@@ -7,7 +7,7 @@ import type { AdyenCredentialKeys } from "../lib/types";
 import { adyenCredentialKeysSchema } from "../lib/types";
 import { ADYEN_OAUTH_API_BASE_URL } from "./_adyenUrls";
 
-const log = logger.getSubLogger({ prefix: [`[[adyen/api/utils]`] });
+const log = logger.getSubLogger({ prefix: [`[adyen/api/utils]`] });
 
 async function refreshAdyenToken(key: AdyenCredentialKeys, clientId: string, clientSecret: string) {
   const headers = {

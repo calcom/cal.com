@@ -4,12 +4,18 @@ import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
-import { paymentOptions } from "../lib/constants";
 import {
-  convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
-} from "../lib/currencyConversions";
+  convertToSmallestCurrencyUnit,
+} from "../../_utils/payments/currencyConversions";
 import { currencyOptions } from "../lib/currencyOptions";
+
+export const paymentOptions = [
+  {
+    label: "on_booking_option",
+    value: "ON_BOOKING",
+  },
+];
 
 type Option = { value: string; label: string };
 
@@ -65,7 +71,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         <>
           <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
             <TextField
-              data-testid="stripe-price-input"
+              data-testid="adyen-price-input"
               label={t("price")}
               className="h-[38px]"
               addOnLeading={
@@ -90,7 +96,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               {t("currency")}
             </label>
             <Select
-              data-testid="stripe-currency-select"
+              data-testid="adyen-currency-select"
               variant="default"
               options={currencyOptions}
               value={selectedCurrency}
@@ -109,7 +115,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               Payment option
             </label>
             <Select<Option>
-              data-testid="stripe-payment-option-select"
+              data-testid="adyen-payment-option-select"
               defaultValue={
                 paymentOptionSelectValue
                   ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }

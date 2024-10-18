@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
-import { paymentOptions } from "./lib/constants";
+import { paymentOptions } from "./components/EventTypeAppSettingsInterface";
 
 type PaymentOption = (typeof paymentOptions)[number]["value"];
 const VALUES: [PaymentOption, ...PaymentOption[]] = [
