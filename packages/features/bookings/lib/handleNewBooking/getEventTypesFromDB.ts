@@ -48,6 +48,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       periodType: true,
       periodStartDate: true,
       periodEndDate: true,
+      onlyShowFirstAvailableSlot: true,
       periodDays: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
