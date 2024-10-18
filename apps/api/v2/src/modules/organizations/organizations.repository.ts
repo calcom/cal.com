@@ -103,6 +103,24 @@ export class OrganizationsRepository {
     });
   }
 
+  async findOrgTeamUser(organizationId: number, teamId: number, userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
+        teams: {
+          some: {
+            teamId: teamId,
+          },
+        },
+      },
+    });
+  }
+
   async fetchOrgAdminApiStatus(organizationId: number) {
     return this.dbRead.prisma.organizationSettings.findUnique({
       where: {

@@ -29,6 +29,7 @@ export interface IAtomsContext {
     exists: (key: translationKeys | string) => boolean;
   };
   organizationId: number;
+  userId?: number;
 }
 
 export const AtomsContext = createContext({

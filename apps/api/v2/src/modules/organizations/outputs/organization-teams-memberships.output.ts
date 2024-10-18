@@ -5,6 +5,27 @@ import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateNested
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
+export class MembershipUserOutputDto {
+  @IsOptional()
+  @IsString()
+  @Expose()
+  readonly avatarUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Expose()
+  readonly username?: string;
+
+  @IsOptional()
+  @IsString()
+  @Expose()
+  readonly name?: string;
+
+  @IsBoolean()
+  @Expose()
+  readonly email!: string;
+}
+
 export class OrgTeamMembershipOutputDto {
   @IsInt()
   @Expose()
@@ -31,6 +52,11 @@ export class OrgTeamMembershipOutputDto {
   @IsBoolean()
   @Expose()
   readonly disableImpersonation?: boolean;
+
+  @ValidateNested()
+  @Type(() => MembershipUserOutputDto)
+  @Expose()
+  user!: MembershipUserOutputDto;
 }
 
 export class OrgTeamMembershipsOutputResponseDto {

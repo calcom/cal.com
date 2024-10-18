@@ -2412,6 +2412,38 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules": {
+      "get": {
+        "operationId": "OrganizationsTeamsSchedulesController_getUserSchedules",
+        "summary": "Get schedules of a team member",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Schedules",
+          "Orgs / Teams / Users / Schedules"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/users": {
       "get": {
         "operationId": "OrganizationsUsersController_getOrganizationsUsers",
@@ -10447,6 +10479,26 @@
           "data"
         ]
       },
+      "MembershipUserOutputDto": {
+        "type": "object",
+        "properties": {
+          "avatarUrl": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
       "OrgTeamMembershipOutputDto": {
         "type": "object",
         "properties": {
@@ -10472,6 +10524,9 @@
           },
           "disableImpersonation": {
             "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
           }
         },
         "required": [
@@ -10479,7 +10534,8 @@
           "id",
           "userId",
           "teamId",
-          "accepted"
+          "accepted",
+          "user"
         ]
       },
       "OrgTeamMembershipsOutputResponseDto": {

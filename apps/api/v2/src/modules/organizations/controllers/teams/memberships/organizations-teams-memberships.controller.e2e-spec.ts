@@ -2,6 +2,7 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/inputs/update-organization-team-membership.input";
+import { OrgTeamMembershipOutputDto } from "@/modules/organizations/outputs/organization-teams-memberships.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -37,7 +38,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let nonOrgTeam: Team;
     let membership: Membership;
     let membership2: Membership;
-    let membershipCreatedViaApi: Membership;
+    let membershipCreatedViaApi: OrgTeamMembershipOutputDto;
 
     const userEmail = "org-admin-membership-teams-controller-e2e@api.com";
     const userEmail2 = "org-member-membership-teams-controller-e2e@api.com";
@@ -200,7 +201,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership[]> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership.id);
           expect(responseBody.data[1].id).toEqual(membership2.id);
@@ -219,7 +220,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships?skip=1&take=1`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership[]> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership2.id);
           expect(responseBody.data[0].userId).toEqual(user2.id);
@@ -238,10 +239,11 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membership.id}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membership.id);
           expect(responseBody.data.userId).toEqual(user.id);
+          expect(responseBody.data.user.email).toEqual(user.email);
         });
     });
 
@@ -272,12 +274,13 @@ describe("Organizations Teams Memberships Endpoints", () => {
         } satisfies CreateOrgTeamMembershipDto)
         .expect(201)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           membershipCreatedViaApi = responseBody.data;
           expect(membershipCreatedViaApi.teamId).toEqual(orgTeam.id);
           expect(membershipCreatedViaApi.role).toEqual("MEMBER");
           expect(membershipCreatedViaApi.userId).toEqual(userToInviteViaApi.id);
+          expect(membershipCreatedViaApi.user.email).toEqual(userToInviteViaApi.email);
         });
     });
 
@@ -300,7 +303,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         } satisfies UpdateOrgTeamMembershipDto)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           membershipCreatedViaApi = responseBody.data;
           expect(membershipCreatedViaApi.role).toEqual("OWNER");
@@ -312,7 +315,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipCreatedViaApi.id}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Membership> = response.body;
+          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membershipCreatedViaApi.id);
         });

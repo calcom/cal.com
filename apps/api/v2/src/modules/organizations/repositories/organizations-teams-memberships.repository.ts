@@ -9,13 +9,14 @@ export class OrganizationsTeamsMembershipsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async findOrgTeamMembershipsPaginated(organizationId: number, teamId: number, skip: number, take: number) {
-    return this.dbRead.prisma.membership.findMany({
+    return await this.dbRead.prisma.membership.findMany({
       where: {
         teamId: teamId,
         team: {
           parentId: organizationId,
         },
       },
+      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
       skip,
       take,
     });
@@ -30,6 +31,7 @@ export class OrganizationsTeamsMembershipsRepository {
           parentId: organizationId,
         },
       },
+      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
     });
   }
   async deleteOrgTeamMembershipById(organizationId: number, teamId: number, membershipId: number) {
@@ -59,12 +61,14 @@ export class OrganizationsTeamsMembershipsRepository {
           parentId: organizationId,
         },
       },
+      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
     });
   }
 
   async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
     return this.dbWrite.prisma.membership.create({
       data: { ...data, teamId: teamId },
+      include: { user: { select: { username: true, email: true, avatarUrl: true, name: true } } },
     });
   }
 }
