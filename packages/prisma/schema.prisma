@@ -490,6 +490,8 @@ model Membership {
   @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
+  @@index([accepted])
+  @@index([role])
 }
 
 model VerificationToken {
