@@ -1405,15 +1405,18 @@
                     "responses": {
                       "name": "Hello Hello",
                       "email": "hello@gmail.com",
-                      "metadata": {},
-                      "location": "Calcom HQ"
+                      "smsReminderNumber": null,
+                      "location": {
+                        "value": "userPhone",
+                        "optionValue": ""
+                      }
                     },
                     "timeZone": "Europe/London",
                     "language": "en",
                     "title": "Debugging between Syed Ali Shahbaz and Hello Hello",
                     "description": null,
                     "status": "PENDING",
-                    "smsReminderNumber": null
+                    "metadata": {}
                   }
                 }
               }

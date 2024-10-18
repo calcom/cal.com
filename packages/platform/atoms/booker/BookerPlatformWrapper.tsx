@@ -80,7 +80,6 @@ export type BookerPlatformWrapperAtomProps = Omit<
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
-  hideEventTypeDetails?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -188,7 +187,7 @@ export const BookerPlatformWrapper = (
     event.data.length = props.duration;
   }
 
-  const bookerLayout = useBookerLayout(event.data, { hideEventTypeDetails: props.hideEventTypeDetails });
+  const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
     eventId: event.data?.id,
@@ -402,7 +401,7 @@ export const BookerPlatformWrapper = (
   }, [view, isOverlayCalendarEnabled]);
 
   return (
-    <AtomsWrapper>
+    <AtomsWrapper customClassName={props?.customClassNames?.atomsWrapper}>
       <BookerComponent
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
