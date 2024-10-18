@@ -72,13 +72,14 @@ export const useEventTypeForm = ({
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
-      hashedLink: eventType.hashedLink?.link || undefined,
+      multiplePrivateLinks: eventType.hashedLink.map((link) => link.link),
       eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
       hideCalendarNotes: eventType.hideCalendarNotes,
+      hideCalendarEventDetails: eventType.hideCalendarEventDetails,
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
@@ -347,6 +348,7 @@ export const useEventTypeForm = ({
       customInputs,
       children,
       assignAllTeamMembers,
+      multiplePrivateLinks: values.multiplePrivateLinks,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,

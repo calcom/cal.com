@@ -47,19 +47,28 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
 
     await user1NotMemberOfOrg1.apiLogin();
     await page.goto("/event-types");
-    const userEventLinksSelector = `[data-testid=slug-${user1NotMemberOfOrg1.username}] [data-testid="preview-link-button"]`;
-    await page.waitForSelector(userEventLinksSelector);
+
+    await page.waitForSelector(`[data-testid="event-types"] [data-testid="preview-link-button"]`, {
+      timeout: 5000,
+    });
+    const userEventLinksLocators = await page
+      .locator(`[data-testid="event-types"] [data-testid="preview-link-button"]`)
+      .all();
 
     // Get all the event links
-    const userEventLinksLocators = await page.locator(userEventLinksSelector).all();
     expect(userEventLinksLocators.length).toBeGreaterThan(0);
     for (const userEventLinkLocator of userEventLinksLocators) {
       const href = await userEventLinkLocator.getAttribute("href");
       expect(href).toContain(WEBAPP_URL);
     }
 
+    await page.goto(`/event-types?teamId=${team1MemberOfOrg1.id}`);
+
+    await page.waitForSelector(`[data-testid="event-types"] [data-testid="preview-link-button"]`, {
+      timeout: 5000,
+    });
     const teamEventLinksLocators = await page
-      .locator(`[data-testid=slug-${team1MemberOfOrg1.slug}] [data-testid="preview-link-button"]`)
+      .locator(`[data-testid="event-types"] [data-testid="preview-link-button"]`)
       .all();
 
     expect(teamEventLinksLocators.length).toBeGreaterThan(0);

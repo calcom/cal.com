@@ -12,6 +12,7 @@ import { z } from "zod";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -523,12 +524,12 @@ const ProfileForm = ({
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
-    email: z.string().email(),
+    email: emailSchema,
     bio: z.string(),
     secondaryEmails: z.array(
       z.object({
         id: z.number(),
-        email: z.string().email(),
+        email: emailSchema,
         emailVerified: z.union([z.string(), z.null()]).optional(),
         emailPrimary: z.boolean().optional(),
       })

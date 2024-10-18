@@ -48,15 +48,88 @@ export const zodRouterFieldView = zodRouterField.extend({
 export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView]);
 
 export const zodFieldsView = z.array(zodFieldView).optional();
+const queryValueSchema = z.object({
+  id: z.string().optional(),
+  type: z.union([z.literal("group"), z.literal("switch_group")]),
+  children1: z.any(),
+  properties: z.any(),
+});
+
+/**
+ * Stricter schema for validating before saving to DB
+ */
+export const queryValueSaveValidationSchema = queryValueSchema
+  .omit({ children1: true })
+  .merge(
+    z.object({
+      children1: z
+        .record(
+          z.object({
+            type: z.string().optional(),
+            properties: z
+              .object({
+                field: z.any().optional(),
+                operator: z.any().optional(),
+                value: z.any().optional(),
+              })
+              .optional(),
+          })
+        )
+        .optional()
+        // Be very careful and lenient here. Just ensure that the rule isn't invalid without breaking anything
+        .superRefine((children1, ctx) => {
+          if (!children1) return;
+          const isObject = (value: unknown): value is Record<string, unknown> =>
+            typeof value === "object" && value !== null;
+          Object.entries(children1).forEach(([, _rule]) => {
+            const rule = _rule as unknown;
+            if (!isObject(rule) || rule.type !== "rule") return;
+            if (!isObject(rule.properties)) return;
+
+            const value = rule.properties.value || [];
+            if (!(value instanceof Array)) {
+              return;
+            }
+
+            // MultiSelect array can be 2D array
+            const flattenedValues = value.flat();
+
+            const validValues = flattenedValues.filter((value: unknown) => {
+              // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
+              // Also, it is possible that RAQB has some requirements to support null or empty string values.
+              if (value === undefined) return false;
+              return true;
+            });
+
+            if (!validValues.length) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Looks like you are trying to create a rule with no value",
+              });
+            }
+          });
+        }),
+    })
+  )
+  .nullish();
 
 export const zodNonRouterRoute = z.object({
   id: z.string(),
-  queryValue: z.object({
-    id: z.string().optional(),
-    type: z.union([z.literal("group"), z.literal("switch_group")]),
-    children1: z.any(),
-    properties: z.any(),
-  }),
+  attributeRoutingConfig: z
+    .object({
+      skipContactOwner: z.boolean().optional(),
+    })
+    .nullish(),
+
+  // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
+  /**
+   * RAQB query value for form fields
+   */
+  queryValue: queryValueSchema.brand<"formFieldsQueryValue">(),
+  /**
+   * RAQB query value for attributes. It is only applicable for Team Events as it is used to find matching team members
+   */
+  attributesQueryValue: queryValueSchema.brand<"attributesQueryValue">().optional(),
   isFallback: z.boolean().optional(),
   action: z.object({
     // TODO: Make it a union type of "customPageMessage" and ..
