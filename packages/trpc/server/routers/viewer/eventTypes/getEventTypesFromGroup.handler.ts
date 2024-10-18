@@ -138,6 +138,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   if (membership && membership.team.isPrivate)
     filteredEventTypes.forEach((evType) => {
       evType.users = [];
+      evType.hosts = [];
     });
 
   return {
