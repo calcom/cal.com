@@ -43,13 +43,14 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
     return null;
   }
   // Define which is the current domain/subdomain
-  const slug = hostname.replace(`.${currentHostname}` ?? "", "");
-  const hasNoDotInSlug = slug.indexOf(".") === -1;
-  if (hasNoDotInSlug) {
-    return slug;
+  const slug = hostname.endsWith(`.${currentHostname}`) ? hostname.replace(`.${currentHostname}`, "") : "";
+
+  if (!slug) {
+    log.warn("Non-local subdomain hostname", { hostname });
+    return null;
   }
-  log.warn("Derived slug ended up having dots, so not considering it an org domain", { slug });
-  return null;
+
+  return slug;
 }
 
 export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: string | string[]) {
