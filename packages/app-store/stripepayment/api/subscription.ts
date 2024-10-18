@@ -3,12 +3,12 @@ import type Stripe from "stripe";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
-import stripe from "../lib/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {

@@ -34,6 +34,8 @@ env:
   PAYMENT_FEE_PERCENTAGE: ${{ vars.CI_PAYMENT_FEE_PERCENTAGE }}
   SAML_ADMINS: ${{ secrets.CI_SAML_ADMINS }}
   SAML_DATABASE_URL: ${{ secrets.CI_SAML_DATABASE_URL }}
+  STRIPE_MOCK_HOST: localhost
+  STRIPE_MOCK_PORT: 12111
   STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
@@ -71,6 +73,10 @@ jobs:
         ports:
           - 8025:8025
           - 1025:1025
+      stripe-mock-server:
+        image: stripe/stripe-mock:latest
+        ports:
+          - "12111-12112:12111-12112"
     strategy:
       fail-fast: false
       matrix:
