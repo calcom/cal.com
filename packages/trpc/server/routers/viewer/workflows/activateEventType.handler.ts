@@ -364,7 +364,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         workflowId,
         isSmsReminderNumberRequired,
         isOrg,
-        actorUserId: ctx.user.id ?? null,
+        actorUserId: ctx.user.id,
       });
     }
   }

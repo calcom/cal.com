@@ -102,7 +102,7 @@ const createNewSeat = async (
           },
         },
       },
-      actorUserId: actorUserId ?? null,
+      actorUserId,
       ...(seatedBooking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
     },
   });

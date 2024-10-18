@@ -63,7 +63,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     activeOnToRemove,
     workflowId: workflowToDelete.id,
     isOrg,
-    actorUserId: ctx.user.id ?? null,
+    actorUserId: ctx.user.id,
   });
 
   // automatically deletes all steps and reminders connected to this workflow

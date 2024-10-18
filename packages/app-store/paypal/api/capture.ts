@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         data: {
           paid: true,
-          actorUserId: userId ?? null,
+          actorUserId: userId,
         },
       });
       const updatePayment = prisma.payment.update({

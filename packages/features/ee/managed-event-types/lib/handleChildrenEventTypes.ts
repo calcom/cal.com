@@ -188,7 +188,7 @@ export default async function handleChildrenEventTypes({
                 data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
               },
             },*/
-            actorUserId: currentUserId ?? null,
+            actorUserId: currentUserId,
           },
         });
       })
@@ -246,7 +246,7 @@ export default async function handleChildrenEventTypes({
                 : {
                     deleteMany: {},
                   },
-            actorUserId: currentUserId ?? null,
+            actorUserId: currentUserId,
           },
         });
       })

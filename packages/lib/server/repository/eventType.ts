@@ -86,13 +86,13 @@ export class EventTypeRepository {
             durationLimits,
           }
         : null),
-      actorUserId: actorUserId ?? null,
+      actorUserId,
     };
   };
 
   static async create(data: IEventType, actorUserId?: number) {
     return await prisma.eventType.create({
-      data: { ...this.generateCreateEventTypeData(data), actorUserId: actorUserId ?? null },
+      data: { ...this.generateCreateEventTypeData(data), actorUserId },
     });
   }
 

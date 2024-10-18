@@ -105,7 +105,7 @@ export async function upsertBookingField(
     },
     data: {
       bookingFields: newFields,
-      actorUserId: actorUserId ?? null,
+      actorUserId,
     },
   });
 }
@@ -147,7 +147,7 @@ export async function removeBookingField(
     },
     data: {
       bookingFields: newFields,
-      actorUserId: actorUserId ?? null,
+      actorUserId,
     },
   });
 }

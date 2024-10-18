@@ -22,7 +22,7 @@ export const deleteHandler = async ({ ctx: _ctx, input }: DeleteOptions) => {
   await prisma.eventType.delete({
     where: {
       id,
-      actorUserId: _ctx.user.id ?? null,
+      actorUserId: _ctx.user.id,
     },
   });
 

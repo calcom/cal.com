@@ -281,7 +281,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     booking,
     evt,
     referencesToCreate: updatedResult.referencesToCreate,
-    actorUserId: ctx.user.id ?? null,
+    actorUserId: ctx.user.id,
   });
 
   try {

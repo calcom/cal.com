@@ -420,7 +420,7 @@ async function handler(req: CustomRequest) {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
         cancelledBy: cancelledBy,
-        actorUserId: userId ?? null,
+        actorUserId: userId,
       },
     });
     const allUpdatedBookings = await prisma.booking.findMany({

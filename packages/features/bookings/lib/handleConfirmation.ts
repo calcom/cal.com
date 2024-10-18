@@ -182,7 +182,7 @@ export async function handleConfirmation(args: {
             ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
             videoCallUrl: meetingUrl,
           },
-          actorUserId: actorUserId ?? null,
+          actorUserId,
         },
         select: {
           eventType: {
@@ -243,7 +243,7 @@ export async function handleConfirmation(args: {
           ...(typeof booking.metadata === "object" ? booking.metadata : {}),
           videoCallUrl: meetingUrl,
         },
-        actorUserId: actorUserId ?? null,
+        actorUserId,
       },
       select: {
         eventType: {

@@ -501,7 +501,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       activeOnToRemove: activeOnWithChildren,
       workflowId: id,
       isOrg,
-      actorUserId: ctx.user.id ?? null,
+      actorUserId: ctx.user.id,
     });
   } else {
     await upsertSmsReminderFieldForEventTypes({
@@ -513,7 +513,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           s.numberRequired
       ),
       isOrg,
-      actorUserId: ctx.user.id ?? null,
+      actorUserId: ctx.user.id,
     });
   }
 

@@ -54,7 +54,7 @@ const lastAttendeeDeleteBooking = async (
         },
         data: {
           status: BookingStatus.CANCELLED,
-          actorUserId: actorUserId ?? null,
+          actorUserId,
         },
       });
     });
