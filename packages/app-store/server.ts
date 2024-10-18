@@ -8,7 +8,7 @@ import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { defaultLocations } from "./locations";
-
+import { getAllDomainWideDelegationConferencingCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 export async function getLocationGroupedOptions(
   userOrTeamId: { userId: number } | { teamId: number },
   t: TFunction
@@ -27,7 +27,7 @@ export async function getLocationGroupedOptions(
 
   // don't default to {}, when you do TS no longer determines the right types.
   let idToSearchObject: Prisma.CredentialWhereInput;
-
+  let user = null;
   if ("teamId" in userOrTeamId) {
     const teamId = userOrTeamId.teamId;
     // See if the team event belongs to an org
@@ -52,9 +52,14 @@ export async function getLocationGroupedOptions(
     }
   } else {
     idToSearchObject = { userId: userOrTeamId.userId };
+    user = await prisma.user.findFirst({
+      where: {
+        id: userOrTeamId.userId,
+      },
+    });
   }
 
-  const credentials = await prisma.credential.findMany({
+  let credentials = await prisma.credential.findMany({
     where: {
       ...idToSearchObject,
       app: {
@@ -73,7 +78,15 @@ export async function getLocationGroupedOptions(
     },
   });
 
-  const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });
+  if (user) {
+    const domainWideDelegationCredentials = await getAllDomainWideDelegationConferencingCredentialsForUser({
+      user
+    })
+
+    credentials = [...credentials, ...domainWideDelegationCredentials];
+  }
+
+  const integrations = await getEnabledAppsFromCredentials(credentials,  { filterOnCredentials: true });
 
   integrations.forEach((app) => {
     // All apps that are labeled as a locationOption are video apps.

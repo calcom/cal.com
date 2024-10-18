@@ -6,7 +6,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Badge, Button, Icon } from "@calcom/ui";
+import { Badge, Button, Icon, showToast } from "@calcom/ui";
 
 interface IAppConnectionItem {
   title: string;
@@ -23,7 +23,18 @@ interface IAppConnectionItem {
 const AppConnectionItem = (props: IAppConnectionItem) => {
   const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
-  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation();
+  const utils = trpc.useUtils();
+  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.me.invalidate();
+    },
+    onError: (error) => {
+      showToast(t("something_went_wrong"), {
+        type: "error",
+      });
+      console.error(error);
+    },
+  });
   const dependency = props.dependencyData?.find((data) => !data.installed);
   return (
     <div className="flex flex-row items-center justify-between p-5">
@@ -32,6 +43,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
         <p className="text-sm font-bold">{title}</p>
         {isDefault && <Badge variant="green">{t("default")}</Badge>}
       </div>
+      <div className="flex items-center space-x-2">
       <InstallAppButtonWithoutPlanCheck
         type={type}
         options={{
@@ -91,6 +103,20 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
           </Button>
         )}
       />
+      {installed && !isDefault && (
+        <Button
+          color="secondary"
+          className="ml-2"
+          type="button"
+          loading={setDefaultConferencingApp.isPending}
+          onClick={() => {
+            setDefaultConferencingApp.mutate({ slug });
+          }}
+        >
+          {t("set_as_default")}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

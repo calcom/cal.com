@@ -10,6 +10,7 @@ export const DisconnectIntegrationComponent = ({
   onModalOpen,
   onDeletionConfirmation,
   buttonProps,
+  disabled,
 }: {
   label?: string;
   trashIcon?: boolean;
@@ -18,6 +19,7 @@ export const DisconnectIntegrationComponent = ({
   onModalOpen: () => void;
   onDeletionConfirmation: () => void;
   buttonProps?: ButtonProps;
+  disabled?: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -30,7 +32,7 @@ export const DisconnectIntegrationComponent = ({
             StartIcon={!trashIcon ? undefined : "trash"}
             size="base"
             variant={trashIcon && !label ? "icon" : "button"}
-            disabled={isGlobal}
+            disabled={isGlobal || disabled}
             {...buttonProps}>
             {label}
           </Button>

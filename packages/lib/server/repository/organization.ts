@@ -298,4 +298,37 @@ export class OrganizationRepository {
     }
     return { ...org, metadata: parsedMetadata };
   }
+
+  static async findByMemberEmail({ email }: { email: string }) {
+    const organization = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        members: {
+          some: {
+            user: { email },
+          },
+        },
+      },
+    });
+    return organization ?? null;
+  }
+
+  static async findByMemberEmailId({ email }: { email: string }) {
+    const log = logger.getSubLogger({ prefix: ["findByMemberEmailId"] });
+    log.debug("called with", { email });
+    const organization = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        members: {
+          some: {
+            user: {
+              email,
+            },
+          },
+        },
+      },
+    });
+
+    return organization;
+  }
 }
