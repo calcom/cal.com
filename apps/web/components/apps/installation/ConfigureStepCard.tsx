@@ -126,7 +126,7 @@ const EventTypeGroup = ({
 }: ConfigureStepCardProps & {
   groupIndex: number;
   setUpdatedEventTypesStatus: Dispatch<SetStateAction<TUpdatedEventTypesStatus>>;
-  submitRefs: React.MutableRefObject<Array<React.RefObject<HTMLButtonElement>>>;
+  submitRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
 }) => {
   const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
@@ -175,9 +175,7 @@ const EventTypeGroup = ({
                 });
               }}
               ref={(el) => {
-                if (el && !submitRefs.current[index]) {
-                  submitRefs.current[index] = el;
-                }
+                submitRefs.current[index] = el;
               }}
               {...props}
             />
@@ -197,7 +195,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
     keyName: "fieldId",
   });
   const eventTypeGroups = watch("eventTypeGroups");
-  const submitRefs = useRef<Array<React.RefObject<HTMLButtonElement>>>([]);
+  const submitRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const mainForSubmitRef = useRef<HTMLButtonElement>(null);
   const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState<TUpdatedEventTypesStatus>(
