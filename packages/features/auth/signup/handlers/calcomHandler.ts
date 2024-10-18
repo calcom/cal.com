@@ -11,8 +11,6 @@ import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
-import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -172,8 +170,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         team,
       });
 
-      closeComUpsertTeamUser(team, user, membership.role);
-
       // Accept any child team invites for orgs.
       if (team.parent) {
         await joinAnyChildTeamOnOrgInvite({
@@ -210,8 +206,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       language: await getLocaleFromRequest(req),
       username: username || "",
     });
-    // Sync Services
-    await syncServicesCreateWebUser(user);
   }
 
   if (checkoutSessionId) {

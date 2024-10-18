@@ -1,7 +1,6 @@
 import type { User } from "@prisma/client";
 
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import { deleteWebUser as syncServicesDeleteWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 
 export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) {
@@ -9,12 +8,9 @@ export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) 
   await deleteStripeCustomer(user).catch(console.warn);
   // Remove my account
   // TODO: Move this to Repository pattern.
-  const deletedUser = await prisma.user.delete({
+  await prisma.user.delete({
     where: {
       id: user.id,
     },
   });
-
-  // Sync Services
-  syncServicesDeleteWebUser(deletedUser);
 }
